@@ -1,0 +1,9 @@
+.git
+.github
+infrastructure
+docs
+*.md
+.DS_Store
+.env*
+!.env.example
+coverage

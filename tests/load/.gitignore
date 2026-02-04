@@ -1,0 +1,11 @@
+# Load test results
+*.json
+*.csv
+*.log
+
+# Environment files with credentials
+.env.load-test
+
+# k6 output files
+results/
+summary/

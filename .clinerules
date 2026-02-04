@@ -1,0 +1,85 @@
+# VendHub OS - Claude/Cursor Rules
+
+## Project Info
+- Name: VendHub OS (VHM24)
+- Type: Vending Machine Management System
+- Architecture: Monorepo (Turborepo)
+
+## Tech Stack
+### Backend (apps/api)
+- NestJS 11 + TypeScript 5.8
+- TypeORM + PostgreSQL
+- Redis (cache, sessions, queues)
+- BullMQ (background jobs)
+- Swagger (API docs)
+- Sentry (error tracking)
+
+### Frontend Web (apps/web)
+- Next.js 15 + App Router
+- shadcn/ui + Tailwind CSS
+- React Query (@tanstack/react-query)
+- Zustand (state management)
+- Recharts (charts)
+- Leaflet (maps)
+
+### Frontend Client (apps/client)
+- Vite + React 18
+- Same UI stack as web
+
+### Telegram Bot (apps/bot)
+- Telegraf 4.x
+- Redis sessions
+- ioredis
+
+### Mobile (apps/mobile)
+- React Native + Expo
+- React Navigation
+
+### Shared (packages/shared)
+- Types, constants, utils
+- tsup build
+
+## Code Patterns
+
+### API Module Structure
+```
+modules/{name}/
+├── entities/{name}.entity.ts
+├── dto/
+├── {name}.service.ts
+├── {name}.controller.ts
+├── {name}.module.ts
+└── {name}.service.spec.ts
+```
+
+### Web Page Structure
+```
+app/dashboard/{name}/
+├── page.tsx
+├── [id]/page.tsx
+├── components/
+└── hooks/
+```
+
+### Naming Conventions
+- Entities: PascalCase (Product, Machine)
+- Tables: snake_case (products, machines)
+- Files: kebab-case (product-card.tsx)
+- Components: PascalCase (ProductCard)
+
+## Response Format
+- Code only, no explanations unless asked
+- Minimal comments
+- Follow existing patterns in codebase
+- Use existing shared types from @vendhub/shared
+
+## Important Files
+- Schema: apps/api/src/modules/*/entities/*.entity.ts
+- API: apps/api/src/modules/*/
+- Web pages: apps/web/src/app/
+- Shared types: packages/shared/src/types/
+
+## Links
+- Docs: /docs/
+- Specs: /docs/specs/
+- Current task: /docs/current-task.md

@@ -1,0 +1,23 @@
+# ==================================================
+# Kustomize Base Configuration
+# ==================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vendhub
+
+resources:
+  - namespace.yml
+  - configmap.yml
+  - secrets.yml
+  - postgres-statefulset.yml
+  - redis-statefulset.yml
+  - api-deployment.yml
+  - web-deployment.yml
+  - client-deployment.yml
+  - bot-deployment.yml
+  - ingress.yml
+
+commonLabels:
+  app.kubernetes.io/name: vendhub
+  app.kubernetes.io/managed-by: kustomize

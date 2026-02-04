@@ -1,0 +1,110 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "vendhub.fullname" . }}
+  labels:
+    {{- include "vendhub.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hosts.api }}
+        - {{ .Values.ingress.hosts.web }}
+        - {{ .Values.ingress.hosts.client }}
+        - {{ .Values.ingress.hosts.bot }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    # API
+    - host: {{ .Values.ingress.hosts.api }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vendhub.fullname" . }}-api
+                port:
+                  number: {{ .Values.api.service.port }}
+
+    # Admin Panel
+    - host: {{ .Values.ingress.hosts.web }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vendhub.fullname" . }}-web
+                port:
+                  number: {{ .Values.web.service.port }}
+
+    # Mini App
+    - host: {{ .Values.ingress.hosts.client }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vendhub.fullname" . }}-client
+                port:
+                  number: {{ .Values.client.service.port }}
+
+    # Telegram Bot Webhook
+    - host: {{ .Values.ingress.hosts.bot }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vendhub.fullname" . }}-bot
+                port:
+                  number: {{ .Values.bot.service.port }}
+---
+# WebSocket Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "vendhub.fullname" . }}-websocket
+  labels:
+    {{- include "vendhub.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "vendhub-ws"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    {{- if .Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hosts.websocket }}
+      secretName: {{ include "vendhub.fullname" . }}-ws-tls
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.hosts.websocket }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vendhub.fullname" . }}-api
+                port:
+                  number: {{ .Values.api.service.port }}
+{{- end }}
