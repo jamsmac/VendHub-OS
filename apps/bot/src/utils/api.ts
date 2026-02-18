@@ -1,6 +1,17 @@
-import axios, { AxiosInstance } from 'axios';
-import { config } from '../config';
-import { User, Machine, LoyaltyInfo, Quest, Order, Product, Trip, TripPoint, TripStop, Vehicle, RouteInfo } from '../types';
+import axios, { AxiosInstance } from "axios";
+import { config } from "../config";
+import {
+  User,
+  Machine,
+  LoyaltyInfo,
+  Quest,
+  Order,
+  Product,
+  Trip,
+  TripStop,
+  Vehicle,
+  RouteInfo,
+} from "../types";
 
 // ============================================
 // API Client
@@ -14,29 +25,34 @@ class ApiClient {
       baseURL: config.apiUrl,
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
-    // Request interceptor
+    // Request interceptor — attach bot service account token
     this.client.interceptors.request.use(
-      (config) => {
-        // Add any auth headers if needed
-        return config;
+      (reqConfig) => {
+        if (config.apiToken) {
+          reqConfig.headers.Authorization = `Bearer ${config.apiToken}`;
+        }
+        return reqConfig;
       },
       (error) => {
-        console.error('API Request Error:', error);
+        console.error("API Request Error:", error);
         return Promise.reject(error);
-      }
+      },
     );
 
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error('API Response Error:', error.response?.data || error.message);
+        console.error(
+          "API Response Error:",
+          error.response?.data || error.message,
+        );
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -46,7 +62,9 @@ class ApiClient {
 
   async getUserByTelegramId(telegramId: number): Promise<User | null> {
     try {
-      const response = await this.client.get<User>(`/users/telegram/${telegramId}`);
+      const response = await this.client.get<User>(
+        `/users/telegram/${telegramId}`,
+      );
       return response.data;
     } catch {
       return null;
@@ -57,10 +75,10 @@ class ApiClient {
     telegramId: number,
     username?: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
   ): Promise<User | null> {
     try {
-      const response = await this.client.post<User>('/auth/telegram/register', {
+      const response = await this.client.post<User>("/auth/telegram/register", {
         telegramId,
         username,
         firstName,
@@ -68,22 +86,27 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      console.error('Error registering user:', error);
+      console.error("Error registering user:", error);
       return null;
     }
   }
 
   async updateUserPhone(userId: string, phone: string): Promise<User | null> {
     try {
-      const response = await this.client.patch<User>(`/users/${userId}`, { phone });
+      const response = await this.client.patch<User>(`/users/${userId}`, {
+        phone,
+      });
       return response.data;
     } catch (error) {
-      console.error('Error updating user phone:', error);
+      console.error("Error updating user phone:", error);
       return null;
     }
   }
 
-  async updateNotificationSettings(userId: string, enabled: boolean): Promise<boolean> {
+  async updateNotificationSettings(
+    userId: string,
+    enabled: boolean,
+  ): Promise<boolean> {
     try {
       await this.client.patch(`/users/${userId}/notifications`, { enabled });
       return true;
@@ -96,9 +119,13 @@ class ApiClient {
   // Machine Methods
   // ============================================
 
-  async getNearbyMachines(lat: number, lng: number, radius: number = 5000): Promise<Machine[]> {
+  async getNearbyMachines(
+    lat: number,
+    lng: number,
+    radius: number = 5000,
+  ): Promise<Machine[]> {
     try {
-      const response = await this.client.get<Machine[]>('/machines/nearby', {
+      const response = await this.client.get<Machine[]>("/machines/nearby", {
         params: { lat, lng, radius },
       });
       return response.data;
@@ -118,7 +145,9 @@ class ApiClient {
 
   async getMachineProducts(machineId: string): Promise<Product[]> {
     try {
-      const response = await this.client.get<Product[]>(`/machines/${machineId}/products`);
+      const response = await this.client.get<Product[]>(
+        `/machines/${machineId}/products`,
+      );
       return response.data;
     } catch {
       return [];
@@ -131,7 +160,9 @@ class ApiClient {
 
   async getUserLoyalty(userId: string): Promise<LoyaltyInfo | null> {
     try {
-      const response = await this.client.get<LoyaltyInfo>(`/loyalty/users/${userId}`);
+      const response = await this.client.get<LoyaltyInfo>(
+        `/loyalty/users/${userId}`,
+      );
       return response.data;
     } catch {
       return null;
@@ -153,7 +184,9 @@ class ApiClient {
 
   async getUserQuests(userId: string): Promise<Quest[]> {
     try {
-      const response = await this.client.get<Quest[]>(`/quests/users/${userId}`);
+      const response = await this.client.get<Quest[]>(
+        `/quests/users/${userId}`,
+      );
       return response.data;
     } catch {
       return [];
@@ -162,7 +195,7 @@ class ApiClient {
 
   async getActiveQuests(): Promise<Quest[]> {
     try {
-      const response = await this.client.get<Quest[]>('/quests/active');
+      const response = await this.client.get<Quest[]>("/quests/active");
       return response.data;
     } catch {
       return [];
@@ -175,9 +208,12 @@ class ApiClient {
 
   async getUserOrders(userId: string, limit: number = 10): Promise<Order[]> {
     try {
-      const response = await this.client.get<Order[]>(`/orders/users/${userId}`, {
-        params: { limit },
-      });
+      const response = await this.client.get<Order[]>(
+        `/orders/users/${userId}`,
+        {
+          params: { limit },
+        },
+      );
       return response.data;
     } catch {
       return [];
@@ -187,17 +223,17 @@ class ApiClient {
   async createOrder(
     userId: string,
     machineId: string,
-    items: { productId: string; quantity: number }[]
+    items: { productId: string; quantity: number }[],
   ): Promise<Order | null> {
     try {
-      const response = await this.client.post<Order>('/orders', {
+      const response = await this.client.post<Order>("/orders", {
         userId,
         machineId,
         items,
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error("Error creating order:", error);
       return null;
     }
   }
@@ -206,7 +242,10 @@ class ApiClient {
   // Referral Methods
   // ============================================
 
-  async applyReferralCode(userId: string, referralCode: string): Promise<boolean> {
+  async applyReferralCode(
+    userId: string,
+    referralCode: string,
+  ): Promise<boolean> {
     try {
       await this.client.post(`/referrals/apply`, {
         userId,
@@ -218,9 +257,13 @@ class ApiClient {
     }
   }
 
-  async getReferralStats(userId: string): Promise<{ count: number; earned: number } | null> {
+  async getReferralStats(
+    userId: string,
+  ): Promise<{ count: number; earned: number } | null> {
     try {
-      const response = await this.client.get(`/referrals/users/${userId}/stats`);
+      const response = await this.client.get(
+        `/referrals/users/${userId}/stats`,
+      );
       return response.data;
     } catch {
       return null;
@@ -235,10 +278,10 @@ class ApiClient {
     userId: string,
     machineId: string | null,
     type: string,
-    message: string
+    message: string,
   ): Promise<boolean> {
     try {
-      await this.client.post('/complaints', {
+      await this.client.post("/complaints", {
         userId,
         machineId,
         type,
@@ -246,7 +289,7 @@ class ApiClient {
       });
       return true;
     } catch (error) {
-      console.error('Error creating complaint:', error);
+      console.error("Error creating complaint:", error);
       return false;
     }
   }
@@ -280,17 +323,17 @@ class ApiClient {
   async startTrip(
     userId: string,
     vehicleId: string,
-    routeId?: string
+    routeId?: string,
   ): Promise<Trip | null> {
     try {
-      const response = await this.client.post<Trip>('/trips', {
+      const response = await this.client.post<Trip>("/trips", {
         userId,
         vehicleId,
         routeId,
       });
       return response.data;
     } catch (error) {
-      console.error('Error starting trip:', error);
+      console.error("Error starting trip:", error);
       return null;
     }
   }
@@ -300,7 +343,7 @@ class ApiClient {
       const response = await this.client.post<Trip>(`/trips/${tripId}/end`);
       return response.data;
     } catch (error) {
-      console.error('Error ending trip:', error);
+      console.error("Error ending trip:", error);
       return null;
     }
   }
@@ -310,7 +353,7 @@ class ApiClient {
     latitude: number,
     longitude: number,
     speed?: number,
-    accuracy?: number
+    accuracy?: number,
   ): Promise<boolean> {
     try {
       await this.client.post(`/trips/${tripId}/points`, {
@@ -328,7 +371,9 @@ class ApiClient {
 
   async getTripStops(tripId: string): Promise<TripStop[]> {
     try {
-      const response = await this.client.get<TripStop[]>(`/trips/${tripId}/stops`);
+      const response = await this.client.get<TripStop[]>(
+        `/trips/${tripId}/stops`,
+      );
       return response.data;
     } catch {
       return [];
@@ -346,8 +391,8 @@ class ApiClient {
 
   async getAvailableVehicles(organizationId?: string): Promise<Vehicle[]> {
     try {
-      const response = await this.client.get<Vehicle[]>('/vehicles', {
-        params: { status: 'available', organizationId },
+      const response = await this.client.get<Vehicle[]>("/vehicles", {
+        params: { status: "available", organizationId },
       });
       return response.data;
     } catch {
@@ -357,10 +402,97 @@ class ApiClient {
 
   async getAvailableRoutes(organizationId?: string): Promise<RouteInfo[]> {
     try {
-      const response = await this.client.get<RouteInfo[]>('/routes', {
-        params: { status: 'planned', organizationId },
+      const response = await this.client.get<RouteInfo[]>("/routes", {
+        params: { status: "planned", organizationId },
       });
       return response.data;
+    } catch {
+      return [];
+    }
+  }
+
+  // ============================================
+  // Achievements Methods
+  // ============================================
+
+  async getUserAchievements(userId: string): Promise<{
+    total: number;
+    unlocked: number;
+    claimed: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    achievements: any[];
+  } | null> {
+    try {
+      const response = await this.client.get(`/achievements/users/${userId}`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+
+  // ============================================
+  // Promo Code Methods
+  // ============================================
+
+  async validatePromoCode(code: string): Promise<{
+    valid: boolean;
+    type: string;
+    value: number;
+    description: string;
+  } | null> {
+    try {
+      const response = await this.client.post("/promo-codes/validate", {
+        code,
+      });
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+
+  async redeemPromoCode(userId: string, code: string): Promise<boolean> {
+    try {
+      await this.client.post("/promo-codes/redeem", { userId, code });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ============================================
+  // Staff Task Methods
+  // ============================================
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStaffTasks(userId: string, status?: string): Promise<any[]> {
+    try {
+      const response = await this.client.get("/tasks", {
+        params: { assignedTo: userId, status },
+      });
+      return response.data?.data || response.data || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getStaffDayStats(userId: string): Promise<unknown> {
+    try {
+      const response = await this.client.get("/reports/my-stats", {
+        params: { userId },
+      });
+      return response.data?.data || response.data;
+    } catch {
+      return null;
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStaffAlerts(userId: string): Promise<any[]> {
+    try {
+      const response = await this.client.get("/notifications", {
+        params: { userId, type: "alert" },
+      });
+      return response.data?.data || response.data || [];
     } catch {
       return [];
     }
@@ -374,10 +506,10 @@ class ApiClient {
     userId: string,
     orderId: string | null,
     rating: number,
-    comment: string
+    comment: string,
   ): Promise<boolean> {
     try {
-      await this.client.post('/feedback', {
+      await this.client.post("/feedback", {
         userId,
         orderId,
         rating,
@@ -385,7 +517,7 @@ class ApiClient {
       });
       return true;
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      console.error("Error submitting feedback:", error);
       return false;
     }
   }

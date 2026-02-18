@@ -6,23 +6,23 @@
  */
 
 const SENSITIVE_KEYS = [
-  'password',
-  'token',
-  'secret',
-  'authorization',
-  'cookie',
-  'apikey',
-  'api_key',
-  'bot_token',
-  'bot_token_encrypted',
-  'credit_card',
-  'cvv',
-  'pin',
-  'accesstoken',
-  'refreshtoken',
-  'passwordhash',
-  'cardnumber',
-  'bankaccount',
+  "password",
+  "token",
+  "secret",
+  "authorization",
+  "cookie",
+  "apikey",
+  "api_key",
+  "bot_token",
+  "bot_token_encrypted",
+  "credit_card",
+  "cvv",
+  "pin",
+  "accesstoken",
+  "refreshtoken",
+  "passwordhash",
+  "cardnumber",
+  "bankaccount",
 ];
 
 const MAX_DEPTH = 5;
@@ -34,12 +34,14 @@ const MAX_DEPTH = 5;
  * @param depth - Current recursion depth (prevents infinite loops)
  * @returns A new object with sensitive fields replaced by '***MASKED***'
  */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function maskSensitiveData(data: any, depth = 0): any {
   if (depth > MAX_DEPTH || data === null || data === undefined) {
     return data;
   }
 
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     return data;
   }
 
@@ -47,12 +49,12 @@ export function maskSensitiveData(data: any, depth = 0): any {
     return data.map((item) => maskSensitiveData(item, depth + 1));
   }
 
-  if (typeof data === 'object') {
-    const masked: Record<string, any> = {};
+  if (typeof data === "object") {
+    const masked: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
       const keyLower = key.toLowerCase();
       if (SENSITIVE_KEYS.some((sk) => keyLower.includes(sk))) {
-        masked[key] = '***MASKED***';
+        masked[key] = "***MASKED***";
       } else {
         masked[key] = maskSensitiveData(value, depth + 1);
       }

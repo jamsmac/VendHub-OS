@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   MessageSquare,
   Search,
@@ -18,25 +17,31 @@ import {
   Eye,
   MessageCircle,
   DollarSign,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { api } from '@/lib/api';
-import Link from 'next/link';
+} from "@/components/ui/dropdown-menu";
+import { api } from "@/lib/api";
+import Link from "next/link";
 
 interface Complaint {
   id: string;
   complaintNumber: string;
   complaintType: string;
-  status: 'pending' | 'assigned' | 'in_progress' | 'resolved' | 'closed' | 'rejected';
+  status:
+    | "pending"
+    | "assigned"
+    | "in_progress"
+    | "resolved"
+    | "closed"
+    | "rejected";
   description: string;
   customerPhone?: string;
   machine?: {
@@ -58,28 +63,55 @@ interface Complaint {
   slaDeadline?: string;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  pending: { label: 'Ожидает', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  assigned: { label: 'Назначена', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  in_progress: { label: 'В работе', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
-  resolved: { label: 'Решена', color: 'text-green-600', bgColor: 'bg-green-100' },
-  closed: { label: 'Закрыта', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  rejected: { label: 'Отклонена', color: 'text-red-600', bgColor: 'bg-red-100' },
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  pending: {
+    label: "Ожидает",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  assigned: {
+    label: "Назначена",
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  in_progress: {
+    label: "В работе",
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-100",
+  },
+  resolved: {
+    label: "Решена",
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  closed: {
+    label: "Закрыта",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  rejected: {
+    label: "Отклонена",
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
 };
 
 const typeConfig: Record<string, { label: string; icon: string }> = {
-  product_not_dispensed: { label: 'Не выдан товар', icon: '💰' },
-  product_defective: { label: 'Неисправный товар', icon: '⚠️' },
-  product_not_available: { label: 'Нет товара', icon: '❌' },
-  payment_issue: { label: 'Проблема с оплатой', icon: '💳' },
-  machine_malfunction: { label: 'Неисправность', icon: '🔧' },
-  machine_dirty: { label: 'Грязный аппарат', icon: '🧹' },
-  other: { label: 'Другое', icon: '💬' },
+  product_not_dispensed: { label: "Не выдан товар", icon: "💰" },
+  product_defective: { label: "Неисправный товар", icon: "⚠️" },
+  product_not_available: { label: "Нет товара", icon: "❌" },
+  payment_issue: { label: "Проблема с оплатой", icon: "💳" },
+  machine_malfunction: { label: "Неисправность", icon: "🔧" },
+  machine_dirty: { label: "Грязный аппарат", icon: "🧹" },
+  other: { label: "Другое", icon: "💬" },
 };
 
 export default function ComplaintsPage() {
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -88,30 +120,54 @@ export default function ComplaintsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: complaints, isLoading, isError } = useQuery({
-    queryKey: ['complaints', debouncedSearch, statusFilter],
+  const {
+    data: complaints,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["complaints", debouncedSearch, statusFilter],
     queryFn: () =>
-      api.get('/complaints', { params: { search: debouncedSearch, status: statusFilter } })
+      api
+        .get("/complaints", {
+          params: { search: debouncedSearch, status: statusFilter },
+        })
         .then((res) => res.data.data),
   });
 
   // Stats
-  const stats = useMemo(() => ({
-    total: complaints?.length || 0,
-    pending: complaints?.filter((c: Complaint) => c.status === 'pending').length || 0,
-    inProgress: complaints?.filter((c: Complaint) => c.status === 'in_progress').length || 0,
-    overdue: complaints?.filter((c: Complaint) =>
-      c.slaDeadline && new Date(c.slaDeadline) < new Date() && !['resolved', 'closed', 'rejected'].includes(c.status)
-    ).length || 0,
-  }), [complaints]);
+  const stats = useMemo(
+    () => ({
+      total: complaints?.length || 0,
+      pending:
+        complaints?.filter((c: Complaint) => c.status === "pending").length ||
+        0,
+      inProgress:
+        complaints?.filter((c: Complaint) => c.status === "in_progress")
+          .length || 0,
+      overdue:
+        complaints?.filter(
+          (c: Complaint) =>
+            c.slaDeadline &&
+            new Date(c.slaDeadline) < new Date() &&
+            !["resolved", "closed", "rejected"].includes(c.status),
+        ).length || 0,
+    }),
+    [complaints],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить жалобы</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['complaints'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить жалобы
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["complaints"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -130,14 +186,10 @@ export default function ComplaintsPage() {
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/complaints/qr-codes">
-            <Button variant="outline">
-              QR-коды
-            </Button>
+            <Button variant="outline">QR-коды</Button>
           </Link>
           <Link href="/dashboard/complaints/settings">
-            <Button variant="outline">
-              SLA настройки
-            </Button>
+            <Button variant="outline">SLA настройки</Button>
           </Link>
         </div>
       </div>
@@ -160,7 +212,9 @@ export default function ComplaintsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Ожидают</p>
-                <p className="text-2xl font-bold text-muted-foreground">{stats.pending}</p>
+                <p className="text-2xl font-bold text-muted-foreground">
+                  {stats.pending}
+                </p>
               </div>
               <Clock className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -171,7 +225,9 @@ export default function ComplaintsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">В работе</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.inProgress}</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.inProgress}
+                </p>
               </div>
               <MessageCircle className="h-8 w-8 text-yellow-600" />
             </div>
@@ -182,7 +238,9 @@ export default function ComplaintsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Просрочено SLA</p>
-                <p className="text-2xl font-bold text-red-600">{stats.overdue}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.overdue}
+                </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
@@ -205,7 +263,7 @@ export default function ComplaintsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {statusFilter ? statusConfig[statusFilter]?.label : 'Все статусы'}
+              {statusFilter ? statusConfig[statusFilter]?.label : "Все статусы"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -252,12 +310,22 @@ export default function ComplaintsPage() {
       ) : (
         <div className="space-y-4">
           {complaints?.map((complaint: Complaint) => {
-            const status = statusConfig[complaint.status] || statusConfig.pending;
-            const type = typeConfig[complaint.complaintType] || { label: complaint.complaintType, icon: '📋' };
-            const isOverdue = complaint.slaDeadline && new Date(complaint.slaDeadline) < new Date() && !['resolved', 'closed', 'rejected'].includes(complaint.status);
+            const status =
+              statusConfig[complaint.status] || statusConfig.pending;
+            const type = typeConfig[complaint.complaintType] || {
+              label: complaint.complaintType,
+              icon: "📋",
+            };
+            const isOverdue =
+              complaint.slaDeadline &&
+              new Date(complaint.slaDeadline) < new Date() &&
+              !["resolved", "closed", "rejected"].includes(complaint.status);
 
             return (
-              <Card key={complaint.id} className={`hover:shadow-md transition-shadow ${isOverdue ? 'border-red-200' : ''}`}>
+              <Card
+                key={complaint.id}
+                className={`hover:shadow-md transition-shadow ${isOverdue ? "border-red-200" : ""}`}
+              >
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -267,7 +335,9 @@ export default function ComplaintsPage() {
                           <h3 className="font-medium">
                             #{complaint.complaintNumber} - {type.label}
                           </h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+                          >
                             {status.label}
                           </span>
                           {isOverdue && (
@@ -306,7 +376,9 @@ export default function ComplaintsPage() {
                           )}
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {new Date(complaint.createdAt).toLocaleDateString('ru-RU')}
+                            {new Date(complaint.createdAt).toLocaleDateString(
+                              "ru-RU",
+                            )}
                           </span>
                         </div>
                       </div>
@@ -321,7 +393,11 @@ export default function ComplaintsPage() {
                       </Link>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" aria-label="Действия">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label="Действия"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

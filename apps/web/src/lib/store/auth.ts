@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authApi } from '../api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authApi } from "../api";
 
 interface User {
   id: string;
@@ -17,7 +17,11 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, twoFactorCode?: string) => Promise<any>;
+  login: (
+    email: string,
+    password: string,
+    twoFactorCode?: string,
+  ) => Promise<unknown>;
   logout: () => void;
   checkAuth: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -31,7 +35,11 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
 
-      login: async (email: string, password: string, twoFactorCode?: string) => {
+      login: async (
+        email: string,
+        password: string,
+        twoFactorCode?: string,
+      ) => {
         set({ isLoading: true });
         try {
           const response = await authApi.login(email, password, twoFactorCode);
@@ -42,8 +50,8 @@ export const useAuthStore = create<AuthState>()(
             return { requiresTwoFactor: true };
           }
 
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
 
           set({
             user: data.user,
@@ -52,24 +60,25 @@ export const useAuthStore = create<AuthState>()(
           });
 
           return data;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           set({ isLoading: false });
-          throw new Error(error.response?.data?.message || 'Login failed');
+          throw new Error(error.response?.data?.message || "Login failed");
         }
       },
 
       logout: () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         set({
           user: null,
           isAuthenticated: false,
         });
-        window.location.href = '/auth';
+        window.location.href = "/auth";
       },
 
       checkAuth: async () => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) {
           set({ isAuthenticated: false, user: null });
           return;
@@ -95,11 +104,11 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'vendhub-auth',
+      name: "vendhub-auth",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

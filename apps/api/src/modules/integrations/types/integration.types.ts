@@ -6,78 +6,78 @@
  * Supported integration categories
  */
 export enum IntegrationCategory {
-  PAYMENT = 'payment',
-  FISCAL = 'fiscal',
-  SMS = 'sms',
-  EMAIL = 'email',
-  PUSH = 'push',
-  ANALYTICS = 'analytics',
-  CRM = 'crm',
-  ERP = 'erp',
-  DELIVERY = 'delivery',
-  LOYALTY = 'loyalty',
-  CUSTOM = 'custom',
+  PAYMENT = "payment",
+  FISCAL = "fiscal",
+  SMS = "sms",
+  EMAIL = "email",
+  PUSH = "push",
+  ANALYTICS = "analytics",
+  CRM = "crm",
+  ERP = "erp",
+  DELIVERY = "delivery",
+  LOYALTY = "loyalty",
+  CUSTOM = "custom",
 }
 
 /**
  * Integration status
  */
 export enum IntegrationStatus {
-  DRAFT = 'draft',           // Just created, not configured
-  CONFIGURING = 'configuring', // AI is parsing docs
-  TESTING = 'testing',       // Ready for sandbox testing
-  ACTIVE = 'active',         // Live in production
-  PAUSED = 'paused',         // Temporarily disabled
-  ERROR = 'error',           // Has errors
-  DEPRECATED = 'deprecated', // No longer supported
+  DRAFT = "draft", // Just created, not configured
+  CONFIGURING = "configuring", // AI is parsing docs
+  TESTING = "testing", // Ready for sandbox testing
+  ACTIVE = "active", // Live in production
+  PAUSED = "paused", // Temporarily disabled
+  ERROR = "error", // Has errors
+  DEPRECATED = "deprecated", // No longer supported
 }
 
 /**
  * HTTP methods for API calls
  */
 export enum HttpMethod {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+  DELETE = "DELETE",
 }
 
 /**
  * Authentication types
  */
 export enum AuthType {
-  NONE = 'none',
-  API_KEY = 'api_key',
-  BEARER = 'bearer',
-  BASIC = 'basic',
-  OAUTH2 = 'oauth2',
-  HMAC = 'hmac',
-  CUSTOM = 'custom',
+  NONE = "none",
+  API_KEY = "api_key",
+  BEARER = "bearer",
+  BASIC = "basic",
+  OAUTH2 = "oauth2",
+  HMAC = "hmac",
+  CUSTOM = "custom",
 }
 
 /**
  * Parameter location in request
  */
 export enum ParamLocation {
-  HEADER = 'header',
-  QUERY = 'query',
-  BODY = 'body',
-  PATH = 'path',
+  HEADER = "header",
+  QUERY = "query",
+  BODY = "body",
+  PATH = "path",
 }
 
 /**
  * Field data types
  */
 export enum FieldType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  OBJECT = 'object',
-  ARRAY = 'array',
-  DATE = 'date',
-  ENUM = 'enum',
-  FILE = 'file',
+  STRING = "string",
+  NUMBER = "number",
+  BOOLEAN = "boolean",
+  OBJECT = "object",
+  ARRAY = "array",
+  DATE = "date",
+  ENUM = "enum",
+  FILE = "file",
 }
 
 // ============================================
@@ -111,6 +111,7 @@ export interface FieldConfig {
   type: FieldType;
   required: boolean;
   description?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultValue?: any;
   enumValues?: string[];
   validation?: ValidationRule[];
@@ -122,7 +123,16 @@ export interface FieldConfig {
  * Validation rules
  */
 export interface ValidationRule {
-  type: 'min' | 'max' | 'minLength' | 'maxLength' | 'pattern' | 'email' | 'url' | 'custom';
+  type:
+    | "min"
+    | "max"
+    | "minLength"
+    | "maxLength"
+    | "pattern"
+    | "email"
+    | "url"
+    | "custom";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value?: any;
   message: string;
   customValidator?: string; // JS code for custom validation
@@ -132,7 +142,7 @@ export interface ValidationRule {
  * Transform configuration
  */
 export interface TransformConfig {
-  type: 'format' | 'convert' | 'calculate' | 'custom';
+  type: "format" | "convert" | "calculate" | "custom";
   format?: string;
   expression?: string;
   customCode?: string;
@@ -187,7 +197,13 @@ export interface RetryConfig {
  */
 export interface AuthConfig {
   type: AuthType;
-  config: ApiKeyAuthConfig | BearerAuthConfig | BasicAuthConfig | OAuth2Config | HmacAuthConfig | CustomAuthConfig;
+  config:
+    | ApiKeyAuthConfig
+    | BearerAuthConfig
+    | BasicAuthConfig
+    | OAuth2Config
+    | HmacAuthConfig
+    | CustomAuthConfig;
 }
 
 export interface ApiKeyAuthConfig {
@@ -218,10 +234,10 @@ export interface OAuth2Config {
 }
 
 export interface HmacAuthConfig {
-  algorithm: 'sha1' | 'sha256' | 'sha512' | 'md5';
+  algorithm: "sha1" | "sha256" | "sha512" | "md5";
   secretField: string;
   signatureHeader: string;
-  signatureFormat: 'hex' | 'base64';
+  signatureFormat: "hex" | "base64";
   dataToSign: string; // Template for data to sign
 }
 
@@ -249,8 +265,8 @@ export interface WebhookConfig {
  * Webhook verification
  */
 export interface WebhookVerification {
-  type: 'signature' | 'token' | 'ip' | 'custom';
-  config: Record<string, any>;
+  type: "signature" | "token" | "ip" | "custom";
+  config: Record<string, unknown>;
 }
 
 /**
@@ -316,7 +332,7 @@ export interface PaymentIntegrationConfig {
 export interface CredentialConfig {
   name: string;
   displayName: string;
-  type: 'text' | 'password' | 'select' | 'textarea';
+  type: "text" | "password" | "select" | "textarea";
   required: boolean;
   description?: string;
   placeholder?: string;
@@ -331,21 +347,21 @@ export interface CredentialConfig {
  * Payment methods
  */
 export enum PaymentMethod {
-  CARD = 'card',
-  BANK_TRANSFER = 'bank_transfer',
-  WALLET = 'wallet',
-  QR = 'qr',
-  USSD = 'ussd',
-  CASH = 'cash',
-  CRYPTO = 'crypto',
-  INSTALLMENT = 'installment',
+  CARD = "card",
+  BANK_TRANSFER = "bank_transfer",
+  WALLET = "wallet",
+  QR = "qr",
+  USSD = "ussd",
+  CASH = "cash",
+  CRYPTO = "crypto",
+  INSTALLMENT = "installment",
 }
 
 /**
  * Checkout UI configuration
  */
 export interface CheckoutConfig {
-  type: 'redirect' | 'iframe' | 'popup' | 'inline' | 'qr';
+  type: "redirect" | "iframe" | "popup" | "inline" | "qr";
   redirectUrlField?: string;
   iframeUrlField?: string;
   qrDataField?: string;
@@ -384,7 +400,7 @@ export interface AIParseResult {
  * AI conversation message
  */
 export interface AIConversationMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
 }
@@ -397,7 +413,7 @@ export interface AIConfigSession {
   integrationId: string;
   messages: AIConversationMessage[];
   currentConfig: Partial<PaymentIntegrationConfig>;
-  status: 'active' | 'completed' | 'error';
+  status: "active" | "completed" | "error";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -415,9 +431,9 @@ export interface IntegrationTestCase {
   description: string;
   endpoint: string;
   method: HttpMethod;
-  requestData: Record<string, any>;
+  requestData: Record<string, unknown>;
   expectedStatus: number;
-  expectedResponse?: Record<string, any>;
+  expectedResponse?: Record<string, unknown>;
   assertions: TestAssertion[];
 }
 
@@ -425,8 +441,9 @@ export interface IntegrationTestCase {
  * Test assertion
  */
 export interface TestAssertion {
-  type: 'equals' | 'contains' | 'exists' | 'type' | 'regex';
+  type: "equals" | "contains" | "exists" | "type" | "regex";
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expected: any;
   message: string;
 }
@@ -442,16 +459,19 @@ export interface TestResult {
     url: string;
     method: string;
     headers: Record<string, string>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any;
   };
   response: {
     status: number;
     headers: Record<string, string>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body: any;
   };
   assertions: {
     assertion: TestAssertion;
     passed: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     actual: any;
   }[];
   error?: string;

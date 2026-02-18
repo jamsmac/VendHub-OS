@@ -9,50 +9,40 @@ import {
   Index,
   BeforeInsert,
   BeforeUpdate,
-} from 'typeorm';
-import { Exclude } from 'class-transformer';
-import { Organization } from '../../organizations/entities/organization.entity';
-import { BaseEntity } from '../../../common/entities/base.entity';
+} from "typeorm";
+import { Exclude } from "class-transformer";
+import { Organization } from "../../organizations/entities/organization.entity";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { UserRole } from "../../../common/enums";
+
+export { UserRole };
 
 /**
  * Loyalty levels for customer rewards program
  */
 export enum LoyaltyLevel {
-  BRONZE = 'bronze',
-  SILVER = 'silver',
-  GOLD = 'gold',
-  PLATINUM = 'platinum',
-}
-
-/**
- * User roles - 7 level hierarchy (optimized)
- */
-export enum UserRole {
-  OWNER = 'owner',           // Platform owner (full access)
-  ADMIN = 'admin',           // Organization admin
-  MANAGER = 'manager',       // Team manager
-  OPERATOR = 'operator',     // Field operator (refill, collection, repair, cleaning)
-  WAREHOUSE = 'warehouse',   // Warehouse manager
-  ACCOUNTANT = 'accountant', // Accountant
-  VIEWER = 'viewer',         // Read-only access
+  BRONZE = "bronze",
+  SILVER = "silver",
+  GOLD = "gold",
+  PLATINUM = "platinum",
 }
 
 export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPENDED = 'suspended',
-  PENDING = 'pending',
-  REJECTED = 'rejected',
-  PASSWORD_CHANGE_REQUIRED = 'password_change_required',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  SUSPENDED = "suspended",
+  PENDING = "pending",
+  REJECTED = "rejected",
+  PASSWORD_CHANGE_REQUIRED = "password_change_required",
 }
 
-@Entity('users')
-@Index(['email'], { unique: true })
-@Index(['username'], { unique: true, where: '"username" IS NOT NULL' })
-@Index(['organizationId'])
-@Index(['telegramId'], { unique: true, where: '"telegram_id" IS NOT NULL' })
-@Index(['role'])
-@Index(['status'])
+@Entity("users")
+@Index(["email"], { unique: true })
+@Index(["username"], { unique: true, where: '"username" IS NOT NULL' })
+@Index(["organizationId"])
+@Index(["telegramId"], { unique: true, where: '"telegram_id" IS NOT NULL' })
+@Index(["role"])
+@Index(["status"])
 export class User extends BaseEntity {
   @Column({ unique: true })
   email: string;
@@ -80,14 +70,14 @@ export class User extends BaseEntity {
   avatar: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: UserRole,
     default: UserRole.VIEWER,
   })
   role: UserRole;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: UserStatus,
     default: UserStatus.PENDING,
   })
@@ -124,15 +114,15 @@ export class User extends BaseEntity {
   mustChangePassword: boolean;
 
   // IP Whitelist (for extra security)
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   ipWhitelist: string[];
 
   // Multi-tenant support
   @Column({ nullable: true })
   organizationId: string;
 
-  @ManyToOne(() => Organization, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'organization_id' })
+  @ManyToOne(() => Organization, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
   // Approval workflow
@@ -142,22 +132,22 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   approvedById: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'approved_by_id' })
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "approved_by_id" })
   approvedBy: User;
 
   // Rejection workflow
   @Column({ nullable: true })
   rejectedAt: Date;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   rejectedById: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'rejected_by_id' })
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "rejected_by_id" })
   rejectedBy: User;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   rejectionReason: string;
 
   @Column({ default: false })
@@ -166,12 +156,13 @@ export class User extends BaseEntity {
   // ============================================
   // RBAC - Dynamic role assignment
   // ============================================
-  @ManyToMany('Role', { eager: false })
+  @ManyToMany("Role", { eager: false })
   @JoinTable({
-    name: 'user_roles',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+    name: "user_roles",
+    joinColumn: { name: "user_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "role_id", referencedColumnName: "id" },
   })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   roles: any[]; // Will be typed as Role[] after RBAC module is created
 
   // ============================================
@@ -181,14 +172,14 @@ export class User extends BaseEntity {
   /**
    * Current points balance
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   pointsBalance: number;
 
   /**
    * Current loyalty level based on total earned points
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: LoyaltyLevel,
     default: LoyaltyLevel.BRONZE,
   })
@@ -197,19 +188,19 @@ export class User extends BaseEntity {
   /**
    * Total points ever earned (for level calculation)
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalPointsEarned: number;
 
   /**
    * Total amount spent in sum
    */
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   totalSpent: number;
 
   /**
    * Total number of completed orders
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalOrders: number;
 
   /**
@@ -227,19 +218,19 @@ export class User extends BaseEntity {
   /**
    * Current consecutive days streak
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   currentStreak: number;
 
   /**
    * Longest streak ever achieved
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   longestStreak: number;
 
   /**
    * Last order date for streak calculation
    */
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   lastOrderDate: Date;
 
   /**
@@ -254,16 +245,16 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   referredById: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'referred_by_id' })
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "referred_by_id" })
   referredBy: User;
 
   // Preferences
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   preferences: {
-    language?: 'ru' | 'uz' | 'en';
+    language?: "ru" | "uz" | "en";
     timezone?: string;
-    theme?: 'light' | 'dark' | 'system';
+    theme?: "light" | "dark" | "system";
     notifications?: {
       email?: boolean;
       push?: boolean;
@@ -283,12 +274,14 @@ export class User extends BaseEntity {
 
   // Virtual fields
   get fullName(): string {
-    const parts = [this.lastName, this.firstName, this.patronymic].filter(Boolean);
-    return parts.join(' ');
+    const parts = [this.lastName, this.firstName, this.patronymic].filter(
+      Boolean,
+    );
+    return parts.join(" ");
   }
 
   get initials(): string {
-    return `${this.firstName?.charAt(0) || ''}${this.lastName?.charAt(0) || ''}`.toUpperCase();
+    return `${this.firstName?.charAt(0) || ""}${this.lastName?.charAt(0) || ""}`.toUpperCase();
   }
 
   get isLocked(): boolean {
@@ -312,16 +305,16 @@ export class User extends BaseEntity {
  * User Session entity for tracking active sessions
  * Supports device fingerprinting and token rotation
  */
-@Entity('user_sessions')
-@Index(['userId'])
-@Index(['refreshTokenHint'])
-@Index(['expiresAt'])
+@Entity("user_sessions")
+@Index(["userId"])
+@Index(["refreshTokenHint"])
+@Index(["expiresAt"])
 export class UserSession extends BaseEntity {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.sessions, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, (user) => user.sessions, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column()
@@ -333,13 +326,13 @@ export class UserSession extends BaseEntity {
   refreshTokenHint: string;
 
   // Device fingerprinting
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   deviceInfo: {
     os?: string;
     osVersion?: string;
     browser?: string;
     browserVersion?: string;
-    deviceType?: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+    deviceType?: "desktop" | "mobile" | "tablet" | "unknown";
     userAgent?: string;
   };
 
@@ -374,14 +367,14 @@ export class UserSession extends BaseEntity {
  * Two-Factor Authentication entity
  * Supports TOTP, SMS, Email, and Backup Codes
  */
-@Entity('two_factor_auth')
-@Index(['userId'], { unique: true })
+@Entity("two_factor_auth")
+@Index(["userId"], { unique: true })
 export class TwoFactorAuth extends BaseEntity {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.twoFactorAuths, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, (user) => user.twoFactorAuths, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
   user: User;
 
   // TOTP (Google Authenticator, Authy, etc.)
@@ -402,11 +395,11 @@ export class TwoFactorAuth extends BaseEntity {
   emailAddress: string;
 
   // Backup codes (hashed)
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   @Exclude()
   backupCodes: string[];
 
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   usedBackupCodes: string[];
 
   // Security
@@ -420,8 +413,8 @@ export class TwoFactorAuth extends BaseEntity {
   lastUsedAt: Date;
 
   // Metadata
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, unknown>;
 
   get isLocked(): boolean {
     return this.lockedUntil && new Date() < this.lockedUntil;
@@ -453,16 +446,16 @@ export class TwoFactorAuth extends BaseEntity {
 /**
  * Password Reset Token entity
  */
-@Entity('password_reset_tokens')
-@Index(['token'], { unique: true })
-@Index(['userId'])
-@Index(['expiresAt'])
+@Entity("password_reset_tokens")
+@Index(["token"], { unique: true })
+@Index(["userId"])
+@Index(["expiresAt"])
 export class PasswordResetToken extends BaseEntity {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column()
@@ -497,10 +490,10 @@ export class PasswordResetToken extends BaseEntity {
 /**
  * Login Attempt tracking for security
  */
-@Entity('login_attempts')
-@Index(['email'])
-@Index(['ipAddress'])
-@Index(['createdAt'])
+@Entity("login_attempts")
+@Index(["email"])
+@Index(["ipAddress"])
+@Index(["createdAt"])
 export class LoginAttempt extends BaseEntity {
   @Column()
   email: string;
@@ -524,23 +517,23 @@ export class LoginAttempt extends BaseEntity {
 /**
  * Access Request for user approval workflow
  */
-@Entity('access_requests')
-@Index(['userId'], { unique: true })
-@Index(['status'])
+@Entity("access_requests")
+@Index(["userId"], { unique: true })
+@Index(["status"])
 export class AccessRequest extends BaseEntity {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column({
-    type: 'enum',
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
+    type: "enum",
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
   })
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 
   @Column({ nullable: true })
   requestedRole: UserRole;
@@ -554,8 +547,8 @@ export class AccessRequest extends BaseEntity {
   @Column({ nullable: true })
   processedById: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'processed_by_id' })
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "processed_by_id" })
   processedBy: User;
 
   @Column({ nullable: true })

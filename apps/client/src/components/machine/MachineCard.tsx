@@ -1,14 +1,15 @@
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { MapPin, Navigation, X } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { MapPin, Navigation, X } from "lucide-react";
 import {
   formatDistance,
   getMachineTypeIcon,
   getMachineStatusColor,
   cn,
-} from '@/lib/utils';
+} from "@/lib/utils";
 
 interface MachineCardProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   machine: any;
   onClick?: () => void;
   onClose?: () => void;
@@ -21,7 +22,7 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
     e.preventDefault();
     e.stopPropagation();
     const url = `https://www.google.com/maps/dir/?api=1&destination=${machine.latitude},${machine.longitude}`;
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   const content = (
@@ -50,8 +51,8 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
           <h3 className="font-medium truncate">{machine.name}</h3>
           <span
             className={cn(
-              'text-xs px-2 py-0.5 rounded-full shrink-0',
-              getMachineStatusColor(machine.status)
+              "text-xs px-2 py-0.5 rounded-full shrink-0",
+              getMachineStatusColor(machine.status),
             )}
           >
             {t(machine.status)}
@@ -61,14 +62,14 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
         <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
           <MapPin className="w-3 h-3" />
           <span className="truncate">
-            {machine.location?.address || machine.address || 'Адрес не указан'}
+            {machine.location?.address || machine.address || "Адрес не указан"}
           </span>
         </div>
 
         <div className="flex items-center justify-between mt-2">
           {machine.distance !== null && machine.distance !== undefined && (
             <span className="text-sm font-medium text-primary">
-              {formatDistance(machine.distance)} {t('away')}
+              {formatDistance(machine.distance)} {t("away")}
             </span>
           )}
 
@@ -77,7 +78,7 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
             className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-lg hover:bg-primary/20 transition-colors"
           >
             <Navigation className="w-3 h-3" />
-            {t('getDirections')}
+            {t("getDirections")}
           </button>
         </div>
       </div>

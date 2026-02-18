@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
+import { Injectable } from "@nestjs/common";
+import * as crypto from "crypto";
 
 export enum WebhookEvent {
-  MACHINE_STATUS_CHANGED = 'machine.status.changed',
-  INVENTORY_LOW = 'inventory.low',
-  TASK_CREATED = 'task.created',
-  TASK_COMPLETED = 'task.completed',
-  SALE_COMPLETED = 'sale.completed',
-  PAYMENT_RECEIVED = 'payment.received',
+  MACHINE_STATUS_CHANGED = "machine.status.changed",
+  INVENTORY_LOW = "inventory.low",
+  TASK_CREATED = "task.created",
+  TASK_COMPLETED = "task.completed",
+  SALE_COMPLETED = "sale.completed",
+  PAYMENT_RECEIVED = "payment.received",
 }
 
 @Injectable()
@@ -21,8 +21,14 @@ export class WebhooksService {
   async send(
     organizationId: string,
     event: WebhookEvent,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any,
-    webhooks: { url: string; events: string[]; secret: string; isActive: boolean }[],
+    webhooks: {
+      url: string;
+      events: string[];
+      secret: string;
+      isActive: boolean;
+    }[],
   ): Promise<void> {
     const activeWebhooks = webhooks.filter(
       (w) => w.isActive && w.events.includes(event),
@@ -40,6 +46,7 @@ export class WebhooksService {
     url: string,
     secret: string,
     event: WebhookEvent,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any,
     attempt = 0,
   ): Promise<void> {
@@ -53,11 +60,11 @@ export class WebhooksService {
       const signature = this.generateSignature(body, secret);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Webhook-Signature': signature,
-          'X-Webhook-Event': event,
+          "Content-Type": "application/json",
+          "X-Webhook-Signature": signature,
+          "X-Webhook-Event": event,
         },
         body,
       });
@@ -68,6 +75,7 @@ export class WebhooksService {
           this.sendWithRetry(url, secret, event, payload, attempt + 1);
         }, delay);
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (attempt < this.MAX_RETRIES) {
         const delay = this.RETRY_DELAYS[attempt];
@@ -84,10 +92,7 @@ export class WebhooksService {
    * Generate HMAC signature for webhook payload
    */
   private generateSignature(payload: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    return crypto.createHmac("sha256", secret).update(payload).digest("hex");
   }
 
   /**

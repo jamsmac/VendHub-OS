@@ -14,10 +14,10 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In, LessThanOrEqual } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource, In, LessThanOrEqual } from "typeorm";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   WarehouseInventory,
   OperatorInventory,
@@ -31,7 +31,7 @@ import {
   ReservationStatus,
   InventoryLevel,
   AdjustmentType,
-} from './entities/inventory.entity';
+} from "./entities/inventory.entity";
 
 // ============================================================================
 // DTOs
@@ -160,7 +160,7 @@ export class InventoryService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.warehouseRepo.findAndCount({
       where: { organizationId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -183,12 +183,14 @@ export class InventoryService {
   /**
    * Get low stock items in warehouse
    */
-  async getWarehouseLowStock(organizationId: string): Promise<WarehouseInventory[]> {
+  async getWarehouseLowStock(
+    organizationId: string,
+  ): Promise<WarehouseInventory[]> {
     return this.warehouseRepo
-      .createQueryBuilder('wi')
-      .where('wi.organizationId = :organizationId', { organizationId })
-      .andWhere('wi.currentQuantity <= wi.minStockLevel')
-      .orderBy('wi.currentQuantity', 'ASC')
+      .createQueryBuilder("wi")
+      .where("wi.organizationId = :organizationId", { organizationId })
+      .andWhere("wi.currentQuantity <= wi.minStockLevel")
+      .orderBy("wi.currentQuantity", "ASC")
       .getMany();
   }
 
@@ -206,7 +208,7 @@ export class InventoryService {
           organizationId: dto.organizationId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       const previousQty = warehouse ? Number(warehouse.currentQuantity) : 0;
@@ -228,7 +230,9 @@ export class InventoryService {
 
       if (dto.unitCost) {
         // Calculate weighted average price
-        const totalValue = previousQty * Number(warehouse.avgPurchasePrice || 0) + newQty * dto.unitCost;
+        const totalValue =
+          previousQty * Number(warehouse.avgPurchasePrice || 0) +
+          newQty * dto.unitCost;
         warehouse.avgPurchasePrice = totalValue / (previousQty + newQty);
         warehouse.lastPurchasePrice = dto.unitCost;
       }
@@ -279,7 +283,7 @@ export class InventoryService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.operatorRepo.findAndCount({
       where: { organizationId, operatorId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -313,19 +317,21 @@ export class InventoryService {
   ): Promise<MachineInventory[]> {
     return this.machineRepo.find({
       where: { organizationId, machineId },
-      order: { slotNumber: 'ASC' },
+      order: { slotNumber: "ASC" },
     });
   }
 
   /**
    * Get machines needing refill
    */
-  async getMachinesNeedingRefill(organizationId: string): Promise<MachineInventory[]> {
+  async getMachinesNeedingRefill(
+    organizationId: string,
+  ): Promise<MachineInventory[]> {
     return this.machineRepo
-      .createQueryBuilder('mi')
-      .where('mi.organizationId = :organizationId', { organizationId })
-      .andWhere('mi.currentQuantity <= mi.minStockLevel')
-      .orderBy('mi.currentQuantity', 'ASC')
+      .createQueryBuilder("mi")
+      .where("mi.organizationId = :organizationId", { organizationId })
+      .andWhere("mi.currentQuantity <= mi.minStockLevel")
+      .orderBy("mi.currentQuantity", "ASC")
       .getMany();
   }
 
@@ -340,7 +346,11 @@ export class InventoryService {
   async transferWarehouseToOperator(
     dto: TransferWarehouseToOperatorDto,
     userId: string,
-  ): Promise<{ warehouse: WarehouseInventory; operator: OperatorInventory; movement: InventoryMovement }> {
+  ): Promise<{
+    warehouse: WarehouseInventory;
+    operator: OperatorInventory;
+    movement: InventoryMovement;
+  }> {
     return this.dataSource.transaction(async (manager) => {
       // Lock and get warehouse inventory
       const warehouse = await manager.findOne(WarehouseInventory, {
@@ -348,7 +358,7 @@ export class InventoryService {
           organizationId: dto.organizationId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!warehouse) {
@@ -367,7 +377,8 @@ export class InventoryService {
       }
 
       // Decrease warehouse quantity
-      warehouse.currentQuantity = Number(warehouse.currentQuantity) - requestedQty;
+      warehouse.currentQuantity =
+        Number(warehouse.currentQuantity) - requestedQty;
       await manager.save(WarehouseInventory, warehouse);
 
       // Find or create operator inventory
@@ -377,7 +388,7 @@ export class InventoryService {
           operatorId: dto.operatorId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!operator) {
@@ -391,7 +402,8 @@ export class InventoryService {
       }
 
       // Increase operator quantity
-      operator.currentQuantity = Number(operator.currentQuantity) + requestedQty;
+      operator.currentQuantity =
+        Number(operator.currentQuantity) + requestedQty;
       operator.lastReceivedAt = new Date();
       await manager.save(OperatorInventory, operator);
 
@@ -426,7 +438,11 @@ export class InventoryService {
   async transferOperatorToWarehouse(
     dto: TransferOperatorToWarehouseDto,
     userId: string,
-  ): Promise<{ warehouse: WarehouseInventory; operator: OperatorInventory; movement: InventoryMovement }> {
+  ): Promise<{
+    warehouse: WarehouseInventory;
+    operator: OperatorInventory;
+    movement: InventoryMovement;
+  }> {
     return this.dataSource.transaction(async (manager) => {
       // Lock and get operator inventory
       const operator = await manager.findOne(OperatorInventory, {
@@ -435,7 +451,7 @@ export class InventoryService {
           operatorId: dto.operatorId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!operator) {
@@ -463,7 +479,7 @@ export class InventoryService {
           organizationId: dto.organizationId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!warehouse) {
@@ -473,7 +489,8 @@ export class InventoryService {
       }
 
       // Increase warehouse quantity
-      warehouse.currentQuantity = Number(warehouse.currentQuantity) + requestedQty;
+      warehouse.currentQuantity =
+        Number(warehouse.currentQuantity) + requestedQty;
       await manager.save(WarehouseInventory, warehouse);
 
       // Create movement record
@@ -506,7 +523,11 @@ export class InventoryService {
   async transferOperatorToMachine(
     dto: TransferOperatorToMachineDto,
     userId: string,
-  ): Promise<{ operator: OperatorInventory; machine: MachineInventory; movement: InventoryMovement }> {
+  ): Promise<{
+    operator: OperatorInventory;
+    machine: MachineInventory;
+    movement: InventoryMovement;
+  }> {
     return this.dataSource.transaction(async (manager) => {
       // Lock and get operator inventory
       const operator = await manager.findOne(OperatorInventory, {
@@ -515,7 +536,7 @@ export class InventoryService {
           operatorId: dto.operatorId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!operator) {
@@ -547,7 +568,7 @@ export class InventoryService {
           machineId: dto.machineId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!machine) {
@@ -600,7 +621,11 @@ export class InventoryService {
   async transferMachineToOperator(
     dto: TransferMachineToOperatorDto,
     userId: string,
-  ): Promise<{ machine: MachineInventory; operator: OperatorInventory; movement: InventoryMovement }> {
+  ): Promise<{
+    machine: MachineInventory;
+    operator: OperatorInventory;
+    movement: InventoryMovement;
+  }> {
     return this.dataSource.transaction(async (manager) => {
       // Lock and get machine inventory
       const machine = await manager.findOne(MachineInventory, {
@@ -609,7 +634,7 @@ export class InventoryService {
           machineId: dto.machineId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!machine) {
@@ -638,7 +663,7 @@ export class InventoryService {
           operatorId: dto.operatorId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!operator) {
@@ -652,7 +677,8 @@ export class InventoryService {
       }
 
       // Increase operator quantity
-      operator.currentQuantity = Number(operator.currentQuantity) + requestedQty;
+      operator.currentQuantity =
+        Number(operator.currentQuantity) + requestedQty;
       await manager.save(OperatorInventory, operator);
 
       // Create movement record
@@ -697,7 +723,7 @@ export class InventoryService {
           machineId: dto.machineId,
           productId: dto.productId,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!machine) {
@@ -762,7 +788,7 @@ export class InventoryService {
             organizationId: dto.organizationId,
             productId: dto.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (!warehouse || warehouse.availableQuantity < dto.quantity) {
@@ -772,7 +798,8 @@ export class InventoryService {
         }
 
         // Increase reserved quantity
-        warehouse.reservedQuantity = Number(warehouse.reservedQuantity) + dto.quantity;
+        warehouse.reservedQuantity =
+          Number(warehouse.reservedQuantity) + dto.quantity;
         await manager.save(WarehouseInventory, warehouse);
       } else if (dto.inventoryLevel === InventoryLevel.OPERATOR) {
         const operator = await manager.findOne(OperatorInventory, {
@@ -781,7 +808,7 @@ export class InventoryService {
             operatorId: dto.referenceId,
             productId: dto.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (!operator || operator.availableQuantity < dto.quantity) {
@@ -791,7 +818,8 @@ export class InventoryService {
         }
 
         // Increase reserved quantity
-        operator.reservedQuantity = Number(operator.reservedQuantity) + dto.quantity;
+        operator.reservedQuantity =
+          Number(operator.reservedQuantity) + dto.quantity;
         await manager.save(OperatorInventory, operator);
       }
 
@@ -823,7 +851,9 @@ export class InventoryService {
         quantity: dto.quantity,
         performedByUserId: dto.createdByUserId,
         operatorId:
-          dto.inventoryLevel === InventoryLevel.OPERATOR ? dto.referenceId : undefined,
+          dto.inventoryLevel === InventoryLevel.OPERATOR
+            ? dto.referenceId
+            : undefined,
         taskId: dto.taskId,
         operationDate: new Date(),
         notes: `Reservation created: ${dto.quantity}`,
@@ -850,7 +880,7 @@ export class InventoryService {
     return this.dataSource.transaction(async (manager) => {
       const reservation = await manager.findOne(InventoryReservation, {
         where: { id: reservationId },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!reservation) {
@@ -864,11 +894,14 @@ export class InventoryService {
       }
 
       // Compute release quantity BEFORE updating quantityFulfilled
-      const previousRemaining = Number(reservation.quantityReserved) - Number(reservation.quantityFulfilled);
+      const previousRemaining =
+        Number(reservation.quantityReserved) -
+        Number(reservation.quantityFulfilled);
       const releaseQty = Math.min(fulfilledQuantity, previousRemaining);
 
       // Update reservation
-      reservation.quantityFulfilled = Number(reservation.quantityFulfilled) + fulfilledQuantity;
+      reservation.quantityFulfilled =
+        Number(reservation.quantityFulfilled) + fulfilledQuantity;
 
       if (reservation.quantityFulfilled >= reservation.quantityReserved) {
         reservation.status = ReservationStatus.FULFILLED;
@@ -887,7 +920,7 @@ export class InventoryService {
             organizationId: reservation.organizationId,
             productId: reservation.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (warehouse) {
@@ -904,7 +937,7 @@ export class InventoryService {
             operatorId: reservation.referenceId,
             productId: reservation.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (operator) {
@@ -935,7 +968,7 @@ export class InventoryService {
     return this.dataSource.transaction(async (manager) => {
       const reservation = await manager.findOne(InventoryReservation, {
         where: { id: reservationId },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!reservation) {
@@ -957,7 +990,7 @@ export class InventoryService {
             organizationId: reservation.organizationId,
             productId: reservation.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (warehouse) {
@@ -974,7 +1007,7 @@ export class InventoryService {
             operatorId: reservation.referenceId,
             productId: reservation.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
 
         if (operator) {
@@ -1024,17 +1057,22 @@ export class InventoryService {
   /**
    * Get reservations for task
    */
-  async getReservationsByTask(organizationId: string, taskId: string): Promise<InventoryReservation[]> {
+  async getReservationsByTask(
+    organizationId: string,
+    taskId: string,
+  ): Promise<InventoryReservation[]> {
     return this.reservationRepo.find({
       where: { organizationId, taskId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
   /**
    * Get active reservations
    */
-  async getActiveReservations(organizationId: string): Promise<InventoryReservation[]> {
+  async getActiveReservations(
+    organizationId: string,
+  ): Promise<InventoryReservation[]> {
     return this.reservationRepo.find({
       where: {
         organizationId,
@@ -1044,7 +1082,7 @@ export class InventoryService {
           ReservationStatus.PARTIALLY_FULFILLED,
         ]),
       },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -1059,7 +1097,7 @@ export class InventoryService {
     return this.dataSource.transaction(async (manager) => {
       const reservation = await manager.findOne(InventoryReservation, {
         where: { id: reservationId },
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!reservation) {
@@ -1073,7 +1111,10 @@ export class InventoryService {
       }
 
       // If adjustedQuantity is provided, adjust reserved quantity on inventory
-      if (adjustedQuantity !== undefined && adjustedQuantity !== Number(reservation.quantityReserved)) {
+      if (
+        adjustedQuantity !== undefined &&
+        adjustedQuantity !== Number(reservation.quantityReserved)
+      ) {
         const originalQty = Number(reservation.quantityReserved);
         const difference = adjustedQuantity - originalQty;
 
@@ -1083,7 +1124,7 @@ export class InventoryService {
               organizationId: reservation.organizationId,
               productId: reservation.productId,
             },
-            lock: { mode: 'pessimistic_write' },
+            lock: { mode: "pessimistic_write" },
           });
 
           if (warehouse) {
@@ -1105,7 +1146,7 @@ export class InventoryService {
               operatorId: reservation.referenceId,
               productId: reservation.productId,
             },
-            lock: { mode: 'pessimistic_write' },
+            lock: { mode: "pessimistic_write" },
           });
 
           if (operator) {
@@ -1129,7 +1170,7 @@ export class InventoryService {
       await manager.save(InventoryReservation, reservation);
 
       this.logger.log(
-        `Reservation confirmed: id=${reservationId}${adjustedQuantity !== undefined ? `, adjustedQty=${adjustedQuantity}` : ''}`,
+        `Reservation confirmed: id=${reservationId}${adjustedQuantity !== undefined ? `, adjustedQty=${adjustedQuantity}` : ""}`,
       );
 
       return reservation;
@@ -1139,7 +1180,10 @@ export class InventoryService {
   /**
    * Get reservation by ID
    */
-  async getReservationById(organizationId: string, id: string): Promise<InventoryReservation> {
+  async getReservationById(
+    organizationId: string,
+    id: string,
+  ): Promise<InventoryReservation> {
     const reservation = await this.reservationRepo.findOne({
       where: { organizationId, id },
     });
@@ -1166,30 +1210,32 @@ export class InventoryService {
     },
   ): Promise<{ data: InventoryReservation[]; total: number }> {
     const query = this.reservationRepo
-      .createQueryBuilder('r')
-      .where('r.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("r")
+      .where("r.organizationId = :organizationId", { organizationId });
 
     if (filters?.taskId) {
-      query.andWhere('r.taskId = :taskId', { taskId: filters.taskId });
+      query.andWhere("r.taskId = :taskId", { taskId: filters.taskId });
     }
 
     if (filters?.productId) {
-      query.andWhere('r.productId = :productId', { productId: filters.productId });
+      query.andWhere("r.productId = :productId", {
+        productId: filters.productId,
+      });
     }
 
     if (filters?.status) {
-      query.andWhere('r.status = :status', { status: filters.status });
+      query.andWhere("r.status = :status", { status: filters.status });
     }
 
     if (filters?.inventoryLevel) {
-      query.andWhere('r.inventoryLevel = :inventoryLevel', {
+      query.andWhere("r.inventoryLevel = :inventoryLevel", {
         inventoryLevel: filters.inventoryLevel,
       });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('r.created_at', 'DESC');
+    query.orderBy("r.created_at", "DESC");
 
     const page = filters?.page || 1;
     const limit = Math.min(filters?.limit || 50, 100);
@@ -1210,11 +1256,11 @@ export class InventoryService {
   }> {
     // Count by status
     const statusCounts = await this.reservationRepo
-      .createQueryBuilder('r')
-      .select('r.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('r.organizationId = :organizationId', { organizationId })
-      .groupBy('r.status')
+      .createQueryBuilder("r")
+      .select("r.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("r.organizationId = :organizationId", { organizationId })
+      .groupBy("r.status")
       .getRawMany();
 
     const byStatus: Record<string, number> = {};
@@ -1224,10 +1270,13 @@ export class InventoryService {
 
     // Total reserved quantity for active reservations
     const activeResult = await this.reservationRepo
-      .createQueryBuilder('r')
-      .select('COALESCE(SUM(r.quantityReserved - r.quantityFulfilled), 0)', 'totalReserved')
-      .where('r.organizationId = :organizationId', { organizationId })
-      .andWhere('r.status IN (:...statuses)', {
+      .createQueryBuilder("r")
+      .select(
+        "COALESCE(SUM(r.quantityReserved - r.quantityFulfilled), 0)",
+        "totalReserved",
+      )
+      .where("r.organizationId = :organizationId", { organizationId })
+      .andWhere("r.status IN (:...statuses)", {
         statuses: [
           ReservationStatus.PENDING,
           ReservationStatus.CONFIRMED,
@@ -1236,25 +1285,27 @@ export class InventoryService {
       })
       .getRawOne();
 
-    const totalActiveReservedQuantity = parseFloat(activeResult?.totalReserved || '0');
+    const totalActiveReservedQuantity = parseFloat(
+      activeResult?.totalReserved || "0",
+    );
 
     // Count expiring within 24 hours
     const now = new Date();
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     const expiringResult = await this.reservationRepo
-      .createQueryBuilder('r')
-      .where('r.organizationId = :organizationId', { organizationId })
-      .andWhere('r.status IN (:...statuses)', {
+      .createQueryBuilder("r")
+      .where("r.organizationId = :organizationId", { organizationId })
+      .andWhere("r.status IN (:...statuses)", {
         statuses: [
           ReservationStatus.PENDING,
           ReservationStatus.CONFIRMED,
           ReservationStatus.PARTIALLY_FULFILLED,
         ],
       })
-      .andWhere('r.expiresAt IS NOT NULL')
-      .andWhere('r.expiresAt <= :in24h', { in24h })
-      .andWhere('r.expiresAt > :now', { now })
+      .andWhere("r.expiresAt IS NOT NULL")
+      .andWhere("r.expiresAt <= :in24h", { in24h })
+      .andWhere("r.expiresAt > :now", { now })
       .getCount();
 
     return {
@@ -1291,7 +1342,9 @@ export class InventoryService {
       return;
     }
 
-    this.logger.log(`Expiring ${expiredReservations.length} old reservation(s)...`);
+    this.logger.log(
+      `Expiring ${expiredReservations.length} old reservation(s)...`,
+    );
 
     for (const reservation of expiredReservations) {
       try {
@@ -1299,7 +1352,7 @@ export class InventoryService {
           // Re-fetch with lock to avoid race conditions
           const locked = await manager.findOne(InventoryReservation, {
             where: { id: reservation.id },
-            lock: { mode: 'pessimistic_write' },
+            lock: { mode: "pessimistic_write" },
           });
 
           if (!locked || !locked.isActive) {
@@ -1315,7 +1368,7 @@ export class InventoryService {
                 organizationId: locked.organizationId,
                 productId: locked.productId,
               },
-              lock: { mode: 'pessimistic_write' },
+              lock: { mode: "pessimistic_write" },
             });
 
             if (warehouse) {
@@ -1332,7 +1385,7 @@ export class InventoryService {
                 operatorId: locked.referenceId,
                 productId: locked.productId,
               },
-              lock: { mode: 'pessimistic_write' },
+              lock: { mode: "pessimistic_write" },
             });
 
             if (operator) {
@@ -1372,6 +1425,7 @@ export class InventoryService {
             `Reservation expired: id=${locked.id}, qty=${releaseQty}`,
           );
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         this.logger.error(
           `Failed to expire reservation ${reservation.id}: ${error?.message}`,
@@ -1390,10 +1444,17 @@ export class InventoryService {
    */
   async createAdjustment(
     dto: AdjustInventoryDto,
-  ): Promise<{ adjustment: InventoryAdjustment; movement?: InventoryMovement }> {
+  ): Promise<{
+    adjustment: InventoryAdjustment;
+    movement?: InventoryMovement;
+  }> {
     return this.dataSource.transaction(async (manager) => {
       let systemQuantity = 0;
-      let inventoryRecord: WarehouseInventory | OperatorInventory | MachineInventory | null = null;
+      let inventoryRecord:
+        | WarehouseInventory
+        | OperatorInventory
+        | MachineInventory
+        | null = null;
 
       // Get current system quantity based on level
       if (dto.inventoryLevel === InventoryLevel.WAREHOUSE) {
@@ -1402,9 +1463,11 @@ export class InventoryService {
             organizationId: dto.organizationId,
             productId: dto.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
-        systemQuantity = inventoryRecord ? Number((inventoryRecord as WarehouseInventory).currentQuantity) : 0;
+        systemQuantity = inventoryRecord
+          ? Number((inventoryRecord as WarehouseInventory).currentQuantity)
+          : 0;
       } else if (dto.inventoryLevel === InventoryLevel.OPERATOR) {
         inventoryRecord = await manager.findOne(OperatorInventory, {
           where: {
@@ -1412,9 +1475,11 @@ export class InventoryService {
             operatorId: dto.referenceId,
             productId: dto.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
-        systemQuantity = inventoryRecord ? Number((inventoryRecord as OperatorInventory).currentQuantity) : 0;
+        systemQuantity = inventoryRecord
+          ? Number((inventoryRecord as OperatorInventory).currentQuantity)
+          : 0;
       } else if (dto.inventoryLevel === InventoryLevel.MACHINE) {
         inventoryRecord = await manager.findOne(MachineInventory, {
           where: {
@@ -1422,9 +1487,11 @@ export class InventoryService {
             machineId: dto.referenceId,
             productId: dto.productId,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: { mode: "pessimistic_write" },
         });
-        systemQuantity = inventoryRecord ? Number((inventoryRecord as MachineInventory).currentQuantity) : 0;
+        systemQuantity = inventoryRecord
+          ? Number((inventoryRecord as MachineInventory).currentQuantity)
+          : 0;
       }
 
       const difference = dto.actualQuantity - systemQuantity;
@@ -1453,14 +1520,26 @@ export class InventoryService {
       if (difference !== 0 && inventoryRecord) {
         // Update inventory quantity based on level type
         if (dto.inventoryLevel === InventoryLevel.WAREHOUSE) {
-          (inventoryRecord as WarehouseInventory).currentQuantity = dto.actualQuantity;
-          await manager.save(WarehouseInventory, inventoryRecord as WarehouseInventory);
+          (inventoryRecord as WarehouseInventory).currentQuantity =
+            dto.actualQuantity;
+          await manager.save(
+            WarehouseInventory,
+            inventoryRecord as WarehouseInventory,
+          );
         } else if (dto.inventoryLevel === InventoryLevel.OPERATOR) {
-          (inventoryRecord as OperatorInventory).currentQuantity = dto.actualQuantity;
-          await manager.save(OperatorInventory, inventoryRecord as OperatorInventory);
+          (inventoryRecord as OperatorInventory).currentQuantity =
+            dto.actualQuantity;
+          await manager.save(
+            OperatorInventory,
+            inventoryRecord as OperatorInventory,
+          );
         } else if (dto.inventoryLevel === InventoryLevel.MACHINE) {
-          (inventoryRecord as MachineInventory).currentQuantity = dto.actualQuantity;
-          await manager.save(MachineInventory, inventoryRecord as MachineInventory);
+          (inventoryRecord as MachineInventory).currentQuantity =
+            dto.actualQuantity;
+          await manager.save(
+            MachineInventory,
+            inventoryRecord as MachineInventory,
+          );
         }
 
         // Create movement record
@@ -1471,9 +1550,13 @@ export class InventoryService {
           quantity: Math.abs(difference),
           performedByUserId: dto.adjustedByUserId,
           operatorId:
-            dto.inventoryLevel === InventoryLevel.OPERATOR ? dto.referenceId : undefined,
+            dto.inventoryLevel === InventoryLevel.OPERATOR
+              ? dto.referenceId
+              : undefined,
           machineId:
-            dto.inventoryLevel === InventoryLevel.MACHINE ? dto.referenceId : undefined,
+            dto.inventoryLevel === InventoryLevel.MACHINE
+              ? dto.referenceId
+              : undefined,
           operationDate: new Date(),
           notes: `Adjustment (${dto.adjustmentType}): ${systemQuantity} -> ${dto.actualQuantity}`,
           metadata: {
@@ -1521,38 +1604,46 @@ export class InventoryService {
     },
   ): Promise<{ movements: InventoryMovement[]; total: number }> {
     const query = this.movementRepo
-      .createQueryBuilder('m')
-      .where('m.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("m")
+      .where("m.organizationId = :organizationId", { organizationId });
 
     if (filters?.productId) {
-      query.andWhere('m.productId = :productId', { productId: filters.productId });
+      query.andWhere("m.productId = :productId", {
+        productId: filters.productId,
+      });
     }
 
     if (filters?.machineId) {
-      query.andWhere('m.machineId = :machineId', { machineId: filters.machineId });
+      query.andWhere("m.machineId = :machineId", {
+        machineId: filters.machineId,
+      });
     }
 
     if (filters?.operatorId) {
-      query.andWhere('m.operatorId = :operatorId', { operatorId: filters.operatorId });
+      query.andWhere("m.operatorId = :operatorId", {
+        operatorId: filters.operatorId,
+      });
     }
 
     if (filters?.movementType) {
-      query.andWhere('m.movementType = :movementType', {
+      query.andWhere("m.movementType = :movementType", {
         movementType: filters.movementType,
       });
     }
 
     if (filters?.startDate) {
-      query.andWhere('m.createdAt >= :startDate', { startDate: filters.startDate });
+      query.andWhere("m.createdAt >= :startDate", {
+        startDate: filters.startDate,
+      });
     }
 
     if (filters?.endDate) {
-      query.andWhere('m.createdAt <= :endDate', { endDate: filters.endDate });
+      query.andWhere("m.createdAt <= :endDate", { endDate: filters.endDate });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('m.createdAt', 'DESC');
+    query.orderBy("m.createdAt", "DESC");
 
     const takeLimit = Math.min(filters?.limit || 20, 100);
     query.take(takeLimit);
@@ -1574,57 +1665,65 @@ export class InventoryService {
    * Get inventory summary for organization
    */
   async getInventorySummary(organizationId: string): Promise<{
-    warehouse: { totalProducts: number; totalValue: number; lowStockCount: number };
+    warehouse: {
+      totalProducts: number;
+      totalValue: number;
+      lowStockCount: number;
+    };
     operators: { totalOperators: number; totalProducts: number };
-    machines: { totalMachines: number; totalProducts: number; needsRefillCount: number };
+    machines: {
+      totalMachines: number;
+      totalProducts: number;
+      needsRefillCount: number;
+    };
   }> {
     // Warehouse stats
     const warehouseStats = await this.warehouseRepo
-      .createQueryBuilder('wi')
-      .select('COUNT(DISTINCT wi.productId)', 'totalProducts')
-      .addSelect('SUM(wi.currentQuantity * wi.avgPurchasePrice)', 'totalValue')
+      .createQueryBuilder("wi")
+      .select("COUNT(DISTINCT wi.productId)", "totalProducts")
+      .addSelect("SUM(wi.currentQuantity * wi.avgPurchasePrice)", "totalValue")
       .addSelect(
-        'SUM(CASE WHEN wi.currentQuantity <= wi.minStockLevel THEN 1 ELSE 0 END)',
-        'lowStockCount',
+        "SUM(CASE WHEN wi.currentQuantity <= wi.minStockLevel THEN 1 ELSE 0 END)",
+        "lowStockCount",
       )
-      .where('wi.organizationId = :organizationId', { organizationId })
+      .where("wi.organizationId = :organizationId", { organizationId })
       .getRawOne();
 
     // Operator stats
     const operatorStats = await this.operatorRepo
-      .createQueryBuilder('oi')
-      .select('COUNT(DISTINCT oi.operatorId)', 'totalOperators')
-      .addSelect('COUNT(DISTINCT oi.productId)', 'totalProducts')
-      .where('oi.organizationId = :organizationId', { organizationId })
-      .andWhere('oi.currentQuantity > 0')
+      .createQueryBuilder("oi")
+      .select("COUNT(DISTINCT oi.operatorId)", "totalOperators")
+      .addSelect("COUNT(DISTINCT oi.productId)", "totalProducts")
+      .where("oi.organizationId = :organizationId", { organizationId })
+      .andWhere("oi.currentQuantity > 0")
       .getRawOne();
 
     // Machine stats
     const machineStats = await this.machineRepo
-      .createQueryBuilder('mi')
-      .select('COUNT(DISTINCT mi.machineId)', 'totalMachines')
-      .addSelect('COUNT(DISTINCT mi.productId)', 'totalProducts')
+      .createQueryBuilder("mi")
+      .select("COUNT(DISTINCT mi.machineId)", "totalMachines")
+      .addSelect("COUNT(DISTINCT mi.productId)", "totalProducts")
       .addSelect(
-        'SUM(CASE WHEN mi.currentQuantity <= mi.minStockLevel THEN 1 ELSE 0 END)',
-        'needsRefillCount',
+        "SUM(CASE WHEN mi.currentQuantity <= mi.minStockLevel THEN 1 ELSE 0 END)",
+        "needsRefillCount",
       )
-      .where('mi.organizationId = :organizationId', { organizationId })
+      .where("mi.organizationId = :organizationId", { organizationId })
       .getRawOne();
 
     return {
       warehouse: {
-        totalProducts: parseInt(warehouseStats?.totalProducts || '0'),
-        totalValue: parseFloat(warehouseStats?.totalValue || '0'),
-        lowStockCount: parseInt(warehouseStats?.lowStockCount || '0'),
+        totalProducts: parseInt(warehouseStats?.totalProducts || "0"),
+        totalValue: parseFloat(warehouseStats?.totalValue || "0"),
+        lowStockCount: parseInt(warehouseStats?.lowStockCount || "0"),
       },
       operators: {
-        totalOperators: parseInt(operatorStats?.totalOperators || '0'),
-        totalProducts: parseInt(operatorStats?.totalProducts || '0'),
+        totalOperators: parseInt(operatorStats?.totalOperators || "0"),
+        totalProducts: parseInt(operatorStats?.totalProducts || "0"),
       },
       machines: {
-        totalMachines: parseInt(machineStats?.totalMachines || '0'),
-        totalProducts: parseInt(machineStats?.totalProducts || '0'),
-        needsRefillCount: parseInt(machineStats?.needsRefillCount || '0'),
+        totalMachines: parseInt(machineStats?.totalMachines || "0"),
+        totalProducts: parseInt(machineStats?.totalProducts || "0"),
+        needsRefillCount: parseInt(machineStats?.needsRefillCount || "0"),
       },
     };
   }

@@ -1,34 +1,46 @@
 /**
  * Root Navigator
- * Handles auth state and main navigation
+ * Handles auth state, app mode (client/staff), and main navigation
  */
 
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuthStore } from '../store/authStore';
-import { AuthNavigator } from './AuthNavigator';
-import { MainNavigator } from './MainNavigator';
-import { SplashScreen } from '../screens/SplashScreen';
+import React, { useEffect } from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useAuthStore } from "../store/authStore";
+import { useAppModeStore } from "../store/appModeStore";
+import { AuthNavigator } from "./AuthNavigator";
+import { MainNavigator } from "./MainNavigator";
+import { ClientNavigator } from "./ClientNavigator";
+import { SplashScreen } from "../screens/SplashScreen";
 
 export type RootStackParamList = {
   Splash: undefined;
   Auth: undefined;
   Main: undefined;
+  Client: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { mode, isLoading: modeLoading, loadMode } = useAppModeStore();
 
-  if (isLoading) {
+  useEffect(() => {
+    loadMode();
+  }, []);
+
+  if (authLoading || modeLoading) {
     return <SplashScreen />;
   }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        <Stack.Screen name="Main" component={MainNavigator} />
+        mode === "staff" ? (
+          <Stack.Screen name="Main" component={MainNavigator} />
+        ) : (
+          <Stack.Screen name="Client" component={ClientNavigator} />
+        )
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
       )}

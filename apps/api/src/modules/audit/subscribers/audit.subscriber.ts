@@ -13,10 +13,10 @@ import {
   RecoverEvent,
   DataSource,
   EntityManager,
-} from 'typeorm';
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { ClsService } from 'nestjs-cls';
+} from "typeorm";
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectDataSource } from "@nestjs/typeorm";
+import { ClsService } from "nestjs-cls";
 import {
   AuditLog,
   AuditSnapshot,
@@ -26,7 +26,7 @@ import {
   AuditChanges,
   SENSITIVE_FIELDS,
   AUDITED_ENTITIES,
-} from '../entities/audit.entity';
+} from "../entities/audit.entity";
 
 // Interface for request context stored in CLS
 interface RequestContext {
@@ -57,6 +57,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Called after entity insertion
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async afterInsert(event: InsertEvent<any>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
@@ -73,14 +74,19 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Created ${event.metadata.tableName} record`,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to create audit log for INSERT: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create audit log for INSERT: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   /**
    * Called after entity update
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async afterUpdate(event: UpdateEvent<any>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
@@ -110,14 +116,19 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Updated ${event.metadata.tableName} record (${changes.length} fields)`,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to create audit log for UPDATE: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create audit log for UPDATE: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   /**
    * Called after entity removal (hard delete)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async afterRemove(event: RemoveEvent<any>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
@@ -130,7 +141,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         entityId: event.entityId,
         entityName: this.getEntityName(event.databaseEntity),
         snapshot: this.sanitizeValues(event.databaseEntity),
-        snapshotReason: 'before_delete',
+        snapshotReason: "before_delete",
       });
 
       await this.createAuditLog(event.manager, {
@@ -143,14 +154,19 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.WARNING,
         description: `Deleted ${event.metadata.tableName} record`,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to create audit log for REMOVE: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create audit log for REMOVE: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   /**
    * Called after soft remove
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async afterSoftRemove(event: SoftRemoveEvent<any>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
@@ -167,14 +183,19 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Soft deleted ${event.metadata.tableName} record`,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to create audit log for SOFT_REMOVE: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create audit log for SOFT_REMOVE: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   /**
    * Called after entity recovery (restore from soft delete)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async afterRecover(event: RecoverEvent<any>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
@@ -191,8 +212,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Restored ${event.metadata.tableName} record`,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to create audit log for RECOVER: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create audit log for RECOVER: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -201,7 +226,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
    */
   private shouldAudit(tableName: string): boolean {
     // Don't audit the audit tables themselves
-    if (tableName.startsWith('audit_')) {
+    if (tableName.startsWith("audit_")) {
       return false;
     }
 
@@ -212,8 +237,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Get entity display name
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getEntityName(entity: any): string {
-    if (!entity) return '';
+    if (!entity) return "";
     return (
       entity.name ||
       entity.title ||
@@ -221,7 +247,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
       entity.email ||
       entity.serialNumber ||
       entity.sku ||
-      ''
+      ""
     );
   }
 
@@ -229,7 +255,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
    * Calculate changes between old and new values
    */
   private calculateChanges(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     oldEntity: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newEntity: any,
     updatedColumns?: string[],
   ): AuditChanges[] {
@@ -243,7 +271,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
     for (const field of fieldsToCheck) {
       // Skip internal fields
-      if (['id', 'createdAt', 'updatedAt', 'deletedAt', 'version'].includes(field)) {
+      if (
+        ["id", "createdAt", "updatedAt", "deletedAt", "version"].includes(field)
+      ) {
         continue;
       }
 
@@ -267,6 +297,8 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Check if two values are equal (deep comparison for objects)
    */
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private isEqual(a: any, b: any): boolean {
     if (a === b) return true;
     if (a == null && b == null) return true;
@@ -274,7 +306,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
     if (typeof a !== typeof b) return false;
 
-    if (typeof a === 'object') {
+    if (typeof a === "object") {
       return JSON.stringify(a) === JSON.stringify(b);
     }
 
@@ -284,10 +316,11 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Sanitize entity values (mask sensitive fields)
    */
-  private sanitizeValues(entity: any): Record<string, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private sanitizeValues(entity: any): Record<string, unknown> {
     if (!entity) return {};
 
-    const sanitized: Record<string, any> = {};
+    const sanitized: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(entity)) {
       sanitized[key] = this.sanitizeValue(key, value);
@@ -299,18 +332,20 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Sanitize a single value
    */
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private sanitizeValue(field: string, value: any): any {
     // Check if field is sensitive
-    const isSensitive = SENSITIVE_FIELDS.some(
-      (sf) => field.toLowerCase().includes(sf.toLowerCase()),
+    const isSensitive = SENSITIVE_FIELDS.some((sf) =>
+      field.toLowerCase().includes(sf.toLowerCase()),
     );
 
     if (isSensitive && value) {
-      return '***REDACTED***';
+      return "***REDACTED***";
     }
 
     // Handle complex objects (don't serialize full relations)
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
       if (value.id) {
         return { id: value.id };
       }
@@ -329,16 +364,16 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   private getRequestContext(): RequestContext {
     try {
       return {
-        userId: this.cls.get('userId'),
-        userEmail: this.cls.get('userEmail'),
-        userName: this.cls.get('userName'),
-        userRole: this.cls.get('userRole'),
-        organizationId: this.cls.get('organizationId'),
-        ipAddress: this.cls.get('ipAddress'),
-        userAgent: this.cls.get('userAgent'),
-        requestId: this.cls.get('requestId'),
-        correlationId: this.cls.get('correlationId'),
-        sessionId: this.cls.get('sessionId'),
+        userId: this.cls.get("userId"),
+        userEmail: this.cls.get("userEmail"),
+        userName: this.cls.get("userName"),
+        userRole: this.cls.get("userRole"),
+        organizationId: this.cls.get("organizationId"),
+        ipAddress: this.cls.get("ipAddress"),
+        userAgent: this.cls.get("userAgent"),
+        requestId: this.cls.get("requestId"),
+        correlationId: this.cls.get("correlationId"),
+        sessionId: this.cls.get("sessionId"),
       };
     } catch {
       return {};
@@ -389,7 +424,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
       entityType: string;
       entityId: string;
       entityName?: string;
-      snapshot: Record<string, any>;
+      snapshot: Record<string, unknown>;
       snapshotReason?: string;
     },
   ): Promise<void> {

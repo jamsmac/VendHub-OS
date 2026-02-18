@@ -8,24 +8,24 @@ import {
   Logger,
   NotFoundException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { OperatorRating } from './entities/operator-rating.entity';
-import { CalculateRatingDto } from './dto/calculate-rating.dto';
-import { QueryRatingsDto, RatingSortBy } from './dto/query-ratings.dto';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { OperatorRating } from "./entities/operator-rating.entity";
+import { CalculateRatingDto } from "./dto/calculate-rating.dto";
+import { QueryRatingsDto, RatingSortBy } from "./dto/query-ratings.dto";
 
 // ============================================================================
 // WEIGHT CONFIGURATION
 // ============================================================================
 
 const RATING_WEIGHTS = {
-  task: 0.25,       // 25%
-  photo: 0.15,      // 15%
-  quality: 0.10,    // 10%
-  financial: 0.15,  // 15%
-  attendance: 0.10, // 10%
-  customer: 0.10,   // 10%
+  task: 0.25, // 25%
+  photo: 0.15, // 15%
+  quality: 0.1, // 10%
+  financial: 0.15, // 15%
+  attendance: 0.1, // 10%
+  customer: 0.1, // 10%
   discipline: 0.15, // 15%
 } as const;
 
@@ -34,14 +34,14 @@ const RATING_WEIGHTS = {
 // ============================================================================
 
 const GRADE_THRESHOLDS: { min: number; grade: string }[] = [
-  { min: 95, grade: 'A+' },
-  { min: 85, grade: 'A' },
-  { min: 75, grade: 'B+' },
-  { min: 65, grade: 'B' },
-  { min: 55, grade: 'C+' },
-  { min: 45, grade: 'C' },
-  { min: 30, grade: 'D' },
-  { min: 0, grade: 'F' },
+  { min: 95, grade: "A+" },
+  { min: 85, grade: "A" },
+  { min: 75, grade: "B+" },
+  { min: 65, grade: "B" },
+  { min: 55, grade: "C+" },
+  { min: 45, grade: "C" },
+  { min: 30, grade: "D" },
+  { min: 0, grade: "F" },
 ];
 
 @Injectable()
@@ -99,7 +99,8 @@ export class OperatorRatingsService {
     const cashCollectionAccuracy = dto.cash_collection_accuracy || 0;
     const inventoryLossRate = dto.inventory_loss_rate || 0;
     const collectionsWithVariance = dto.collections_with_variance || 0;
-    const avgCollectionVariancePercent = dto.avg_collection_variance_percent || 0;
+    const avgCollectionVariancePercent =
+      dto.avg_collection_variance_percent || 0;
     const inventoryDiscrepancies = dto.inventory_discrepancies || 0;
 
     const scheduledShifts = dto.scheduled_shifts || 0;
@@ -117,99 +118,106 @@ export class OperatorRatingsService {
     const commentsSent = dto.comments_sent || 0;
 
     // ===== Calculate rates =====
-    const taskCompletionRate = tasksAssigned > 0
-      ? (tasksCompleted / tasksAssigned) * 100
-      : 0;
+    const taskCompletionRate =
+      tasksAssigned > 0 ? (tasksCompleted / tasksAssigned) * 100 : 0;
 
-    const taskOnTimeRate = tasksCompleted > 0
-      ? (tasksOnTime / tasksCompleted) * 100
-      : 0;
+    const taskOnTimeRate =
+      tasksCompleted > 0 ? (tasksOnTime / tasksCompleted) * 100 : 0;
 
-    const attendanceRate = scheduledShifts > 0
-      ? (completedShifts / scheduledShifts) * 100
-      : 0;
+    const attendanceRate =
+      scheduledShifts > 0 ? (completedShifts / scheduledShifts) * 100 : 0;
 
     // Timeliness: penalize late tasks, reward on-time
-    const timelinessScore = tasksCompleted > 0
-      ? Math.max(0, ((tasksCompleted - tasksLate) / tasksCompleted) * 100)
-      : 0;
+    const timelinessScore =
+      tasksCompleted > 0
+        ? Math.max(0, ((tasksCompleted - tasksLate) / tasksCompleted) * 100)
+        : 0;
 
     // Photo compliance: % of completed tasks with both before+after photos
-    const photoComplianceRate = tasksCompleted > 0
-      ? (Math.min(tasksWithPhotosBefore, tasksWithPhotosAfter) / tasksCompleted) * 100
-      : 0;
+    const photoComplianceRate =
+      tasksCompleted > 0
+        ? (Math.min(tasksWithPhotosBefore, tasksWithPhotosAfter) /
+            tasksCompleted) *
+          100
+        : 0;
 
     // Checklist completion rate
-    const checklistCompletionRate = checklistItemsTotal > 0
-      ? (checklistItemsCompleted / checklistItemsTotal) * 100
-      : 0;
+    const checklistCompletionRate =
+      checklistItemsTotal > 0
+        ? (checklistItemsCompleted / checklistItemsTotal) * 100
+        : 0;
 
     // ===== Calculate category scores (all normalized to 0-100) =====
 
     // 1. Task score (25%): 50% completion + 30% on-time + 20% timeliness
     const taskScore =
-      (taskCompletionRate * 0.5) +
-      (taskOnTimeRate * 0.3) +
-      (timelinessScore * 0.2);
+      taskCompletionRate * 0.5 + taskOnTimeRate * 0.3 + timelinessScore * 0.2;
 
     // 2. Photo compliance score (15%): 50% compliance rate + 30% quality + 20% volume bonus
-    const photoVolumeBonus = tasksCompleted > 0
-      ? Math.min(100, (totalPhotosUploaded / (tasksCompleted * 2)) * 100)
-      : 0;
+    const photoVolumeBonus =
+      tasksCompleted > 0
+        ? Math.min(100, (totalPhotosUploaded / (tasksCompleted * 2)) * 100)
+        : 0;
     const photoScore =
-      (photoComplianceRate * 0.5) +
-      (photoQualityScore * 0.3) +
-      (photoVolumeBonus * 0.2);
+      photoComplianceRate * 0.5 +
+      photoQualityScore * 0.3 +
+      photoVolumeBonus * 0.2;
 
     // 3. Quality score (10%): average of cleanliness and stock accuracy
     const qualityScore = (machineCleanlinessScore + stockAccuracyScore) / 2;
 
     // 4. Financial score (15%): 50% cash accuracy + 30% inverse loss + 20% variance penalty
-    const variancePenalty = avgCollectionVariancePercent > 0
-      ? Math.min(100, avgCollectionVariancePercent * 10)
-      : 0;
+    const variancePenalty =
+      avgCollectionVariancePercent > 0
+        ? Math.min(100, avgCollectionVariancePercent * 10)
+        : 0;
     const financialScore =
-      (cashCollectionAccuracy * 0.5) +
-      ((100 - inventoryLossRate) * 0.3) +
-      ((100 - variancePenalty) * 0.2);
+      cashCollectionAccuracy * 0.5 +
+      (100 - inventoryLossRate) * 0.3 +
+      (100 - variancePenalty) * 0.2;
 
     // 5. Attendance score (10%): 70% attendance rate + 30% punctuality
-    const punctualityRate = completedShifts > 0
-      ? ((completedShifts - lateArrivals) / completedShifts) * 100
-      : 0;
-    const attendanceScore = (attendanceRate * 0.7) + (Math.max(0, punctualityRate) * 0.3);
+    const punctualityRate =
+      completedShifts > 0
+        ? ((completedShifts - lateArrivals) / completedShifts) * 100
+        : 0;
+    const attendanceScore =
+      attendanceRate * 0.7 + Math.max(0, punctualityRate) * 0.3;
 
     // 6. Customer score (10%): resolution rate + rating bonus - response penalty
-    const resolutionRate = complaintsReceived > 0
-      ? (complaintsResolved / complaintsReceived) * 100
-      : 100; // No complaints = perfect
+    const resolutionRate =
+      complaintsReceived > 0
+        ? (complaintsResolved / complaintsReceived) * 100
+        : 100; // No complaints = perfect
 
-    const responseTimePenalty = averageResponseTime <= 30
-      ? 0
-      : Math.min(30, ((averageResponseTime - 30) / 450) * 30);
+    const responseTimePenalty =
+      averageResponseTime <= 30
+        ? 0
+        : Math.min(30, ((averageResponseTime - 30) / 450) * 30);
 
     // Rating bonus: avg_customer_rating on 1-5 scale → 0-20 bonus
-    const ratingBonus = avgCustomerRating > 0
-      ? ((avgCustomerRating - 1) / 4) * 20
-      : 0;
+    const ratingBonus =
+      avgCustomerRating > 0 ? ((avgCustomerRating - 1) / 4) * 20 : 0;
 
-    const customerScore = Math.min(100, Math.max(0, resolutionRate - responseTimePenalty + ratingBonus));
+    const customerScore = Math.min(
+      100,
+      Math.max(0, resolutionRate - responseTimePenalty + ratingBonus),
+    );
 
     // 7. Discipline score (15%): 70% checklist + 30% communication bonus
     const communicationBonus = Math.min(100, commentsSent * 10); // Each comment worth 10 points, max 100
     const disciplineScore =
-      (checklistCompletionRate * 0.7) +
-      (communicationBonus * 0.3);
+      checklistCompletionRate * 0.7 + communicationBonus * 0.3;
 
     // ===== Calculate total weighted score =====
     const totalScore =
-      (taskScore * RATING_WEIGHTS.task) +
-      (photoScore * RATING_WEIGHTS.photo) +
-      (qualityScore * RATING_WEIGHTS.quality) +
-      (financialScore * RATING_WEIGHTS.financial) +
-      (attendanceScore * RATING_WEIGHTS.attendance) +
-      (customerScore * RATING_WEIGHTS.customer) +
-      (disciplineScore * RATING_WEIGHTS.discipline);
+      taskScore * RATING_WEIGHTS.task +
+      photoScore * RATING_WEIGHTS.photo +
+      qualityScore * RATING_WEIGHTS.quality +
+      financialScore * RATING_WEIGHTS.financial +
+      attendanceScore * RATING_WEIGHTS.attendance +
+      customerScore * RATING_WEIGHTS.customer +
+      disciplineScore * RATING_WEIGHTS.discipline;
 
     // ===== Determine grade =====
     const grade = this.calculateGrade(totalScore);
@@ -288,7 +296,11 @@ export class OperatorRatingsService {
     const saved = await this.ratingRepo.save(rating);
 
     // Recalculate ranks for this period within the organization
-    await this.recalculateRanks(organizationId, dto.period_start, dto.period_end);
+    await this.recalculateRanks(
+      organizationId,
+      dto.period_start,
+      dto.period_end,
+    );
 
     // Reload to get updated rank
     const result = await this.findById(saved.id, organizationId);
@@ -308,7 +320,7 @@ export class OperatorRatingsService {
     dto: CalculateRatingDto,
     organizationId: string,
   ): Promise<OperatorRating> {
-    const existing = await this.findById(id, organizationId);
+    await this.findById(id, organizationId);
 
     // Delete the existing one and recalculate
     await this.ratingRepo.softDelete(id);
@@ -348,40 +360,40 @@ export class OperatorRatingsService {
       min_score,
       max_score,
       sort_by = RatingSortBy.TOTAL_SCORE,
-      sort_order = 'DESC',
+      sort_order = "DESC",
       page = 1,
       limit = 20,
     } = queryDto;
 
-    const qb = this.ratingRepo.createQueryBuilder('r');
-    qb.where('r.organization_id = :organizationId', { organizationId });
+    const qb = this.ratingRepo.createQueryBuilder("r");
+    qb.where("r.organization_id = :organizationId", { organizationId });
 
     if (user_id) {
-      qb.andWhere('r.user_id = :user_id', { user_id });
+      qb.andWhere("r.user_id = :user_id", { user_id });
     }
 
     if (period_start) {
-      qb.andWhere('r.period_start >= :period_start', {
+      qb.andWhere("r.period_start >= :period_start", {
         period_start: new Date(period_start),
       });
     }
 
     if (period_end) {
-      qb.andWhere('r.period_end <= :period_end', {
+      qb.andWhere("r.period_end <= :period_end", {
         period_end: new Date(period_end),
       });
     }
 
     if (grade) {
-      qb.andWhere('r.grade = :grade', { grade });
+      qb.andWhere("r.grade = :grade", { grade });
     }
 
     if (min_score !== undefined) {
-      qb.andWhere('r.total_score >= :min_score', { min_score });
+      qb.andWhere("r.total_score >= :min_score", { min_score });
     }
 
     if (max_score !== undefined) {
-      qb.andWhere('r.total_score <= :max_score', { max_score });
+      qb.andWhere("r.total_score <= :max_score", { max_score });
     }
 
     const total = await qb.getCount();
@@ -416,7 +428,7 @@ export class OperatorRatingsService {
         period_start: new Date(periodStart),
         period_end: new Date(periodEnd),
       },
-      order: { total_score: 'DESC' },
+      order: { total_score: "DESC" },
       take: topN,
     });
   }
@@ -434,7 +446,7 @@ export class OperatorRatingsService {
         user_id: userId,
         organization_id: organizationId,
       },
-      order: { period_start: 'DESC' },
+      order: { period_start: "DESC" },
       take: limit,
     });
   }
@@ -494,7 +506,7 @@ export class OperatorRatingsService {
       sumCustomer += Number(r.customer_score);
       sumDiscipline += Number(r.discipline_score);
 
-      const g = r.grade || 'F';
+      const g = r.grade || "F";
       gradeDistribution[g] = (gradeDistribution[g] || 0) + 1;
     }
 
@@ -544,7 +556,7 @@ export class OperatorRatingsService {
         return threshold.grade;
       }
     }
-    return 'F';
+    return "F";
   }
 
   /**
@@ -561,7 +573,7 @@ export class OperatorRatingsService {
         period_start: new Date(periodStart),
         period_end: new Date(periodEnd),
       },
-      order: { total_score: 'DESC' },
+      order: { total_score: "DESC" },
     });
 
     for (let i = 0; i < ratings.length; i++) {

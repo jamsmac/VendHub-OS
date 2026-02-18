@@ -10,49 +10,49 @@ import {
   OneToMany,
   JoinColumn,
   Index,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+} from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export enum ServiceType {
-  MAINTENANCE = 'maintenance',
-  CLEANING = 'cleaning',
-  DELIVERY = 'delivery',
-  REPAIR = 'repair',
-  SECURITY = 'security',
-  INSTALLATION = 'installation',
-  CONSULTING = 'consulting',
-  LOCATION_OWNER = 'location_owner',
-  SUPPLIER = 'supplier',
-  OTHER = 'other',
+  MAINTENANCE = "maintenance",
+  CLEANING = "cleaning",
+  DELIVERY = "delivery",
+  REPAIR = "repair",
+  SECURITY = "security",
+  INSTALLATION = "installation",
+  CONSULTING = "consulting",
+  LOCATION_OWNER = "location_owner",
+  SUPPLIER = "supplier",
+  OTHER = "other",
 }
 
 export enum ContractorType {
-  CLIENT = 'client',
-  SUPPLIER = 'supplier',
-  PARTNER = 'partner',
-  LOCATION_OWNER = 'location_owner',
+  CLIENT = "client",
+  SUPPLIER = "supplier",
+  PARTNER = "partner",
+  LOCATION_OWNER = "location_owner",
 }
 
 export enum InvoiceStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  PAID = 'paid',
-  OVERDUE = 'overdue',
-  CANCELLED = 'cancelled',
-  DISPUTED = 'disputed',
+  PENDING = "pending",
+  APPROVED = "approved",
+  PAID = "paid",
+  OVERDUE = "overdue",
+  CANCELLED = "cancelled",
+  DISPUTED = "disputed",
 }
 
 // ============================================================================
 // CONTRACTOR ENTITY
 // ============================================================================
 
-@Entity('contractors')
-@Index(['organizationId', 'isActive'])
-@Index(['serviceType'])
+@Entity("contractors")
+@Index(["organizationId", "isActive"])
+@Index(["serviceType"])
 export class Contractor extends BaseEntity {
   @Column()
   @Index()
@@ -70,38 +70,38 @@ export class Contractor extends BaseEntity {
   @Column({ length: 255, nullable: true })
   email: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   address: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ServiceType,
   })
   serviceType: ServiceType;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   contractStart: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   contractEnd: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   contractNumber: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   paymentTerms: string;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 3, scale: 2, nullable: true })
   rating: number; // 1.00 - 5.00
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
   @Column({ default: true })
   isActive: boolean;
 
   // Bank details (legacy JSONB — prefer individual columns below)
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   bankDetails: {
     bankName: string;
     accountNumber: string;
@@ -130,10 +130,10 @@ export class Contractor extends BaseEntity {
   @Column({ length: 200, nullable: true })
   bankName: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   legalAddress: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   actualAddress: string;
 
   @Column({ length: 200, nullable: true })
@@ -145,39 +145,39 @@ export class Contractor extends BaseEntity {
   @Column({ default: false })
   isVatPayer: boolean;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 5, scale: 2, nullable: true })
   vatRate: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   creditLimit: number;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ContractorType,
     default: ContractorType.SUPPLIER,
   })
   type: ContractorType;
 
   // Relations
-  @OneToMany(() => ContractorInvoice, invoice => invoice.contractor)
+  @OneToMany(() => ContractorInvoice, (invoice) => invoice.contractor)
   invoices: ContractorInvoice[];
 
-  @OneToMany('Contract', 'contractor')
-  contracts: import('./contract.entity').Contract[];
+  @OneToMany("Contract", "contractor")
+  contracts: import("./contract.entity").Contract[];
 
   // Metadata
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, unknown>;
 }
 
 // ============================================================================
 // CONTRACTOR INVOICE ENTITY
 // ============================================================================
 
-@Entity('contractor_invoices')
-@Index(['organizationId', 'status'])
-@Index(['contractorId'])
-@Index(['dueDate'])
+@Entity("contractor_invoices")
+@Index(["organizationId", "status"])
+@Index(["contractorId"])
+@Index(["dueDate"])
 export class ContractorInvoice extends BaseEntity {
   @Column()
   @Index()
@@ -186,50 +186,50 @@ export class ContractorInvoice extends BaseEntity {
   @Column()
   contractorId: string;
 
-  @ManyToOne(() => Contractor, c => c.invoices)
-  @JoinColumn({ name: 'contractor_id' })
+  @ManyToOne(() => Contractor, (c) => c.invoices)
+  @JoinColumn({ name: "contractor_id" })
   contractor: Contractor;
 
   @Column({ unique: true })
   invoiceNumber: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  @Column({ type: "decimal", precision: 15, scale: 2 })
   amount: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   paidAmount: number;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: InvoiceStatus,
     default: InvoiceStatus.PENDING,
   })
   status: InvoiceStatus;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   issueDate: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   dueDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   paidDate: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   // Approval
   @Column({ nullable: true })
   approvedBy: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   approvedAt: Date;
 
   // Attachments
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   attachmentUrls: string[];
 
   // Metadata
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, unknown>;
 }

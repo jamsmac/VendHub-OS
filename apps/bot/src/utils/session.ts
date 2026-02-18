@@ -1,6 +1,6 @@
-import Redis from 'ioredis';
-import { config } from '../config';
-import { SessionData } from '../types';
+import Redis from "ioredis";
+import { config } from "../config";
+import { SessionData } from "../types";
 
 // ============================================
 // Redis Connection
@@ -14,19 +14,19 @@ export const redis = new Redis(config.redisUrl, {
   maxRetriesPerRequest: 3,
 });
 
-redis.on('connect', () => {
-  console.log('✅ Redis connected');
+redis.on("connect", () => {
+  console.log("✅ Redis connected");
 });
 
-redis.on('error', (error) => {
-  console.error('❌ Redis error:', error);
+redis.on("error", (error) => {
+  console.error("❌ Redis error:", error);
 });
 
 // ============================================
 // Session Store
 // ============================================
 
-const SESSION_PREFIX = 'bot:session:';
+const SESSION_PREFIX = "bot:session:";
 const SESSION_TTL = 86400; // 24 hours
 
 export const sessionStore = {
@@ -42,7 +42,7 @@ export const sessionStore = {
       session.lastActivity = Date.now();
       return session;
     } catch (error) {
-      console.error('Session get error:', error);
+      console.error("Session get error:", error);
       return undefined;
     }
   },
@@ -56,11 +56,11 @@ export const sessionStore = {
       await redis.set(
         `${SESSION_PREFIX}${key}`,
         JSON.stringify(session),
-        'EX',
-        SESSION_TTL
+        "EX",
+        SESSION_TTL,
       );
     } catch (error) {
-      console.error('Session set error:', error);
+      console.error("Session set error:", error);
     }
   },
 
@@ -71,7 +71,7 @@ export const sessionStore = {
     try {
       await redis.del(`${SESSION_PREFIX}${key}`);
     } catch (error) {
-      console.error('Session delete error:', error);
+      console.error("Session delete error:", error);
     }
   },
 
@@ -105,6 +105,7 @@ export const sessionStore = {
 // ============================================
 
 export function createSessionMiddleware() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (ctx: any, next: () => Promise<void>) => {
     const key = ctx.from?.id?.toString();
 
@@ -127,7 +128,7 @@ export function createSessionMiddleware() {
 // Rate Limiting
 // ============================================
 
-const RATE_LIMIT_PREFIX = 'bot:rate:';
+const RATE_LIMIT_PREFIX = "bot:rate:";
 const RATE_LIMIT_WINDOW = 60; // 1 minute
 const RATE_LIMIT_MAX = 30; // 30 requests per minute
 
@@ -151,7 +152,7 @@ export const rateLimiter = {
    */
   async getRemaining(userId: number): Promise<number> {
     const key = `${RATE_LIMIT_PREFIX}${userId}`;
-    const count = parseInt(await redis.get(key) || '0', 10);
+    const count = parseInt((await redis.get(key)) || "0", 10);
     return Math.max(0, RATE_LIMIT_MAX - count);
   },
 };
@@ -160,7 +161,7 @@ export const rateLimiter = {
 // Cache Helpers
 // ============================================
 
-const CACHE_PREFIX = 'bot:cache:';
+const CACHE_PREFIX = "bot:cache:";
 
 export const cache = {
   /**
@@ -183,11 +184,11 @@ export const cache = {
       await redis.set(
         `${CACHE_PREFIX}${key}`,
         JSON.stringify(value),
-        'EX',
-        ttl
+        "EX",
+        ttl,
       );
     } catch (error) {
-      console.error('Cache set error:', error);
+      console.error("Cache set error:", error);
     }
   },
 

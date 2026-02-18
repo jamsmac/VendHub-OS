@@ -24,18 +24,18 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { QueryFailedError, EntityNotFoundError } from 'typeorm';
-import { ErrorCode } from '../constants/error-codes';
-import { BusinessException } from '../exceptions/business.exception';
+} from "@nestjs/common";
+import { Request, Response } from "express";
+import { QueryFailedError, EntityNotFoundError } from "typeorm";
+import { ErrorCode } from "../constants/error-codes";
+import { BusinessException } from "../exceptions/business.exception";
 
 interface ErrorResponse {
   success: false;
   statusCode: number;
   errorCode: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   errors?: string[];
   path: string;
   timestamp: string;
@@ -43,7 +43,7 @@ interface ErrorResponse {
   stack?: string;
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -56,8 +56,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode: string = ErrorCode.INTERNAL_ERROR;
-    let message = 'Internal server error';
-    let details: Record<string, any> | undefined;
+    let message = "Internal server error";
+    let details: Record<string, unknown> | undefined;
     let errors: string[] | undefined;
 
     // -----------------------------------------------------------------
@@ -66,20 +66,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof BusinessException) {
       statusCode = exception.getStatus();
       errorCode = exception.errorCode;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       message = (exception.getResponse() as any).message ?? exception.message;
       details = exception.details;
 
-    // -----------------------------------------------------------------
-    // 2. Standard HttpException  (NestJS built-in / third-party)
-    // -----------------------------------------------------------------
+      // -----------------------------------------------------------------
+      // 2. Standard HttpException  (NestJS built-in / third-party)
+      // -----------------------------------------------------------------
     } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       errorCode = this.httpStatusToErrorCode(statusCode);
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'string') {
+      if (typeof exceptionResponse === "string") {
         message = exceptionResponse;
-      } else if (typeof exceptionResponse === 'object') {
+      } else if (typeof exceptionResponse === "object") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const responseObj = exceptionResponse as any;
 
         // Preserve errorCode if the response already carries one
@@ -93,39 +95,38 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (Array.isArray(responseObj.message)) {
           errors = responseObj.message;
           errorCode = ErrorCode.VALIDATION_ERROR;
-          message = 'Validation error';
+          message = "Validation error";
         }
       }
 
-    // -----------------------------------------------------------------
-    // 3. TypeORM QueryFailedError
-    // -----------------------------------------------------------------
+      // -----------------------------------------------------------------
+      // 3. TypeORM QueryFailedError
+      // -----------------------------------------------------------------
     } else if (exception instanceof QueryFailedError) {
       statusCode = HttpStatus.BAD_REQUEST;
       errorCode = ErrorCode.BAD_REQUEST;
       message = this.handleDatabaseError(exception);
 
-    // -----------------------------------------------------------------
-    // 4. TypeORM EntityNotFoundError
-    // -----------------------------------------------------------------
+      // -----------------------------------------------------------------
+      // 4. TypeORM EntityNotFoundError
+      // -----------------------------------------------------------------
     } else if (exception instanceof EntityNotFoundError) {
       statusCode = HttpStatus.NOT_FOUND;
       errorCode = ErrorCode.NOT_FOUND;
-      message = 'Record not found';
+      message = "Record not found";
 
-    // -----------------------------------------------------------------
-    // 5. Generic Error / unknown
-    // -----------------------------------------------------------------
+      // -----------------------------------------------------------------
+      // 5. Generic Error / unknown
+      // -----------------------------------------------------------------
     } else if (exception instanceof Error) {
-      message = isProduction ? 'Internal server error' : exception.message;
+      message = isProduction ? "Internal server error" : exception.message;
     }
 
     // Log
     this.logError(exception, request, statusCode);
 
     // Build response
-    const requestId =
-      (request.headers['x-request-id'] as string) ?? undefined;
+    const requestId = (request.headers["x-request-id"] as string) ?? undefined;
 
     const errorResponse: ErrorResponse = {
       success: false,
@@ -179,9 +180,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case HttpStatus.UNPROCESSABLE_ENTITY:
         return ErrorCode.VALIDATION_ERROR;
       default:
-        return status >= 500
-          ? ErrorCode.INTERNAL_ERROR
-          : ErrorCode.BAD_REQUEST;
+        return status >= 500 ? ErrorCode.INTERNAL_ERROR : ErrorCode.BAD_REQUEST;
     }
   }
 
@@ -189,21 +188,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * Handle database-specific errors (PostgreSQL error codes).
    */
   private handleDatabaseError(error: QueryFailedError): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const driverError = error.driverError as any;
 
     switch (driverError?.code) {
-      case '23505': // unique_violation
+      case "23505": // unique_violation
         return this.extractUniqueViolationMessage(driverError);
-      case '23503': // foreign_key_violation
-        return 'Referenced record does not exist';
-      case '23502': // not_null_violation
-        return 'Required field is missing';
-      case '22P02': // invalid_text_representation
-        return 'Invalid data format';
-      case '22001': // string_data_right_truncation
-        return 'Field value exceeds maximum length';
+      case "23503": // foreign_key_violation
+        return "Referenced record does not exist";
+      case "23502": // not_null_violation
+        return "Required field is missing";
+      case "22P02": // invalid_text_representation
+        return "Invalid data format";
+      case "22001": // string_data_right_truncation
+        return "Field value exceeds maximum length";
       default:
-        return 'Database error';
+        return "Database error";
     }
   }
 
@@ -211,26 +211,27 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * Extract a user-friendly message from a PostgreSQL unique-constraint
    * violation.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extractUniqueViolationMessage(error: any): string {
-    const detail = error.detail || '';
+    const detail = error.detail || "";
 
     const match = detail.match(/Key \(([^)]+)\)/);
     if (match) {
       const fieldName = match[1];
       const fieldLabels: Record<string, string> = {
-        email: 'email',
-        phone: 'phone',
-        code: 'code',
-        sku: 'SKU',
-        serial_number: 'serial number',
-        inn: 'INN',
+        email: "email",
+        phone: "phone",
+        code: "code",
+        sku: "SKU",
+        serial_number: "serial number",
+        inn: "INN",
       };
 
       const label = fieldLabels[fieldName] || fieldName;
       return `A record with this ${label} already exists`;
     }
 
-    return 'A record with these values already exists';
+    return "A record with these values already exists";
   }
 
   /**
@@ -245,9 +246,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       ip: request.ip,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userId: (request as any).user?.id,
       statusCode,
-      requestId: request.headers['x-request-id'],
+      requestId: request.headers["x-request-id"],
     };
 
     if (statusCode >= 500) {

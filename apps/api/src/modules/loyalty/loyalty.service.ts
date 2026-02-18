@@ -8,13 +8,13 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThan, MoreThan } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron } from '@nestjs/schedule';
-import { PointsTransaction } from './entities/points-transaction.entity';
-import { User } from '../users/entities/user.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, LessThan, MoreThan } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron } from "@nestjs/schedule";
+import { PointsTransaction } from "./entities/points-transaction.entity";
+import { User } from "../users/entities/user.entity";
 import {
   LoyaltyLevel,
   PointsTransactionType,
@@ -27,12 +27,13 @@ import {
   calculateOrderPoints,
   getStreakBonus,
   calculateExpiryDate,
-} from './constants/loyalty.constants';
+} from "./constants/loyalty.constants";
 import {
   InternalEarnPointsDto,
   InternalSpendPointsDto,
   PointsHistoryQueryDto,
   LoyaltyStatsQueryDto,
+  LeaderboardQueryDto,
   LoyaltyBalanceDto,
   LoyaltyLevelInfoDto,
   EarnPointsResultDto,
@@ -41,7 +42,9 @@ import {
   PointsTransactionDto,
   LoyaltyStatsDto,
   AllLevelsInfoDto,
-} from './dto/loyalty.dto';
+  LeaderboardResponseDto,
+  LeaderboardEntryDto,
+} from "./dto/loyalty.dto";
 
 @Injectable()
 export class LoyaltyService {
@@ -65,7 +68,7 @@ export class LoyaltyService {
   async getBalance(userId: string): Promise<LoyaltyBalanceDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const [totalEarned, totalSpent, expiringIn30Days] = await Promise.all([
@@ -74,15 +77,20 @@ export class LoyaltyService {
       this.getExpiringPoints(userId, 30),
     ]);
 
-    const currentLevelInfo = this.getLevelInfo(user.loyaltyLevel || LoyaltyLevel.BRONZE);
-    const { nextLevel, pointsNeeded } = getPointsToNextLevel(user.pointsBalance || 0);
+    const currentLevelInfo = this.getLevelInfo(
+      user.loyaltyLevel || LoyaltyLevel.BRONZE,
+    );
+    const { nextLevel, pointsNeeded } = getPointsToNextLevel(
+      user.pointsBalance || 0,
+    );
 
     let nextLevelInfo: LoyaltyLevelInfoDto | null = null;
     let progressPercent = 100;
 
     if (nextLevel) {
       nextLevelInfo = this.getLevelInfo(nextLevel);
-      const currentLevelMin = LOYALTY_LEVELS[user.loyaltyLevel || LoyaltyLevel.BRONZE].minPoints;
+      const currentLevelMin =
+        LOYALTY_LEVELS[user.loyaltyLevel || LoyaltyLevel.BRONZE].minPoints;
       const nextLevelMin = LOYALTY_LEVELS[nextLevel].minPoints;
       const range = nextLevelMin - currentLevelMin;
       const progress = (user.pointsBalance || 0) - currentLevelMin;
@@ -114,26 +122,28 @@ export class LoyaltyService {
     const { type, source, dateFrom, dateTo, page = 1, limit = 20 } = query;
 
     const qb = this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .where('pt.userId = :userId', { userId })
-      .orderBy('pt.createdAt', 'DESC');
+      .createQueryBuilder("pt")
+      .where("pt.userId = :userId", { userId })
+      .orderBy("pt.createdAt", "DESC");
 
     if (type) {
-      qb.andWhere('pt.type = :type', { type });
+      qb.andWhere("pt.type = :type", { type });
     }
 
     if (source) {
-      qb.andWhere('pt.source = :source', { source });
+      qb.andWhere("pt.source = :source", { source });
     }
 
     if (dateFrom) {
-      qb.andWhere('pt.createdAt >= :dateFrom', { dateFrom: new Date(dateFrom) });
+      qb.andWhere("pt.createdAt >= :dateFrom", {
+        dateFrom: new Date(dateFrom),
+      });
     }
 
     if (dateTo) {
       const endDate = new Date(dateTo);
       endDate.setHours(23, 59, 59, 999);
-      qb.andWhere('pt.createdAt <= :dateTo', { dateTo: endDate });
+      qb.andWhere("pt.createdAt <= :dateTo", { dateTo: endDate });
     }
 
     const [items, total] = await qb
@@ -142,7 +152,7 @@ export class LoyaltyService {
       .getManyAndCount();
 
     return {
-      items: items.map(item => this.mapToTransactionDto(item)),
+      items: items.map((item) => this.mapToTransactionDto(item)),
       total,
       page,
       limit,
@@ -154,7 +164,9 @@ export class LoyaltyService {
    * Получить информацию обо всех уровнях
    */
   async getAllLevels(userId?: string): Promise<AllLevelsInfoDto> {
-    const levels = Object.values(LoyaltyLevel).map(level => this.getLevelInfo(level));
+    const levels = Object.values(LoyaltyLevel).map((level) =>
+      this.getLevelInfo(level),
+    );
 
     let currentLevel = LoyaltyLevel.BRONZE;
     let currentPoints = 0;
@@ -182,19 +194,30 @@ export class LoyaltyService {
    * Начислить баллы
    */
   async earnPoints(dto: InternalEarnPointsDto): Promise<EarnPointsResultDto> {
-    const { userId, organizationId, amount, source, referenceId, referenceType, description, descriptionUz, metadata } = dto;
+    const {
+      userId,
+      organizationId,
+      amount,
+      source,
+      referenceId,
+      referenceType,
+      description,
+      descriptionUz,
+      metadata,
+    } = dto;
 
     if (amount <= 0) {
-      throw new BadRequestException('Amount must be positive');
+      throw new BadRequestException("Amount must be positive");
     }
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Apply bonus multiplier
-    const levelConfig = LOYALTY_LEVELS[user.loyaltyLevel || LoyaltyLevel.BRONZE];
+    const levelConfig =
+      LOYALTY_LEVELS[user.loyaltyLevel || LoyaltyLevel.BRONZE];
     const multipliedAmount = Math.floor(amount * levelConfig.bonusMultiplier);
 
     // Calculate new balance
@@ -211,8 +234,10 @@ export class LoyaltyService {
       source,
       referenceId,
       referenceType,
-      description: description || this.generateDescription(source, multipliedAmount),
-      descriptionUz: descriptionUz || this.generateDescriptionUz(source, multipliedAmount),
+      description:
+        description || this.generateDescription(source, multipliedAmount),
+      descriptionUz:
+        descriptionUz || this.generateDescriptionUz(source, multipliedAmount),
       metadata,
       expiresAt: calculateExpiryDate(),
       remainingAmount: multipliedAmount,
@@ -233,7 +258,7 @@ export class LoyaltyService {
     let levelUp: LoyaltyLevelInfoDto | null = null;
     if (newLevel !== oldLevel) {
       levelUp = this.getLevelInfo(newLevel);
-      this.eventEmitter.emit('loyalty.level_up', {
+      this.eventEmitter.emit("loyalty.level_up", {
         userId,
         oldLevel,
         newLevel,
@@ -242,7 +267,7 @@ export class LoyaltyService {
     }
 
     // Emit event
-    this.eventEmitter.emit('loyalty.points_earned', {
+    this.eventEmitter.emit("loyalty.points_earned", {
       userId,
       amount: multipliedAmount,
       source,
@@ -250,7 +275,9 @@ export class LoyaltyService {
       newBalance,
     });
 
-    this.logger.log(`Earned ${multipliedAmount} points for user ${userId} from ${source}`);
+    this.logger.log(
+      `Earned ${multipliedAmount} points for user ${userId} from ${source}`,
+    );
 
     return {
       earned: multipliedAmount,
@@ -264,23 +291,34 @@ export class LoyaltyService {
   /**
    * Списать баллы
    */
-  async spendPoints(dto: InternalSpendPointsDto): Promise<SpendPointsResultDto> {
-    const { userId, organizationId, amount, referenceId, referenceType, description } = dto;
+  async spendPoints(
+    dto: InternalSpendPointsDto,
+  ): Promise<SpendPointsResultDto> {
+    const {
+      userId,
+      organizationId,
+      amount,
+      referenceId,
+      referenceType,
+      description,
+    } = dto;
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const currentBalance = user.pointsBalance || 0;
 
     // Validate spend
     if (amount > currentBalance) {
-      throw new BadRequestException('Insufficient points balance');
+      throw new BadRequestException("Insufficient points balance");
     }
 
     if (amount < POINTS_RULES.minPointsToSpend) {
-      throw new BadRequestException(`Minimum ${POINTS_RULES.minPointsToSpend} points to spend`);
+      throw new BadRequestException(
+        `Minimum ${POINTS_RULES.minPointsToSpend} points to spend`,
+      );
     }
 
     const newBalance = currentBalance - amount;
@@ -309,7 +347,7 @@ export class LoyaltyService {
     });
 
     // Emit event
-    this.eventEmitter.emit('loyalty.points_spent', {
+    this.eventEmitter.emit("loyalty.points_spent", {
       userId,
       amount,
       referenceId,
@@ -338,14 +376,14 @@ export class LoyaltyService {
   ): Promise<EarnPointsResultDto | SpendPointsResultDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const currentBalance = user.pointsBalance || 0;
     const newBalance = currentBalance + amount;
 
     if (newBalance < 0) {
-      throw new BadRequestException('Cannot adjust to negative balance');
+      throw new BadRequestException("Cannot adjust to negative balance");
     }
 
     const transaction = this.pointsTransactionRepo.create({
@@ -360,6 +398,7 @@ export class LoyaltyService {
       adminReason: reason,
       expiresAt: amount > 0 ? calculateExpiryDate() : undefined,
       remainingAmount: amount > 0 ? amount : undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     await this.pointsTransactionRepo.save(transaction);
@@ -371,7 +410,9 @@ export class LoyaltyService {
       loyaltyLevel: newLevel,
     });
 
-    this.logger.log(`Admin ${adminId} adjusted ${amount} points for user ${userId}: ${reason}`);
+    this.logger.log(
+      `Admin ${adminId} adjusted ${amount} points for user ${userId}: ${reason}`,
+    );
 
     if (amount > 0) {
       return {
@@ -386,6 +427,7 @@ export class LoyaltyService {
         spent: Math.abs(amount),
         newBalance,
         discountAmount: 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         transactionId: (transaction as any).id,
       };
     }
@@ -398,7 +440,10 @@ export class LoyaltyService {
   /**
    * Начислить приветственный бонус
    */
-  async processWelcomeBonus(userId: string, organizationId: string): Promise<EarnPointsResultDto | null> {
+  async processWelcomeBonus(
+    userId: string,
+    organizationId: string,
+  ): Promise<EarnPointsResultDto | null> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user || user.welcomeBonusReceived) {
       return null;
@@ -411,15 +456,19 @@ export class LoyaltyService {
       organizationId,
       amount: LOYALTY_BONUSES.welcome,
       source: PointsSource.WELCOME_BONUS,
-      description: 'Приветственный бонус',
-      descriptionUz: 'Xush kelibsiz bonusi',
+      description: "Приветственный бонус",
+      descriptionUz: "Xush kelibsiz bonusi",
     });
   }
 
   /**
    * Начислить бонус за первый заказ
    */
-  async processFirstOrderBonus(userId: string, organizationId: string, orderId: string): Promise<EarnPointsResultDto | null> {
+  async processFirstOrderBonus(
+    userId: string,
+    organizationId: string,
+    orderId: string,
+  ): Promise<EarnPointsResultDto | null> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user || (user.totalOrders || 0) > 1) {
       return null;
@@ -431,9 +480,9 @@ export class LoyaltyService {
       amount: LOYALTY_BONUSES.firstOrder,
       source: PointsSource.FIRST_ORDER,
       referenceId: orderId,
-      referenceType: 'order',
-      description: 'Бонус за первый заказ',
-      descriptionUz: 'Birinchi buyurtma uchun bonus',
+      referenceType: "order",
+      description: "Бонус за первый заказ",
+      descriptionUz: "Birinchi buyurtma uchun bonus",
     });
   }
 
@@ -448,10 +497,13 @@ export class LoyaltyService {
   ): Promise<EarnPointsResultDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
-    const basePoints = calculateOrderPoints(orderAmount, user.loyaltyLevel || LoyaltyLevel.BRONZE);
+    const basePoints = calculateOrderPoints(
+      orderAmount,
+      user.loyaltyLevel || LoyaltyLevel.BRONZE,
+    );
 
     // Update user stats
     await this.userRepo.update(userId, {
@@ -459,6 +511,17 @@ export class LoyaltyService {
       totalSpent: Number(user.totalSpent || 0) + orderAmount,
       lastOrderDate: new Date(),
     });
+
+    // If order doesn't earn points (below minimum), return zero result
+    if (basePoints === 0) {
+      return {
+        earned: 0,
+        newBalance: user.pointsBalance || 0,
+        levelUp: null,
+        streakBonus: null,
+        message: "Заказ ниже минимальной суммы для начисления баллов",
+      };
+    }
 
     // Check streak
     const streakResult = await this.updateStreak(userId);
@@ -470,7 +533,7 @@ export class LoyaltyService {
       amount: basePoints,
       source: PointsSource.ORDER,
       referenceId: orderId,
-      referenceType: 'order',
+      referenceType: "order",
       description: `За заказ #${orderId.substring(0, 8)}`,
       metadata: { orderAmount },
     });
@@ -484,7 +547,7 @@ export class LoyaltyService {
         amount: streakResult.bonus,
         source: PointsSource.STREAK_BONUS,
         referenceId: orderId,
-        referenceType: 'order',
+        referenceType: "order",
         description: streakResult.message,
       });
     }
@@ -495,14 +558,18 @@ export class LoyaltyService {
   /**
    * Обновить streak пользователя
    */
-  private async updateStreak(userId: string): Promise<{ bonus: number; message: string } | null> {
+  private async updateStreak(
+    userId: string,
+  ): Promise<{ bonus: number; message: string } | null> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return null;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const lastOrderDate = user.lastOrderDate ? new Date(user.lastOrderDate) : null;
+    const lastOrderDate = user.lastOrderDate
+      ? new Date(user.lastOrderDate)
+      : null;
     if (lastOrderDate) {
       lastOrderDate.setHours(0, 0, 0, 0);
     }
@@ -541,8 +608,13 @@ export class LoyaltyService {
   /**
    * Получить статистику программы лояльности (для админов)
    */
-  async getStats(organizationId: string, query: LoyaltyStatsQueryDto): Promise<LoyaltyStatsDto> {
-    const dateFrom = query.dateFrom ? new Date(query.dateFrom) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  async getStats(
+    organizationId: string,
+    query: LoyaltyStatsQueryDto,
+  ): Promise<LoyaltyStatsDto> {
+    const dateFrom = query.dateFrom
+      ? new Date(query.dateFrom)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const dateTo = query.dateTo ? new Date(query.dateTo) : new Date();
     dateTo.setHours(23, 59, 59, 999);
 
@@ -550,12 +622,15 @@ export class LoyaltyService {
     const [totalMembers, activeMembers, newMembers] = await Promise.all([
       this.userRepo.count({ where: { organizationId } }),
       this.pointsTransactionRepo
-        .createQueryBuilder('pt')
-        .select('COUNT(DISTINCT pt.userId)', 'count')
-        .where('pt.organizationId = :organizationId', { organizationId })
-        .andWhere('pt.createdAt BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo })
+        .createQueryBuilder("pt")
+        .select("COUNT(DISTINCT pt.userId)", "count")
+        .where("pt.organizationId = :organizationId", { organizationId })
+        .andWhere("pt.createdAt BETWEEN :dateFrom AND :dateTo", {
+          dateFrom,
+          dateTo,
+        })
         .getRawOne()
-        .then(r => parseInt(r.count) || 0),
+        .then((r) => parseInt(r.count) || 0),
       this.userRepo.count({
         where: {
           organizationId,
@@ -566,33 +641,42 @@ export class LoyaltyService {
 
     // Level distribution
     const levelCounts = await this.userRepo
-      .createQueryBuilder('u')
-      .select('u.loyaltyLevel', 'level')
-      .addSelect('COUNT(*)', 'count')
-      .where('u.organizationId = :organizationId', { organizationId })
-      .groupBy('u.loyaltyLevel')
+      .createQueryBuilder("u")
+      .select("u.loyaltyLevel", "level")
+      .addSelect("COUNT(*)", "count")
+      .where("u.organizationId = :organizationId", { organizationId })
+      .groupBy("u.loyaltyLevel")
       .getRawMany();
 
-    const levelDistribution = Object.values(LoyaltyLevel).map(level => {
-      const found = levelCounts.find(lc => lc.level === level);
+    const levelDistribution = Object.values(LoyaltyLevel).map((level) => {
+      const found = levelCounts.find((lc) => lc.level === level);
       const count = found ? parseInt(found.count) : 0;
       return {
         level,
         count,
-        percent: totalMembers > 0 ? Math.round((count / totalMembers) * 10000) / 100 : 0,
+        percent:
+          totalMembers > 0
+            ? Math.round((count / totalMembers) * 10000) / 100
+            : 0,
       };
     });
 
     // Points totals
     const pointsTotals = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
+      .createQueryBuilder("pt")
       .select([
-        'SUM(CASE WHEN pt.type = :earn THEN pt.amount ELSE 0 END) as totalEarned',
-        'SUM(CASE WHEN pt.type = :spend THEN ABS(pt.amount) ELSE 0 END) as totalSpent',
+        "SUM(CASE WHEN pt.type = :earn THEN pt.amount ELSE 0 END) as totalEarned",
+        "SUM(CASE WHEN pt.type = :spend THEN ABS(pt.amount) ELSE 0 END) as totalSpent",
       ])
-      .where('pt.organizationId = :organizationId', { organizationId })
-      .andWhere('pt.createdAt BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo })
-      .setParameters({ earn: PointsTransactionType.EARN, spend: PointsTransactionType.SPEND })
+      .where("pt.organizationId = :organizationId", { organizationId })
+      .andWhere("pt.createdAt BETWEEN :dateFrom AND :dateTo", {
+        dateFrom,
+        dateTo,
+      })
+      .setParameters({
+        earn: PointsTransactionType.EARN,
+        spend: PointsTransactionType.SPEND,
+      })
       .getRawOne();
 
     const totalEarned = parseInt(pointsTotals.totalEarned) || 0;
@@ -600,29 +684,35 @@ export class LoyaltyService {
 
     // Average balance
     const avgBalance = await this.userRepo
-      .createQueryBuilder('u')
-      .select('AVG(u.pointsBalance)', 'avg')
-      .where('u.organizationId = :organizationId', { organizationId })
+      .createQueryBuilder("u")
+      .select("AVG(u.pointsBalance)", "avg")
+      .where("u.organizationId = :organizationId", { organizationId })
       .getRawOne()
-      .then(r => Math.round(parseFloat(r.avg) || 0));
+      .then((r) => Math.round(parseFloat(r.avg) || 0));
 
     // Top earn sources
     const topSources = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .select('pt.source', 'source')
-      .addSelect('SUM(pt.amount)', 'total')
-      .where('pt.organizationId = :organizationId', { organizationId })
-      .andWhere('pt.type = :type', { type: PointsTransactionType.EARN })
-      .andWhere('pt.createdAt BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo })
-      .groupBy('pt.source')
-      .orderBy('total', 'DESC')
+      .createQueryBuilder("pt")
+      .select("pt.source", "source")
+      .addSelect("SUM(pt.amount)", "total")
+      .where("pt.organizationId = :organizationId", { organizationId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+      .andWhere("pt.createdAt BETWEEN :dateFrom AND :dateTo", {
+        dateFrom,
+        dateTo,
+      })
+      .groupBy("pt.source")
+      .orderBy("total", "DESC")
       .limit(5)
       .getRawMany();
 
-    const topEarnSources = topSources.map(ts => ({
+    const topEarnSources = topSources.map((ts) => ({
       source: ts.source as PointsSource,
       total: parseInt(ts.total) || 0,
-      percent: totalEarned > 0 ? Math.round((parseInt(ts.total) / totalEarned) * 10000) / 100 : 0,
+      percent:
+        totalEarned > 0
+          ? Math.round((parseInt(ts.total) / totalEarned) * 10000) / 100
+          : 0,
     }));
 
     return {
@@ -634,7 +724,10 @@ export class LoyaltyService {
       totalEarned,
       totalSpent,
       averageBalance: avgBalance,
-      redemptionRate: totalEarned > 0 ? Math.round((totalSpent / totalEarned) * 10000) / 100 : 0,
+      redemptionRate:
+        totalEarned > 0
+          ? Math.round((totalSpent / totalEarned) * 10000) / 100
+          : 0,
       topEarnSources,
       timeline: [], // Would need additional query for timeline
     };
@@ -648,30 +741,31 @@ export class LoyaltyService {
     expiryDate.setDate(expiryDate.getDate() + days);
 
     const results = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .select('pt.userId', 'userId')
-      .addSelect('SUM(pt.remainingAmount)', 'expiringPoints')
-      .addSelect('MIN(pt.expiresAt)', 'earliestExpiry')
-      .where('pt.organizationId = :organizationId', { organizationId })
-      .andWhere('pt.type = :type', { type: PointsTransactionType.EARN })
-      .andWhere('pt.isExpired = :isExpired', { isExpired: false })
-      .andWhere('pt.expiresAt <= :expiryDate', { expiryDate })
-      .andWhere('pt.remainingAmount > 0')
-      .groupBy('pt.userId')
-      .orderBy('"expiringPoints"', 'DESC')
+      .createQueryBuilder("pt")
+      .select("pt.userId", "userId")
+      .addSelect("SUM(pt.remainingAmount)", "expiringPoints")
+      .addSelect("MIN(pt.expiresAt)", "earliestExpiry")
+      .where("pt.organizationId = :organizationId", { organizationId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+      .andWhere("pt.isExpired = :isExpired", { isExpired: false })
+      .andWhere("pt.expiresAt <= :expiryDate", { expiryDate })
+      .andWhere("pt.remainingAmount > 0")
+      .groupBy("pt.userId")
+      .orderBy('"expiringPoints"', "DESC")
       .getRawMany();
 
     const userIds = results.map((r) => r.userId);
-    const users = userIds.length
-      ? await this.userRepo.findByIds(userIds)
-      : [];
+    const users = userIds.length ? await this.userRepo.findByIds(userIds) : [];
 
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     return {
       days,
       totalUsers: results.length,
-      totalExpiringPoints: results.reduce((s, r) => s + parseInt(r.expiringPoints || '0'), 0),
+      totalExpiringPoints: results.reduce(
+        (s, r) => s + parseInt(r.expiringPoints || "0"),
+        0,
+      ),
       users: results.map((r) => {
         const user = userMap.get(r.userId);
         return {
@@ -679,10 +773,151 @@ export class LoyaltyService {
           firstName: user?.firstName,
           lastName: user?.lastName,
           email: user?.email,
-          expiringPoints: parseInt(r.expiringPoints || '0'),
+          expiringPoints: parseInt(r.expiringPoints || "0"),
           earliestExpiry: r.earliestExpiry,
         };
       }),
+    };
+  }
+
+  // ============================================================================
+  // LEADERBOARD
+  // ============================================================================
+
+  /**
+   * Получить лидерборд пользователей
+   */
+  async getLeaderboard(
+    organizationId: string,
+    currentUserId: string,
+    query: LeaderboardQueryDto,
+  ): Promise<LeaderboardResponseDto> {
+    const { period = "month", limit = 50 } = query;
+
+    // Determine date range
+    const now = new Date();
+    let periodStart: Date;
+
+    switch (period) {
+      case "week":
+        periodStart = new Date(now);
+        periodStart.setDate(periodStart.getDate() - 7);
+        periodStart.setHours(0, 0, 0, 0);
+        break;
+      case "month":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "all":
+      default:
+        periodStart = new Date(2020, 0, 1); // beginning of time
+        break;
+    }
+
+    const periodEnd = new Date(now);
+    periodEnd.setHours(23, 59, 59, 999);
+
+    // Query: aggregate earned points per user in the period
+    const leaderboardQb = this.pointsTransactionRepo
+      .createQueryBuilder("pt")
+      .select("pt.userId", "userId")
+      .addSelect("SUM(pt.amount)", "pointsEarned")
+      .innerJoin(User, "u", "u.id = pt.userId")
+      .addSelect("u.firstName", "firstName")
+      .addSelect("u.lastName", "lastName")
+      .addSelect("u.loyaltyLevel", "loyaltyLevel")
+      .addSelect("u.pointsBalance", "pointsBalance")
+      .addSelect("u.currentStreak", "currentStreak")
+      .addSelect("u.avatarUrl", "avatarUrl")
+      .where("pt.organizationId = :organizationId", { organizationId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+      .andWhere("pt.createdAt >= :periodStart", { periodStart })
+      .andWhere("pt.createdAt <= :periodEnd", { periodEnd })
+      .groupBy("pt.userId")
+      .addGroupBy("u.id")
+      .orderBy('"pointsEarned"', "DESC")
+      .limit(limit);
+
+    const rawEntries = await leaderboardQb.getRawMany();
+
+    // Map to DTOs with rank
+    const entries: LeaderboardEntryDto[] = rawEntries.map((row, index) => ({
+      rank: index + 1,
+      userId: row.userId,
+      firstName: row.firstName || "Пользователь",
+      lastNameInitial: row.lastName ? row.lastName.charAt(0) + "." : "",
+      loyaltyLevel: row.loyaltyLevel || LoyaltyLevel.BRONZE,
+      pointsBalance: parseInt(row.pointsBalance) || 0,
+      pointsEarned: parseInt(row.pointsEarned) || 0,
+      currentStreak: parseInt(row.currentStreak) || 0,
+      avatarUrl: row.avatarUrl || null,
+    }));
+
+    // Find current user's position
+    let myRank: number | null = null;
+    let myEntry: LeaderboardEntryDto | null = null;
+
+    const foundEntry = entries.find((e) => e.userId === currentUserId);
+    if (foundEntry) {
+      myRank = foundEntry.rank;
+      myEntry = foundEntry;
+    } else {
+      // User is not in top N, find their actual rank
+      const userRankResult = await this.pointsTransactionRepo
+        .createQueryBuilder("pt")
+        .select("pt.userId", "userId")
+        .addSelect("SUM(pt.amount)", "pointsEarned")
+        .where("pt.organizationId = :organizationId", { organizationId })
+        .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+        .andWhere("pt.createdAt >= :periodStart", { periodStart })
+        .andWhere("pt.createdAt <= :periodEnd", { periodEnd })
+        .groupBy("pt.userId")
+        .having("pt.userId = :currentUserId", { currentUserId })
+        .getRawOne();
+
+      if (userRankResult) {
+        const userEarned = parseInt(userRankResult.pointsEarned) || 0;
+
+        // Count how many users have more points
+        const rankCountResult = await this.pointsTransactionRepo
+          .createQueryBuilder("pt")
+          .select("COUNT(DISTINCT pt.userId)", "count")
+          .where("pt.organizationId = :organizationId", { organizationId })
+          .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+          .andWhere("pt.createdAt >= :periodStart", { periodStart })
+          .andWhere("pt.createdAt <= :periodEnd", { periodEnd })
+          .groupBy("pt.userId")
+          .having("SUM(pt.amount) > :userEarned", { userEarned })
+          .getRawMany();
+
+        myRank = (rankCountResult?.length || 0) + 1;
+
+        const user = await this.userRepo.findOne({
+          where: { id: currentUserId },
+        });
+        if (user) {
+          myEntry = {
+            rank: myRank,
+            userId: currentUserId,
+            firstName: user.firstName || "Пользователь",
+            lastNameInitial: user.lastName ? user.lastName.charAt(0) + "." : "",
+            loyaltyLevel: user.loyaltyLevel || LoyaltyLevel.BRONZE,
+            pointsBalance: user.pointsBalance || 0,
+            pointsEarned: userEarned,
+            currentStreak: user.currentStreak || 0,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            avatarUrl: (user as any).avatarUrl || null,
+          };
+        }
+      }
+    }
+
+    return {
+      period,
+      periodStart,
+      periodEnd,
+      entries,
+      myRank,
+      myEntry,
     };
   }
 
@@ -693,9 +928,9 @@ export class LoyaltyService {
   /**
    * Истечение срока баллов (ежедневно в 01:00)
    */
-  @Cron('0 1 * * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 1 * * *", { timeZone: "Asia/Tashkent" })
   async expirePoints(): Promise<void> {
-    this.logger.log('Running points expiry job');
+    this.logger.log("Running points expiry job");
 
     const now = new Date();
 
@@ -715,7 +950,10 @@ export class LoyaltyService {
         const user = await this.userRepo.findOne({ where: { id: tx.userId } });
         if (!user) continue;
 
-        const newBalance = Math.max(0, (user.pointsBalance || 0) - tx.remainingAmount);
+        const newBalance = Math.max(
+          0,
+          (user.pointsBalance || 0) - tx.remainingAmount,
+        );
 
         // Create expiry transaction
         await this.pointsTransactionRepo.save({
@@ -726,7 +964,7 @@ export class LoyaltyService {
           balanceAfter: newBalance,
           source: PointsSource.EXPIRY,
           referenceId: tx.id,
-          referenceType: 'points_transaction',
+          referenceType: "points_transaction",
           description: `Истечение срока ${tx.remainingAmount} баллов`,
         });
 
@@ -742,19 +980,23 @@ export class LoyaltyService {
           loyaltyLevel: getLoyaltyLevelByPoints(newBalance),
         });
 
-        this.logger.log(`Expired ${tx.remainingAmount} points for user ${tx.userId}`);
+        this.logger.log(
+          `Expired ${tx.remainingAmount} points for user ${tx.userId}`,
+        );
       }
     }
 
-    this.logger.log(`Points expiry job completed. Processed ${expiredTransactions.length} transactions`);
+    this.logger.log(
+      `Points expiry job completed. Processed ${expiredTransactions.length} transactions`,
+    );
   }
 
   /**
    * Сброс streak при отсутствии заказов (ежедневно в 00:30)
    */
-  @Cron('30 0 * * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("30 0 * * *", { timeZone: "Asia/Tashkent" })
   async resetBrokenStreaks(): Promise<void> {
-    this.logger.log('Running streak reset job');
+    this.logger.log("Running streak reset job");
 
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -765,11 +1007,13 @@ export class LoyaltyService {
       .createQueryBuilder()
       .update(User)
       .set({ currentStreak: 0 })
-      .where('currentStreak > 0')
-      .andWhere('lastOrderDate < :twoDaysAgo', { twoDaysAgo })
+      .where("currentStreak > 0")
+      .andWhere("lastOrderDate < :twoDaysAgo", { twoDaysAgo })
       .execute();
 
-    this.logger.log(`Streak reset job completed. Reset ${result.affected} streaks`);
+    this.logger.log(
+      `Streak reset job completed. Reset ${result.affected} streaks`,
+    );
   }
 
   // ============================================================================
@@ -792,41 +1036,47 @@ export class LoyaltyService {
 
   private async getTotalEarned(userId: string): Promise<number> {
     const result = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .select('SUM(pt.amount)', 'total')
-      .where('pt.userId = :userId', { userId })
-      .andWhere('pt.type = :type', { type: PointsTransactionType.EARN })
+      .createQueryBuilder("pt")
+      .select("SUM(pt.amount)", "total")
+      .where("pt.userId = :userId", { userId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
       .getRawOne();
     return parseInt(result?.total) || 0;
   }
 
   private async getTotalSpent(userId: string): Promise<number> {
     const result = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .select('SUM(ABS(pt.amount))', 'total')
-      .where('pt.userId = :userId', { userId })
-      .andWhere('pt.type = :type', { type: PointsTransactionType.SPEND })
+      .createQueryBuilder("pt")
+      .select("SUM(ABS(pt.amount))", "total")
+      .where("pt.userId = :userId", { userId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.SPEND })
       .getRawOne();
     return parseInt(result?.total) || 0;
   }
 
-  private async getExpiringPoints(userId: string, days: number): Promise<number> {
+  private async getExpiringPoints(
+    userId: string,
+    days: number,
+  ): Promise<number> {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + days);
 
     const result = await this.pointsTransactionRepo
-      .createQueryBuilder('pt')
-      .select('SUM(pt.remainingAmount)', 'total')
-      .where('pt.userId = :userId', { userId })
-      .andWhere('pt.type = :type', { type: PointsTransactionType.EARN })
-      .andWhere('pt.isExpired = :isExpired', { isExpired: false })
-      .andWhere('pt.expiresAt <= :expiryDate', { expiryDate })
-      .andWhere('pt.remainingAmount > 0')
+      .createQueryBuilder("pt")
+      .select("SUM(pt.remainingAmount)", "total")
+      .where("pt.userId = :userId", { userId })
+      .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
+      .andWhere("pt.isExpired = :isExpired", { isExpired: false })
+      .andWhere("pt.expiresAt <= :expiryDate", { expiryDate })
+      .andWhere("pt.remainingAmount > 0")
       .getRawOne();
     return parseInt(result?.total) || 0;
   }
 
-  private async deductFromOldestTransactions(userId: string, amount: number): Promise<void> {
+  private async deductFromOldestTransactions(
+    userId: string,
+    amount: number,
+  ): Promise<void> {
     // FIFO deduction from earn transactions
     const earnTransactions = await this.pointsTransactionRepo.find({
       where: {
@@ -835,7 +1085,7 @@ export class LoyaltyService {
         isExpired: false,
         remainingAmount: MoreThan(0),
       },
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
     });
 
     let remaining = amount;
@@ -854,22 +1104,22 @@ export class LoyaltyService {
 
   private mapToTransactionDto(tx: PointsTransaction): PointsTransactionDto {
     const icons: Record<PointsSource, string> = {
-      [PointsSource.ORDER]: '🛒',
-      [PointsSource.WELCOME_BONUS]: '🎁',
-      [PointsSource.FIRST_ORDER]: '🎉',
-      [PointsSource.REFERRAL]: '👥',
-      [PointsSource.REFERRAL_BONUS]: '🤝',
-      [PointsSource.ACHIEVEMENT]: '🏆',
-      [PointsSource.DAILY_QUEST]: '📅',
-      [PointsSource.WEEKLY_QUEST]: '📆',
-      [PointsSource.MONTHLY_QUEST]: '📆',
-      [PointsSource.STREAK_BONUS]: '🔥',
-      [PointsSource.PROMO]: '🎫',
-      [PointsSource.ADMIN]: '👨‍💼',
-      [PointsSource.BIRTHDAY]: '🎂',
-      [PointsSource.PURCHASE]: '💳',
-      [PointsSource.REFUND]: '↩️',
-      [PointsSource.EXPIRY]: '⏰',
+      [PointsSource.ORDER]: "🛒",
+      [PointsSource.WELCOME_BONUS]: "🎁",
+      [PointsSource.FIRST_ORDER]: "🎉",
+      [PointsSource.REFERRAL]: "👥",
+      [PointsSource.REFERRAL_BONUS]: "🤝",
+      [PointsSource.ACHIEVEMENT]: "🏆",
+      [PointsSource.DAILY_QUEST]: "📅",
+      [PointsSource.WEEKLY_QUEST]: "📆",
+      [PointsSource.MONTHLY_QUEST]: "📆",
+      [PointsSource.STREAK_BONUS]: "🔥",
+      [PointsSource.PROMO]: "🎫",
+      [PointsSource.ADMIN]: "👨‍💼",
+      [PointsSource.BIRTHDAY]: "🎂",
+      [PointsSource.PURCHASE]: "💳",
+      [PointsSource.REFUND]: "↩️",
+      [PointsSource.EXPIRY]: "⏰",
     };
 
     return {
@@ -878,55 +1128,55 @@ export class LoyaltyService {
       amount: tx.amount,
       balanceAfter: tx.balanceAfter,
       source: tx.source,
-      description: tx.description || '',
+      description: tx.description || "",
       createdAt: tx.created_at,
       expiresAt: tx.expiresAt || null,
-      icon: icons[tx.source] || '💰',
-      color: tx.amount > 0 ? 'green' : tx.amount < 0 ? 'red' : 'gray',
+      icon: icons[tx.source] || "💰",
+      color: tx.amount > 0 ? "green" : tx.amount < 0 ? "red" : "gray",
     };
   }
 
   private generateDescription(source: PointsSource, amount: number): string {
     const descriptions: Record<PointsSource, string> = {
       [PointsSource.ORDER]: `За покупку (+${amount})`,
-      [PointsSource.WELCOME_BONUS]: 'Приветственный бонус',
-      [PointsSource.FIRST_ORDER]: 'Бонус за первый заказ',
-      [PointsSource.REFERRAL]: 'За приглашенного друга',
-      [PointsSource.REFERRAL_BONUS]: 'Бонус по приглашению',
-      [PointsSource.ACHIEVEMENT]: 'За достижение',
-      [PointsSource.DAILY_QUEST]: 'Ежедневный квест',
-      [PointsSource.WEEKLY_QUEST]: 'Еженедельный квест',
-      [PointsSource.MONTHLY_QUEST]: 'Ежемесячный квест',
-      [PointsSource.STREAK_BONUS]: 'Бонус за серию',
-      [PointsSource.PROMO]: 'Промо-акция',
-      [PointsSource.ADMIN]: 'Корректировка',
-      [PointsSource.BIRTHDAY]: 'С днем рождения!',
-      [PointsSource.PURCHASE]: 'Списание баллов',
-      [PointsSource.REFUND]: 'Возврат баллов',
-      [PointsSource.EXPIRY]: 'Истечение срока',
+      [PointsSource.WELCOME_BONUS]: "Приветственный бонус",
+      [PointsSource.FIRST_ORDER]: "Бонус за первый заказ",
+      [PointsSource.REFERRAL]: "За приглашенного друга",
+      [PointsSource.REFERRAL_BONUS]: "Бонус по приглашению",
+      [PointsSource.ACHIEVEMENT]: "За достижение",
+      [PointsSource.DAILY_QUEST]: "Ежедневный квест",
+      [PointsSource.WEEKLY_QUEST]: "Еженедельный квест",
+      [PointsSource.MONTHLY_QUEST]: "Ежемесячный квест",
+      [PointsSource.STREAK_BONUS]: "Бонус за серию",
+      [PointsSource.PROMO]: "Промо-акция",
+      [PointsSource.ADMIN]: "Корректировка",
+      [PointsSource.BIRTHDAY]: "С днем рождения!",
+      [PointsSource.PURCHASE]: "Списание баллов",
+      [PointsSource.REFUND]: "Возврат баллов",
+      [PointsSource.EXPIRY]: "Истечение срока",
     };
-    return descriptions[source] || 'Операция с баллами';
+    return descriptions[source] || "Операция с баллами";
   }
 
   private generateDescriptionUz(source: PointsSource, amount: number): string {
     const descriptions: Record<PointsSource, string> = {
       [PointsSource.ORDER]: `Xarid uchun (+${amount})`,
-      [PointsSource.WELCOME_BONUS]: 'Xush kelibsiz bonusi',
-      [PointsSource.FIRST_ORDER]: 'Birinchi buyurtma uchun bonus',
+      [PointsSource.WELCOME_BONUS]: "Xush kelibsiz bonusi",
+      [PointsSource.FIRST_ORDER]: "Birinchi buyurtma uchun bonus",
       [PointsSource.REFERRAL]: "Do'stni taklif qilgani uchun",
-      [PointsSource.REFERRAL_BONUS]: 'Taklif bonusi',
-      [PointsSource.ACHIEVEMENT]: 'Yutuq uchun',
-      [PointsSource.DAILY_QUEST]: 'Kunlik vazifa',
-      [PointsSource.WEEKLY_QUEST]: 'Haftalik vazifa',
-      [PointsSource.MONTHLY_QUEST]: 'Oylik vazifa',
+      [PointsSource.REFERRAL_BONUS]: "Taklif bonusi",
+      [PointsSource.ACHIEVEMENT]: "Yutuq uchun",
+      [PointsSource.DAILY_QUEST]: "Kunlik vazifa",
+      [PointsSource.WEEKLY_QUEST]: "Haftalik vazifa",
+      [PointsSource.MONTHLY_QUEST]: "Oylik vazifa",
       [PointsSource.STREAK_BONUS]: "Ketma-ket kunlar uchun bonus",
-      [PointsSource.PROMO]: 'Aksiya',
+      [PointsSource.PROMO]: "Aksiya",
       [PointsSource.ADMIN]: "Tuzatish",
       [PointsSource.BIRTHDAY]: "Tug'ilgan kuningiz bilan!",
-      [PointsSource.PURCHASE]: 'Ballarni ishlatish',
-      [PointsSource.REFUND]: 'Ballarni qaytarish',
-      [PointsSource.EXPIRY]: 'Muddat tugashi',
+      [PointsSource.PURCHASE]: "Ballarni ishlatish",
+      [PointsSource.REFUND]: "Ballarni qaytarish",
+      [PointsSource.EXPIRY]: "Muddat tugashi",
     };
-    return descriptions[source] || 'Ballar operatsiyasi';
+    return descriptions[source] || "Ballar operatsiyasi";
   }
 }

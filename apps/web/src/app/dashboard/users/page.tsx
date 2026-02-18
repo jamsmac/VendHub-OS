@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Users,
   Search,
@@ -18,21 +18,21 @@ import {
   Trash2,
   UserPlus,
   AlertTriangle,
-} from 'lucide-react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { usersApi } from '@/lib/api';
-import Link from 'next/link';
+} from "@/components/ui/dropdown-menu";
+import { usersApi } from "@/lib/api";
+import Link from "next/link";
 
 interface User {
   id: string;
@@ -40,34 +40,83 @@ interface User {
   firstName: string;
   lastName?: string;
   phone?: string;
-  role: 'owner' | 'admin' | 'manager' | 'operator' | 'warehouse' | 'accountant' | 'viewer';
-  status: 'active' | 'inactive' | 'suspended';
+  role:
+    | "owner"
+    | "admin"
+    | "manager"
+    | "operator"
+    | "warehouse"
+    | "accountant"
+    | "viewer";
+  status: "active" | "inactive" | "suspended";
   avatarUrl?: string;
   createdAt: string;
   lastLoginAt?: string;
 }
 
-const roleConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  owner: { label: 'Владелец', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-  admin: { label: 'Администратор', color: 'text-red-600', bgColor: 'bg-red-100' },
-  manager: { label: 'Менеджер', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  operator: { label: 'Оператор', color: 'text-green-600', bgColor: 'bg-green-100' },
-  warehouse: { label: 'Склад', color: 'text-orange-600', bgColor: 'bg-orange-100' },
-  accountant: { label: 'Бухгалтер', color: 'text-cyan-600', bgColor: 'bg-cyan-100' },
-  viewer: { label: 'Наблюдатель', color: 'text-muted-foreground', bgColor: 'bg-muted' },
+const roleConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  owner: {
+    label: "Владелец",
+    color: "text-purple-600",
+    bgColor: "bg-purple-100",
+  },
+  admin: {
+    label: "Администратор",
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  manager: {
+    label: "Менеджер",
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  operator: {
+    label: "Оператор",
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  warehouse: {
+    label: "Склад",
+    color: "text-orange-600",
+    bgColor: "bg-orange-100",
+  },
+  accountant: {
+    label: "Бухгалтер",
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-100",
+  },
+  viewer: {
+    label: "Наблюдатель",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
 };
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  active: { label: 'Активен', color: 'text-green-600', icon: CheckCircle },
-  inactive: { label: 'Неактивен', color: 'text-muted-foreground', icon: XCircle },
-  suspended: { label: 'Заблокирован', color: 'text-red-600', icon: XCircle },
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const statusConfig: Record<
+  string,
+  { label: string; color: string; icon: any }
+> = {
+  active: { label: "Активен", color: "text-green-600", icon: CheckCircle },
+  inactive: {
+    label: "Неактивен",
+    color: "text-muted-foreground",
+    icon: XCircle,
+  },
+  suspended: { label: "Заблокирован", color: "text-red-600", icon: XCircle },
 };
 
 export default function UsersPage() {
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
-  const [confirmState, setConfirmState] = useState<{ title: string; action: () => void } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    action: () => void;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -75,19 +124,23 @@ export default function UsersPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: users, isLoading, isError } = useQuery({
-    queryKey: ['users', debouncedSearch, roleFilter],
+  const {
+    data: users,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["users", debouncedSearch, roleFilter],
     queryFn: () => usersApi.getAll().then((res) => res.data.data),
   });
 
   const deleteMutation = useMutation({
     mutationFn: usersApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Пользователь удалён');
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Пользователь удалён");
     },
     onError: () => {
-      toast.error('Не удалось удалить пользователя');
+      toast.error("Не удалось удалить пользователя");
     },
   });
 
@@ -95,8 +148,11 @@ export default function UsersPage() {
   const filteredUsers = users?.filter((user: User) => {
     if (search) {
       const searchLower = search.toLowerCase();
-      const fullName = `${user.firstName} ${user.lastName || ''}`.toLowerCase();
-      if (!fullName.includes(searchLower) && !user.email.toLowerCase().includes(searchLower)) {
+      const fullName = `${user.firstName} ${user.lastName || ""}`.toLowerCase();
+      if (
+        !fullName.includes(searchLower) &&
+        !user.email.toLowerCase().includes(searchLower)
+      ) {
         return false;
       }
     }
@@ -107,24 +163,31 @@ export default function UsersPage() {
   });
 
   // Stats
-  const stats = useMemo(() => ({
-    total: users?.length || 0,
-    active: users?.filter((u: User) => u.status === 'active').length || 0,
-    byRole: Object.fromEntries(
-      Object.keys(roleConfig).map((role) => [
-        role,
-        users?.filter((u: User) => u.role === role).length || 0,
-      ])
-    ),
-  }), [users]);
+  const stats = useMemo(
+    () => ({
+      total: users?.length || 0,
+      active: users?.filter((u: User) => u.status === "active").length || 0,
+      byRole: Object.fromEntries(
+        Object.keys(roleConfig).map((role) => [
+          role,
+          users?.filter((u: User) => u.role === role).length || 0,
+        ]),
+      ),
+    }),
+    [users],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить пользователей</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['users'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить пользователей
+        </p>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
+        >
           Повторить
         </Button>
       </div>
@@ -167,7 +230,9 @@ export default function UsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Активные</p>
-                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.active}
+                </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
@@ -178,7 +243,9 @@ export default function UsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Менеджеры</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.byRole.manager || 0}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.byRole.manager || 0}
+                </p>
               </div>
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
@@ -189,7 +256,9 @@ export default function UsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Операторы</p>
-                <p className="text-2xl font-bold text-green-600">{stats.byRole.operator || 0}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.byRole.operator || 0}
+                </p>
               </div>
               <Users className="h-8 w-8 text-green-600" />
             </div>
@@ -212,7 +281,7 @@ export default function UsersPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {roleFilter ? roleConfig[roleFilter]?.label : 'Все роли'}
+              {roleFilter ? roleConfig[roleFilter]?.label : "Все роли"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -221,7 +290,9 @@ export default function UsersPage() {
             </DropdownMenuItem>
             {Object.entries(roleConfig).map(([key, config]) => (
               <DropdownMenuItem key={key} onClick={() => setRoleFilter(key)}>
-                <span className={`w-2 h-2 rounded-full ${config.bgColor} mr-2`} />
+                <span
+                  className={`w-2 h-2 rounded-full ${config.bgColor} mr-2`}
+                />
                 {config.label}
               </DropdownMenuItem>
             ))}
@@ -271,7 +342,8 @@ export default function UsersPage() {
           {filteredUsers?.map((user: User) => {
             const role = roleConfig[user.role] || roleConfig.viewer;
             const status = statusConfig[user.status] || statusConfig.inactive;
-            const initials = `${user.firstName[0]}${user.lastName?.[0] || ''}`.toUpperCase();
+            const initials =
+              `${user.firstName[0]}${user.lastName?.[0] || ""}`.toUpperCase();
 
             return (
               <Card key={user.id} className="hover:shadow-md transition-shadow">
@@ -289,7 +361,9 @@ export default function UsersPage() {
                           {user.firstName} {user.lastName}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${role.bgColor} ${role.color}`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${role.bgColor} ${role.color}`}
+                          >
                             {role.label}
                           </span>
                           <status.icon className={`h-4 w-4 ${status.color}`} />
@@ -318,7 +392,10 @@ export default function UsersPage() {
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => {
-                            setConfirmState({ title: 'Удалить пользователя?', action: () => deleteMutation.mutate(user.id) });
+                            setConfirmState({
+                              title: "Удалить пользователя?",
+                              action: () => deleteMutation.mutate(user.id),
+                            });
                           }}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -343,10 +420,16 @@ export default function UsersPage() {
 
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Создан: {new Date(user.createdAt).toLocaleDateString('ru-RU')}</span>
+                      <span>
+                        Создан:{" "}
+                        {new Date(user.createdAt).toLocaleDateString("ru-RU")}
+                      </span>
                       {user.lastLoginAt && (
                         <span>
-                          Вход: {new Date(user.lastLoginAt).toLocaleDateString('ru-RU')}
+                          Вход:{" "}
+                          {new Date(user.lastLoginAt).toLocaleDateString(
+                            "ru-RU",
+                          )}
                         </span>
                       )}
                     </div>
@@ -360,8 +443,10 @@ export default function UsersPage() {
 
       <ConfirmDialog
         open={!!confirmState}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
-        title={confirmState?.title ?? ''}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
+        title={confirmState?.title ?? ""}
         onConfirm={() => confirmState?.action()}
       />
     </div>

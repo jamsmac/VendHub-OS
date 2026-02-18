@@ -11,31 +11,34 @@
  * If they are not installed, this module acts as a simple placeholder.
  */
 
-import { Module, Logger } from '@nestjs/common';
-import { BullBoardController } from './bull-board.controller';
+import { Module, Logger } from "@nestjs/common";
+import { BullBoardController } from "./bull-board.controller";
 
-const logger = new Logger('BullBoardModule');
+const logger = new Logger("BullBoardModule");
 
 /**
  * Attempt to dynamically load bull-board packages.
  * If they are not installed, return empty imports and log a warning.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getBullBoardImports(): any[] {
   try {
-    const { BullBoardModule: NestBullBoardModule } = require('@bull-board/nestjs');
-    const { ExpressAdapter } = require('@bull-board/express');
+    const {
+      BullBoardModule: NestBullBoardModule,
+    } = require("@bull-board/nestjs");
+    const { ExpressAdapter } = require("@bull-board/express");
 
     return [
       NestBullBoardModule.forRoot({
-        route: '/admin/queues',
+        route: "/admin/queues",
         adapter: ExpressAdapter,
       }),
     ];
   } catch {
     logger.warn(
-      '@bull-board/nestjs or @bull-board/express not installed. ' +
-      'Queue dashboard UI will not be available. ' +
-      'Install with: pnpm add @bull-board/nestjs @bull-board/express',
+      "@bull-board/nestjs or @bull-board/express not installed. " +
+        "Queue dashboard UI will not be available. " +
+        "Install with: pnpm add @bull-board/nestjs @bull-board/express",
     );
     return [];
   }

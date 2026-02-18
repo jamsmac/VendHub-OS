@@ -9,17 +9,22 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   MachineAccess,
   AccessTemplate,
   AccessTemplateRow,
-  MachineAccessRole,
-} from './entities/machine-access.entity';
-import { CreateMachineAccessDto, RevokeMachineAccessDto } from './dto/create-machine-access.dto';
-import { CreateAccessTemplateDto, UpdateAccessTemplateDto } from './dto/create-access-template.dto';
+} from "./entities/machine-access.entity";
+import {
+  CreateMachineAccessDto,
+  RevokeMachineAccessDto,
+} from "./dto/create-machine-access.dto";
+import {
+  CreateAccessTemplateDto,
+  UpdateAccessTemplateDto,
+} from "./dto/create-access-template.dto";
 
 @Injectable()
 export class MachineAccessService {
@@ -99,16 +104,18 @@ export class MachineAccessService {
     });
 
     if (!access) {
-      throw new NotFoundException(`Machine access record ${dto.access_id} not found`);
+      throw new NotFoundException(
+        `Machine access record ${dto.access_id} not found`,
+      );
     }
 
     if (!access.is_active) {
-      throw new BadRequestException('Access is already revoked');
+      throw new BadRequestException("Access is already revoked");
     }
 
     access.is_active = false;
     access.notes = dto.reason
-      ? `${access.notes || ''}\nRevoked: ${dto.reason}`.trim()
+      ? `${access.notes || ""}\nRevoked: ${dto.reason}`.trim()
       : access.notes;
     access.updated_by_id = revokedByUserId;
 
@@ -128,6 +135,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<MachineAccess[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       machine_id: machineId,
       organization_id: organizationId,
@@ -139,7 +147,7 @@ export class MachineAccessService {
 
     return this.accessRepo.find({
       where,
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -151,6 +159,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<MachineAccess[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       user_id: userId,
       organization_id: organizationId,
@@ -162,7 +171,7 @@ export class MachineAccessService {
 
     return this.accessRepo.find({
       where,
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -186,25 +195,32 @@ export class MachineAccessService {
    */
   async findAll(
     organizationId: string,
-    options?: { page?: number; limit?: number; machineId?: string; userId?: string },
+    options?: {
+      page?: number;
+      limit?: number;
+      machineId?: string;
+      userId?: string;
+    },
   ) {
     const page = options?.page || 1;
     const limit = options?.limit || 20;
 
-    const qb = this.accessRepo.createQueryBuilder('ma');
-    qb.where('ma.organization_id = :organizationId', { organizationId });
+    const qb = this.accessRepo.createQueryBuilder("ma");
+    qb.where("ma.organization_id = :organizationId", { organizationId });
 
     if (options?.machineId) {
-      qb.andWhere('ma.machine_id = :machineId', { machineId: options.machineId });
+      qb.andWhere("ma.machine_id = :machineId", {
+        machineId: options.machineId,
+      });
     }
 
     if (options?.userId) {
-      qb.andWhere('ma.user_id = :userId', { userId: options.userId });
+      qb.andWhere("ma.user_id = :userId", { userId: options.userId });
     }
 
     const total = await qb.getCount();
 
-    qb.orderBy('ma.created_at', 'DESC');
+    qb.orderBy("ma.created_at", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -261,7 +277,9 @@ export class MachineAccessService {
       await this.templateRowRepo.save(rows);
     }
 
-    this.logger.log(`Access template created: ${savedTemplate.id} name=${dto.name}`);
+    this.logger.log(
+      `Access template created: ${savedTemplate.id} name=${dto.name}`,
+    );
 
     return this.findTemplateById(savedTemplate.id, organizationId);
   }
@@ -277,7 +295,8 @@ export class MachineAccessService {
     const template = await this.findTemplateById(id, organizationId);
 
     if (dto.name !== undefined) template.name = dto.name;
-    if (dto.description !== undefined) template.description = dto.description || null;
+    if (dto.description !== undefined)
+      template.description = dto.description || null;
     if (dto.is_active !== undefined) template.is_active = dto.is_active;
     if (dto.metadata !== undefined) template.metadata = dto.metadata || {};
 
@@ -318,7 +337,7 @@ export class MachineAccessService {
   ): Promise<AccessTemplate> {
     const template = await this.templateRepo.findOne({
       where: { id, organization_id: organizationId },
-      relations: ['rows'],
+      relations: ["rows"],
     });
 
     if (!template) {
@@ -335,6 +354,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<AccessTemplate[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { organization_id: organizationId };
     if (!includeInactive) {
       where.is_active = true;
@@ -342,8 +362,8 @@ export class MachineAccessService {
 
     return this.templateRepo.find({
       where,
-      relations: ['rows'],
-      order: { name: 'ASC' },
+      relations: ["rows"],
+      order: { name: "ASC" },
     });
   }
 
@@ -373,11 +393,11 @@ export class MachineAccessService {
     const template = await this.findTemplateById(templateId, organizationId);
 
     if (!template.is_active) {
-      throw new BadRequestException('Cannot apply an inactive template');
+      throw new BadRequestException("Cannot apply an inactive template");
     }
 
     if (!template.rows?.length) {
-      throw new BadRequestException('Template has no rows defined');
+      throw new BadRequestException("Template has no rows defined");
     }
 
     const results: MachineAccess[] = [];

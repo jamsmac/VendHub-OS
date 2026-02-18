@@ -1,10 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { getQueueToken } from '@nestjs/bullmq';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { HttpException, HttpStatus } from '@nestjs/common';
-import { FiscalService, CreateDeviceDto, CreateReceiptDto } from './fiscal.service';
-import { MultiKassaService } from './multikassa.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { getQueueToken } from "@nestjs/bullmq";
+import { Repository, ObjectLiteral } from "typeorm";
+import { HttpException, HttpStatus } from "@nestjs/common";
+import { FiscalService } from "./fiscal.service";
+import { CreateFiscalDeviceDto as CreateDeviceDto } from "../dto/create-fiscal-device.dto";
+import { CreateFiscalReceiptDto as CreateReceiptDto } from "../dto/create-fiscal-receipt.dto";
+import { MultiKassaService } from "./multikassa.service";
 import {
   FiscalReceipt,
   FiscalShift,
@@ -15,10 +17,14 @@ import {
   FiscalShiftStatus,
   FiscalDeviceStatus,
   FiscalQueueStatus,
-} from '../entities/fiscal.entity';
+} from "../entities/fiscal.entity";
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -42,7 +48,7 @@ const mockQueryBuilder = {
   getOne: jest.fn(),
 };
 
-describe('FiscalService', () => {
+describe("FiscalService", () => {
   let service: FiscalService;
   let receiptRepo: MockRepository<FiscalReceipt>;
   let shiftRepo: MockRepository<FiscalShift>;
@@ -51,32 +57,32 @@ describe('FiscalService', () => {
   let mockFiscalQueue: { add: jest.Mock };
   let mockMultikassa: Partial<Record<keyof MultiKassaService, jest.Mock>>;
 
-  const orgId = 'org-uuid-1';
-  const deviceId = 'device-uuid-1';
+  const orgId = "org-uuid-1";
+  const deviceId = "device-uuid-1";
 
   const mockDevice: Partial<FiscalDevice> = {
     id: deviceId,
     organizationId: orgId,
-    name: 'Test Device',
-    provider: 'multikassa',
+    name: "Test Device",
+    provider: "multikassa",
     status: FiscalDeviceStatus.ACTIVE,
     sandboxMode: true,
-    credentials: { login: 'u', password: 'p', companyTin: '123' },
+    credentials: { login: "u", password: "p", companyTin: "123" },
     config: {
-      baseUrl: 'http://localhost:8080/api/v1',
-      defaultCashier: 'Auto',
+      baseUrl: "http://localhost:8080/api/v1",
+      defaultCashier: "Auto",
       autoOpenShift: false,
     },
     created_at: new Date(),
   };
 
   const mockShift: Partial<FiscalShift> = {
-    id: 'shift-uuid-1',
+    id: "shift-uuid-1",
     organizationId: orgId,
     deviceId,
     shiftNumber: 1,
     status: FiscalShiftStatus.OPEN,
-    cashierName: 'Test Cashier',
+    cashierName: "Test Cashier",
     openedAt: new Date(),
     totalSales: 0,
     totalRefunds: 0,
@@ -107,7 +113,7 @@ describe('FiscalService', () => {
         { provide: getRepositoryToken(FiscalShift), useValue: shiftRepo },
         { provide: getRepositoryToken(FiscalDevice), useValue: deviceRepo },
         { provide: getRepositoryToken(FiscalQueue), useValue: queueRepo },
-        { provide: getQueueToken('fiscal'), useValue: mockFiscalQueue },
+        { provide: getQueueToken("fiscal"), useValue: mockFiscalQueue },
         { provide: MultiKassaService, useValue: mockMultikassa },
       ],
     }).compile();
@@ -119,18 +125,18 @@ describe('FiscalService', () => {
   // Device Management
   // ================================================================
 
-  describe('createDevice', () => {
+  describe("createDevice", () => {
     const dto: CreateDeviceDto = {
-      name: 'New Device',
-      provider: 'multikassa',
-      serialNumber: 'SN-001',
-      credentials: { login: 'user', password: 'pass', companyTin: '999' },
-      sandboxMode: true,
-      config: { baseUrl: 'http://test/api/v1', defaultCashier: 'Auto' },
+      name: "New Device",
+      provider: "multikassa",
+      serial_number: "SN-001",
+      credentials: { login: "user", password: "pass", company_tin: "999" },
+      sandbox_mode: true,
+      config: { base_url: "http://test/api/v1", default_cashier: "Auto" },
     };
 
-    it('should create a device and register with multikassa', async () => {
-      const created = { id: 'new-dev', ...dto, organizationId: orgId };
+    it("should create a device and register with multikassa", async () => {
+      const created = { id: "new-dev", ...dto, organizationId: orgId };
       deviceRepo.create!.mockReturnValue(created);
       deviceRepo.save!.mockResolvedValue(created);
 
@@ -140,18 +146,21 @@ describe('FiscalService', () => {
         expect.objectContaining({
           organizationId: orgId,
           name: dto.name,
-          provider: 'multikassa',
+          provider: "multikassa",
           status: FiscalDeviceStatus.INACTIVE,
         }),
       );
       expect(deviceRepo.save).toHaveBeenCalledWith(created);
-      expect(mockMultikassa.registerDevice).toHaveBeenCalledWith('new-dev', expect.any(Object));
+      expect(mockMultikassa.registerDevice).toHaveBeenCalledWith(
+        "new-dev",
+        expect.any(Object),
+      );
       expect(result).toEqual(created);
     });
 
-    it('should not register with multikassa when provider is different', async () => {
-      const otherDto = { ...dto, provider: 'ofd' };
-      const created = { id: 'new-dev-2', ...otherDto, organizationId: orgId };
+    it("should not register with multikassa when provider is different", async () => {
+      const otherDto = { ...dto, provider: "ofd" };
+      const created = { id: "new-dev-2", ...otherDto, organizationId: orgId };
       deviceRepo.create!.mockReturnValue(created);
       deviceRepo.save!.mockResolvedValue(created);
 
@@ -160,14 +169,14 @@ describe('FiscalService', () => {
       expect(mockMultikassa.registerDevice).not.toHaveBeenCalled();
     });
 
-    it('should default sandboxMode to true when not provided', async () => {
+    it("should default sandboxMode to true when not provided", async () => {
       const dtoNoSandbox: CreateDeviceDto = {
-        name: 'Dev',
-        provider: 'multikassa',
+        name: "Dev",
+        provider: "multikassa",
         credentials: {},
       };
-      deviceRepo.create!.mockReturnValue({ id: 'd', ...dtoNoSandbox });
-      deviceRepo.save!.mockResolvedValue({ id: 'd', ...dtoNoSandbox });
+      deviceRepo.create!.mockReturnValue({ id: "d", ...dtoNoSandbox });
+      deviceRepo.save!.mockResolvedValue({ id: "d", ...dtoNoSandbox });
 
       await service.createDevice(orgId, dtoNoSandbox);
 
@@ -177,24 +186,26 @@ describe('FiscalService', () => {
     });
   });
 
-  describe('getDevice', () => {
-    it('should return the device when found', async () => {
+  describe("getDevice", () => {
+    it("should return the device when found", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       const result = await service.getDevice(deviceId, orgId);
       expect(result).toEqual(mockDevice);
     });
 
-    it('should throw NOT_FOUND when device does not exist', async () => {
+    it("should throw NOT_FOUND when device does not exist", async () => {
       deviceRepo.findOne!.mockResolvedValue(null);
-      await expect(service.getDevice('missing', orgId)).rejects.toThrow(HttpException);
-      await expect(service.getDevice('missing', orgId)).rejects.toMatchObject({
+      await expect(service.getDevice("missing", orgId)).rejects.toThrow(
+        HttpException,
+      );
+      await expect(service.getDevice("missing", orgId)).rejects.toMatchObject({
         status: HttpStatus.NOT_FOUND,
       });
     });
   });
 
-  describe('getDevices', () => {
-    it('should return all devices for the organization', async () => {
+  describe("getDevices", () => {
+    it("should return all devices for the organization", async () => {
       const devices = [mockDevice];
       deviceRepo.find!.mockResolvedValue(devices);
 
@@ -202,14 +213,14 @@ describe('FiscalService', () => {
 
       expect(deviceRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId },
-        order: { created_at: 'DESC' },
+        order: { created_at: "DESC" },
       });
       expect(result).toEqual(devices);
     });
   });
 
-  describe('activateDevice', () => {
-    it('should set device status to ACTIVE', async () => {
+  describe("activateDevice", () => {
+    it("should set device status to ACTIVE", async () => {
       deviceRepo.findOne!.mockResolvedValue({ ...mockDevice });
       deviceRepo.save!.mockImplementation(async (d) => d);
 
@@ -219,8 +230,8 @@ describe('FiscalService', () => {
     });
   });
 
-  describe('deactivateDevice', () => {
-    it('should set device status to INACTIVE', async () => {
+  describe("deactivateDevice", () => {
+    it("should set device status to INACTIVE", async () => {
       deviceRepo.findOne!.mockResolvedValue({ ...mockDevice });
       deviceRepo.save!.mockImplementation(async (d) => d);
 
@@ -234,56 +245,61 @@ describe('FiscalService', () => {
   // Shift Management
   // ================================================================
 
-  describe('openShift', () => {
-    it('should open a new shift when none is open', async () => {
+  describe("openShift", () => {
+    it("should open a new shift when none is open", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
-      shiftRepo.findOne!
-        .mockResolvedValueOnce(null) // getCurrentShift
+      shiftRepo
+        .findOne!.mockResolvedValueOnce(null) // getCurrentShift
         .mockResolvedValueOnce({ shiftNumber: 5 }); // lastShift lookup
-      mockMultikassa.openShift!.mockResolvedValue({ shiftId: 'ext-1' });
+      mockMultikassa.openShift!.mockResolvedValue({ shiftId: "ext-1" });
       shiftRepo.create!.mockImplementation((d) => d);
-      shiftRepo.save!.mockImplementation(async (d) => ({ id: 'shift-new', ...d }));
+      shiftRepo.save!.mockImplementation(async (d) => ({
+        id: "shift-new",
+        ...d,
+      }));
 
-      const result = await service.openShift(deviceId, orgId, 'Cashier A');
+      const result = await service.openShift(deviceId, orgId, "Cashier A");
 
       expect(result.shiftNumber).toBe(6);
       expect(result.status).toBe(FiscalShiftStatus.OPEN);
-      expect(result.cashierName).toBe('Cashier A');
+      expect(result.cashierName).toBe("Cashier A");
     });
 
-    it('should throw BAD_REQUEST when a shift is already open', async () => {
+    it("should throw BAD_REQUEST when a shift is already open", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValueOnce(mockShift); // getCurrentShift returns open shift
 
-      await expect(service.openShift(deviceId, orgId, 'Cashier')).rejects.toThrow(HttpException);
+      await expect(
+        service.openShift(deviceId, orgId, "Cashier"),
+      ).rejects.toThrow(HttpException);
     });
 
-    it('should add to queue when multikassa openShift fails', async () => {
+    it("should add to queue when multikassa openShift fails", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
-      shiftRepo.findOne!
-        .mockResolvedValueOnce(null)
+      shiftRepo
+        .findOne!.mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null);
-      mockMultikassa.openShift!.mockRejectedValue(new Error('Timeout'));
+      mockMultikassa.openShift!.mockRejectedValue(new Error("Timeout"));
       queueRepo.create!.mockImplementation((d) => d);
-      queueRepo.save!.mockImplementation(async (d) => ({ id: 'q1', ...d }));
+      queueRepo.save!.mockImplementation(async (d) => ({ id: "q1", ...d }));
       mockFiscalQueue.add.mockResolvedValue({});
       shiftRepo.create!.mockImplementation((d) => d);
-      shiftRepo.save!.mockImplementation(async (d) => ({ id: 's1', ...d }));
+      shiftRepo.save!.mockImplementation(async (d) => ({ id: "s1", ...d }));
 
-      const result = await service.openShift(deviceId, orgId, 'Cashier');
+      const result = await service.openShift(deviceId, orgId, "Cashier");
 
       expect(queueRepo.create).toHaveBeenCalled();
       expect(result).toBeDefined();
     });
   });
 
-  describe('closeShift', () => {
-    it('should close the current open shift', async () => {
+  describe("closeShift", () => {
+    it("should close the current open shift", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue({ ...mockShift });
       mockMultikassa.closeShift!.mockResolvedValue({
-        zReportNumber: 'Z-001',
-        zReportUrl: 'http://z',
+        zReportNumber: "Z-001",
+        zReportUrl: "http://z",
         totalSales: 100000,
         totalRefunds: 5000,
         totalCash: 60000,
@@ -297,37 +313,39 @@ describe('FiscalService', () => {
 
       expect(result.status).toBe(FiscalShiftStatus.CLOSED);
       expect(result.closedAt).toBeInstanceOf(Date);
-      expect(result.zReportNumber).toBe('Z-001');
+      expect(result.zReportNumber).toBe("Z-001");
     });
 
-    it('should throw BAD_REQUEST when no open shift exists', async () => {
+    it("should throw BAD_REQUEST when no open shift exists", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.closeShift(deviceId, orgId)).rejects.toThrow(HttpException);
+      await expect(service.closeShift(deviceId, orgId)).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
-  describe('getCurrentShift', () => {
-    it('should return the open shift for the device', async () => {
+  describe("getCurrentShift", () => {
+    it("should return the open shift for the device", async () => {
       shiftRepo.findOne!.mockResolvedValue(mockShift);
       const result = await service.getCurrentShift(deviceId);
       expect(result).toEqual(mockShift);
       expect(shiftRepo.findOne).toHaveBeenCalledWith({
         where: { deviceId, status: FiscalShiftStatus.OPEN },
-        order: { openedAt: 'DESC' },
+        order: { openedAt: "DESC" },
       });
     });
 
-    it('should return null when no open shift exists', async () => {
+    it("should return null when no open shift exists", async () => {
       shiftRepo.findOne!.mockResolvedValue(null);
       const result = await service.getCurrentShift(deviceId);
       expect(result).toBeNull();
     });
   });
 
-  describe('getShiftHistory', () => {
-    it('should return shift history with default limit', async () => {
+  describe("getShiftHistory", () => {
+    it("should return shift history with default limit", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.find!.mockResolvedValue([mockShift]);
 
@@ -335,15 +353,17 @@ describe('FiscalService', () => {
 
       expect(shiftRepo.find).toHaveBeenCalledWith({
         where: { deviceId },
-        order: { openedAt: 'DESC' },
+        order: { openedAt: "DESC" },
         take: 30,
       });
       expect(result).toHaveLength(1);
     });
 
-    it('should throw NOT_FOUND when device does not exist', async () => {
+    it("should throw NOT_FOUND when device does not exist", async () => {
       deviceRepo.findOne!.mockResolvedValue(null);
-      await expect(service.getShiftHistory(deviceId, orgId)).rejects.toThrow(HttpException);
+      await expect(service.getShiftHistory(deviceId, orgId)).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -351,35 +371,39 @@ describe('FiscalService', () => {
   // Receipt Operations
   // ================================================================
 
-  describe('createReceipt', () => {
+  describe("createReceipt", () => {
     const receiptDto: CreateReceiptDto = {
-      deviceId,
-      orderId: 'order-1',
+      device_id: deviceId,
+      order_id: "order-1",
       type: FiscalReceiptType.SALE,
       items: [
         {
-          name: 'Coffee',
-          ikpuCode: '10000000001000000',
+          name: "Coffee",
+          ikpu_code: "10000000001000000",
           quantity: 1,
           price: 15000,
-          vatRate: 12,
-          unit: 'pcs',
+          vat_rate: 12,
+          unit: "pcs",
         },
       ],
       payment: { cash: 15000, card: 0 },
     };
 
-    it('should create a receipt when shift is open', async () => {
+    it("should create a receipt when shift is open", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue(mockShift);
       receiptRepo.create!.mockImplementation((d) => d);
-      receiptRepo.save!.mockImplementation(async (d) => ({ id: 'r1', ...d, retryCount: 0 }));
+      receiptRepo.save!.mockImplementation(async (d) => ({
+        id: "r1",
+        ...d,
+        retryCount: 0,
+      }));
       mockMultikassa.createSaleReceipt!.mockResolvedValue({
-        receipt_id: 'ext-r1',
-        fiscal_number: 'FN-001',
-        fiscal_sign: 'FS-001',
-        qr_code_url: 'http://qr',
-        receipt_url: 'http://receipt',
+        receipt_id: "ext-r1",
+        fiscal_number: "FN-001",
+        fiscal_sign: "FS-001",
+        qr_code_url: "http://qr",
+        receipt_url: "http://receipt",
       });
 
       const result = await service.createReceipt(orgId, receiptDto);
@@ -395,32 +419,45 @@ describe('FiscalService', () => {
       expect(result).toBeDefined();
     });
 
-    it('should throw BAD_REQUEST when no shift and autoOpenShift is false', async () => {
+    it("should throw BAD_REQUEST when no shift and autoOpenShift is false", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.createReceipt(orgId, receiptDto)).rejects.toThrow(HttpException);
+      await expect(service.createReceipt(orgId, receiptDto)).rejects.toThrow(
+        HttpException,
+      );
     });
 
-    it('should auto-open shift when configured', async () => {
+    it("should auto-open shift when configured", async () => {
       const autoDevice = {
         ...mockDevice,
-        config: { ...mockDevice.config, autoOpenShift: true, defaultCashier: 'Auto' },
+        config: {
+          ...mockDevice.config,
+          autoOpenShift: true,
+          defaultCashier: "Auto",
+        },
       };
       deviceRepo.findOne!.mockResolvedValue(autoDevice);
-      shiftRepo.findOne!
-        .mockResolvedValueOnce(null) // getCurrentShift in createReceipt
+      shiftRepo
+        .findOne!.mockResolvedValueOnce(null) // getCurrentShift in createReceipt
         .mockResolvedValueOnce(null) // getCurrentShift in openShift
         .mockResolvedValueOnce(null); // lastShift in openShift
-      mockMultikassa.openShift!.mockResolvedValue({ shiftId: 'ext-s' });
+      mockMultikassa.openShift!.mockResolvedValue({ shiftId: "ext-s" });
       shiftRepo.create!.mockImplementation((d) => d);
-      shiftRepo.save!.mockImplementation(async (d) => ({ id: 'new-shift', ...d }));
+      shiftRepo.save!.mockImplementation(async (d) => ({
+        id: "new-shift",
+        ...d,
+      }));
       receiptRepo.create!.mockImplementation((d) => d);
-      receiptRepo.save!.mockImplementation(async (d) => ({ id: 'r2', ...d, retryCount: 0 }));
+      receiptRepo.save!.mockImplementation(async (d) => ({
+        id: "r2",
+        ...d,
+        retryCount: 0,
+      }));
       mockMultikassa.createSaleReceipt!.mockResolvedValue({
-        receipt_id: 'ext-r2',
-        fiscal_number: 'FN-002',
-        fiscal_sign: 'FS-002',
+        receipt_id: "ext-r2",
+        fiscal_number: "FN-002",
+        fiscal_sign: "FS-002",
       });
 
       const result = await service.createReceipt(orgId, receiptDto);
@@ -429,45 +466,47 @@ describe('FiscalService', () => {
     });
   });
 
-  describe('getReceipt', () => {
-    it('should return receipt when found', async () => {
-      const receipt = { id: 'r-1', organizationId: orgId };
+  describe("getReceipt", () => {
+    it("should return receipt when found", async () => {
+      const receipt = { id: "r-1", organizationId: orgId };
       receiptRepo.findOne!.mockResolvedValue(receipt);
 
-      const result = await service.getReceipt('r-1', orgId);
+      const result = await service.getReceipt("r-1", orgId);
 
       expect(result).toEqual(receipt);
     });
 
-    it('should throw NOT_FOUND when receipt does not exist', async () => {
+    it("should throw NOT_FOUND when receipt does not exist", async () => {
       receiptRepo.findOne!.mockResolvedValue(null);
-      await expect(service.getReceipt('missing', orgId)).rejects.toThrow(HttpException);
+      await expect(service.getReceipt("missing", orgId)).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
-  describe('getReceipts', () => {
-    it('should build query with all filters', async () => {
+  describe("getReceipts", () => {
+    it("should build query with all filters", async () => {
       receiptRepo.createQueryBuilder!.mockReturnValue(mockQueryBuilder);
-      mockQueryBuilder.getManyAndCount.mockResolvedValue([[{ id: 'r1' }], 1]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([[{ id: "r1" }], 1]);
 
       const result = await service.getReceipts(orgId, {
-        deviceId: 'dev-1',
-        shiftId: 'shift-1',
+        deviceId: "dev-1",
+        shiftId: "shift-1",
         type: FiscalReceiptType.SALE,
         status: FiscalReceiptStatus.SUCCESS,
-        startDate: new Date('2025-01-01'),
-        endDate: new Date('2025-12-31'),
+        startDate: new Date("2025-01-01"),
+        endDate: new Date("2025-12-31"),
         limit: 10,
         offset: 0,
       });
 
       expect(mockQueryBuilder.where).toHaveBeenCalled();
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(4);
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(5);
       expect(result.receipts).toHaveLength(1);
       expect(result.total).toBe(1);
     });
 
-    it('should use default limit and offset when not provided', async () => {
+    it("should use default limit and offset when not provided", async () => {
       receiptRepo.createQueryBuilder!.mockReturnValue(mockQueryBuilder);
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
@@ -482,80 +521,85 @@ describe('FiscalService', () => {
   // Queue Management
   // ================================================================
 
-  describe('addToQueue', () => {
-    it('should create a queue item and add to Bull queue', async () => {
-      const item = { id: 'qi-1', organizationId: orgId };
+  describe("addToQueue", () => {
+    it("should create a queue item and add to Bull queue", async () => {
+      const item = { id: "qi-1", organizationId: orgId };
       queueRepo.create!.mockReturnValue(item);
       queueRepo.save!.mockResolvedValue(item);
       mockFiscalQueue.add.mockResolvedValue({});
 
-      const result = await service.addToQueue(orgId, deviceId, 'receipt_sale', { receiptId: 'r1' });
+      const result = await service.addToQueue(orgId, deviceId, "receipt_sale", {
+        receiptId: "r1",
+      });
 
       expect(queueRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
           deviceId,
-          operation: 'receipt_sale',
+          operation: "receipt_sale",
           status: FiscalQueueStatus.PENDING,
           maxRetries: 5,
         }),
       );
       expect(mockFiscalQueue.add).toHaveBeenCalledWith(
-        'process',
-        { queueItemId: 'qi-1' },
+        "process",
+        { queueItemId: "qi-1" },
         expect.objectContaining({ attempts: 5 }),
       );
       expect(result).toEqual(item);
     });
   });
 
-  describe('getQueueItems', () => {
-    it('should return queue items filtered by status', async () => {
+  describe("getQueueItems", () => {
+    it("should return queue items filtered by status", async () => {
       queueRepo.find!.mockResolvedValue([]);
 
       await service.getQueueItems(orgId, FiscalQueueStatus.PENDING);
 
       expect(queueRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId, status: FiscalQueueStatus.PENDING },
-        order: { priority: 'DESC', created_at: 'ASC' },
+        order: { priority: "DESC", created_at: "ASC" },
       });
     });
 
-    it('should return all queue items when status is not provided', async () => {
+    it("should return all queue items when status is not provided", async () => {
       queueRepo.find!.mockResolvedValue([]);
 
       await service.getQueueItems(orgId);
 
       expect(queueRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId },
-        order: { priority: 'DESC', created_at: 'ASC' },
+        order: { priority: "DESC", created_at: "ASC" },
       });
     });
   });
 
-  describe('processQueueItem', () => {
-    it('should skip when item is not found', async () => {
+  describe("processQueueItem", () => {
+    it("should skip when item is not found", async () => {
       queueRepo.findOne!.mockResolvedValue(null);
 
-      await service.processQueueItem('missing-id');
+      await service.processQueueItem("missing-id");
 
       expect(queueRepo.save).not.toHaveBeenCalled();
     });
 
-    it('should skip when item is already successful', async () => {
-      queueRepo.findOne!.mockResolvedValue({ id: 'qi', status: FiscalQueueStatus.SUCCESS });
+    it("should skip when item is already successful", async () => {
+      queueRepo.findOne!.mockResolvedValue({
+        id: "qi",
+        status: FiscalQueueStatus.SUCCESS,
+      });
 
-      await service.processQueueItem('qi');
+      await service.processQueueItem("qi");
 
       expect(queueRepo.save).not.toHaveBeenCalled();
     });
 
-    it('should mark item as FAILED when device not found', async () => {
+    it("should mark item as FAILED when device not found", async () => {
       const item = {
-        id: 'qi',
-        deviceId: 'bad-dev',
-        operation: 'receipt_sale',
-        payload: { receiptId: 'r1' },
+        id: "qi",
+        deviceId: "bad-dev",
+        operation: "receipt_sale",
+        payload: { receiptId: "r1" },
         status: FiscalQueueStatus.PENDING,
         retryCount: 0,
         maxRetries: 5,
@@ -564,17 +608,17 @@ describe('FiscalService', () => {
       queueRepo.save!.mockImplementation(async (d) => d);
       deviceRepo.findOne!.mockResolvedValue(null);
 
-      await service.processQueueItem('qi');
+      await service.processQueueItem("qi");
 
       expect(item.retryCount).toBe(1);
     });
 
-    it('should set status to RETRY when retryCount < maxRetries', async () => {
-      const item: Record<string, any> = {
-        id: 'qi',
-        deviceId: 'dev',
-        operation: 'receipt_sale',
-        payload: { receiptId: 'r1' },
+    it("should set status to RETRY when retryCount < maxRetries", async () => {
+      const item: Record<string, unknown> = {
+        id: "qi",
+        deviceId: "dev",
+        operation: "receipt_sale",
+        payload: { receiptId: "r1" },
         status: FiscalQueueStatus.PENDING,
         retryCount: 0,
         maxRetries: 5,
@@ -583,7 +627,7 @@ describe('FiscalService', () => {
       queueRepo.save!.mockImplementation(async (d) => d);
       deviceRepo.findOne!.mockResolvedValue(null);
 
-      await service.processQueueItem('qi');
+      await service.processQueueItem("qi");
 
       expect(item.status).toBe(FiscalQueueStatus.RETRY);
       expect(item.nextRetryAt).toBeDefined();
@@ -594,22 +638,22 @@ describe('FiscalService', () => {
   // Statistics
   // ================================================================
 
-  describe('getDeviceStatistics', () => {
-    it('should return complete device statistics', async () => {
+  describe("getDeviceStatistics", () => {
+    it("should return complete device statistics", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue(mockShift);
       receiptRepo.find!.mockResolvedValue([
         { type: FiscalReceiptType.SALE, total: 10000 },
         { type: FiscalReceiptType.REFUND, total: 2000 },
       ]);
-      queueRepo.count!
-        .mockResolvedValueOnce(3) // pending
+      queueRepo
+        .count!.mockResolvedValueOnce(3) // pending
         .mockResolvedValueOnce(1); // failed
 
       const result = await service.getDeviceStatistics(deviceId, orgId);
 
       expect(result.deviceId).toBe(deviceId);
-      expect(result.deviceName).toBe('Test Device');
+      expect(result.deviceName).toBe("Test Device");
       expect(result.currentShift).toBeDefined();
       expect(result.todayStats.receiptsCount).toBe(2);
       expect(result.todayStats.totalSales).toBe(10000);
@@ -618,7 +662,7 @@ describe('FiscalService', () => {
       expect(result.queueStats.failed).toBe(1);
     });
 
-    it('should return statistics without current shift when none is open', async () => {
+    it("should return statistics without current shift when none is open", async () => {
       deviceRepo.findOne!.mockResolvedValue(mockDevice);
       shiftRepo.findOne!.mockResolvedValue(null);
       receiptRepo.find!.mockResolvedValue([]);

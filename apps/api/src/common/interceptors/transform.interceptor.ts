@@ -8,9 +8,9 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface StandardResponse<T> {
   success: boolean;
@@ -20,9 +20,10 @@ export interface StandardResponse<T> {
 }
 
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, StandardResponse<T>>
-{
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  StandardResponse<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -30,7 +31,7 @@ export class TransformInterceptor<T>
     return next.handle().pipe(
       map((data) => {
         // If data is already in standard format, return as is
-        if (data && typeof data === 'object' && 'success' in data) {
+        if (data && typeof data === "object" && "success" in data) {
           return {
             ...data,
             timestamp: data.timestamp || new Date().toISOString(),
@@ -52,12 +53,15 @@ export class TransformInterceptor<T>
  */
 @Injectable()
 export class PaginationInterceptor implements NestInterceptor {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
         // Check if response has pagination structure
-        if (data && 'data' in data && 'total' in data) {
-          const { page = 1, limit = 20 } = context.switchToHttp().getRequest().query;
+        if (data && "data" in data && "total" in data) {
+          const { page = 1, limit = 20 } = context
+            .switchToHttp()
+            .getRequest().query;
           const totalPages = Math.ceil(data.total / limit);
 
           return {

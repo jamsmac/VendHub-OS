@@ -2,7 +2,7 @@
  * Hopper Type DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
@@ -11,57 +11,57 @@ import {
   IsArray,
   Min,
   MaxLength,
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+} from "class-validator";
+import { Type, Transform } from "class-transformer";
 
 // ============================================================================
 // HOPPER TYPE DTOs
 // ============================================================================
 
 export class CreateHopperTypeDto {
-  @ApiProperty({ description: 'Hopper type name' })
+  @ApiProperty({ description: "Hopper type name" })
   @IsString()
   @MaxLength(200)
   name: string;
 
-  @ApiProperty({ description: 'Volume in milliliters' })
+  @ApiProperty({ description: "Volume in milliliters" })
   @IsInt()
   @Min(1)
   volumeMl: number;
 
-  @ApiPropertyOptional({ description: 'Material' })
+  @ApiPropertyOptional({ description: "Material" })
   @IsString()
   @MaxLength(100)
   @IsOptional()
   material?: string;
 
-  @ApiPropertyOptional({ description: 'Compatible machine types', default: [] })
+  @ApiPropertyOptional({ description: "Compatible machine types", default: [] })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   compatibleMachineTypes?: string[];
 
-  @ApiPropertyOptional({ description: 'Is active', default: true })
+  @ApiPropertyOptional({ description: "Is active", default: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'Metadata' })
+  @ApiPropertyOptional({ description: "Metadata" })
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class UpdateHopperTypeDto extends PartialType(CreateHopperTypeDto) {}
 
 export class HopperTypeQueryDto {
-  @ApiPropertyOptional({ description: 'Search by name' })
+  @ApiPropertyOptional({ description: "Search by name" })
   @IsString()
   @IsOptional()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Only active' })
+  @ApiPropertyOptional({ description: "Only active" })
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   @IsOptional()
   activeOnly?: boolean = true;
 

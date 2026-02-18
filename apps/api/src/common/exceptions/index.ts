@@ -12,11 +12,11 @@
  *   throw insufficientStock(productId, 5, 2);
  */
 
-import { HttpStatus } from '@nestjs/common';
-import { ErrorCode } from '../constants/error-codes';
-import { BusinessException } from './business.exception';
+import { HttpStatus } from "@nestjs/common";
+import { ErrorCode } from "../constants/error-codes";
+import { BusinessException } from "./business.exception";
 
-export { BusinessException } from './business.exception';
+export { BusinessException } from "./business.exception";
 
 // ---------------------------------------------------------------------------
 // General helpers
@@ -51,7 +51,7 @@ export function notFound(resource: string, id?: string): BusinessException {
 /**
  * Access denied / forbidden action.
  */
-export function forbidden(message = 'Access denied'): BusinessException {
+export function forbidden(message = "Access denied"): BusinessException {
   return new BusinessException(
     ErrorCode.FORBIDDEN,
     message,
@@ -75,7 +75,7 @@ export function conflict(message: string): BusinessException {
  */
 export function badRequest(
   message: string,
-  details?: Record<string, any>,
+  details?: Record<string, unknown>,
 ): BusinessException {
   return new BusinessException(
     ErrorCode.BAD_REQUEST,

@@ -10,12 +10,12 @@ import {
   HttpException,
   HttpStatus,
   Inject,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 
-export const THROTTLE_KEY = 'throttle';
+export const THROTTLE_KEY = "throttle";
 
 export interface ThrottleOptions {
   limit: number; // Number of requests allowed
@@ -27,6 +27,7 @@ export interface ThrottleOptions {
  * Decorator to set custom throttle limits for an endpoint
  */
 export const Throttle = (limit: number, ttl: number, keyPrefix?: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     const options: ThrottleOptions = { limit, ttl, keyPrefix };
     if (descriptor) {
@@ -42,6 +43,7 @@ export const Throttle = (limit: number, ttl: number, keyPrefix?: string) => {
  * Decorator to skip throttling
  */
 export const SkipThrottle = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(THROTTLE_KEY, null, descriptor.value);
@@ -84,14 +86,14 @@ export class ThrottleGuard implements CanActivate {
     const key = this.generateKey(request, throttleOptions, context);
 
     // Get current count
-    const currentCount = await this.cacheManager.get<number>(key) || 0;
+    const currentCount = (await this.cacheManager.get<number>(key)) || 0;
 
     // Check if limit exceeded
     if (currentCount >= throttleOptions.limit) {
       throw new HttpException(
         {
           success: false,
-          message: 'Слишком много запросов. Попробуйте позже.',
+          message: "Слишком много запросов. Попробуйте позже.",
           retryAfter: throttleOptions.ttl,
         },
         HttpStatus.TOO_MANY_REQUESTS,
@@ -99,13 +101,23 @@ export class ThrottleGuard implements CanActivate {
     }
 
     // Increment counter
-    await this.cacheManager.set(key, currentCount + 1, throttleOptions.ttl * 1000);
+    await this.cacheManager.set(
+      key,
+      currentCount + 1,
+      throttleOptions.ttl * 1000,
+    );
 
     // Add rate limit headers to response
     const response = context.switchToHttp().getResponse();
-    response.setHeader('X-RateLimit-Limit', throttleOptions.limit);
-    response.setHeader('X-RateLimit-Remaining', throttleOptions.limit - currentCount - 1);
-    response.setHeader('X-RateLimit-Reset', Date.now() + throttleOptions.ttl * 1000);
+    response.setHeader("X-RateLimit-Limit", throttleOptions.limit);
+    response.setHeader(
+      "X-RateLimit-Remaining",
+      throttleOptions.limit - currentCount - 1,
+    );
+    response.setHeader(
+      "X-RateLimit-Reset",
+      Date.now() + throttleOptions.ttl * 1000,
+    );
 
     return true;
   }
@@ -114,16 +126,17 @@ export class ThrottleGuard implements CanActivate {
    * Generate unique key for rate limiting
    */
   private generateKey(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     request: any,
     options: ThrottleOptions,
     context: ExecutionContext,
   ): string {
-    const prefix = options.keyPrefix || 'throttle';
+    const prefix = options.keyPrefix || "throttle";
     const handler = context.getHandler().name;
     const controller = context.getClass().name;
 
     // Use user ID if authenticated, otherwise use IP
-    const identifier = request.user?.id || request.ip || 'anonymous';
+    const identifier = request.user?.id || request.ip || "anonymous";
 
     return `${prefix}:${controller}:${handler}:${identifier}`;
   }

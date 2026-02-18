@@ -3,14 +3,10 @@
  * Defines target schemas for auto-classification and mapping
  */
 
-import {
-  Entity,
-  Column,
-  Index,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DomainType } from './import-session.entity';
+import { Entity, Column, Index } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { DomainType } from "./import-session.entity";
 
 // ============================================================================
 // INTERFACES
@@ -27,7 +23,17 @@ export interface FieldDefinition {
   /** Human-readable display name */
   display_name: string;
   /** Data type */
-  type: 'string' | 'number' | 'decimal' | 'integer' | 'boolean' | 'date' | 'datetime' | 'uuid' | 'enum' | 'jsonb';
+  type:
+    | "string"
+    | "number"
+    | "decimal"
+    | "integer"
+    | "boolean"
+    | "date"
+    | "datetime"
+    | "uuid"
+    | "enum"
+    | "jsonb";
   /** Whether the field is required */
   required: boolean;
   /** Alternate column names for auto-matching, e.g. ['product_name', 'item_name', 'название'] */
@@ -42,6 +48,7 @@ export interface FieldDefinition {
     enum_values?: string[];
   };
   /** Default value if not provided */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default_value?: any;
   /** Field description */
   description?: string;
@@ -57,46 +64,48 @@ export interface FieldDefinition {
  * Field definitions include synonyms for auto-matching column headers
  * to target fields during classification.
  */
-@Entity('schema_definitions')
-@Index(['domain', 'table_name'], { unique: true })
+@Entity("schema_definitions")
+@Index(["domain", "table_name"], { unique: true })
 export class SchemaDefinition extends BaseEntity {
-  @ApiProperty({ enum: DomainType, description: 'Target domain' })
-  @Column({ type: 'enum', enum: DomainType })
+  @ApiProperty({ enum: DomainType, description: "Target domain" })
+  @Column({ type: "enum", enum: DomainType })
   domain: DomainType;
 
-  @ApiProperty({ description: 'Database table name' })
-  @Column({ type: 'varchar', length: 100 })
+  @ApiProperty({ description: "Database table name" })
+  @Column({ type: "varchar", length: 100 })
   table_name: string;
 
-  @ApiProperty({ description: 'Human-readable display name' })
-  @Column({ type: 'varchar', length: 100 })
+  @ApiProperty({ description: "Human-readable display name" })
+  @Column({ type: "varchar", length: 100 })
   display_name: string;
 
-  @ApiPropertyOptional({ description: 'Schema description' })
-  @Column({ type: 'text', nullable: true })
+  @ApiPropertyOptional({ description: "Schema description" })
+  @Column({ type: "text", nullable: true })
   description: string | null;
 
-  @ApiProperty({ description: 'Field definitions with types, synonyms, and validation' })
-  @Column({ type: 'jsonb' })
+  @ApiProperty({
+    description: "Field definitions with types, synonyms, and validation",
+  })
+  @Column({ type: "jsonb" })
   field_definitions: FieldDefinition[];
 
-  @ApiPropertyOptional({ description: 'Table relationships' })
-  @Column({ type: 'jsonb', nullable: true })
-  relationships: Record<string, any>[] | null;
+  @ApiPropertyOptional({ description: "Table relationships" })
+  @Column({ type: "jsonb", nullable: true })
+  relationships: Record<string, unknown>[] | null;
 
-  @ApiProperty({ description: 'Required field names' })
-  @Column({ type: 'jsonb' })
+  @ApiProperty({ description: "Required field names" })
+  @Column({ type: "jsonb" })
   required_fields: string[];
 
-  @ApiProperty({ description: 'Unique field names' })
-  @Column({ type: 'jsonb' })
+  @ApiProperty({ description: "Unique field names" })
+  @Column({ type: "jsonb" })
   unique_fields: string[];
 
-  @ApiProperty({ description: 'Schema version', default: '1.0' })
-  @Column({ type: 'varchar', length: 20, default: '1.0' })
+  @ApiProperty({ description: "Schema version", default: "1.0" })
+  @Column({ type: "varchar", length: 20, default: "1.0" })
   version: string;
 
-  @ApiProperty({ description: 'Whether the schema is active', default: true })
-  @Column({ type: 'boolean', default: true })
+  @ApiProperty({ description: "Whether the schema is active", default: true })
+  @Column({ type: "boolean", default: true })
   is_active: boolean;
 }

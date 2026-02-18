@@ -1,6 +1,13 @@
-import { Markup } from 'telegraf';
-import { config } from '../config';
-import { Machine, Product, Quest, Trip, TripStop, Vehicle, RouteInfo } from '../types';
+import { Markup } from "telegraf";
+import { config } from "../config";
+import {
+  Machine,
+  Product,
+  Quest,
+  TripStop,
+  Vehicle,
+  RouteInfo,
+} from "../types";
 
 // ============================================
 // Inline Keyboards
@@ -10,71 +17,77 @@ import { Machine, Product, Quest, Trip, TripStop, Vehicle, RouteInfo } from '../
  * Main menu inline keyboard
  */
 export const mainMenuInline = Markup.inlineKeyboard([
-  [Markup.button.webApp('📱 Открыть приложение', config.miniAppUrl)],
+  [Markup.button.webApp("📱 Открыть приложение", config.miniAppUrl)],
   [
-    Markup.button.callback('🗺 Найти автоматы', 'find_machines'),
-    Markup.button.callback('💎 Мои баллы', 'my_points'),
+    Markup.button.callback("🗺 Найти автоматы", "find_machines"),
+    Markup.button.callback("💎 Мои баллы", "my_points"),
   ],
   [
-    Markup.button.callback('🎯 Задания', 'quests'),
-    Markup.button.callback('📜 История', 'history'),
+    Markup.button.callback("🎯 Задания", "quests"),
+    Markup.button.callback("📜 История", "history"),
   ],
-  [Markup.button.callback('❓ Помощь', 'help')],
+  [Markup.button.callback("❓ Помощь", "help")],
 ]);
 
 /**
  * Points/Loyalty inline keyboard
  */
 export const pointsInline = Markup.inlineKeyboard([
-  [Markup.button.callback('🎁 Обменять баллы', 'redeem_points')],
-  [Markup.button.webApp('📱 Подробнее', `${config.miniAppUrl}/loyalty`)],
-  [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+  [Markup.button.callback("🎁 Обменять баллы", "redeem_points")],
+  [Markup.button.webApp("📱 Подробнее", `${config.miniAppUrl}/loyalty`)],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
 ]);
 
 /**
  * Quests inline keyboard
  */
 export const questsInline = Markup.inlineKeyboard([
-  [Markup.button.webApp('📱 Открыть задания', `${config.miniAppUrl}/quests`)],
-  [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+  [Markup.button.webApp("📱 Открыть задания", `${config.miniAppUrl}/quests`)],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
 ]);
 
 /**
  * History inline keyboard
  */
 export const historyInline = Markup.inlineKeyboard([
-  [Markup.button.webApp('📱 Вся история', `${config.miniAppUrl}/orders`)],
-  [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+  [Markup.button.webApp("📱 Вся история", `${config.miniAppUrl}/orders`)],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
 ]);
 
 /**
  * No machines found inline keyboard
  */
 export function noMachinesInline(lat?: number, lng?: number) {
-  const mapUrl = lat && lng
-    ? `${config.miniAppUrl}/map?lat=${lat}&lng=${lng}`
-    : `${config.miniAppUrl}/map`;
+  const mapUrl =
+    lat && lng
+      ? `${config.miniAppUrl}/map?lat=${lat}&lng=${lng}`
+      : `${config.miniAppUrl}/map`;
 
   return Markup.inlineKeyboard([
-    [Markup.button.webApp('📱 Открыть карту', mapUrl)],
-    [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+    [Markup.button.webApp("📱 Открыть карту", mapUrl)],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
   ]);
 }
 
 /**
  * Machines list inline keyboard
  */
-export function machinesListInline(machines: Machine[], lat?: number, lng?: number) {
-  const mapUrl = lat && lng
-    ? `${config.miniAppUrl}/map?lat=${lat}&lng=${lng}`
-    : `${config.miniAppUrl}/map`;
+export function machinesListInline(
+  machines: Machine[],
+  lat?: number,
+  lng?: number,
+) {
+  const mapUrl =
+    lat && lng
+      ? `${config.miniAppUrl}/map?lat=${lat}&lng=${lng}`
+      : `${config.miniAppUrl}/map`;
 
   return Markup.inlineKeyboard([
-    ...machines.slice(0, 5).map((m) =>
-      [Markup.button.callback(`📍 ${m.name}`, `machine_${m.id}`)]
-    ),
-    [Markup.button.webApp('🗺 Показать на карте', mapUrl)],
-    [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+    ...machines
+      .slice(0, 5)
+      .map((m) => [Markup.button.callback(`📍 ${m.name}`, `machine_${m.id}`)]),
+    [Markup.button.webApp("🗺 Показать на карте", mapUrl)],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
   ]);
 }
 
@@ -83,13 +96,25 @@ export function machinesListInline(machines: Machine[], lat?: number, lng?: numb
  */
 export function machineInline(machine: Machine) {
   return Markup.inlineKeyboard([
-    [Markup.button.webApp('🛒 Выбрать товары', `${config.miniAppUrl}/machines/${machine.id}`)],
-    [Markup.button.url(
-      '🗺 Открыть в картах',
-      `https://www.google.com/maps?q=${machine.latitude},${machine.longitude}`
-    )],
-    [Markup.button.callback('📢 Сообщить о проблеме', `report_machine_${machine.id}`)],
-    [Markup.button.callback('🔙 К списку', 'find_machines')],
+    [
+      Markup.button.webApp(
+        "🛒 Выбрать товары",
+        `${config.miniAppUrl}/machines/${machine.id}`,
+      ),
+    ],
+    [
+      Markup.button.url(
+        "🗺 Открыть в картах",
+        `https://www.google.com/maps?q=${machine.latitude},${machine.longitude}`,
+      ),
+    ],
+    [
+      Markup.button.callback(
+        "📢 Сообщить о проблеме",
+        `report_machine_${machine.id}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 К списку", "find_machines")],
   ]);
 }
 
@@ -99,12 +124,17 @@ export function machineInline(machine: Machine) {
 export function productInline(product: Product, machineId: string) {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('➖', `qty_minus_${product.id}`),
-      Markup.button.callback('1', 'qty_display'),
-      Markup.button.callback('➕', `qty_plus_${product.id}`),
+      Markup.button.callback("➖", `qty_minus_${product.id}`),
+      Markup.button.callback("1", "qty_display"),
+      Markup.button.callback("➕", `qty_plus_${product.id}`),
     ],
-    [Markup.button.callback('🛒 В корзину', `add_to_cart_${product.id}_${machineId}`)],
-    [Markup.button.callback('🔙 Назад', `machine_${machineId}`)],
+    [
+      Markup.button.callback(
+        "🛒 В корзину",
+        `add_to_cart_${product.id}_${machineId}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 Назад", `machine_${machineId}`)],
   ]);
 }
 
@@ -114,16 +144,16 @@ export function productInline(product: Product, machineId: string) {
 export function cartInline(itemCount: number) {
   if (itemCount === 0) {
     return Markup.inlineKeyboard([
-      [Markup.button.callback('🛒 Найти автомат', 'find_machines')],
-      [Markup.button.callback('🔙 Меню', 'back_to_menu')],
+      [Markup.button.callback("🛒 Найти автомат", "find_machines")],
+      [Markup.button.callback("🔙 Меню", "back_to_menu")],
     ]);
   }
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Оформить заказ', 'checkout')],
-    [Markup.button.callback('🗑 Очистить', 'clear_cart')],
-    [Markup.button.callback('➕ Добавить ещё', 'find_machines')],
-    [Markup.button.callback('🔙 Меню', 'back_to_menu')],
+    [Markup.button.callback("✅ Оформить заказ", "checkout")],
+    [Markup.button.callback("🗑 Очистить", "clear_cart")],
+    [Markup.button.callback("➕ Добавить ещё", "find_machines")],
+    [Markup.button.callback("🔙 Меню", "back_to_menu")],
   ]);
 }
 
@@ -132,9 +162,9 @@ export function cartInline(itemCount: number) {
  */
 export function orderConfirmInline(orderId: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Подтвердить', `confirm_order_${orderId}`)],
-    [Markup.button.callback('❌ Отменить', `cancel_order_${orderId}`)],
-    [Markup.button.callback('✏️ Изменить', 'edit_cart')],
+    [Markup.button.callback("✅ Подтвердить", `confirm_order_${orderId}`)],
+    [Markup.button.callback("❌ Отменить", `cancel_order_${orderId}`)],
+    [Markup.button.callback("✏️ Изменить", "edit_cart")],
   ]);
 }
 
@@ -143,10 +173,10 @@ export function orderConfirmInline(orderId: string) {
  */
 export function paymentInline(orderId: string, _amount: number) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('💳 Payme', `pay_payme_${orderId}`)],
-    [Markup.button.callback('💳 Click', `pay_click_${orderId}`)],
-    [Markup.button.callback('💎 Оплатить баллами', `pay_points_${orderId}`)],
-    [Markup.button.callback('❌ Отмена', `cancel_order_${orderId}`)],
+    [Markup.button.callback("💳 Payme", `pay_payme_${orderId}`)],
+    [Markup.button.callback("💳 Click", `pay_click_${orderId}`)],
+    [Markup.button.callback("💎 Оплатить баллами", `pay_points_${orderId}`)],
+    [Markup.button.callback("❌ Отмена", `cancel_order_${orderId}`)],
   ]);
 }
 
@@ -155,9 +185,14 @@ export function paymentInline(orderId: string, _amount: number) {
  */
 export function orderCompletedInline(orderId: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('⭐️ Оценить', `rate_order_${orderId}`)],
-    [Markup.button.webApp('📜 Детали заказа', `${config.miniAppUrl}/orders/${orderId}`)],
-    [Markup.button.callback('🔙 Меню', 'back_to_menu')],
+    [Markup.button.callback("⭐️ Оценить", `rate_order_${orderId}`)],
+    [
+      Markup.button.webApp(
+        "📜 Детали заказа",
+        `${config.miniAppUrl}/orders/${orderId}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 Меню", "back_to_menu")],
   ]);
 }
 
@@ -167,15 +202,15 @@ export function orderCompletedInline(orderId: string) {
 export function ratingInline(orderId: string) {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('⭐️', `rate_${orderId}_1`),
-      Markup.button.callback('⭐️⭐️', `rate_${orderId}_2`),
-      Markup.button.callback('⭐️⭐️⭐️', `rate_${orderId}_3`),
+      Markup.button.callback("⭐️", `rate_${orderId}_1`),
+      Markup.button.callback("⭐️⭐️", `rate_${orderId}_2`),
+      Markup.button.callback("⭐️⭐️⭐️", `rate_${orderId}_3`),
     ],
     [
-      Markup.button.callback('⭐️⭐️⭐️⭐️', `rate_${orderId}_4`),
-      Markup.button.callback('⭐️⭐️⭐️⭐️⭐️', `rate_${orderId}_5`),
+      Markup.button.callback("⭐️⭐️⭐️⭐️", `rate_${orderId}_4`),
+      Markup.button.callback("⭐️⭐️⭐️⭐️⭐️", `rate_${orderId}_5`),
     ],
-    [Markup.button.callback('⏭ Пропустить', 'back_to_menu')],
+    [Markup.button.callback("⏭ Пропустить", "back_to_menu")],
   ]);
 }
 
@@ -184,9 +219,14 @@ export function ratingInline(orderId: string) {
  */
 export function referralInline(referralLink: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.switchToChat('📤 Поделиться', `Присоединяйся к VendHub! ${referralLink}`)],
-    [Markup.button.webApp('📱 Подробнее', `${config.miniAppUrl}/referrals`)],
-    [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+    [
+      Markup.button.switchToChat(
+        "📤 Поделиться",
+        `Присоединяйся к VendHub! ${referralLink}`,
+      ),
+    ],
+    [Markup.button.webApp("📱 Подробнее", `${config.miniAppUrl}/referrals`)],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
   ]);
 }
 
@@ -194,8 +234,13 @@ export function referralInline(referralLink: string) {
  * Redeem points inline keyboard
  */
 export const redeemPointsInline = Markup.inlineKeyboard([
-  [Markup.button.webApp('🎁 Каталог наград', `${config.miniAppUrl}/loyalty?tab=rewards`)],
-  [Markup.button.callback('🔙 Назад', 'my_points')],
+  [
+    Markup.button.webApp(
+      "🎁 Каталог наград",
+      `${config.miniAppUrl}/loyalty?tab=rewards`,
+    ),
+  ],
+  [Markup.button.callback("🔙 Назад", "my_points")],
 ]);
 
 /**
@@ -203,8 +248,13 @@ export const redeemPointsInline = Markup.inlineKeyboard([
  */
 export function questInline(quest: Quest) {
   return Markup.inlineKeyboard([
-    [Markup.button.webApp('📱 Подробнее', `${config.miniAppUrl}/quests/${quest.id}`)],
-    [Markup.button.callback('🔙 К заданиям', 'quests')],
+    [
+      Markup.button.webApp(
+        "📱 Подробнее",
+        `${config.miniAppUrl}/quests/${quest.id}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 К заданиям", "quests")],
   ]);
 }
 
@@ -212,20 +262,20 @@ export function questInline(quest: Quest) {
  * Settings inline keyboard
  */
 export const settingsInline = Markup.inlineKeyboard([
-  [Markup.button.callback('🌐 Язык', 'settings_language')],
-  [Markup.button.callback('🔔 Уведомления', 'settings_notifications')],
-  [Markup.button.callback('📱 Изменить номер', 'settings_phone')],
-  [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+  [Markup.button.callback("🌐 Язык", "settings_language")],
+  [Markup.button.callback("🔔 Уведомления", "settings_notifications")],
+  [Markup.button.callback("📱 Изменить номер", "settings_phone")],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
 ]);
 
 /**
  * Language selection inline keyboard
  */
 export const languageInline = Markup.inlineKeyboard([
-  [Markup.button.callback('🇷🇺 Русский', 'lang_ru')],
-  [Markup.button.callback('🇺🇿 O\'zbekcha', 'lang_uz')],
-  [Markup.button.callback('🇬🇧 English', 'lang_en')],
-  [Markup.button.callback('🔙 Назад', 'settings')],
+  [Markup.button.callback("🇷🇺 Русский", "lang_ru")],
+  [Markup.button.callback("🇺🇿 O'zbekcha", "lang_uz")],
+  [Markup.button.callback("🇬🇧 English", "lang_en")],
+  [Markup.button.callback("🔙 Назад", "settings")],
 ]);
 
 /**
@@ -233,11 +283,13 @@ export const languageInline = Markup.inlineKeyboard([
  */
 export function notificationsInline(enabled: boolean) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(
-      enabled ? '🔔 Включены ✓' : '🔕 Выключены',
-      'toggle_notifications'
-    )],
-    [Markup.button.callback('🔙 Назад', 'settings')],
+    [
+      Markup.button.callback(
+        enabled ? "🔔 Включены ✓" : "🔕 Выключены",
+        "toggle_notifications",
+      ),
+    ],
+    [Markup.button.callback("🔙 Назад", "settings")],
   ]);
 }
 
@@ -245,15 +297,15 @@ export function notificationsInline(enabled: boolean) {
  * Complaint confirmation inline keyboard
  */
 export const complaintConfirmInline = Markup.inlineKeyboard([
-  [Markup.button.callback('✅ Отправить', 'send_complaint')],
-  [Markup.button.callback('❌ Отмена', 'cancel_complaint')],
+  [Markup.button.callback("✅ Отправить", "send_complaint")],
+  [Markup.button.callback("❌ Отмена", "cancel_complaint")],
 ]);
 
 /**
  * Back to menu inline keyboard
  */
 export const backToMenuInline = Markup.inlineKeyboard([
-  [Markup.button.callback('🔙 Главное меню', 'back_to_menu')],
+  [Markup.button.callback("🔙 Главное меню", "back_to_menu")],
 ]);
 
 // ============================================
@@ -264,9 +316,9 @@ export const backToMenuInline = Markup.inlineKeyboard([
  * Trip menu inline keyboard
  */
 export const tripMenuInline = Markup.inlineKeyboard([
-  [Markup.button.callback('🚀 Nachat\' poezdku', 'trip_start')],
-  [Markup.button.callback('📋 Moi poezdki', 'trip_history')],
-  [Markup.button.callback('🔙 Nazad', 'back_to_menu')],
+  [Markup.button.callback("🚀 Nachat' poezdku", "trip_start")],
+  [Markup.button.callback("📋 Moi poezdki", "trip_history")],
+  [Markup.button.callback("🔙 Nazad", "back_to_menu")],
 ]);
 
 /**
@@ -274,9 +326,9 @@ export const tripMenuInline = Markup.inlineKeyboard([
  */
 export function activeTripInline(tripId: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('📍 Ostanovki', `trip_stops_${tripId}`)],
-    [Markup.button.callback('🏁 Zavershit\' poezdku', `trip_end_${tripId}`)],
-    [Markup.button.callback('🔙 Nazad', 'back_to_menu')],
+    [Markup.button.callback("📍 Ostanovki", `trip_stops_${tripId}`)],
+    [Markup.button.callback("🏁 Zavershit' poezdku", `trip_end_${tripId}`)],
+    [Markup.button.callback("🔙 Nazad", "back_to_menu")],
   ]);
 }
 
@@ -285,10 +337,15 @@ export function activeTripInline(tripId: string) {
  */
 export function vehicleSelectInline(vehicles: Vehicle[]) {
   return Markup.inlineKeyboard([
-    ...vehicles.slice(0, 8).map((v) =>
-      [Markup.button.callback(`🚗 ${v.plate} (${v.model})`, `trip_vehicle_${v.id}`)]
-    ),
-    [Markup.button.callback('❌ Otmena', 'back_to_menu')],
+    ...vehicles
+      .slice(0, 8)
+      .map((v) => [
+        Markup.button.callback(
+          `🚗 ${v.plate} (${v.model})`,
+          `trip_vehicle_${v.id}`,
+        ),
+      ]),
+    [Markup.button.callback("❌ Otmena", "back_to_menu")],
   ]);
 }
 
@@ -297,11 +354,16 @@ export function vehicleSelectInline(vehicles: Vehicle[]) {
  */
 export function routeSelectInline(routes: RouteInfo[]) {
   return Markup.inlineKeyboard([
-    ...routes.slice(0, 8).map((r) =>
-      [Markup.button.callback(`📍 ${r.name} (${r.stopsCount} ost.)`, `trip_route_${r.id}`)]
-    ),
-    [Markup.button.callback('⏭ Bez marshruta', 'trip_route_none')],
-    [Markup.button.callback('❌ Otmena', 'back_to_menu')],
+    ...routes
+      .slice(0, 8)
+      .map((r) => [
+        Markup.button.callback(
+          `📍 ${r.name} (${r.stopsCount} ost.)`,
+          `trip_route_${r.id}`,
+        ),
+      ]),
+    [Markup.button.callback("⏭ Bez marshruta", "trip_route_none")],
+    [Markup.button.callback("❌ Otmena", "back_to_menu")],
   ]);
 }
 
@@ -310,14 +372,19 @@ export function routeSelectInline(routes: RouteInfo[]) {
  */
 export function tripStopsInline(tripId: string, stops: TripStop[]) {
   return Markup.inlineKeyboard([
-    ...stops.filter(s => s.status !== 'completed').slice(0, 6).map((s) => {
-      const icon = s.status === 'arrived' ? '📍' : '⬜️';
-      return [Markup.button.callback(
-        `${icon} ${s.sequence}. ${s.name}`,
-        `trip_complete_stop_${tripId}_${s.id}`
-      )];
-    }),
-    [Markup.button.callback('🔙 K poezdke', `trip_status_${tripId}`)],
+    ...stops
+      .filter((s) => s.status !== "completed")
+      .slice(0, 6)
+      .map((s) => {
+        const icon = s.status === "arrived" ? "📍" : "⬜️";
+        return [
+          Markup.button.callback(
+            `${icon} ${s.sequence}. ${s.name}`,
+            `trip_complete_stop_${tripId}_${s.id}`,
+          ),
+        ];
+      }),
+    [Markup.button.callback("🔙 K poezdke", `trip_status_${tripId}`)],
   ]);
 }
 
@@ -326,10 +393,83 @@ export function tripStopsInline(tripId: string, stops: TripStop[]) {
  */
 export function tripCompletedInline(tripId: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.webApp('📊 Detali poezdki', `${config.miniAppUrl}/trips/${tripId}`)],
-    [Markup.button.callback('🔙 Menyu', 'back_to_menu')],
+    [
+      Markup.button.webApp(
+        "📊 Detali poezdki",
+        `${config.miniAppUrl}/trips/${tripId}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 Menyu", "back_to_menu")],
   ]);
 }
+
+/**
+ * Achievements inline keyboard
+ */
+export const achievementsInline = Markup.inlineKeyboard([
+  [
+    Markup.button.webApp(
+      "🏆 Все достижения",
+      `${config.miniAppUrl}/achievements`,
+    ),
+  ],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
+]);
+
+/**
+ * Promo code inline keyboard
+ */
+export const promoInline = Markup.inlineKeyboard([
+  [
+    Markup.button.webApp(
+      "🎟 Ввести в приложении",
+      `${config.miniAppUrl}/promo-code`,
+    ),
+  ],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
+]);
+
+/**
+ * Menu selection inline keyboard
+ */
+export function menuMachineInline(machineId: string) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.webApp(
+        "📱 Открыть меню",
+        `${config.miniAppUrl}/menu/${machineId}`,
+      ),
+    ],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
+  ]);
+}
+
+/**
+ * Staff tasks inline keyboard
+ */
+export const staffTasksInline = Markup.inlineKeyboard([
+  [Markup.button.callback("📋 Активные задачи", "staff_tasks_active")],
+  [Markup.button.callback("✅ Выполненные", "staff_tasks_completed")],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
+]);
+
+/**
+ * Staff route inline keyboard
+ */
+export const staffRouteInline = Markup.inlineKeyboard([
+  [Markup.button.callback("🗺 Показать маршрут", "staff_show_route")],
+  [Markup.button.callback("📊 Статистика дня", "staff_day_stats")],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
+]);
+
+/**
+ * Staff alerts inline keyboard
+ */
+export const staffAlertsInline = Markup.inlineKeyboard([
+  [Markup.button.callback("🔴 Только критичные", "staff_alerts_critical")],
+  [Markup.button.callback("✅ Отметить все", "staff_alerts_read_all")],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
+]);
 
 /**
  * Pagination inline keyboard
@@ -337,22 +477,26 @@ export function tripCompletedInline(tripId: string) {
 export function paginationInline(
   currentPage: number,
   totalPages: number,
-  baseCallback: string
+  baseCallback: string,
 ) {
   const buttons = [];
 
   if (currentPage > 1) {
-    buttons.push(Markup.button.callback('◀️', `${baseCallback}_${currentPage - 1}`));
+    buttons.push(
+      Markup.button.callback("◀️", `${baseCallback}_${currentPage - 1}`),
+    );
   }
 
-  buttons.push(Markup.button.callback(`${currentPage}/${totalPages}`, 'noop'));
+  buttons.push(Markup.button.callback(`${currentPage}/${totalPages}`, "noop"));
 
   if (currentPage < totalPages) {
-    buttons.push(Markup.button.callback('▶️', `${baseCallback}_${currentPage + 1}`));
+    buttons.push(
+      Markup.button.callback("▶️", `${baseCallback}_${currentPage + 1}`),
+    );
   }
 
   return Markup.inlineKeyboard([
     buttons,
-    [Markup.button.callback('🔙 Назад', 'back_to_menu')],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
   ]);
 }

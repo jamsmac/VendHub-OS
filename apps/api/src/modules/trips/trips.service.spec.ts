@@ -1,22 +1,29 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 
-import { TripsService } from './trips.service';
-import { Trip, TripStatus, TripTaskType } from './entities/trip.entity';
-import { TripPoint } from './entities/trip-point.entity';
-import { TripStop } from './entities/trip-stop.entity';
-import { TripAnomaly, AnomalyType, AnomalySeverity } from './entities/trip-anomaly.entity';
-import { TripTaskLink, TripTaskLinkStatus } from './entities/trip-task-link.entity';
-import { TripReconciliation } from './entities/trip-reconciliation.entity';
-import { Vehicle } from '../vehicles/entities/vehicle.entity';
+import { TripsService } from "./trips.service";
+import { Trip, TripStatus, TripTaskType } from "./entities/trip.entity";
+import { TripPoint } from "./entities/trip-point.entity";
+import { TripStop } from "./entities/trip-stop.entity";
+import {
+  TripAnomaly,
+  AnomalyType,
+  AnomalySeverity,
+} from "./entities/trip-anomaly.entity";
+import {
+  TripTaskLink,
+  TripTaskLinkStatus,
+} from "./entities/trip-task-link.entity";
+import { TripReconciliation } from "./entities/trip-reconciliation.entity";
+import { Vehicle } from "../vehicles/entities/vehicle.entity";
 
-describe('TripsService', () => {
+describe("TripsService", () => {
   let service: TripsService;
   let tripRepository: jest.Mocked<Repository<Trip>>;
   let pointRepository: jest.Mocked<Repository<TripPoint>>;
@@ -27,10 +34,10 @@ describe('TripsService', () => {
   let vehicleRepository: jest.Mocked<Repository<Vehicle>>;
 
   const mockTrip = {
-    id: 'trip-uuid-1',
-    organizationId: 'org-uuid-1',
-    employeeId: 'emp-uuid-1',
-    vehicleId: 'vehicle-uuid-1',
+    id: "trip-uuid-1",
+    organizationId: "org-uuid-1",
+    employeeId: "emp-uuid-1",
+    vehicleId: "vehicle-uuid-1",
     taskType: TripTaskType.FILLING,
     status: TripStatus.ACTIVE,
     startedAt: new Date(),
@@ -54,8 +61,8 @@ describe('TripsService', () => {
   } as unknown as Trip;
 
   const mockVehicle = {
-    id: 'vehicle-uuid-1',
-    organizationId: 'org-uuid-1',
+    id: "vehicle-uuid-1",
+    organizationId: "org-uuid-1",
     currentOdometer: 50000,
   } as unknown as Vehicle;
 
@@ -67,6 +74,7 @@ describe('TripsService', () => {
     execute: jest.fn().mockResolvedValue({ affected: 1 }),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createMockSelectQueryBuilder = (result: any = null) => ({
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
@@ -165,11 +173,13 @@ describe('TripsService', () => {
     stopRepository = module.get(getRepositoryToken(TripStop));
     anomalyRepository = module.get(getRepositoryToken(TripAnomaly));
     taskLinkRepository = module.get(getRepositoryToken(TripTaskLink));
-    reconciliationRepository = module.get(getRepositoryToken(TripReconciliation));
+    reconciliationRepository = module.get(
+      getRepositoryToken(TripReconciliation),
+    );
     vehicleRepository = module.get(getRepositoryToken(Vehicle));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -177,8 +187,8 @@ describe('TripsService', () => {
   // TRIP LIFECYCLE
   // ============================================================================
 
-  describe('startTrip', () => {
-    it('should start a new trip successfully', async () => {
+  describe("startTrip", () => {
+    it("should start a new trip successfully", async () => {
       tripRepository.findOne
         .mockResolvedValueOnce(null) // getActiveTrip: no active trip
         .mockResolvedValueOnce(mockTrip); // getTripById after save
@@ -187,9 +197,9 @@ describe('TripsService', () => {
       tripRepository.save.mockResolvedValue(mockTrip);
 
       const result = await service.startTrip({
-        organizationId: 'org-uuid-1',
-        employeeId: 'emp-uuid-1',
-        vehicleId: 'vehicle-uuid-1',
+        organizationId: "org-uuid-1",
+        employeeId: "emp-uuid-1",
+        vehicleId: "vehicle-uuid-1",
         taskType: TripTaskType.FILLING,
         startOdometer: 50000,
       });
@@ -197,37 +207,39 @@ describe('TripsService', () => {
       expect(result).toBeDefined();
       expect(tripRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organizationId: 'org-uuid-1',
-          employeeId: 'emp-uuid-1',
+          organizationId: "org-uuid-1",
+          employeeId: "emp-uuid-1",
           status: TripStatus.ACTIVE,
         }),
       );
     });
 
-    it('should throw ConflictException when employee has active trip', async () => {
+    it("should throw ConflictException when employee has active trip", async () => {
       tripRepository.findOne.mockResolvedValue(mockTrip); // active trip exists
 
       await expect(
         service.startTrip({
-          organizationId: 'org-uuid-1',
-          employeeId: 'emp-uuid-1',
+          organizationId: "org-uuid-1",
+          employeeId: "emp-uuid-1",
         }),
       ).rejects.toThrow(ConflictException);
     });
 
-    it('should link tasks when taskIds provided', async () => {
+    it("should link tasks when taskIds provided", async () => {
       tripRepository.findOne
         .mockResolvedValueOnce(null) // no active trip
         .mockResolvedValueOnce(mockTrip); // getTripById
       tripRepository.create.mockReturnValue(mockTrip);
       tripRepository.save.mockResolvedValue(mockTrip);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       taskLinkRepository.create.mockReturnValue({} as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       taskLinkRepository.save.mockResolvedValue([] as any);
 
       await service.startTrip({
-        organizationId: 'org-uuid-1',
-        employeeId: 'emp-uuid-1',
-        taskIds: ['task-1', 'task-2'],
+        organizationId: "org-uuid-1",
+        employeeId: "emp-uuid-1",
+        taskIds: ["task-1", "task-2"],
       });
 
       expect(taskLinkRepository.create).toHaveBeenCalledTimes(2);
@@ -235,110 +247,130 @@ describe('TripsService', () => {
     });
   });
 
-  describe('endTrip', () => {
-    it('should end an active trip', async () => {
+  describe("endTrip", () => {
+    it("should end an active trip", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null);
 
-      const selectQb = createMockSelectQueryBuilder({ total: '0' });
+      const selectQb = createMockSelectQueryBuilder({ total: "0" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.createQueryBuilder.mockReturnValue(selectQb as any);
 
       stopRepository.find.mockResolvedValue([]);
 
       const updateQb = createMockUpdateQueryBuilder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       stopRepository.createQueryBuilder.mockReturnValue(updateQb as any);
 
       tripRepository.save.mockImplementation(async (t) => t as Trip);
 
-      const result = await service.endTrip('trip-uuid-1', {}, 'user-1');
+      const result = await service.endTrip("trip-uuid-1", {}, "user-1");
 
       expect(result.status).toBe(TripStatus.COMPLETED);
       expect(result.endedAt).toBeInstanceOf(Date);
       expect(result.liveLocationActive).toBe(false);
     });
 
-    it('should throw BadRequestException when trip is not active', async () => {
-      const completedTrip = { ...mockTrip, status: TripStatus.COMPLETED } as any;
+    it("should throw BadRequestException when trip is not active", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedTrip = {
+        ...mockTrip,
+        status: TripStatus.COMPLETED,
+      } as any;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
-      await expect(
-        service.endTrip('trip-uuid-1', {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.endTrip("trip-uuid-1", {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
-    it('should throw NotFoundException for non-existent trip', async () => {
+    it("should throw NotFoundException for non-existent trip", async () => {
       tripRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.endTrip('non-existent', {}),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.endTrip("non-existent", {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
-  describe('cancelTrip', () => {
-    it('should cancel an active trip with reason', async () => {
-      const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE, notes: null } as any;
+  describe("cancelTrip", () => {
+    it("should cancel an active trip with reason", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const activeTrip = {
+        ...mockTrip,
+        status: TripStatus.ACTIVE,
+        notes: null,
+      } as any;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       tripRepository.save.mockImplementation(async (t) => t as Trip);
 
-      const result = await service.cancelTrip('trip-uuid-1', 'Wrong vehicle', 'user-1');
+      const result = await service.cancelTrip(
+        "trip-uuid-1",
+        "Wrong vehicle",
+        "user-1",
+      );
 
       expect(result.status).toBe(TripStatus.CANCELLED);
-      expect(result.notes).toContain('Wrong vehicle');
+      expect(result.notes).toContain("Wrong vehicle");
     });
 
-    it('should throw BadRequestException for non-active trip', async () => {
-      const completedTrip = { ...mockTrip, status: TripStatus.COMPLETED } as any;
+    it("should throw BadRequestException for non-active trip", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedTrip = {
+        ...mockTrip,
+        status: TripStatus.COMPLETED,
+      } as any;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
-      await expect(
-        service.cancelTrip('trip-uuid-1', 'reason'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.cancelTrip("trip-uuid-1", "reason")).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
-  describe('getActiveTrip', () => {
-    it('should return active trip for employee', async () => {
+  describe("getActiveTrip", () => {
+    it("should return active trip for employee", async () => {
       tripRepository.findOne.mockResolvedValue(mockTrip);
 
-      const result = await service.getActiveTrip('emp-uuid-1');
+      const result = await service.getActiveTrip("emp-uuid-1");
 
       expect(result).toEqual(mockTrip);
       expect(tripRepository.findOne).toHaveBeenCalledWith({
-        where: { employeeId: 'emp-uuid-1', status: TripStatus.ACTIVE },
-        relations: ['vehicle', 'taskLinks'],
+        where: { employeeId: "emp-uuid-1", status: TripStatus.ACTIVE },
+        relations: ["vehicle", "taskLinks"],
       });
     });
 
-    it('should return null when no active trip', async () => {
+    it("should return null when no active trip", async () => {
       tripRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.getActiveTrip('emp-uuid-1');
+      const result = await service.getActiveTrip("emp-uuid-1");
 
       expect(result).toBeNull();
     });
   });
 
-  describe('getTripById', () => {
-    it('should return trip with relations', async () => {
+  describe("getTripById", () => {
+    it("should return trip with relations", async () => {
       tripRepository.findOne.mockResolvedValue(mockTrip);
 
-      const result = await service.getTripById('trip-uuid-1');
+      const result = await service.getTripById("trip-uuid-1");
 
       expect(result).toEqual(mockTrip);
       expect(tripRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'trip-uuid-1' },
-        relations: ['vehicle', 'taskLinks', 'stops', 'anomalies'],
+        where: { id: "trip-uuid-1" },
+        relations: ["vehicle", "taskLinks", "stops", "anomalies"],
       });
     });
 
-    it('should throw NotFoundException for non-existent trip', async () => {
+    it("should throw NotFoundException for non-existent trip", async () => {
       tripRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.getTripById('non-existent'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getTripById("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -346,91 +378,121 @@ describe('TripsService', () => {
   // GPS TRACKING
   // ============================================================================
 
-  describe('addPoint', () => {
-    it('should add a valid GPS point', async () => {
+  describe("addPoint", () => {
+    it("should add a valid GPS point", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null); // no previous point
 
-      const savedPoint = { id: 'point-uuid-1', isFiltered: false, filterReason: null };
+      const savedPoint = {
+        id: "point-uuid-1",
+        isFiltered: false,
+        filterReason: null,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.create.mockReturnValue(savedPoint as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.save.mockResolvedValue(savedPoint as any);
 
       const updateQb = createMockUpdateQueryBuilder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.update.mockResolvedValue({ affected: 1 } as any);
 
       // Mock for stop detection
       pointRepository.find.mockResolvedValue([]);
 
-      const result = await service.addPoint('trip-uuid-1', {
+      const result = await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
         longitude: 69.2401,
       });
 
-      expect(result.id).toBe('point-uuid-1');
+      expect(result.id).toBe("point-uuid-1");
       expect(result.isFiltered).toBe(false);
     });
 
-    it('should filter point with low accuracy', async () => {
+    it("should filter point with low accuracy", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null);
 
-      const savedPoint = { id: 'point-uuid-2', isFiltered: true, filterReason: 'LOW_ACCURACY' };
+      const savedPoint = {
+        id: "point-uuid-2",
+        isFiltered: true,
+        filterReason: "LOW_ACCURACY",
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.create.mockReturnValue(savedPoint as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.save.mockResolvedValue(savedPoint as any);
 
       const updateQb = createMockUpdateQueryBuilder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
 
-      const result = await service.addPoint('trip-uuid-1', {
+      const result = await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
         longitude: 69.2401,
         accuracy: 200, // exceeds MIN_GPS_ACCURACY_METERS (50)
       });
 
       expect(result.isFiltered).toBe(true);
-      expect(result.filterReason).toBe('LOW_ACCURACY');
+      expect(result.filterReason).toBe("LOW_ACCURACY");
     });
 
-    it('should throw NotFoundException for non-existent trip', async () => {
+    it("should throw NotFoundException for non-existent trip", async () => {
       tripRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.addPoint('non-existent', { latitude: 41.0, longitude: 69.0 }),
+        service.addPoint("non-existent", { latitude: 41.0, longitude: 69.0 }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException for non-active trip', async () => {
-      const completedTrip = { ...mockTrip, status: TripStatus.COMPLETED } as any;
+    it("should throw BadRequestException for non-active trip", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedTrip = {
+        ...mockTrip,
+        status: TripStatus.COMPLETED,
+      } as any;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
       await expect(
-        service.addPoint('trip-uuid-1', { latitude: 41.0, longitude: 69.0 }),
+        service.addPoint("trip-uuid-1", { latitude: 41.0, longitude: 69.0 }),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should set start coordinates on first valid point', async () => {
+    it("should set start coordinates on first valid point", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null); // no previous = first point
 
-      const savedPoint = { id: 'point-uuid-3', isFiltered: false, filterReason: null };
+      const savedPoint = {
+        id: "point-uuid-3",
+        isFiltered: false,
+        filterReason: null,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.create.mockReturnValue(savedPoint as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pointRepository.save.mockResolvedValue(savedPoint as any);
 
       const updateQb = createMockUpdateQueryBuilder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.update.mockResolvedValue({ affected: 1 } as any);
       pointRepository.find.mockResolvedValue([]);
 
-      await service.addPoint('trip-uuid-1', {
+      await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
         longitude: 69.2401,
       });
 
-      expect(tripRepository.update).toHaveBeenCalledWith('trip-uuid-1', {
+      expect(tripRepository.update).toHaveBeenCalledWith("trip-uuid-1", {
         startLatitude: 41.2995,
         startLongitude: 69.2401,
       });
@@ -441,62 +503,72 @@ describe('TripsService', () => {
   // TASK LINKS
   // ============================================================================
 
-  describe('linkTask', () => {
-    it('should link task to trip', async () => {
+  describe("linkTask", () => {
+    it("should link task to trip", async () => {
       taskLinkRepository.findOne.mockResolvedValue(null);
 
-      const mockLink = { tripId: 'trip-uuid-1', taskId: 'task-uuid-1' };
+      const mockLink = { tripId: "trip-uuid-1", taskId: "task-uuid-1" };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       taskLinkRepository.create.mockReturnValue(mockLink as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       taskLinkRepository.save.mockResolvedValue(mockLink as any);
 
-      const result = await service.linkTask('trip-uuid-1', 'task-uuid-1', 'user-1');
+      const result = await service.linkTask(
+        "trip-uuid-1",
+        "task-uuid-1",
+        "user-1",
+      );
 
       expect(result).toEqual(mockLink);
       expect(taskLinkRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          tripId: 'trip-uuid-1',
-          taskId: 'task-uuid-1',
+          tripId: "trip-uuid-1",
+          taskId: "task-uuid-1",
           status: TripTaskLinkStatus.PENDING,
         }),
       );
     });
 
-    it('should throw ConflictException for duplicate link', async () => {
-      taskLinkRepository.findOne.mockResolvedValue({ id: 'existing' } as any);
+    it("should throw ConflictException for duplicate link", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      taskLinkRepository.findOne.mockResolvedValue({ id: "existing" } as any);
 
       await expect(
-        service.linkTask('trip-uuid-1', 'task-uuid-1'),
+        service.linkTask("trip-uuid-1", "task-uuid-1"),
       ).rejects.toThrow(ConflictException);
     });
   });
 
-  describe('completeLinkedTask', () => {
-    it('should mark linked task as completed', async () => {
+  describe("completeLinkedTask", () => {
+    it("should mark linked task as completed", async () => {
       const mockLink = {
-        tripId: 'trip-uuid-1',
-        taskId: 'task-uuid-1',
+        tripId: "trip-uuid-1",
+        taskId: "task-uuid-1",
         status: TripTaskLinkStatus.IN_PROGRESS,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskLinkRepository.findOne.mockResolvedValue(mockLink);
-      taskLinkRepository.save.mockImplementation(async (l) => l as TripTaskLink);
+      taskLinkRepository.save.mockImplementation(
+        async (l) => l as TripTaskLink,
+      );
 
       const result = await service.completeLinkedTask(
-        'trip-uuid-1',
-        'task-uuid-1',
-        'Done',
-        'user-1',
+        "trip-uuid-1",
+        "task-uuid-1",
+        "Done",
+        "user-1",
       );
 
       expect(result.status).toBe(TripTaskLinkStatus.COMPLETED);
       expect(result.completedAt).toBeInstanceOf(Date);
-      expect(result.notes).toBe('Done');
+      expect(result.notes).toBe("Done");
     });
 
-    it('should throw NotFoundException for non-existent link', async () => {
+    it("should throw NotFoundException for non-existent link", async () => {
       taskLinkRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.completeLinkedTask('trip-uuid-1', 'task-uuid-1'),
+        service.completeLinkedTask("trip-uuid-1", "task-uuid-1"),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -505,21 +577,24 @@ describe('TripsService', () => {
   // ANOMALIES
   // ============================================================================
 
-  describe('createAnomaly', () => {
-    it('should create and save anomaly', async () => {
+  describe("createAnomaly", () => {
+    it("should create and save anomaly", async () => {
       const mockAnomaly = {
-        id: 'anomaly-uuid-1',
-        tripId: 'trip-uuid-1',
+        id: "anomaly-uuid-1",
+        tripId: "trip-uuid-1",
         type: AnomalyType.SPEED_VIOLATION,
         severity: AnomalySeverity.WARNING,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       anomalyRepository.create.mockReturnValue(mockAnomaly as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       anomalyRepository.save.mockResolvedValue(mockAnomaly as any);
 
       const updateQb = createMockUpdateQueryBuilder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
 
-      const result = await service.createAnomaly('trip-uuid-1', 'org-uuid-1', {
+      const result = await service.createAnomaly("trip-uuid-1", "org-uuid-1", {
         type: AnomalyType.SPEED_VIOLATION,
         severity: AnomalySeverity.WARNING,
         details: { speedKmh: 130, maxAllowedKmh: 120 },
@@ -528,38 +603,44 @@ describe('TripsService', () => {
       expect(result).toEqual(mockAnomaly);
       expect(anomalyRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          tripId: 'trip-uuid-1',
+          tripId: "trip-uuid-1",
           type: AnomalyType.SPEED_VIOLATION,
         }),
       );
     });
   });
 
-  describe('resolveAnomaly', () => {
-    it('should resolve anomaly with notes', async () => {
+  describe("resolveAnomaly", () => {
+    it("should resolve anomaly with notes", async () => {
       const mockAnomaly = {
-        id: 'anomaly-uuid-1',
-        tripId: 'trip-uuid-1',
+        id: "anomaly-uuid-1",
+        tripId: "trip-uuid-1",
         resolved: false,
         resolvedById: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       anomalyRepository.findOne.mockResolvedValue(mockAnomaly);
       tripRepository.findOne.mockResolvedValue(mockTrip); // org access check
       anomalyRepository.save.mockImplementation(async (a) => a as TripAnomaly);
 
-      const result = await service.resolveAnomaly('anomaly-uuid-1', 'user-1', 'org-uuid-1', 'False alarm');
+      const result = await service.resolveAnomaly(
+        "anomaly-uuid-1",
+        "user-1",
+        "org-uuid-1",
+        "False alarm",
+      );
 
       expect(result.resolved).toBe(true);
-      expect(result.resolvedById).toBe('user-1');
-      expect(result.resolutionNotes).toBe('False alarm');
+      expect(result.resolvedById).toBe("user-1");
+      expect(result.resolutionNotes).toBe("False alarm");
       expect(result.resolvedAt).toBeInstanceOf(Date);
     });
 
-    it('should throw NotFoundException for non-existent anomaly', async () => {
+    it("should throw NotFoundException for non-existent anomaly", async () => {
       anomalyRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.resolveAnomaly('non-existent', 'user-1', 'org-uuid-1'),
+        service.resolveAnomaly("non-existent", "user-1", "org-uuid-1"),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -568,38 +649,41 @@ describe('TripsService', () => {
   // RECONCILIATION
   // ============================================================================
 
-  describe('performReconciliation', () => {
-    it('should create reconciliation record', async () => {
+  describe("performReconciliation", () => {
+    it("should create reconciliation record", async () => {
       vehicleRepository.findOne.mockResolvedValue(mockVehicle);
 
-      const mockRecon = { id: 'recon-uuid-1' };
+      const mockRecon = { id: "recon-uuid-1" };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reconciliationRepository.create.mockReturnValue(mockRecon as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reconciliationRepository.save.mockResolvedValue(mockRecon as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vehicleRepository.update.mockResolvedValue({ affected: 1 } as any);
 
       const result = await service.performReconciliation({
-        organizationId: 'org-uuid-1',
-        vehicleId: 'vehicle-uuid-1',
+        organizationId: "org-uuid-1",
+        vehicleId: "vehicle-uuid-1",
         actualOdometer: 52000,
-        performedById: 'user-1',
+        performedById: "user-1",
       });
 
       expect(result).toEqual(mockRecon);
       expect(vehicleRepository.update).toHaveBeenCalledWith(
-        'vehicle-uuid-1',
+        "vehicle-uuid-1",
         expect.objectContaining({ currentOdometer: 52000 }),
       );
     });
 
-    it('should throw NotFoundException for non-existent vehicle', async () => {
+    it("should throw NotFoundException for non-existent vehicle", async () => {
       vehicleRepository.findOne.mockResolvedValue(null);
 
       await expect(
         service.performReconciliation({
-          organizationId: 'org-uuid-1',
-          vehicleId: 'non-existent',
+          organizationId: "org-uuid-1",
+          vehicleId: "non-existent",
           actualOdometer: 52000,
-          performedById: 'user-1',
+          performedById: "user-1",
         }),
       ).rejects.toThrow(NotFoundException);
     });
@@ -609,23 +693,30 @@ describe('TripsService', () => {
   // HAVERSINE DISTANCE
   // ============================================================================
 
-  describe('calculateHaversineDistance', () => {
-    it('should return 0 for identical coordinates', () => {
-      const dist = service.calculateHaversineDistance(41.2995, 69.2401, 41.2995, 69.2401);
+  describe("calculateHaversineDistance", () => {
+    it("should return 0 for identical coordinates", () => {
+      const dist = service.calculateHaversineDistance(
+        41.2995,
+        69.2401,
+        41.2995,
+        69.2401,
+      );
       expect(dist).toBe(0);
     });
 
-    it('should calculate correct distance between Tashkent points', () => {
+    it("should calculate correct distance between Tashkent points", () => {
       // ~1km apart
       const dist = service.calculateHaversineDistance(
-        41.2995, 69.2401,
-        41.3085, 69.2401,
+        41.2995,
+        69.2401,
+        41.3085,
+        69.2401,
       );
       expect(dist).toBeGreaterThan(900);
       expect(dist).toBeLessThan(1100);
     });
 
-    it('should return symmetric results', () => {
+    it("should return symmetric results", () => {
       const d1 = service.calculateHaversineDistance(41.0, 69.0, 42.0, 70.0);
       const d2 = service.calculateHaversineDistance(42.0, 70.0, 41.0, 69.0);
       expect(Math.abs(d1 - d2)).toBeLessThan(0.01);

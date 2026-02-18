@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { MachinesService } from './machines.service';
+import { MachinesService } from "./machines.service";
 import {
   Machine,
   MachineSlot,
@@ -12,29 +12,32 @@ import {
   MachineErrorLog,
   MachineMaintenanceSchedule,
   MachineStatus,
-  ComponentStatus,
   MaintenanceStatus,
-} from './entities/machine.entity';
+} from "./entities/machine.entity";
 
-describe('MachinesService', () => {
+describe("MachinesService", () => {
   let service: MachinesService;
   let machineRepository: jest.Mocked<Repository<Machine>>;
   let slotRepository: jest.Mocked<Repository<MachineSlot>>;
-  let locationHistoryRepository: jest.Mocked<Repository<MachineLocationHistory>>;
-  let componentRepository: jest.Mocked<Repository<MachineComponent>>;
-  let errorLogRepository: jest.Mocked<Repository<MachineErrorLog>>;
-  let maintenanceRepository: jest.Mocked<Repository<MachineMaintenanceSchedule>>;
+  let _locationHistoryRepository: jest.Mocked<
+    Repository<MachineLocationHistory>
+  >;
+  let _componentRepository: jest.Mocked<Repository<MachineComponent>>;
+  let _errorLogRepository: jest.Mocked<Repository<MachineErrorLog>>;
+  let maintenanceRepository: jest.Mocked<
+    Repository<MachineMaintenanceSchedule>
+  >;
 
   const mockMachine = {
-    id: 'machine-uuid-1',
-    name: 'VM-001',
-    machineNumber: 'M001',
-    serialNumber: 'SN-001',
-    type: 'coffee',
+    id: "machine-uuid-1",
+    name: "VM-001",
+    machineNumber: "M001",
+    serialNumber: "SN-001",
+    type: "coffee",
     status: MachineStatus.ACTIVE,
-    organizationId: 'org-uuid-1',
-    locationId: 'loc-uuid-1',
-    address: '123 Main St',
+    organizationId: "org-uuid-1",
+    locationId: "loc-uuid-1",
+    address: "123 Main St",
     latitude: 41.311,
     longitude: 69.279,
     telemetry: {},
@@ -46,10 +49,10 @@ describe('MachinesService', () => {
   } as unknown as Machine;
 
   const mockSlot = {
-    id: 'slot-uuid-1',
-    machineId: 'machine-uuid-1',
+    id: "slot-uuid-1",
+    machineId: "machine-uuid-1",
     slotNumber: 1,
-    productId: 'product-uuid-1',
+    productId: "product-uuid-1",
     capacity: 20,
     currentQuantity: 10,
     price: 5000,
@@ -145,13 +148,17 @@ describe('MachinesService', () => {
     service = module.get<MachinesService>(MachinesService);
     machineRepository = module.get(getRepositoryToken(Machine));
     slotRepository = module.get(getRepositoryToken(MachineSlot));
-    locationHistoryRepository = module.get(getRepositoryToken(MachineLocationHistory));
+    locationHistoryRepository = module.get(
+      getRepositoryToken(MachineLocationHistory),
+    );
     componentRepository = module.get(getRepositoryToken(MachineComponent));
     errorLogRepository = module.get(getRepositoryToken(MachineErrorLog));
-    maintenanceRepository = module.get(getRepositoryToken(MachineMaintenanceSchedule));
+    maintenanceRepository = module.get(
+      getRepositoryToken(MachineMaintenanceSchedule),
+    );
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -159,15 +166,15 @@ describe('MachinesService', () => {
   // MACHINE CRUD
   // ============================================================================
 
-  describe('create', () => {
-    it('should create a new machine', async () => {
+  describe("create", () => {
+    it("should create a new machine", async () => {
       machineRepository.create.mockReturnValue(mockMachine);
       machineRepository.save.mockResolvedValue(mockMachine);
 
       const result = await service.create({
-        name: 'VM-001',
-        serialNumber: 'SN-001',
-        organizationId: 'org-uuid-1',
+        name: "VM-001",
+        serialNumber: "SN-001",
+        organizationId: "org-uuid-1",
       });
 
       expect(result).toEqual(mockMachine);
@@ -176,88 +183,99 @@ describe('MachinesService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return paginated machines for organization', async () => {
-      const result = await service.findAll('org-uuid-1', { page: 1, limit: 20 });
+  describe("findAll", () => {
+    it("should return paginated machines for organization", async () => {
+      const result = await service.findAll("org-uuid-1", {
+        page: 1,
+        limit: 20,
+      });
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("totalPages", 1);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
     });
 
-    it('should filter by status', async () => {
-      await service.findAll('org-uuid-1', {
+    it("should filter by status", async () => {
+      await service.findAll("org-uuid-1", {
         status: MachineStatus.ACTIVE,
         page: 1,
         limit: 20,
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'machine.status = :status',
+        "machine.status = :status",
         { status: MachineStatus.ACTIVE },
       );
     });
 
-    it('should cap limit at 100', async () => {
-      const result = await service.findAll('org-uuid-1', { page: 1, limit: 200 });
+    it("should cap limit at 100", async () => {
+      const result = await service.findAll("org-uuid-1", {
+        page: 1,
+        limit: 200,
+      });
 
       expect(result.limit).toBeLessThanOrEqual(100);
     });
   });
 
-  describe('findById', () => {
-    it('should return machine with slots when found', async () => {
+  describe("findById", () => {
+    it("should return machine with slots when found", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
 
-      const result = await service.findById('machine-uuid-1');
+      const result = await service.findById("machine-uuid-1");
 
       expect(result).toEqual(mockMachine);
       expect(machineRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'machine-uuid-1' },
-        relations: ['slots', 'slots.product'],
+        where: { id: "machine-uuid-1" },
+        relations: ["slots", "slots.product"],
       });
     });
 
-    it('should return null when machine not found', async () => {
+    it("should return null when machine not found", async () => {
       machineRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById('non-existent');
+      const result = await service.findById("non-existent");
 
       expect(result).toBeNull();
     });
   });
 
-  describe('update', () => {
-    it('should update machine when found', async () => {
+  describe("update", () => {
+    it("should update machine when found", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
-      machineRepository.save.mockResolvedValue({ ...mockMachine, name: 'VM-002' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      machineRepository.save.mockResolvedValue({
+        ...mockMachine,
+        name: "VM-002",
+      } as any);
 
-      const result = await service.update('machine-uuid-1', { name: 'VM-002' });
+      const result = await service.update("machine-uuid-1", { name: "VM-002" });
 
-      expect(result.name).toBe('VM-002');
+      expect(result.name).toBe("VM-002");
     });
 
-    it('should throw NotFoundException when machine not found', async () => {
+    it("should throw NotFoundException when machine not found", async () => {
       machineRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update('non-existent', { name: 'VM-002' }),
+        service.update("non-existent", { name: "VM-002" }),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('updateStatus', () => {
-    it('should update machine status', async () => {
+  describe("updateStatus", () => {
+    it("should update machine status", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
       machineRepository.save.mockResolvedValue({
         ...mockMachine,
         status: MachineStatus.MAINTENANCE,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.updateStatus(
-        'machine-uuid-1',
+        "machine-uuid-1",
         MachineStatus.MAINTENANCE,
       );
 
@@ -265,20 +283,23 @@ describe('MachinesService', () => {
     });
   });
 
-  describe('remove', () => {
-    it('should soft delete machine when found', async () => {
+  describe("remove", () => {
+    it("should soft delete machine when found", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       machineRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove('machine-uuid-1');
+      await service.remove("machine-uuid-1");
 
-      expect(machineRepository.softDelete).toHaveBeenCalledWith('machine-uuid-1');
+      expect(machineRepository.softDelete).toHaveBeenCalledWith(
+        "machine-uuid-1",
+      );
     });
 
-    it('should throw NotFoundException when machine not found', async () => {
+    it("should throw NotFoundException when machine not found", async () => {
       machineRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent')).rejects.toThrow(
+      await expect(service.remove("non-existent")).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -288,55 +309,63 @@ describe('MachinesService', () => {
   // SLOT MANAGEMENT
   // ============================================================================
 
-  describe('createSlot', () => {
-    it('should create a new slot on machine', async () => {
+  describe("createSlot", () => {
+    it("should create a new slot on machine", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
       slotRepository.findOne.mockResolvedValue(null);
       slotRepository.create.mockReturnValue(mockSlot);
       slotRepository.save.mockResolvedValue(mockSlot);
 
-      const result = await service.createSlot('machine-uuid-1', {
+      const result = await service.createSlot("machine-uuid-1", {
         slotNumber: 1,
-        productId: 'product-uuid-1',
+        productId: "product-uuid-1",
         capacity: 20,
         price: 5000,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockSlot);
     });
 
-    it('should throw BadRequestException for duplicate slot number', async () => {
+    it("should throw BadRequestException for duplicate slot number", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
       slotRepository.findOne.mockResolvedValue(mockSlot);
 
       await expect(
-        service.createSlot('machine-uuid-1', {
+        service.createSlot("machine-uuid-1", {
           slotNumber: 1,
-          productId: 'product-uuid-1',
+          productId: "product-uuid-1",
           capacity: 20,
           price: 5000,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('refillSlot', () => {
-    it('should refill slot successfully', async () => {
+  describe("refillSlot", () => {
+    it("should refill slot successfully", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const refilledSlot = { ...mockSlot, currentQuantity: 15 } as any;
       slotRepository.findOne.mockResolvedValue(mockSlot);
       slotRepository.save.mockResolvedValue(refilledSlot);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       machineRepository.update.mockResolvedValue(undefined as any);
 
-      const result = await service.refillSlot('slot-uuid-1', { quantity: 5 } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.refillSlot("slot-uuid-1", {
+        quantity: 5,
+      } as any);
 
       expect(result.currentQuantity).toBe(15);
     });
 
-    it('should throw BadRequestException when refill exceeds capacity', async () => {
+    it("should throw BadRequestException when refill exceeds capacity", async () => {
       slotRepository.findOne.mockResolvedValue(mockSlot);
 
       await expect(
-        service.refillSlot('slot-uuid-1', { quantity: 15 } as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.refillSlot("slot-uuid-1", { quantity: 15 } as any),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -345,23 +374,26 @@ describe('MachinesService', () => {
   // MAINTENANCE
   // ============================================================================
 
-  describe('completeMaintenance', () => {
-    it('should throw NotFoundException for non-existent schedule', async () => {
+  describe("completeMaintenance", () => {
+    it("should throw NotFoundException for non-existent schedule", async () => {
       maintenanceRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.completeMaintenance('non-existent', {} as any, 'user-uuid-1'),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.completeMaintenance("non-existent", {} as any, "user-uuid-1"),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException for already completed maintenance', async () => {
+    it("should throw BadRequestException for already completed maintenance", async () => {
       maintenanceRepository.findOne.mockResolvedValue({
-        id: 'maint-uuid-1',
+        id: "maint-uuid-1",
         status: MaintenanceStatus.COMPLETED,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
-        service.completeMaintenance('maint-uuid-1', {} as any, 'user-uuid-1'),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.completeMaintenance("maint-uuid-1", {} as any, "user-uuid-1"),
       ).rejects.toThrow(BadRequestException);
     });
   });

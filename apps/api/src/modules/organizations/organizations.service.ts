@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Organization } from './entities/organization.entity';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Organization } from "./entities/organization.entity";
+import { CreateOrganizationDto } from "./dto/create-organization.dto";
+import { UpdateOrganizationDto } from "./dto/update-organization.dto";
 
 @Injectable()
 export class OrganizationsService {
@@ -10,14 +12,18 @@ export class OrganizationsService {
     private readonly organizationRepository: Repository<Organization>,
   ) {}
 
-  async create(data: Partial<Organization>): Promise<Organization> {
-    const organization = this.organizationRepository.create(data);
+  async create(
+    createOrganizationDto: CreateOrganizationDto,
+  ): Promise<Organization> {
+    const organization = this.organizationRepository.create(
+      createOrganizationDto as unknown as Partial<Organization>,
+    );
     return this.organizationRepository.save(organization);
   }
 
   async findAll(): Promise<Organization[]> {
     return this.organizationRepository.find({
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -29,12 +35,15 @@ export class OrganizationsService {
     return this.organizationRepository.findOne({ where: { slug } });
   }
 
-  async update(id: string, data: Partial<Organization>): Promise<Organization> {
+  async update(
+    id: string,
+    updateOrganizationDto: UpdateOrganizationDto,
+  ): Promise<Organization> {
     const organization = await this.findById(id);
     if (!organization) {
       throw new NotFoundException(`Organization with ID ${id} not found`);
     }
-    Object.assign(organization, data);
+    Object.assign(organization, updateOrganizationDto);
     return this.organizationRepository.save(organization);
   }
 

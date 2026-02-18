@@ -1,4 +1,9 @@
-import { ApiProperty, ApiPropertyOptional, PartialType, OmitType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+  OmitType,
+} from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
@@ -12,16 +17,16 @@ import {
   Length,
   Min,
   Max,
-} from 'class-validator';
-import { PaymentProviderType } from '../entities/payment-provider.entity';
+} from "class-validator";
+import { PaymentProviderType } from "../entities/payment-provider.entity";
 
 /**
  * DTO for creating a payment provider entry.
  */
 export class CreatePaymentProviderDto {
   @ApiProperty({
-    description: 'Provider code (unique identifier)',
-    example: 'payme',
+    description: "Provider code (unique identifier)",
+    example: "payme",
     maxLength: 50,
   })
   @IsString()
@@ -29,8 +34,8 @@ export class CreatePaymentProviderDto {
   code: string;
 
   @ApiProperty({
-    description: 'Provider display name',
-    example: 'Payme',
+    description: "Provider display name",
+    example: "Payme",
     maxLength: 255,
   })
   @IsString()
@@ -38,8 +43,8 @@ export class CreatePaymentProviderDto {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'Name in Russian',
-    example: 'Payme',
+    description: "Name in Russian",
+    example: "Payme",
     maxLength: 255,
   })
   @IsOptional()
@@ -48,8 +53,8 @@ export class CreatePaymentProviderDto {
   name_ru?: string;
 
   @ApiPropertyOptional({
-    description: 'Name in Uzbek',
-    example: 'Payme',
+    description: "Name in Uzbek",
+    example: "Payme",
     maxLength: 255,
   })
   @IsOptional()
@@ -58,7 +63,7 @@ export class CreatePaymentProviderDto {
   name_uz?: string;
 
   @ApiProperty({
-    description: 'Payment provider type',
+    description: "Payment provider type",
     enum: PaymentProviderType,
     example: PaymentProviderType.CARD,
   })
@@ -66,23 +71,23 @@ export class CreatePaymentProviderDto {
   type: PaymentProviderType;
 
   @ApiPropertyOptional({
-    description: 'URL to provider logo image',
-    example: 'https://cdn.vendhub.uz/providers/payme.svg',
+    description: "URL to provider logo image",
+    example: "https://cdn.vendhub.uz/providers/payme.svg",
   })
   @IsOptional()
   @IsString()
   logo_url?: string;
 
   @ApiPropertyOptional({
-    description: 'Provider website URL',
-    example: 'https://payme.uz',
+    description: "Provider website URL",
+    example: "https://payme.uz",
   })
   @IsOptional()
   @IsUrl()
   website_url?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether this provider is active',
+    description: "Whether this provider is active",
     default: true,
   })
   @IsOptional()
@@ -90,7 +95,7 @@ export class CreatePaymentProviderDto {
   is_active?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Whether this is the default payment provider',
+    description: "Whether this is the default payment provider",
     default: false,
   })
   @IsOptional()
@@ -98,7 +103,7 @@ export class CreatePaymentProviderDto {
   is_default?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Commission rate percentage',
+    description: "Commission rate percentage",
     example: 1.5,
     minimum: 0,
     maximum: 100,
@@ -111,16 +116,21 @@ export class CreatePaymentProviderDto {
   commission_rate?: number;
 
   @ApiPropertyOptional({
-    description: 'Provider-specific settings schema (API keys, endpoints, etc.)',
-    example: { merchant_id: '', api_key: '', endpoint: 'https://checkout.payme.uz' },
+    description:
+      "Provider-specific settings schema (API keys, endpoints, etc.)",
+    example: {
+      merchant_id: "",
+      api_key: "",
+      endpoint: "https://checkout.payme.uz",
+    },
   })
   @IsOptional()
   @IsObject()
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    description: 'List of supported currency codes',
-    example: ['UZS'],
+    description: "List of supported currency codes",
+    example: ["UZS"],
     type: [String],
   })
   @IsOptional()
@@ -129,7 +139,7 @@ export class CreatePaymentProviderDto {
   supported_currencies?: string[];
 
   @ApiPropertyOptional({
-    description: 'Sort order for display',
+    description: "Sort order for display",
     example: 0,
     minimum: 0,
   })
@@ -144,5 +154,5 @@ export class CreatePaymentProviderDto {
  * All fields optional except code (immutable).
  */
 export class UpdatePaymentProviderDto extends PartialType(
-  OmitType(CreatePaymentProviderDto, ['code'] as const),
+  OmitType(CreatePaymentProviderDto, ["code"] as const),
 ) {}

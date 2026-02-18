@@ -22,19 +22,23 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
   ApiParam,
   ApiResponse,
-} from '@nestjs/swagger';
-import { DirectoriesService } from './directories.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles, UserRole } from '../../common/decorators';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+} from "@nestjs/swagger";
+import { DirectoriesService } from "./directories.service";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import {
+  Roles,
+  UserRole,
+  CurrentUser,
+  ICurrentUser,
+} from "../../common/decorators";
 import {
   CreateDirectoryDto,
   UpdateDirectoryDto,
@@ -45,28 +49,25 @@ import {
   QueryDirectoriesDto,
   QueryEntriesDto,
   SearchEntriesDto,
-} from './dto/directory.dto';
+} from "./dto/directory.dto";
 import {
   CreateDirectorySourceDto,
   UpdateDirectorySourceDto,
   QueryDirectorySourcesDto,
-} from './dto/directory-source.dto';
-import { TriggerSyncDto, QuerySyncLogsDto } from './dto/directory-sync.dto';
-import { QueryAuditLogsDto } from './dto/directory-audit.dto';
-import { MoveEntryDto, InlineCreateEntryDto } from './dto/directory-hierarchy.dto';
-
-interface AuthenticatedUser {
-  id: string;
-  organizationId: string;
-  role: string;
-}
+} from "./dto/directory-source.dto";
+import { TriggerSyncDto, QuerySyncLogsDto } from "./dto/directory-sync.dto";
+import { QueryAuditLogsDto } from "./dto/directory-audit.dto";
+import {
+  MoveEntryDto,
+  InlineCreateEntryDto,
+} from "./dto/directory-hierarchy.dto";
 
 // =============================================================================
 // DIRECTORIES CONTROLLER
 // =============================================================================
 
-@ApiTags('directories')
-@Controller('directories')
+@ApiTags("directories")
+@Controller("directories")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class DirectoriesController {
@@ -77,10 +78,18 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get()
-  @ApiOperation({ summary: 'List all directories (paginated)' })
-  @ApiResponse({ status: 200, description: 'Paginated list of directories' })
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "List all directories (paginated)" })
+  @ApiResponse({ status: 200, description: "Paginated list of directories" })
   findAll(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QueryDirectoriesDto,
   ) {
     return this.directoriesService.findAll(user.organizationId, query);
@@ -88,65 +97,64 @@ export class DirectoriesController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create a new directory' })
-  @ApiResponse({ status: 201, description: 'Directory created' })
-  @ApiResponse({ status: 409, description: 'Slug already exists' })
-  create(
-    @Body() dto: CreateDirectoryDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  @ApiOperation({ summary: "Create a new directory" })
+  @ApiResponse({ status: 201, description: "Directory created" })
+  @ApiResponse({ status: 409, description: "Slug already exists" })
+  create(@Body() dto: CreateDirectoryDto, @CurrentUser() user: ICurrentUser) {
     return this.directoriesService.create(dto, user.organizationId, user.id);
   }
 
-  @Get('by-slug/:slug')
-  @ApiOperation({ summary: 'Get directory by slug' })
-  @ApiParam({ name: 'slug', description: 'Directory slug', example: 'units' })
-  @ApiResponse({ status: 200, description: 'Directory with fields' })
-  @ApiResponse({ status: 404, description: 'Directory not found' })
-  findBySlug(
-    @Param('slug') slug: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  @Get("by-slug/:slug")
+  @ApiOperation({ summary: "Get directory by slug" })
+  @ApiParam({ name: "slug", description: "Directory slug", example: "units" })
+  @ApiResponse({ status: 200, description: "Directory with fields" })
+  @ApiResponse({ status: 404, description: "Directory not found" })
+  findBySlug(@Param("slug") slug: string, @CurrentUser() user: ICurrentUser) {
     return this.directoriesService.findBySlug(slug, user.organizationId);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get directory by ID with field definitions' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Directory with fields' })
-  @ApiResponse({ status: 404, description: 'Directory not found' })
+  @Get(":id")
+  @ApiOperation({ summary: "Get directory by ID with field definitions" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Directory with fields" })
+  @ApiResponse({ status: 404, description: "Directory not found" })
   findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.findOne(id, user.organizationId);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Directory updated' })
-  @ApiResponse({ status: 404, description: 'Directory not found' })
+  @ApiOperation({ summary: "Update a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Directory updated" })
+  @ApiResponse({ status: 404, description: "Directory not found" })
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateDirectoryDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.directoriesService.update(id, dto, user.organizationId, user.id);
+    return this.directoriesService.update(
+      id,
+      dto,
+      user.organizationId,
+      user.id,
+    );
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Soft delete a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 204, description: 'Directory deleted' })
-  @ApiResponse({ status: 400, description: 'Cannot delete system directory' })
-  @ApiResponse({ status: 404, description: 'Directory not found' })
+  @ApiOperation({ summary: "Soft delete a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 204, description: "Directory deleted" })
+  @ApiResponse({ status: 400, description: "Cannot delete system directory" })
+  @ApiResponse({ status: 404, description: "Directory not found" })
   remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.remove(id, user.organizationId);
   }
@@ -155,32 +163,39 @@ export class DirectoriesController {
   // FIELD DEFINITIONS
   // ===========================================================================
 
-  @Post(':id/fields')
+  @Post(":id/fields")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Add a field definition to a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 201, description: 'Field created' })
-  @ApiResponse({ status: 409, description: 'Field name already exists in directory' })
+  @ApiOperation({ summary: "Add a field definition to a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 201, description: "Field created" })
+  @ApiResponse({
+    status: 409,
+    description: "Field name already exists in directory",
+  })
   addField(
-    @Param('id', ParseUUIDPipe) directoryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
     @Body() dto: CreateDirectoryFieldDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.directoriesService.addField(directoryId, dto, user.organizationId);
+    return this.directoriesService.addField(
+      directoryId,
+      dto,
+      user.organizationId,
+    );
   }
 
-  @Patch(':id/fields/:fieldId')
+  @Patch(":id/fields/:fieldId")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update a field definition' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'fieldId', description: 'Field UUID' })
-  @ApiResponse({ status: 200, description: 'Field updated' })
-  @ApiResponse({ status: 404, description: 'Field not found' })
+  @ApiOperation({ summary: "Update a field definition" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "fieldId", description: "Field UUID" })
+  @ApiResponse({ status: 200, description: "Field updated" })
+  @ApiResponse({ status: 404, description: "Field not found" })
   updateField(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('fieldId', ParseUUIDPipe) fieldId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("fieldId", ParseUUIDPipe) fieldId: string,
     @Body() dto: UpdateDirectoryFieldDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.updateField(
       directoryId,
@@ -190,18 +205,18 @@ export class DirectoriesController {
     );
   }
 
-  @Delete(':id/fields/:fieldId')
+  @Delete(":id/fields/:fieldId")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remove a field definition from a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'fieldId', description: 'Field UUID' })
-  @ApiResponse({ status: 204, description: 'Field removed' })
-  @ApiResponse({ status: 404, description: 'Field not found' })
+  @ApiOperation({ summary: "Remove a field definition from a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "fieldId", description: "Field UUID" })
+  @ApiResponse({ status: 204, description: "Field removed" })
+  @ApiResponse({ status: 404, description: "Field not found" })
   removeField(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('fieldId', ParseUUIDPipe) fieldId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("fieldId", ParseUUIDPipe) fieldId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.removeField(
       directoryId,
@@ -214,13 +229,13 @@ export class DirectoriesController {
   // ENTRIES
   // ===========================================================================
 
-  @Get(':id/entries')
-  @ApiOperation({ summary: 'List entries for a directory (paginated)' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Paginated list of entries' })
+  @Get(":id/entries")
+  @ApiOperation({ summary: "List entries for a directory (paginated)" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Paginated list of entries" })
   findAllEntries(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QueryEntriesDto,
   ) {
     return this.directoriesService.findAllEntries(
@@ -230,13 +245,13 @@ export class DirectoriesController {
     );
   }
 
-  @Get(':id/entries/search')
-  @ApiOperation({ summary: 'Search entries within a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Matching entries' })
+  @Get(":id/entries/search")
+  @ApiOperation({ summary: "Search entries within a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Matching entries" })
   searchEntries(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: SearchEntriesDto,
   ) {
     return this.directoriesService.searchEntries(
@@ -247,15 +262,15 @@ export class DirectoriesController {
     );
   }
 
-  @Post(':id/entries')
+  @Post(":id/entries")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create an entry in a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 201, description: 'Entry created' })
+  @ApiOperation({ summary: "Create an entry in a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 201, description: "Entry created" })
   createEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
     @Body() dto: CreateDirectoryEntryDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.createEntry(
       directoryId,
@@ -265,16 +280,18 @@ export class DirectoriesController {
     );
   }
 
-  @Post(':id/entries/inline')
+  @Post(":id/entries/inline")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER, UserRole.OPERATOR)
-  @ApiOperation({ summary: 'Create an entry with minimal data (inline from DirectorySelect)' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 201, description: 'Entry created' })
-  @ApiResponse({ status: 400, description: 'Inline create not allowed' })
+  @ApiOperation({
+    summary: "Create an entry with minimal data (inline from DirectorySelect)",
+  })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 201, description: "Entry created" })
+  @ApiResponse({ status: 400, description: "Inline create not allowed" })
   inlineCreateEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
     @Body() dto: InlineCreateEntryDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.inlineCreateEntry(
       directoryId,
@@ -284,16 +301,16 @@ export class DirectoriesController {
     );
   }
 
-  @Get(':id/entries/:entryId')
-  @ApiOperation({ summary: 'Get a single entry by ID' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'entryId', description: 'Entry UUID' })
-  @ApiResponse({ status: 200, description: 'Entry details' })
-  @ApiResponse({ status: 404, description: 'Entry not found' })
+  @Get(":id/entries/:entryId")
+  @ApiOperation({ summary: "Get a single entry by ID" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "entryId", description: "Entry UUID" })
+  @ApiResponse({ status: 200, description: "Entry details" })
+  @ApiResponse({ status: 404, description: "Entry not found" })
   findOneEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('entryId', ParseUUIDPipe) entryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("entryId", ParseUUIDPipe) entryId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.findOneEntry(
       directoryId,
@@ -302,18 +319,18 @@ export class DirectoriesController {
     );
   }
 
-  @Patch(':id/entries/:entryId')
+  @Patch(":id/entries/:entryId")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update an entry' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'entryId', description: 'Entry UUID' })
-  @ApiResponse({ status: 200, description: 'Entry updated' })
-  @ApiResponse({ status: 404, description: 'Entry not found' })
+  @ApiOperation({ summary: "Update an entry" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "entryId", description: "Entry UUID" })
+  @ApiResponse({ status: 200, description: "Entry updated" })
+  @ApiResponse({ status: 404, description: "Entry not found" })
   updateEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('entryId', ParseUUIDPipe) entryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("entryId", ParseUUIDPipe) entryId: string,
     @Body() dto: UpdateDirectoryEntryDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.updateEntry(
       directoryId,
@@ -324,18 +341,18 @@ export class DirectoriesController {
     );
   }
 
-  @Delete(':id/entries/:entryId')
+  @Delete(":id/entries/:entryId")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Soft delete an entry' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'entryId', description: 'Entry UUID' })
-  @ApiResponse({ status: 204, description: 'Entry deleted' })
-  @ApiResponse({ status: 404, description: 'Entry not found' })
+  @ApiOperation({ summary: "Soft delete an entry" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "entryId", description: "Entry UUID" })
+  @ApiResponse({ status: 204, description: "Entry deleted" })
+  @ApiResponse({ status: 404, description: "Entry not found" })
   removeEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('entryId', ParseUUIDPipe) entryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("entryId", ParseUUIDPipe) entryId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.removeEntry(
       directoryId,
@@ -345,15 +362,15 @@ export class DirectoriesController {
     );
   }
 
-  @Get(':id/entries/:entryId/audit')
-  @ApiOperation({ summary: 'Get audit logs for a specific entry' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'entryId', description: 'Entry UUID' })
-  @ApiResponse({ status: 200, description: 'Paginated audit logs' })
+  @Get(":id/entries/:entryId/audit")
+  @ApiOperation({ summary: "Get audit logs for a specific entry" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "entryId", description: "Entry UUID" })
+  @ApiResponse({ status: 200, description: "Paginated audit logs" })
   findEntryAuditLogs(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('entryId', ParseUUIDPipe) entryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("entryId", ParseUUIDPipe) entryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QueryAuditLogsDto,
   ) {
     return this.directoriesService.findEntryAuditLogs(
@@ -364,18 +381,21 @@ export class DirectoriesController {
     );
   }
 
-  @Post(':id/entries/:entryId/move')
+  @Post(":id/entries/:entryId/move")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Move an entry to a new parent in hierarchy' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'entryId', description: 'Entry UUID' })
-  @ApiResponse({ status: 200, description: 'Entry moved' })
-  @ApiResponse({ status: 400, description: 'Invalid move (cycle or non-hierarchical)' })
+  @ApiOperation({ summary: "Move an entry to a new parent in hierarchy" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "entryId", description: "Entry UUID" })
+  @ApiResponse({ status: 200, description: "Entry moved" })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid move (cycle or non-hierarchical)",
+  })
   moveEntry(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('entryId', ParseUUIDPipe) entryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("entryId", ParseUUIDPipe) entryId: string,
     @Body() dto: MoveEntryDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.moveEntry(
       directoryId,
@@ -390,13 +410,13 @@ export class DirectoriesController {
   // SOURCES
   // ===========================================================================
 
-  @Get(':id/sources')
-  @ApiOperation({ summary: 'List external sources for a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Paginated list of sources' })
+  @Get(":id/sources")
+  @ApiOperation({ summary: "List external sources for a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Paginated list of sources" })
   findAllSources(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QueryDirectorySourcesDto,
   ) {
     return this.directoriesService.findAllSources(
@@ -406,15 +426,15 @@ export class DirectoriesController {
     );
   }
 
-  @Post(':id/sources')
+  @Post(":id/sources")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create an external source for a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 201, description: 'Source created' })
+  @ApiOperation({ summary: "Create an external source for a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 201, description: "Source created" })
   createSource(
-    @Param('id', ParseUUIDPipe) directoryId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
     @Body() dto: CreateDirectorySourceDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.createSource(
       directoryId,
@@ -423,16 +443,16 @@ export class DirectoriesController {
     );
   }
 
-  @Get(':id/sources/:sourceId')
-  @ApiOperation({ summary: 'Get a single source by ID' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'sourceId', description: 'Source UUID' })
-  @ApiResponse({ status: 200, description: 'Source details' })
-  @ApiResponse({ status: 404, description: 'Source not found' })
+  @Get(":id/sources/:sourceId")
+  @ApiOperation({ summary: "Get a single source by ID" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "sourceId", description: "Source UUID" })
+  @ApiResponse({ status: 200, description: "Source details" })
+  @ApiResponse({ status: 404, description: "Source not found" })
   findOneSource(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('sourceId', ParseUUIDPipe) sourceId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("sourceId", ParseUUIDPipe) sourceId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.findOneSource(
       directoryId,
@@ -441,18 +461,18 @@ export class DirectoriesController {
     );
   }
 
-  @Patch(':id/sources/:sourceId')
+  @Patch(":id/sources/:sourceId")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update a source configuration' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'sourceId', description: 'Source UUID' })
-  @ApiResponse({ status: 200, description: 'Source updated' })
-  @ApiResponse({ status: 404, description: 'Source not found' })
+  @ApiOperation({ summary: "Update a source configuration" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "sourceId", description: "Source UUID" })
+  @ApiResponse({ status: 200, description: "Source updated" })
+  @ApiResponse({ status: 404, description: "Source not found" })
   updateSource(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('sourceId', ParseUUIDPipe) sourceId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("sourceId", ParseUUIDPipe) sourceId: string,
     @Body() dto: UpdateDirectorySourceDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.updateSource(
       directoryId,
@@ -462,18 +482,18 @@ export class DirectoriesController {
     );
   }
 
-  @Delete(':id/sources/:sourceId')
+  @Delete(":id/sources/:sourceId")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a source configuration' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'sourceId', description: 'Source UUID' })
-  @ApiResponse({ status: 204, description: 'Source deleted' })
-  @ApiResponse({ status: 404, description: 'Source not found' })
+  @ApiOperation({ summary: "Delete a source configuration" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "sourceId", description: "Source UUID" })
+  @ApiResponse({ status: 204, description: "Source deleted" })
+  @ApiResponse({ status: 404, description: "Source not found" })
   removeSource(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('sourceId', ParseUUIDPipe) sourceId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("sourceId", ParseUUIDPipe) sourceId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.removeSource(
       directoryId,
@@ -482,18 +502,18 @@ export class DirectoriesController {
     );
   }
 
-  @Post(':id/sources/:sourceId/sync')
+  @Post(":id/sources/:sourceId/sync")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Trigger a sync from an external source' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiParam({ name: 'sourceId', description: 'Source UUID' })
-  @ApiResponse({ status: 200, description: 'Sync log' })
-  @ApiResponse({ status: 400, description: 'Source is inactive' })
+  @ApiOperation({ summary: "Trigger a sync from an external source" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiParam({ name: "sourceId", description: "Source UUID" })
+  @ApiResponse({ status: 200, description: "Sync log" })
+  @ApiResponse({ status: 400, description: "Source is inactive" })
   triggerSync(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @Param('sourceId', ParseUUIDPipe) sourceId: string,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @Param("sourceId", ParseUUIDPipe) sourceId: string,
     @Body() dto: TriggerSyncDto,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.triggerSync(
       directoryId,
@@ -508,13 +528,13 @@ export class DirectoriesController {
   // SYNC LOGS
   // ===========================================================================
 
-  @Get(':id/sync-logs')
-  @ApiOperation({ summary: 'List sync logs for a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Paginated sync logs' })
+  @Get(":id/sync-logs")
+  @ApiOperation({ summary: "List sync logs for a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Paginated sync logs" })
   findSyncLogs(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QuerySyncLogsDto,
   ) {
     return this.directoriesService.findSyncLogs(
@@ -528,13 +548,13 @@ export class DirectoriesController {
   // AUDIT
   // ===========================================================================
 
-  @Get(':id/audit')
-  @ApiOperation({ summary: 'List audit logs for a directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Paginated audit logs' })
+  @Get(":id/audit")
+  @ApiOperation({ summary: "List audit logs for a directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Paginated audit logs" })
   findAuditLogs(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
     @Query() query: QueryAuditLogsDto,
   ) {
     return this.directoriesService.findAuditLogs(
@@ -548,14 +568,14 @@ export class DirectoriesController {
   // HIERARCHY
   // ===========================================================================
 
-  @Get(':id/tree')
-  @ApiOperation({ summary: 'Get hierarchy tree for a hierarchical directory' })
-  @ApiParam({ name: 'id', description: 'Directory UUID' })
-  @ApiResponse({ status: 200, description: 'Nested tree of entries' })
-  @ApiResponse({ status: 400, description: 'Directory is not hierarchical' })
+  @Get(":id/tree")
+  @ApiOperation({ summary: "Get hierarchy tree for a hierarchical directory" })
+  @ApiParam({ name: "id", description: "Directory UUID" })
+  @ApiResponse({ status: 200, description: "Nested tree of entries" })
+  @ApiResponse({ status: 400, description: "Directory is not hierarchical" })
   getTree(
-    @Param('id', ParseUUIDPipe) directoryId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) directoryId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.directoriesService.getHierarchyTree(
       directoryId,

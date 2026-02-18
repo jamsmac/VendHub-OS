@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Route,
   Search,
@@ -17,36 +17,52 @@ import {
   Ruler,
   CheckCircle2,
   AlertTriangle,
-} from 'lucide-react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { routesApi } from '@/lib/api';
-import Link from 'next/link';
+} from "@/components/ui/dropdown-menu";
+import { routesApi } from "@/lib/api";
+import Link from "next/link";
 
 interface RouteItem {
   id: string;
   name: string;
   description?: string;
-  status: 'draft' | 'active' | 'inactive';
+  status: "draft" | "active" | "inactive";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stops?: any[];
   stopsCount?: number;
   totalDistanceKm?: number;
   createdAt: string;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  draft: { label: 'Черновик', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  active: { label: 'Активен', color: 'text-green-600', bgColor: 'bg-green-100' },
-  inactive: { label: 'Неактивен', color: 'text-red-600', bgColor: 'bg-red-100' },
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  draft: {
+    label: "Черновик",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  active: {
+    label: "Активен",
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  inactive: {
+    label: "Неактивен",
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
 };
 
 function StatsCardSkeleton() {
@@ -85,10 +101,13 @@ function RouteCardSkeleton() {
 }
 
 export default function RoutesPage() {
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [confirmState, setConfirmState] = useState<{ title: string; action: () => void } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    action: () => void;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -96,60 +115,78 @@ export default function RoutesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: routes, isLoading, isError } = useQuery({
-    queryKey: ['routes', debouncedSearch, statusFilter],
+  const {
+    data: routes,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["routes", debouncedSearch, statusFilter],
     queryFn: () =>
-      routesApi.getAll({ search: debouncedSearch, status: statusFilter }).then((res) => res.data.data || res.data),
+      routesApi
+        .getAll({ search: debouncedSearch, status: statusFilter })
+        .then((res) => res.data.data || res.data),
   });
 
   const deleteMutation = useMutation({
     mutationFn: routesApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
-      toast.success('Маршрут удалён');
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success("Маршрут удалён");
     },
     onError: () => {
-      toast.error('Не удалось удалить маршрут');
+      toast.error("Не удалось удалить маршрут");
     },
   });
 
   const optimizeMutation = useMutation({
     mutationFn: routesApi.optimize,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
-      toast.success('Маршрут оптимизирован');
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success("Маршрут оптимизирован");
     },
     onError: () => {
-      toast.error('Не удалось оптимизировать маршрут');
+      toast.error("Не удалось оптимизировать маршрут");
     },
   });
 
   const routeList: RouteItem[] = Array.isArray(routes) ? routes : [];
 
-  const stats = useMemo(() => ({
-    total: routeList.length,
-    active: routeList.filter((r: RouteItem) => r.status === 'active').length,
-    totalStops: routeList.reduce(
-      (acc: number, r: RouteItem) => acc + (r.stopsCount || r.stops?.length || 0),
-      0
-    ),
-    avgStops: routeList.length > 0
-      ? Math.round(
-          routeList.reduce(
-            (acc: number, r: RouteItem) => acc + (r.stopsCount || r.stops?.length || 0),
-            0
-          ) / routeList.length
-        )
-      : 0,
-  }), [routeList]);
+  const stats = useMemo(
+    () => ({
+      total: routeList.length,
+      active: routeList.filter((r: RouteItem) => r.status === "active").length,
+      totalStops: routeList.reduce(
+        (acc: number, r: RouteItem) =>
+          acc + (r.stopsCount || r.stops?.length || 0),
+        0,
+      ),
+      avgStops:
+        routeList.length > 0
+          ? Math.round(
+              routeList.reduce(
+                (acc: number, r: RouteItem) =>
+                  acc + (r.stopsCount || r.stops?.length || 0),
+                0,
+              ) / routeList.length,
+            )
+          : 0,
+    }),
+    [routeList],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить список маршрутов</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['routes'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить список маршрутов
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["routes"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -162,7 +199,9 @@ export default function RoutesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Маршруты</h1>
-          <p className="text-muted-foreground">Управление маршрутами обслуживания</p>
+          <p className="text-muted-foreground">
+            Управление маршрутами обслуживания
+          </p>
         </div>
         <Link href="/dashboard/routes/builder">
           <Button>
@@ -194,7 +233,9 @@ export default function RoutesPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Активных</p>
-                    <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {stats.active}
+                    </p>
                   </div>
                   <CheckCircle2 className="h-8 w-8 text-green-600" />
                 </div>
@@ -205,7 +246,9 @@ export default function RoutesPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Остановок</p>
-                    <p className="text-2xl font-bold text-blue-600">{stats.totalStops}</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {stats.totalStops}
+                    </p>
                   </div>
                   <MapPin className="h-8 w-8 text-blue-600" />
                 </div>
@@ -215,8 +258,12 @@ export default function RoutesPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Ср. остановок</p>
-                    <p className="text-2xl font-bold text-purple-600">{stats.avgStops}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Ср. остановок
+                    </p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {stats.avgStops}
+                    </p>
                   </div>
                   <Ruler className="h-8 w-8 text-purple-600" />
                 </div>
@@ -242,7 +289,7 @@ export default function RoutesPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {statusFilter ? statusConfig[statusFilter]?.label : 'Все статусы'}
+              {statusFilter ? statusConfig[statusFilter]?.label : "Все статусы"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -261,14 +308,18 @@ export default function RoutesPage() {
       {/* Route List */}
       {isLoading ? (
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => <RouteCardSkeleton key={i} />)}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <RouteCardSkeleton key={i} />
+          ))}
         </div>
       ) : routeList.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Route className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-lg font-medium">Маршруты не найдены</p>
-            <p className="text-muted-foreground mb-4">Создайте первый маршрут</p>
+            <p className="text-muted-foreground mb-4">
+              Создайте первый маршрут
+            </p>
             <Link href="/dashboard/routes/builder">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -284,7 +335,10 @@ export default function RoutesPage() {
             const stopsCount = route.stopsCount || route.stops?.length || 0;
 
             return (
-              <Card key={route.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={route.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -294,13 +348,17 @@ export default function RoutesPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium">{route.name}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+                          >
                             {status.label}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           {route.description && (
-                            <span className="max-w-[300px] truncate">{route.description}</span>
+                            <span className="max-w-[300px] truncate">
+                              {route.description}
+                            </span>
                           )}
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
@@ -319,7 +377,11 @@ export default function RoutesPage() {
                     <div className="flex items-center gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" aria-label="Действия">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label="Действия"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -346,10 +408,12 @@ export default function RoutesPage() {
                                   name: `${orig.name} (копия)`,
                                   description: orig.description,
                                 });
-                                queryClient.invalidateQueries({ queryKey: ['routes'] });
-                                toast.success('Маршрут дублирован');
+                                queryClient.invalidateQueries({
+                                  queryKey: ["routes"],
+                                });
+                                toast.success("Маршрут дублирован");
                               } catch {
-                                toast.error('Не удалось дублировать маршрут');
+                                toast.error("Не удалось дублировать маршрут");
                               }
                             }}
                           >
@@ -359,7 +423,12 @@ export default function RoutesPage() {
                           <DropdownMenuItem
                             className="text-destructive"
                             disabled={deleteMutation.isPending}
-                            onClick={() => setConfirmState({ title: 'Удалить маршрут?', action: () => deleteMutation.mutate(route.id) })}
+                            onClick={() =>
+                              setConfirmState({
+                                title: "Удалить маршрут?",
+                                action: () => deleteMutation.mutate(route.id),
+                              })
+                            }
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Удалить
@@ -376,8 +445,10 @@ export default function RoutesPage() {
       )}
       <ConfirmDialog
         open={!!confirmState}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
-        title={confirmState?.title ?? ''}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
+        title={confirmState?.title ?? ""}
         onConfirm={() => confirmState?.action()}
       />
     </div>

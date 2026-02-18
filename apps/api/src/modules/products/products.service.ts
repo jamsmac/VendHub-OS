@@ -2,9 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, In } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, IsNull, In } from "typeorm";
 import {
   Product,
   Recipe,
@@ -14,10 +14,17 @@ import {
   IngredientBatchStatus,
   ProductPriceHistory,
   Supplier,
-} from './entities/product.entity';
-import { CreateRecipeDto, UpdateRecipeDto, UpdatePriceDto } from './dto/create-recipe.dto';
-import { CreateBatchDto } from './dto/create-batch.dto';
-import { CreateSupplierDto, UpdateSupplierDto } from './dto/create-supplier.dto';
+} from "./entities/product.entity";
+import {
+  CreateRecipeDto,
+  UpdateRecipeDto,
+  UpdatePriceDto,
+} from "./dto/create-recipe.dto";
+import { CreateBatchDto } from "./dto/create-batch.dto";
+import {
+  CreateSupplierDto,
+  UpdateSupplierDto,
+} from "./dto/create-supplier.dto";
 
 // ============================================================================
 // INTERFACES
@@ -82,52 +89,59 @@ export class ProductsService {
     organizationId: string,
     filters?: ProductFilters,
   ): Promise<PaginatedResult<Product>> {
-    const { page = 1, limit: rawLimit = 50, type, category, isActive, search } = filters || {};
+    const {
+      page = 1,
+      limit: rawLimit = 50,
+      type,
+      category,
+      isActive,
+      search,
+    } = filters || {};
     const limit = Math.min(rawLimit, 100);
 
     const query = this.productRepository
-      .createQueryBuilder('product')
+      .createQueryBuilder("product")
       .select([
-        'product.id',
-        'product.name',
-        'product.nameUz',
-        'product.sku',
-        'product.barcode',
-        'product.type',
-        'product.category',
-        'product.isActive',
-        'product.sellingPrice',
-        'product.purchasePrice',
-        'product.imageUrl',
-        'product.unitOfMeasure',
-        'product.organizationId',
-        'product.created_at',
-        'product.updated_at',
+        "product.id",
+        "product.name",
+        "product.nameUz",
+        "product.sku",
+        "product.barcode",
+        "product.type",
+        "product.category",
+        "product.isActive",
+        "product.sellingPrice",
+        "product.purchasePrice",
+        "product.imageUrl",
+        "product.unitOfMeasure",
+        "product.organizationId",
+        "product.created_at",
+        "product.updated_at",
       ])
-      .where('product.organizationId = :organizationId', { organizationId });
+      .where("product.organizationId = :organizationId", { organizationId });
 
     if (type) {
-      query.andWhere('product.type = :type', { type });
+      query.andWhere("product.type = :type", { type });
     }
 
     if (category) {
-      query.andWhere('product.category = :category', { category });
+      query.andWhere("product.category = :category", { category });
     }
 
     if (isActive !== undefined) {
-      query.andWhere('product.isActive = :isActive', { isActive });
+      query.andWhere("product.isActive = :isActive", { isActive });
     }
 
     if (search) {
       query.andWhere(
-        '(product.name ILIKE :search OR product.barcode ILIKE :search OR product.sku ILIKE :search)',
+        "(product.name ILIKE :search OR product.barcode ILIKE :search OR product.sku ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     const total = await query.getCount();
 
-    query.orderBy('product.name', 'ASC');
+    query.orderBy("product.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -143,7 +157,7 @@ export class ProductsService {
   }
 
   async findById(id: string, organizationId?: string): Promise<Product> {
-    const where: Record<string, any> = { id };
+    const where: Record<string, unknown> = { id };
     if (organizationId) {
       where.organizationId = organizationId;
     }
@@ -154,8 +168,13 @@ export class ProductsService {
     return product;
   }
 
-  async findByBarcode(barcode: string, organizationId: string): Promise<Product | null> {
-    return this.productRepository.findOne({ where: { barcode, organizationId } });
+  async findByBarcode(
+    barcode: string,
+    organizationId: string,
+  ): Promise<Product | null> {
+    return this.productRepository.findOne({
+      where: { barcode, organizationId },
+    });
   }
 
   async update(id: string, data: Partial<Product>): Promise<Product> {
@@ -224,11 +243,15 @@ export class ProductsService {
     await this.recalculateRecipeCost(savedRecipe.id);
 
     // Create initial snapshot
-    await this.createRecipeSnapshot(savedRecipe.id, userId, 'Initial recipe creation');
+    await this.createRecipeSnapshot(
+      savedRecipe.id,
+      userId,
+      "Initial recipe creation",
+    );
 
     return this.recipeRepository.findOne({
       where: { id: savedRecipe.id },
-      relations: ['ingredients'],
+      relations: ["ingredients"],
     }) as Promise<Recipe>;
   }
 
@@ -238,8 +261,8 @@ export class ProductsService {
   ): Promise<Recipe[]> {
     return this.recipeRepository.find({
       where: { productId, organizationId },
-      relations: ['ingredients'],
-      order: { typeCode: 'ASC', created_at: 'ASC' },
+      relations: ["ingredients"],
+      order: { typeCode: "ASC", created_at: "ASC" },
     });
   }
 
@@ -275,14 +298,11 @@ export class ProductsService {
 
     return this.recipeRepository.findOne({
       where: { id: savedRecipe.id },
-      relations: ['ingredients'],
+      relations: ["ingredients"],
     }) as Promise<Recipe>;
   }
 
-  async deleteRecipe(
-    recipeId: string,
-    organizationId: string,
-  ): Promise<void> {
+  async deleteRecipe(recipeId: string, organizationId: string): Promise<void> {
     const recipe = await this.recipeRepository.findOne({
       where: { id: recipeId, organizationId },
     });
@@ -321,6 +341,7 @@ export class ProductsService {
       recipeId,
       ingredientId,
       quantity,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       unitOfMeasure: unitOfMeasure as any,
       sortOrder: sortOrder ?? 1,
       isOptional: isOptional ?? false,
@@ -352,7 +373,9 @@ export class ProductsService {
       where: { id: ingredientId, recipeId },
     });
     if (!ingredient) {
-      throw new NotFoundException(`Recipe ingredient with ID ${ingredientId} not found`);
+      throw new NotFoundException(
+        `Recipe ingredient with ID ${ingredientId} not found`,
+      );
     }
 
     await this.recipeIngredientRepository.softDelete(ingredientId);
@@ -379,7 +402,9 @@ export class ProductsService {
       where: { id: ingredientId, recipeId },
     });
     if (!ingredient) {
-      throw new NotFoundException(`Recipe ingredient with ID ${ingredientId} not found`);
+      throw new NotFoundException(
+        `Recipe ingredient with ID ${ingredientId} not found`,
+      );
     }
 
     ingredient.quantity = quantity;
@@ -402,7 +427,7 @@ export class ProductsService {
   ): Promise<RecipeSnapshot> {
     const recipe = await this.recipeRepository.findOne({
       where: { id: recipeId },
-      relations: ['ingredients', 'ingredients.ingredient'],
+      relations: ["ingredients", "ingredients.ingredient"],
     });
     if (!recipe) {
       throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
@@ -417,8 +442,8 @@ export class ProductsService {
     // Build ingredient details for the snapshot
     const ingredientDetails = (recipe.ingredients || []).map((ri) => ({
       ingredientId: ri.ingredientId,
-      ingredientName: ri.ingredient?.name ?? 'Unknown',
-      ingredientSku: ri.ingredient?.sku ?? 'N/A',
+      ingredientName: ri.ingredient?.name ?? "Unknown",
+      ingredientSku: ri.ingredient?.sku ?? "N/A",
       quantity: Number(ri.quantity),
       unitOfMeasure: ri.unitOfMeasure,
       unitCost: ri.ingredient ? Number(ri.ingredient.purchasePrice) : 0,
@@ -466,7 +491,11 @@ export class ProductsService {
       remainingQuantity: dto.quantity,
       unitOfMeasure: dto.unitOfMeasure,
       purchasePrice: dto.purchasePrice,
-      totalCost: dto.totalCost ?? (dto.purchasePrice ? dto.purchasePrice * dto.quantity : undefined) as number,
+      totalCost:
+        dto.totalCost ??
+        ((dto.purchasePrice
+          ? dto.purchasePrice * dto.quantity
+          : undefined) as number),
       supplierId: dto.supplierId,
       supplierBatchNumber: dto.supplierBatchNumber,
       invoiceNumber: dto.invoiceNumber,
@@ -490,9 +519,12 @@ export class ProductsService {
     organizationId: string,
     quantityToDeplete: number,
     userId?: string,
-  ): Promise<{ depletedFrom: { batchId: string; quantity: number }[]; remaining: number }> {
+  ): Promise<{
+    depletedFrom: { batchId: string; quantity: number }[];
+    remaining: number;
+  }> {
     if (quantityToDeplete <= 0) {
-      throw new BadRequestException('Quantity to deplete must be positive');
+      throw new BadRequestException("Quantity to deplete must be positive");
     }
 
     // Get available batches ordered by received date (FIFO)
@@ -502,7 +534,7 @@ export class ProductsService {
         organizationId,
         status: IngredientBatchStatus.IN_STOCK,
       },
-      order: { receivedDate: 'ASC', created_at: 'ASC' },
+      order: { receivedDate: "ASC", created_at: "ASC" },
     });
 
     let remaining = quantityToDeplete;
@@ -511,7 +543,8 @@ export class ProductsService {
     for (const batch of batches) {
       if (remaining <= 0) break;
 
-      const available = Number(batch.remainingQuantity) - Number(batch.reservedQuantity);
+      const available =
+        Number(batch.remainingQuantity) - Number(batch.reservedQuantity);
       if (available <= 0) continue;
 
       const toDeduct = Math.min(available, remaining);
@@ -541,7 +574,7 @@ export class ProductsService {
         organizationId,
         status: IngredientBatchStatus.IN_STOCK,
       },
-      order: { receivedDate: 'ASC', created_at: 'ASC' },
+      order: { receivedDate: "ASC", created_at: "ASC" },
     });
   }
 
@@ -557,7 +590,7 @@ export class ProductsService {
   async calculateRecipeCost(recipeId: string): Promise<number> {
     const recipe = await this.recipeRepository.findOne({
       where: { id: recipeId },
-      relations: ['ingredients'],
+      relations: ["ingredients"],
     });
     if (!recipe) {
       throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
@@ -570,7 +603,7 @@ export class ProductsService {
     const ingredientIds = ingredients.map((ri) => ri.ingredientId);
     const products = await this.productRepository.find({
       where: { id: In(ingredientIds) },
-      select: ['id', 'purchasePrice'],
+      select: ["id", "purchasePrice"],
     });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
@@ -612,7 +645,7 @@ export class ProductsService {
 
     if (dto.purchasePrice === undefined && dto.sellingPrice === undefined) {
       throw new BadRequestException(
-        'At least one of purchasePrice or sellingPrice must be provided',
+        "At least one of purchasePrice or sellingPrice must be provided",
       );
     }
 
@@ -654,7 +687,7 @@ export class ProductsService {
 
     return this.priceHistoryRepository.find({
       where: { productId },
-      order: { effectiveFrom: 'DESC' },
+      order: { effectiveFrom: "DESC" },
     });
   }
 
@@ -682,7 +715,7 @@ export class ProductsService {
   ): Promise<PaginatedResult<Supplier>> {
     const [data, total] = await this.supplierRepository.findAndCount({
       where: { organizationId },
-      order: { name: 'ASC' },
+      order: { name: "ASC" },
       skip: (page - 1) * limit,
       take: limit,
     });

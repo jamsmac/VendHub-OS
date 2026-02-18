@@ -3,14 +3,10 @@
  * Report generation, scheduling and dashboards
  */
 
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, Between } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   ReportDefinition,
   ScheduledReport,
@@ -23,10 +19,10 @@ import {
   ExportFormat,
   ReportStatus,
   ReportFrequency,
-} from './entities/report.entity';
-import { Transaction } from '../transactions/entities/transaction.entity';
-import { Machine } from '../machines/entities/machine.entity';
-import { Product } from '../products/entities/product.entity';
+} from "./entities/report.entity";
+import { Transaction } from "../transactions/entities/transaction.entity";
+import { Machine } from "../machines/entities/machine.entity";
+import { Product } from "../products/entities/product.entity";
 
 // Type aliases for compatibility
 type ReportFormat = ExportFormat;
@@ -42,11 +38,11 @@ export interface GenerateReportDto {
   type?: ReportType;
   name?: string;
   format: ReportFormat;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   dateFrom?: Date;
   dateTo?: Date;
   delivery?: {
-    method: 'download' | 'email' | 'storage';
+    method: "download" | "email" | "storage";
     emails?: string[];
     storagePath?: string;
   };
@@ -63,9 +59,9 @@ export interface CreateScheduledReportDto {
     dayOfMonth?: number;
     timezone?: string;
   };
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   format: ReportFormat;
-  deliveryMethod: 'email' | 'telegram' | 'webhook';
+  deliveryMethod: "email" | "telegram" | "webhook";
   deliveryConfig: {
     emails?: string[];
     telegramChatIds?: string[];
@@ -77,10 +73,10 @@ export interface CreateDashboardDto {
   organizationId: string;
   name: string;
   description?: string;
-  layout?: 'grid' | 'freeform';
+  layout?: "grid" | "freeform";
   columns?: number;
   isPublic?: boolean;
-  widgets?: Omit<DashboardWidget, 'id' | 'dashboardId'>[];
+  widgets?: Omit<DashboardWidget, "id" | "dashboardId">[];
 }
 
 export interface CreateWidgetDto {
@@ -93,7 +89,9 @@ export interface CreateWidgetDto {
   width: number;
   height: number;
   definitionId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chartConfig?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   kpiConfig?: any;
 }
 
@@ -138,7 +136,7 @@ export class ReportsService {
         { organizationId, isActive: true },
         { isSystem: true, isActive: true },
       ],
-      order: { category: 'ASC', name: 'ASC' },
+      order: { category: "ASC", name: "ASC" },
     });
   }
 
@@ -158,7 +156,9 @@ export class ReportsService {
     return definition;
   }
 
-  async createDefinition(data: Partial<ReportDefinition>): Promise<ReportDefinition> {
+  async createDefinition(
+    data: Partial<ReportDefinition>,
+  ): Promise<ReportDefinition> {
     const definition = this.definitionRepo.create({
       ...data,
       isActive: true,
@@ -172,7 +172,10 @@ export class ReportsService {
   // REPORT GENERATION
   // ============================================================================
 
-  async generate(dto: GenerateReportDto, generatedById?: string): Promise<GeneratedReport> {
+  async generate(
+    dto: GenerateReportDto,
+    generatedById?: string,
+  ): Promise<GeneratedReport> {
     const startTime = Date.now();
 
     // Get definition if provided
@@ -182,18 +185,20 @@ export class ReportsService {
     }
 
     const reportType = dto.type || definition?.type || ReportType.CUSTOM;
-    const reportName = dto.name || definition?.name || `Отчёт ${new Date().toISOString()}`;
+    const reportName =
+      dto.name || definition?.name || `Отчёт ${new Date().toISOString()}`;
 
     // Create report record
     const report = this.generatedRepo.create({
       organizationId: dto.organizationId,
-      definitionId: dto.reportDefinitionId || '',
+      definitionId: dto.reportDefinitionId || "",
       name: reportName,
       type: reportType,
       generationParams: {
         format: dto.format,
         ...dto.parameters,
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       filters: dto.parameters as any,
       dateFrom: dto.dateFrom,
       dateTo: dto.dateTo,
@@ -216,14 +221,16 @@ export class ReportsService {
       );
 
       // Update report - use files array instead of individual fields
-      report.files = [{
-        format: dto.format,
-        url: filePath,
-        filename: `${report.reportNumber}.${dto.format}`,
-        size: fileSize,
-        mimeType: this.getMimeType(dto.format),
-        generatedAt: new Date(),
-      }];
+      report.files = [
+        {
+          format: dto.format,
+          url: filePath,
+          filename: `${report.reportNumber}.${dto.format}`,
+          size: fileSize,
+          mimeType: this.getMimeType(dto.format),
+          generatedAt: new Date(),
+        },
+      ];
       report.status = ReportStatus.COMPLETED;
       report.generationTimeMs = Date.now() - startTime;
       report.completedAt = new Date();
@@ -241,6 +248,7 @@ export class ReportsService {
       }
 
       return report;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       report.status = ReportStatus.FAILED;
       report.errorMessage = error.message;
@@ -255,6 +263,8 @@ export class ReportsService {
   private async generateReportData(
     type: ReportType,
     dto: GenerateReportDto,
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{ rows: any[]; summary: any }> {
     // This would be implemented with actual data queries
     // Simplified example:
@@ -271,66 +281,79 @@ export class ReportsService {
     }
   }
 
-  private async generateSalesSummary(dto: GenerateReportDto): Promise<any> {
-    const qb = this.transactionRepo.createQueryBuilder('t')
-      .where('t.organizationId = :orgId', { orgId: dto.organizationId });
+  private async generateSalesSummary(dto: GenerateReportDto): Promise<unknown> {
+    const qb = this.transactionRepo
+      .createQueryBuilder("t")
+      .where("t.organizationId = :orgId", { orgId: dto.organizationId });
 
     if (dto.dateFrom) {
-      qb.andWhere('t.transactionDate >= :dateFrom', { dateFrom: dto.dateFrom });
+      qb.andWhere("t.transactionDate >= :dateFrom", { dateFrom: dto.dateFrom });
     }
     if (dto.dateTo) {
-      qb.andWhere('t.transactionDate <= :dateTo', { dateTo: dto.dateTo });
+      qb.andWhere("t.transactionDate <= :dateTo", { dateTo: dto.dateTo });
     }
 
     // Aggregate by payment method
-    const summaryRaw = await qb.clone()
-      .select('t.paymentMethod', 'paymentMethod')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('COALESCE(SUM(t.totalAmount), 0)', 'revenue')
-      .addSelect('COALESCE(AVG(t.totalAmount), 0)', 'average')
-      .groupBy('t.paymentMethod')
+    const summaryRaw = await qb
+      .clone()
+      .select("t.paymentMethod", "paymentMethod")
+      .addSelect("COUNT(*)", "count")
+      .addSelect("COALESCE(SUM(t.totalAmount), 0)", "revenue")
+      .addSelect("COALESCE(AVG(t.totalAmount), 0)", "average")
+      .groupBy("t.paymentMethod")
       .getRawMany();
 
     // Totals
-    const totalsRaw = await qb.clone()
-      .select('COUNT(*)', 'totalTransactions')
-      .addSelect('COALESCE(SUM(t.totalAmount), 0)', 'totalRevenue')
-      .addSelect('COALESCE(AVG(t.totalAmount), 0)', 'averageTransaction')
+    const totalsRaw = await qb
+      .clone()
+      .select("COUNT(*)", "totalTransactions")
+      .addSelect("COALESCE(SUM(t.totalAmount), 0)", "totalRevenue")
+      .addSelect("COALESCE(AVG(t.totalAmount), 0)", "averageTransaction")
       .getRawOne();
 
     return {
-      rows: summaryRaw.map(r => ({
+      rows: summaryRaw.map((r) => ({
         paymentMethod: r.paymentMethod,
         count: parseInt(r.count, 10),
         revenue: parseFloat(r.revenue),
         average: parseFloat(r.average),
       })),
       summary: {
-        totalTransactions: parseInt(totalsRaw?.totalTransactions || '0', 10),
-        totalRevenue: parseFloat(totalsRaw?.totalRevenue || '0'),
-        averageTransaction: parseFloat(totalsRaw?.averageTransaction || '0'),
+        totalTransactions: parseInt(totalsRaw?.totalTransactions || "0", 10),
+        totalRevenue: parseFloat(totalsRaw?.totalRevenue || "0"),
+        averageTransaction: parseFloat(totalsRaw?.averageTransaction || "0"),
       },
     };
   }
 
-  private async generateMachinePerformance(dto: GenerateReportDto): Promise<any> {
+  private async generateMachinePerformance(
+    dto: GenerateReportDto,
+  ): Promise<unknown> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
       select: [
-        'id', 'name', 'machineNumber', 'status', 'connectionStatus',
-        'totalSalesCount', 'totalRevenue', 'lastPingAt',
-        'currentProductCount', 'maxProductSlots',
+        "id",
+        "name",
+        "machineNumber",
+        "status",
+        "connectionStatus",
+        "totalSalesCount",
+        "totalRevenue",
+        "lastPingAt",
+        "currentProductCount",
+        "maxProductSlots",
       ],
     });
 
     const now = Date.now();
-    const rows = machines.map(m => {
+    const rows = machines.map((m) => {
       const offlineMinutes = m.lastPingAt
         ? (now - new Date(m.lastPingAt).getTime()) / 60000
         : null;
-      const stockPercent = m.maxProductSlots > 0
-        ? Math.round((m.currentProductCount / m.maxProductSlots) * 100)
-        : 0;
+      const stockPercent =
+        m.maxProductSlots > 0
+          ? Math.round((m.currentProductCount / m.maxProductSlots) * 100)
+          : 0;
 
       return {
         machineNumber: m.machineNumber,
@@ -340,35 +363,49 @@ export class ReportsService {
         totalSales: m.totalSalesCount,
         totalRevenue: Number(m.totalRevenue),
         stockPercent,
-        offlineMinutes: offlineMinutes !== null ? Math.round(offlineMinutes) : null,
+        offlineMinutes:
+          offlineMinutes !== null ? Math.round(offlineMinutes) : null,
       };
     });
 
-    const onlineCount = rows.filter(r => r.offlineMinutes !== null && r.offlineMinutes < 10).length;
+    const onlineCount = rows.filter(
+      (r) => r.offlineMinutes !== null && r.offlineMinutes < 10,
+    ).length;
 
     return {
       rows,
       summary: {
         totalMachines: machines.length,
         onlineMachines: onlineCount,
-        averageUptime: machines.length > 0
-          ? Math.round((onlineCount / machines.length) * 100)
-          : 0,
+        averageUptime:
+          machines.length > 0
+            ? Math.round((onlineCount / machines.length) * 100)
+            : 0,
         totalRevenue: rows.reduce((sum, r) => sum + r.totalRevenue, 0),
       },
     };
   }
 
-  private async generateInventoryLevels(dto: GenerateReportDto): Promise<any> {
+  private async generateInventoryLevels(
+    dto: GenerateReportDto,
+  ): Promise<unknown> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
-      select: ['id', 'name', 'machineNumber', 'currentProductCount', 'maxProductSlots', 'lowStockThresholdPercent'],
+      select: [
+        "id",
+        "name",
+        "machineNumber",
+        "currentProductCount",
+        "maxProductSlots",
+        "lowStockThresholdPercent",
+      ],
     });
 
-    const rows = machines.map(m => {
-      const stockPercent = m.maxProductSlots > 0
-        ? Math.round((m.currentProductCount / m.maxProductSlots) * 100)
-        : 0;
+    const rows = machines.map((m) => {
+      const stockPercent =
+        m.maxProductSlots > 0
+          ? Math.round((m.currentProductCount / m.maxProductSlots) * 100)
+          : 0;
       const isLowStock = stockPercent <= (m.lowStockThresholdPercent || 10);
 
       return {
@@ -381,52 +418,64 @@ export class ReportsService {
       };
     });
 
-    const lowStockItems = rows.filter(r => r.isLowStock).length;
+    const lowStockItems = rows.filter((r) => r.isLowStock).length;
 
     return {
       rows,
       summary: {
         totalMachines: machines.length,
         lowStockMachines: lowStockItems,
-        averageStockPercent: rows.length > 0
-          ? Math.round(rows.reduce((sum, r) => sum + r.stockPercent, 0) / rows.length)
-          : 0,
+        averageStockPercent:
+          rows.length > 0
+            ? Math.round(
+                rows.reduce((sum, r) => sum + r.stockPercent, 0) / rows.length,
+              )
+            : 0,
       },
     };
   }
 
   private async createReportFile(
     report: GeneratedReport,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any,
     format: ReportFormat,
   ): Promise<{ filePath: string; fileSize: number; checksum: string }> {
     const filePath = `/reports/${report.organizationId}/${report.id}.${format}`;
     const jsonData = JSON.stringify(data);
-    const fileSize = Buffer.byteLength(jsonData, 'utf-8');
+    const fileSize = Buffer.byteLength(jsonData, "utf-8");
 
     // Generate checksum for data integrity verification
-    const crypto = await import('crypto');
-    const checksum = crypto.createHash('sha256').update(jsonData).digest('hex');
+    const crypto = await import("crypto");
+    const checksum = crypto.createHash("sha256").update(jsonData).digest("hex");
 
     // In production, this would write to MinIO/S3 storage
-    this.logger.log(`Report file: ${filePath}, size: ${fileSize}, format: ${format}`);
+    this.logger.log(
+      `Report file: ${filePath}, size: ${fileSize}, format: ${format}`,
+    );
 
     return { filePath, fileSize, checksum };
   }
 
-  private async deliverReport(report: GeneratedReport, delivery: any): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async deliverReport(
+    report: GeneratedReport,
+    delivery: any,
+  ): Promise<void> {
     this.logger.log(`Delivering report ${report.id} via ${delivery.method}`);
 
     switch (delivery.method) {
-      case 'email':
+      case "email":
         // Would integrate with notification/email service
-        this.logger.log(`Email delivery to: ${delivery.emails?.join(', ')}`);
+        this.logger.log(`Email delivery to: ${delivery.emails?.join(", ")}`);
         break;
-      case 'storage':
+      case "storage":
         // Already saved to file storage in createReportFile
-        this.logger.log(`Report stored at: ${delivery.storagePath || report.files?.[0]?.url || 'N/A'}`);
+        this.logger.log(
+          `Report stored at: ${delivery.storagePath || report.files?.[0]?.url || "N/A"}`,
+        );
         break;
-      case 'download':
+      case "download":
       default:
         // No-op: client will download via API
         break;
@@ -446,45 +495,51 @@ export class ReportsService {
       page?: number;
       limit?: number;
     },
-  ): Promise<{ data: GeneratedReport[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    data: GeneratedReport[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);
 
-    const qb = this.generatedRepo.createQueryBuilder('r');
-    qb.where('r.organizationId = :organizationId', { organizationId });
-    qb.andWhere('r.status = :status', { status: ReportStatus.COMPLETED });
+    const qb = this.generatedRepo.createQueryBuilder("r");
+    qb.where("r.organizationId = :organizationId", { organizationId });
+    qb.andWhere("r.status = :status", { status: ReportStatus.COMPLETED });
 
     if (options?.type) {
-      qb.andWhere('r.type = :type', { type: options.type });
+      qb.andWhere("r.type = :type", { type: options.type });
     }
 
     if (options?.dateFrom) {
-      qb.andWhere('r.createdAt >= :dateFrom', { dateFrom: options.dateFrom });
+      qb.andWhere("r.createdAt >= :dateFrom", { dateFrom: options.dateFrom });
     }
 
     if (options?.dateTo) {
-      qb.andWhere('r.createdAt <= :dateTo', { dateTo: options.dateTo });
+      qb.andWhere("r.createdAt <= :dateTo", { dateTo: options.dateTo });
     }
 
     const total = await qb.getCount();
 
     // Select only needed columns for list view (exclude heavy summary/files JSONB)
     qb.select([
-      'r.id',
-      'r.organizationId',
-      'r.definitionId',
-      'r.name',
-      'r.type',
-      'r.status',
-      'r.generationTimeMs',
-      'r.rowCount',
-      'r.reportNumber',
-      'r.created_at',
-      'r.completedAt',
-      'r.expiresAt',
+      "r.id",
+      "r.organizationId",
+      "r.definitionId",
+      "r.name",
+      "r.type",
+      "r.status",
+      "r.generationTimeMs",
+      "r.rowCount",
+      "r.reportNumber",
+      "r.created_at",
+      "r.completedAt",
+      "r.expiresAt",
     ]);
 
-    qb.orderBy('r.created_at', 'DESC');
+    qb.orderBy("r.created_at", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -508,7 +563,7 @@ export class ReportsService {
   }
 
   async deleteExpiredReports(): Promise<number> {
-    const result = await this.generatedRepo.delete({
+    const result = await this.generatedRepo.softDelete({
       expiresAt: LessThan(new Date()),
     });
     return result.affected || 0;
@@ -518,7 +573,10 @@ export class ReportsService {
   // SCHEDULED REPORTS
   // ============================================================================
 
-  async createScheduledReport(dto: CreateScheduledReportDto, createdById: string): Promise<ScheduledReport> {
+  async createScheduledReport(
+    dto: CreateScheduledReportDto,
+    createdById: string,
+  ): Promise<ScheduledReport> {
     const nextRunAt = this.calculateNextRun(dto.frequency, dto.scheduleConfig);
 
     const scheduled = this.scheduledRepo.create({
@@ -531,13 +589,19 @@ export class ReportsService {
         dayOfMonth: dto.scheduleConfig.dayOfMonth,
         time: dto.scheduleConfig.time,
         timezone: dto.scheduleConfig.timezone,
-        deliveryChannels: [dto.deliveryMethod] as ('email' | 'telegram' | 'webhook')[],
-        recipients: dto.deliveryConfig.emails?.map(email => ({ email })) || [],
+        deliveryChannels: [dto.deliveryMethod] as (
+          | "email"
+          | "telegram"
+          | "webhook"
+        )[],
+        recipients:
+          dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
         format: dto.format,
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       filters: dto.parameters as any,
       format: dto.format,
-      recipients: dto.deliveryConfig.emails?.map(email => ({ email })) || [],
+      recipients: dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
       isActive: true,
       runCount: 0,
       failCount: 0,
@@ -548,14 +612,19 @@ export class ReportsService {
     return this.scheduledRepo.save(scheduled);
   }
 
-  async getScheduledReports(organizationId: string): Promise<ScheduledReport[]> {
+  async getScheduledReports(
+    organizationId: string,
+  ): Promise<ScheduledReport[]> {
     return this.scheduledRepo.find({
       where: { organizationId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
-  async updateScheduledReport(id: string, updates: Partial<ScheduledReport>): Promise<ScheduledReport> {
+  async updateScheduledReport(
+    id: string,
+    updates: Partial<ScheduledReport>,
+  ): Promise<ScheduledReport> {
     const scheduled = await this.scheduledRepo.findOne({ where: { id } });
     if (!scheduled) {
       throw new NotFoundException(`Расписание ${id} не найдено`);
@@ -580,7 +649,7 @@ export class ReportsService {
   }
 
   async deleteScheduledReport(id: string): Promise<void> {
-    await this.scheduledRepo.delete(id);
+    await this.scheduledRepo.softDelete(id);
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -594,17 +663,19 @@ export class ReportsService {
 
     for (const scheduled of due) {
       try {
-        const emails = scheduled.recipients
-          ?.filter(r => r.email)
-          .map(r => r.email as string) || [];
+        const emails =
+          scheduled.recipients
+            ?.filter((r) => r.email)
+            .map((r) => r.email as string) || [];
 
         await this.generate({
           organizationId: scheduled.organizationId,
           reportDefinitionId: scheduled.definitionId,
           format: scheduled.format,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parameters: scheduled.filters as any,
           delivery: {
-            method: 'email',
+            method: "email",
             emails,
           },
         });
@@ -621,11 +692,15 @@ export class ReportsService {
             timezone: scheduled.schedule.timezone,
           },
         );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         scheduled.lastError = undefined as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         scheduled.failCount++;
         scheduled.lastError = error.message;
-        this.logger.error(`Failed to run scheduled report ${scheduled.id}: ${error.message}`);
+        this.logger.error(
+          `Failed to run scheduled report ${scheduled.id}: ${error.message}`,
+        );
       }
 
       await this.scheduledRepo.save(scheduled);
@@ -642,7 +717,7 @@ export class ReportsService {
     },
   ): Date {
     const now = new Date();
-    const time = config.time?.split(':') || ['09', '00'];
+    const time = config.time?.split(":") || ["09", "00"];
     const hour = parseInt(time[0], 10);
     const minute = parseInt(time[1], 10);
 
@@ -655,7 +730,8 @@ export class ReportsService {
 
       case ReportFrequency.WEEKLY:
         const nextWeek = new Date(now);
-        const daysUntilTarget = ((config.dayOfWeek || 1) - now.getDay() + 7) % 7 || 7;
+        const daysUntilTarget =
+          ((config.dayOfWeek || 1) - now.getDay() + 7) % 7 || 7;
         nextWeek.setDate(nextWeek.getDate() + daysUntilTarget);
         nextWeek.setHours(hour, minute, 0, 0);
         return nextWeek;
@@ -676,7 +752,10 @@ export class ReportsService {
   // DASHBOARDS
   // ============================================================================
 
-  async createDashboard(dto: CreateDashboardDto, createdById: string): Promise<Dashboard> {
+  async createDashboard(
+    dto: CreateDashboardDto,
+    createdById: string,
+  ): Promise<Dashboard> {
     const dashboard = this.dashboardRepo.create({
       organizationId: dto.organizationId,
       name: dto.name,
@@ -697,6 +776,7 @@ export class ReportsService {
           dashboardId: saved.id,
           organizationId: dto.organizationId,
           title: widgetDto.title,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           chartType: widgetDto.chartType as any,
           positionX: widgetDto.positionX,
           positionY: widgetDto.positionY,
@@ -715,15 +795,15 @@ export class ReportsService {
   async getDashboards(organizationId: string): Promise<Dashboard[]> {
     return this.dashboardRepo.find({
       where: { organizationId },
-      relations: ['widgets'],
-      order: { isDefault: 'DESC', created_at: 'DESC' },
+      relations: ["widgets"],
+      order: { isDefault: "DESC", created_at: "DESC" },
     });
   }
 
   async getDashboard(id: string): Promise<Dashboard> {
     const dashboard = await this.dashboardRepo.findOne({
       where: { id },
-      relations: ['widgets'],
+      relations: ["widgets"],
     });
 
     if (!dashboard) {
@@ -731,12 +811,15 @@ export class ReportsService {
     }
 
     // Increment view count
-    await this.dashboardRepo.increment({ id }, 'viewCount', 1);
+    await this.dashboardRepo.increment({ id }, "viewCount", 1);
 
     return dashboard;
   }
 
-  async updateDashboard(id: string, updates: Partial<Dashboard>): Promise<Dashboard> {
+  async updateDashboard(
+    id: string,
+    updates: Partial<Dashboard>,
+  ): Promise<Dashboard> {
     const dashboard = await this.getDashboard(id);
     Object.assign(dashboard, updates);
     dashboard.updated_at = new Date();
@@ -745,16 +828,16 @@ export class ReportsService {
   }
 
   async deleteDashboard(id: string): Promise<void> {
-    await this.widgetRepo.delete({ dashboardId: id });
-    await this.dashboardRepo.delete(id);
+    await this.widgetRepo.softDelete({ dashboardId: id });
+    await this.dashboardRepo.softDelete(id);
   }
 
-  async setDefaultDashboard(organizationId: string, dashboardId: string): Promise<void> {
+  async setDefaultDashboard(
+    organizationId: string,
+    dashboardId: string,
+  ): Promise<void> {
     // Remove default from all others
-    await this.dashboardRepo.update(
-      { organizationId },
-      { isDefault: false },
-    );
+    await this.dashboardRepo.update({ organizationId }, { isDefault: false });
 
     // Set new default
     await this.dashboardRepo.update(dashboardId, { isDefault: true });
@@ -766,7 +849,9 @@ export class ReportsService {
 
   async createWidget(dto: CreateWidgetDto): Promise<DashboardWidget> {
     // Get dashboard to get organizationId
-    const dashboard = await this.dashboardRepo.findOne({ where: { id: dto.dashboardId } });
+    const dashboard = await this.dashboardRepo.findOne({
+      where: { id: dto.dashboardId },
+    });
     if (!dashboard) {
       throw new NotFoundException(`Dashboard ${dto.dashboardId} not found`);
     }
@@ -775,7 +860,8 @@ export class ReportsService {
       organizationId: dto.organizationId || dashboard.organizationId,
       dashboardId: dto.dashboardId,
       title: dto.title,
-      chartType: (dto.chartType as any) || 'kpi',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      chartType: (dto.chartType as any) || "kpi",
       positionX: dto.positionX,
       positionY: dto.positionY,
       width: dto.width,
@@ -790,7 +876,10 @@ export class ReportsService {
     return this.widgetRepo.save(widget);
   }
 
-  async updateWidget(id: string, updates: Partial<DashboardWidget>): Promise<DashboardWidget> {
+  async updateWidget(
+    id: string,
+    updates: Partial<DashboardWidget>,
+  ): Promise<DashboardWidget> {
     const widget = await this.widgetRepo.findOne({ where: { id } });
     if (!widget) {
       throw new NotFoundException(`Виджет ${id} не найден`);
@@ -801,10 +890,13 @@ export class ReportsService {
   }
 
   async deleteWidget(id: string): Promise<void> {
-    await this.widgetRepo.delete(id);
+    await this.widgetRepo.softDelete(id);
   }
 
-  async reorderWidgets(dashboardId: string, widgetIds: string[]): Promise<void> {
+  async reorderWidgets(
+    dashboardId: string,
+    widgetIds: string[],
+  ): Promise<void> {
     for (let i = 0; i < widgetIds.length; i++) {
       await this.widgetRepo.update(widgetIds[i], { positionY: i });
     }
@@ -819,7 +911,7 @@ export class ReportsService {
     organizationId: string,
     reportDefinitionId: string,
     name: string,
-    filters: Record<string, any>,
+    filters: Record<string, unknown>,
     isDefault: boolean = false,
   ): Promise<SavedReportFilter> {
     if (isDefault) {
@@ -835,6 +927,7 @@ export class ReportsService {
       organizationId,
       definitionId: reportDefinitionId,
       name,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       filters: filters as any,
       isDefault,
     });
@@ -842,7 +935,11 @@ export class ReportsService {
     return this.filterRepo.save(saved);
   }
 
-  async getSavedFilters(userId: string, reportDefinitionId?: string): Promise<SavedReportFilter[]> {
+  async getSavedFilters(
+    userId: string,
+    reportDefinitionId?: string,
+  ): Promise<SavedReportFilter[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId };
     if (reportDefinitionId) {
       where.definitionId = reportDefinitionId;
@@ -850,12 +947,12 @@ export class ReportsService {
 
     return this.filterRepo.find({
       where,
-      order: { isDefault: 'DESC', name: 'ASC' },
+      order: { isDefault: "DESC", name: "ASC" },
     });
   }
 
   async deleteSavedFilter(id: string): Promise<void> {
-    await this.filterRepo.delete(id);
+    await this.filterRepo.softDelete(id);
   }
 
   // ============================================================================
@@ -864,12 +961,13 @@ export class ReportsService {
 
   private getMimeType(format: ReportFormat): string {
     const mimeTypes: Record<string, string> = {
-      pdf: 'application/pdf',
-      excel: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      csv: 'text/csv',
-      json: 'application/json',
-      html: 'text/html',
+      pdf: "application/pdf",
+      excel:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      csv: "text/csv",
+      json: "application/json",
+      html: "text/html",
     };
-    return mimeTypes[format] || 'application/octet-stream';
+    return mimeTypes[format] || "application/octet-stream";
   }
 }

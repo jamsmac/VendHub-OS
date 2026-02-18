@@ -3,19 +3,19 @@
  * Validation and Swagger docs for client registration/updates
  */
 
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
   IsEmail,
   Length,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateClientUserDto {
   @ApiPropertyOptional({
-    description: 'Telegram user ID',
-    example: '123456789',
+    description: "Telegram user ID",
+    example: "123456789",
   })
   @IsString()
   @IsOptional()
@@ -23,8 +23,8 @@ export class CreateClientUserDto {
   telegramId?: string;
 
   @ApiPropertyOptional({
-    description: 'Phone number in international format',
-    example: '+998901234567',
+    description: "Phone number in international format",
+    example: "+998901234567",
   })
   @IsString()
   @IsOptional()
@@ -32,8 +32,8 @@ export class CreateClientUserDto {
   phone?: string;
 
   @ApiPropertyOptional({
-    description: 'Email address',
-    example: 'user@example.com',
+    description: "Email address",
+    example: "user@example.com",
   })
   @IsEmail()
   @IsOptional()
@@ -41,8 +41,8 @@ export class CreateClientUserDto {
   email?: string;
 
   @ApiPropertyOptional({
-    description: 'First name',
-    example: 'Aziz',
+    description: "First name",
+    example: "Aziz",
   })
   @IsString()
   @IsOptional()
@@ -50,8 +50,8 @@ export class CreateClientUserDto {
   firstName?: string;
 
   @ApiPropertyOptional({
-    description: 'Last name',
-    example: 'Karimov',
+    description: "Last name",
+    example: "Karimov",
   })
   @IsString()
   @IsOptional()
@@ -59,8 +59,8 @@ export class CreateClientUserDto {
   lastName?: string;
 
   @ApiPropertyOptional({
-    description: 'Username (Telegram or app)',
-    example: 'aziz_k',
+    description: "Username (Telegram or app)",
+    example: "aziz_k",
   })
   @IsString()
   @IsOptional()
@@ -68,9 +68,9 @@ export class CreateClientUserDto {
   username?: string;
 
   @ApiPropertyOptional({
-    description: 'Preferred language code',
-    example: 'ru',
-    default: 'ru',
+    description: "Preferred language code",
+    example: "ru",
+    default: "ru",
   })
   @IsString()
   @IsOptional()

@@ -8,14 +8,23 @@ import {
   Query,
   UseGuards,
   Req,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { FiscalService, CreateDeviceDto, CreateReceiptDto } from './services/fiscal.service';
-import { FiscalReceiptType, FiscalReceiptStatus, FiscalQueueStatus } from './entities/fiscal.entity';
+  ParseUUIDPipe,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { Request } from "express";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
+import { FiscalService } from "./services/fiscal.service";
+import {
+  CreateFiscalDeviceDto,
+  UpdateFiscalDeviceDto,
+  CreateFiscalReceiptDto,
+  FilterFiscalReceiptsDto,
+  OpenShiftDto,
+  FilterShiftHistoryDto,
+  FilterFiscalQueueDto,
+} from "./dto";
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -25,8 +34,8 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-@ApiTags('Fiscal')
-@Controller('fiscal')
+@ApiTags("Fiscal")
+@Controller("fiscal")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class FiscalController {
@@ -36,56 +45,71 @@ export class FiscalController {
   // Device Management
   // ============================================
 
-  @Get('devices')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get all fiscal devices' })
+  @Get("devices")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get all fiscal devices" })
   async getDevices(@Req() req: AuthenticatedRequest) {
     return this.fiscalService.getDevices(req.user.organizationId);
   }
 
-  @Get('devices/:id')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get fiscal device by ID' })
-  async getDevice(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  @Get("devices/:id")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get fiscal device by ID" })
+  async getDevice(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.getDevice(id, req.user.organizationId);
   }
 
-  @Post('devices')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Create new fiscal device' })
-  async createDevice(@Body() dto: CreateDeviceDto, @Req() req: AuthenticatedRequest) {
+  @Post("devices")
+  @Roles("admin")
+  @ApiOperation({ summary: "Create new fiscal device" })
+  async createDevice(
+    @Body() dto: CreateFiscalDeviceDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.createDevice(req.user.organizationId, dto);
   }
 
-  @Put('devices/:id')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update fiscal device' })
+  @Put("devices/:id")
+  @Roles("admin")
+  @ApiOperation({ summary: "Update fiscal device" })
   async updateDevice(
-    @Param('id') id: string,
-    @Body() dto: Partial<CreateDeviceDto>,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateFiscalDeviceDto,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.fiscalService.updateDevice(id, req.user.organizationId, dto);
   }
 
-  @Post('devices/:id/activate')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Activate fiscal device' })
-  async activateDevice(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  @Post("devices/:id/activate")
+  @Roles("admin")
+  @ApiOperation({ summary: "Activate fiscal device" })
+  async activateDevice(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.activateDevice(id, req.user.organizationId);
   }
 
-  @Post('devices/:id/deactivate')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Deactivate fiscal device' })
-  async deactivateDevice(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  @Post("devices/:id/deactivate")
+  @Roles("admin")
+  @ApiOperation({ summary: "Deactivate fiscal device" })
+  async deactivateDevice(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.deactivateDevice(id, req.user.organizationId);
   }
 
-  @Get('devices/:id/stats')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get device statistics' })
-  async getDeviceStatistics(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  @Get("devices/:id/stats")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get device statistics" })
+  async getDeviceStatistics(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.getDeviceStatistics(id, req.user.organizationId);
   }
 
@@ -93,56 +117,64 @@ export class FiscalController {
   // Shift Management
   // ============================================
 
-  @Post('devices/:id/shift/open')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Open fiscal shift' })
+  @Post("devices/:id/shift/open")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Open fiscal shift" })
   async openShift(
-    @Param('id') deviceId: string,
-    @Body() body: { cashierName: string },
+    @Param("id", ParseUUIDPipe) deviceId: string,
+    @Body() dto: OpenShiftDto,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.fiscalService.openShift(
       deviceId,
       req.user.organizationId,
-      body.cashierName,
+      dto.cashier_name,
     );
   }
 
-  @Post('devices/:id/shift/close')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Close fiscal shift (Z-report)' })
-  async closeShift(@Param('id') deviceId: string, @Req() req: AuthenticatedRequest) {
+  @Post("devices/:id/shift/close")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Close fiscal shift (Z-report)" })
+  async closeShift(
+    @Param("id", ParseUUIDPipe) deviceId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.closeShift(deviceId, req.user.organizationId);
   }
 
-  @Get('devices/:id/shift/current')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get current open shift' })
-  async getCurrentShift(@Param('id') deviceId: string, @Req() req: AuthenticatedRequest) {
+  @Get("devices/:id/shift/current")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get current open shift" })
+  async getCurrentShift(
+    @Param("id", ParseUUIDPipe) deviceId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     await this.fiscalService.getDevice(deviceId, req.user.organizationId);
     return this.fiscalService.getCurrentShift(deviceId);
   }
 
-  @Get('devices/:id/shift/history')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get shift history' })
-  @ApiQuery({ name: 'limit', required: false })
+  @Get("devices/:id/shift/history")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get shift history" })
   async getShiftHistory(
-    @Param('id') deviceId: string,
-    @Query('limit') limit: number,
+    @Param("id", ParseUUIDPipe) deviceId: string,
+    @Query() filterDto: FilterShiftHistoryDto,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.fiscalService.getShiftHistory(
       deviceId,
       req.user.organizationId,
-      limit || 30,
+      filterDto.limit || 30,
     );
   }
 
-  @Get('devices/:id/shift/x-report')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get X-report (intermediate report)' })
-  async getXReport(@Param('id') deviceId: string, @Req() req: AuthenticatedRequest) {
+  @Get("devices/:id/shift/x-report")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get X-report (intermediate report)" })
+  async getXReport(
+    @Param("id", ParseUUIDPipe) deviceId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.getXReport(deviceId, req.user.organizationId);
   }
 
@@ -150,51 +182,44 @@ export class FiscalController {
   // Receipt Operations
   // ============================================
 
-  @Post('receipts')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Create fiscal receipt' })
-  async createReceipt(@Body() dto: CreateReceiptDto, @Req() req: AuthenticatedRequest) {
+  @Post("receipts")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Create fiscal receipt" })
+  async createReceipt(
+    @Body() dto: CreateFiscalReceiptDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.createReceipt(req.user.organizationId, dto);
   }
 
-  @Get('receipts/:id')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get receipt by ID' })
-  async getReceipt(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  @Get("receipts/:id")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get receipt by ID" })
+  async getReceipt(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.fiscalService.getReceipt(id, req.user.organizationId);
   }
 
-  @Get('receipts')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get receipts with filters' })
-  @ApiQuery({ name: 'deviceId', required: false })
-  @ApiQuery({ name: 'shiftId', required: false })
-  @ApiQuery({ name: 'type', enum: FiscalReceiptType, required: false })
-  @ApiQuery({ name: 'status', enum: FiscalReceiptStatus, required: false })
-  @ApiQuery({ name: 'startDate', required: false })
-  @ApiQuery({ name: 'endDate', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'offset', required: false })
+  @Get("receipts")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get receipts with filters" })
   async getReceipts(
-    @Query('deviceId') deviceId?: string,
-    @Query('shiftId') shiftId?: string,
-    @Query('type') type?: FiscalReceiptType,
-    @Query('status') status?: FiscalReceiptStatus,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
-    @Req() req?: AuthenticatedRequest,
+    @Query() filterDto: FilterFiscalReceiptsDto,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.fiscalService.getReceipts(req!.user.organizationId, {
-      deviceId,
-      shiftId,
-      type,
-      status,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      limit: limit || 50,
-      offset: offset || 0,
+    return this.fiscalService.getReceipts(req.user.organizationId, {
+      deviceId: filterDto.device_id,
+      shiftId: filterDto.shift_id,
+      type: filterDto.type,
+      status: filterDto.status,
+      startDate: filterDto.start_date
+        ? new Date(filterDto.start_date)
+        : undefined,
+      endDate: filterDto.end_date ? new Date(filterDto.end_date) : undefined,
+      limit: filterDto.limit || 50,
+      offset: filterDto.offset || 0,
     });
   }
 
@@ -202,21 +227,23 @@ export class FiscalController {
   // Queue Management
   // ============================================
 
-  @Get('queue')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get queue items' })
-  @ApiQuery({ name: 'status', enum: FiscalQueueStatus, required: false })
+  @Get("queue")
+  @Roles("admin")
+  @ApiOperation({ summary: "Get queue items" })
   async getQueueItems(
-    @Query('status') status?: FiscalQueueStatus,
-    @Req() req?: AuthenticatedRequest,
+    @Query() filterDto: FilterFiscalQueueDto,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.fiscalService.getQueueItems(req!.user.organizationId, status);
+    return this.fiscalService.getQueueItems(
+      req.user.organizationId,
+      filterDto.status,
+    );
   }
 
-  @Post('queue/:id/retry')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Retry queue item' })
-  async retryQueueItem(@Param('id') id: string) {
+  @Post("queue/:id/retry")
+  @Roles("admin")
+  @ApiOperation({ summary: "Retry queue item" })
+  async retryQueueItem(@Param("id", ParseUUIDPipe) id: string) {
     return this.fiscalService.processQueueItem(id);
   }
 }

@@ -2,7 +2,7 @@
  * Attendance DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
@@ -13,46 +13,46 @@ import {
   IsInt,
   MaxLength,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { AttendanceStatus } from '../entities/attendance.entity';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { AttendanceStatus } from "../entities/attendance.entity";
 
 // ============================================================================
 // ACTION DTOs
 // ============================================================================
 
 export class CheckInDto {
-  @ApiProperty({ description: 'Employee ID' })
+  @ApiProperty({ description: "Employee ID" })
   @IsUUID()
   employeeId: string;
 
-  @ApiPropertyOptional({ description: 'Check-in note' })
+  @ApiPropertyOptional({ description: "Check-in note" })
   @IsOptional()
   @IsString()
   @MaxLength(1000)
   note?: string;
 
-  @ApiPropertyOptional({ description: 'Check-in location {lat, lng}' })
+  @ApiPropertyOptional({ description: "Check-in location {lat, lng}" })
   @IsOptional()
   @IsObject()
-  location?: Record<string, any>;
+  location?: Record<string, unknown>;
 }
 
 export class CheckOutDto {
-  @ApiProperty({ description: 'Employee ID' })
+  @ApiProperty({ description: "Employee ID" })
   @IsUUID()
   employeeId: string;
 
-  @ApiPropertyOptional({ description: 'Check-out note' })
+  @ApiPropertyOptional({ description: "Check-out note" })
   @IsOptional()
   @IsString()
   @MaxLength(1000)
   note?: string;
 
-  @ApiPropertyOptional({ description: 'Check-out location {lat, lng}' })
+  @ApiPropertyOptional({ description: "Check-out location {lat, lng}" })
   @IsOptional()
   @IsObject()
-  location?: Record<string, any>;
+  location?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -60,36 +60,39 @@ export class CheckOutDto {
 // ============================================================================
 
 export class QueryAttendanceDto {
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: 'Filter by employee ID' })
+  @ApiPropertyOptional({ description: "Filter by employee ID" })
   @IsOptional()
   @IsUUID()
   employeeId?: string;
 
-  @ApiPropertyOptional({ description: 'Date from (ISO format)' })
+  @ApiPropertyOptional({ description: "Date from (ISO format)" })
   @IsOptional()
   @IsDateString()
   dateFrom?: string;
 
-  @ApiPropertyOptional({ description: 'Date to (ISO format)' })
+  @ApiPropertyOptional({ description: "Date to (ISO format)" })
   @IsOptional()
   @IsDateString()
   dateTo?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by status', enum: AttendanceStatus })
+  @ApiPropertyOptional({
+    description: "Filter by status",
+    enum: AttendanceStatus,
+  })
   @IsOptional()
   @IsEnum(AttendanceStatus)
   status?: AttendanceStatus;
@@ -131,10 +134,10 @@ export class AttendanceDto {
   note?: string | null;
 
   @ApiPropertyOptional()
-  checkInLocation?: Record<string, any> | null;
+  checkInLocation?: Record<string, unknown> | null;
 
   @ApiPropertyOptional()
-  checkOutLocation?: Record<string, any> | null;
+  checkOutLocation?: Record<string, unknown> | null;
 
   @ApiProperty()
   createdAt: Date;

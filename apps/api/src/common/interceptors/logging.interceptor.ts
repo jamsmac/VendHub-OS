@@ -14,13 +14,13 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Request, Response } from 'express';
-import { ClsService } from 'nestjs-cls';
-import { AppLoggerService } from '../services/logger.service';
-import { maskSensitiveData } from '../utils/mask-sensitive';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
+import { Request, Response } from "express";
+import { ClsService } from "nestjs-cls";
+import { AppLoggerService } from "../services/logger.service";
+import { maskSensitiveData } from "../utils/mask-sensitive";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -29,28 +29,36 @@ export class LoggingInterceptor implements NestInterceptor {
     private readonly cls: ClsService,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
     const { method, url, ip, body, query, params } = request;
-    const userAgent = request.get('user-agent') || '';
-    const userId = (request as any).user?.id || 'anonymous';
+    const userAgent = request.get("user-agent") || "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userId = (request as any).user?.id || "anonymous";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const organizationId = (request as any).user?.organizationId;
 
-    const requestId = this.cls.get('requestId') as string | undefined;
+    // Store user context in CLS for audit subscriber and downstream services
+    if (userId !== "anonymous") {
+      this.cls.set("userId", userId);
+    }
+    if (organizationId) {
+      this.cls.set("organizationId", organizationId);
+    }
+
+    const requestId = this.cls.get("requestId") as string | undefined;
     const startTime = Date.now();
 
     // Log incoming request
-    this.logger.log(
-      `-> [${method}] ${url} - User: ${userId}`,
-      'HTTP',
-    );
+    this.logger.log(`-> [${method}] ${url} - User: ${userId}`, "HTTP");
 
     this.logger.debug(
       JSON.stringify({
-        type: 'http_request_detail',
+        type: "http_request_detail",
         requestId,
         method,
         url,
@@ -60,16 +68,17 @@ export class LoggingInterceptor implements NestInterceptor {
         userAgent: userAgent.substring(0, 100),
         query: Object.keys(query).length > 0 ? query : undefined,
         params: Object.keys(params).length > 0 ? params : undefined,
-        body: body && Object.keys(body).length > 0
-          ? maskSensitiveData(body)
-          : undefined,
+        body:
+          body && Object.keys(body).length > 0
+            ? maskSensitiveData(body)
+            : undefined,
       }),
-      'HTTP',
+      "HTTP",
     );
 
     return next.handle().pipe(
       tap({
-        next: (data) => {
+        next: (_data) => {
           const duration = Date.now() - startTime;
           const statusCode = response.statusCode;
 
@@ -78,14 +87,14 @@ export class LoggingInterceptor implements NestInterceptor {
             url,
             statusCode,
             duration,
-            userId: userId !== 'anonymous' ? userId : undefined,
+            userId: userId !== "anonymous" ? userId : undefined,
             requestId,
             ip,
           });
 
           this.logger.log(
             `<- [${method}] ${url} - ${statusCode} - ${duration}ms`,
-            'HTTP',
+            "HTTP",
           );
         },
         error: (error) => {
@@ -95,7 +104,7 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.error(
             `<- [${method}] ${url} - ${statusCode} - ${duration}ms - ${error.message}`,
             error.stack,
-            'HTTP',
+            "HTTP",
           );
 
           this.logger.logRequest({
@@ -103,7 +112,7 @@ export class LoggingInterceptor implements NestInterceptor {
             url,
             statusCode,
             duration,
-            userId: userId !== 'anonymous' ? userId : undefined,
+            userId: userId !== "anonymous" ? userId : undefined,
             requestId,
             ip,
           });

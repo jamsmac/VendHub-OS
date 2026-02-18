@@ -3,97 +3,95 @@
  * Records all payment transactions from Payme, Click, Uzum, Telegram Stars, Cash, Wallet
  */
 
-import {
-  Entity,
-  Column,
-  Index,
-  OneToMany,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { Entity, Column, Index, OneToMany } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export enum PaymentProvider {
-  PAYME = 'payme',
-  CLICK = 'click',
-  UZUM = 'uzum',
-  TELEGRAM_STARS = 'telegram_stars',
-  CASH = 'cash',
-  WALLET = 'wallet',
+  PAYME = "payme",
+  CLICK = "click",
+  UZUM = "uzum",
+  TELEGRAM_STARS = "telegram_stars",
+  CASH = "cash",
+  WALLET = "wallet",
 }
 
 export enum PaymentTransactionStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
-  REFUNDED = 'refunded',
+  PENDING = "pending",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CANCELLED = "cancelled",
+  REFUNDED = "refunded",
 }
 
 // ============================================================================
 // PAYMENT TRANSACTION ENTITY
 // ============================================================================
 
-@Entity('payment_transactions')
-@Index(['organization_id', 'status'])
-@Index(['organization_id', 'provider'])
-@Index(['provider_tx_id'], { unique: true, where: '"provider_tx_id" IS NOT NULL' })
-@Index(['order_id'])
-@Index(['machine_id'])
+@Entity("payment_transactions")
+@Index(["organization_id", "status"])
+@Index(["organization_id", "provider"])
+@Index(["provider_tx_id"], {
+  unique: true,
+  where: '"provider_tx_id" IS NOT NULL',
+})
+@Index(["order_id"])
+@Index(["machine_id"])
 export class PaymentTransaction extends BaseEntity {
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   organization_id: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: PaymentProvider,
   })
   provider: PaymentProvider;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   provider_tx_id: string | null;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @Column({ type: "decimal", precision: 12, scale: 2 })
   amount: number;
 
-  @Column({ type: 'varchar', length: 10, default: 'UZS' })
+  @Column({ type: "varchar", length: 10, default: "UZS" })
   currency: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: PaymentTransactionStatus,
     default: PaymentTransactionStatus.PENDING,
   })
   status: PaymentTransactionStatus;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   order_id: string | null;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   machine_id: string | null;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   client_user_id: string | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  raw_request: Record<string, any> | null;
+  @Column({ type: "jsonb", nullable: true })
+  raw_request: Record<string, unknown> | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  raw_response: Record<string, any> | null;
+  @Column({ type: "jsonb", nullable: true })
+  raw_response: Record<string, unknown> | null;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   error_message: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
+  @Column({ type: "timestamp with time zone", nullable: true })
   processed_at: Date | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, unknown> | null;
 
   // Relations
-  @OneToMany('PaymentRefund', 'payment_transaction')
-  refunds: import('./payment-refund.entity').PaymentRefund[];
+  @OneToMany("PaymentRefund", "payment_transaction")
+  refunds: import("./payment-refund.entity").PaymentRefund[];
 }

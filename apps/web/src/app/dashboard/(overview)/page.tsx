@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
   ArrowUpRight,
@@ -10,7 +10,7 @@ import {
   Cpu,
   CheckCircle2,
   Clock,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -25,9 +25,15 @@ import {
   Legend,
   BarChart,
   Bar,
-} from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -35,9 +41,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { reportsApi } from '@/lib/api';
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { reportsApi } from "@/lib/api";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,7 +73,7 @@ interface DashboardData {
     type: string;
     machineName: string;
     amount: number;
-    status: 'completed' | 'pending' | 'failed';
+    status: "completed" | "pending" | "failed";
   }[];
 }
 
@@ -82,7 +88,7 @@ function generateRevenueTrend(): { date: string; revenue: number }[] {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     data.push({
-      date: d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+      date: d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }),
       revenue: Math.round(1_000_000 + Math.random() * 4_000_000),
     });
   }
@@ -91,31 +97,66 @@ function generateRevenueTrend(): { date: string; revenue: number }[] {
 
 function generatePaymentMethods(): { name: string; value: number }[] {
   return [
-    { name: 'Payme', value: 42 },
-    { name: 'Click', value: 28 },
-    { name: 'Uzum', value: 15 },
-    { name: 'Наличные', value: 10 },
-    { name: 'Другое', value: 5 },
+    { name: "Payme", value: 42 },
+    { name: "Click", value: 28 },
+    { name: "Uzum", value: 15 },
+    { name: "Наличные", value: 10 },
+    { name: "Другое", value: 5 },
   ];
 }
 
 function generateTopMachines(): { name: string; revenue: number }[] {
   return [
-    { name: 'КМ-001 Чиланзар', revenue: 4_850_000 },
-    { name: 'КМ-005 Сергели', revenue: 3_720_000 },
-    { name: 'КМ-012 М.Улугбек', revenue: 3_150_000 },
-    { name: 'КМ-008 Юнусабад', revenue: 2_980_000 },
-    { name: 'КМ-003 Яккасарай', revenue: 2_540_000 },
+    { name: "КМ-001 Чиланзар", revenue: 4_850_000 },
+    { name: "КМ-005 Сергели", revenue: 3_720_000 },
+    { name: "КМ-012 М.Улугбек", revenue: 3_150_000 },
+    { name: "КМ-008 Юнусабад", revenue: 2_980_000 },
+    { name: "КМ-003 Яккасарай", revenue: 2_540_000 },
   ];
 }
 
-function generateRecentTransactions(): DashboardData['recentTransactions'] {
+function generateRecentTransactions(): DashboardData["recentTransactions"] {
   return [
-    { id: '1', time: '10:32', type: 'Payme', machineName: 'КМ-001 Чиланзар', amount: 35_000, status: 'completed' },
-    { id: '2', time: '10:28', type: 'Click', machineName: 'КМ-005 Сергели', amount: 28_000, status: 'completed' },
-    { id: '3', time: '10:21', type: 'Наличные', machineName: 'КМ-012 М.Улугбек', amount: 42_000, status: 'pending' },
-    { id: '4', time: '10:15', type: 'Uzum', machineName: 'КМ-003 Яккасарай', amount: 15_000, status: 'completed' },
-    { id: '5', time: '10:09', type: 'Payme', machineName: 'КМ-008 Юнусабад', amount: 56_000, status: 'completed' },
+    {
+      id: "1",
+      time: "10:32",
+      type: "Payme",
+      machineName: "КМ-001 Чиланзар",
+      amount: 35_000,
+      status: "completed",
+    },
+    {
+      id: "2",
+      time: "10:28",
+      type: "Click",
+      machineName: "КМ-005 Сергели",
+      amount: 28_000,
+      status: "completed",
+    },
+    {
+      id: "3",
+      time: "10:21",
+      type: "Наличные",
+      machineName: "КМ-012 М.Улугбек",
+      amount: 42_000,
+      status: "pending",
+    },
+    {
+      id: "4",
+      time: "10:15",
+      type: "Uzum",
+      machineName: "КМ-003 Яккасарай",
+      amount: 15_000,
+      status: "completed",
+    },
+    {
+      id: "5",
+      time: "10:09",
+      type: "Payme",
+      machineName: "КМ-008 Юнусабад",
+      amount: 56_000,
+      status: "completed",
+    },
   ];
 }
 
@@ -123,22 +164,22 @@ function generateRecentTransactions(): DashboardData['recentTransactions'] {
 // Constants
 // ---------------------------------------------------------------------------
 
-const PIE_COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#6b7280'];
+const PIE_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#6b7280"];
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function formatUZS(amount: number): string {
-  return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
+  return new Intl.NumberFormat("uz-UZ").format(amount) + " сум";
 }
 
 function formatShortUZS(amount: number): string {
   if (amount >= 1_000_000) {
-    return (amount / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (amount / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   }
   if (amount >= 1_000) {
-    return (amount / 1_000).toFixed(0) + 'K';
+    return (amount / 1_000).toFixed(0) + "K";
   }
   return String(amount);
 }
@@ -147,6 +188,7 @@ function formatShortUZS(amount: number): string {
 // Custom Recharts Tooltip
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RevenueTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -157,6 +199,7 @@ function RevenueTooltip({ active, payload, label }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function PieTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -167,6 +210,7 @@ function PieTooltip({ active, payload }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function BarTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -214,7 +258,13 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
 // Change indicator component
 // ---------------------------------------------------------------------------
 
-function ChangeIndicator({ value, suffix = 'vs вчера' }: { value: number; suffix?: string }) {
+function ChangeIndicator({
+  value,
+  suffix = "vs вчера",
+}: {
+  value: number;
+  suffix?: string;
+}) {
   const isPositive = value >= 0;
   return (
     <div className="flex items-center text-xs">
@@ -240,11 +290,11 @@ function ChangeIndicator({ value, suffix = 'vs вчера' }: { value: number; s
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
-    case 'completed':
+    case "completed":
       return <Badge variant="success">Выполнен</Badge>;
-    case 'pending':
+    case "pending":
       return <Badge variant="warning">Ожидает</Badge>;
-    case 'failed':
+    case "failed":
       return <Badge variant="destructive">Ошибка</Badge>;
     default:
       return <Badge>{status}</Badge>;
@@ -258,7 +308,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function DashboardOverviewPage() {
   // Fetch real dashboard data from API
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ["dashboard"],
     queryFn: () => reportsApi.getDashboard(),
     select: (res) => res.data as DashboardData | undefined,
   });
@@ -335,11 +385,15 @@ export default function DashboardOverviewPage() {
         {/* Revenue today */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Выручка сегодня</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Выручка сегодня
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatUZS(dashboard.revenue.today)}</div>
+            <div className="text-2xl font-bold">
+              {formatUZS(dashboard.revenue.today)}
+            </div>
             <ChangeIndicator value={dashboard.revenue.changePercent} />
           </CardContent>
         </Card>
@@ -351,7 +405,9 @@ export default function DashboardOverviewPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.transactions.today}</div>
+            <div className="text-2xl font-bold">
+              {dashboard.transactions.today}
+            </div>
             <ChangeIndicator value={dashboard.transactions.changePercent} />
           </CardContent>
         </Card>
@@ -359,7 +415,9 @@ export default function DashboardOverviewPage() {
         {/* Active machines */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Активные автоматы</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Активные автоматы
+            </CardTitle>
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -370,7 +428,10 @@ export default function DashboardOverviewPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((dashboard.machines.active / dashboard.machines.total) * 100)}% онлайн
+              {Math.round(
+                (dashboard.machines.active / dashboard.machines.total) * 100,
+              )}
+              % онлайн
             </p>
           </CardContent>
         </Card>
@@ -378,11 +439,15 @@ export default function DashboardOverviewPage() {
         {/* Tasks completed today */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Задачи выполнены</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Задачи выполнены
+            </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.tasks.completedToday}</div>
+            <div className="text-2xl font-bold">
+              {dashboard.tasks.completedToday}
+            </div>
             <p className="text-xs text-muted-foreground">за сегодня</p>
           </CardContent>
         </Card>
@@ -398,9 +463,18 @@ export default function DashboardOverviewPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueTrend} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <LineChart
+              data={revenueTrend}
+              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+            >
               <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="revenueGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
@@ -459,7 +533,10 @@ export default function DashboardOverviewPage() {
                   labelLine={false}
                 >
                   {paymentMethods.map((_entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={PIE_COLORS[index % PIE_COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip content={<PieTooltip />} />
@@ -469,7 +546,9 @@ export default function DashboardOverviewPage() {
                   iconType="circle"
                   iconSize={8}
                   formatter={(value: string) => (
-                    <span className="text-xs text-muted-foreground">{value}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {value}
+                    </span>
                   )}
                 />
               </PieChart>
@@ -480,7 +559,9 @@ export default function DashboardOverviewPage() {
         {/* Top machines horizontal bar */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Топ автоматов по выручке</CardTitle>
+            <CardTitle className="text-base">
+              Топ автоматов по выручке
+            </CardTitle>
             <CardDescription>5 лучших за текущий месяц</CardDescription>
           </CardHeader>
           <CardContent>
@@ -490,7 +571,11 @@ export default function DashboardOverviewPage() {
                 layout="vertical"
                 margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                  horizontal={false}
+                />
                 <XAxis
                   type="number"
                   tick={{ fontSize: 12 }}
@@ -546,8 +631,12 @@ export default function DashboardOverviewPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{tx.type}</TableCell>
-                  <TableCell className="text-sm font-medium">{tx.machineName}</TableCell>
-                  <TableCell className="text-sm text-right">{formatUZS(tx.amount)}</TableCell>
+                  <TableCell className="text-sm font-medium">
+                    {tx.machineName}
+                  </TableCell>
+                  <TableCell className="text-sm text-right">
+                    {formatUZS(tx.amount)}
+                  </TableCell>
                   <TableCell className="text-right">
                     <StatusBadge status={tx.status} />
                   </TableCell>

@@ -8,15 +8,24 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 // AWS SDK is optional - provide mock types if not installed
-let S3Client: any, PutObjectCommand: any, GetObjectCommand: any,
-  DeleteObjectCommand: any, ListObjectsV2Command: any, CopyObjectCommand: any, HeadObjectCommand: any;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let S3Client: any,
+  PutObjectCommand: any,
+  GetObjectCommand: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DeleteObjectCommand: any,
+  ListObjectsV2Command: any,
+  CopyObjectCommand: any,
+  HeadObjectCommand: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let getSignedUrl: any;
 
 try {
-  const s3Module = require('@aws-sdk/client-s3');
+  const s3Module = require("@aws-sdk/client-s3");
   S3Client = s3Module.S3Client;
   PutObjectCommand = s3Module.PutObjectCommand;
   GetObjectCommand = s3Module.GetObjectCommand;
@@ -24,12 +33,12 @@ try {
   ListObjectsV2Command = s3Module.ListObjectsV2Command;
   CopyObjectCommand = s3Module.CopyObjectCommand;
   HeadObjectCommand = s3Module.HeadObjectCommand;
-  getSignedUrl = require('@aws-sdk/s3-request-presigner').getSignedUrl;
+  getSignedUrl = require("@aws-sdk/s3-request-presigner").getSignedUrl;
 } catch {
   // AWS SDK not installed - will throw at runtime if used
 }
-import * as crypto from 'crypto';
-import * as path from 'path';
+import * as crypto from "crypto";
+import * as path from "path";
 
 export interface UploadResult {
   key: string;
@@ -65,30 +74,38 @@ export class StorageService {
 
   // Allowed MIME types for different categories
   private readonly allowedMimeTypes = {
-    image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-    document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-    spreadsheet: ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'],
-    any: ['*/*'],
+    image: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+    document: [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+    spreadsheet: [
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/csv",
+    ],
+    any: ["*/*"],
   };
 
   // Max file sizes in bytes
   private readonly maxFileSizes = {
-    image: 10 * 1024 * 1024,     // 10 MB
-    document: 50 * 1024 * 1024,   // 50 MB
+    image: 10 * 1024 * 1024, // 10 MB
+    document: 50 * 1024 * 1024, // 50 MB
     spreadsheet: 20 * 1024 * 1024, // 20 MB
-    default: 100 * 1024 * 1024,   // 100 MB
+    default: 100 * 1024 * 1024, // 100 MB
   };
 
   constructor(private readonly configService: ConfigService) {
-    this.region = this.configService.get('AWS_REGION', 'us-east-1');
-    this.bucket = this.configService.get('AWS_S3_BUCKET', 'vendhub-storage');
-    this.cdnDomain = this.configService.get('AWS_CLOUDFRONT_DOMAIN');
+    this.region = this.configService.get("AWS_REGION", "us-east-1");
+    this.bucket = this.configService.get("AWS_S3_BUCKET", "vendhub-storage");
+    this.cdnDomain = this.configService.get("AWS_CLOUDFRONT_DOMAIN");
 
     this.s3Client = new S3Client({
       region: this.region,
       credentials: {
-        accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID', ''),
-        secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY', ''),
+        accessKeyId: this.configService.get("AWS_ACCESS_KEY_ID", ""),
+        secretAccessKey: this.configService.get("AWS_SECRET_ACCESS_KEY", ""),
       },
     });
   }
@@ -121,7 +138,7 @@ export class StorageService {
           originalName: fileName,
           ...metadata,
         },
-        CacheControl: 'max-age=31536000', // 1 year for immutable files
+        CacheControl: "max-age=31536000", // 1 year for immutable files
       });
 
       const result = await this.s3Client.send(command);
@@ -139,9 +156,10 @@ export class StorageService {
         mimeType,
         etag: result.ETag,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to upload file: ${key}`, error);
-      throw new BadRequestException('Failed to upload file');
+      throw new BadRequestException("Failed to upload file");
     }
   }
 
@@ -158,11 +176,11 @@ export class StorageService {
     const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 
     if (!matches || matches.length !== 3) {
-      throw new BadRequestException('Invalid base64 data format');
+      throw new BadRequestException("Invalid base64 data format");
     }
 
     const mimeType = matches[1];
-    const buffer = Buffer.from(matches[2], 'base64');
+    const buffer = Buffer.from(matches[2], "base64");
 
     return this.uploadFile(organizationId, folder, fileName, buffer, mimeType);
   }
@@ -175,14 +193,16 @@ export class StorageService {
     folder: string,
     fileName: string,
     mimeType: string,
-    fileCategory: 'image' | 'document' | 'spreadsheet' | 'any' = 'any',
+    fileCategory: "image" | "document" | "spreadsheet" | "any" = "any",
     expiresInSeconds: number = 3600,
   ): Promise<PresignedUrlResult> {
     // Validate MIME type
-    if (fileCategory !== 'any') {
+    if (fileCategory !== "any") {
       const allowed = this.allowedMimeTypes[fileCategory];
       if (!allowed.includes(mimeType)) {
-        throw new BadRequestException(`File type ${mimeType} not allowed for ${fileCategory}`);
+        throw new BadRequestException(
+          `File type ${mimeType} not allowed for ${fileCategory}`,
+        );
       }
     }
 
@@ -212,9 +232,10 @@ export class StorageService {
         cdnUrl: this.getCdnUrl(key),
         expiresAt,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to generate presigned URL`, error);
-      throw new BadRequestException('Failed to generate upload URL');
+      throw new BadRequestException("Failed to generate upload URL");
     }
   }
 
@@ -242,14 +263,15 @@ export class StorageService {
 
       return {
         buffer: Buffer.concat(chunks),
-        contentType: response.ContentType || 'application/octet-stream',
+        contentType: response.ContentType || "application/octet-stream",
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      if (error.name === 'NoSuchKey') {
-        throw new NotFoundException('File not found');
+      if (error.name === "NoSuchKey") {
+        throw new NotFoundException("File not found");
       }
       this.logger.error(`Failed to get file: ${key}`, error);
-      throw new BadRequestException('Failed to retrieve file');
+      throw new BadRequestException("Failed to retrieve file");
     }
   }
 
@@ -273,9 +295,10 @@ export class StorageService {
       return await getSignedUrl(this.s3Client, command, {
         expiresIn: expiresInSeconds,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to generate download URL: ${key}`, error);
-      throw new BadRequestException('Failed to generate download URL');
+      throw new BadRequestException("Failed to generate download URL");
     }
   }
 
@@ -295,8 +318,9 @@ export class StorageService {
 
       await this.s3Client.send(command);
       return true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      if (error.name === 'NotFound') {
+      if (error.name === "NotFound") {
         return false;
       }
       throw error;
@@ -322,9 +346,10 @@ export class StorageService {
         contentType: response.ContentType,
         etag: response.ETag,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      if (error.name === 'NotFound') {
-        throw new NotFoundException('File not found');
+      if (error.name === "NotFound") {
+        throw new NotFoundException("File not found");
       }
       throw error;
     }
@@ -342,16 +367,19 @@ export class StorageService {
 
       await this.s3Client.send(command);
       this.logger.log(`Deleted file: ${key}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to delete file: ${key}`, error);
-      throw new BadRequestException('Failed to delete file');
+      throw new BadRequestException("Failed to delete file");
     }
   }
 
   /**
    * Delete multiple files
    */
-  async deleteFiles(keys: string[]): Promise<{ deleted: number; failed: number }> {
+  async deleteFiles(
+    keys: string[],
+  ): Promise<{ deleted: number; failed: number }> {
     let deleted = 0;
     let failed = 0;
 
@@ -382,9 +410,10 @@ export class StorageService {
       this.logger.log(`Copied file from ${sourceKey} to ${destinationKey}`);
 
       return this.getCdnUrl(destinationKey);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to copy file`, error);
-      throw new BadRequestException('Failed to copy file');
+      throw new BadRequestException("Failed to copy file");
     }
   }
 
@@ -416,15 +445,17 @@ export class StorageService {
 
       const response = await this.s3Client.send(command);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (response.Contents || []).map((item: any) => ({
-        key: item.Key || '',
+        key: item.Key || "",
         size: item.Size || 0,
         lastModified: item.LastModified || new Date(),
         etag: item.ETag,
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to list files in ${prefix}`, error);
-      throw new BadRequestException('Failed to list files');
+      throw new BadRequestException("Failed to list files");
     }
   }
 
@@ -435,16 +466,20 @@ export class StorageService {
   /**
    * Generate unique file key
    */
-  private generateKey(organizationId: string, folder: string, fileName: string): string {
+  private generateKey(
+    organizationId: string,
+    folder: string,
+    fileName: string,
+  ): string {
     const ext = path.extname(fileName);
     const baseName = path.basename(fileName, ext);
-    const hash = crypto.randomBytes(8).toString('hex');
+    const hash = crypto.randomBytes(8).toString("hex");
     const timestamp = Date.now();
 
     // Sanitize file name
     const sanitizedName = baseName
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
+      .replace(/[^a-z0-9]/g, "-")
       .substring(0, 50);
 
     return `${organizationId}/${folder}/${sanitizedName}-${timestamp}-${hash}${ext}`;
@@ -473,7 +508,7 @@ export class StorageService {
   getKeyFromUrl(url: string): string | null {
     // Handle CDN URL
     if (this.cdnDomain && url.includes(this.cdnDomain)) {
-      return url.replace(`https://${this.cdnDomain}/`, '');
+      return url.replace(`https://${this.cdnDomain}/`, "");
     }
 
     // Handle S3 URL
@@ -490,7 +525,7 @@ export class StorageService {
    */
   validateFileSize(
     size: number,
-    category: 'image' | 'document' | 'spreadsheet' | 'default' = 'default',
+    category: "image" | "document" | "spreadsheet" | "default" = "default",
   ): boolean {
     const maxSize = this.maxFileSizes[category] || this.maxFileSizes.default;
     return size <= maxSize;
@@ -499,14 +534,18 @@ export class StorageService {
   /**
    * Get max file size for category
    */
-  getMaxFileSize(category: 'image' | 'document' | 'spreadsheet' | 'default'): number {
+  getMaxFileSize(
+    category: "image" | "document" | "spreadsheet" | "default",
+  ): number {
     return this.maxFileSizes[category] || this.maxFileSizes.default;
   }
 
   /**
    * Get allowed MIME types for category
    */
-  getAllowedMimeTypes(category: 'image' | 'document' | 'spreadsheet' | 'any'): string[] {
+  getAllowedMimeTypes(
+    category: "image" | "document" | "spreadsheet" | "any",
+  ): string[] {
     return this.allowedMimeTypes[category] || [];
   }
 }

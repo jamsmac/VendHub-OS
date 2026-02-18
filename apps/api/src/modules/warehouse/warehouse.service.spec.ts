@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { WarehouseService } from './warehouse.service';
+import { WarehouseService } from "./warehouse.service";
 import {
   Warehouse,
   WarehouseType,
@@ -11,85 +11,85 @@ import {
   StockMovementType,
   StockMovementStatus,
   InventoryBatch,
-} from './entities/warehouse.entity';
+} from "./entities/warehouse.entity";
 
-describe('WarehouseService', () => {
+describe("WarehouseService", () => {
   let service: WarehouseService;
   let warehouseRepository: jest.Mocked<Repository<Warehouse>>;
   let stockMovementRepository: jest.Mocked<Repository<StockMovement>>;
   let inventoryBatchRepository: jest.Mocked<Repository<InventoryBatch>>;
 
-  const orgId = 'org-uuid-1';
+  const orgId = "org-uuid-1";
 
   const mockWarehouse: Warehouse = {
-    id: 'warehouse-uuid-1',
+    id: "warehouse-uuid-1",
     organizationId: orgId,
-    name: 'Main Warehouse Tashkent',
-    code: 'WH-TAS-001',
+    name: "Main Warehouse Tashkent",
+    code: "WH-TAS-001",
     type: WarehouseType.MAIN,
-    address: 'Tashkent, Amir Timur 12',
+    address: "Tashkent, Amir Timur 12",
     latitude: 41.311081,
     longitude: 69.240562,
-    managerId: 'user-uuid-1',
-    phone: '+998901234567',
+    managerId: "user-uuid-1",
+    phone: "+998901234567",
     isActive: true,
     capacity: 10000,
     currentOccupancy: 3500,
     notes: null,
     metadata: {},
-    created_at: new Date('2025-01-01'),
-    updated_at: new Date('2025-01-01'),
+    created_at: new Date("2025-01-01"),
+    updated_at: new Date("2025-01-01"),
     deleted_at: null,
-    created_by_id: 'user-uuid-1',
+    created_by_id: "user-uuid-1",
     updated_by_id: null,
   } as Warehouse;
 
   const mockWarehouse2: Warehouse = {
-    id: 'warehouse-uuid-2',
+    id: "warehouse-uuid-2",
     organizationId: orgId,
-    name: 'Regional Warehouse Samarkand',
-    code: 'WH-SAM-001',
+    name: "Regional Warehouse Samarkand",
+    code: "WH-SAM-001",
     type: WarehouseType.REGIONAL,
-    address: 'Samarkand, Registan 5',
+    address: "Samarkand, Registan 5",
     latitude: 39.654,
     longitude: 66.959,
-    managerId: 'user-uuid-2',
-    phone: '+998901234568',
+    managerId: "user-uuid-2",
+    phone: "+998901234568",
     isActive: true,
     capacity: 5000,
     currentOccupancy: 1200,
     notes: null,
     metadata: {},
-    created_at: new Date('2025-01-02'),
-    updated_at: new Date('2025-01-02'),
+    created_at: new Date("2025-01-02"),
+    updated_at: new Date("2025-01-02"),
     deleted_at: null,
-    created_by_id: 'user-uuid-2',
+    created_by_id: "user-uuid-2",
     updated_by_id: null,
   } as Warehouse;
 
   const mockStockMovement: StockMovement = {
-    id: 'movement-uuid-1',
+    id: "movement-uuid-1",
     organizationId: orgId,
-    fromWarehouseId: 'warehouse-uuid-1',
-    toWarehouseId: 'warehouse-uuid-2',
-    productId: 'product-uuid-1',
+    fromWarehouseId: "warehouse-uuid-1",
+    toWarehouseId: "warehouse-uuid-2",
+    productId: "product-uuid-1",
     quantity: 50,
-    unitOfMeasure: 'pcs',
+    unitOfMeasure: "pcs",
     type: StockMovementType.TRANSFER,
     status: StockMovementStatus.IN_TRANSIT,
-    referenceNumber: 'TRF-2025-001',
-    requestedByUserId: 'user-uuid-1',
+    referenceNumber: "TRF-2025-001",
+    requestedByUserId: "user-uuid-1",
     approvedByUserId: null,
     completedByUserId: null,
-    requestedAt: new Date('2025-01-10'),
+    requestedAt: new Date("2025-01-10"),
     completedAt: null,
     cost: 500000,
-    notes: 'Urgent transfer',
+    notes: "Urgent transfer",
     metadata: {},
-    created_at: new Date('2025-01-10'),
-    updated_at: new Date('2025-01-10'),
+    created_at: new Date("2025-01-10"),
+    updated_at: new Date("2025-01-10"),
     deleted_at: null,
-    created_by_id: 'user-uuid-1',
+    created_by_id: "user-uuid-1",
     updated_by_id: null,
   } as StockMovement;
 
@@ -125,12 +125,12 @@ describe('WarehouseService', () => {
   beforeEach(async () => {
     // Reset all query builder mocks before each test
     Object.values(mockWarehouseQueryBuilder).forEach((fn) => {
-      if (typeof fn === 'function' && 'mockClear' in fn) {
+      if (typeof fn === "function" && "mockClear" in fn) {
         (fn as jest.Mock).mockClear();
       }
     });
     Object.values(mockInventoryQueryBuilder).forEach((fn) => {
-      if (typeof fn === 'function' && 'mockClear' in fn) {
+      if (typeof fn === "function" && "mockClear" in fn) {
         (fn as jest.Mock).mockClear();
       }
     });
@@ -168,7 +168,9 @@ describe('WarehouseService', () => {
             create: jest.fn(),
             save: jest.fn(),
             softDelete: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(mockWarehouseQueryBuilder),
+            createQueryBuilder: jest
+              .fn()
+              .mockReturnValue(mockWarehouseQueryBuilder),
           },
         },
         {
@@ -188,7 +190,9 @@ describe('WarehouseService', () => {
             find: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(mockInventoryQueryBuilder),
+            createQueryBuilder: jest
+              .fn()
+              .mockReturnValue(mockInventoryQueryBuilder),
           },
         },
       ],
@@ -200,7 +204,7 @@ describe('WarehouseService', () => {
     inventoryBatchRepository = module.get(getRepositoryToken(InventoryBatch));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -208,16 +212,16 @@ describe('WarehouseService', () => {
   // WAREHOUSE CRUD
   // ============================================================================
 
-  describe('create', () => {
-    it('should create a new warehouse and assign organizationId', async () => {
+  describe("create", () => {
+    it("should create a new warehouse and assign organizationId", async () => {
       const dto = {
         organizationId: orgId,
-        name: 'Main Warehouse Tashkent',
-        code: 'WH-TAS-001',
+        name: "Main Warehouse Tashkent",
+        code: "WH-TAS-001",
         type: WarehouseType.MAIN,
-        address: 'Tashkent, Amir Timur 12',
+        address: "Tashkent, Amir Timur 12",
       };
-      const userId = 'user-uuid-1';
+      const userId = "user-uuid-1";
 
       warehouseRepository.create.mockReturnValue(mockWarehouse);
       warehouseRepository.save.mockResolvedValue(mockWarehouse);
@@ -232,11 +236,11 @@ describe('WarehouseService', () => {
       expect(warehouseRepository.save).toHaveBeenCalledWith(mockWarehouse);
     });
 
-    it('should create a warehouse without userId when not provided', async () => {
+    it("should create a warehouse without userId when not provided", async () => {
       const dto = {
         organizationId: orgId,
-        name: 'Transit Warehouse',
-        code: 'WH-TRN-001',
+        name: "Transit Warehouse",
+        code: "WH-TRN-001",
       };
 
       warehouseRepository.create.mockReturnValue(mockWarehouse);
@@ -256,52 +260,55 @@ describe('WarehouseService', () => {
   // FIND ALL (PAGINATED WITH FILTERS)
   // ============================================================================
 
-  describe('findAll', () => {
-    it('should return paginated warehouses for organization', async () => {
+  describe("findAll", () => {
+    it("should return paginated warehouses for organization", async () => {
       const result = await service.findAll(orgId, { page: 1, limit: 20 });
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('limit', 20);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("limit", 20);
+      expect(result).toHaveProperty("totalPages", 1);
       expect(mockWarehouseQueryBuilder.where).toHaveBeenCalledWith(
-        'warehouse.organizationId = :organizationId',
+        "warehouse.organizationId = :organizationId",
         { organizationId: orgId },
       );
-      expect(mockWarehouseQueryBuilder.orderBy).toHaveBeenCalledWith('warehouse.name', 'ASC');
+      expect(mockWarehouseQueryBuilder.orderBy).toHaveBeenCalledWith(
+        "warehouse.name",
+        "ASC",
+      );
       expect(mockWarehouseQueryBuilder.skip).toHaveBeenCalledWith(0);
       expect(mockWarehouseQueryBuilder.take).toHaveBeenCalledWith(20);
     });
 
-    it('should filter by warehouse type', async () => {
+    it("should filter by warehouse type", async () => {
       await service.findAll(orgId, { type: WarehouseType.REGIONAL });
 
       expect(mockWarehouseQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'warehouse.type = :type',
+        "warehouse.type = :type",
         { type: WarehouseType.REGIONAL },
       );
     });
 
-    it('should filter by isActive', async () => {
+    it("should filter by isActive", async () => {
       await service.findAll(orgId, { isActive: true });
 
       expect(mockWarehouseQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'warehouse.isActive = :isActive',
+        "warehouse.isActive = :isActive",
         { isActive: true },
       );
     });
 
-    it('should filter by search query across name, code, and address', async () => {
-      await service.findAll(orgId, { search: 'Tashkent' });
+    it("should filter by search query across name, code, and address", async () => {
+      await service.findAll(orgId, { search: "Tashkent" });
 
       expect(mockWarehouseQueryBuilder.andWhere).toHaveBeenCalledWith(
-        '(warehouse.name ILIKE :search OR warehouse.code ILIKE :search OR warehouse.address ILIKE :search)',
-        { search: '%Tashkent%' },
+        "(warehouse.name ILIKE :search OR warehouse.code ILIKE :search OR warehouse.address ILIKE :search)",
+        { search: "%Tashkent%" },
       );
     });
 
-    it('should use default page=1 and limit=20 when filters are not provided', async () => {
+    it("should use default page=1 and limit=20 when filters are not provided", async () => {
       const result = await service.findAll(orgId);
 
       expect(result.page).toBe(1);
@@ -310,7 +317,7 @@ describe('WarehouseService', () => {
       expect(mockWarehouseQueryBuilder.take).toHaveBeenCalledWith(20);
     });
 
-    it('should calculate correct totalPages', async () => {
+    it("should calculate correct totalPages", async () => {
       mockWarehouseQueryBuilder.getCount.mockResolvedValueOnce(45);
 
       const result = await service.findAll(orgId, { page: 1, limit: 20 });
@@ -323,22 +330,22 @@ describe('WarehouseService', () => {
   // FIND BY ID
   // ============================================================================
 
-  describe('findById', () => {
-    it('should return warehouse when found', async () => {
+  describe("findById", () => {
+    it("should return warehouse when found", async () => {
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
 
-      const result = await service.findById('warehouse-uuid-1');
+      const result = await service.findById("warehouse-uuid-1");
 
       expect(result).toEqual(mockWarehouse);
       expect(warehouseRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'warehouse-uuid-1' },
+        where: { id: "warehouse-uuid-1" },
       });
     });
 
-    it('should return null when warehouse not found', async () => {
+    it("should return null when warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById('non-existent-id');
+      const result = await service.findById("non-existent-id");
 
       expect(result).toBeNull();
     });
@@ -348,48 +355,50 @@ describe('WarehouseService', () => {
   // UPDATE
   // ============================================================================
 
-  describe('update', () => {
-    it('should update warehouse when found', async () => {
+  describe("update", () => {
+    it("should update warehouse when found", async () => {
       const updatedWarehouse = {
         ...mockWarehouse,
-        name: 'Updated Warehouse Name',
-        updated_by_id: 'user-uuid-3',
+        name: "Updated Warehouse Name",
+        updated_by_id: "user-uuid-3",
       } as Warehouse;
 
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
       warehouseRepository.save.mockResolvedValue(updatedWarehouse);
 
       const result = await service.update(
-        'warehouse-uuid-1',
-        { name: 'Updated Warehouse Name' },
-        'user-uuid-3',
+        "warehouse-uuid-1",
+        { name: "Updated Warehouse Name" },
+        "user-uuid-3",
       );
 
-      expect(result.name).toBe('Updated Warehouse Name');
+      expect(result.name).toBe("Updated Warehouse Name");
       expect(warehouseRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when warehouse not found', async () => {
+    it("should throw NotFoundException when warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update('non-existent-id', { name: 'New Name' }),
+        service.update("non-existent-id", { name: "New Name" }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should set updated_by_id from userId parameter', async () => {
-      warehouseRepository.findOne.mockResolvedValue({ ...mockWarehouse } as Warehouse);
+    it("should set updated_by_id from userId parameter", async () => {
+      warehouseRepository.findOne.mockResolvedValue({
+        ...mockWarehouse,
+      } as Warehouse);
       warehouseRepository.save.mockImplementation((entity) =>
         Promise.resolve(entity as Warehouse),
       );
 
       const result = await service.update(
-        'warehouse-uuid-1',
-        { name: 'Changed' },
-        'user-uuid-5',
+        "warehouse-uuid-1",
+        { name: "Changed" },
+        "user-uuid-5",
       );
 
-      expect(result.updated_by_id).toBe('user-uuid-5');
+      expect(result.updated_by_id).toBe("user-uuid-5");
     });
   });
 
@@ -397,20 +406,23 @@ describe('WarehouseService', () => {
   // REMOVE (SOFT DELETE)
   // ============================================================================
 
-  describe('remove', () => {
-    it('should soft delete warehouse when found', async () => {
+  describe("remove", () => {
+    it("should soft delete warehouse when found", async () => {
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       warehouseRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove('warehouse-uuid-1');
+      await service.remove("warehouse-uuid-1");
 
-      expect(warehouseRepository.softDelete).toHaveBeenCalledWith('warehouse-uuid-1');
+      expect(warehouseRepository.softDelete).toHaveBeenCalledWith(
+        "warehouse-uuid-1",
+      );
     });
 
-    it('should throw NotFoundException when warehouse not found', async () => {
+    it("should throw NotFoundException when warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent-id')).rejects.toThrow(
+      await expect(service.remove("non-existent-id")).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -420,76 +432,82 @@ describe('WarehouseService', () => {
   // STOCK TRANSFER
   // ============================================================================
 
-  describe('transferStock', () => {
-    it('should create a stock movement between two warehouses', async () => {
+  describe("transferStock", () => {
+    it("should create a stock movement between two warehouses", async () => {
       warehouseRepository.findOne
-        .mockResolvedValueOnce(mockWarehouse)   // source warehouse
-        .mockResolvedValueOnce(mockWarehouse2);  // destination warehouse
+        .mockResolvedValueOnce(mockWarehouse) // source warehouse
+        .mockResolvedValueOnce(mockWarehouse2); // destination warehouse
 
       stockMovementRepository.create.mockReturnValue(mockStockMovement);
       stockMovementRepository.save.mockResolvedValue(mockStockMovement);
 
       const result = await service.transferStock(
         orgId,
-        'warehouse-uuid-1',
-        'warehouse-uuid-2',
-        'product-uuid-1',
+        "warehouse-uuid-1",
+        "warehouse-uuid-2",
+        "product-uuid-1",
         50,
-        'user-uuid-1',
-        { referenceNumber: 'TRF-2025-001', cost: 500000, notes: 'Urgent transfer' },
+        "user-uuid-1",
+        {
+          referenceNumber: "TRF-2025-001",
+          cost: 500000,
+          notes: "Urgent transfer",
+        },
       );
 
       expect(result).toEqual(mockStockMovement);
       expect(stockMovementRepository.create).toHaveBeenCalledWith({
         organizationId: orgId,
-        fromWarehouseId: 'warehouse-uuid-1',
-        toWarehouseId: 'warehouse-uuid-2',
-        productId: 'product-uuid-1',
+        fromWarehouseId: "warehouse-uuid-1",
+        toWarehouseId: "warehouse-uuid-2",
+        productId: "product-uuid-1",
         quantity: 50,
         type: StockMovementType.TRANSFER,
         status: StockMovementStatus.IN_TRANSIT,
-        requestedByUserId: 'user-uuid-1',
-        referenceNumber: 'TRF-2025-001',
+        requestedByUserId: "user-uuid-1",
+        referenceNumber: "TRF-2025-001",
         cost: 500000,
-        notes: 'Urgent transfer',
-        created_by_id: 'user-uuid-1',
+        notes: "Urgent transfer",
+        created_by_id: "user-uuid-1",
       });
-      expect(stockMovementRepository.save).toHaveBeenCalledWith(mockStockMovement);
+      expect(stockMovementRepository.save).toHaveBeenCalledWith(
+        mockStockMovement,
+      );
     });
 
-    it('should throw NotFoundException when source warehouse not found', async () => {
+    it("should throw NotFoundException when source warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValueOnce(null);
 
       await expect(
         service.transferStock(
           orgId,
-          'non-existent-from',
-          'warehouse-uuid-2',
-          'product-uuid-1',
+          "non-existent-from",
+          "warehouse-uuid-2",
+          "product-uuid-1",
           10,
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw NotFoundException when destination warehouse not found', async () => {
+    it("should throw NotFoundException when destination warehouse not found", async () => {
       warehouseRepository.findOne
-        .mockResolvedValueOnce(mockWarehouse)   // source found
-        .mockResolvedValueOnce(null);            // destination not found
+        .mockResolvedValueOnce(mockWarehouse) // source found
+        .mockResolvedValueOnce(null); // destination not found
 
       await expect(
         service.transferStock(
           orgId,
-          'warehouse-uuid-1',
-          'non-existent-to',
-          'product-uuid-1',
+          "warehouse-uuid-1",
+          "non-existent-to",
+          "product-uuid-1",
           10,
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when source and destination are the same', async () => {
+    it("should throw BadRequestException when source and destination are the same", async () => {
       warehouseRepository.findOne
         .mockResolvedValueOnce(mockWarehouse)
         .mockResolvedValueOnce(mockWarehouse);
@@ -497,16 +515,16 @@ describe('WarehouseService', () => {
       await expect(
         service.transferStock(
           orgId,
-          'warehouse-uuid-1',
-          'warehouse-uuid-1',
-          'product-uuid-1',
+          "warehouse-uuid-1",
+          "warehouse-uuid-1",
+          "product-uuid-1",
           10,
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should create movement without optional fields when options are omitted', async () => {
+    it("should create movement without optional fields when options are omitted", async () => {
       warehouseRepository.findOne
         .mockResolvedValueOnce(mockWarehouse)
         .mockResolvedValueOnce(mockWarehouse2);
@@ -523,11 +541,11 @@ describe('WarehouseService', () => {
 
       const result = await service.transferStock(
         orgId,
-        'warehouse-uuid-1',
-        'warehouse-uuid-2',
-        'product-uuid-1',
+        "warehouse-uuid-1",
+        "warehouse-uuid-2",
+        "product-uuid-1",
         25,
-        'user-uuid-1',
+        "user-uuid-1",
       );
 
       expect(result).toEqual(movementWithoutOptions);
@@ -545,61 +563,73 @@ describe('WarehouseService', () => {
   // WAREHOUSE INVENTORY
   // ============================================================================
 
-  describe('getWarehouseInventory', () => {
-    it('should return warehouse with aggregated inventory data', async () => {
+  describe("getWarehouseInventory", () => {
+    it("should return warehouse with aggregated inventory data", async () => {
       const mockInventoryRows = [
         {
-          productId: 'product-uuid-1',
-          totalQuantity: '150',
-          batchCount: '3',
-          nearestExpiry: '2025-06-30',
+          productId: "product-uuid-1",
+          totalQuantity: "150",
+          batchCount: "3",
+          nearestExpiry: "2025-06-30",
         },
         {
-          productId: 'product-uuid-2',
-          totalQuantity: '80',
-          batchCount: '1',
+          productId: "product-uuid-2",
+          totalQuantity: "80",
+          batchCount: "1",
           nearestExpiry: null,
         },
       ];
 
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
-      mockInventoryQueryBuilder.getRawMany.mockResolvedValueOnce(mockInventoryRows);
+      mockInventoryQueryBuilder.getRawMany.mockResolvedValueOnce(
+        mockInventoryRows,
+      );
 
-      const result = await service.getWarehouseInventory('warehouse-uuid-1', orgId);
+      const result = await service.getWarehouseInventory(
+        "warehouse-uuid-1",
+        orgId,
+      );
 
-      expect(result).toHaveProperty('warehouse');
-      expect(result).toHaveProperty('inventory');
+      expect(result).toHaveProperty("warehouse");
+      expect(result).toHaveProperty("inventory");
       expect(result.warehouse).toEqual(mockWarehouse);
       expect(result.inventory).toEqual(mockInventoryRows);
 
       expect(warehouseRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'warehouse-uuid-1', organizationId: orgId },
+        where: { id: "warehouse-uuid-1", organizationId: orgId },
       });
-      expect(inventoryBatchRepository.createQueryBuilder).toHaveBeenCalledWith('batch');
+      expect(inventoryBatchRepository.createQueryBuilder).toHaveBeenCalledWith(
+        "batch",
+      );
       expect(mockInventoryQueryBuilder.where).toHaveBeenCalledWith(
-        'batch.warehouseId = :warehouseId',
-        { warehouseId: 'warehouse-uuid-1' },
+        "batch.warehouseId = :warehouseId",
+        { warehouseId: "warehouse-uuid-1" },
       );
       expect(mockInventoryQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'batch.organizationId = :organizationId',
+        "batch.organizationId = :organizationId",
         { organizationId: orgId },
       );
-      expect(mockInventoryQueryBuilder.groupBy).toHaveBeenCalledWith('batch.productId');
+      expect(mockInventoryQueryBuilder.groupBy).toHaveBeenCalledWith(
+        "batch.productId",
+      );
     });
 
-    it('should throw NotFoundException when warehouse not found', async () => {
+    it("should throw NotFoundException when warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.getWarehouseInventory('non-existent-id', orgId),
+        service.getWarehouseInventory("non-existent-id", orgId),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should return empty inventory array when warehouse has no batches', async () => {
+    it("should return empty inventory array when warehouse has no batches", async () => {
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
       mockInventoryQueryBuilder.getRawMany.mockResolvedValueOnce([]);
 
-      const result = await service.getWarehouseInventory('warehouse-uuid-1', orgId);
+      const result = await service.getWarehouseInventory(
+        "warehouse-uuid-1",
+        orgId,
+      );
 
       expect(result.warehouse).toEqual(mockWarehouse);
       expect(result.inventory).toEqual([]);

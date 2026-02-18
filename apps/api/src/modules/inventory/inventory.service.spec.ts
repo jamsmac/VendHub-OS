@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, DataSource } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { InventoryService } from './inventory.service';
+import { InventoryService } from "./inventory.service";
 import {
   WarehouseInventory,
   OperatorInventory,
@@ -14,39 +14,39 @@ import {
   InventoryCount,
   InventoryCountItem,
   MovementType,
-} from './entities/inventory.entity';
+} from "./entities/inventory.entity";
 
-describe('InventoryService', () => {
+describe("InventoryService", () => {
   let service: InventoryService;
   let warehouseRepo: jest.Mocked<Repository<WarehouseInventory>>;
   let operatorRepo: jest.Mocked<Repository<OperatorInventory>>;
   let machineRepo: jest.Mocked<Repository<MachineInventory>>;
-  let movementRepo: jest.Mocked<Repository<InventoryMovement>>;
-  let reservationRepo: jest.Mocked<Repository<InventoryReservation>>;
-  let mockDataSource: jest.Mocked<DataSource>;
+  let _movementRepo: jest.Mocked<Repository<InventoryMovement>>;
+  let _reservationRepo: jest.Mocked<Repository<InventoryReservation>>;
+  let _mockDataSource: jest.Mocked<DataSource>;
 
-  const orgId = 'org-uuid-1';
+  const orgId = "org-uuid-1";
 
   const mockWarehouse: Record<string, unknown> = {
-    id: 'wh-uuid-1',
+    id: "wh-uuid-1",
     organizationId: orgId,
-    productId: 'product-uuid-1',
+    productId: "product-uuid-1",
     currentQuantity: 100,
     reservedQuantity: 10,
     minStockLevel: 20,
     avgPurchasePrice: 5000,
     lastPurchasePrice: 5500,
     lastRestockedAt: new Date(),
-    locationInWarehouse: 'A1',
+    locationInWarehouse: "A1",
     availableQuantity: 90,
     created_at: new Date(),
   };
 
   const mockOperator: Record<string, unknown> = {
-    id: 'op-inv-uuid-1',
+    id: "op-inv-uuid-1",
     organizationId: orgId,
-    operatorId: 'operator-uuid-1',
-    productId: 'product-uuid-1',
+    operatorId: "operator-uuid-1",
+    productId: "product-uuid-1",
     currentQuantity: 30,
     reservedQuantity: 0,
     lastReceivedAt: new Date(),
@@ -55,10 +55,10 @@ describe('InventoryService', () => {
   };
 
   const mockMachineInventory = {
-    id: 'mi-uuid-1',
+    id: "mi-uuid-1",
     organizationId: orgId,
-    machineId: 'machine-uuid-1',
-    productId: 'product-uuid-1',
+    machineId: "machine-uuid-1",
+    productId: "product-uuid-1",
     currentQuantity: 15,
     minStockLevel: 5,
     totalSold: 200,
@@ -68,12 +68,12 @@ describe('InventoryService', () => {
   } as unknown as MachineInventory;
 
   const mockMovement = {
-    id: 'mov-uuid-1',
+    id: "mov-uuid-1",
     organizationId: orgId,
     movementType: MovementType.WAREHOUSE_TO_OPERATOR,
-    productId: 'product-uuid-1',
+    productId: "product-uuid-1",
     quantity: 10,
-    performedByUserId: 'user-uuid-1',
+    performedByUserId: "user-uuid-1",
     operationDate: new Date(),
     created_at: new Date(),
   } as unknown as InventoryMovement;
@@ -82,7 +82,11 @@ describe('InventoryService', () => {
   const mockManager = {
     findOne: jest.fn(),
     create: jest.fn().mockImplementation((_entity, data) => data),
-    save: jest.fn().mockImplementation((_entity, data) => Promise.resolve({ id: 'new-uuid', ...data })),
+    save: jest
+      .fn()
+      .mockImplementation((_entity, data) =>
+        Promise.resolve({ id: "new-uuid", ...data }),
+      ),
   };
 
   const mockQueryBuilder = {
@@ -202,7 +206,7 @@ describe('InventoryService', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -210,14 +214,15 @@ describe('InventoryService', () => {
   // WAREHOUSE INVENTORY
   // ============================================================================
 
-  describe('getWarehouseInventory', () => {
-    it('should return paginated warehouse inventory', async () => {
+  describe("getWarehouseInventory", () => {
+    it("should return paginated warehouse inventory", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       warehouseRepo.findAndCount.mockResolvedValue([[mockWarehouse as any], 1]);
 
       const result = await service.getWarehouseInventory(orgId, 1, 50);
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
       expect(result.data).toHaveLength(1);
       expect(warehouseRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -226,7 +231,7 @@ describe('InventoryService', () => {
       );
     });
 
-    it('should cap limit at 100', async () => {
+    it("should cap limit at 100", async () => {
       warehouseRepo.findAndCount.mockResolvedValue([[], 0]);
 
       await service.getWarehouseInventory(orgId, 1, 200);
@@ -239,15 +244,15 @@ describe('InventoryService', () => {
     });
   });
 
-  describe('getWarehouseLowStock', () => {
-    it('should return items below minimum stock level', async () => {
+  describe("getWarehouseLowStock", () => {
+    it("should return items below minimum stock level", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockWarehouse]);
 
       const result = await service.getWarehouseLowStock(orgId);
 
       expect(result).toHaveLength(1);
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'wi.currentQuantity <= wi.minStockLevel',
+        "wi.currentQuantity <= wi.minStockLevel",
       );
     });
   });
@@ -256,22 +261,23 @@ describe('InventoryService', () => {
   // OPERATOR INVENTORY
   // ============================================================================
 
-  describe('getOperatorInventory', () => {
-    it('should return paginated operator inventory', async () => {
+  describe("getOperatorInventory", () => {
+    it("should return paginated operator inventory", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       operatorRepo.findAndCount.mockResolvedValue([[mockOperator as any], 1]);
 
       const result = await service.getOperatorInventory(
         orgId,
-        'operator-uuid-1',
+        "operator-uuid-1",
         1,
         50,
       );
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
       expect(operatorRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { organizationId: orgId, operatorId: 'operator-uuid-1' },
+          where: { organizationId: orgId, operatorId: "operator-uuid-1" },
         }),
       );
     });
@@ -281,22 +287,22 @@ describe('InventoryService', () => {
   // MACHINE INVENTORY
   // ============================================================================
 
-  describe('getMachineInventory', () => {
-    it('should return machine inventory sorted by slot number', async () => {
+  describe("getMachineInventory", () => {
+    it("should return machine inventory sorted by slot number", async () => {
       machineRepo.find.mockResolvedValue([mockMachineInventory]);
 
-      const result = await service.getMachineInventory(orgId, 'machine-uuid-1');
+      const result = await service.getMachineInventory(orgId, "machine-uuid-1");
 
       expect(result).toHaveLength(1);
       expect(machineRepo.find).toHaveBeenCalledWith({
-        where: { organizationId: orgId, machineId: 'machine-uuid-1' },
-        order: { slotNumber: 'ASC' },
+        where: { organizationId: orgId, machineId: "machine-uuid-1" },
+        order: { slotNumber: "ASC" },
       });
     });
   });
 
-  describe('getMachinesNeedingRefill', () => {
-    it('should return machines with stock below minimum', async () => {
+  describe("getMachinesNeedingRefill", () => {
+    it("should return machines with stock below minimum", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockMachineInventory]);
 
       const result = await service.getMachinesNeedingRefill(orgId);
@@ -309,45 +315,50 @@ describe('InventoryService', () => {
   // TRANSFERS
   // ============================================================================
 
-  describe('transferWarehouseToOperator', () => {
-    it('should transfer stock from warehouse to operator', async () => {
+  describe("transferWarehouseToOperator", () => {
+    it("should transfer stock from warehouse to operator", async () => {
       mockManager.findOne
-        .mockResolvedValueOnce({ ...mockWarehouse, currentQuantity: 100, reservedQuantity: 0, availableQuantity: 100 })
+        .mockResolvedValueOnce({
+          ...mockWarehouse,
+          currentQuantity: 100,
+          reservedQuantity: 0,
+          availableQuantity: 100,
+        })
         .mockResolvedValueOnce(null); // No existing operator inventory
 
       const result = await service.transferWarehouseToOperator(
         {
           organizationId: orgId,
-          operatorId: 'operator-uuid-1',
-          productId: 'product-uuid-1',
+          operatorId: "operator-uuid-1",
+          productId: "product-uuid-1",
           quantity: 20,
         },
-        'user-uuid-1',
+        "user-uuid-1",
       );
 
-      expect(result).toHaveProperty('warehouse');
-      expect(result).toHaveProperty('operator');
-      expect(result).toHaveProperty('movement');
+      expect(result).toHaveProperty("warehouse");
+      expect(result).toHaveProperty("operator");
+      expect(result).toHaveProperty("movement");
       expect(mockManager.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when product not in warehouse', async () => {
+    it("should throw NotFoundException when product not in warehouse", async () => {
       mockManager.findOne.mockResolvedValueOnce(null);
 
       await expect(
         service.transferWarehouseToOperator(
           {
             organizationId: orgId,
-            operatorId: 'operator-uuid-1',
-            productId: 'missing-product',
+            operatorId: "operator-uuid-1",
+            productId: "missing-product",
             quantity: 20,
           },
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException for insufficient stock', async () => {
+    it("should throw BadRequestException for insufficient stock", async () => {
       mockManager.findOne.mockResolvedValueOnce({
         ...mockWarehouse,
         currentQuantity: 5,
@@ -359,36 +370,36 @@ describe('InventoryService', () => {
         service.transferWarehouseToOperator(
           {
             organizationId: orgId,
-            operatorId: 'operator-uuid-1',
-            productId: 'product-uuid-1',
+            operatorId: "operator-uuid-1",
+            productId: "product-uuid-1",
             quantity: 20,
           },
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('transferOperatorToWarehouse', () => {
-    it('should throw NotFoundException when product not found with operator', async () => {
+  describe("transferOperatorToWarehouse", () => {
+    it("should throw NotFoundException when product not found with operator", async () => {
       mockManager.findOne.mockResolvedValueOnce(null);
 
       await expect(
         service.transferOperatorToWarehouse(
           {
             organizationId: orgId,
-            operatorId: 'operator-uuid-1',
-            productId: 'missing-product',
+            operatorId: "operator-uuid-1",
+            productId: "missing-product",
             quantity: 10,
           },
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('transferOperatorToMachine', () => {
-    it('should throw BadRequestException for insufficient operator stock', async () => {
+  describe("transferOperatorToMachine", () => {
+    it("should throw BadRequestException for insufficient operator stock", async () => {
       mockManager.findOne.mockResolvedValueOnce({
         ...mockOperator,
         currentQuantity: 3,
@@ -398,31 +409,31 @@ describe('InventoryService', () => {
         service.transferOperatorToMachine(
           {
             organizationId: orgId,
-            operatorId: 'operator-uuid-1',
-            machineId: 'machine-uuid-1',
-            productId: 'product-uuid-1',
+            operatorId: "operator-uuid-1",
+            machineId: "machine-uuid-1",
+            productId: "product-uuid-1",
             quantity: 10,
           },
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('transferMachineToOperator', () => {
-    it('should throw NotFoundException when product not in machine', async () => {
+  describe("transferMachineToOperator", () => {
+    it("should throw NotFoundException when product not in machine", async () => {
       mockManager.findOne.mockResolvedValueOnce(null);
 
       await expect(
         service.transferMachineToOperator(
           {
             organizationId: orgId,
-            operatorId: 'operator-uuid-1',
-            machineId: 'machine-uuid-1',
-            productId: 'missing-product',
+            operatorId: "operator-uuid-1",
+            machineId: "machine-uuid-1",
+            productId: "missing-product",
             quantity: 5,
           },
-          'user-uuid-1',
+          "user-uuid-1",
         ),
       ).rejects.toThrow(NotFoundException);
     });
@@ -432,20 +443,20 @@ describe('InventoryService', () => {
   // MOVEMENTS
   // ============================================================================
 
-  describe('getMovements', () => {
-    it('should return filtered movement history', async () => {
+  describe("getMovements", () => {
+    it("should return filtered movement history", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockMovement]);
       mockQueryBuilder.getCount.mockResolvedValue(1);
 
       const result = await service.getMovements(orgId, {
-        productId: 'product-uuid-1',
+        productId: "product-uuid-1",
       });
 
-      expect(result).toHaveProperty('movements');
-      expect(result).toHaveProperty('total');
+      expect(result).toHaveProperty("movements");
+      expect(result).toHaveProperty("total");
     });
 
-    it('should return movements with default limit of 20', async () => {
+    it("should return movements with default limit of 20", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
       mockQueryBuilder.getCount.mockResolvedValue(0);
 
@@ -459,8 +470,8 @@ describe('InventoryService', () => {
   // REPORTS
   // ============================================================================
 
-  describe('getInventorySummary', () => {
-    it('should return summary with warehouse, operator, and machine stats', async () => {
+  describe("getInventorySummary", () => {
+    it("should return summary with warehouse, operator, and machine stats", async () => {
       // Reset getMany for warehouse QB
       const warehouseQb = {
         select: jest.fn().mockReturnThis(),
@@ -468,9 +479,9 @@ describe('InventoryService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getRawOne: jest.fn().mockResolvedValue({
-          totalProducts: '5',
-          totalValue: '250000',
-          lowStockCount: '2',
+          totalProducts: "5",
+          totalValue: "250000",
+          lowStockCount: "2",
         }),
       };
       const operatorQb = {
@@ -479,8 +490,8 @@ describe('InventoryService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getRawOne: jest.fn().mockResolvedValue({
-          totalOperators: '3',
-          totalProducts: '10',
+          totalOperators: "3",
+          totalProducts: "10",
         }),
       };
       const machineQb = {
@@ -489,14 +500,17 @@ describe('InventoryService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getRawOne: jest.fn().mockResolvedValue({
-          totalMachines: '8',
-          totalProducts: '20',
-          needsRefillCount: '3',
+          totalMachines: "8",
+          totalProducts: "20",
+          needsRefillCount: "3",
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       warehouseRepo.createQueryBuilder.mockReturnValue(warehouseQb as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       operatorRepo.createQueryBuilder.mockReturnValue(operatorQb as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       machineRepo.createQueryBuilder.mockReturnValue(machineQb as any);
 
       const result = await service.getInventorySummary(orgId);

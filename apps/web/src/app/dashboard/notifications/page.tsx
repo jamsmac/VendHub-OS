@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   BellDot,
@@ -29,11 +29,11 @@ import {
   Edit,
   ExternalLink,
   Megaphone,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -41,31 +41,31 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -73,10 +73,10 @@ interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'system' | 'task' | 'inventory' | 'payment' | 'alert' | 'maintenance';
-  channels: ('push' | 'email' | 'sms' | 'telegram' | 'in_app')[];
-  priority: 'high' | 'medium' | 'low';
-  status: 'read' | 'unread';
+  type: "system" | "task" | "inventory" | "payment" | "alert" | "maintenance";
+  channels: ("push" | "email" | "sms" | "telegram" | "in_app")[];
+  priority: "high" | "medium" | "low";
+  status: "read" | "unread";
   related_entity_type?: string;
   related_entity_id?: string;
   created_at: string;
@@ -86,8 +86,8 @@ interface Notification {
 interface NotificationTemplate {
   id: string;
   name: string;
-  type: 'system' | 'task' | 'inventory' | 'payment' | 'alert' | 'maintenance';
-  channels: ('push' | 'email' | 'sms' | 'telegram')[];
+  type: "system" | "task" | "inventory" | "payment" | "alert" | "maintenance";
+  channels: ("push" | "email" | "sms" | "telegram")[];
   subject: string;
   body: string;
   variables: string[];
@@ -101,7 +101,7 @@ interface NotificationRule {
   event: string;
   conditions: string;
   recipients: string;
-  channels: ('push' | 'email' | 'sms' | 'telegram')[];
+  channels: ("push" | "email" | "sms" | "telegram")[];
   is_active: boolean;
   created_at: string;
 }
@@ -111,8 +111,8 @@ interface NotificationCampaign {
   name: string;
   message: string;
   audience_count: number;
-  channels: ('push' | 'email' | 'sms' | 'telegram')[];
-  status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
+  channels: ("push" | "email" | "sms" | "telegram")[];
+  status: "draft" | "scheduled" | "sent" | "cancelled";
   sent_count: number;
   delivered_count: number;
   failed_count: number;
@@ -141,12 +141,12 @@ interface TypeChannelPreferences {
 // ─── Constants / Mappings ─────────────────────────────────────
 
 const typeLabels: Record<string, string> = {
-  system: 'Системное',
-  task: 'Задача',
-  inventory: 'Инвентарь',
-  payment: 'Платёж',
-  alert: 'Тревога',
-  maintenance: 'Обслуживание',
+  system: "Системное",
+  task: "Задача",
+  inventory: "Инвентарь",
+  payment: "Платёж",
+  alert: "Тревога",
+  maintenance: "Обслуживание",
 };
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -159,79 +159,79 @@ const typeIcons: Record<string, React.ReactNode> = {
 };
 
 const typeColors: Record<string, string> = {
-  system: 'bg-blue-500/10 text-blue-500',
-  task: 'bg-violet-500/10 text-violet-500',
-  inventory: 'bg-orange-500/10 text-orange-500',
-  payment: 'bg-emerald-500/10 text-emerald-500',
-  alert: 'bg-red-500/10 text-red-500',
-  maintenance: 'bg-amber-500/10 text-amber-500',
+  system: "bg-blue-500/10 text-blue-500",
+  task: "bg-violet-500/10 text-violet-500",
+  inventory: "bg-orange-500/10 text-orange-500",
+  payment: "bg-emerald-500/10 text-emerald-500",
+  alert: "bg-red-500/10 text-red-500",
+  maintenance: "bg-amber-500/10 text-amber-500",
 };
 
 const channelLabels: Record<string, string> = {
-  push: 'Push',
-  email: 'Email',
-  sms: 'SMS',
-  telegram: 'Telegram',
-  in_app: 'In-App',
+  push: "Push",
+  email: "Email",
+  sms: "SMS",
+  telegram: "Telegram",
+  in_app: "In-App",
 };
 
 const channelColors: Record<string, string> = {
-  push: 'bg-blue-500/10 text-blue-600',
-  email: 'bg-green-500/10 text-green-600',
-  sms: 'bg-purple-500/10 text-purple-600',
-  telegram: 'bg-sky-500/10 text-sky-600',
-  in_app: 'bg-muted text-muted-foreground',
+  push: "bg-blue-500/10 text-blue-600",
+  email: "bg-green-500/10 text-green-600",
+  sms: "bg-purple-500/10 text-purple-600",
+  telegram: "bg-sky-500/10 text-sky-600",
+  in_app: "bg-muted text-muted-foreground",
 };
 
 const priorityLabels: Record<string, string> = {
-  high: 'Высокий',
-  medium: 'Средний',
-  low: 'Низкий',
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
 };
 
 const priorityColors: Record<string, string> = {
-  high: 'bg-red-500/10 text-red-500',
-  medium: 'bg-amber-500/10 text-amber-500',
-  low: 'bg-green-500/10 text-green-500',
+  high: "bg-red-500/10 text-red-500",
+  medium: "bg-amber-500/10 text-amber-500",
+  low: "bg-green-500/10 text-green-500",
 };
 
 const campaignStatusLabels: Record<string, string> = {
-  draft: 'Черновик',
-  scheduled: 'Запланировано',
-  sent: 'Отправлено',
-  cancelled: 'Отменено',
+  draft: "Черновик",
+  scheduled: "Запланировано",
+  sent: "Отправлено",
+  cancelled: "Отменено",
 };
 
 const campaignStatusColors: Record<string, string> = {
-  draft: 'bg-muted text-muted-foreground',
-  scheduled: 'bg-blue-500/10 text-blue-500',
-  sent: 'bg-green-500/10 text-green-500',
-  cancelled: 'bg-red-500/10 text-red-500',
+  draft: "bg-muted text-muted-foreground",
+  scheduled: "bg-blue-500/10 text-blue-500",
+  sent: "bg-green-500/10 text-green-500",
+  cancelled: "bg-red-500/10 text-red-500",
 };
 
 const eventOptions = [
-  { value: 'machine.offline', label: 'Автомат оффлайн' },
-  { value: 'machine.error', label: 'Ошибка автомата' },
-  { value: 'inventory.low', label: 'Низкий запас' },
-  { value: 'inventory.empty', label: 'Закончился товар' },
-  { value: 'task.created', label: 'Задача создана' },
-  { value: 'task.assigned', label: 'Задача назначена' },
-  { value: 'task.completed', label: 'Задача завершена' },
-  { value: 'task.overdue', label: 'Задача просрочена' },
-  { value: 'payment.received', label: 'Платёж получен' },
-  { value: 'payment.failed', label: 'Ошибка платежа' },
-  { value: 'maintenance.due', label: 'Плановое обслуживание' },
-  { value: 'alert.critical', label: 'Критическая тревога' },
+  { value: "machine.offline", label: "Автомат оффлайн" },
+  { value: "machine.error", label: "Ошибка автомата" },
+  { value: "inventory.low", label: "Низкий запас" },
+  { value: "inventory.empty", label: "Закончился товар" },
+  { value: "task.created", label: "Задача создана" },
+  { value: "task.assigned", label: "Задача назначена" },
+  { value: "task.completed", label: "Задача завершена" },
+  { value: "task.overdue", label: "Задача просрочена" },
+  { value: "payment.received", label: "Платёж получен" },
+  { value: "payment.failed", label: "Ошибка платежа" },
+  { value: "maintenance.due", label: "Плановое обслуживание" },
+  { value: "alert.critical", label: "Критическая тревога" },
 ];
 
 const recipientOptions = [
-  { value: 'all_admins', label: 'Все администраторы' },
-  { value: 'all_managers', label: 'Все менеджеры' },
-  { value: 'all_operators', label: 'Все операторы' },
-  { value: 'machine_owner', label: 'Владелец автомата' },
-  { value: 'assigned_operator', label: 'Назначенный оператор' },
-  { value: 'warehouse_staff', label: 'Склад' },
-  { value: 'accountants', label: 'Бухгалтерия' },
+  { value: "all_admins", label: "Все администраторы" },
+  { value: "all_managers", label: "Все менеджеры" },
+  { value: "all_operators", label: "Все операторы" },
+  { value: "machine_owner", label: "Владелец автомата" },
+  { value: "assigned_operator", label: "Назначенный оператор" },
+  { value: "warehouse_staff", label: "Склад" },
+  { value: "accountants", label: "Бухгалтерия" },
 ];
 
 // ─── Main Page Component ──────────────────────────────────────
@@ -241,24 +241,26 @@ export default function NotificationsPage() {
   const queryClient = useQueryClient();
 
   // --- All Tab State ---
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [channelFilter, setChannelFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // --- Templates Tab State ---
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<NotificationTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] =
+    useState<NotificationTemplate | null>(null);
 
   // --- Rules Tab State ---
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false);
@@ -266,7 +268,8 @@ export default function NotificationsPage() {
 
   // --- Campaigns Tab State ---
   const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
-  const [editingCampaign, setEditingCampaign] = useState<NotificationCampaign | null>(null);
+  const [editingCampaign, setEditingCampaign] =
+    useState<NotificationCampaign | null>(null);
 
   // --- Settings Tab State ---
   const [channelSettings, setChannelSettings] = useState<ChannelSettings>({
@@ -277,37 +280,50 @@ export default function NotificationsPage() {
     in_app: true,
     sound: true,
   });
-  const [typePreferences, setTypePreferences] = useState<TypeChannelPreferences>({
-    system: { push: true, email: true, sms: false, telegram: true },
-    task: { push: true, email: true, sms: true, telegram: true },
-    inventory: { push: true, email: true, sms: false, telegram: false },
-    payment: { push: false, email: true, sms: false, telegram: true },
-    alert: { push: true, email: true, sms: true, telegram: true },
-    maintenance: { push: true, email: true, sms: false, telegram: false },
-  });
+  const [typePreferences, setTypePreferences] =
+    useState<TypeChannelPreferences>({
+      system: { push: true, email: true, sms: false, telegram: true },
+      task: { push: true, email: true, sms: true, telegram: true },
+      inventory: { push: true, email: true, sms: false, telegram: false },
+      payment: { push: false, email: true, sms: false, telegram: true },
+      alert: { push: true, email: true, sms: true, telegram: true },
+      maintenance: { push: true, email: true, sms: false, telegram: false },
+    });
 
   // ─── Queries ──────────────────────────────────────────────
 
-  const { data: notificationsRes, isLoading: notificationsLoading, isError: notificationsError } = useQuery({
-    queryKey: ['notifications', debouncedSearch, typeFilter, channelFilter, priorityFilter, statusFilter],
+  const {
+    data: notificationsRes,
+    isLoading: notificationsLoading,
+    isError: notificationsError,
+  } = useQuery({
+    queryKey: [
+      "notifications",
+      debouncedSearch,
+      typeFilter,
+      channelFilter,
+      priorityFilter,
+      statusFilter,
+    ],
     queryFn: async () => {
       const params: Record<string, string> = {};
       if (debouncedSearch) params.search = debouncedSearch;
-      if (typeFilter !== 'all') params.type = typeFilter;
-      if (channelFilter !== 'all') params.channel = channelFilter;
-      if (priorityFilter !== 'all') params.priority = priorityFilter;
-      if (statusFilter !== 'all') params.status = statusFilter;
-      const res = await api.get('/notifications', { params });
+      if (typeFilter !== "all") params.type = typeFilter;
+      if (channelFilter !== "all") params.channel = channelFilter;
+      if (priorityFilter !== "all") params.priority = priorityFilter;
+      if (statusFilter !== "all") params.status = statusFilter;
+      const res = await api.get("/notifications", { params });
       return res.data;
     },
   });
 
-  const notifications: Notification[] = notificationsRes?.data || notificationsRes || [];
+  const notifications: Notification[] =
+    notificationsRes?.data || notificationsRes || [];
 
   const { data: unreadCountRes } = useQuery({
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: ["notifications", "unread-count"],
     queryFn: async () => {
-      const res = await api.get('/notifications/unread-count');
+      const res = await api.get("/notifications/unread-count");
       return res.data;
     },
   });
@@ -315,19 +331,20 @@ export default function NotificationsPage() {
   const unreadCount: number = unreadCountRes?.count ?? unreadCountRes ?? 0;
 
   const { data: templatesRes, isLoading: templatesLoading } = useQuery({
-    queryKey: ['notification-templates'],
+    queryKey: ["notification-templates"],
     queryFn: async () => {
-      const res = await api.get('/notifications/templates');
+      const res = await api.get("/notifications/templates");
       return res.data;
     },
   });
 
-  const templates: NotificationTemplate[] = templatesRes?.data || templatesRes || [];
+  const templates: NotificationTemplate[] =
+    templatesRes?.data || templatesRes || [];
 
   const { data: rulesRes, isLoading: rulesLoading } = useQuery({
-    queryKey: ['notification-rules'],
+    queryKey: ["notification-rules"],
     queryFn: async () => {
-      const res = await api.get('/notifications/rules');
+      const res = await api.get("/notifications/rules");
       return res.data;
     },
   });
@@ -335,26 +352,33 @@ export default function NotificationsPage() {
   const rules: NotificationRule[] = rulesRes?.data || rulesRes || [];
 
   const { data: campaignsRes, isLoading: campaignsLoading } = useQuery({
-    queryKey: ['notification-campaigns'],
+    queryKey: ["notification-campaigns"],
     queryFn: async () => {
-      const res = await api.get('/notifications/campaigns');
+      const res = await api.get("/notifications/campaigns");
       return res.data;
     },
   });
 
-  const campaigns: NotificationCampaign[] = campaignsRes?.data || campaignsRes || [];
+  const campaigns: NotificationCampaign[] =
+    campaignsRes?.data || campaignsRes || [];
 
   // ─── Stats ────────────────────────────────────────────────
 
-  const stats = useMemo(() => ({
-    total: notifications.length,
-    unread: typeof unreadCount === 'number' ? unreadCount : notifications.filter((n) => n.status === 'unread').length,
-    sentToday: notifications.filter((n) => {
-      const today = new Date().toDateString();
-      return new Date(n.created_at).toDateString() === today;
-    }).length,
-    errors: 0,
-  }), [notifications, unreadCount]);
+  const stats = useMemo(
+    () => ({
+      total: notifications.length,
+      unread:
+        typeof unreadCount === "number"
+          ? unreadCount
+          : notifications.filter((n) => n.status === "unread").length,
+      sentToday: notifications.filter((n) => {
+        const today = new Date().toDateString();
+        return new Date(n.created_at).toDateString() === today;
+      }).length,
+      errors: 0,
+    }),
+    [notifications, unreadCount],
+  );
 
   // ─── Mutations ────────────────────────────────────────────
 
@@ -363,24 +387,24 @@ export default function NotificationsPage() {
       await api.patch(`/notifications/${id}/read`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Уведомление отмечено как прочитанное');
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Уведомление отмечено как прочитанное");
     },
     onError: () => {
-      toast.error('Не удалось отметить как прочитанное');
+      toast.error("Не удалось отметить как прочитанное");
     },
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      await api.post('/notifications/read-all');
+      await api.post("/notifications/read-all");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Все уведомления отмечены как прочитанные');
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Все уведомления отмечены как прочитанные");
     },
     onError: () => {
-      toast.error('Не удалось отметить все как прочитанные');
+      toast.error("Не удалось отметить все как прочитанные");
     },
   });
 
@@ -389,29 +413,32 @@ export default function NotificationsPage() {
       await api.delete(`/notifications/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Уведомление удалено');
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Уведомление удалено");
     },
     onError: () => {
-      toast.error('Не удалось удалить уведомление');
+      toast.error("Не удалось удалить уведомление");
     },
   });
 
   const createTemplateMutation = useMutation({
     mutationFn: async (data: Partial<NotificationTemplate>) => {
       if (editingTemplate) {
-        return api.patch(`/notifications/templates/${editingTemplate.id}`, data);
+        return api.patch(
+          `/notifications/templates/${editingTemplate.id}`,
+          data,
+        );
       }
-      return api.post('/notifications/templates', data);
+      return api.post("/notifications/templates", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-templates'] });
+      queryClient.invalidateQueries({ queryKey: ["notification-templates"] });
       setIsTemplateDialogOpen(false);
       setEditingTemplate(null);
-      toast.success(editingTemplate ? 'Шаблон обновлён' : 'Шаблон создан');
+      toast.success(editingTemplate ? "Шаблон обновлён" : "Шаблон создан");
     },
     onError: () => {
-      toast.error('Ошибка сохранения шаблона');
+      toast.error("Ошибка сохранения шаблона");
     },
   });
 
@@ -420,11 +447,11 @@ export default function NotificationsPage() {
       await api.delete(`/notifications/templates/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-templates'] });
-      toast.success('Шаблон удалён');
+      queryClient.invalidateQueries({ queryKey: ["notification-templates"] });
+      toast.success("Шаблон удалён");
     },
     onError: () => {
-      toast.error('Не удалось удалить шаблон');
+      toast.error("Не удалось удалить шаблон");
     },
   });
 
@@ -433,29 +460,35 @@ export default function NotificationsPage() {
       if (editingRule) {
         return api.patch(`/notifications/rules/${editingRule.id}`, data);
       }
-      return api.post('/notifications/rules', data);
+      return api.post("/notifications/rules", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-rules'] });
+      queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
       setIsRuleDialogOpen(false);
       setEditingRule(null);
-      toast.success(editingRule ? 'Правило обновлено' : 'Правило создано');
+      toast.success(editingRule ? "Правило обновлено" : "Правило создано");
     },
     onError: () => {
-      toast.error('Ошибка сохранения правила');
+      toast.error("Ошибка сохранения правила");
     },
   });
 
   const toggleRuleMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({
+      id,
+      is_active,
+    }: {
+      id: string;
+      is_active: boolean;
+    }) => {
       await api.patch(`/notifications/rules/${id}`, { is_active });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-rules'] });
-      toast.success('Статус правила обновлён');
+      queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
+      toast.success("Статус правила обновлён");
     },
     onError: () => {
-      toast.error('Ошибка обновления статуса');
+      toast.error("Ошибка обновления статуса");
     },
   });
 
@@ -464,29 +497,34 @@ export default function NotificationsPage() {
       await api.delete(`/notifications/rules/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-rules'] });
-      toast.success('Правило удалено');
+      queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
+      toast.success("Правило удалено");
     },
     onError: () => {
-      toast.error('Не удалось удалить правило');
+      toast.error("Не удалось удалить правило");
     },
   });
 
   const createCampaignMutation = useMutation({
     mutationFn: async (data: Partial<NotificationCampaign>) => {
       if (editingCampaign) {
-        return api.patch(`/notifications/campaigns/${editingCampaign.id}`, data);
+        return api.patch(
+          `/notifications/campaigns/${editingCampaign.id}`,
+          data,
+        );
       }
-      return api.post('/notifications/campaigns', data);
+      return api.post("/notifications/campaigns", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ["notification-campaigns"] });
       setIsCampaignDialogOpen(false);
       setEditingCampaign(null);
-      toast.success(editingCampaign ? 'Кампания обновлена' : 'Кампания создана');
+      toast.success(
+        editingCampaign ? "Кампания обновлена" : "Кампания создана",
+      );
     },
     onError: () => {
-      toast.error('Ошибка сохранения кампании');
+      toast.error("Ошибка сохранения кампании");
     },
   });
 
@@ -495,23 +533,26 @@ export default function NotificationsPage() {
       await api.delete(`/notifications/campaigns/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notification-campaigns'] });
-      toast.success('Кампания удалена');
+      queryClient.invalidateQueries({ queryKey: ["notification-campaigns"] });
+      toast.success("Кампания удалена");
     },
     onError: () => {
-      toast.error('Не удалось удалить кампанию');
+      toast.error("Не удалось удалить кампанию");
     },
   });
 
   const saveSettingsMutation = useMutation({
-    mutationFn: async (data: { channels: ChannelSettings; preferences: TypeChannelPreferences }) => {
-      await api.post('/notifications/settings', data);
+    mutationFn: async (data: {
+      channels: ChannelSettings;
+      preferences: TypeChannelPreferences;
+    }) => {
+      await api.post("/notifications/settings", data);
     },
     onSuccess: () => {
-      toast.success('Настройки сохранены');
+      toast.success("Настройки сохранены");
     },
     onError: () => {
-      toast.error('Ошибка сохранения настроек');
+      toast.error("Ошибка сохранения настроек");
     },
   });
 
@@ -520,7 +561,7 @@ export default function NotificationsPage() {
   const openNotificationDetail = (notification: Notification) => {
     setSelectedNotification(notification);
     setIsDetailOpen(true);
-    if (notification.status === 'unread') {
+    if (notification.status === "unread") {
       markReadMutation.mutate(notification.id);
     }
   };
@@ -532,8 +573,14 @@ export default function NotificationsPage() {
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить уведомления</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['notifications'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить уведомления
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["notifications"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -590,7 +637,9 @@ export default function NotificationsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">Всего уведомлений</p>
+                  <p className="text-sm text-muted-foreground">
+                    Всего уведомлений
+                  </p>
                 </div>
               </div>
             </div>
@@ -600,7 +649,9 @@ export default function NotificationsPage() {
                   <BellDot className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-blue-600">{stats.unread}</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {stats.unread}
+                  </p>
                   <p className="text-sm text-muted-foreground">Непрочитанных</p>
                 </div>
               </div>
@@ -611,8 +662,12 @@ export default function NotificationsPage() {
                   <Send className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">{stats.sentToday}</p>
-                  <p className="text-sm text-muted-foreground">Отправлено сегодня</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.sentToday}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Отправлено сегодня
+                  </p>
                 </div>
               </div>
             </div>
@@ -622,8 +677,12 @@ export default function NotificationsPage() {
                   <AlertTriangle className="w-5 h-5 text-red-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-red-600">{stats.errors}</p>
-                  <p className="text-sm text-muted-foreground">Ошибки доставки</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {stats.errors}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Ошибки доставки
+                  </p>
                 </div>
               </div>
             </div>
@@ -716,16 +775,22 @@ export default function NotificationsPage() {
                   notifications.map((notification) => (
                     <TableRow
                       key={notification.id}
-                      className={`cursor-pointer hover:bg-muted/50 ${notification.status === 'unread' ? 'bg-blue-50/50 dark:bg-blue-950/10' : ''}`}
+                      className={`cursor-pointer hover:bg-muted/50 ${notification.status === "unread" ? "bg-blue-50/50 dark:bg-blue-950/10" : ""}`}
                       onClick={() => openNotificationDetail(notification)}
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${typeColors[notification.type] || 'bg-muted text-muted-foreground'}`}>
-                            {typeIcons[notification.type] || <Bell className="w-4 h-4" />}
+                          <div
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center ${typeColors[notification.type] || "bg-muted text-muted-foreground"}`}
+                          >
+                            {typeIcons[notification.type] || (
+                              <Bell className="w-4 h-4" />
+                            )}
                           </div>
                           <div className="min-w-0">
-                            <p className={`font-medium truncate ${notification.status === 'unread' ? 'font-semibold' : ''}`}>
+                            <p
+                              className={`font-medium truncate ${notification.status === "unread" ? "font-semibold" : ""}`}
+                            >
                               {notification.title}
                             </p>
                             <p className="text-sm text-muted-foreground truncate max-w-[280px]">
@@ -737,39 +802,56 @@ export default function NotificationsPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {notification.channels.map((ch) => (
-                            <Badge key={ch} variant="outline" className={`text-xs ${channelColors[ch] || ''}`}>
+                            <Badge
+                              key={ch}
+                              variant="outline"
+                              className={`text-xs ${channelColors[ch] || ""}`}
+                            >
                               {channelLabels[ch] || ch}
                             </Badge>
                           ))}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={priorityColors[notification.priority]}>
+                        <Badge
+                          className={priorityColors[notification.priority]}
+                        >
                           {priorityLabels[notification.priority]}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`w-2 h-2 rounded-full ${notification.status === 'unread' ? 'bg-blue-500' : 'bg-muted-foreground/30'}`}
+                            className={`w-2 h-2 rounded-full ${notification.status === "unread" ? "bg-blue-500" : "bg-muted-foreground/30"}`}
                           />
                           <span className="text-sm">
-                            {notification.status === 'unread' ? 'Непрочитано' : 'Прочитано'}
+                            {notification.status === "unread"
+                              ? "Непрочитано"
+                              : "Прочитано"}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(notification.created_at).toLocaleDateString('ru-RU')}
+                        {new Date(notification.created_at).toLocaleDateString(
+                          "ru-RU",
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" aria-label="Действия">
+                          <DropdownMenuTrigger
+                            asChild
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Действия"
+                            >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {notification.status === 'unread' && (
+                            {notification.status === "unread" && (
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -784,7 +866,9 @@ export default function NotificationsPage() {
                               className="text-destructive"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                deleteNotificationMutation.mutate(notification.id);
+                                deleteNotificationMutation.mutate(
+                                  notification.id,
+                                );
                               }}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -799,7 +883,9 @@ export default function NotificationsPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-12">
                       <BellOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Уведомления не найдены</p>
+                      <p className="text-muted-foreground">
+                        Уведомления не найдены
+                      </p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -866,7 +952,11 @@ export default function NotificationsPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {template.channels.map((ch) => (
-                            <Badge key={ch} variant="outline" className={`text-xs ${channelColors[ch]}`}>
+                            <Badge
+                              key={ch}
+                              variant="outline"
+                              className={`text-xs ${channelColors[ch]}`}
+                            >
                               {channelLabels[ch]}
                             </Badge>
                           ))}
@@ -885,14 +975,24 @@ export default function NotificationsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={template.is_active ? 'bg-green-500/10 text-green-500' : 'bg-muted text-muted-foreground'}>
-                          {template.is_active ? 'Активный' : 'Неактивный'}
+                        <Badge
+                          className={
+                            template.is_active
+                              ? "bg-green-500/10 text-green-500"
+                              : "bg-muted text-muted-foreground"
+                          }
+                        >
+                          {template.is_active ? "Активный" : "Неактивный"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Действия">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Действия"
+                            >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -908,7 +1008,9 @@ export default function NotificationsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => deleteTemplateMutation.mutate(template.id)}
+                              onClick={() =>
+                                deleteTemplateMutation.mutate(template.id)
+                              }
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Удалить
@@ -922,7 +1024,9 @@ export default function NotificationsPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-12">
                       <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Шаблоны не найдены</p>
+                      <p className="text-muted-foreground">
+                        Шаблоны не найдены
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Создайте первый шаблон для автоматических уведомлений
                       </p>
@@ -995,7 +1099,11 @@ export default function NotificationsPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {rule.channels.map((ch) => (
-                            <Badge key={ch} variant="outline" className={`text-xs ${channelColors[ch]}`}>
+                            <Badge
+                              key={ch}
+                              variant="outline"
+                              className={`text-xs ${channelColors[ch]}`}
+                            >
                               {channelLabels[ch]}
                             </Badge>
                           ))}
@@ -1004,15 +1112,20 @@ export default function NotificationsPage() {
                       <TableCell>
                         <button
                           onClick={() =>
-                            toggleRuleMutation.mutate({ id: rule.id, is_active: !rule.is_active })
+                            toggleRuleMutation.mutate({
+                              id: rule.id,
+                              is_active: !rule.is_active,
+                            })
                           }
                           className={`relative w-10 h-5 rounded-full transition-colors ${
-                            rule.is_active ? 'bg-green-500' : 'bg-input'
+                            rule.is_active ? "bg-green-500" : "bg-input"
                           }`}
                         >
                           <span
                             className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                              rule.is_active ? 'translate-x-5' : 'translate-x-0.5'
+                              rule.is_active
+                                ? "translate-x-5"
+                                : "translate-x-0.5"
                             }`}
                           />
                         </button>
@@ -1020,7 +1133,11 @@ export default function NotificationsPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Действия">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Действия"
+                            >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -1050,7 +1167,9 @@ export default function NotificationsPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-12">
                       <Zap className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Правила не найдены</p>
+                      <p className="text-muted-foreground">
+                        Правила не найдены
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Настройте автоматическую отправку уведомлений
                       </p>
@@ -1122,33 +1241,51 @@ export default function NotificationsPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {campaign.channels.map((ch) => (
-                            <Badge key={ch} variant="outline" className={`text-xs ${channelColors[ch]}`}>
+                            <Badge
+                              key={ch}
+                              variant="outline"
+                              className={`text-xs ${channelColors[ch]}`}
+                            >
                               {channelLabels[ch]}
                             </Badge>
                           ))}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={campaignStatusColors[campaign.status]}>
+                        <Badge
+                          className={campaignStatusColors[campaign.status]}
+                        >
                           {campaignStatusLabels[campaign.status]}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3 text-sm">
-                          <span className="text-green-600">{campaign.sent_count}</span>
+                          <span className="text-green-600">
+                            {campaign.sent_count}
+                          </span>
                           <span>/</span>
-                          <span className="text-blue-600">{campaign.delivered_count}</span>
+                          <span className="text-blue-600">
+                            {campaign.delivered_count}
+                          </span>
                           <span>/</span>
-                          <span className="text-red-600">{campaign.failed_count}</span>
+                          <span className="text-red-600">
+                            {campaign.failed_count}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(campaign.created_at).toLocaleDateString('ru-RU')}
+                        {new Date(campaign.created_at).toLocaleDateString(
+                          "ru-RU",
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Действия">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Действия"
+                            >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -1164,7 +1301,9 @@ export default function NotificationsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => deleteCampaignMutation.mutate(campaign.id)}
+                              onClick={() =>
+                                deleteCampaignMutation.mutate(campaign.id)
+                              }
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Удалить
@@ -1178,7 +1317,9 @@ export default function NotificationsPage() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-12">
                       <Megaphone className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Кампании не найдены</p>
+                      <p className="text-muted-foreground">
+                        Кампании не найдены
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Создайте кампанию для массовой рассылки
                       </p>
@@ -1211,18 +1352,27 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <p className="font-medium">Push-уведомления</p>
-                      <p className="text-xs text-muted-foreground">Уведомления в браузере</p>
+                      <p className="text-xs text-muted-foreground">
+                        Уведомления в браузере
+                      </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setChannelSettings({ ...channelSettings, push: !channelSettings.push })}
+                    onClick={() =>
+                      setChannelSettings({
+                        ...channelSettings,
+                        push: !channelSettings.push,
+                      })
+                    }
                     className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.push ? 'bg-green-500' : 'bg-input'
+                      channelSettings.push ? "bg-green-500" : "bg-input"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.push ? 'translate-x-5' : 'translate-x-0.5'
+                        channelSettings.push
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
                       }`}
                     />
                   </button>
@@ -1233,7 +1383,9 @@ export default function NotificationsPage() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      toast.success('Подписка на push-уведомления активирована');
+                      toast.success(
+                        "Подписка на push-уведомления активирована",
+                      );
                     }}
                   >
                     Подписаться
@@ -1252,18 +1404,27 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <p className="font-medium">Email</p>
-                      <p className="text-xs text-muted-foreground">admin@vendhub.uz</p>
+                      <p className="text-xs text-muted-foreground">
+                        admin@vendhub.uz
+                      </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setChannelSettings({ ...channelSettings, email: !channelSettings.email })}
+                    onClick={() =>
+                      setChannelSettings({
+                        ...channelSettings,
+                        email: !channelSettings.email,
+                      })
+                    }
                     className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.email ? 'bg-green-500' : 'bg-input'
+                      channelSettings.email ? "bg-green-500" : "bg-input"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.email ? 'translate-x-5' : 'translate-x-0.5'
+                        channelSettings.email
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
                       }`}
                     />
                   </button>
@@ -1281,18 +1442,27 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <p className="font-medium">SMS</p>
-                      <p className="text-xs text-muted-foreground">+998 90 123 45 67</p>
+                      <p className="text-xs text-muted-foreground">
+                        +998 90 123 45 67
+                      </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setChannelSettings({ ...channelSettings, sms: !channelSettings.sms })}
+                    onClick={() =>
+                      setChannelSettings({
+                        ...channelSettings,
+                        sms: !channelSettings.sms,
+                      })
+                    }
                     className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.sms ? 'bg-green-500' : 'bg-input'
+                      channelSettings.sms ? "bg-green-500" : "bg-input"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.sms ? 'translate-x-5' : 'translate-x-0.5'
+                        channelSettings.sms
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
                       }`}
                     />
                   </button>
@@ -1310,18 +1480,27 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <p className="font-medium">Telegram</p>
-                      <p className="text-xs text-muted-foreground">@vendhub_admin</p>
+                      <p className="text-xs text-muted-foreground">
+                        @vendhub_admin
+                      </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setChannelSettings({ ...channelSettings, telegram: !channelSettings.telegram })}
+                    onClick={() =>
+                      setChannelSettings({
+                        ...channelSettings,
+                        telegram: !channelSettings.telegram,
+                      })
+                    }
                     className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.telegram ? 'bg-green-500' : 'bg-input'
+                      channelSettings.telegram ? "bg-green-500" : "bg-input"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.telegram ? 'translate-x-5' : 'translate-x-0.5'
+                        channelSettings.telegram
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
                       }`}
                     />
                   </button>
@@ -1339,22 +1518,35 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <p className="font-medium">In-App</p>
-                      <p className="text-xs text-muted-foreground">Всегда включено</p>
+                      <p className="text-xs text-muted-foreground">
+                        Всегда включено
+                      </p>
                     </div>
                   </div>
-                  <Badge className="bg-green-500/10 text-green-500">Активно</Badge>
+                  <Badge className="bg-green-500/10 text-green-500">
+                    Активно
+                  </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Звук уведомлений</span>
+                  <span className="text-sm text-muted-foreground">
+                    Звук уведомлений
+                  </span>
                   <button
-                    onClick={() => setChannelSettings({ ...channelSettings, sound: !channelSettings.sound })}
+                    onClick={() =>
+                      setChannelSettings({
+                        ...channelSettings,
+                        sound: !channelSettings.sound,
+                      })
+                    }
                     className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.sound ? 'bg-green-500' : 'bg-input'
+                      channelSettings.sound ? "bg-green-500" : "bg-input"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.sound ? 'translate-x-5' : 'translate-x-0.5'
+                        channelSettings.sound
+                          ? "translate-x-5"
+                          : "translate-x-0.5"
                       }`}
                     />
                   </button>
@@ -1387,48 +1579,52 @@ export default function NotificationsPage() {
                   <TableRow key={type}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className={`w-8 h-8 rounded flex items-center justify-center ${typeColors[type]}`}>
+                        <span
+                          className={`w-8 h-8 rounded flex items-center justify-center ${typeColors[type]}`}
+                        >
                           {typeIcons[type]}
                         </span>
                         <span className="font-medium">{typeLabels[type]}</span>
                       </div>
                     </TableCell>
-                    {(['push', 'email', 'sms', 'telegram'] as const).map((channel) => (
-                      <TableCell key={channel} className="text-center">
-                        <button
-                          onClick={() =>
-                            setTypePreferences({
-                              ...typePreferences,
-                              [type]: {
-                                ...prefs,
-                                [channel]: !prefs[channel],
-                              },
-                            })
-                          }
-                          className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                            prefs[channel]
-                              ? 'bg-primary border-primary text-white'
-                              : 'border-input bg-background'
-                          }`}
-                        >
-                          {prefs[channel] && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </button>
-                      </TableCell>
-                    ))}
+                    {(["push", "email", "sms", "telegram"] as const).map(
+                      (channel) => (
+                        <TableCell key={channel} className="text-center">
+                          <button
+                            onClick={() =>
+                              setTypePreferences({
+                                ...typePreferences,
+                                [type]: {
+                                  ...prefs,
+                                  [channel]: !prefs[channel],
+                                },
+                              })
+                            }
+                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                              prefs[channel]
+                                ? "bg-primary border-primary text-white"
+                                : "border-input bg-background"
+                            }`}
+                          >
+                            {prefs[channel] && (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </button>
+                        </TableCell>
+                      ),
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -1447,7 +1643,9 @@ export default function NotificationsPage() {
               disabled={saveSettingsMutation.isPending}
             >
               <Save className="w-4 h-4 mr-2" />
-              {saveSettingsMutation.isPending ? 'Сохранение...' : 'Сохранить настройки'}
+              {saveSettingsMutation.isPending
+                ? "Сохранение..."
+                : "Сохранить настройки"}
             </Button>
           </div>
         </TabsContent>
@@ -1474,63 +1672,79 @@ export default function NotificationsPage() {
           </DialogHeader>
           {selectedNotification && (
             <div className="space-y-4">
-              <p className="text-sm leading-relaxed">{selectedNotification.message}</p>
+              <p className="text-sm leading-relaxed">
+                {selectedNotification.message}
+              </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Тип:</span>{' '}
+                  <span className="text-muted-foreground">Тип:</span>{" "}
                   <Badge className={typeColors[selectedNotification.type]}>
                     {typeLabels[selectedNotification.type]}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Приоритет:</span>{' '}
-                  <Badge className={priorityColors[selectedNotification.priority]}>
+                  <span className="text-muted-foreground">Приоритет:</span>{" "}
+                  <Badge
+                    className={priorityColors[selectedNotification.priority]}
+                  >
                     {priorityLabels[selectedNotification.priority]}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Каналы:</span>{' '}
+                  <span className="text-muted-foreground">Каналы:</span>{" "}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedNotification.channels.map((ch) => (
-                      <Badge key={ch} variant="outline" className={`text-xs ${channelColors[ch]}`}>
+                      <Badge
+                        key={ch}
+                        variant="outline"
+                        className={`text-xs ${channelColors[ch]}`}
+                      >
                         {channelLabels[ch]}
                       </Badge>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Дата:</span>{' '}
+                  <span className="text-muted-foreground">Дата:</span>{" "}
                   <span>
-                    {new Date(selectedNotification.created_at).toLocaleString('ru-RU')}
+                    {new Date(selectedNotification.created_at).toLocaleString(
+                      "ru-RU",
+                    )}
                   </span>
                 </div>
               </div>
-              {selectedNotification.related_entity_type && selectedNotification.related_entity_id && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const entityPath =
-                      selectedNotification.related_entity_type === 'machine'
-                        ? 'machines'
-                        : selectedNotification.related_entity_type === 'task'
-                          ? 'tasks'
-                          : selectedNotification.related_entity_type || '';
-                    router.push(`/dashboard/${entityPath}/${selectedNotification.related_entity_id}`);
-                  }}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Перейти к объекту
-                </Button>
-              )}
+              {selectedNotification.related_entity_type &&
+                selectedNotification.related_entity_id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const entityPath =
+                        selectedNotification.related_entity_type === "machine"
+                          ? "machines"
+                          : selectedNotification.related_entity_type === "task"
+                            ? "tasks"
+                            : selectedNotification.related_entity_type || "";
+                      router.push(
+                        `/dashboard/${entityPath}/${selectedNotification.related_entity_id}`,
+                      );
+                    }}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Перейти к объекту
+                  </Button>
+                )}
               <div className="flex justify-end gap-2 pt-2">
-                {selectedNotification.status === 'unread' && (
+                {selectedNotification.status === "unread" && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
                       markReadMutation.mutate(selectedNotification.id);
-                      setSelectedNotification({ ...selectedNotification, status: 'read' });
+                      setSelectedNotification({
+                        ...selectedNotification,
+                        status: "read",
+                      });
                     }}
                   >
                     <Eye className="w-4 h-4 mr-2" />
@@ -1551,11 +1765,14 @@ export default function NotificationsPage() {
       </Dialog>
 
       {/* Template Dialog */}
-      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+      <Dialog
+        open={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? 'Редактировать шаблон' : 'Новый шаблон'}
+              {editingTemplate ? "Редактировать шаблон" : "Новый шаблон"}
             </DialogTitle>
           </DialogHeader>
           <TemplateForm
@@ -1571,7 +1788,7 @@ export default function NotificationsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingRule ? 'Редактировать правило' : 'Новое правило'}
+              {editingRule ? "Редактировать правило" : "Новое правило"}
             </DialogTitle>
           </DialogHeader>
           <RuleForm
@@ -1583,11 +1800,14 @@ export default function NotificationsPage() {
       </Dialog>
 
       {/* Campaign Dialog */}
-      <Dialog open={isCampaignDialogOpen} onOpenChange={setIsCampaignDialogOpen}>
+      <Dialog
+        open={isCampaignDialogOpen}
+        onOpenChange={setIsCampaignDialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingCampaign ? 'Редактировать кампанию' : 'Новая кампания'}
+              {editingCampaign ? "Редактировать кампанию" : "Новая кампания"}
             </DialogTitle>
           </DialogHeader>
           <CampaignForm
@@ -1613,18 +1833,19 @@ function TemplateForm({
   isPending: boolean;
 }) {
   const [formData, setFormData] = useState({
-    name: template?.name || '',
-    type: template?.type || 'system',
+    name: template?.name || "",
+    type: template?.type || "system",
     channels: template?.channels || ([] as string[]),
-    subject: template?.subject || '',
-    body: template?.body || '',
-    variables: template?.variables?.join(', ') || '',
+    subject: template?.subject || "",
+    body: template?.body || "",
+    variables: template?.variables?.join(", ") || "",
     is_active: template?.is_active ?? true,
   });
 
   const toggleChannel = (ch: string) => {
     setFormData({
       ...formData,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       channels: formData.channels.includes(ch as any)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
@@ -1636,9 +1857,10 @@ function TemplateForm({
     onSubmit({
       ...formData,
       variables: formData.variables
-        .split(',')
+        .split(",")
         .map((v) => v.trim())
         .filter(Boolean),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   };
 
@@ -1658,6 +1880,7 @@ function TemplateForm({
           <label className="text-sm font-medium">Тип</label>
           <Select
             value={formData.type}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onValueChange={(v) => setFormData({ ...formData, type: v as any })}
           >
             <SelectTrigger>
@@ -1675,15 +1898,15 @@ function TemplateForm({
         <div>
           <label className="text-sm font-medium">Каналы доставки</label>
           <div className="flex flex-wrap gap-2 mt-1.5">
-            {(['push', 'email', 'sms', 'telegram'] as const).map((ch) => (
+            {(["push", "email", "sms", "telegram"] as const).map((ch) => (
               <button
                 key={ch}
                 type="button"
                 onClick={() => toggleChannel(ch)}
                 className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                   formData.channels.includes(ch)
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-background border-input hover:bg-muted'
+                    ? "bg-primary text-white border-primary"
+                    : "bg-background border-input hover:bg-muted"
                 }`}
               >
                 {channelLabels[ch]}
@@ -1696,7 +1919,9 @@ function TemplateForm({
         <label className="text-sm font-medium">Тема</label>
         <Input
           value={formData.subject}
-          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, subject: e.target.value })
+          }
           placeholder="Тема уведомления"
           required
         />
@@ -1711,14 +1936,19 @@ function TemplateForm({
           required
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Доступные переменные: {'{{user_name}}'}, {'{{machine_name}}'}, {'{{product_name}}'}, {'{{quantity}}'}, {'{{date}}'}
+          Доступные переменные: {"{{user_name}}"}, {"{{machine_name}}"},{" "}
+          {"{{product_name}}"}, {"{{quantity}}"}, {"{{date}}"}
         </p>
       </div>
       <div>
-        <label className="text-sm font-medium">Переменные (через запятую)</label>
+        <label className="text-sm font-medium">
+          Переменные (через запятую)
+        </label>
         <Input
           value={formData.variables}
-          onChange={(e) => setFormData({ ...formData, variables: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, variables: e.target.value })
+          }
           placeholder="user_name, machine_name, quantity"
         />
       </div>
@@ -1726,21 +1956,23 @@ function TemplateForm({
         <label className="flex items-center gap-2 text-sm">
           <button
             type="button"
-            onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+            onClick={() =>
+              setFormData({ ...formData, is_active: !formData.is_active })
+            }
             className={`relative w-10 h-5 rounded-full transition-colors ${
-              formData.is_active ? 'bg-green-500' : 'bg-input'
+              formData.is_active ? "bg-green-500" : "bg-input"
             }`}
           >
             <span
               className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                formData.is_active ? 'translate-x-5' : 'translate-x-0.5'
+                formData.is_active ? "translate-x-5" : "translate-x-0.5"
               }`}
             />
           </button>
-          <span>{formData.is_active ? 'Активный' : 'Неактивный'}</span>
+          <span>{formData.is_active ? "Активный" : "Неактивный"}</span>
         </label>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Сохранение...' : template ? 'Обновить' : 'Создать'}
+          {isPending ? "Сохранение..." : template ? "Обновить" : "Создать"}
         </Button>
       </div>
     </form>
@@ -1759,10 +1991,10 @@ function RuleForm({
   isPending: boolean;
 }) {
   const [formData, setFormData] = useState({
-    name: rule?.name || '',
-    event: rule?.event || '',
-    conditions: rule?.conditions || '',
-    recipients: rule?.recipients || '',
+    name: rule?.name || "",
+    event: rule?.event || "",
+    conditions: rule?.conditions || "",
+    recipients: rule?.recipients || "",
     channels: rule?.channels || ([] as string[]),
     is_active: rule?.is_active ?? true,
   });
@@ -1770,6 +2002,7 @@ function RuleForm({
   const toggleChannel = (ch: string) => {
     setFormData({
       ...formData,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       channels: formData.channels.includes(ch as any)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
@@ -1778,6 +2011,7 @@ function RuleForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit(formData as any);
   };
 
@@ -1834,7 +2068,9 @@ function RuleForm({
         <label className="text-sm font-medium">Условия (опционально)</label>
         <Input
           value={formData.conditions}
-          onChange={(e) => setFormData({ ...formData, conditions: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, conditions: e.target.value })
+          }
           placeholder='Например: priority == "high" AND region == "tashkent"'
         />
         <p className="text-xs text-muted-foreground mt-1">
@@ -1844,15 +2080,15 @@ function RuleForm({
       <div>
         <label className="text-sm font-medium">Каналы доставки</label>
         <div className="flex flex-wrap gap-2 mt-1.5">
-          {(['push', 'email', 'sms', 'telegram'] as const).map((ch) => (
+          {(["push", "email", "sms", "telegram"] as const).map((ch) => (
             <button
               key={ch}
               type="button"
               onClick={() => toggleChannel(ch)}
               className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                 formData.channels.includes(ch)
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-background border-input hover:bg-muted'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-background border-input hover:bg-muted"
               }`}
             >
               {channelLabels[ch]}
@@ -1864,21 +2100,23 @@ function RuleForm({
         <label className="flex items-center gap-2 text-sm">
           <button
             type="button"
-            onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+            onClick={() =>
+              setFormData({ ...formData, is_active: !formData.is_active })
+            }
             className={`relative w-10 h-5 rounded-full transition-colors ${
-              formData.is_active ? 'bg-green-500' : 'bg-input'
+              formData.is_active ? "bg-green-500" : "bg-input"
             }`}
           >
             <span
               className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                formData.is_active ? 'translate-x-5' : 'translate-x-0.5'
+                formData.is_active ? "translate-x-5" : "translate-x-0.5"
               }`}
             />
           </button>
-          <span>{formData.is_active ? 'Активно' : 'Неактивно'}</span>
+          <span>{formData.is_active ? "Активно" : "Неактивно"}</span>
         </label>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Сохранение...' : rule ? 'Обновить' : 'Создать'}
+          {isPending ? "Сохранение..." : rule ? "Обновить" : "Создать"}
         </Button>
       </div>
     </form>
@@ -1897,16 +2135,17 @@ function CampaignForm({
   isPending: boolean;
 }) {
   const [formData, setFormData] = useState({
-    name: campaign?.name || '',
-    message: campaign?.message || '',
-    audience_filter: 'all',
+    name: campaign?.name || "",
+    message: campaign?.message || "",
+    audience_filter: "all",
     channels: campaign?.channels || ([] as string[]),
-    scheduled_at: campaign?.scheduled_at || '',
+    scheduled_at: campaign?.scheduled_at || "",
   });
 
   const toggleChannel = (ch: string) => {
     setFormData({
       ...formData,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       channels: formData.channels.includes(ch as any)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
@@ -1915,6 +2154,7 @@ function CampaignForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit(formData as any);
   };
 
@@ -1933,7 +2173,9 @@ function CampaignForm({
         <label className="text-sm font-medium">Сообщение</label>
         <Textarea
           value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
           placeholder="Текст сообщения для рассылки..."
           rows={4}
           required
@@ -1944,7 +2186,9 @@ function CampaignForm({
           <label className="text-sm font-medium">Целевая аудитория</label>
           <Select
             value={formData.audience_filter}
-            onValueChange={(v) => setFormData({ ...formData, audience_filter: v })}
+            onValueChange={(v) =>
+              setFormData({ ...formData, audience_filter: v })
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -1960,26 +2204,30 @@ function CampaignForm({
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Запланировать (опционально)</label>
+          <label className="text-sm font-medium">
+            Запланировать (опционально)
+          </label>
           <Input
             type="datetime-local"
             value={formData.scheduled_at}
-            onChange={(e) => setFormData({ ...formData, scheduled_at: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, scheduled_at: e.target.value })
+            }
           />
         </div>
       </div>
       <div>
         <label className="text-sm font-medium">Каналы доставки</label>
         <div className="flex flex-wrap gap-2 mt-1.5">
-          {(['push', 'email', 'sms', 'telegram'] as const).map((ch) => (
+          {(["push", "email", "sms", "telegram"] as const).map((ch) => (
             <button
               key={ch}
               type="button"
               onClick={() => toggleChannel(ch)}
               className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                 formData.channels.includes(ch)
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-background border-input hover:bg-muted'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-background border-input hover:bg-muted"
               }`}
             >
               {channelLabels[ch]}
@@ -1989,7 +2237,7 @@ function CampaignForm({
       </div>
       <div className="flex justify-end gap-3 pt-2">
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Сохранение...' : campaign ? 'Обновить' : 'Создать'}
+          {isPending ? "Сохранение..." : campaign ? "Обновить" : "Создать"}
         </Button>
       </div>
     </form>

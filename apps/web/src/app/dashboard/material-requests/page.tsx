@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PackagePlus,
   Plus,
@@ -19,19 +19,18 @@ import {
   Eye,
   Truck,
   Filter,
-  Trash2,
   AlertTriangle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -39,25 +38,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface MaterialRequest {
   id: string;
@@ -66,8 +65,16 @@ interface MaterialRequest {
     firstName: string;
     lastName: string;
   };
-  status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
+  status:
+    | "draft"
+    | "submitted"
+    | "approved"
+    | "rejected"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
+  priority: "low" | "normal" | "high" | "urgent";
   items: {
     id: string;
     product: {
@@ -86,49 +93,50 @@ interface MaterialRequest {
 }
 
 const statusLabels: Record<string, string> = {
-  draft: 'Черновик',
-  submitted: 'На рассмотрении',
-  approved: 'Одобрена',
-  rejected: 'Отклонена',
-  processing: 'Комплектуется',
-  shipped: 'Отправлена',
-  delivered: 'Доставлена',
-  cancelled: 'Отменена',
+  draft: "Черновик",
+  submitted: "На рассмотрении",
+  approved: "Одобрена",
+  rejected: "Отклонена",
+  processing: "Комплектуется",
+  shipped: "Отправлена",
+  delivered: "Доставлена",
+  cancelled: "Отменена",
 };
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-muted text-muted-foreground',
-  submitted: 'bg-blue-500/10 text-blue-500',
-  approved: 'bg-green-500/10 text-green-500',
-  rejected: 'bg-red-500/10 text-red-500',
-  processing: 'bg-amber-500/10 text-amber-500',
-  shipped: 'bg-purple-500/10 text-purple-500',
-  delivered: 'bg-emerald-500/10 text-emerald-500',
-  cancelled: 'bg-muted text-muted-foreground',
+  draft: "bg-muted text-muted-foreground",
+  submitted: "bg-blue-500/10 text-blue-500",
+  approved: "bg-green-500/10 text-green-500",
+  rejected: "bg-red-500/10 text-red-500",
+  processing: "bg-amber-500/10 text-amber-500",
+  shipped: "bg-purple-500/10 text-purple-500",
+  delivered: "bg-emerald-500/10 text-emerald-500",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 const priorityLabels: Record<string, string> = {
-  low: 'Низкий',
-  normal: 'Обычный',
-  high: 'Высокий',
-  urgent: 'Срочный',
+  low: "Низкий",
+  normal: "Обычный",
+  high: "Высокий",
+  urgent: "Срочный",
 };
 
 const priorityColors: Record<string, string> = {
-  low: 'bg-muted text-muted-foreground',
-  normal: 'bg-blue-500/10 text-blue-500',
-  high: 'bg-amber-500/10 text-amber-500',
-  urgent: 'bg-red-500/10 text-red-500',
+  low: "bg-muted text-muted-foreground",
+  normal: "bg-blue-500/10 text-blue-500",
+  high: "bg-amber-500/10 text-amber-500",
+  urgent: "bg-red-500/10 text-red-500",
 };
 
 export default function MaterialRequestsPage() {
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<MaterialRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<MaterialRequest | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -136,13 +144,22 @@ export default function MaterialRequestsPage() {
   }, [search]);
 
   // Fetch requests
-  const { data: requests, isLoading, isError } = useQuery<MaterialRequest[]>({
-    queryKey: ['material-requests', debouncedSearch, statusFilter, priorityFilter],
+  const {
+    data: requests,
+    isLoading,
+    isError,
+  } = useQuery<MaterialRequest[]>({
+    queryKey: [
+      "material-requests",
+      debouncedSearch,
+      statusFilter,
+      priorityFilter,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (priorityFilter !== 'all') params.append('priority', priorityFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (priorityFilter !== "all") params.append("priority", priorityFilter);
       const res = await api.get(`/material-requests?${params}`);
       return res.data;
     },
@@ -154,28 +171,45 @@ export default function MaterialRequestsPage() {
       return api.post(`/material-requests/${id}/${action}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['material-requests'] });
-      toast.success('Статус обновлён');
+      queryClient.invalidateQueries({ queryKey: ["material-requests"] });
+      toast.success("Статус обновлён");
     },
     onError: () => {
-      toast.error('Ошибка обновления статуса');
+      toast.error("Ошибка обновления статуса");
     },
   });
 
-  const stats = useMemo(() => ({
-    total: requests?.length || 0,
-    pending: requests?.filter((r) => r.status === 'submitted').length || 0,
-    processing: requests?.filter((r) => ['approved', 'processing', 'shipped'].includes(r.status)).length || 0,
-    urgent: requests?.filter((r) => r.priority === 'urgent' && !['delivered', 'cancelled', 'rejected'].includes(r.status)).length || 0,
-  }), [requests]);
+  const stats = useMemo(
+    () => ({
+      total: requests?.length || 0,
+      pending: requests?.filter((r) => r.status === "submitted").length || 0,
+      processing:
+        requests?.filter((r) =>
+          ["approved", "processing", "shipped"].includes(r.status),
+        ).length || 0,
+      urgent:
+        requests?.filter(
+          (r) =>
+            r.priority === "urgent" &&
+            !["delivered", "cancelled", "rejected"].includes(r.status),
+        ).length || 0,
+    }),
+    [requests],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить заявки</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['material-requests'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить заявки
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["material-requests"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -206,7 +240,9 @@ export default function MaterialRequestsPage() {
             <MaterialRequestForm
               onSuccess={() => {
                 setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['material-requests'] });
+                queryClient.invalidateQueries({
+                  queryKey: ["material-requests"],
+                });
               }}
             />
           </DialogContent>
@@ -281,11 +317,14 @@ export default function MaterialRequestsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
               Все статусы
             </DropdownMenuItem>
             {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setStatusFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -300,11 +339,14 @@ export default function MaterialRequestsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setPriorityFilter('all')}>
+            <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
               Все приоритеты
             </DropdownMenuItem>
             {Object.entries(priorityLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setPriorityFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setPriorityFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -350,7 +392,8 @@ export default function MaterialRequestsPage() {
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-muted-foreground" />
                       <span>
-                        {request.requester.firstName} {request.requester.lastName}
+                        {request.requester.firstName}{" "}
+                        {request.requester.lastName}
                       </span>
                     </div>
                   </TableCell>
@@ -371,17 +414,23 @@ export default function MaterialRequestsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(request.createdAt).toLocaleDateString('ru-RU')}
+                    {new Date(request.createdAt).toLocaleDateString("ru-RU")}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Действия">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Действия"
+                        >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setSelectedRequest(request)}>
+                        <DropdownMenuItem
+                          onClick={() => setSelectedRequest(request)}
+                        >
                           <Eye className="w-4 h-4 mr-2" />
                           Просмотр
                         </DropdownMenuItem>
@@ -390,49 +439,79 @@ export default function MaterialRequestsPage() {
                           Редактировать
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {request.status === 'draft' && (
+                        {request.status === "draft" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'submit' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "submit",
+                              })
+                            }
                           >
                             <Send className="w-4 h-4 mr-2" />
                             Отправить
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'submitted' && (
+                        {request.status === "submitted" && (
                           <>
                             <DropdownMenuItem
-                              onClick={() => transitionMutation.mutate({ id: request.id, action: 'approve' })}
+                              onClick={() =>
+                                transitionMutation.mutate({
+                                  id: request.id,
+                                  action: "approve",
+                                })
+                              }
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
                               Одобрить
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => transitionMutation.mutate({ id: request.id, action: 'reject' })}
+                              onClick={() =>
+                                transitionMutation.mutate({
+                                  id: request.id,
+                                  action: "reject",
+                                })
+                              }
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Отклонить
                             </DropdownMenuItem>
                           </>
                         )}
-                        {request.status === 'approved' && (
+                        {request.status === "approved" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'process' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "process",
+                              })
+                            }
                           >
                             <Warehouse className="w-4 h-4 mr-2" />
                             Начать комплектацию
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'processing' && (
+                        {request.status === "processing" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'ship' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "ship",
+                              })
+                            }
                           >
                             <Truck className="w-4 h-4 mr-2" />
                             Отправить
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'shipped' && (
+                        {request.status === "shipped" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'deliver' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "deliver",
+                              })
+                            }
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
                             Подтвердить доставку
@@ -456,7 +535,10 @@ export default function MaterialRequestsPage() {
       </div>
 
       {/* Request Details Dialog */}
-      <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+      <Dialog
+        open={!!selectedRequest}
+        onOpenChange={() => setSelectedRequest(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Заявка #{selectedRequest?.requestNumber}</DialogTitle>
@@ -475,7 +557,8 @@ export default function MaterialRequestsPage() {
               <div className="p-4 bg-muted/50 rounded-lg">
                 <h4 className="text-sm font-medium mb-2">Заявитель</h4>
                 <p className="font-medium">
-                  {selectedRequest.requester.firstName} {selectedRequest.requester.lastName}
+                  {selectedRequest.requester.firstName}{" "}
+                  {selectedRequest.requester.lastName}
                 </p>
               </div>
 
@@ -493,7 +576,9 @@ export default function MaterialRequestsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{item.requestedQuantity} шт.</p>
+                      <p className="font-semibold">
+                        {item.requestedQuantity} шт.
+                      </p>
                       {item.approvedQuantity !== undefined && (
                         <p className="text-sm text-green-500">
                           Одобрено: {item.approvedQuantity}
@@ -513,16 +598,23 @@ export default function MaterialRequestsPage() {
 
               <div className="text-sm text-muted-foreground">
                 <p>
-                  Создана: {new Date(selectedRequest.createdAt).toLocaleString('ru-RU')}
+                  Создана:{" "}
+                  {new Date(selectedRequest.createdAt).toLocaleString("ru-RU")}
                 </p>
                 {selectedRequest.approvedAt && (
                   <p>
-                    Одобрена: {new Date(selectedRequest.approvedAt).toLocaleString('ru-RU')}
+                    Одобрена:{" "}
+                    {new Date(selectedRequest.approvedAt).toLocaleString(
+                      "ru-RU",
+                    )}
                   </p>
                 )}
                 {selectedRequest.deliveredAt && (
                   <p>
-                    Доставлена: {new Date(selectedRequest.deliveredAt).toLocaleString('ru-RU')}
+                    Доставлена:{" "}
+                    {new Date(selectedRequest.deliveredAt).toLocaleString(
+                      "ru-RU",
+                    )}
                   </p>
                 )}
               </div>
@@ -537,21 +629,21 @@ export default function MaterialRequestsPage() {
 // Material Request Form Component
 function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
   const [formData, setFormData] = useState({
-    priority: 'normal',
-    notes: '',
-    items: [{ productId: '', quantity: 1 }],
+    priority: "normal",
+    notes: "",
+    items: [{ productId: "", quantity: 1 }],
   });
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post('/material-requests', data);
+      return api.post("/material-requests", data);
     },
     onSuccess: () => {
-      toast.success('Заявка создана');
+      toast.success("Заявка создана");
       onSuccess();
     },
     onError: () => {
-      toast.error('Ошибка создания заявки');
+      toast.error("Ошибка создания заявки");
     },
   });
 
@@ -566,7 +658,9 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
         <label className="text-sm font-medium">Приоритет</label>
         <Select
           value={formData.priority}
-          onValueChange={(value) => setFormData({ ...formData, priority: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, priority: value })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Выберите приоритет" />
@@ -591,7 +685,7 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Создание...' : 'Создать заявку'}
+          {mutation.isPending ? "Создание..." : "Создать заявку"}
         </Button>
       </div>
     </form>

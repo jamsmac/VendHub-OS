@@ -8,7 +8,8 @@ export interface BatchOptions {
   delayMs?: number;
   concurrency?: number;
   onProgress?: (progress: BatchProgress) => void;
-  onError?: (error: Error, item: any, index: number) => 'skip' | 'abort';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onError?: (error: Error, item: any, index: number) => "skip" | "abort";
 }
 
 export interface BatchProgress {
@@ -25,6 +26,7 @@ export interface BatchProgress {
 
 export interface BatchResult<T> {
   successful: T[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   failed: Array<{ item: any; error: Error; index: number }>;
   totalProcessed: number;
   durationMs: number;
@@ -54,11 +56,12 @@ export async function processBatch<T, R>(
     delayMs = 0,
     concurrency = 10,
     onProgress,
-    onError = () => 'skip',
+    onError = () => "skip",
   } = options;
 
   const startTime = Date.now();
   const successful: R[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const failed: Array<{ item: any; error: Error; index: number }> = [];
   let processedCount = 0;
 
@@ -79,7 +82,12 @@ export async function processBatch<T, R>(
           const result = await processor(item, globalIndex);
           return { success: true, result, index: globalIndex };
         } catch (error: unknown) {
-          return { success: false, error: error instanceof Error ? error : new Error(String(error)), item, index: globalIndex };
+          return {
+            success: false,
+            error: error instanceof Error ? error : new Error(String(error)),
+            item,
+            index: globalIndex,
+          };
         }
       },
       concurrency,
@@ -93,7 +101,7 @@ export async function processBatch<T, R>(
         successful.push(result.result as R);
       } else if (!result.success && result.error) {
         const action = onError(result.error, result.item, result.index);
-        if (action === 'abort') {
+        if (action === "abort") {
           return {
             successful,
             failed,
@@ -101,7 +109,11 @@ export async function processBatch<T, R>(
             durationMs: Date.now() - startTime,
           };
         }
-        failed.push({ item: result.item, error: result.error as Error, index: result.index });
+        failed.push({
+          item: result.item,
+          error: result.error as Error,
+          index: result.index,
+        });
       }
     }
 
@@ -233,12 +245,15 @@ export async function parallelLimit<T, R>(
   const results: R[] = new Array(items.length);
   let index = 0;
 
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (index < items.length) {
-      const currentIndex = index++;
-      results[currentIndex] = await processor(items[currentIndex]);
-    }
-  });
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (index < items.length) {
+        const currentIndex = index++;
+        results[currentIndex] = await processor(items[currentIndex]);
+      }
+    },
+  );
 
   await Promise.all(workers);
   return results;
@@ -256,6 +271,7 @@ export interface UpsertOptions {
 export function generateBatchUpsertSQL(
   tableName: string,
   columns: string[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   values: any[][],
   options: UpsertOptions,
 ): string {
@@ -265,20 +281,25 @@ export function generateBatchUpsertSQL(
   const placeholders = values
     .slice(0, chunkSize)
     .map((row, rowIndex) => {
-      const rowPlaceholders = columns.map((_, colIndex) => `$${rowIndex * columns.length + colIndex + 1}`);
-      return `(${rowPlaceholders.join(', ')})`;
+      const rowPlaceholders = columns.map(
+        (_, colIndex) => `$${rowIndex * columns.length + colIndex + 1}`,
+      );
+      return `(${rowPlaceholders.join(", ")})`;
     })
-    .join(', ');
+    .join(", ");
 
   // Generate conflict clause
-  const conflictClause = conflictColumns.join(', ');
+  const conflictClause = conflictColumns.join(", ");
 
   // Generate update clause
-  const updateCols = updateColumns || columns.filter((c) => !conflictColumns.includes(c));
-  const updateClause = updateCols.map((col) => `"${col}" = EXCLUDED."${col}"`).join(', ');
+  const updateCols =
+    updateColumns || columns.filter((c) => !conflictColumns.includes(c));
+  const updateClause = updateCols
+    .map((col) => `"${col}" = EXCLUDED."${col}"`)
+    .join(", ");
 
   return `
-    INSERT INTO "${tableName}" (${columns.map((c) => `"${c}"`).join(', ')})
+    INSERT INTO "${tableName}" (${columns.map((c) => `"${c}"`).join(", ")})
     VALUES ${placeholders}
     ON CONFLICT (${conflictClause})
     DO UPDATE SET ${updateClause}, "updatedAt" = NOW()
@@ -359,7 +380,11 @@ export function createBatchDebouncer<T, R>(
 ): (item: T) => Promise<R> {
   const { maxWaitMs = 100, maxBatchSize = 100 } = options;
 
-  let batch: Array<{ item: T; resolve: (result: R) => void; reject: (error: Error) => void }> = [];
+  let batch: Array<{
+    item: T;
+    resolve: (result: R) => void;
+    reject: (error: Error) => void;
+  }> = [];
   let timer: NodeJS.Timeout | null = null;
 
   const flush = async () => {

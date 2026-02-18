@@ -25,6 +25,10 @@ spec:
         app: vendhub-client
         tier: frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101 # nginx user UID in Alpine-based images
+        fsGroup: 101
       containers:
         - name: client
           image: vendhub/client:latest
@@ -33,6 +37,17 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
 
           resources:
             requests:
@@ -55,6 +70,12 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
+
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
 
       affinity:
         podAntiAffinity:

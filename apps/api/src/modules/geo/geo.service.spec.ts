@@ -1,21 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
-import { of, throwError } from 'rxjs';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { ConfigService } from "@nestjs/config";
+import { HttpService } from "@nestjs/axios";
+import { of, throwError } from "rxjs";
 
-import { GeoService, Coordinates } from './geo.service';
-import { Machine } from '../machines/entities/machine.entity';
+import { GeoService, Coordinates } from "./geo.service";
+import { Machine } from "../machines/entities/machine.entity";
 
-describe('GeoService', () => {
+describe("GeoService", () => {
   let service: GeoService;
-  let machineRepo: jest.Mocked<Repository<Machine>>;
+  let _machineRepo: jest.Mocked<Repository<Machine>>;
   let httpService: jest.Mocked<HttpService>;
-  let configService: jest.Mocked<ConfigService>;
+  let _configService: jest.Mocked<ConfigService>;
 
-  const orgId = 'org-uuid-1';
-  const apiKey = 'test-google-api-key';
+  const orgId = "org-uuid-1";
+  const apiKey = "test-google-api-key";
 
   const tashkentCoords: Coordinates = {
     latitude: 41.2995,
@@ -28,33 +28,33 @@ describe('GeoService', () => {
   };
 
   const mockMachine: Machine = {
-    id: 'machine-uuid-1',
-    name: 'VM-001',
-    serialNumber: 'SN001',
-    address: 'Tashkent, Amir Temur 1',
-    latitude: 41.3000,
-    longitude: 69.2450,
+    id: "machine-uuid-1",
+    name: "VM-001",
+    serialNumber: "SN001",
+    address: "Tashkent, Amir Temur 1",
+    latitude: 41.3,
+    longitude: 69.245,
     isOnline: true,
     organizationId: orgId,
   } as unknown as Machine;
 
   const mockGeocodingResponse = {
     data: {
-      status: 'OK',
+      status: "OK",
       results: [
         {
-          formatted_address: 'Tashkent, Uzbekistan',
+          formatted_address: "Tashkent, Uzbekistan",
           geometry: {
             location: { lat: 41.2995, lng: 69.2401 },
           },
-          place_id: 'ChIJ_abcdef',
+          place_id: "ChIJ_abcdef",
           address_components: [
-            { long_name: 'Uzbekistan', types: ['country'] },
-            { long_name: 'Tashkent', types: ['locality'] },
-            { long_name: 'Yunusabad', types: ['sublocality'] },
-            { long_name: 'Amir Temur', types: ['route'] },
-            { long_name: '1', types: ['street_number'] },
-            { long_name: '100000', types: ['postal_code'] },
+            { long_name: "Uzbekistan", types: ["country"] },
+            { long_name: "Tashkent", types: ["locality"] },
+            { long_name: "Yunusabad", types: ["sublocality"] },
+            { long_name: "Amir Temur", types: ["route"] },
+            { long_name: "1", types: ["street_number"] },
+            { long_name: "100000", types: ["postal_code"] },
           ],
         },
       ],
@@ -63,22 +63,22 @@ describe('GeoService', () => {
 
   const mockDirectionsResponse = {
     data: {
-      status: 'OK',
+      status: "OK",
       routes: [
         {
-          overview_polyline: { points: 'encodedPolyline123' },
+          overview_polyline: { points: "encodedPolyline123" },
           legs: [
             {
               distance: { value: 1500 },
               duration: { value: 1200 },
               steps: [
                 {
-                  html_instructions: 'Walk <b>north</b> on Main St',
+                  html_instructions: "Walk <b>north</b> on Main St",
                   distance: { value: 500 },
                   duration: { value: 400 },
                 },
                 {
-                  html_instructions: 'Turn <b>right</b> onto Elm St',
+                  html_instructions: "Turn <b>right</b> onto Elm St",
                   distance: { value: 1000 },
                   duration: { value: 800 },
                 },
@@ -92,12 +92,20 @@ describe('GeoService', () => {
 
   const mockDistanceMatrixResponse = {
     data: {
-      status: 'OK',
+      status: "OK",
       rows: [
         {
           elements: [
-            { status: 'OK', distance: { value: 1500 }, duration: { value: 1200 } },
-            { status: 'OK', distance: { value: 3000 }, duration: { value: 2400 } },
+            {
+              status: "OK",
+              distance: { value: 1500 },
+              duration: { value: 1200 },
+            },
+            {
+              status: "OK",
+              distance: { value: 3000 },
+              duration: { value: 2400 },
+            },
           ],
         },
       ],
@@ -106,14 +114,14 @@ describe('GeoService', () => {
 
   const mockAutocompleteResponse = {
     data: {
-      status: 'OK',
+      status: "OK",
       predictions: [
         {
-          place_id: 'place-1',
-          description: 'Tashkent, Uzbekistan',
+          place_id: "place-1",
+          description: "Tashkent, Uzbekistan",
           structured_formatting: {
-            main_text: 'Tashkent',
-            secondary_text: 'Uzbekistan',
+            main_text: "Tashkent",
+            secondary_text: "Uzbekistan",
           },
         },
       ],
@@ -122,15 +130,15 @@ describe('GeoService', () => {
 
   const mockPlaceDetailsResponse = {
     data: {
-      status: 'OK',
+      status: "OK",
       result: {
-        formatted_address: 'Tashkent, Uzbekistan',
+        formatted_address: "Tashkent, Uzbekistan",
         geometry: {
           location: { lat: 41.2995, lng: 69.2401 },
         },
         address_components: [
-          { long_name: 'Uzbekistan', types: ['country'] },
-          { long_name: 'Tashkent', types: ['locality'] },
+          { long_name: "Uzbekistan", types: ["country"] },
+          { long_name: "Tashkent", types: ["locality"] },
         ],
       },
     },
@@ -147,7 +155,7 @@ describe('GeoService', () => {
     getMany: jest.fn().mockResolvedValue([mockMachine]),
     getRawAndEntities: jest.fn().mockResolvedValue({
       entities: [mockMachine],
-      raw: [{ distance: '750.5' }],
+      raw: [{ distance: "750.5" }],
     }),
   };
 
@@ -184,7 +192,7 @@ describe('GeoService', () => {
     configService = module.get(ConfigService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -192,29 +200,30 @@ describe('GeoService', () => {
   // GEOCODING
   // ============================================================================
 
-  describe('geocodeAddress', () => {
-    it('should geocode an address successfully', async () => {
+  describe("geocodeAddress", () => {
+    it("should geocode an address successfully", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockGeocodingResponse) as any);
 
-      const result = await service.geocodeAddress('Tashkent, Uzbekistan');
+      const result = await service.geocodeAddress("Tashkent, Uzbekistan");
 
       expect(result).not.toBeNull();
-      expect(result!.formattedAddress).toEqual('Tashkent, Uzbekistan');
+      expect(result!.formattedAddress).toEqual("Tashkent, Uzbekistan");
       expect(result!.latitude).toEqual(41.2995);
       expect(result!.longitude).toEqual(69.2401);
-      expect(result!.placeId).toEqual('ChIJ_abcdef');
-      expect(result!.components.country).toEqual('Uzbekistan');
-      expect(result!.components.city).toEqual('Tashkent');
+      expect(result!.placeId).toEqual("ChIJ_abcdef");
+      expect(result!.components.country).toEqual("Uzbekistan");
+      expect(result!.components.city).toEqual("Tashkent");
     });
 
-    it('should return null when API key is not configured', async () => {
+    it("should return null when API key is not configured", async () => {
       // Create a service instance without API key
       const moduleNoKey = await Test.createTestingModule({
         providers: [
           GeoService,
           {
             provide: ConfigService,
-            useValue: { get: jest.fn().mockReturnValue('') },
+            useValue: { get: jest.fn().mockReturnValue("") },
           },
           {
             provide: HttpService,
@@ -228,49 +237,52 @@ describe('GeoService', () => {
       }).compile();
 
       const serviceNoKey = moduleNoKey.get<GeoService>(GeoService);
-      const result = await serviceNoKey.geocodeAddress('Test');
+      const result = await serviceNoKey.geocodeAddress("Test");
 
       expect(result).toBeNull();
     });
 
-    it('should return null when no results found', async () => {
+    it("should return null when no results found", async () => {
       httpService.get.mockReturnValue(
-        of({ data: { status: 'ZERO_RESULTS', results: [] } }) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        of({ data: { status: "ZERO_RESULTS", results: [] } }) as any,
       );
 
-      const result = await service.geocodeAddress('NonexistentPlace12345');
+      const result = await service.geocodeAddress("NonexistentPlace12345");
 
       expect(result).toBeNull();
     });
 
-    it('should return null on API error', async () => {
+    it("should return null on API error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('API Error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("API Error")) as any,
       );
 
-      const result = await service.geocodeAddress('Test');
+      const result = await service.geocodeAddress("Test");
 
       expect(result).toBeNull();
     });
   });
 
-  describe('reverseGeocode', () => {
-    it('should reverse geocode coordinates', async () => {
+  describe("reverseGeocode", () => {
+    it("should reverse geocode coordinates", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockGeocodingResponse) as any);
 
       const result = await service.reverseGeocode(tashkentCoords);
 
       expect(result).not.toBeNull();
-      expect(result!.formattedAddress).toEqual('Tashkent, Uzbekistan');
+      expect(result!.formattedAddress).toEqual("Tashkent, Uzbekistan");
     });
 
-    it('should return null when API key missing', async () => {
+    it("should return null when API key missing", async () => {
       const moduleNoKey = await Test.createTestingModule({
         providers: [
           GeoService,
           {
             provide: ConfigService,
-            useValue: { get: jest.fn().mockReturnValue('') },
+            useValue: { get: jest.fn().mockReturnValue("") },
           },
           {
             provide: HttpService,
@@ -289,9 +301,10 @@ describe('GeoService', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null on error', async () => {
+    it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('Network error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("Network error")) as any,
       );
 
       const result = await service.reverseGeocode(tashkentCoords);
@@ -304,12 +317,9 @@ describe('GeoService', () => {
   // NEARBY MACHINES
   // ============================================================================
 
-  describe('findNearbyMachines', () => {
-    it('should find nearby machines with distance', async () => {
-      const result = await service.findNearbyMachines(
-        tashkentCoords,
-        orgId,
-      );
+  describe("findNearbyMachines", () => {
+    it("should find nearby machines with distance", async () => {
+      const result = await service.findNearbyMachines(tashkentCoords, orgId);
 
       expect(result).toHaveLength(1);
       expect(result[0].machine).toEqual(mockMachine);
@@ -317,16 +327,16 @@ describe('GeoService', () => {
       expect(result[0].duration).toBeDefined();
     });
 
-    it('should filter by online status by default', async () => {
+    it("should filter by online status by default", async () => {
       await service.findNearbyMachines(tashkentCoords, orgId);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'm.isOnline = :isOnline',
+        "m.isOnline = :isOnline",
         { isOnline: true },
       );
     });
 
-    it('should skip online filter when onlyOnline is false', async () => {
+    it("should skip online filter when onlyOnline is false", async () => {
       mockQueryBuilder.andWhere.mockClear();
 
       await service.findNearbyMachines(tashkentCoords, orgId, {
@@ -335,27 +345,28 @@ describe('GeoService', () => {
 
       const calls = mockQueryBuilder.andWhere.mock.calls;
       const onlineFilterCalls = calls.filter(
-        (c: any[]) => c[0] === 'm.isOnline = :isOnline',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c: any[]) => c[0] === "m.isOnline = :isOnline",
       );
       expect(onlineFilterCalls).toHaveLength(0);
     });
 
-    it('should join with inventory when productId specified', async () => {
+    it("should join with inventory when productId specified", async () => {
       await service.findNearbyMachines(tashkentCoords, orgId, {
-        productId: 'product-uuid-1',
+        productId: "product-uuid-1",
       });
 
       expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
-        'm.inventory',
-        'inv',
-        'inv.productId = :productId AND inv.quantity > 0',
-        { productId: 'product-uuid-1' },
+        "m.inventory",
+        "inv",
+        "inv.productId = :productId AND inv.quantity > 0",
+        { productId: "product-uuid-1" },
       );
     });
   });
 
-  describe('getMachinesInBounds', () => {
-    it('should return machines within geographic bounds', async () => {
+  describe("getMachinesInBounds", () => {
+    it("should return machines within geographic bounds", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockMachine]);
 
       const bounds = {
@@ -365,19 +376,15 @@ describe('GeoService', () => {
         west: 68.0,
       };
 
-      const result = await service.getMachinesInBounds(
-        bounds,
-        orgId,
-        12,
-      );
+      const result = await service.getMachinesInBounds(bounds, orgId, 12);
 
       expect(result).toEqual([mockMachine]);
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'm.latitude BETWEEN :south AND :north',
+        "m.latitude BETWEEN :south AND :north",
         { south: 40.0, north: 42.0 },
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'm.longitude BETWEEN :west AND :east',
+        "m.longitude BETWEEN :west AND :east",
         { west: 68.0, east: 70.0 },
       );
     });
@@ -387,25 +394,27 @@ describe('GeoService', () => {
   // DIRECTIONS
   // ============================================================================
 
-  describe('getDirections', () => {
-    it('should return directions between two points', async () => {
+  describe("getDirections", () => {
+    it("should return directions between two points", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDirectionsResponse) as any);
 
       const result = await service.getDirections(
         tashkentCoords,
         samarkandCoords,
-        'walking',
+        "walking",
       );
 
       expect(result).not.toBeNull();
       expect(result!.distance).toEqual(1500);
       expect(result!.duration).toEqual(1200);
-      expect(result!.polyline).toEqual('encodedPolyline123');
+      expect(result!.polyline).toEqual("encodedPolyline123");
       expect(result!.steps).toHaveLength(2);
-      expect(result!.steps[0].instruction).toEqual('Walk north on Main St');
+      expect(result!.steps[0].instruction).toEqual("Walk north on Main St");
     });
 
-    it('should strip HTML tags from step instructions', async () => {
+    it("should strip HTML tags from step instructions", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDirectionsResponse) as any);
 
       const result = await service.getDirections(
@@ -413,13 +422,14 @@ describe('GeoService', () => {
         samarkandCoords,
       );
 
-      expect(result!.steps[0].instruction).not.toContain('<b>');
-      expect(result!.steps[0].instruction).not.toContain('</b>');
+      expect(result!.steps[0].instruction).not.toContain("<b>");
+      expect(result!.steps[0].instruction).not.toContain("</b>");
     });
 
-    it('should return null when no routes found', async () => {
+    it("should return null when no routes found", async () => {
       httpService.get.mockReturnValue(
-        of({ data: { status: 'ZERO_RESULTS', routes: [] } }) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        of({ data: { status: "ZERO_RESULTS", routes: [] } }) as any,
       );
 
       const result = await service.getDirections(
@@ -430,9 +440,10 @@ describe('GeoService', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null on error', async () => {
+    it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('Directions API error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("Directions API error")) as any,
       );
 
       const result = await service.getDirections(
@@ -444,14 +455,15 @@ describe('GeoService', () => {
     });
   });
 
-  describe('getDistanceMatrix', () => {
-    it('should return distance matrix for multiple destinations', async () => {
+  describe("getDistanceMatrix", () => {
+    it("should return distance matrix for multiple destinations", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDistanceMatrixResponse) as any);
 
-      const result = await service.getDistanceMatrix(
+      const result = await service.getDistanceMatrix(tashkentCoords, [
+        samarkandCoords,
         tashkentCoords,
-        [samarkandCoords, tashkentCoords],
-      );
+      ]);
 
       expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
@@ -459,21 +471,21 @@ describe('GeoService', () => {
       expect(result![1].distance).toEqual(3000);
     });
 
-    it('should return null for empty destinations', async () => {
+    it("should return null for empty destinations", async () => {
       const result = await service.getDistanceMatrix(tashkentCoords, []);
 
       expect(result).toBeNull();
     });
 
-    it('should return null on error', async () => {
+    it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('Matrix API error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("Matrix API error")) as any,
       );
 
-      const result = await service.getDistanceMatrix(
-        tashkentCoords,
-        [samarkandCoords],
-      );
+      const result = await service.getDistanceMatrix(tashkentCoords, [
+        samarkandCoords,
+      ]);
 
       expect(result).toBeNull();
     });
@@ -483,52 +495,56 @@ describe('GeoService', () => {
   // PLACES AUTOCOMPLETE
   // ============================================================================
 
-  describe('autocompleteAddress', () => {
-    it('should return autocomplete suggestions', async () => {
+  describe("autocompleteAddress", () => {
+    it("should return autocomplete suggestions", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockAutocompleteResponse) as any);
 
-      const result = await service.autocompleteAddress('Tashkent');
+      const result = await service.autocompleteAddress("Tashkent");
 
       expect(result).toHaveLength(1);
-      expect(result[0].placeId).toEqual('place-1');
-      expect(result[0].description).toEqual('Tashkent, Uzbekistan');
-      expect(result[0].mainText).toEqual('Tashkent');
+      expect(result[0].placeId).toEqual("place-1");
+      expect(result[0].description).toEqual("Tashkent, Uzbekistan");
+      expect(result[0].mainText).toEqual("Tashkent");
     });
 
-    it('should return empty array for short input', async () => {
-      const result = await service.autocompleteAddress('T');
+    it("should return empty array for short input", async () => {
+      const result = await service.autocompleteAddress("T");
 
       expect(result).toEqual([]);
     });
 
-    it('should return empty array on error', async () => {
+    it("should return empty array on error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('Autocomplete error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("Autocomplete error")) as any,
       );
 
-      const result = await service.autocompleteAddress('Tashkent');
+      const result = await service.autocompleteAddress("Tashkent");
 
       expect(result).toEqual([]);
     });
   });
 
-  describe('getPlaceDetails', () => {
-    it('should return place details', async () => {
+  describe("getPlaceDetails", () => {
+    it("should return place details", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockPlaceDetailsResponse) as any);
 
-      const result = await service.getPlaceDetails('place-1');
+      const result = await service.getPlaceDetails("place-1");
 
       expect(result).not.toBeNull();
-      expect(result!.formattedAddress).toEqual('Tashkent, Uzbekistan');
-      expect(result!.placeId).toEqual('place-1');
+      expect(result!.formattedAddress).toEqual("Tashkent, Uzbekistan");
+      expect(result!.placeId).toEqual("place-1");
     });
 
-    it('should return null on error', async () => {
+    it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        throwError(() => new Error('Details error')) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        throwError(() => new Error("Details error")) as any,
       );
 
-      const result = await service.getPlaceDetails('place-1');
+      const result = await service.getPlaceDetails("place-1");
 
       expect(result).toBeNull();
     });
@@ -538,44 +554,42 @@ describe('GeoService', () => {
   // STATIC MAP
   // ============================================================================
 
-  describe('getStaticMapUrl', () => {
-    it('should generate a static map URL', () => {
+  describe("getStaticMapUrl", () => {
+    it("should generate a static map URL", () => {
       const url = service.getStaticMapUrl(tashkentCoords);
 
-      expect(url).toContain('staticmap');
-      expect(url).toContain('41.2995');
-      expect(url).toContain('69.2401');
+      expect(url).toContain("staticmap");
+      expect(url).toContain("41.2995");
+      expect(url).toContain("69.2401");
       expect(url).toContain(apiKey);
     });
 
-    it('should include markers in URL', () => {
+    it("should include markers in URL", () => {
       const url = service.getStaticMapUrl(tashkentCoords, {
-        markers: [
-          { lat: 41.3, lng: 69.25, label: 'A', color: 'blue' },
-        ],
+        markers: [{ lat: 41.3, lng: 69.25, label: "A", color: "blue" }],
       });
 
-      expect(url).toContain('markers=');
-      expect(url).toContain('blue');
-      expect(url).toContain('41.3');
+      expect(url).toContain("markers=");
+      expect(url).toContain("blue");
+      expect(url).toContain("41.3");
     });
 
-    it('should include path when provided', () => {
+    it("should include path when provided", () => {
       const url = service.getStaticMapUrl(tashkentCoords, {
-        path: 'encodedPolyline',
+        path: "encodedPolyline",
       });
 
-      expect(url).toContain('enc:encodedPolyline');
+      expect(url).toContain("path=enc%3AencodedPolyline");
     });
 
-    it('should use custom zoom and size', () => {
+    it("should use custom zoom and size", () => {
       const url = service.getStaticMapUrl(tashkentCoords, {
         zoom: 18,
-        size: '600x400',
+        size: "600x400",
       });
 
-      expect(url).toContain('zoom=18');
-      expect(url).toContain('size=600x400');
+      expect(url).toContain("zoom=18");
+      expect(url).toContain("size=600x400");
     });
   });
 
@@ -583,8 +597,8 @@ describe('GeoService', () => {
   // UTILITIES
   // ============================================================================
 
-  describe('calculateDistance', () => {
-    it('should calculate distance between two points in meters', () => {
+  describe("calculateDistance", () => {
+    it("should calculate distance between two points in meters", () => {
       const distance = service.calculateDistance(
         tashkentCoords,
         samarkandCoords,
@@ -595,7 +609,7 @@ describe('GeoService', () => {
       expect(distance).toBeLessThan(350000);
     });
 
-    it('should return 0 for same point', () => {
+    it("should return 0 for same point", () => {
       const distance = service.calculateDistance(
         tashkentCoords,
         tashkentCoords,
@@ -604,7 +618,7 @@ describe('GeoService', () => {
       expect(distance).toEqual(0);
     });
 
-    it('should return consistent results regardless of order', () => {
+    it("should return consistent results regardless of order", () => {
       const d1 = service.calculateDistance(tashkentCoords, samarkandCoords);
       const d2 = service.calculateDistance(samarkandCoords, tashkentCoords);
 
@@ -612,16 +626,16 @@ describe('GeoService', () => {
     });
   });
 
-  describe('isInUzbekistan', () => {
-    it('should return true for Tashkent coordinates', () => {
+  describe("isInUzbekistan", () => {
+    it("should return true for Tashkent coordinates", () => {
       expect(service.isInUzbekistan(tashkentCoords)).toBe(true);
     });
 
-    it('should return true for Samarkand coordinates', () => {
+    it("should return true for Samarkand coordinates", () => {
       expect(service.isInUzbekistan(samarkandCoords)).toBe(true);
     });
 
-    it('should return false for coordinates outside Uzbekistan', () => {
+    it("should return false for coordinates outside Uzbekistan", () => {
       const moscowCoords: Coordinates = {
         latitude: 55.7558,
         longitude: 37.6173,
@@ -629,7 +643,7 @@ describe('GeoService', () => {
       expect(service.isInUzbekistan(moscowCoords)).toBe(false);
     });
 
-    it('should return false for negative coordinates', () => {
+    it("should return false for negative coordinates", () => {
       const southAmericaCoords: Coordinates = {
         latitude: -23.5505,
         longitude: -46.6333,
@@ -637,7 +651,7 @@ describe('GeoService', () => {
       expect(service.isInUzbekistan(southAmericaCoords)).toBe(false);
     });
 
-    it('should handle boundary coordinates', () => {
+    it("should handle boundary coordinates", () => {
       const edgeCoords: Coordinates = {
         latitude: 37.2,
         longitude: 55.9,

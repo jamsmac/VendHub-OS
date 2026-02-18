@@ -1,5 +1,5 @@
-import { Context, NarrowedContext } from 'telegraf';
-import { Update } from 'telegraf/types';
+import { Context, NarrowedContext } from "telegraf";
+import { Update } from "telegraf/types";
 
 // ============================================
 // Session Data
@@ -15,24 +15,24 @@ export interface CartItem {
 
 export interface SessionData {
   step?: SessionStep;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   machineId?: string;
   cart?: CartItem[];
   selectedProductId?: string;
-  language?: 'ru' | 'uz' | 'en';
+  language?: "ru" | "uz" | "en";
   lastActivity?: number;
 }
 
 export type SessionStep =
-  | 'awaiting_location'
-  | 'awaiting_phone'
-  | 'awaiting_feedback'
-  | 'awaiting_complaint'
-  | 'awaiting_product_quantity'
-  | 'confirming_order'
-  | 'trip_active'
-  | 'trip_selecting_vehicle'
-  | 'trip_selecting_route'
+  | "awaiting_location"
+  | "awaiting_phone"
+  | "awaiting_feedback"
+  | "awaiting_complaint"
+  | "awaiting_product_quantity"
+  | "confirming_order"
+  | "trip_active"
+  | "trip_selecting_vehicle"
+  | "trip_selecting_route"
   | undefined;
 
 // ============================================
@@ -45,8 +45,14 @@ export interface BotContext extends Context {
 }
 
 // Narrowed contexts for specific handlers
-export type BotCallbackContext = NarrowedContext<BotContext, Update.CallbackQueryUpdate>;
-export type BotMessageContext = NarrowedContext<BotContext, Update.MessageUpdate>;
+export type BotCallbackContext = NarrowedContext<
+  BotContext,
+  Update.CallbackQueryUpdate
+>;
+export type BotMessageContext = NarrowedContext<
+  BotContext,
+  Update.MessageUpdate
+>;
 
 // ============================================
 // API Response Types
@@ -73,7 +79,7 @@ export interface Machine {
   city: string;
   latitude: number;
   longitude: number;
-  status: 'online' | 'offline' | 'maintenance';
+  status: "online" | "offline" | "maintenance";
   distance?: number;
   productsCount?: number;
 }
@@ -92,7 +98,7 @@ export interface Product {
 export interface LoyaltyInfo {
   points: number;
   lifetimePoints: number;
-  tier: 'basic' | 'silver' | 'gold' | 'platinum';
+  tier: "basic" | "silver" | "gold" | "platinum";
   tierName: string;
   cashbackPercent: number;
   pointsToNextTier: number;
@@ -132,7 +138,7 @@ export interface OrderItem {
 
 export interface Trip {
   id: string;
-  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+  status: "planned" | "in_progress" | "completed" | "cancelled";
   driverName?: string;
   vehiclePlate?: string;
   routeName?: string;
@@ -161,7 +167,7 @@ export interface TripStop {
   latitude: number;
   longitude: number;
   sequence: number;
-  status: 'pending' | 'arrived' | 'completed' | 'skipped';
+  status: "pending" | "arrived" | "completed" | "skipped";
   arrivedAt?: string;
   completedAt?: string;
   taskType?: string;
@@ -171,7 +177,7 @@ export interface Vehicle {
   id: string;
   plate: string;
   model: string;
-  status: 'available' | 'in_use' | 'maintenance';
+  status: "available" | "in_use" | "maintenance";
 }
 
 export interface RouteInfo {
@@ -188,6 +194,7 @@ export interface RouteInfo {
 
 export interface BotConfig {
   botToken: string;
+  apiToken: string;
   apiUrl: string;
   redisUrl: string;
   miniAppUrl: string;

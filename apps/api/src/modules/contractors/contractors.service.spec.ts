@@ -1,51 +1,51 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
-import { ContractorsService } from './contractors.service';
+import { ContractorsService } from "./contractors.service";
 import {
   Contractor,
   ContractorInvoice,
   ServiceType,
   InvoiceStatus,
-} from './entities/contractor.entity';
+} from "./entities/contractor.entity";
 
-describe('ContractorsService', () => {
+describe("ContractorsService", () => {
   let service: ContractorsService;
   let contractorRepo: jest.Mocked<Repository<Contractor>>;
   let invoiceRepo: jest.Mocked<Repository<ContractorInvoice>>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
 
-  const orgId = 'org-uuid-1';
-  const contractorId = 'contractor-uuid-1';
-  const invoiceId = 'invoice-uuid-1';
+  const orgId = "org-uuid-1";
+  const contractorId = "contractor-uuid-1";
+  const invoiceId = "invoice-uuid-1";
 
   const mockContractor: Contractor = {
     id: contractorId,
     organizationId: orgId,
-    companyName: 'TechServ LLC',
-    contactPerson: 'Ivan Petrov',
-    phone: '+998901234567',
-    email: 'techserv@test.com',
-    address: 'Tashkent, Amir Temur 1',
+    companyName: "TechServ LLC",
+    contactPerson: "Ivan Petrov",
+    phone: "+998901234567",
+    email: "techserv@test.com",
+    address: "Tashkent, Amir Temur 1",
     serviceType: ServiceType.MAINTENANCE,
-    contractStart: new Date('2024-01-01'),
-    contractEnd: new Date('2024-12-31'),
-    contractNumber: 'C-001',
-    paymentTerms: 'Net 30',
+    contractStart: new Date("2024-01-01"),
+    contractEnd: new Date("2024-12-31"),
+    contractNumber: "C-001",
+    paymentTerms: "Net 30",
     rating: 4.5,
-    notes: 'Reliable contractor',
+    notes: "Reliable contractor",
     isActive: true,
     bankDetails: {
-      bankName: 'Kapital Bank',
-      accountNumber: '20208000',
-      mfo: '00000',
+      bankName: "Kapital Bank",
+      accountNumber: "20208000",
+      mfo: "00000",
     },
     created_at: new Date(),
     updated_at: new Date(),
@@ -55,14 +55,14 @@ describe('ContractorsService', () => {
     id: invoiceId,
     organizationId: orgId,
     contractorId,
-    invoiceNumber: 'INV-001',
+    invoiceNumber: "INV-001",
     amount: 5000000,
     paidAmount: 0,
     status: InvoiceStatus.PENDING,
-    issueDate: new Date('2024-01-15'),
-    dueDate: new Date('2024-02-15'),
+    issueDate: new Date("2024-01-15"),
+    dueDate: new Date("2024-02-15"),
     paidDate: null,
-    description: 'Monthly maintenance',
+    description: "Monthly maintenance",
     approvedBy: null,
     approvedAt: null,
     attachmentUrls: [],
@@ -123,7 +123,7 @@ describe('ContractorsService', () => {
     eventEmitter = module.get(EventEmitter2);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -131,42 +131,46 @@ describe('ContractorsService', () => {
   // CONTRACTOR CRUD
   // ============================================================================
 
-  describe('createContractor', () => {
-    it('should create a new contractor', async () => {
+  describe("createContractor", () => {
+    it("should create a new contractor", async () => {
       const dto = {
-        companyName: 'TechServ LLC',
+        companyName: "TechServ LLC",
         serviceType: ServiceType.MAINTENANCE,
-        contactPerson: 'Ivan Petrov',
-        phone: '+998901234567',
+        contactPerson: "Ivan Petrov",
+        phone: "+998901234567",
       };
 
       contractorRepo.create.mockReturnValue(mockContractor);
       contractorRepo.save.mockResolvedValue(mockContractor);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createContractor(orgId, dto as any);
 
-      expect(result).toEqual(expect.objectContaining({
-        id: contractorId,
-        companyName: 'TechServ LLC',
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: contractorId,
+          companyName: "TechServ LLC",
+        }),
+      );
       expect(contractorRepo.create).toHaveBeenCalled();
-      expect(eventEmitter.emit).toHaveBeenCalledWith('contractor.created', {
+      expect(eventEmitter.emit).toHaveBeenCalledWith("contractor.created", {
         contractorId: contractorId,
         organizationId: orgId,
       });
     });
 
-    it('should handle contractStart and contractEnd dates', async () => {
+    it("should handle contractStart and contractEnd dates", async () => {
       const dto = {
-        companyName: 'Test',
+        companyName: "Test",
         serviceType: ServiceType.REPAIR,
-        contractStart: '2024-01-01',
-        contractEnd: '2024-12-31',
+        contractStart: "2024-01-01",
+        contractEnd: "2024-12-31",
       };
 
       contractorRepo.create.mockReturnValue(mockContractor);
       contractorRepo.save.mockResolvedValue(mockContractor);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.createContractor(orgId, dto as any);
 
       expect(contractorRepo.create).toHaveBeenCalledWith(
@@ -179,38 +183,42 @@ describe('ContractorsService', () => {
     });
   });
 
-  describe('updateContractor', () => {
-    it('should update contractor fields', async () => {
-      const dto = { companyName: 'Updated Name' };
-      const updated = { ...mockContractor, companyName: 'Updated Name' };
+  describe("updateContractor", () => {
+    it("should update contractor fields", async () => {
+      const dto = { companyName: "Updated Name" };
+      const contractorCopy = { ...mockContractor };
+      const updated = { ...contractorCopy, companyName: "Updated Name" };
 
-      contractorRepo.findOne.mockResolvedValue(mockContractor);
+      contractorRepo.findOne.mockResolvedValue(contractorCopy);
       contractorRepo.save.mockResolvedValue(updated as Contractor);
 
       const result = await service.updateContractor(
         contractorId,
         orgId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dto as any,
       );
 
-      expect(result.companyName).toEqual('Updated Name');
+      expect(result.companyName).toEqual("Updated Name");
     });
 
-    it('should throw NotFoundException when contractor not found', async () => {
+    it("should throw NotFoundException when contractor not found", async () => {
       contractorRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateContractor('non-existent', orgId, {} as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.updateContractor("non-existent", orgId, {} as any),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('deleteContractor', () => {
-    it('should deactivate contractor when no pending invoices', async () => {
-      contractorRepo.findOne.mockResolvedValue(mockContractor);
+  describe("deleteContractor", () => {
+    it("should deactivate contractor when no pending invoices", async () => {
+      const contractorCopy = { ...mockContractor };
+      contractorRepo.findOne.mockResolvedValue(contractorCopy);
       invoiceRepo.count.mockResolvedValue(0);
       contractorRepo.save.mockResolvedValue({
-        ...mockContractor,
+        ...contractorCopy,
         isActive: false,
       } as Contractor);
 
@@ -219,14 +227,15 @@ describe('ContractorsService', () => {
       expect(contractorRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ isActive: false }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledWith('contractor.deleted', {
+      expect(eventEmitter.emit).toHaveBeenCalledWith("contractor.deleted", {
         contractorId,
         organizationId: orgId,
       });
     });
 
-    it('should throw BadRequestException when pending invoices exist', async () => {
-      contractorRepo.findOne.mockResolvedValue(mockContractor);
+    it("should throw BadRequestException when pending invoices exist", async () => {
+      const contractorCopy = { ...mockContractor };
+      contractorRepo.findOne.mockResolvedValue(contractorCopy);
       invoiceRepo.count.mockResolvedValue(3);
 
       await expect(
@@ -234,33 +243,36 @@ describe('ContractorsService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw NotFoundException when contractor not found', async () => {
+    it("should throw NotFoundException when contractor not found", async () => {
       contractorRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.deleteContractor('non-existent', orgId),
+        service.deleteContractor("non-existent", orgId),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('getContractor', () => {
-    it('should return contractor DTO', async () => {
+  describe("getContractor", () => {
+    it("should return contractor DTO", async () => {
       contractorRepo.findOne.mockResolvedValue(mockContractor);
 
       const result = await service.getContractor(contractorId, orgId);
 
-      expect(result).toEqual(expect.objectContaining({
-        id: contractorId,
-        companyName: 'TechServ LLC',
-        serviceType: ServiceType.MAINTENANCE,
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: contractorId,
+          companyName: "TechServ LLC",
+          serviceType: ServiceType.MAINTENANCE,
+        }),
+      );
     });
   });
 
-  describe('getContractors', () => {
-    it('should return paginated contractors', async () => {
+  describe("getContractors", () => {
+    it("should return paginated contractors", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockContractor], 1]);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getContractors(orgId, {} as any);
 
       expect(result.total).toEqual(1);
@@ -268,33 +280,35 @@ describe('ContractorsService', () => {
       expect(result.page).toEqual(1);
     });
 
-    it('should apply serviceType filter', async () => {
+    it("should apply serviceType filter", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
       await service.getContractors(orgId, {
         serviceType: ServiceType.REPAIR,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'c.serviceType = :serviceType',
+        "c.serviceType = :serviceType",
         { serviceType: ServiceType.REPAIR },
       );
     });
 
-    it('should apply search filter', async () => {
+    it("should apply search filter", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await service.getContractors(orgId, { search: 'tech' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.getContractors(orgId, { search: "tech" } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        '(c.companyName ILIKE :search OR c.contactPerson ILIKE :search OR c.phone ILIKE :search)',
-        { search: '%tech%' },
+        "(c.companyName ILIKE :search OR c.contactPerson ILIKE :search OR c.phone ILIKE :search)",
+        { search: "%tech%" },
       );
     });
   });
 
-  describe('getContractorsByServiceType', () => {
-    it('should return active contractors by service type', async () => {
+  describe("getContractorsByServiceType", () => {
+    it("should return active contractors by service type", async () => {
       contractorRepo.find.mockResolvedValue([mockContractor]);
 
       const result = await service.getContractorsByServiceType(
@@ -309,7 +323,7 @@ describe('ContractorsService', () => {
           serviceType: ServiceType.MAINTENANCE,
           isActive: true,
         },
-        order: { companyName: 'ASC' },
+        order: { companyName: "ASC" },
       });
     });
   });
@@ -318,14 +332,14 @@ describe('ContractorsService', () => {
   // INVOICES CRUD
   // ============================================================================
 
-  describe('createInvoice', () => {
-    it('should create a new invoice', async () => {
+  describe("createInvoice", () => {
+    it("should create a new invoice", async () => {
       const dto = {
-        invoiceNumber: 'INV-002',
+        invoiceNumber: "INV-002",
         amount: 3000000,
-        issueDate: '2024-02-01',
-        dueDate: '2024-03-01',
-        description: 'Repair work',
+        issueDate: "2024-02-01",
+        dueDate: "2024-03-01",
+        description: "Repair work",
       };
 
       contractorRepo.findOne.mockResolvedValue(mockContractor);
@@ -336,32 +350,36 @@ describe('ContractorsService', () => {
       const result = await service.createInvoice(
         contractorId,
         orgId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dto as any,
       );
 
-      expect(result).toEqual(expect.objectContaining({
-        id: invoiceId,
-        invoiceNumber: 'INV-001',
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: invoiceId,
+          invoiceNumber: "INV-001",
+        }),
+      );
     });
 
-    it('should throw ConflictException for duplicate invoice number', async () => {
+    it("should throw ConflictException for duplicate invoice number", async () => {
       contractorRepo.findOne.mockResolvedValue(mockContractor);
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
 
       await expect(
         service.createInvoice(contractorId, orgId, {
-          invoiceNumber: 'INV-001',
+          invoiceNumber: "INV-001",
           amount: 1000,
-          issueDate: '2024-01-01',
-          dueDate: '2024-02-01',
+          issueDate: "2024-01-01",
+          dueDate: "2024-02-01",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
   });
 
-  describe('updateInvoice', () => {
-    it('should update a pending invoice', async () => {
+  describe("updateInvoice", () => {
+    it("should update a pending invoice", async () => {
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
       invoiceRepo.save.mockResolvedValue(mockInvoice);
       contractorRepo.findOne.mockResolvedValue(mockContractor);
@@ -369,13 +387,14 @@ describe('ContractorsService', () => {
       const result = await service.updateInvoice(
         invoiceId,
         orgId,
-        { description: 'Updated' } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { description: "Updated" } as any,
       );
 
       expect(result).toBeDefined();
     });
 
-    it('should throw BadRequestException for non-pending invoice', async () => {
+    it("should throw BadRequestException for non-pending invoice", async () => {
       const paidInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.PAID,
@@ -383,17 +402,18 @@ describe('ContractorsService', () => {
       invoiceRepo.findOne.mockResolvedValue(paidInvoice as ContractorInvoice);
 
       await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateInvoice(invoiceId, orgId, {} as any),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('approveInvoice', () => {
-    it('should approve a pending invoice', async () => {
+  describe("approveInvoice", () => {
+    it("should approve a pending invoice", async () => {
       const approved = {
         ...mockInvoice,
         status: InvoiceStatus.APPROVED,
-        approvedBy: 'user-uuid-1',
+        approvedBy: "user-uuid-1",
       };
 
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
@@ -403,17 +423,17 @@ describe('ContractorsService', () => {
       const result = await service.approveInvoice(
         invoiceId,
         orgId,
-        'user-uuid-1',
+        "user-uuid-1",
       );
 
       expect(result.status).toEqual(InvoiceStatus.APPROVED);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'contractor-invoice.approved',
+        "contractor-invoice.approved",
         expect.objectContaining({ invoiceId }),
       );
     });
 
-    it('should throw BadRequestException for already approved invoice', async () => {
+    it("should throw BadRequestException for already approved invoice", async () => {
       const approved = {
         ...mockInvoice,
         status: InvoiceStatus.APPROVED,
@@ -421,13 +441,13 @@ describe('ContractorsService', () => {
       invoiceRepo.findOne.mockResolvedValue(approved as ContractorInvoice);
 
       await expect(
-        service.approveInvoice(invoiceId, orgId, 'user-uuid-1'),
+        service.approveInvoice(invoiceId, orgId, "user-uuid-1"),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('recordInvoicePayment', () => {
-    it('should record payment and mark as paid when fully paid', async () => {
+  describe("recordInvoicePayment", () => {
+    it("should record payment and mark as paid when fully paid", async () => {
       const invoice = { ...mockInvoice, paidAmount: 4000000, amount: 5000000 };
       const paid = {
         ...invoice,
@@ -442,17 +462,18 @@ describe('ContractorsService', () => {
       const result = await service.recordInvoicePayment(
         invoiceId,
         orgId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { amount: 1000000 } as any,
       );
 
       expect(result.status).toEqual(InvoiceStatus.PAID);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'contractor-invoice.paid',
+        "contractor-invoice.paid",
         expect.objectContaining({ amount: 1000000 }),
       );
     });
 
-    it('should throw BadRequestException for cancelled invoice', async () => {
+    it("should throw BadRequestException for cancelled invoice", async () => {
       const cancelled = {
         ...mockInvoice,
         status: InvoiceStatus.CANCELLED,
@@ -463,14 +484,15 @@ describe('ContractorsService', () => {
         service.recordInvoicePayment(
           invoiceId,
           orgId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           { amount: 1000 } as any,
         ),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('cancelInvoice', () => {
-    it('should cancel a pending invoice', async () => {
+  describe("cancelInvoice", () => {
+    it("should cancel a pending invoice", async () => {
       const cancelled = {
         ...mockInvoice,
         status: InvoiceStatus.CANCELLED,
@@ -485,16 +507,16 @@ describe('ContractorsService', () => {
       expect(result.status).toEqual(InvoiceStatus.CANCELLED);
     });
 
-    it('should throw BadRequestException for paid invoice', async () => {
+    it("should throw BadRequestException for paid invoice", async () => {
       const paidInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.PAID,
       };
       invoiceRepo.findOne.mockResolvedValue(paidInvoice as ContractorInvoice);
 
-      await expect(
-        service.cancelInvoice(invoiceId, orgId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.cancelInvoice(invoiceId, orgId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -502,8 +524,8 @@ describe('ContractorsService', () => {
   // STATISTICS
   // ============================================================================
 
-  describe('getStats', () => {
-    it('should return contractor statistics', async () => {
+  describe("getStats", () => {
+    it("should return contractor statistics", async () => {
       contractorRepo.find.mockResolvedValue([mockContractor]);
       invoiceRepo.find.mockResolvedValue([mockInvoice]);
 
@@ -515,7 +537,7 @@ describe('ContractorsService', () => {
       expect(result.totalInvoiceAmount).toBeGreaterThan(0);
     });
 
-    it('should handle empty data', async () => {
+    it("should handle empty data", async () => {
       contractorRepo.find.mockResolvedValue([]);
       invoiceRepo.find.mockResolvedValue([]);
 
@@ -531,8 +553,8 @@ describe('ContractorsService', () => {
   // CRON JOBS
   // ============================================================================
 
-  describe('markOverdueInvoices', () => {
-    it('should mark overdue invoices and emit events', async () => {
+  describe("markOverdueInvoices", () => {
+    it("should mark overdue invoices and emit events", async () => {
       const overdueInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.APPROVED,
@@ -547,14 +569,14 @@ describe('ContractorsService', () => {
 
       expect(invoiceRepo.save).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'contractor-invoice.overdue',
+        "contractor-invoice.overdue",
         expect.objectContaining({
           invoiceId: overdueInvoice.id,
         }),
       );
     });
 
-    it('should handle no overdue invoices', async () => {
+    it("should handle no overdue invoices", async () => {
       invoiceRepo.find.mockResolvedValue([]);
 
       await service.markOverdueInvoices();

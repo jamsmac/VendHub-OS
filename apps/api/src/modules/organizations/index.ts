@@ -2,9 +2,12 @@
  * Organizations Module Barrel Export
  */
 
-export * from './organizations.module';
-export * from './organizations.service';
-export * from './organizations.controller';
+export * from "./organizations.module";
+export * from "./organizations.service";
+export * from "./organizations.controller";
 
 // Entities
-export * from './entities/organization.entity';
+export * from "./entities/organization.entity";
+
+// DTOs
+export * from "./dto";

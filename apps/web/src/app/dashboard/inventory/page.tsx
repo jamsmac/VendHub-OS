@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Boxes,
   Package,
@@ -13,13 +13,13 @@ import {
   TrendingDown,
   TrendingUp,
   ArrowRight,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { inventoryApi } from '@/lib/api';
-import Link from 'next/link';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { inventoryApi } from "@/lib/api";
+import Link from "next/link";
 
 interface InventoryItem {
   id: string;
@@ -35,7 +35,7 @@ interface InventoryItem {
 
 interface Movement {
   id: string;
-  type: 'in' | 'out' | 'transfer' | 'adjustment';
+  type: "in" | "out" | "transfer" | "adjustment";
   productName: string;
   quantity: number;
   fromLocation?: string;
@@ -44,13 +44,13 @@ interface Movement {
   createdBy?: string;
 }
 
-type TabType = 'warehouse' | 'operator' | 'machine' | 'low-stock' | 'movements';
+type TabType = "warehouse" | "operator" | "machine" | "low-stock" | "movements";
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('warehouse');
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TabType>("warehouse");
+  const [search, setSearch] = useState("");
+  const [_debouncedSearch, setDebouncedSearch] = useState("");
+  useQueryClient();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -58,43 +58,51 @@ export default function InventoryPage() {
   }, [search]);
 
   const { data: warehouseInventory, isLoading: warehouseLoading } = useQuery({
-    queryKey: ['inventory', 'warehouse'],
+    queryKey: ["inventory", "warehouse"],
     queryFn: () => inventoryApi.getWarehouse().then((res) => res.data.data),
-    enabled: activeTab === 'warehouse',
+    enabled: activeTab === "warehouse",
   });
 
   const { data: lowStock, isLoading: lowStockLoading } = useQuery({
-    queryKey: ['inventory', 'low-stock'],
+    queryKey: ["inventory", "low-stock"],
     queryFn: () => inventoryApi.getLowStock().then((res) => res.data.data),
-    enabled: activeTab === 'low-stock',
+    enabled: activeTab === "low-stock",
   });
 
   const { data: movements, isLoading: movementsLoading } = useQuery({
-    queryKey: ['inventory', 'movements'],
+    queryKey: ["inventory", "movements"],
     queryFn: () => inventoryApi.getMovements().then((res) => res.data.data),
-    enabled: activeTab === 'movements',
+    enabled: activeTab === "movements",
   });
 
   // Stats
-  const stats = useMemo(() => ({
-    totalProducts: warehouseInventory?.length || 0,
-    lowStockCount: lowStock?.length || 0,
-    totalValue: 0,
-  }), [warehouseInventory, lowStock]);
+  const stats = useMemo(
+    () => ({
+      totalProducts: warehouseInventory?.length || 0,
+      lowStockCount: lowStock?.length || 0,
+      totalValue: 0,
+    }),
+    [warehouseInventory, lowStock],
+  );
 
   const tabs = [
-    { id: 'warehouse' as const, label: 'Склад', icon: Warehouse },
-    { id: 'operator' as const, label: 'У операторов', icon: User },
-    { id: 'machine' as const, label: 'В автоматах', icon: Coffee },
-    { id: 'low-stock' as const, label: 'Низкий запас', icon: AlertTriangle, count: stats.lowStockCount },
-    { id: 'movements' as const, label: 'Движения', icon: ArrowUpDown },
+    { id: "warehouse" as const, label: "Склад", icon: Warehouse },
+    { id: "operator" as const, label: "У операторов", icon: User },
+    { id: "machine" as const, label: "В автоматах", icon: Coffee },
+    {
+      id: "low-stock" as const,
+      label: "Низкий запас",
+      icon: AlertTriangle,
+      count: stats.lowStockCount,
+    },
+    { id: "movements" as const, label: "Движения", icon: ArrowUpDown },
   ];
 
   const isLoading = warehouseLoading || lowStockLoading || movementsLoading;
 
   const renderInventoryTable = (items: InventoryItem[]) => {
     const filtered = items?.filter((item) =>
-      item.productName.toLowerCase().includes(search.toLowerCase())
+      item.productName.toLowerCase().includes(search.toLowerCase()),
     );
 
     return (
@@ -102,13 +110,25 @@ export default function InventoryPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground">Товар</th>
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground">SKU</th>
-              <th className="text-right py-3 px-4 font-medium text-muted-foreground">Количество</th>
-              <th className="text-right py-3 px-4 font-medium text-muted-foreground">Мин.</th>
-              <th className="text-center py-3 px-4 font-medium text-muted-foreground">Статус</th>
-              {activeTab !== 'warehouse' && (
-                <th className="text-left py-3 px-4 font-medium text-muted-foreground">Локация</th>
+              <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                Товар
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                SKU
+              </th>
+              <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                Количество
+              </th>
+              <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                Мин.
+              </th>
+              <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                Статус
+              </th>
+              {activeTab !== "warehouse" && (
+                <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  Локация
+                </th>
               )}
             </tr>
           </thead>
@@ -124,10 +144,10 @@ export default function InventoryPage() {
                     </div>
                   </td>
                   <td className="py-3 px-4 text-muted-foreground">
-                    {item.productSku || '-'}
+                    {item.productSku || "-"}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <span className={isLow ? 'text-red-600 font-medium' : ''}>
+                    <span className={isLow ? "text-red-600 font-medium" : ""}>
                       {item.quantity} {item.unit}
                     </span>
                   </td>
@@ -148,9 +168,9 @@ export default function InventoryPage() {
                       )}
                     </div>
                   </td>
-                  {activeTab !== 'warehouse' && (
+                  {activeTab !== "warehouse" && (
                     <td className="py-3 px-4 text-muted-foreground">
-                      {item.locationName || '-'}
+                      {item.locationName || "-"}
                     </td>
                   )}
                 </tr>
@@ -171,11 +191,23 @@ export default function InventoryPage() {
     return (
       <div className="space-y-4">
         {movements?.map((movement: Movement) => {
-          const typeConfig: Record<string, { label: string; icon: any; color: string }> = {
-            in: { label: 'Приход', icon: TrendingUp, color: 'text-green-600' },
-            out: { label: 'Расход', icon: TrendingDown, color: 'text-red-600' },
-            transfer: { label: 'Перемещение', icon: ArrowRight, color: 'text-blue-600' },
-            adjustment: { label: 'Корректировка', icon: ArrowUpDown, color: 'text-yellow-600' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const typeConfig: Record<
+            string,
+            { label: string; icon: any; color: string }
+          > = {
+            in: { label: "Приход", icon: TrendingUp, color: "text-green-600" },
+            out: { label: "Расход", icon: TrendingDown, color: "text-red-600" },
+            transfer: {
+              label: "Перемещение",
+              icon: ArrowRight,
+              color: "text-blue-600",
+            },
+            adjustment: {
+              label: "Корректировка",
+              icon: ArrowUpDown,
+              color: "text-yellow-600",
+            },
           };
           const config = typeConfig[movement.type] || typeConfig.adjustment;
 
@@ -191,7 +223,8 @@ export default function InventoryPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{movement.productName}</h3>
                         <span className={`text-sm font-medium ${config.color}`}>
-                          {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                          {movement.quantity > 0 ? "+" : ""}
+                          {movement.quantity}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -199,14 +232,18 @@ export default function InventoryPage() {
                         {movement.fromLocation && movement.toLocation && (
                           <>
                             <span>•</span>
-                            <span>{movement.fromLocation} → {movement.toLocation}</span>
+                            <span>
+                              {movement.fromLocation} → {movement.toLocation}
+                            </span>
                           </>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="text-right text-sm text-muted-foreground">
-                    <p>{new Date(movement.createdAt).toLocaleDateString('ru-RU')}</p>
+                    <p>
+                      {new Date(movement.createdAt).toLocaleDateString("ru-RU")}
+                    </p>
                     {movement.createdBy && <p>{movement.createdBy}</p>}
                   </div>
                 </div>
@@ -247,7 +284,9 @@ export default function InventoryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Товаров на складе</p>
+                <p className="text-sm text-muted-foreground">
+                  Товаров на складе
+                </p>
                 <p className="text-2xl font-bold">{stats.totalProducts}</p>
               </div>
               <Boxes className="h-8 w-8 text-muted-foreground" />
@@ -259,7 +298,9 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Низкий запас</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.lowStockCount}</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.lowStockCount}
+                </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-yellow-600" />
             </div>
@@ -269,7 +310,9 @@ export default function InventoryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Движений сегодня</p>
+                <p className="text-sm text-muted-foreground">
+                  Движений сегодня
+                </p>
                 <p className="text-2xl font-bold">{movements?.length || 0}</p>
               </div>
               <ArrowUpDown className="h-8 w-8 text-muted-foreground" />
@@ -283,7 +326,7 @@ export default function InventoryPage() {
         {tabs.map((tab) => (
           <Button
             key={tab.id}
-            variant={activeTab === tab.id ? 'default' : 'outline'}
+            variant={activeTab === tab.id ? "default" : "outline"}
             onClick={() => setActiveTab(tab.id)}
             className="gap-2"
           >
@@ -299,7 +342,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Search */}
-      {activeTab !== 'movements' && (
+      {activeTab !== "movements" && (
         <Input
           placeholder="Поиск товара..."
           value={search}
@@ -322,9 +365,9 @@ export default function InventoryPage() {
                 </div>
               ))}
             </div>
-          ) : activeTab === 'movements' ? (
+          ) : activeTab === "movements" ? (
             renderMovements()
-          ) : activeTab === 'low-stock' ? (
+          ) : activeTab === "low-stock" ? (
             renderInventoryTable(lowStock || [])
           ) : (
             renderInventoryTable(warehouseInventory || [])

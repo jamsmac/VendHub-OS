@@ -8,20 +8,20 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Order,
   OrderItem,
   OrderStatus,
   PaymentStatus,
   PaymentMethod,
-} from './entities/order.entity';
-import { Product } from '../products/entities/product.entity';
-import { User } from '../users/entities/user.entity';
-import { PromoCodesService } from '../promo-codes/promo-codes.service';
+} from "./entities/order.entity";
+import { Product } from "../products/entities/product.entity";
+import { User } from "../users/entities/user.entity";
+import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   CreateOrderDto,
   UpdateOrderStatusDto,
@@ -31,7 +31,7 @@ import {
   OrderListDto,
   OrderStatsDto,
   OrderItemDto,
-} from './dto/order.dto';
+} from "./dto/order.dto";
 
 // ============================================================================
 // WORKFLOW TRANSITIONS
@@ -77,15 +77,15 @@ export class OrdersService {
     dto: CreateOrderDto,
   ): Promise<OrderDto> {
     // Get products
-    const productIds = dto.items.map(item => item.productId);
+    const productIds = dto.items.map((item) => item.productId);
     const products = await this.productRepo.findByIds(productIds);
 
     if (products.length !== productIds.length) {
-      throw new BadRequestException('Some products not found');
+      throw new BadRequestException("Some products not found");
     }
 
     // Build product map
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     // Calculate order items
     let subtotal = 0;
@@ -121,7 +121,9 @@ export class OrdersService {
       if (validation.valid && validation.discountAmount) {
         promoDiscount = validation.discountAmount;
       } else {
-        this.logger.debug(`Promo code "${dto.promoCode}" rejected: ${validation.reason}`);
+        this.logger.debug(
+          `Promo code "${dto.promoCode}" rejected: ${validation.reason}`,
+        );
       }
     }
 
@@ -159,14 +161,14 @@ export class OrdersService {
       promoDiscount,
       pointsUsed: bonusAmount,
       notes: dto.notes,
-      items: orderItems.map(item => this.itemRepo.create(item)),
+      items: orderItems.map((item) => this.itemRepo.create(item)),
     });
 
     await this.orderRepo.save(order);
 
     this.logger.log(`Order ${orderNumber} created for user ${userId}`);
 
-    this.eventEmitter.emit('order.created', {
+    this.eventEmitter.emit("order.created", {
       orderId: order.id,
       orderNumber,
       userId,
@@ -215,7 +217,7 @@ export class OrdersService {
         break;
       case OrderStatus.CANCELLED:
         order.cancelledAt = new Date();
-        order.cancellationReason = dto.reason || '';
+        order.cancellationReason = dto.reason || "";
         break;
       case OrderStatus.REFUNDED:
         order.refundedAt = new Date();
@@ -224,7 +226,7 @@ export class OrdersService {
 
     await this.orderRepo.save(order);
 
-    this.eventEmitter.emit('order.status-changed', {
+    this.eventEmitter.emit("order.status-changed", {
       orderId: order.id,
       oldStatus,
       newStatus: dto.status,
@@ -232,8 +234,11 @@ export class OrdersService {
     });
 
     // Calculate loyalty points on completion
-    if (dto.status === OrderStatus.COMPLETED && order.paymentStatus === PaymentStatus.PAID) {
-      this.eventEmitter.emit('order.completed', {
+    if (
+      dto.status === OrderStatus.COMPLETED &&
+      order.paymentStatus === PaymentStatus.PAID
+    ) {
+      this.eventEmitter.emit("order.completed", {
         orderId: order.id,
         userId: order.userId,
         totalAmount: order.totalAmount,
@@ -265,7 +270,7 @@ export class OrdersService {
 
     await this.orderRepo.save(order);
 
-    this.eventEmitter.emit('order.payment-updated', {
+    this.eventEmitter.emit("order.payment-updated", {
       orderId: order.id,
       paymentStatus: dto.paymentStatus,
       organizationId,
@@ -295,11 +300,11 @@ export class OrdersService {
   ): Promise<OrderDto> {
     const order = await this.orderRepo.findOne({
       where: { orderNumber, organizationId },
-      relations: ['items', 'items.product', 'user', 'machine'],
+      relations: ["items", "items.product", "user", "machine"],
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     return this.mapToDto(order);
@@ -325,49 +330,49 @@ export class OrdersService {
     } = filter;
 
     const qb = this.orderRepo
-      .createQueryBuilder('o')
-      .leftJoinAndSelect('o.items', 'items')
-      .leftJoinAndSelect('items.product', 'product')
-      .leftJoinAndSelect('o.user', 'user')
-      .leftJoinAndSelect('o.machine', 'machine')
-      .where('o.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("o")
+      .leftJoinAndSelect("o.items", "items")
+      .leftJoinAndSelect("items.product", "product")
+      .leftJoinAndSelect("o.user", "user")
+      .leftJoinAndSelect("o.machine", "machine")
+      .where("o.organizationId = :organizationId", { organizationId });
 
     if (status) {
-      qb.andWhere('o.status = :status', { status });
+      qb.andWhere("o.status = :status", { status });
     }
 
     if (paymentStatus) {
-      qb.andWhere('o.paymentStatus = :paymentStatus', { paymentStatus });
+      qb.andWhere("o.paymentStatus = :paymentStatus", { paymentStatus });
     }
 
     if (machineId) {
-      qb.andWhere('o.machineId = :machineId', { machineId });
+      qb.andWhere("o.machineId = :machineId", { machineId });
     }
 
     if (userId) {
-      qb.andWhere('o.userId = :userId', { userId });
+      qb.andWhere("o.userId = :userId", { userId });
     }
 
     if (fromDate) {
-      qb.andWhere('o.createdAt >= :fromDate', { fromDate });
+      qb.andWhere("o.createdAt >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('o.createdAt <= :toDate', { toDate });
+      qb.andWhere("o.createdAt <= :toDate", { toDate });
     }
 
     if (search) {
-      qb.andWhere('o.orderNumber ILIKE :search', { search: `%${search}%` });
+      qb.andWhere("o.orderNumber ILIKE :search", { search: `%${search}%` });
     }
 
     const [items, total] = await qb
-      .orderBy('o.createdAt', 'DESC')
+      .orderBy("o.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(o => this.mapToDto(o)),
+      items: items.map((o) => this.mapToDto(o)),
       total,
       page,
       limit,
@@ -396,39 +401,44 @@ export class OrdersService {
     toDate?: Date,
   ): Promise<OrderStatsDto> {
     const qb = this.orderRepo
-      .createQueryBuilder('o')
-      .where('o.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("o")
+      .where("o.organizationId = :organizationId", { organizationId });
 
     if (fromDate) {
-      qb.andWhere('o.createdAt >= :fromDate', { fromDate });
+      qb.andWhere("o.createdAt >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('o.createdAt <= :toDate', { toDate });
+      qb.andWhere("o.createdAt <= :toDate", { toDate });
     }
 
     // Status counts via SQL
-    const statusCountsRaw = await qb.clone()
-      .select('o.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('o.status')
+    const statusCountsRaw = await qb
+      .clone()
+      .select("o.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("o.status")
       .getRawMany();
 
     // Revenue and payment method breakdown via SQL
-    const revenueRaw = await qb.clone()
-      .select('o.paymentMethod', 'paymentMethod')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('COALESCE(SUM(o.totalAmount), 0)', 'amount')
-      .addSelect('COALESCE(SUM(o.pointsEarned), 0)', 'pointsEarned')
-      .addSelect('COALESCE(SUM(o.pointsUsed), 0)', 'pointsUsed')
-      .andWhere('o.paymentStatus = :paidStatus', { paidStatus: PaymentStatus.PAID })
-      .groupBy('o.paymentMethod')
+    const revenueRaw = await qb
+      .clone()
+      .select("o.paymentMethod", "paymentMethod")
+      .addSelect("COUNT(*)", "count")
+      .addSelect("COALESCE(SUM(o.totalAmount), 0)", "amount")
+      .addSelect("COALESCE(SUM(o.pointsEarned), 0)", "pointsEarned")
+      .addSelect("COALESCE(SUM(o.pointsUsed), 0)", "pointsUsed")
+      .andWhere("o.paymentStatus = :paidStatus", {
+        paidStatus: PaymentStatus.PAID,
+      })
+      .groupBy("o.paymentMethod")
       .getRawMany();
 
     // Points aggregation (all orders, not just paid)
-    const pointsRaw = await qb.clone()
-      .select('COALESCE(SUM(o.pointsEarned), 0)', 'totalPointsEarned')
-      .addSelect('COALESCE(SUM(o.pointsUsed), 0)', 'totalPointsUsed')
+    const pointsRaw = await qb
+      .clone()
+      .select("COALESCE(SUM(o.pointsEarned), 0)", "totalPointsEarned")
+      .addSelect("COALESCE(SUM(o.pointsUsed), 0)", "totalPointsUsed")
       .getRawOne();
 
     const stats: OrderStatsDto = {
@@ -438,8 +448,9 @@ export class OrdersService {
       cancelledOrders: 0,
       totalRevenue: 0,
       averageOrderValue: 0,
-      totalPointsEarned: parseInt(pointsRaw?.totalPointsEarned || '0'),
-      totalPointsUsed: parseInt(pointsRaw?.totalPointsUsed || '0'),
+      totalPointsEarned: parseInt(pointsRaw?.totalPointsEarned || "0"),
+      totalPointsUsed: parseInt(pointsRaw?.totalPointsUsed || "0"),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       byPaymentMethod: {} as any,
     };
 
@@ -449,7 +460,12 @@ export class OrdersService {
     }
 
     // Process status counts
-    const pendingStatuses = [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.READY];
+    const pendingStatuses = [
+      OrderStatus.PENDING,
+      OrderStatus.CONFIRMED,
+      OrderStatus.PREPARING,
+      OrderStatus.READY,
+    ];
     for (const row of statusCountsRaw) {
       const count = parseInt(row.count);
       stats.totalOrders += count;
@@ -484,14 +500,17 @@ export class OrdersService {
   // HELPERS
   // ============================================================================
 
-  private async findOrder(orderId: string, organizationId: string): Promise<Order> {
+  private async findOrder(
+    orderId: string,
+    organizationId: string,
+  ): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, organizationId },
-      relations: ['items', 'items.product', 'user', 'machine'],
+      relations: ["items", "items.product", "user", "machine"],
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     return order;
@@ -500,7 +519,7 @@ export class OrdersService {
   private async generateOrderNumber(organizationId: string): Promise<string> {
     const year = new Date().getFullYear();
     const count = await this.orderRepo.count({ where: { organizationId } });
-    return `ORD-${year}-${String(count + 1).padStart(5, '0')}`;
+    return `ORD-${year}-${String(count + 1).padStart(5, "0")}`;
   }
 
   private mapToDto(order: Order): OrderDto {
@@ -525,7 +544,7 @@ export class OrdersService {
       pointsUsed: order.pointsUsed,
       promoCode: order.promoCode,
       promoDiscount: Number(order.promoDiscount),
-      items: (order.items || []).map(item => this.mapItemToDto(item)),
+      items: (order.items || []).map((item) => this.mapItemToDto(item)),
       notes: order.notes,
       cancellationReason: order.cancellationReason,
       confirmedAt: order.confirmedAt,

@@ -1,8 +1,8 @@
-import { Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { WebSocketService } from '../websocket.service';
-import { TokenBlacklistService } from '../../auth/services/token-blacklist.service';
+import { Logger } from "@nestjs/common";
+import { Server, Socket } from "socket.io";
+import { JwtService } from "@nestjs/jwt";
+import { WebSocketService } from "../websocket.service";
+import { TokenBlacklistService } from "../../auth/services/token-blacklist.service";
 
 export interface AuthenticatedPayload {
   sub: string;
@@ -38,24 +38,32 @@ export abstract class BaseGateway {
         return;
       }
 
-      const payload: AuthenticatedPayload = await this.jwtService.verifyAsync(token);
+      const payload: AuthenticatedPayload =
+        await this.jwtService.verifyAsync(token);
 
       // Check token blacklist (logout, password change)
       if (payload.jti) {
-        const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(payload.jti);
+        const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(
+          payload.jti,
+        );
         if (isBlacklisted) {
-          this.logger.warn(`Blacklisted token used for WS connection: ${client.id}`);
+          this.logger.warn(
+            `Blacklisted token used for WS connection: ${client.id}`,
+          );
           client.disconnect();
           return;
         }
       }
       if (payload.iat) {
-        const isUserBlacklisted = await this.tokenBlacklistService.isUserBlacklisted(
-          payload.sub,
-          payload.iat,
-        );
+        const isUserBlacklisted =
+          await this.tokenBlacklistService.isUserBlacklisted(
+            payload.sub,
+            payload.iat,
+          );
         if (isUserBlacklisted) {
-          this.logger.warn(`User-blacklisted token used for WS connection: ${client.id}`);
+          this.logger.warn(
+            `User-blacklisted token used for WS connection: ${client.id}`,
+          );
           client.disconnect();
           return;
         }
@@ -69,6 +77,7 @@ export abstract class BaseGateway {
 
       // Gateway-specific setup (room joins, init events)
       this.onAuthenticated(client, payload);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Connection error: ${error.message}`);
       client.disconnect();
@@ -83,18 +92,21 @@ export abstract class BaseGateway {
    * Called after successful authentication. Override to add
    * gateway-specific room joins and init events.
    */
-  protected abstract onAuthenticated(client: Socket, payload: AuthenticatedPayload): void;
+  protected abstract onAuthenticated(
+    client: Socket,
+    payload: AuthenticatedPayload,
+  ): void;
 
   protected extractToken(client: Socket): string | null {
     // Try Authorization header
     const authHeader = client.handshake.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith("Bearer ")) {
       return authHeader.slice(7);
     }
 
     // Try query parameter
     const token = client.handshake.query.token;
-    if (typeof token === 'string') {
+    if (typeof token === "string") {
       return token;
     }
 

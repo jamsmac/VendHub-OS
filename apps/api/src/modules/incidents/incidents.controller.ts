@@ -15,7 +15,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -23,17 +23,29 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
-} from '@nestjs/swagger';
-import { IncidentsService } from './incidents.service';
-import { CreateIncidentDto } from './dto/create-incident.dto';
-import { UpdateIncidentDto, QueryIncidentsDto } from './dto/update-incident.dto';
-import { IncidentStatus, IncidentType, IncidentPriority } from './entities/incident.entity';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUserId, CurrentOrganizationId } from '../../common/decorators/current-user.decorator';
+} from "@nestjs/swagger";
+import { IncidentsService } from "./incidents.service";
+import { CreateIncidentDto } from "./dto/create-incident.dto";
+import {
+  UpdateIncidentDto,
+  QueryIncidentsDto,
+} from "./dto/update-incident.dto";
+import {
+  IncidentStatus,
+  IncidentType,
+  IncidentPriority,
+} from "./entities/incident.entity";
+import { Roles } from "../../common/decorators/roles.decorator";
+import {
+  CurrentUserId,
+  CurrentOrganizationId,
+  CurrentUser,
+} from "../../common/decorators/current-user.decorator";
+import { UserRole } from "../../common/enums";
 
-@ApiTags('Incidents')
+@ApiTags("Incidents")
 @ApiBearerAuth()
-@Controller('incidents')
+@Controller("incidents")
 export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
@@ -42,47 +54,59 @@ export class IncidentsController {
   // ============================================================================
 
   @Post()
-  @ApiOperation({ summary: 'Report a new incident' })
-  @ApiResponse({ status: 201, description: 'Incident created' })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @ApiOperation({ summary: "Report a new incident" })
+  @ApiResponse({ status: 201, description: "Incident created" })
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateIncidentDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
-    return this.incidentsService.create(dto, userId, dto.organization_id || orgId);
+    const organizationId =
+      user.role === UserRole.OWNER && dto.organization_id
+        ? dto.organization_id
+        : orgId;
+    return this.incidentsService.create(dto, userId, organizationId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Query incidents with filters' })
-  @ApiQuery({ name: 'machine_id', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, enum: IncidentStatus })
-  @ApiQuery({ name: 'type', required: false, enum: IncidentType })
-  @ApiQuery({ name: 'priority', required: false, enum: IncidentPriority })
-  @ApiQuery({ name: 'assigned_to_user_id', required: false, type: String })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'date_from', required: false, type: String })
-  @ApiQuery({ name: 'date_to', required: false, type: String })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @ApiOperation({ summary: "Query incidents with filters" })
+  @ApiQuery({ name: "machine_id", required: false, type: String })
+  @ApiQuery({ name: "status", required: false, enum: IncidentStatus })
+  @ApiQuery({ name: "type", required: false, enum: IncidentType })
+  @ApiQuery({ name: "priority", required: false, enum: IncidentPriority })
+  @ApiQuery({ name: "assigned_to_user_id", required: false, type: String })
+  @ApiQuery({ name: "search", required: false, type: String })
+  @ApiQuery({ name: "date_from", required: false, type: String })
+  @ApiQuery({ name: "date_to", required: false, type: String })
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @Roles("owner", "admin", "manager", "operator")
   async query(
     @Query() query: QueryIncidentsDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
-    return this.incidentsService.query(query, query.organization_id || orgId);
+    const organizationId =
+      user.role === UserRole.OWNER && query.organization_id
+        ? query.organization_id
+        : orgId;
+    return this.incidentsService.query(query, organizationId);
   }
 
-  @Get('statistics')
-  @ApiOperation({ summary: 'Get incident statistics for a date range' })
-  @ApiQuery({ name: 'dateFrom', required: true, type: String })
-  @ApiQuery({ name: 'dateTo', required: true, type: String })
-  @Roles('owner', 'admin', 'manager')
+  @Get("statistics")
+  @ApiOperation({ summary: "Get incident statistics for a date range" })
+  @ApiQuery({ name: "dateFrom", required: true, type: String })
+  @ApiQuery({ name: "dateTo", required: true, type: String })
+  @Roles("owner", "admin", "manager")
   async getStatistics(
     @CurrentOrganizationId() orgId: string,
-    @Query('dateFrom') dateFrom: string,
-    @Query('dateTo') dateTo: string,
+    @Query("dateFrom") dateFrom: string,
+    @Query("dateTo") dateTo: string,
   ) {
     return this.incidentsService.getStatistics(
       orgId,
@@ -91,36 +115,36 @@ export class IncidentsController {
     );
   }
 
-  @Get('machine/:machineId')
-  @ApiOperation({ summary: 'Get incidents for a specific machine' })
-  @ApiParam({ name: 'machineId', type: String })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Get("machine/:machineId")
+  @ApiOperation({ summary: "Get incidents for a specific machine" })
+  @ApiParam({ name: "machineId", type: String })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @Roles("owner", "admin", "manager", "operator")
   async findByMachine(
-    @Param('machineId', ParseUUIDPipe) machineId: string,
+    @Param("machineId", ParseUUIDPipe) machineId: string,
     @CurrentOrganizationId() orgId: string,
-    @Query('limit') limit?: number,
+    @Query("limit") limit?: number,
   ) {
     return this.incidentsService.findByMachine(machineId, orgId, limit);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get incident by ID' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Get(":id")
+  @ApiOperation({ summary: "Get incident by ID" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
   async findById(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.incidentsService.findById(id, orgId);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update an incident' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Patch(":id")
+  @ApiOperation({ summary: "Update an incident" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateIncidentDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
@@ -132,54 +156,54 @@ export class IncidentsController {
   // ACTIONS
   // ============================================================================
 
-  @Post(':id/assign')
-  @ApiOperation({ summary: 'Assign incident to a user' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager')
+  @Post(":id/assign")
+  @ApiOperation({ summary: "Assign incident to a user" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.OK)
   async assign(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('assigned_to_user_id', ParseUUIDPipe) assignedToUserId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("assigned_to_user_id", ParseUUIDPipe) assignedToUserId: string,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.incidentsService.assign(id, assignedToUserId, userId, orgId);
   }
 
-  @Post(':id/resolve')
-  @ApiOperation({ summary: 'Resolve an incident' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Post(":id/resolve")
+  @ApiOperation({ summary: "Resolve an incident" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.OK)
   async resolve(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('resolution') resolution: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("resolution") resolution: string,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.incidentsService.resolve(id, resolution, userId, orgId);
   }
 
-  @Post(':id/close')
-  @ApiOperation({ summary: 'Close a resolved incident' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager')
+  @Post(":id/close")
+  @ApiOperation({ summary: "Close a resolved incident" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.OK)
   async close(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.incidentsService.close(id, userId, orgId);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Soft delete a closed incident' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin')
+  @Delete(":id")
+  @ApiOperation({ summary: "Soft delete a closed incident" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {

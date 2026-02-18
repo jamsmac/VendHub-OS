@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 /**
  * DataTable Component
  * Reusable table with sorting, filtering, and pagination
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   ChevronUp,
   ChevronDown,
@@ -13,14 +13,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Column<T> {
   key: keyof T | string;
   header: string;
   sortable?: boolean;
   width?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render?: (value: any, row: T) => React.ReactNode;
   className?: string;
 }
@@ -43,13 +44,13 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
-  keyField = 'id' as keyof T,
+  keyField = "id" as keyof T,
   isLoading = false,
   searchable = true,
-  searchPlaceholder = 'Поиск...',
+  searchPlaceholder = "Поиск...",
   pagination = true,
   pageSize: initialPageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
@@ -57,12 +58,12 @@ export function DataTable<T extends Record<string, any>>({
   selectedRows = [],
   onSelectionChange,
   actions,
-  emptyMessage = 'Нет данных',
+  emptyMessage = "Нет данных",
   className,
 }: DataTableProps<T>) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
 
@@ -88,16 +89,16 @@ export function DataTable<T extends Record<string, any>>({
       const aVal = a[sortKey as keyof T];
       const bVal = b[sortKey as keyof T];
 
-      if (aVal == null) return sortDir === 'asc' ? 1 : -1;
-      if (bVal == null) return sortDir === 'asc' ? -1 : 1;
+      if (aVal == null) return sortDir === "asc" ? 1 : -1;
+      if (bVal == null) return sortDir === "asc" ? -1 : 1;
 
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortDir === "asc" ? aVal - bVal : bVal - aVal;
       }
 
       const aStr = String(aVal).toLowerCase();
       const bStr = String(bVal).toLowerCase();
-      return sortDir === 'asc'
+      return sortDir === "asc"
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
@@ -114,10 +115,10 @@ export function DataTable<T extends Record<string, any>>({
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir("asc");
     }
   };
 
@@ -132,9 +133,7 @@ export function DataTable<T extends Record<string, any>>({
 
   const handleSelectRow = (row: T) => {
     if (!onSelectionChange) return;
-    const isSelected = selectedRows.some(
-      (r) => r[keyField] === row[keyField],
-    );
+    const isSelected = selectedRows.some((r) => r[keyField] === row[keyField]);
     if (isSelected) {
       onSelectionChange(
         selectedRows.filter((r) => r[keyField] !== row[keyField]),
@@ -149,7 +148,7 @@ export function DataTable<T extends Record<string, any>>({
 
   const SortIcon = ({ column }: { column: string }) => {
     if (sortKey !== column) return <ChevronsUpDown className="w-4 h-4" />;
-    return sortDir === 'asc' ? (
+    return sortDir === "asc" ? (
       <ChevronUp className="w-4 h-4" />
     ) : (
       <ChevronDown className="w-4 h-4" />
@@ -157,7 +156,7 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Toolbar */}
       {searchable && (
         <div className="flex items-center gap-4">
@@ -201,8 +200,8 @@ export function DataTable<T extends Record<string, any>>({
                     key={String(column.key)}
                     style={{ width: column.width }}
                     className={cn(
-                      'px-4 py-3 text-left text-sm font-medium text-muted-foreground',
-                      column.sortable && 'cursor-pointer select-none',
+                      "px-4 py-3 text-left text-sm font-medium text-muted-foreground",
+                      column.sortable && "cursor-pointer select-none",
                       column.className,
                     )}
                     onClick={() =>
@@ -265,9 +264,9 @@ export function DataTable<T extends Record<string, any>>({
                     key={String(row[keyField])}
                     onClick={() => onRowClick?.(row)}
                     className={cn(
-                      'transition-colors',
-                      onRowClick && 'cursor-pointer hover:bg-muted/50',
-                      isRowSelected(row) && 'bg-primary/5',
+                      "transition-colors",
+                      onRowClick && "cursor-pointer hover:bg-muted/50",
+                      isRowSelected(row) && "bg-primary/5",
                     )}
                   >
                     {onSelectionChange && (
@@ -286,11 +285,11 @@ export function DataTable<T extends Record<string, any>>({
                     {columns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className={cn('px-4 py-3 text-sm', column.className)}
+                        className={cn("px-4 py-3 text-sm", column.className)}
                       >
                         {column.render
                           ? column.render(row[column.key as keyof T], row)
-                          : String(row[column.key as keyof T] ?? '')}
+                          : String(row[column.key as keyof T] ?? "")}
                       </td>
                     ))}
                     {actions && (
@@ -328,9 +327,7 @@ export function DataTable<T extends Record<string, any>>({
                 </option>
               ))}
             </select>
-            <span>
-              из {sortedData.length}
-            </span>
+            <span>из {sortedData.length}</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -359,10 +356,10 @@ export function DataTable<T extends Record<string, any>>({
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={cn(
-                    'w-8 h-8 rounded-lg text-sm font-medium',
+                    "w-8 h-8 rounded-lg text-sm font-medium",
                     currentPage === page
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted',
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted",
                   )}
                 >
                   {page}

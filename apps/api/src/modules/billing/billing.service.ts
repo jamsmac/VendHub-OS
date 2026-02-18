@@ -8,22 +8,22 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   Invoice,
   BillingPayment,
   InvoiceStatus,
   BillingPaymentStatus,
-} from './entities/billing.entity';
+} from "./entities/billing.entity";
 import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
   QueryInvoicesDto,
-} from './dto/create-invoice.dto';
-import { CreatePaymentDto, QueryPaymentsDto } from './dto/create-payment.dto';
+} from "./dto/create-invoice.dto";
+import { CreatePaymentDto, QueryPaymentsDto } from "./dto/create-payment.dto";
 
 @Injectable()
 export class BillingService {
@@ -77,7 +77,7 @@ export class BillingService {
       discountAmount: 0,
       totalAmount,
       paidAmount: 0,
-      currency: dto.currency || 'UZS',
+      currency: dto.currency || "UZS",
       lineItems: dto.lineItems,
       notes: dto.notes || null,
       created_by_id: userId,
@@ -102,32 +102,45 @@ export class BillingService {
   async findAllInvoices(
     organizationId: string,
     params: QueryInvoicesDto,
-  ): Promise<{ items: Invoice[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { customerId, status, dateFrom, dateTo, page = 1, limit = 20 } = params;
+  ): Promise<{
+    items: Invoice[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const {
+      customerId,
+      status,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 20,
+    } = params;
 
     const qb = this.invoiceRepo
-      .createQueryBuilder('i')
-      .leftJoinAndSelect('i.payments', 'payments')
-      .where('i.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("i")
+      .leftJoinAndSelect("i.payments", "payments")
+      .where("i.organizationId = :organizationId", { organizationId });
 
     if (customerId) {
-      qb.andWhere('i.customerId = :customerId', { customerId });
+      qb.andWhere("i.customerId = :customerId", { customerId });
     }
 
     if (status) {
-      qb.andWhere('i.status = :status', { status });
+      qb.andWhere("i.status = :status", { status });
     }
 
     if (dateFrom) {
-      qb.andWhere('i.issueDate >= :dateFrom', { dateFrom });
+      qb.andWhere("i.issueDate >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('i.issueDate <= :dateTo', { dateTo });
+      qb.andWhere("i.issueDate <= :dateTo", { dateTo });
     }
 
     const [items, total] = await qb
-      .orderBy('i.createdAt', 'DESC')
+      .orderBy("i.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -147,11 +160,11 @@ export class BillingService {
   async findInvoiceById(id: string): Promise<Invoice> {
     const invoice = await this.invoiceRepo.findOne({
       where: { id },
-      relations: ['payments'],
+      relations: ["payments"],
     });
 
     if (!invoice) {
-      throw new NotFoundException('Invoice not found');
+      throw new NotFoundException("Invoice not found");
     }
 
     return invoice;
@@ -172,14 +185,14 @@ export class BillingService {
     const invoice = await this.findInvoiceById(id);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
-      throw new BadRequestException(
-        'Only DRAFT invoices can be updated',
-      );
+      throw new BadRequestException("Only DRAFT invoices can be updated");
     }
 
     // Update fields
-    if (dto.customerId !== undefined) invoice.customerId = dto.customerId || null;
-    if (dto.customerName !== undefined) invoice.customerName = dto.customerName || null;
+    if (dto.customerId !== undefined)
+      invoice.customerId = dto.customerId || null;
+    if (dto.customerName !== undefined)
+      invoice.customerName = dto.customerName || null;
     if (dto.issueDate) invoice.issueDate = new Date(dto.issueDate);
     if (dto.dueDate) invoice.dueDate = new Date(dto.dueDate);
     if (dto.currency) invoice.currency = dto.currency;
@@ -224,9 +237,7 @@ export class BillingService {
     const invoice = await this.findInvoiceById(id);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
-      throw new BadRequestException(
-        'Only DRAFT invoices can be sent',
-      );
+      throw new BadRequestException("Only DRAFT invoices can be sent");
     }
 
     invoice.status = InvoiceStatus.SENT;
@@ -246,15 +257,11 @@ export class BillingService {
     const invoice = await this.findInvoiceById(id);
 
     if (invoice.status === InvoiceStatus.PAID) {
-      throw new BadRequestException(
-        'Paid invoices cannot be cancelled',
-      );
+      throw new BadRequestException("Paid invoices cannot be cancelled");
     }
 
     if (invoice.status === InvoiceStatus.CANCELLED) {
-      throw new BadRequestException(
-        'Invoice is already cancelled',
-      );
+      throw new BadRequestException("Invoice is already cancelled");
     }
 
     invoice.status = InvoiceStatus.CANCELLED;
@@ -291,7 +298,8 @@ export class BillingService {
       );
     }
 
-    const remainingAmount = Number(invoice.totalAmount) - Number(invoice.paidAmount);
+    const remainingAmount =
+      Number(invoice.totalAmount) - Number(invoice.paidAmount);
 
     if (dto.amount > remainingAmount) {
       throw new BadRequestException(
@@ -303,7 +311,7 @@ export class BillingService {
     const paymentCount = await this.paymentRepo.count({
       where: { invoiceId },
     });
-    const paymentNumber = `${invoice.invoiceNumber}-P${String(paymentCount + 1).padStart(2, '0')}`;
+    const paymentNumber = `${invoice.invoiceNumber}-P${String(paymentCount + 1).padStart(2, "0")}`;
 
     const payment = this.paymentRepo.create({
       organizationId,
@@ -336,7 +344,7 @@ export class BillingService {
 
     this.logger.log(
       `Payment ${paymentNumber} recorded for invoice ${invoice.invoiceNumber} ` +
-      `(${dto.amount} ${invoice.currency})`,
+        `(${dto.amount} ${invoice.currency})`,
     );
 
     return payment;
@@ -348,32 +356,45 @@ export class BillingService {
   async findAllPayments(
     organizationId: string,
     params: QueryPaymentsDto,
-  ): Promise<{ items: BillingPayment[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { invoiceId, status, dateFrom, dateTo, page = 1, limit = 20 } = params;
+  ): Promise<{
+    items: BillingPayment[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const {
+      invoiceId,
+      status,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 20,
+    } = params;
 
     const qb = this.paymentRepo
-      .createQueryBuilder('p')
-      .leftJoinAndSelect('p.invoice', 'invoice')
-      .where('p.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("p")
+      .leftJoinAndSelect("p.invoice", "invoice")
+      .where("p.organizationId = :organizationId", { organizationId });
 
     if (invoiceId) {
-      qb.andWhere('p.invoiceId = :invoiceId', { invoiceId });
+      qb.andWhere("p.invoiceId = :invoiceId", { invoiceId });
     }
 
     if (status) {
-      qb.andWhere('p.status = :status', { status });
+      qb.andWhere("p.status = :status", { status });
     }
 
     if (dateFrom) {
-      qb.andWhere('p.paymentDate >= :dateFrom', { dateFrom });
+      qb.andWhere("p.paymentDate >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('p.paymentDate <= :dateTo', { dateTo });
+      qb.andWhere("p.paymentDate <= :dateTo", { dateTo });
     }
 
     const [items, total] = await qb
-      .orderBy('p.paymentDate', 'DESC')
+      .orderBy("p.paymentDate", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -403,8 +424,8 @@ export class BillingService {
       .createQueryBuilder()
       .update(Invoice)
       .set({ status: InvoiceStatus.OVERDUE })
-      .where('status = :status', { status: InvoiceStatus.SENT })
-      .andWhere('dueDate < :today', { today })
+      .where("status = :status", { status: InvoiceStatus.SENT })
+      .andWhere("dueDate < :today", { today })
       .execute();
 
     if (result.affected && result.affected > 0) {
@@ -419,9 +440,7 @@ export class BillingService {
   /**
    * Получить статистику по инвойсам
    */
-  async getInvoiceStats(
-    organizationId: string,
-  ): Promise<{
+  async getInvoiceStats(organizationId: string): Promise<{
     totalAmount: number;
     paidAmount: number;
     overdueAmount: number;
@@ -487,9 +506,7 @@ export class BillingService {
     const invoice = await this.findInvoiceById(id);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
-      throw new BadRequestException(
-        'Only DRAFT invoices can be deleted',
-      );
+      throw new BadRequestException("Only DRAFT invoices can be deleted");
     }
 
     await this.invoiceRepo.softDelete(id);
@@ -503,8 +520,8 @@ export class BillingService {
 
   private async generateInvoiceNumber(organizationId: string): Promise<string> {
     const year = new Date().getFullYear();
-    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    const month = String(new Date().getMonth() + 1).padStart(2, "0");
     const count = await this.invoiceRepo.count({ where: { organizationId } });
-    return `INV-${year}${month}-${String(count + 1).padStart(5, '0')}`;
+    return `INV-${year}${month}-${String(count + 1).padStart(5, "0")}`;
   }
 }

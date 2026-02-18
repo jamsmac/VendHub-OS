@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Integration, IntegrationTemplate, IntegrationLog } from '../entities/integration.entity';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  Integration,
+  IntegrationTemplate,
+  IntegrationLog,
+} from "../entities/integration.entity";
 import {
   IntegrationCategory,
   IntegrationStatus,
   PaymentIntegrationConfig,
-} from '../types/integration.types';
+} from "../types/integration.types";
 
 @Injectable()
 export class IntegrationService {
@@ -25,14 +33,16 @@ export class IntegrationService {
 
   async findAll(organizationId: string, category?: IntegrationCategory) {
     const query = this.integrationRepo
-      .createQueryBuilder('integration')
-      .where('integration.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("integration")
+      .where("integration.organizationId = :organizationId", {
+        organizationId,
+      });
 
     if (category) {
-      query.andWhere('integration.category = :category', { category });
+      query.andWhere("integration.category = :category", { category });
     }
 
-    return query.orderBy('integration.priority', 'DESC').getMany();
+    return query.orderBy("integration.priority", "DESC").getMany();
   }
 
   async findOne(id: string, organizationId: string) {
@@ -41,7 +51,7 @@ export class IntegrationService {
     });
 
     if (!integration) {
-      throw new NotFoundException('Integration not found');
+      throw new NotFoundException("Integration not found");
     }
 
     return integration;
@@ -54,7 +64,7 @@ export class IntegrationService {
         category: IntegrationCategory.PAYMENT,
         status: IntegrationStatus.ACTIVE,
       },
-      order: { priority: 'DESC' },
+      order: { priority: "DESC" },
     });
   }
 
@@ -79,13 +89,17 @@ export class IntegrationService {
       });
 
       if (!template) {
-        throw new NotFoundException('Template not found');
+        throw new NotFoundException("Template not found");
       }
 
       config = { ...template.defaultConfig };
 
       // Increment template usage
-      await this.templateRepo.increment({ id: data.templateId }, 'usageCount', 1);
+      await this.templateRepo.increment(
+        { id: data.templateId },
+        "usageCount",
+        1,
+      );
     } else {
       // Create empty config
       config = this.createEmptyConfig(data.name, data.displayName);
@@ -178,10 +192,15 @@ export class IntegrationService {
 
   async delete(id: string, organizationId: string) {
     const integration = await this.findOne(id, organizationId);
-    await this.integrationRepo.remove(integration);
+    await this.integrationRepo.softRemove(integration);
   }
 
-  async toggleSandboxMode(id: string, organizationId: string, sandboxMode: boolean, userId: string) {
+  async toggleSandboxMode(
+    id: string,
+    organizationId: string,
+    sandboxMode: boolean,
+    userId: string,
+  ) {
     const integration = await this.findOne(id, organizationId);
     integration.sandboxMode = sandboxMode;
     integration.updated_by_id = userId;
@@ -194,24 +213,24 @@ export class IntegrationService {
 
   async findAllTemplates(category?: IntegrationCategory, country?: string) {
     const query = this.templateRepo
-      .createQueryBuilder('template')
-      .where('template.isActive = :isActive', { isActive: true });
+      .createQueryBuilder("template")
+      .where("template.isActive = :isActive", { isActive: true });
 
     if (category) {
-      query.andWhere('template.category = :category', { category });
+      query.andWhere("template.category = :category", { category });
     }
 
     if (country) {
-      query.andWhere('template.country = :country', { country });
+      query.andWhere("template.country = :country", { country });
     }
 
-    return query.orderBy('template.usageCount', 'DESC').getMany();
+    return query.orderBy("template.usageCount", "DESC").getMany();
   }
 
   async findTemplate(id: string) {
     const template = await this.templateRepo.findOne({ where: { id } });
     if (!template) {
-      throw new NotFoundException('Template not found');
+      throw new NotFoundException("Template not found");
     }
     return template;
   }
@@ -231,16 +250,16 @@ export class IntegrationService {
     options: { limit?: number; offset?: number; success?: boolean },
   ) {
     const query = this.logRepo
-      .createQueryBuilder('log')
-      .where('log.integrationId = :integrationId', { integrationId })
-      .andWhere('log.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("log")
+      .where("log.integrationId = :integrationId", { integrationId })
+      .andWhere("log.organizationId = :organizationId", { organizationId });
 
     if (options.success !== undefined) {
-      query.andWhere('log.success = :success', { success: options.success });
+      query.andWhere("log.success = :success", { success: options.success });
     }
 
     return query
-      .orderBy('log.createdAt', 'DESC')
+      .orderBy("log.createdAt", "DESC")
       .take(options.limit || 50)
       .skip(options.offset || 0)
       .getMany();
@@ -262,9 +281,9 @@ export class IntegrationService {
       this.logRepo.count({ where: { integrationId } }),
       this.logRepo.count({ where: { integrationId, success: true } }),
       this.logRepo
-        .createQueryBuilder('log')
-        .where('log.integrationId = :integrationId', { integrationId })
-        .select('AVG(log.duration)', 'avg')
+        .createQueryBuilder("log")
+        .where("log.integrationId = :integrationId", { integrationId })
+        .select("AVG(log.duration)", "avg")
         .getRawOne(),
     ]);
 
@@ -272,7 +291,8 @@ export class IntegrationService {
       totalRequests,
       successfulRequests,
       failedRequests: totalRequests - successfulRequests,
-      successRate: totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0,
+      successRate:
+        totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0,
       avgDuration: avgDuration?.avg || 0,
       lastUsedAt: integration.lastUsedAt,
       lastTestedAt: integration.lastTestedAt,
@@ -283,49 +303,81 @@ export class IntegrationService {
   // Helpers
   // ============================================
 
-  private createEmptyConfig(name: string, displayName: string): PaymentIntegrationConfig {
+  private createEmptyConfig(
+    name: string,
+    displayName: string,
+  ): PaymentIntegrationConfig {
     return {
       name,
       displayName,
       sandboxMode: true,
-      baseUrl: '',
+      baseUrl: "",
       auth: {
-        type: 'api_key' as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: "api_key" as any,
         config: {
-          keyName: 'Authorization',
-          keyLocation: 'header' as any,
+          keyName: "Authorization",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          keyLocation: "header" as any,
         },
       },
       credentials: [],
-      supportedCurrencies: ['UZS'],
+      supportedCurrencies: ["UZS"],
       supportedMethods: [],
       endpoints: {
         createPayment: {
-          id: 'create_payment',
-          name: 'Create Payment',
-          description: 'Create a new payment',
-          method: 'POST' as any,
-          path: '/payments',
+          id: "create_payment",
+          name: "Create Payment",
+          description: "Create a new payment",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          method: "POST" as any,
+          path: "/payments",
         },
         checkStatus: {
-          id: 'check_status',
-          name: 'Check Status',
-          description: 'Check payment status',
-          method: 'GET' as any,
-          path: '/payments/{id}',
+          id: "check_status",
+          name: "Check Status",
+          description: "Check payment status",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          method: "GET" as any,
+          path: "/payments/{id}",
         },
       },
     };
   }
 
-  private validateStatusTransition(currentStatus: IntegrationStatus, newStatus: IntegrationStatus) {
+  private validateStatusTransition(
+    currentStatus: IntegrationStatus,
+    newStatus: IntegrationStatus,
+  ) {
     const validTransitions: Record<IntegrationStatus, IntegrationStatus[]> = {
-      [IntegrationStatus.DRAFT]: [IntegrationStatus.CONFIGURING, IntegrationStatus.TESTING],
-      [IntegrationStatus.CONFIGURING]: [IntegrationStatus.DRAFT, IntegrationStatus.TESTING, IntegrationStatus.ERROR],
-      [IntegrationStatus.TESTING]: [IntegrationStatus.ACTIVE, IntegrationStatus.DRAFT, IntegrationStatus.ERROR],
-      [IntegrationStatus.ACTIVE]: [IntegrationStatus.PAUSED, IntegrationStatus.ERROR, IntegrationStatus.DEPRECATED],
-      [IntegrationStatus.PAUSED]: [IntegrationStatus.ACTIVE, IntegrationStatus.DEPRECATED],
-      [IntegrationStatus.ERROR]: [IntegrationStatus.DRAFT, IntegrationStatus.CONFIGURING, IntegrationStatus.TESTING],
+      [IntegrationStatus.DRAFT]: [
+        IntegrationStatus.CONFIGURING,
+        IntegrationStatus.TESTING,
+      ],
+      [IntegrationStatus.CONFIGURING]: [
+        IntegrationStatus.DRAFT,
+        IntegrationStatus.TESTING,
+        IntegrationStatus.ERROR,
+      ],
+      [IntegrationStatus.TESTING]: [
+        IntegrationStatus.ACTIVE,
+        IntegrationStatus.DRAFT,
+        IntegrationStatus.ERROR,
+      ],
+      [IntegrationStatus.ACTIVE]: [
+        IntegrationStatus.PAUSED,
+        IntegrationStatus.ERROR,
+        IntegrationStatus.DEPRECATED,
+      ],
+      [IntegrationStatus.PAUSED]: [
+        IntegrationStatus.ACTIVE,
+        IntegrationStatus.DEPRECATED,
+      ],
+      [IntegrationStatus.ERROR]: [
+        IntegrationStatus.DRAFT,
+        IntegrationStatus.CONFIGURING,
+        IntegrationStatus.TESTING,
+      ],
       [IntegrationStatus.DEPRECATED]: [],
     };
 

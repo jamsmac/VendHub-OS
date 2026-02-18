@@ -1,15 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WebhooksService, WebhookEvent } from './webhooks.service';
-import * as crypto from 'crypto';
+import { Test, TestingModule } from "@nestjs/testing";
+import { WebhooksService, WebhookEvent } from "./webhooks.service";
+import * as crypto from "crypto";
 
 // Mock global fetch
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-// Mock setTimeout to execute immediately
-jest.useFakeTimers();
-
-describe('WebhooksService', () => {
+describe("WebhooksService", () => {
   let service: WebhooksService;
 
   beforeEach(async () => {
@@ -23,10 +20,10 @@ describe('WebhooksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
+    mockFetch.mockReset();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -34,293 +31,299 @@ describe('WebhooksService', () => {
   // SEND
   // ==========================================================================
 
-  describe('send', () => {
-    it('should send webhooks to all active endpoints that match the event', async () => {
+  describe("send", () => {
+    it("should send webhooks to all active endpoints that match the event", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook1.example.com',
+          url: "https://hook1.example.com",
           events: [WebhookEvent.SALE_COMPLETED, WebhookEvent.TASK_CREATED],
-          secret: 'secret1',
+          secret: "secret1",
           isActive: true,
         },
         {
-          url: 'https://hook2.example.com',
+          url: "https://hook2.example.com",
           events: [WebhookEvent.SALE_COMPLETED],
-          secret: 'secret2',
+          secret: "secret2",
           isActive: true,
         },
       ];
 
       await service.send(
-        'org-1',
+        "org-1",
         WebhookEvent.SALE_COMPLETED,
         { amount: 50000 },
         webhooks,
       );
 
-      // Allow async operations to complete
-      await new Promise(process.nextTick);
+      // Wait for async sendWithRetry calls to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
+    }, 30000);
 
-    it('should skip inactive webhooks', async () => {
+    it("should skip inactive webhooks", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook1.example.com',
+          url: "https://hook1.example.com",
           events: [WebhookEvent.TASK_CREATED],
-          secret: 'secret1',
+          secret: "secret1",
           isActive: false,
         },
         {
-          url: 'https://hook2.example.com',
+          url: "https://hook2.example.com",
           events: [WebhookEvent.TASK_CREATED],
-          secret: 'secret2',
+          secret: "secret2",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.TASK_CREATED, {}, webhooks);
+      await service.send("org-1", WebhookEvent.TASK_CREATED, {}, webhooks);
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://hook2.example.com',
+        "https://hook2.example.com",
         expect.any(Object),
       );
-    });
+    }, 30000);
 
-    it('should skip webhooks that do not subscribe to the event', async () => {
+    it("should skip webhooks that do not subscribe to the event", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook1.example.com',
+          url: "https://hook1.example.com",
           events: [WebhookEvent.MACHINE_STATUS_CHANGED],
-          secret: 'secret1',
+          secret: "secret1",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.SALE_COMPLETED, {}, webhooks);
+      await service.send("org-1", WebhookEvent.SALE_COMPLETED, {}, webhooks);
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    }, 30000);
+
+    it("should do nothing when webhooks array is empty", async () => {
+      await service.send("org-1", WebhookEvent.TASK_COMPLETED, {}, []);
 
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('should do nothing when webhooks array is empty', async () => {
-      await service.send('org-1', WebhookEvent.TASK_COMPLETED, {}, []);
-
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('should send correct headers including signature and event', async () => {
+    it("should send correct headers including signature and event", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.PAYMENT_RECEIVED],
-          secret: 'test-secret',
+          secret: "test-secret",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.PAYMENT_RECEIVED, { amount: 100 }, webhooks);
+      await service.send(
+        "org-1",
+        WebhookEvent.PAYMENT_RECEIVED,
+        { amount: 100 },
+        webhooks,
+      );
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://hook.example.com',
+        "https://hook.example.com",
         expect.objectContaining({
-          method: 'POST',
+          method: "POST",
           headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'X-Webhook-Event': WebhookEvent.PAYMENT_RECEIVED,
-            'X-Webhook-Signature': expect.any(String),
+            "Content-Type": "application/json",
+            "X-Webhook-Event": WebhookEvent.PAYMENT_RECEIVED,
+            "X-Webhook-Signature": expect.any(String),
           }),
         }),
       );
-    });
+    }, 30000);
 
-    it('should include event, payload and timestamp in request body', async () => {
+    it("should include event, payload and timestamp in request body", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
-      const payload = { machineId: 'm-1', status: 'offline' };
+      const payload = { machineId: "m-1", status: "offline" };
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.MACHINE_STATUS_CHANGED],
-          secret: 'secret',
+          secret: "secret",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.MACHINE_STATUS_CHANGED, payload, webhooks);
+      await service.send(
+        "org-1",
+        WebhookEvent.MACHINE_STATUS_CHANGED,
+        payload,
+        webhooks,
+      );
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(callBody.event).toBe(WebhookEvent.MACHINE_STATUS_CHANGED);
       expect(callBody.payload).toEqual(payload);
       expect(callBody.timestamp).toBeDefined();
-    });
+    }, 30000);
   });
 
   // ==========================================================================
   // RETRY LOGIC
   // ==========================================================================
 
-  describe('retry logic', () => {
-    it('should retry on non-OK response', async () => {
+  describe("retry logic", () => {
+    it("should retry on non-OK response", async () => {
       mockFetch
         .mockResolvedValueOnce({ ok: false, status: 500 })
         .mockResolvedValueOnce({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.INVENTORY_LOW],
-          secret: 'secret',
+          secret: "secret",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.INVENTORY_LOW, {}, webhooks);
+      await service.send("org-1", WebhookEvent.INVENTORY_LOW, {}, webhooks);
 
-      await new Promise(process.nextTick);
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-
-      // Run first retry timer (1000ms)
-      jest.advanceTimersByTime(1000);
-      await new Promise(process.nextTick);
+      // Wait for retries (1000ms first delay + buffer)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
+    }, 30000);
 
-    it('should retry on network error', async () => {
+    it("should retry on network error", async () => {
       mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
+        .mockRejectedValueOnce(new Error("Network error"))
         .mockResolvedValueOnce({ ok: true, status: 200 });
 
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.TASK_COMPLETED],
-          secret: 'secret',
+          secret: "secret",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.TASK_COMPLETED, {}, webhooks);
+      await service.send("org-1", WebhookEvent.TASK_COMPLETED, {}, webhooks);
 
-      await new Promise(process.nextTick);
-
-      // Run first retry timer (1000ms)
-      jest.advanceTimersByTime(1000);
-      await new Promise(process.nextTick);
+      // Wait for retries (1000ms first delay + buffer)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
+    }, 30000);
 
-    it('should stop retrying after MAX_RETRIES', async () => {
-      mockFetch.mockRejectedValue(new Error('Always fails'));
+    it("should stop retrying after MAX_RETRIES", async () => {
+      mockFetch.mockRejectedValue(new Error("Always fails"));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.SALE_COMPLETED],
-          secret: 'secret',
+          secret: "secret",
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.SALE_COMPLETED, {}, webhooks);
+      await service.send("org-1", WebhookEvent.SALE_COMPLETED, {}, webhooks);
 
-      await new Promise(process.nextTick);
-
-      // First retry (1000ms)
-      jest.advanceTimersByTime(1000);
-      await new Promise(process.nextTick);
-
-      // Second retry (5000ms)
-      jest.advanceTimersByTime(5000);
-      await new Promise(process.nextTick);
-
-      // Third retry (30000ms)
-      jest.advanceTimersByTime(30000);
-      await new Promise(process.nextTick);
+      // Wait for all retries (1000 + 5000 + 30000 ms + buffer)
+      await new Promise((resolve) => setTimeout(resolve, 37000));
 
       // Should not retry beyond MAX_RETRIES (3)
       expect(mockFetch).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
 
       consoleSpy.mockRestore();
-    });
+    }, 40000);
   });
 
   // ==========================================================================
   // VERIFY SIGNATURE
   // ==========================================================================
 
-  describe('verifySignature', () => {
-    it('should return true for valid signature', () => {
-      const payload = JSON.stringify({ event: 'test', data: 'value' });
-      const secret = 'my-secret-key';
+  describe("verifySignature", () => {
+    it("should return true for valid signature", () => {
+      const payload = JSON.stringify({ event: "test", data: "value" });
+      const secret = "my-secret-key";
 
       const expectedSignature = crypto
-        .createHmac('sha256', secret)
+        .createHmac("sha256", secret)
         .update(payload)
-        .digest('hex');
+        .digest("hex");
 
-      const result = service.verifySignature(payload, expectedSignature, secret);
+      const result = service.verifySignature(
+        payload,
+        expectedSignature,
+        secret,
+      );
 
       expect(result).toBe(true);
     });
 
-    it('should return false for invalid signature', () => {
-      const payload = JSON.stringify({ event: 'test' });
-      const secret = 'my-secret';
+    it("should return false for invalid signature", () => {
+      const payload = JSON.stringify({ event: "test" });
+      const secret = "my-secret";
       const wrongSignature = crypto
-        .createHmac('sha256', 'wrong-secret')
+        .createHmac("sha256", "wrong-secret")
         .update(payload)
-        .digest('hex');
+        .digest("hex");
 
       const result = service.verifySignature(payload, wrongSignature, secret);
 
       expect(result).toBe(false);
     });
 
-    it('should produce consistent signatures for same input', () => {
+    it("should produce consistent signatures for same input", () => {
       const payload = '{"test":"data"}';
-      const secret = 'consistent-secret';
+      const secret = "consistent-secret";
 
-      const sig1 = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-      const sig2 = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+      const sig1 = crypto
+        .createHmac("sha256", secret)
+        .update(payload)
+        .digest("hex");
+      const sig2 = crypto
+        .createHmac("sha256", secret)
+        .update(payload)
+        .digest("hex");
 
       expect(service.verifySignature(payload, sig1, secret)).toBe(true);
       expect(service.verifySignature(payload, sig2, secret)).toBe(true);
     });
 
-    it('should fail when payload is tampered', () => {
+    it("should fail when payload is tampered", () => {
       const originalPayload = JSON.stringify({ amount: 50000 });
-      const secret = 'key';
+      const secret = "key";
 
       const signature = crypto
-        .createHmac('sha256', secret)
+        .createHmac("sha256", secret)
         .update(originalPayload)
-        .digest('hex');
+        .digest("hex");
 
       const tamperedPayload = JSON.stringify({ amount: 500000 });
 
-      const result = service.verifySignature(tamperedPayload, signature, secret);
+      const result = service.verifySignature(
+        tamperedPayload,
+        signature,
+        secret,
+      );
 
       expect(result).toBe(false);
     });
@@ -330,14 +333,16 @@ describe('WebhooksService', () => {
   // WEBHOOK EVENT ENUM
   // ==========================================================================
 
-  describe('WebhookEvent enum', () => {
-    it('should have all expected event types', () => {
-      expect(WebhookEvent.MACHINE_STATUS_CHANGED).toBe('machine.status.changed');
-      expect(WebhookEvent.INVENTORY_LOW).toBe('inventory.low');
-      expect(WebhookEvent.TASK_CREATED).toBe('task.created');
-      expect(WebhookEvent.TASK_COMPLETED).toBe('task.completed');
-      expect(WebhookEvent.SALE_COMPLETED).toBe('sale.completed');
-      expect(WebhookEvent.PAYMENT_RECEIVED).toBe('payment.received');
+  describe("WebhookEvent enum", () => {
+    it("should have all expected event types", () => {
+      expect(WebhookEvent.MACHINE_STATUS_CHANGED).toBe(
+        "machine.status.changed",
+      );
+      expect(WebhookEvent.INVENTORY_LOW).toBe("inventory.low");
+      expect(WebhookEvent.TASK_CREATED).toBe("task.created");
+      expect(WebhookEvent.TASK_COMPLETED).toBe("task.completed");
+      expect(WebhookEvent.SALE_COMPLETED).toBe("sale.completed");
+      expect(WebhookEvent.PAYMENT_RECEIVED).toBe("payment.received");
     });
   });
 
@@ -345,33 +350,38 @@ describe('WebhooksService', () => {
   // SIGNATURE GENERATION
   // ==========================================================================
 
-  describe('signature generation in send', () => {
-    it('should generate HMAC-SHA256 signature for webhook body', async () => {
+  describe("signature generation in send", () => {
+    it("should generate HMAC-SHA256 signature for webhook body", async () => {
       mockFetch.mockResolvedValue({ ok: true, status: 200 });
 
-      const secret = 'webhook-secret-key';
+      const secret = "webhook-secret-key";
       const webhooks = [
         {
-          url: 'https://hook.example.com',
+          url: "https://hook.example.com",
           events: [WebhookEvent.SALE_COMPLETED],
           secret,
           isActive: true,
         },
       ];
 
-      await service.send('org-1', WebhookEvent.SALE_COMPLETED, { id: 'sale-1' }, webhooks);
-      await new Promise(process.nextTick);
+      await service.send(
+        "org-1",
+        WebhookEvent.SALE_COMPLETED,
+        { id: "sale-1" },
+        webhooks,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const callArgs = mockFetch.mock.calls[0];
       const sentBody = callArgs[1].body;
-      const sentSignature = callArgs[1].headers['X-Webhook-Signature'];
+      const sentSignature = callArgs[1].headers["X-Webhook-Signature"];
 
       const expectedSignature = crypto
-        .createHmac('sha256', secret)
+        .createHmac("sha256", secret)
         .update(sentBody)
-        .digest('hex');
+        .digest("hex");
 
       expect(sentSignature).toBe(expectedSignature);
-    });
+    }, 30000);
   });
 });

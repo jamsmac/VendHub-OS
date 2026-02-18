@@ -11,9 +11,9 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Brackets } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Brackets } from "typeorm";
 import {
   Directory,
   DirectoryField,
@@ -21,10 +21,19 @@ import {
   DirectoryScope,
   EntryStatus,
   EntryOrigin,
-} from './entities/directory.entity';
-import { DirectorySource, SyncStatus } from './entities/directory-source.entity';
-import { DirectorySyncLog, SyncLogStatus } from './entities/directory-sync-log.entity';
-import { DirectoryEntryAudit, DirectoryAuditAction } from './entities/directory-entry-audit.entity';
+} from "./entities/directory.entity";
+import {
+  DirectorySource,
+  SyncStatus,
+} from "./entities/directory-source.entity";
+import {
+  DirectorySyncLog,
+  SyncLogStatus,
+} from "./entities/directory-sync-log.entity";
+import {
+  DirectoryEntryAudit,
+  DirectoryAuditAction,
+} from "./entities/directory-entry-audit.entity";
 import {
   CreateDirectoryDto,
   UpdateDirectoryDto,
@@ -34,15 +43,18 @@ import {
   UpdateDirectoryEntryDto,
   QueryDirectoriesDto,
   QueryEntriesDto,
-} from './dto/directory.dto';
+} from "./dto/directory.dto";
 import {
   CreateDirectorySourceDto,
   UpdateDirectorySourceDto,
   QueryDirectorySourcesDto,
-} from './dto/directory-source.dto';
-import { QuerySyncLogsDto } from './dto/directory-sync.dto';
-import { QueryAuditLogsDto } from './dto/directory-audit.dto';
-import { MoveEntryDto, InlineCreateEntryDto } from './dto/directory-hierarchy.dto';
+} from "./dto/directory-source.dto";
+import { QuerySyncLogsDto } from "./dto/directory-sync.dto";
+import { QueryAuditLogsDto } from "./dto/directory-audit.dto";
+import {
+  MoveEntryDto,
+  InlineCreateEntryDto,
+} from "./dto/directory-hierarchy.dto";
 
 // ============================================================================
 // INTERFACES
@@ -107,14 +119,16 @@ export class DirectoriesService {
   ): Promise<Directory> {
     // Check slug uniqueness
     const existing = await this.directoryRepository
-      .createQueryBuilder('d')
-      .where('d.slug = :slug', { slug: dto.slug })
+      .createQueryBuilder("d")
+      .where("d.slug = :slug", { slug: dto.slug })
       .withDeleted()
-      .andWhere('d.deleted_at IS NULL')
+      .andWhere("d.deleted_at IS NULL")
       .getOne();
 
     if (existing) {
-      throw new ConflictException(`Directory with slug "${dto.slug}" already exists`);
+      throw new ConflictException(
+        `Directory with slug "${dto.slug}" already exists`,
+      );
     }
 
     const directory = this.directoryRepository.create({
@@ -136,42 +150,51 @@ export class DirectoriesService {
     organizationId: string,
     filters?: QueryDirectoriesDto,
   ): Promise<PaginatedResult<Directory>> {
-    const { page = 1, limit: rawLimit = 50, type, scope, search, includeSystem } = filters || {};
+    const {
+      page = 1,
+      limit: rawLimit = 50,
+      type,
+      scope,
+      search,
+      includeSystem,
+    } = filters || {};
     const limit = Math.min(rawLimit, 200);
 
-    const query = this.directoryRepository
-      .createQueryBuilder('d')
-      .where(
-        new Brackets((qb) => {
-          qb.where('d.scope = :hqScope', { hqScope: DirectoryScope.HQ })
-            .orWhere('d.organizationId = :organizationId', { organizationId });
-        }),
-      );
+    const query = this.directoryRepository.createQueryBuilder("d").where(
+      new Brackets((qb) => {
+        qb.where("d.scope = :hqScope", { hqScope: DirectoryScope.HQ }).orWhere(
+          "d.organizationId = :organizationId",
+          { organizationId },
+        );
+      }),
+    );
 
     if (type) {
-      query.andWhere('d.type = :type', { type });
+      query.andWhere("d.type = :type", { type });
     }
 
     if (scope) {
-      query.andWhere('d.scope = :scope', { scope });
+      query.andWhere("d.scope = :scope", { scope });
     }
 
     if (search) {
       query.andWhere(
         new Brackets((qb) => {
-          qb.where('d.name ILIKE :search', { search: `%${search}%` })
-            .orWhere('d.slug ILIKE :search', { search: `%${search}%` });
+          qb.where("d.name ILIKE :search", { search: `%${search}%` }).orWhere(
+            "d.slug ILIKE :search",
+            { search: `%${search}%` },
+          );
         }),
       );
     }
 
     if (includeSystem === false) {
-      query.andWhere('d.isSystem = false');
+      query.andWhere("d.isSystem = false");
     }
 
     const total = await query.getCount();
 
-    query.orderBy('d.name', 'ASC');
+    query.orderBy("d.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -192,7 +215,7 @@ export class DirectoriesService {
   async findOne(id: string, organizationId: string): Promise<Directory> {
     const directory = await this.directoryRepository.findOne({
       where: { id },
-      relations: ['fields'],
+      relations: ["fields"],
     });
 
     if (!directory) {
@@ -222,7 +245,7 @@ export class DirectoriesService {
   async findBySlug(slug: string, organizationId: string): Promise<Directory> {
     const directory = await this.directoryRepository.findOne({
       where: { slug },
-      relations: ['fields'],
+      relations: ["fields"],
     });
 
     if (!directory) {
@@ -255,8 +278,14 @@ export class DirectoriesService {
   ): Promise<Directory> {
     const directory = await this.findOne(id, organizationId);
 
-    if (directory.isSystem && directory.scope === DirectoryScope.HQ && directory.organizationId !== organizationId) {
-      throw new BadRequestException('Cannot modify HQ system directories from organization scope');
+    if (
+      directory.isSystem &&
+      directory.scope === DirectoryScope.HQ &&
+      directory.organizationId !== organizationId
+    ) {
+      throw new BadRequestException(
+        "Cannot modify HQ system directories from organization scope",
+      );
     }
 
     Object.assign(directory, {
@@ -275,7 +304,7 @@ export class DirectoriesService {
     const directory = await this.findOne(id, organizationId);
 
     if (directory.isSystem) {
-      throw new BadRequestException('System directories cannot be deleted');
+      throw new BadRequestException("System directories cannot be deleted");
     }
 
     await this.directoryRepository.softDelete(id);
@@ -359,7 +388,7 @@ export class DirectoriesService {
       throw new NotFoundException(`Field with ID ${fieldId} not found`);
     }
 
-    await this.fieldRepository.remove(field);
+    await this.fieldRepository.softRemove(field);
   }
 
   // ==========================================================================
@@ -382,7 +411,7 @@ export class DirectoriesService {
     if (dto.parentId) {
       if (!directory.isHierarchical) {
         throw new BadRequestException(
-          'Cannot set parentId on a non-hierarchical directory',
+          "Cannot set parentId on a non-hierarchical directory",
         );
       }
 
@@ -390,7 +419,9 @@ export class DirectoriesService {
         where: { id: dto.parentId, directoryId },
       });
       if (!parent) {
-        throw new NotFoundException(`Parent entry with ID ${dto.parentId} not found in this directory`);
+        throw new NotFoundException(
+          `Parent entry with ID ${dto.parentId} not found in this directory`,
+        );
       }
     }
 
@@ -405,12 +436,18 @@ export class DirectoriesService {
     const saved = await this.entryRepository.save(entry);
 
     // Record audit
-    await this.createAuditEntry(saved.id, DirectoryAuditAction.CREATE, userId ?? null, null, {
-      name: saved.name,
-      code: saved.code,
-      status: saved.status,
-      data: saved.data,
-    });
+    await this.createAuditEntry(
+      saved.id,
+      DirectoryAuditAction.CREATE,
+      userId ?? null,
+      null,
+      {
+        name: saved.name,
+        code: saved.code,
+        status: saved.status,
+        data: saved.data,
+      },
+    );
 
     return saved;
   }
@@ -426,29 +463,39 @@ export class DirectoriesService {
     // Verify directory access
     await this.findOne(directoryId, organizationId);
 
-    const { page = 1, limit: rawLimit = 50, status, origin, parentId, search, tag } = filters || {};
+    const {
+      page = 1,
+      limit: rawLimit = 50,
+      status,
+      origin,
+      parentId,
+      search,
+      tag,
+    } = filters || {};
     const limit = Math.min(rawLimit, 200);
 
     const query = this.entryRepository
-      .createQueryBuilder('e')
-      .where('e.directoryId = :directoryId', { directoryId })
+      .createQueryBuilder("e")
+      .where("e.directoryId = :directoryId", { directoryId })
       .andWhere(
         new Brackets((qb) => {
-          qb.where('e.organizationId IS NULL')
-            .orWhere('e.organizationId = :organizationId', { organizationId });
+          qb.where("e.organizationId IS NULL").orWhere(
+            "e.organizationId = :organizationId",
+            { organizationId },
+          );
         }),
       );
 
     if (status) {
-      query.andWhere('e.status = :status', { status });
+      query.andWhere("e.status = :status", { status });
     }
 
     if (origin) {
-      query.andWhere('e.origin = :origin', { origin });
+      query.andWhere("e.origin = :origin", { origin });
     }
 
     if (parentId) {
-      query.andWhere('e.parentId = :parentId', { parentId });
+      query.andWhere("e.parentId = :parentId", { parentId });
     } else if (filters?.parentId === undefined) {
       // Do not filter by parentId if not specified -- return all entries
     }
@@ -456,21 +503,23 @@ export class DirectoriesService {
     if (search) {
       query.andWhere(
         new Brackets((qb) => {
-          qb.where('e.name ILIKE :search', { search: `%${search}%` })
-            .orWhere('e.code ILIKE :search', { search: `%${search}%` })
-            .orWhere('e.normalizedName ILIKE :search', { search: `%${search}%` });
+          qb.where("e.name ILIKE :search", { search: `%${search}%` })
+            .orWhere("e.code ILIKE :search", { search: `%${search}%` })
+            .orWhere("e.normalizedName ILIKE :search", {
+              search: `%${search}%`,
+            });
         }),
       );
     }
 
     if (tag) {
-      query.andWhere(':tag = ANY(e.tags)', { tag });
+      query.andWhere(":tag = ANY(e.tags)", { tag });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('e.sortOrder', 'ASC');
-    query.addOrderBy('e.name', 'ASC');
+    query.orderBy("e.sortOrder", "ASC");
+    query.addOrderBy("e.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -497,7 +546,7 @@ export class DirectoriesService {
 
     const entry = await this.entryRepository.findOne({
       where: { id: entryId, directoryId },
-      relations: ['parent', 'children'],
+      relations: ["parent", "children"],
     });
 
     if (!entry) {
@@ -539,13 +588,13 @@ export class DirectoriesService {
     if (dto.parentId !== undefined) {
       if (!directory.isHierarchical) {
         throw new BadRequestException(
-          'Cannot set parentId on a non-hierarchical directory',
+          "Cannot set parentId on a non-hierarchical directory",
         );
       }
 
       if (dto.parentId) {
         if (dto.parentId === entryId) {
-          throw new BadRequestException('Entry cannot be its own parent');
+          throw new BadRequestException("Entry cannot be its own parent");
         }
 
         const parent = await this.entryRepository.findOne({
@@ -576,7 +625,13 @@ export class DirectoriesService {
     const saved = await this.entryRepository.save(entry);
 
     // Record audit
-    await this.createAuditEntry(entryId, DirectoryAuditAction.UPDATE, userId ?? null, oldValues, newValues);
+    await this.createAuditEntry(
+      entryId,
+      DirectoryAuditAction.UPDATE,
+      userId ?? null,
+      oldValues,
+      newValues,
+    );
 
     return saved;
   }
@@ -595,10 +650,16 @@ export class DirectoriesService {
     await this.entryRepository.softDelete(entryId);
 
     // Record audit
-    await this.createAuditEntry(entryId, DirectoryAuditAction.ARCHIVE, userId ?? null, {
-      name: entry.name,
-      status: entry.status,
-    }, null);
+    await this.createAuditEntry(
+      entryId,
+      DirectoryAuditAction.ARCHIVE,
+      userId ?? null,
+      {
+        name: entry.name,
+        status: entry.status,
+      },
+      null,
+    );
   }
 
   // ==========================================================================
@@ -620,25 +681,29 @@ export class DirectoriesService {
     const clampedLimit = Math.min(limit, 200);
 
     const query = this.entryRepository
-      .createQueryBuilder('e')
-      .where('e.directoryId = :directoryId', { directoryId })
-      .andWhere('e.status = :status', { status: EntryStatus.ACTIVE })
+      .createQueryBuilder("e")
+      .where("e.directoryId = :directoryId", { directoryId })
+      .andWhere("e.status = :status", { status: EntryStatus.ACTIVE })
       .andWhere(
         new Brackets((qb) => {
-          qb.where('e.organizationId IS NULL')
-            .orWhere('e.organizationId = :organizationId', { organizationId });
+          qb.where("e.organizationId IS NULL").orWhere(
+            "e.organizationId = :organizationId",
+            { organizationId },
+          );
         }),
       )
       .andWhere(
         new Brackets((qb) => {
-          qb.where('e.name ILIKE :search', { search: `%${q}%` })
-            .orWhere('e.normalizedName ILIKE :search', { search: `%${q}%` })
-            .orWhere('e.code ILIKE :codeSearch', { codeSearch: `${q}%` })
-            .orWhere('CAST(e.data AS text) ILIKE :search', { search: `%${q}%` });
+          qb.where("e.name ILIKE :search", { search: `%${q}%` })
+            .orWhere("e.normalizedName ILIKE :search", { search: `%${q}%` })
+            .orWhere("e.code ILIKE :codeSearch", { codeSearch: `${q}%` })
+            .orWhere("CAST(e.data AS text) ILIKE :search", {
+              search: `%${q}%`,
+            });
         }),
       )
-      .orderBy('e.sortOrder', 'ASC')
-      .addOrderBy('e.name', 'ASC')
+      .orderBy("e.sortOrder", "ASC")
+      .addOrderBy("e.name", "ASC")
       .take(clampedLimit);
 
     return query.getMany();
@@ -680,16 +745,16 @@ export class DirectoriesService {
     const limit = Math.min(rawLimit, 200);
 
     const query = this.sourceRepository
-      .createQueryBuilder('s')
-      .where('s.directoryId = :directoryId', { directoryId });
+      .createQueryBuilder("s")
+      .where("s.directoryId = :directoryId", { directoryId });
 
     if (isActive !== undefined) {
-      query.andWhere('s.isActive = :isActive', { isActive });
+      query.andWhere("s.isActive = :isActive", { isActive });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('s.name', 'ASC');
+    query.orderBy("s.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -734,7 +799,11 @@ export class DirectoriesService {
     dto: UpdateDirectorySourceDto,
     organizationId: string,
   ): Promise<DirectorySource> {
-    const source = await this.findOneSource(directoryId, sourceId, organizationId);
+    const source = await this.findOneSource(
+      directoryId,
+      sourceId,
+      organizationId,
+    );
 
     Object.assign(source, dto);
 
@@ -749,8 +818,12 @@ export class DirectoriesService {
     sourceId: string,
     organizationId: string,
   ): Promise<void> {
-    const source = await this.findOneSource(directoryId, sourceId, organizationId);
-    await this.sourceRepository.remove(source);
+    const source = await this.findOneSource(
+      directoryId,
+      sourceId,
+      organizationId,
+    );
+    await this.sourceRepository.softRemove(source);
   }
 
   // ==========================================================================
@@ -768,10 +841,14 @@ export class DirectoriesService {
     userId?: string,
     sourceVersion?: string,
   ): Promise<DirectorySyncLog> {
-    const source = await this.findOneSource(directoryId, sourceId, organizationId);
+    const source = await this.findOneSource(
+      directoryId,
+      sourceId,
+      organizationId,
+    );
 
     if (!source.isActive) {
-      throw new BadRequestException('Cannot sync from an inactive source');
+      throw new BadRequestException("Cannot sync from an inactive source");
     }
 
     // Create STARTED log
@@ -795,7 +872,7 @@ export class DirectoriesService {
       for (const record of records) {
         try {
           const mappedData = this.mapSourceRecord(record, source.columnMapping);
-          const entryName = (mappedData.name as string) || '';
+          const entryName = (mappedData.name as string) || "";
           const entryCode = (mappedData.code as string) || null;
           const externalKey = source.uniqueKeyField
             ? (record[source.uniqueKeyField] as string)
@@ -814,16 +891,27 @@ export class DirectoriesService {
             const oldData = { ...existingEntry.data };
             Object.assign(existingEntry, {
               name: entryName || existingEntry.name,
-              normalizedName: (entryName || existingEntry.name).toLowerCase().trim(),
+              normalizedName: (entryName || existingEntry.name)
+                .toLowerCase()
+                .trim(),
               code: entryCode ?? existingEntry.code,
-              data: { ...existingEntry.data, ...mappedData.data as Record<string, unknown> },
+              data: {
+                ...existingEntry.data,
+                ...(mappedData.data as Record<string, unknown>),
+              },
               origin: EntryOrigin.OFFICIAL,
               originSource: source.name,
               originDate: new Date(),
               version: existingEntry.version + 1,
             });
             await this.entryRepository.save(existingEntry);
-            await this.createAuditEntry(existingEntry.id, DirectoryAuditAction.SYNC, userId ?? null, oldData, existingEntry.data);
+            await this.createAuditEntry(
+              existingEntry.id,
+              DirectoryAuditAction.SYNC,
+              userId ?? null,
+              oldData,
+              existingEntry.data,
+            );
             updatedCount++;
           } else {
             // Create
@@ -841,10 +929,16 @@ export class DirectoriesService {
               organizationId,
             });
             const savedEntry = await this.entryRepository.save(newEntry);
-            await this.createAuditEntry(savedEntry.id, DirectoryAuditAction.SYNC, userId ?? null, null, {
-              name: savedEntry.name,
-              code: savedEntry.code,
-            });
+            await this.createAuditEntry(
+              savedEntry.id,
+              DirectoryAuditAction.SYNC,
+              userId ?? null,
+              null,
+              {
+                name: savedEntry.name,
+                code: savedEntry.code,
+              },
+            );
             createdCount++;
           }
         } catch (err) {
@@ -857,9 +951,12 @@ export class DirectoriesService {
       }
 
       // Update sync log
-      const finalStatus = errorCount > 0
-        ? (createdCount + updatedCount > 0 ? SyncLogStatus.PARTIAL : SyncLogStatus.FAILED)
-        : SyncLogStatus.SUCCESS;
+      const finalStatus =
+        errorCount > 0
+          ? createdCount + updatedCount > 0
+            ? SyncLogStatus.PARTIAL
+            : SyncLogStatus.FAILED
+          : SyncLogStatus.SUCCESS;
 
       savedLog.status = finalStatus;
       savedLog.finishedAt = new Date();
@@ -872,15 +969,18 @@ export class DirectoriesService {
 
       // Update source status
       source.lastSyncAt = new Date();
-      source.lastSyncStatus = finalStatus === SyncLogStatus.SUCCESS
-        ? SyncStatus.SUCCESS
-        : finalStatus === SyncLogStatus.PARTIAL
-          ? SyncStatus.PARTIAL
-          : SyncStatus.FAILED;
-      source.lastSyncError = errors.length > 0 ? errors[0].error as string : null;
-      source.consecutiveFailures = finalStatus === SyncLogStatus.FAILED
-        ? source.consecutiveFailures + 1
-        : 0;
+      source.lastSyncStatus =
+        finalStatus === SyncLogStatus.SUCCESS
+          ? SyncStatus.SUCCESS
+          : finalStatus === SyncLogStatus.PARTIAL
+            ? SyncStatus.PARTIAL
+            : SyncStatus.FAILED;
+      source.lastSyncError =
+        errors.length > 0 ? (errors[0].error as string) : null;
+      source.consecutiveFailures =
+        finalStatus === SyncLogStatus.FAILED
+          ? source.consecutiveFailures + 1
+          : 0;
       if (sourceVersion) {
         source.sourceVersion = sourceVersion;
       }
@@ -891,7 +991,9 @@ export class DirectoriesService {
       // Update sync log on failure
       savedLog.status = SyncLogStatus.FAILED;
       savedLog.finishedAt = new Date();
-      savedLog.errors = [{ error: err instanceof Error ? err.message : String(err) }];
+      savedLog.errors = [
+        { error: err instanceof Error ? err.message : String(err) },
+      ];
       await this.syncLogRepository.save(savedLog);
 
       // Update source
@@ -919,17 +1021,17 @@ export class DirectoriesService {
     const limit = Math.min(rawLimit, 200);
 
     const query = this.syncLogRepository
-      .createQueryBuilder('sl')
-      .where('sl.directoryId = :directoryId', { directoryId })
-      .leftJoinAndSelect('sl.source', 'source');
+      .createQueryBuilder("sl")
+      .where("sl.directoryId = :directoryId", { directoryId })
+      .leftJoinAndSelect("sl.source", "source");
 
     if (sourceId) {
-      query.andWhere('sl.sourceId = :sourceId', { sourceId });
+      query.andWhere("sl.sourceId = :sourceId", { sourceId });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('sl.startedAt', 'DESC');
+    query.orderBy("sl.startedAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -985,28 +1087,30 @@ export class DirectoriesService {
     const limit = Math.min(rawLimit, 200);
 
     const query = this.auditRepository
-      .createQueryBuilder('a')
-      .innerJoin('directory_entries', 'e', 'e.id = a.entry_id')
-      .where('e.directory_id = :directoryId', { directoryId })
-      .andWhere('e.deleted_at IS NULL')
+      .createQueryBuilder("a")
+      .innerJoin("directory_entries", "e", "e.id = a.entry_id")
+      .where("e.directory_id = :directoryId", { directoryId })
+      .andWhere("e.deleted_at IS NULL")
       .andWhere(
         new Brackets((qb) => {
-          qb.where('e.organization_id IS NULL')
-            .orWhere('e.organization_id = :organizationId', { organizationId });
+          qb.where("e.organization_id IS NULL").orWhere(
+            "e.organization_id = :organizationId",
+            { organizationId },
+          );
         }),
       );
 
     if (entryId) {
-      query.andWhere('a.entryId = :entryId', { entryId });
+      query.andWhere("a.entryId = :entryId", { entryId });
     }
 
     if (action) {
-      query.andWhere('a.action = :action', { action });
+      query.andWhere("a.action = :action", { action });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('a.changedAt', 'DESC');
+    query.orderBy("a.changedAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -1036,16 +1140,16 @@ export class DirectoriesService {
     const limit = Math.min(rawLimit, 200);
 
     const query = this.auditRepository
-      .createQueryBuilder('a')
-      .where('a.entryId = :entryId', { entryId });
+      .createQueryBuilder("a")
+      .where("a.entryId = :entryId", { entryId });
 
     if (action) {
-      query.andWhere('a.action = :action', { action });
+      query.andWhere("a.action = :action", { action });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('a.changedAt', 'DESC');
+    query.orderBy("a.changedAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -1074,21 +1178,23 @@ export class DirectoriesService {
     const directory = await this.findOne(directoryId, organizationId);
 
     if (!directory.isHierarchical) {
-      throw new BadRequestException('Directory is not hierarchical');
+      throw new BadRequestException("Directory is not hierarchical");
     }
 
     const entries = await this.entryRepository
-      .createQueryBuilder('e')
-      .where('e.directoryId = :directoryId', { directoryId })
-      .andWhere('e.status = :status', { status: EntryStatus.ACTIVE })
+      .createQueryBuilder("e")
+      .where("e.directoryId = :directoryId", { directoryId })
+      .andWhere("e.status = :status", { status: EntryStatus.ACTIVE })
       .andWhere(
         new Brackets((qb) => {
-          qb.where('e.organizationId IS NULL')
-            .orWhere('e.organizationId = :organizationId', { organizationId });
+          qb.where("e.organizationId IS NULL").orWhere(
+            "e.organizationId = :organizationId",
+            { organizationId },
+          );
         }),
       )
-      .orderBy('e.sortOrder', 'ASC')
-      .addOrderBy('e.name', 'ASC')
+      .orderBy("e.sortOrder", "ASC")
+      .addOrderBy("e.name", "ASC")
       .getMany();
 
     // Build map
@@ -1131,7 +1237,7 @@ export class DirectoriesService {
     const directory = await this.findOne(directoryId, organizationId);
 
     if (!directory.isHierarchical) {
-      throw new BadRequestException('Directory is not hierarchical');
+      throw new BadRequestException("Directory is not hierarchical");
     }
 
     const entry = await this.findOneEntry(directoryId, entryId, organizationId);
@@ -1140,7 +1246,7 @@ export class DirectoriesService {
     if (dto.newParentId) {
       // Cannot be its own parent
       if (dto.newParentId === entryId) {
-        throw new BadRequestException('Entry cannot be its own parent');
+        throw new BadRequestException("Entry cannot be its own parent");
       }
 
       // Verify new parent exists
@@ -1148,14 +1254,18 @@ export class DirectoriesService {
         where: { id: dto.newParentId, directoryId },
       });
       if (!newParent) {
-        throw new NotFoundException(`Parent entry with ID ${dto.newParentId} not found in this directory`);
+        throw new NotFoundException(
+          `Parent entry with ID ${dto.newParentId} not found in this directory`,
+        );
       }
 
       // Cycle detection: walk up from newParentId and ensure entryId is not an ancestor
       let current: DirectoryEntry | null = newParent;
       while (current && current.parentId) {
         if (current.parentId === entryId) {
-          throw new BadRequestException('Moving this entry would create a cycle in the hierarchy');
+          throw new BadRequestException(
+            "Moving this entry would create a cycle in the hierarchy",
+          );
         }
         current = await this.entryRepository.findOne({
           where: { id: current.parentId, directoryId },
@@ -1169,10 +1279,13 @@ export class DirectoriesService {
     const saved = await this.entryRepository.save(entry);
 
     // Record audit
-    await this.createAuditEntry(entryId, DirectoryAuditAction.UPDATE, userId ?? null,
+    await this.createAuditEntry(
+      entryId,
+      DirectoryAuditAction.UPDATE,
+      userId ?? null,
       { parentId: oldParentId },
       { parentId: dto.newParentId ?? null },
-      'Entry moved in hierarchy',
+      "Entry moved in hierarchy",
     );
 
     return saved;
@@ -1195,21 +1308,30 @@ export class DirectoriesService {
     const directory = await this.findOne(directoryId, organizationId);
 
     // Check if inline create is allowed
-    if (directory.settings && directory.settings.allow_inline_create === false) {
-      throw new BadRequestException('Inline create is not allowed for this directory');
+    if (
+      directory.settings &&
+      directory.settings.allow_inline_create === false
+    ) {
+      throw new BadRequestException(
+        "Inline create is not allowed for this directory",
+      );
     }
 
     // Validate parentId if provided
     if (dto.parentId) {
       if (!directory.isHierarchical) {
-        throw new BadRequestException('Cannot set parentId on a non-hierarchical directory');
+        throw new BadRequestException(
+          "Cannot set parentId on a non-hierarchical directory",
+        );
       }
 
       const parent = await this.entryRepository.findOne({
         where: { id: dto.parentId, directoryId },
       });
       if (!parent) {
-        throw new NotFoundException(`Parent entry with ID ${dto.parentId} not found`);
+        throw new NotFoundException(
+          `Parent entry with ID ${dto.parentId} not found`,
+        );
       }
     }
 
@@ -1231,11 +1353,17 @@ export class DirectoriesService {
     const saved = await this.entryRepository.save(entry);
 
     // Record audit
-    await this.createAuditEntry(saved.id, DirectoryAuditAction.CREATE, userId ?? null, null, {
-      name: saved.name,
-      code: saved.code,
-      origin: 'inline_create',
-    });
+    await this.createAuditEntry(
+      saved.id,
+      DirectoryAuditAction.CREATE,
+      userId ?? null,
+      null,
+      {
+        name: saved.name,
+        code: saved.code,
+        origin: "inline_create",
+      },
+    );
 
     return saved;
   }
@@ -1248,33 +1376,37 @@ export class DirectoriesService {
    * Fetch data from an external source. Currently supports URL/API sources.
    * Returns array of raw records.
    */
-  private async fetchSourceData(source: DirectorySource): Promise<Record<string, unknown>[]> {
+  private async fetchSourceData(
+    source: DirectorySource,
+  ): Promise<Record<string, unknown>[]> {
     if (!source.url) {
       return [];
     }
 
     try {
       const headers: Record<string, string> = {};
-      if (source.requestConfig && typeof source.requestConfig === 'object') {
+      if (source.requestConfig && typeof source.requestConfig === "object") {
         const rc = source.requestConfig as Record<string, unknown>;
-        if (rc.headers && typeof rc.headers === 'object') {
+        if (rc.headers && typeof rc.headers === "object") {
           Object.assign(headers, rc.headers);
         }
       }
 
-      if (source.authConfig && typeof source.authConfig === 'object') {
+      if (source.authConfig && typeof source.authConfig === "object") {
         const ac = source.authConfig as Record<string, unknown>;
-        if (ac.type === 'bearer' && ac.token) {
-          headers['Authorization'] = `Bearer ${ac.token}`;
-        } else if (ac.type === 'basic' && ac.username && ac.password) {
-          const credentials = Buffer.from(`${ac.username}:${ac.password}`).toString('base64');
-          headers['Authorization'] = `Basic ${credentials}`;
+        if (ac.type === "bearer" && ac.token) {
+          headers["Authorization"] = `Bearer ${ac.token}`;
+        } else if (ac.type === "basic" && ac.username && ac.password) {
+          const credentials = Buffer.from(
+            `${ac.username}:${ac.password}`,
+          ).toString("base64");
+          headers["Authorization"] = `Basic ${credentials}`;
         }
       }
 
       // Validate URL protocol (prevent SSRF with file://, ftp://, etc.)
       const parsedUrl = new URL(source.url);
-      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         throw new Error(`Unsupported URL protocol: ${parsedUrl.protocol}`);
       }
 
@@ -1285,7 +1417,9 @@ export class DirectoriesService {
       let data: unknown;
       try {
         const response = await fetch(source.url, {
-          method: (source.requestConfig as Record<string, unknown>)?.method as string || 'GET',
+          method:
+            ((source.requestConfig as Record<string, unknown>)
+              ?.method as string) || "GET",
           headers,
           signal: controller.signal,
         });
@@ -1303,16 +1437,21 @@ export class DirectoriesService {
       if (Array.isArray(data)) {
         return data;
       }
-      if (data && typeof data === 'object') {
+      if (data && typeof data === "object") {
         const obj = data as Record<string, unknown>;
-        if (Array.isArray(obj.data)) return obj.data as Record<string, unknown>[];
-        if (Array.isArray(obj.items)) return obj.items as Record<string, unknown>[];
-        if (Array.isArray(obj.results)) return obj.results as Record<string, unknown>[];
+        if (Array.isArray(obj.data))
+          return obj.data as Record<string, unknown>[];
+        if (Array.isArray(obj.items))
+          return obj.items as Record<string, unknown>[];
+        if (Array.isArray(obj.results))
+          return obj.results as Record<string, unknown>[];
       }
 
       return [];
     } catch (err) {
-      throw new Error(`Failed to fetch source data: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(
+        `Failed to fetch source data: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -1325,21 +1464,21 @@ export class DirectoriesService {
   ): { name: string; code: string | null; data: Record<string, unknown> } {
     if (!columnMapping) {
       return {
-        name: (record.name as string) || '',
+        name: (record.name as string) || "",
         code: (record.code as string) || null,
         data: record,
       };
     }
 
     const result: Record<string, unknown> = {};
-    let name = '';
+    let name = "";
     let code: string | null = null;
 
     for (const [targetField, sourceField] of Object.entries(columnMapping)) {
       const value = record[sourceField as string];
-      if (targetField === 'name') {
-        name = (value as string) || '';
-      } else if (targetField === 'code') {
+      if (targetField === "name") {
+        name = (value as string) || "";
+      } else if (targetField === "code") {
         code = (value as string) || null;
       } else {
         result[targetField] = value;

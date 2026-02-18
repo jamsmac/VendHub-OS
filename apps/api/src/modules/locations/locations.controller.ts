@@ -1,13 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { LocationsService } from './locations.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles, UserRole } from '../../common/decorators';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  ParseUUIDPipe,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { LocationsService } from "./locations.service";
+import { CreateLocationDto } from "./dto/create-location.dto";
+import { UpdateLocationDto } from "./dto/update-location.dto";
+import {
+  QueryLocationsDto,
+  QueryNearbyLocationsDto,
+} from "./dto/query-location.dto";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles, UserRole } from "../../common/decorators";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
-@ApiTags('locations')
-@Controller('locations')
+@ApiTags("locations")
+@Controller("locations")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class LocationsController {
@@ -15,53 +32,87 @@ export class LocationsController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create a new location' })
-  create(@Body() data: any, @CurrentUser() user: any) {
+  @ApiOperation({ summary: "Create a new location" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create(
+    @Body() createLocationDto: CreateLocationDto,
+    @CurrentUser() user: any,
+  ) {
     return this.locationsService.create({
-      ...data,
+      ...createLocationDto,
       organizationId: user.organizationId,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all locations with pagination' })
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get all locations with pagination" })
   findAll(
     @CurrentUser() user: { organizationId: string },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
+    @Query() query: QueryLocationsDto,
   ) {
-    return this.locationsService.findAll(user.organizationId, { page, limit, search });
+    return this.locationsService.findAll(user.organizationId, query);
   }
 
-  @Get('nearby')
-  @ApiOperation({ summary: 'Get nearby locations' })
+  @Get("nearby")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get nearby locations" })
   findNearby(
-    @Query('lat') lat: number,
-    @Query('lng') lng: number,
-    @Query('radius') radius: number = 5,
+    @Query() query: QueryNearbyLocationsDto,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @CurrentUser() user: any,
   ) {
-    return this.locationsService.findNearby(lat, lng, radius, user.organizationId);
+    return this.locationsService.findNearby(
+      query.lat,
+      query.lng,
+      query.radius ?? 5,
+      user.organizationId,
+    );
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get location by ID' })
-  findOne(@Param('id') id: string) {
+  @Get(":id")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get location by ID" })
+  findOne(@Param("id", ParseUUIDPipe) id: string) {
     return this.locationsService.findById(id);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update location' })
-  update(@Param('id') id: string, @Body() data: any) {
-    return this.locationsService.update(id, data);
+  @ApiOperation({ summary: "Update location" })
+  update(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() updateLocationDto: UpdateLocationDto,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.locationsService.update(id, updateLocationDto as any);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Delete location' })
-  remove(@Param('id') id: string) {
+  @ApiOperation({ summary: "Delete location" })
+  remove(@Param("id", ParseUUIDPipe) id: string) {
     return this.locationsService.remove(id);
   }
 }

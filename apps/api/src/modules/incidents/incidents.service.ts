@@ -8,17 +8,19 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   Incident,
   IncidentStatus,
-  IncidentType,
   IncidentPriority,
-} from './entities/incident.entity';
-import { CreateIncidentDto } from './dto/create-incident.dto';
-import { UpdateIncidentDto, QueryIncidentsDto } from './dto/update-incident.dto';
+} from "./entities/incident.entity";
+import { CreateIncidentDto } from "./dto/create-incident.dto";
+import {
+  UpdateIncidentDto,
+  QueryIncidentsDto,
+} from "./dto/update-incident.dto";
 
 @Injectable()
 export class IncidentsService {
@@ -101,49 +103,50 @@ export class IncidentsService {
       limit = 20,
     } = query;
 
-    const qb = this.incidentRepo.createQueryBuilder('i');
-    qb.where('i.organization_id = :organizationId', { organizationId });
+    const qb = this.incidentRepo.createQueryBuilder("i");
+    qb.where("i.organization_id = :organizationId", { organizationId });
 
     if (machine_id) {
-      qb.andWhere('i.machine_id = :machine_id', { machine_id });
+      qb.andWhere("i.machine_id = :machine_id", { machine_id });
     }
 
     if (status) {
-      qb.andWhere('i.status = :status', { status });
+      qb.andWhere("i.status = :status", { status });
     }
 
     if (type) {
-      qb.andWhere('i.type = :type', { type });
+      qb.andWhere("i.type = :type", { type });
     }
 
     if (priority) {
-      qb.andWhere('i.priority = :priority', { priority });
+      qb.andWhere("i.priority = :priority", { priority });
     }
 
     if (assigned_to_user_id) {
-      qb.andWhere('i.assigned_to_user_id = :assigned_to_user_id', {
+      qb.andWhere("i.assigned_to_user_id = :assigned_to_user_id", {
         assigned_to_user_id,
       });
     }
 
     if (search) {
-      qb.andWhere(
-        '(i.title ILIKE :search OR i.description ILIKE :search)',
-        { search: `%${search}%` },
-      );
+      qb.andWhere("(i.title ILIKE :search OR i.description ILIKE :search)", {
+        search: `%${search}%`,
+      });
     }
 
     if (date_from) {
-      qb.andWhere('i.reported_at >= :date_from', { date_from: new Date(date_from) });
+      qb.andWhere("i.reported_at >= :date_from", {
+        date_from: new Date(date_from),
+      });
     }
 
     if (date_to) {
-      qb.andWhere('i.reported_at <= :date_to', { date_to: new Date(date_to) });
+      qb.andWhere("i.reported_at <= :date_to", { date_to: new Date(date_to) });
     }
 
     const total = await qb.getCount();
 
-    qb.orderBy('i.reported_at', 'DESC');
+    qb.orderBy("i.reported_at", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -175,13 +178,19 @@ export class IncidentsService {
     if (dto.status !== undefined) incident.status = dto.status;
     if (dto.priority !== undefined) incident.priority = dto.priority;
     if (dto.title !== undefined) incident.title = dto.title;
-    if (dto.description !== undefined) incident.description = dto.description || null;
-    if (dto.assigned_to_user_id !== undefined) incident.assigned_to_user_id = dto.assigned_to_user_id || null;
-    if (dto.repair_cost !== undefined) incident.repair_cost = dto.repair_cost ?? null;
-    if (dto.insurance_claim !== undefined) incident.insurance_claim = dto.insurance_claim;
-    if (dto.insurance_claim_number !== undefined) incident.insurance_claim_number = dto.insurance_claim_number || null;
+    if (dto.description !== undefined)
+      incident.description = dto.description || null;
+    if (dto.assigned_to_user_id !== undefined)
+      incident.assigned_to_user_id = dto.assigned_to_user_id || null;
+    if (dto.repair_cost !== undefined)
+      incident.repair_cost = dto.repair_cost ?? null;
+    if (dto.insurance_claim !== undefined)
+      incident.insurance_claim = dto.insurance_claim;
+    if (dto.insurance_claim_number !== undefined)
+      incident.insurance_claim_number = dto.insurance_claim_number || null;
     if (dto.photos !== undefined) incident.photos = dto.photos;
-    if (dto.resolution !== undefined) incident.resolution = dto.resolution || null;
+    if (dto.resolution !== undefined)
+      incident.resolution = dto.resolution || null;
     if (dto.metadata !== undefined) incident.metadata = dto.metadata || {};
 
     // Handle status transitions
@@ -199,7 +208,9 @@ export class IncidentsService {
     incident.updated_by_id = userId;
 
     const saved = await this.incidentRepo.save(incident);
-    this.logger.log(`Incident updated: id=${id} status=${oldStatus}->${saved.status}`);
+    this.logger.log(
+      `Incident updated: id=${id} status=${oldStatus}->${saved.status}`,
+    );
 
     return saved;
   }
@@ -235,7 +246,7 @@ export class IncidentsService {
     const incident = await this.findById(id, organizationId);
 
     if (incident.status !== IncidentStatus.RESOLVED) {
-      throw new BadRequestException('Incident must be resolved before closing');
+      throw new BadRequestException("Incident must be resolved before closing");
     }
 
     return this.update(
@@ -266,7 +277,9 @@ export class IncidentsService {
     incident.updated_by_id = userId;
 
     const saved = await this.incidentRepo.save(incident);
-    this.logger.log(`Incident assigned: id=${id} to=${assignedToUserId} by=${userId}`);
+    this.logger.log(
+      `Incident assigned: id=${id} to=${assignedToUserId} by=${userId}`,
+    );
 
     return saved;
   }
@@ -284,7 +297,7 @@ export class IncidentsService {
         machine_id: machineId,
         organization_id: organizationId,
       },
-      order: { reported_at: 'DESC' },
+      order: { reported_at: "DESC" },
       take: limit,
     });
   }
@@ -292,14 +305,10 @@ export class IncidentsService {
   /**
    * Get incident statistics for an organization
    */
-  async getStatistics(
-    organizationId: string,
-    dateFrom: Date,
-    dateTo: Date,
-  ) {
-    const qb = this.incidentRepo.createQueryBuilder('i');
-    qb.where('i.organization_id = :organizationId', { organizationId });
-    qb.andWhere('i.reported_at BETWEEN :dateFrom AND :dateTo', {
+  async getStatistics(organizationId: string, dateFrom: Date, dateTo: Date) {
+    const qb = this.incidentRepo.createQueryBuilder("i");
+    qb.where("i.organization_id = :organizationId", { organizationId });
+    qb.andWhere("i.reported_at BETWEEN :dateFrom AND :dateTo", {
       dateFrom,
       dateTo,
     });
@@ -347,11 +356,15 @@ export class IncidentsService {
   /**
    * Soft delete an incident (only closed ones)
    */
-  async remove(id: string, userId: string, organizationId: string): Promise<void> {
+  async remove(
+    id: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
     const incident = await this.findById(id, organizationId);
 
     if (incident.status !== IncidentStatus.CLOSED) {
-      throw new BadRequestException('Only closed incidents can be deleted');
+      throw new BadRequestException("Only closed incidents can be deleted");
     }
 
     await this.incidentRepo.softDelete(id);

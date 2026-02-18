@@ -8,17 +8,17 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   MaterialRequest,
   MaterialRequestItem,
   MaterialRequestHistory,
   MaterialRequestStatus,
   RequestPriority,
-} from './entities/material-request.entity';
+} from "./entities/material-request.entity";
 import {
   CreateMaterialRequestDto,
   UpdateMaterialRequestDto,
@@ -32,14 +32,20 @@ import {
   MaterialRequestListDto,
   MaterialRequestStatsDto,
   MaterialRequestItemDto,
-} from './dto/material-request.dto';
+} from "./dto/material-request.dto";
 
 // ============================================================================
 // WORKFLOW TRANSITIONS
 // ============================================================================
 
-const WORKFLOW_TRANSITIONS: Record<MaterialRequestStatus, MaterialRequestStatus[]> = {
-  [MaterialRequestStatus.DRAFT]: [MaterialRequestStatus.NEW, MaterialRequestStatus.CANCELLED],
+const WORKFLOW_TRANSITIONS: Record<
+  MaterialRequestStatus,
+  MaterialRequestStatus[]
+> = {
+  [MaterialRequestStatus.DRAFT]: [
+    MaterialRequestStatus.NEW,
+    MaterialRequestStatus.CANCELLED,
+  ],
   [MaterialRequestStatus.NEW]: [
     MaterialRequestStatus.APPROVED,
     MaterialRequestStatus.REJECTED,
@@ -103,7 +109,7 @@ export class MaterialRequestsService {
     const requestNumber = await this.generateRequestNumber(organizationId);
 
     // Calculate total amount
-    const items = dto.items.map(item => ({
+    const items = dto.items.map((item) => ({
       ...item,
       totalPrice: item.quantity * item.unitPrice,
     }));
@@ -119,12 +125,14 @@ export class MaterialRequestsService {
       supplierId: dto.supplierId,
       notes: dto.notes,
       totalAmount,
-      items: items.map(item => this.itemRepo.create(item)),
+      items: items.map((item) => this.itemRepo.create(item)),
     });
 
     await this.requestRepo.save(request);
 
-    this.logger.log(`Material request ${requestNumber} created by user ${userId}`);
+    this.logger.log(
+      `Material request ${requestNumber} created by user ${userId}`,
+    );
 
     return this.mapToDto(request);
   }
@@ -141,7 +149,7 @@ export class MaterialRequestsService {
     const request = await this.findRequest(requestId, organizationId);
 
     if (request.status !== MaterialRequestStatus.DRAFT) {
-      throw new BadRequestException('Can only update requests in draft status');
+      throw new BadRequestException("Can only update requests in draft status");
     }
 
     // Update basic fields
@@ -151,7 +159,7 @@ export class MaterialRequestsService {
 
     // Add new items
     if (dto.addItems?.length) {
-      const newItems = dto.addItems.map(item =>
+      const newItems = dto.addItems.map((item) =>
         this.itemRepo.create({
           ...item,
           requestId: request.id,
@@ -179,15 +187,20 @@ export class MaterialRequestsService {
 
     // Remove items
     if (dto.removeItemIds?.length) {
-      await this.itemRepo.delete({
+      await this.itemRepo.softDelete({
         id: In(dto.removeItemIds),
         requestId: request.id,
       });
     }
 
     // Recalculate total
-    const items = await this.itemRepo.find({ where: { requestId: request.id } });
-    request.totalAmount = items.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+    const items = await this.itemRepo.find({
+      where: { requestId: request.id },
+    });
+    request.totalAmount = items.reduce(
+      (sum, item) => sum + Number(item.totalPrice),
+      0,
+    );
 
     await this.requestRepo.save(request);
 
@@ -213,7 +226,7 @@ export class MaterialRequestsService {
 
     // Check if has items
     if (!request.items?.length) {
-      throw new BadRequestException('Cannot submit request without items');
+      throw new BadRequestException("Cannot submit request without items");
     }
 
     const fromStatus = request.status;
@@ -221,9 +234,15 @@ export class MaterialRequestsService {
     request.submittedAt = new Date();
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, comment);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      comment,
+    );
 
-    this.eventEmitter.emit('material-request.submitted', {
+    this.eventEmitter.emit("material-request.submitted", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       requesterId: request.requesterId,
@@ -252,9 +271,15 @@ export class MaterialRequestsService {
     request.approvedAt = new Date();
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, dto?.comment);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      dto?.comment,
+    );
 
-    this.eventEmitter.emit('material-request.approved', {
+    this.eventEmitter.emit("material-request.approved", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       requesterId: request.requesterId,
@@ -285,9 +310,15 @@ export class MaterialRequestsService {
     request.rejectionReason = dto.reason;
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, dto.reason);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      dto.reason,
+    );
 
-    this.eventEmitter.emit('material-request.rejected', {
+    this.eventEmitter.emit("material-request.rejected", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       requesterId: request.requesterId,
@@ -316,9 +347,15 @@ export class MaterialRequestsService {
     request.sentAt = new Date();
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, comment);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      comment,
+    );
 
-    this.eventEmitter.emit('material-request.sent', {
+    this.eventEmitter.emit("material-request.sent", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       supplierId: request.supplierId,
@@ -344,7 +381,7 @@ export class MaterialRequestsService {
       request.status !== MaterialRequestStatus.PENDING_PAYMENT &&
       request.status !== MaterialRequestStatus.PARTIALLY_PAID
     ) {
-      throw new BadRequestException('Invalid status for payment recording');
+      throw new BadRequestException("Invalid status for payment recording");
     }
 
     const fromStatus = request.status;
@@ -357,9 +394,15 @@ export class MaterialRequestsService {
     }
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, dto.notes);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      dto.notes,
+    );
 
-    this.eventEmitter.emit('material-request.payment-recorded', {
+    this.eventEmitter.emit("material-request.payment-recorded", {
       requestId: request.id,
       amount: dto.amount,
       totalPaid: request.paidAmount,
@@ -384,7 +427,7 @@ export class MaterialRequestsService {
 
     // Update delivered quantities
     for (const deliveredItem of dto.items) {
-      const item = request.items.find(i => i.id === deliveredItem.itemId);
+      const item = request.items.find((i) => i.id === deliveredItem.itemId);
       if (item) {
         item.deliveredQuantity = deliveredItem.deliveredQuantity;
         await this.itemRepo.save(item);
@@ -396,9 +439,15 @@ export class MaterialRequestsService {
     request.deliveredAt = new Date();
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, dto.notes);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      dto.notes,
+    );
 
-    this.eventEmitter.emit('material-request.delivered', {
+    this.eventEmitter.emit("material-request.delivered", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       organizationId,
@@ -425,9 +474,15 @@ export class MaterialRequestsService {
     request.completedAt = new Date();
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, comment);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      comment,
+    );
 
-    this.eventEmitter.emit('material-request.completed', {
+    this.eventEmitter.emit("material-request.completed", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       organizationId,
@@ -455,9 +510,15 @@ export class MaterialRequestsService {
     request.cancellationReason = dto.reason;
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, dto.reason);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      dto.reason,
+    );
 
-    this.eventEmitter.emit('material-request.cancelled', {
+    this.eventEmitter.emit("material-request.cancelled", {
       requestId: request.id,
       requestNumber: request.requestNumber,
       reason: dto.reason,
@@ -482,12 +543,21 @@ export class MaterialRequestsService {
 
     const fromStatus = request.status;
     request.status = MaterialRequestStatus.DRAFT;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     request.rejectedBy = undefined as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     request.rejectedAt = undefined as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     request.rejectionReason = undefined as any;
 
     await this.requestRepo.save(request);
-    await this.recordHistory(request.id, userId, fromStatus, request.status, comment);
+    await this.recordHistory(
+      request.id,
+      userId,
+      fromStatus,
+      request.status,
+      comment,
+    );
 
     return this.mapToDto(request);
   }
@@ -499,7 +569,10 @@ export class MaterialRequestsService {
   /**
    * Получить заявку по ID
    */
-  async getRequest(requestId: string, organizationId: string): Promise<MaterialRequestDto> {
+  async getRequest(
+    requestId: string,
+    organizationId: string,
+  ): Promise<MaterialRequestDto> {
     const request = await this.findRequest(requestId, organizationId);
     return this.mapToDto(request);
   }
@@ -511,53 +584,63 @@ export class MaterialRequestsService {
     organizationId: string,
     filter: MaterialRequestFilterDto,
   ): Promise<MaterialRequestListDto> {
-    const { status, priority, requesterId, supplierId, fromDate, toDate, search, page = 1, limit = 20 } = filter;
+    const {
+      status,
+      priority,
+      requesterId,
+      supplierId,
+      fromDate,
+      toDate,
+      search,
+      page = 1,
+      limit = 20,
+    } = filter;
 
     const qb = this.requestRepo
-      .createQueryBuilder('r')
-      .leftJoinAndSelect('r.items', 'items')
-      .leftJoinAndSelect('r.requester', 'requester')
-      .leftJoinAndSelect('r.approver', 'approver')
-      .where('r.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("r")
+      .leftJoinAndSelect("r.items", "items")
+      .leftJoinAndSelect("r.requester", "requester")
+      .leftJoinAndSelect("r.approver", "approver")
+      .where("r.organizationId = :organizationId", { organizationId });
 
     if (status) {
-      qb.andWhere('r.status = :status', { status });
+      qb.andWhere("r.status = :status", { status });
     }
 
     if (priority) {
-      qb.andWhere('r.priority = :priority', { priority });
+      qb.andWhere("r.priority = :priority", { priority });
     }
 
     if (requesterId) {
-      qb.andWhere('r.requesterId = :requesterId', { requesterId });
+      qb.andWhere("r.requesterId = :requesterId", { requesterId });
     }
 
     if (supplierId) {
-      qb.andWhere('r.supplierId = :supplierId', { supplierId });
+      qb.andWhere("r.supplierId = :supplierId", { supplierId });
     }
 
     if (fromDate) {
-      qb.andWhere('r.createdAt >= :fromDate', { fromDate });
+      qb.andWhere("r.createdAt >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('r.createdAt <= :toDate', { toDate });
+      qb.andWhere("r.createdAt <= :toDate", { toDate });
     }
 
     if (search) {
-      qb.andWhere('(r.requestNumber ILIKE :search OR r.notes ILIKE :search)', {
+      qb.andWhere("(r.requestNumber ILIKE :search OR r.notes ILIKE :search)", {
         search: `%${search}%`,
       });
     }
 
     const [items, total] = await qb
-      .orderBy('r.createdAt', 'DESC')
+      .orderBy("r.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(r => this.mapToDto(r)),
+      items: items.map((r) => this.mapToDto(r)),
       total,
       page,
       limit,
@@ -568,14 +651,16 @@ export class MaterialRequestsService {
   /**
    * Получить заявки, ожидающие утверждения
    */
-  async getPendingApprovals(organizationId: string): Promise<MaterialRequestDto[]> {
+  async getPendingApprovals(
+    organizationId: string,
+  ): Promise<MaterialRequestDto[]> {
     const requests = await this.requestRepo.find({
       where: { organizationId, status: MaterialRequestStatus.NEW },
-      relations: ['items', 'requester'],
-      order: { created_at: 'ASC' },
+      relations: ["items", "requester"],
+      order: { created_at: "ASC" },
     });
 
-    return requests.map(r => this.mapToDto(r));
+    return requests.map((r) => this.mapToDto(r));
   }
 
   /**
@@ -589,7 +674,7 @@ export class MaterialRequestsService {
 
     return this.historyRepo.find({
       where: { requestId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -654,11 +739,11 @@ export class MaterialRequestsService {
   ): Promise<MaterialRequest> {
     const request = await this.requestRepo.findOne({
       where: { id: requestId, organizationId },
-      relations: ['items', 'requester', 'approver'],
+      relations: ["items", "requester", "approver"],
     });
 
     if (!request) {
-      throw new NotFoundException('Material request not found');
+      throw new NotFoundException("Material request not found");
     }
 
     return request;
@@ -698,7 +783,7 @@ export class MaterialRequestsService {
     const count = await this.requestRepo.count({
       where: { organizationId },
     });
-    return `MR-${year}-${String(count + 1).padStart(5, '0')}`;
+    return `MR-${year}-${String(count + 1).padStart(5, "0")}`;
   }
 
   private mapToDto(request: MaterialRequest): MaterialRequestDto {
@@ -729,7 +814,7 @@ export class MaterialRequestsService {
       deliveredAt: request.deliveredAt,
       completedAt: request.completedAt,
       cancelledAt: request.cancelledAt,
-      items: (request.items || []).map(item => this.mapItemToDto(item)),
+      items: (request.items || []).map((item) => this.mapItemToDto(item)),
       createdAt: request.created_at,
       updatedAt: request.updated_at,
     };

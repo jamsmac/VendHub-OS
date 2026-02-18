@@ -1,23 +1,29 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { Layout } from './components/layout/Layout';
-import { HomePage } from './pages/HomePage';
-import { MapPage } from './pages/MapPage';
-import { MachineDetailPage } from './pages/MachineDetailPage';
-import { MenuPage } from './pages/MenuPage';
-import { ComplaintPage } from './pages/ComplaintPage';
-import { QRScanPage } from './pages/QRScanPage';
-import { TransactionHistoryPage } from './pages/TransactionHistoryPage';
-import { TransactionDetailPage } from './pages/TransactionDetailPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { NotFoundPage } from './pages/NotFoundPage';
-import { LoyaltyPage } from './pages/LoyaltyPage';
-import { FavoritesPage } from './pages/FavoritesPage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { QuestsPage } from './pages/QuestsPage';
-import { ReferralsPage } from './pages/ReferralsPage';
-import { useUserStore } from './lib/store';
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Toaster } from "sonner";
+import { Layout } from "./components/layout/Layout";
+import { HomePage } from "./pages/HomePage";
+import { MapPage } from "./pages/MapPage";
+import { MachineDetailPage } from "./pages/MachineDetailPage";
+import { MenuPage } from "./pages/MenuPage";
+import { ComplaintPage } from "./pages/ComplaintPage";
+import { QRScanPage } from "./pages/QRScanPage";
+import { TransactionHistoryPage } from "./pages/TransactionHistoryPage";
+import { TransactionDetailPage } from "./pages/TransactionDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { LoyaltyPage } from "./pages/LoyaltyPage";
+import { FavoritesPage } from "./pages/FavoritesPage";
+import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
+import { QuestsPage } from "./pages/QuestsPage";
+import { ReferralsPage } from "./pages/ReferralsPage";
+import { AchievementsPage } from "./pages/AchievementsPage";
+import { PromoCodePage } from "./pages/PromoCodePage";
+import { OrderSuccessPage } from "./pages/OrderSuccessPage";
+import { DrinkDetailPage } from "./pages/DrinkDetailPage";
+import { HelpPage } from "./pages/HelpPage";
+import { NotificationSettingsPage } from "./pages/NotificationSettingsPage";
+import { useUserStore } from "./lib/store";
 
 /**
  * Protected route wrapper - redirects to home if not authenticated
@@ -47,15 +53,115 @@ function App() {
           <Route path="complaint/code/:code" element={<ComplaintPage />} />
 
           {/* Protected routes */}
-          <Route path="transactions" element={<ProtectedRoute><TransactionHistoryPage /></ProtectedRoute>} />
-          <Route path="transaction/:id" element={<ProtectedRoute><TransactionDetailPage /></ProtectedRoute>} />
-          <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
-          <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
-          <Route path="cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-          <Route path="checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="quests" element={<ProtectedRoute><QuestsPage /></ProtectedRoute>} />
-          <Route path="referrals" element={<ProtectedRoute><ReferralsPage /></ProtectedRoute>} />
+          <Route
+            path="transactions"
+            element={
+              <ProtectedRoute>
+                <TransactionHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="transaction/:id"
+            element={
+              <ProtectedRoute>
+                <TransactionDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="loyalty"
+            element={
+              <ProtectedRoute>
+                <LoyaltyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="favorites"
+            element={
+              <ProtectedRoute>
+                <FavoritesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="quests"
+            element={
+              <ProtectedRoute>
+                <QuestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="referrals"
+            element={
+              <ProtectedRoute>
+                <ReferralsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="achievements"
+            element={
+              <ProtectedRoute>
+                <AchievementsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="promo-code"
+            element={
+              <ProtectedRoute>
+                <PromoCodePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="order-success/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="drink/:machineId/:productId"
+            element={<DrinkDetailPage />}
+          />
+          <Route path="help" element={<HelpPage />} />
+          <Route
+            path="notification-settings"
+            element={
+              <ProtectedRoute>
+                <NotificationSettingsPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

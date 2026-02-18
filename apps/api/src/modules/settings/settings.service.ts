@@ -16,19 +16,22 @@ import {
   ConflictException,
   Logger,
   Inject,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { Repository, IsNull } from 'typeorm';
-import { SystemSetting, SettingCategory } from './entities/system-setting.entity';
-import { AiProviderKey } from './entities/ai-provider-key.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { Repository, IsNull } from "typeorm";
+import {
+  SystemSetting,
+  SettingCategory,
+} from "./entities/system-setting.entity";
+import { AiProviderKey } from "./entities/ai-provider-key.entity";
 import {
   CreateSettingDto,
   UpdateSettingDto,
   CreateAiProviderKeyDto,
   UpdateAiProviderKeyDto,
-} from './dto/settings.dto';
+} from "./dto/settings.dto";
 
 @Injectable()
 export class SettingsService {
@@ -79,6 +82,7 @@ export class SettingsService {
     category: SettingCategory,
     organizationId?: string,
   ): Promise<SystemSetting[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { category };
 
     if (organizationId) {
@@ -87,7 +91,7 @@ export class SettingsService {
 
     return this.settingRepository.find({
       where,
-      order: { key: 'ASC' },
+      order: { key: "ASC" },
     });
   }
 
@@ -98,6 +102,7 @@ export class SettingsService {
     organizationId?: string,
     category?: SettingCategory,
   ): Promise<SystemSetting[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
     if (organizationId) {
@@ -110,7 +115,7 @@ export class SettingsService {
 
     return this.settingRepository.find({
       where,
-      order: { category: 'ASC', key: 'ASC' },
+      order: { category: "ASC", key: "ASC" },
     });
   }
 
@@ -118,13 +123,13 @@ export class SettingsService {
    * Get only public settings (accessible without authentication, cached for 5 minutes).
    */
   async getPublicSettings(): Promise<SystemSetting[]> {
-    const cacheKey = 'settings:public';
+    const cacheKey = "settings:public";
     const cached = await this.cacheManager.get<SystemSetting[]>(cacheKey);
     if (cached) return cached;
 
     const settings = await this.settingRepository.find({
       where: { isPublic: true },
-      order: { category: 'ASC', key: 'ASC' },
+      order: { category: "ASC", key: "ASC" },
     });
 
     await this.cacheManager.set(cacheKey, settings, this.CACHE_TTL);
@@ -141,7 +146,9 @@ export class SettingsService {
     });
 
     if (existing) {
-      throw new ConflictException(`Setting with key "${dto.key}" already exists`);
+      throw new ConflictException(
+        `Setting with key "${dto.key}" already exists`,
+      );
     }
 
     const setting = this.settingRepository.create({
@@ -163,7 +170,10 @@ export class SettingsService {
   /**
    * Update an existing setting by key.
    */
-  async updateSetting(key: string, dto: UpdateSettingDto): Promise<SystemSetting> {
+  async updateSetting(
+    key: string,
+    dto: UpdateSettingDto,
+  ): Promise<SystemSetting> {
     const setting = await this.getSetting(key);
 
     if (dto.value !== undefined) {
@@ -200,7 +210,7 @@ export class SettingsService {
    */
   private async invalidateSettingsCache(key: string): Promise<void> {
     await this.cacheManager.del(`settings:key:${key}`);
-    await this.cacheManager.del('settings:public');
+    await this.cacheManager.del("settings:public");
   }
 
   // ============================================================================
@@ -212,6 +222,7 @@ export class SettingsService {
    * API keys are masked in the response for security.
    */
   async getAiProviderKeys(organizationId?: string): Promise<AiProviderKey[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
     if (organizationId) {
@@ -220,7 +231,7 @@ export class SettingsService {
 
     const keys = await this.aiProviderKeyRepository.find({
       where,
-      order: { provider: 'ASC', name: 'ASC' },
+      order: { provider: "ASC", name: "ASC" },
     });
 
     // Mask API keys in list responses
@@ -254,7 +265,9 @@ export class SettingsService {
    * Create a new AI provider key.
    * Throws ConflictException if provider+org combination already exists.
    */
-  async createAiProviderKey(dto: CreateAiProviderKeyDto): Promise<AiProviderKey> {
+  async createAiProviderKey(
+    dto: CreateAiProviderKeyDto,
+  ): Promise<AiProviderKey> {
     // Check for duplicate provider per organization
     const existing = await this.aiProviderKeyRepository.findOne({
       where: {
@@ -361,8 +374,8 @@ export class SettingsService {
    */
   private maskApiKey(apiKey: string): string {
     if (!apiKey || apiKey.length <= 8) {
-      return '****';
+      return "****";
     }
-    return `${apiKey.substring(0, 4)}${'*'.repeat(Math.min(apiKey.length - 8, 20))}${apiKey.substring(apiKey.length - 4)}`;
+    return `${apiKey.substring(0, 4)}${"*".repeat(Math.min(apiKey.length - 8, 20))}${apiKey.substring(apiKey.length - 4)}`;
   }
 }

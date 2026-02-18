@@ -2,9 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   Machine,
   MachineSlot,
@@ -16,16 +16,20 @@ import {
   ComponentStatus,
   MaintenanceStatus,
   MoveReason,
-} from './entities/machine.entity';
-import { CreateMachineSlotDto, UpdateMachineSlotDto, RefillSlotDto } from './dto/machine-slot.dto';
-import { InstallComponentDto } from './dto/machine-component.dto';
+} from "./entities/machine.entity";
+import {
+  CreateMachineSlotDto,
+  UpdateMachineSlotDto,
+  RefillSlotDto,
+} from "./dto/machine-slot.dto";
+import { InstallComponentDto } from "./dto/machine-component.dto";
 import {
   MoveMachineDto,
   LogErrorDto,
   ResolveErrorDto,
   ScheduleMaintenanceDto,
   CompleteMaintenanceDto,
-} from './dto/machine-location.dto';
+} from "./dto/machine-location.dto";
 
 @Injectable()
 export class MachinesService {
@@ -79,56 +83,56 @@ export class MachinesService {
     } = filters || {};
     const limit = Math.min(rawLimit, 100);
 
-    const query = this.machineRepository.createQueryBuilder('machine');
+    const query = this.machineRepository.createQueryBuilder("machine");
 
     if (organizationId) {
-      query.where('machine.organizationId = :organizationId', {
+      query.where("machine.organizationId = :organizationId", {
         organizationId,
       });
     }
 
     if (status) {
-      query.andWhere('machine.status = :status', { status });
+      query.andWhere("machine.status = :status", { status });
     }
 
     if (type) {
-      query.andWhere('machine.type = :type', { type });
+      query.andWhere("machine.type = :type", { type });
     }
 
     if (locationId) {
-      query.andWhere('machine.locationId = :locationId', { locationId });
+      query.andWhere("machine.locationId = :locationId", { locationId });
     }
 
     if (search) {
       query.andWhere(
-        '(machine.name ILIKE :search OR machine.serialNumber ILIKE :search OR machine.machineNumber ILIKE :search)',
+        "(machine.name ILIKE :search OR machine.serialNumber ILIKE :search OR machine.machineNumber ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     const total = await query.getCount();
 
-    query.orderBy('machine.name', 'ASC');
+    query.orderBy("machine.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
     // Select only needed columns for list view (exclude heavy JSONB fields like telemetry)
     query.select([
-      'machine.id',
-      'machine.name',
-      'machine.machineNumber',
-      'machine.serialNumber',
-      'machine.type',
-      'machine.status',
-      'machine.connectionStatus',
-      'machine.locationId',
-      'machine.address',
-      'machine.latitude',
-      'machine.longitude',
-      'machine.lastRefillDate',
-      'machine.lastMaintenanceDate',
-      'machine.created_at',
-      'machine.updated_at',
+      "machine.id",
+      "machine.name",
+      "machine.machineNumber",
+      "machine.serialNumber",
+      "machine.type",
+      "machine.status",
+      "machine.connectionStatus",
+      "machine.locationId",
+      "machine.address",
+      "machine.latitude",
+      "machine.longitude",
+      "machine.lastRefillDate",
+      "machine.lastMaintenanceDate",
+      "machine.created_at",
+      "machine.updated_at",
     ]);
 
     const data = await query.getMany();
@@ -145,14 +149,14 @@ export class MachinesService {
   async findById(id: string): Promise<Machine | null> {
     return this.machineRepository.findOne({
       where: { id },
-      relations: ['slots', 'slots.product'],
+      relations: ["slots", "slots.product"],
     });
   }
 
   async findBySerialNumber(serialNumber: string): Promise<Machine | null> {
     return this.machineRepository.findOne({
       where: { serialNumber },
-      relations: ['slots'],
+      relations: ["slots"],
     });
   }
 
@@ -171,7 +175,7 @@ export class MachinesService {
 
   async updateTelemetry(
     id: string,
-    telemetry: Partial<Machine['telemetry']>,
+    telemetry: Partial<Machine["telemetry"]>,
   ): Promise<Machine> {
     const machine = await this.findById(id);
     if (!machine) {
@@ -193,13 +197,13 @@ export class MachinesService {
     return this.machineRepository.count({ where: { organizationId } });
   }
 
-  async getStatsByOrganization(organizationId: string): Promise<any> {
+  async getStatsByOrganization(organizationId: string): Promise<unknown> {
     const stats = await this.machineRepository
-      .createQueryBuilder('machine')
-      .select('machine.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('machine.organizationId = :organizationId', { organizationId })
-      .groupBy('machine.status')
+      .createQueryBuilder("machine")
+      .select("machine.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("machine.organizationId = :organizationId", { organizationId })
+      .groupBy("machine.status")
       .getRawMany();
 
     return stats.reduce(
@@ -217,22 +221,22 @@ export class MachinesService {
 
   async getMachinesForMap(organizationId: string) {
     return this.machineRepository
-      .createQueryBuilder('machine')
+      .createQueryBuilder("machine")
       .select([
-        'machine.id',
-        'machine.name',
-        'machine.machineNumber',
-        'machine.latitude',
-        'machine.longitude',
-        'machine.address',
-        'machine.status',
-        'machine.type',
-        'machine.connectionStatus',
+        "machine.id",
+        "machine.name",
+        "machine.machineNumber",
+        "machine.latitude",
+        "machine.longitude",
+        "machine.address",
+        "machine.status",
+        "machine.type",
+        "machine.connectionStatus",
       ])
-      .where('machine.organizationId = :organizationId', { organizationId })
-      .andWhere('machine.latitude IS NOT NULL')
-      .andWhere('machine.longitude IS NOT NULL')
-      .orderBy('machine.name', 'ASC')
+      .where("machine.organizationId = :organizationId", { organizationId })
+      .andWhere("machine.latitude IS NOT NULL")
+      .andWhere("machine.longitude IS NOT NULL")
+      .orderBy("machine.name", "ASC")
       .getMany();
   }
 
@@ -245,7 +249,7 @@ export class MachinesService {
 
     return this.slotRepository.find({
       where: { machineId },
-      order: { slotNumber: 'ASC' },
+      order: { slotNumber: "ASC" },
     });
   }
 
@@ -386,7 +390,7 @@ export class MachinesService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.locationHistoryRepository.findAndCount({
       where: { machineId },
-      order: { movedAt: 'DESC' },
+      order: { movedAt: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -403,7 +407,7 @@ export class MachinesService {
 
     return this.componentRepository.find({
       where: { machineId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -441,9 +445,7 @@ export class MachinesService {
       where: { id: componentId },
     });
     if (!component) {
-      throw new NotFoundException(
-        `Component with ID ${componentId} not found`,
-      );
+      throw new NotFoundException(`Component with ID ${componentId} not found`);
     }
 
     component.status = ComponentStatus.REMOVED;
@@ -468,7 +470,8 @@ export class MachinesService {
       machineId,
       errorCode: dto.errorCode,
       message: dto.message,
-      severity: dto.severity as any ?? 'error',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      severity: (dto.severity as any) ?? "error",
       context: dto.context ?? {},
       occurredAt: new Date(),
       created_by_id: userId,
@@ -477,7 +480,7 @@ export class MachinesService {
     const savedError = await this.errorLogRepository.save(errorLog);
 
     // If severity is error or critical, update machine status
-    if (dto.severity === 'error' || dto.severity === 'critical') {
+    if (dto.severity === "error" || dto.severity === "critical") {
       await this.machineRepository.update(machineId, {
         status: MachineStatus.ERROR,
       });
@@ -499,7 +502,7 @@ export class MachinesService {
     }
 
     if (errorLog.resolvedAt) {
-      throw new BadRequestException('This error has already been resolved');
+      throw new BadRequestException("This error has already been resolved");
     }
 
     errorLog.resolvedAt = new Date();
@@ -513,6 +516,7 @@ export class MachinesService {
     const unresolvedCount = await this.errorLogRepository.count({
       where: {
         machineId: errorLog.machineId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolvedAt: null as any,
       },
     });
@@ -542,7 +546,7 @@ export class MachinesService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.errorLogRepository.findAndCount({
       where: { machineId },
-      order: { occurredAt: 'DESC' },
+      order: { occurredAt: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -563,6 +567,7 @@ export class MachinesService {
 
     const schedule = this.maintenanceRepository.create({
       machineId,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       maintenanceType: dto.maintenanceType as any,
       scheduledDate: dto.scheduledDate,
       assignedToUserId: dto.assignedToUserId,
@@ -587,7 +592,7 @@ export class MachinesService {
         machineId,
         status: MaintenanceStatus.SCHEDULED,
       },
-      order: { scheduledDate: 'ASC' },
+      order: { scheduledDate: "ASC" },
     });
   }
 
@@ -607,7 +612,7 @@ export class MachinesService {
 
     if (schedule.status === MaintenanceStatus.COMPLETED) {
       throw new BadRequestException(
-        'This maintenance has already been completed',
+        "This maintenance has already been completed",
       );
     }
 

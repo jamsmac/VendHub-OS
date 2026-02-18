@@ -7,12 +7,12 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { DirectoriesService } from './directories.service';
+import { DirectoriesService } from "./directories.service";
 import {
   Directory,
   DirectoryField,
@@ -22,16 +22,25 @@ import {
   EntryOrigin,
   DirectoryType,
   SourceType,
-} from './entities/directory.entity';
-import { DirectorySource } from './entities/directory-source.entity';
-import { DirectorySyncLog, SyncLogStatus } from './entities/directory-sync-log.entity';
-import { DirectoryEntryAudit, DirectoryAuditAction } from './entities/directory-entry-audit.entity';
+} from "./entities/directory.entity";
+import { DirectorySource } from "./entities/directory-source.entity";
+import {
+  DirectorySyncLog,
+  SyncLogStatus,
+} from "./entities/directory-sync-log.entity";
+import {
+  DirectoryEntryAudit,
+  DirectoryAuditAction,
+} from "./entities/directory-entry-audit.entity";
 import {
   CreateDirectorySourceDto,
   UpdateDirectorySourceDto,
   QueryDirectorySourcesDto,
-} from './dto/directory-source.dto';
-import { InlineCreateEntryDto, MoveEntryDto } from './dto/directory-hierarchy.dto';
+} from "./dto/directory-source.dto";
+import {
+  InlineCreateEntryDto,
+  MoveEntryDto,
+} from "./dto/directory-hierarchy.dto";
 
 // ============================================================================
 // MOCK HELPERS
@@ -60,22 +69,23 @@ const createMockRepository = () => ({
   createQueryBuilder: jest.fn(() => createMockQueryBuilder()),
   softDelete: jest.fn(),
   remove: jest.fn(),
+  softRemove: jest.fn(),
 });
 
 // ============================================================================
 // TEST FIXTURES
 // ============================================================================
 
-const mockOrganizationId = 'org-123';
-const mockUserId = 'user-456';
-const mockDirectoryId = 'dir-789';
-const mockSourceId = 'src-abc';
-const mockEntryId = 'entry-def';
+const mockOrganizationId = "org-123";
+const mockUserId = "user-456";
+const mockDirectoryId = "dir-789";
+const mockSourceId = "src-abc";
+const mockEntryId = "entry-def";
 
 const mockDirectory: Partial<Directory> = {
   id: mockDirectoryId,
-  name: 'Test Directory',
-  slug: 'test-directory',
+  name: "Test Directory",
+  slug: "test-directory",
   type: DirectoryType.MANUAL,
   scope: DirectoryScope.ORGANIZATION,
   organizationId: mockOrganizationId,
@@ -91,15 +101,15 @@ const mockDirectory: Partial<Directory> = {
 const mockSource: Partial<DirectorySource> = {
   id: mockSourceId,
   directoryId: mockDirectoryId,
-  name: 'Test Source',
+  name: "Test Source",
   sourceType: SourceType.URL,
-  url: 'https://example.com/data',
+  url: "https://example.com/data",
   isActive: true,
   consecutiveFailures: 0,
 };
 
 const mockSyncLog: Partial<DirectorySyncLog> = {
-  id: 'log-123',
+  id: "log-123",
   directoryId: mockDirectoryId,
   sourceId: mockSourceId,
   status: SyncLogStatus.STARTED,
@@ -113,9 +123,9 @@ const mockSyncLog: Partial<DirectorySyncLog> = {
 const mockEntry: Partial<DirectoryEntry> = {
   id: mockEntryId,
   directoryId: mockDirectoryId,
-  name: 'Test Entry',
-  normalizedName: 'test entry',
-  code: 'TEST',
+  name: "Test Entry",
+  normalizedName: "test entry",
+  code: "TEST",
   status: EntryStatus.ACTIVE,
   origin: EntryOrigin.LOCAL,
   version: 1,
@@ -125,20 +135,20 @@ const mockEntry: Partial<DirectoryEntry> = {
 };
 
 const mockAudit: Partial<DirectoryEntryAudit> = {
-  id: 'audit-123',
+  id: "audit-123",
   entryId: mockEntryId,
   action: DirectoryAuditAction.CREATE,
   changedBy: mockUserId,
   changedAt: new Date(),
   oldValues: null,
-  newValues: { name: 'Test Entry' },
+  newValues: { name: "Test Entry" },
 };
 
 // ============================================================================
 // TEST SUITE
 // ============================================================================
 
-describe('DirectoriesService', () => {
+describe("DirectoriesService", () => {
   let service: DirectoriesService;
   let directoryRepository: jest.Mocked<Repository<Directory>>;
   let entryRepository: jest.Mocked<Repository<DirectoryEntry>>;
@@ -193,12 +203,12 @@ describe('DirectoriesService', () => {
   // SOURCE CRUD
   // ==========================================================================
 
-  describe('createSource', () => {
-    it('should create a source for a valid directory', async () => {
+  describe("createSource", () => {
+    it("should create a source for a valid directory", async () => {
       const dto: CreateDirectorySourceDto = {
-        name: 'Test Source',
+        name: "Test Source",
         sourceType: SourceType.URL,
-        url: 'https://example.com/data',
+        url: "https://example.com/data",
         isActive: true,
       };
 
@@ -206,11 +216,15 @@ describe('DirectoriesService', () => {
       sourceRepository.create.mockReturnValue(mockSource as DirectorySource);
       sourceRepository.save.mockResolvedValue(mockSource as DirectorySource);
 
-      const result = await service.createSource(mockDirectoryId, dto, mockOrganizationId);
+      const result = await service.createSource(
+        mockDirectoryId,
+        dto,
+        mockOrganizationId,
+      );
 
       expect(directoryRepository.findOne).toHaveBeenCalledWith({
         where: { id: mockDirectoryId },
-        relations: ['fields'],
+        relations: ["fields"],
       });
       expect(sourceRepository.create).toHaveBeenCalledWith({
         ...dto,
@@ -220,22 +234,22 @@ describe('DirectoriesService', () => {
       expect(result).toEqual(mockSource);
     });
 
-    it('should throw NotFoundException if directory does not exist', async () => {
+    it("should throw NotFoundException if directory does not exist", async () => {
       const dto: CreateDirectorySourceDto = {
-        name: 'Test Source',
+        name: "Test Source",
         sourceType: SourceType.URL,
       };
 
       directoryRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.createSource(mockDirectoryId, dto, mockOrganizationId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.createSource(mockDirectoryId, dto, mockOrganizationId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('findAllSources', () => {
-    it('should return paginated sources', async () => {
+  describe("findAllSources", () => {
+    it("should return paginated sources", async () => {
       const filters: QueryDirectorySourcesDto = {
         page: 1,
         limit: 50,
@@ -246,14 +260,23 @@ describe('DirectoriesService', () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockSource, mockSource]);
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      sourceRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      sourceRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
-      const result = await service.findAllSources(mockDirectoryId, mockOrganizationId, filters);
+      const result = await service.findAllSources(
+        mockDirectoryId,
+        mockOrganizationId,
+        filters,
+      );
 
       expect(directoryRepository.findOne).toHaveBeenCalled();
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith('s.directoryId = :directoryId', {
-        directoryId: mockDirectoryId,
-      });
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        "s.directoryId = :directoryId",
+        {
+          directoryId: mockDirectoryId,
+        },
+      );
       expect(result).toEqual({
         data: [mockSource, mockSource],
         total: 2,
@@ -263,7 +286,7 @@ describe('DirectoriesService', () => {
       });
     });
 
-    it('should filter by isActive when provided', async () => {
+    it("should filter by isActive when provided", async () => {
       const filters: QueryDirectorySourcesDto = {
         page: 1,
         limit: 50,
@@ -275,22 +298,35 @@ describe('DirectoriesService', () => {
       mockQueryBuilder.getMany.mockResolvedValue([mockSource]);
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      sourceRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      sourceRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
-      await service.findAllSources(mockDirectoryId, mockOrganizationId, filters);
+      await service.findAllSources(
+        mockDirectoryId,
+        mockOrganizationId,
+        filters,
+      );
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('s.isActive = :isActive', {
-        isActive: true,
-      });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        "s.isActive = :isActive",
+        {
+          isActive: true,
+        },
+      );
     });
   });
 
-  describe('findOneSource', () => {
-    it('should return a source if found', async () => {
+  describe("findOneSource", () => {
+    it("should return a source if found", async () => {
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       sourceRepository.findOne.mockResolvedValue(mockSource as DirectorySource);
 
-      const result = await service.findOneSource(mockDirectoryId, mockSourceId, mockOrganizationId);
+      const result = await service.findOneSource(
+        mockDirectoryId,
+        mockSourceId,
+        mockOrganizationId,
+      );
 
       expect(sourceRepository.findOne).toHaveBeenCalledWith({
         where: { id: mockSourceId, directoryId: mockDirectoryId },
@@ -298,20 +334,24 @@ describe('DirectoriesService', () => {
       expect(result).toEqual(mockSource);
     });
 
-    it('should throw NotFoundException if source not found', async () => {
+    it("should throw NotFoundException if source not found", async () => {
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       sourceRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.findOneSource(mockDirectoryId, mockSourceId, mockOrganizationId),
+        service.findOneSource(
+          mockDirectoryId,
+          mockSourceId,
+          mockOrganizationId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('updateSource', () => {
-    it('should update source fields', async () => {
+  describe("updateSource", () => {
+    it("should update source fields", async () => {
       const dto: UpdateDirectorySourceDto = {
-        name: 'Updated Source',
+        name: "Updated Source",
         isActive: false,
       };
 
@@ -330,7 +370,7 @@ describe('DirectoriesService', () => {
 
       expect(sourceRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Updated Source',
+          name: "Updated Source",
           isActive: false,
         }),
       );
@@ -338,15 +378,21 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('removeSource', () => {
-    it('should hard delete a source', async () => {
+  describe("removeSource", () => {
+    it("should hard delete a source", async () => {
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       sourceRepository.findOne.mockResolvedValue(mockSource as DirectorySource);
-      sourceRepository.remove.mockResolvedValue(mockSource as DirectorySource);
+      sourceRepository.softRemove.mockResolvedValue(
+        mockSource as DirectorySource,
+      );
 
-      await service.removeSource(mockDirectoryId, mockSourceId, mockOrganizationId);
+      await service.removeSource(
+        mockDirectoryId,
+        mockSourceId,
+        mockOrganizationId,
+      );
 
-      expect(sourceRepository.remove).toHaveBeenCalledWith(mockSource);
+      expect(sourceRepository.softRemove).toHaveBeenCalledWith(mockSource);
     });
   });
 
@@ -354,17 +400,19 @@ describe('DirectoriesService', () => {
   // TRIGGER SYNC
   // ==========================================================================
 
-  describe('triggerSync', () => {
-    it('should create STARTED log and return sync log', async () => {
+  describe("triggerSync", () => {
+    it("should create STARTED log and return sync log", async () => {
       const activeSource = { ...mockSource, isActive: true };
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      sourceRepository.findOne.mockResolvedValue(activeSource as DirectorySource);
+      sourceRepository.findOne.mockResolvedValue(
+        activeSource as DirectorySource,
+      );
       syncLogRepository.create.mockReturnValue(mockSyncLog as DirectorySyncLog);
       syncLogRepository.save.mockResolvedValue(mockSyncLog as DirectorySyncLog);
 
       // Mock fetchSourceData to return empty array (no external call)
-      jest.spyOn(service as any, 'fetchSourceData').mockResolvedValue([]);
+      jest.spyOn(service as any, "fetchSourceData").mockResolvedValue([]);
 
       const result = await service.triggerSync(
         mockDirectoryId,
@@ -384,14 +432,21 @@ describe('DirectoriesService', () => {
       expect(result.status).toBe(SyncLogStatus.SUCCESS);
     });
 
-    it('should throw BadRequestException if source is inactive', async () => {
+    it("should throw BadRequestException if source is inactive", async () => {
       const inactiveSource = { ...mockSource, isActive: false };
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      sourceRepository.findOne.mockResolvedValue(inactiveSource as DirectorySource);
+      sourceRepository.findOne.mockResolvedValue(
+        inactiveSource as DirectorySource,
+      );
 
       await expect(
-        service.triggerSync(mockDirectoryId, mockSourceId, mockOrganizationId, mockUserId),
+        service.triggerSync(
+          mockDirectoryId,
+          mockSourceId,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -400,8 +455,8 @@ describe('DirectoriesService', () => {
   // AUDIT LOGGING
   // ==========================================================================
 
-  describe('createAuditEntry', () => {
-    it('should create an audit record', async () => {
+  describe("createAuditEntry", () => {
+    it("should create an audit record", async () => {
       auditRepository.create.mockReturnValue(mockAudit as DirectoryEntryAudit);
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
@@ -410,7 +465,7 @@ describe('DirectoriesService', () => {
         DirectoryAuditAction.CREATE,
         mockUserId,
         null,
-        { name: 'Test Entry' },
+        { name: "Test Entry" },
       );
 
       expect(auditRepository.create).toHaveBeenCalledWith({
@@ -418,14 +473,14 @@ describe('DirectoriesService', () => {
         action: DirectoryAuditAction.CREATE,
         changedBy: mockUserId,
         oldValues: null,
-        newValues: { name: 'Test Entry' },
+        newValues: { name: "Test Entry" },
         changeReason: null,
       });
       expect(auditRepository.save).toHaveBeenCalledWith(mockAudit);
       expect(result).toEqual(mockAudit);
     });
 
-    it('should accept optional changeReason', async () => {
+    it("should accept optional changeReason", async () => {
       auditRepository.create.mockReturnValue(mockAudit as DirectoryEntryAudit);
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
@@ -433,37 +488,43 @@ describe('DirectoriesService', () => {
         mockEntryId,
         DirectoryAuditAction.UPDATE,
         mockUserId,
-        { name: 'Old' },
-        { name: 'New' },
-        'User requested change',
+        { name: "Old" },
+        { name: "New" },
+        "User requested change",
       );
 
       expect(auditRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          changeReason: 'User requested change',
+          changeReason: "User requested change",
         }),
       );
     });
   });
 
-  describe('findAuditLogs', () => {
-    it('should return paginated audit logs', async () => {
+  describe("findAuditLogs", () => {
+    it("should return paginated audit logs", async () => {
       const mockQueryBuilder = createMockQueryBuilder();
       mockQueryBuilder.getCount.mockResolvedValue(1);
       mockQueryBuilder.getMany.mockResolvedValue([mockAudit]);
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      auditRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      auditRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
-      const result = await service.findAuditLogs(mockDirectoryId, mockOrganizationId, {
-        page: 1,
-        limit: 50,
-      });
+      const result = await service.findAuditLogs(
+        mockDirectoryId,
+        mockOrganizationId,
+        {
+          page: 1,
+          limit: 50,
+        },
+      );
 
       expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
-        'directory_entries',
-        'e',
-        'e.id = a.entryId',
+        "directory_entries",
+        "e",
+        "e.id = a.entry_id",
       );
       expect(result).toEqual({
         data: [mockAudit],
@@ -475,8 +536,8 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('createEntry - audit logging', () => {
-    it('should create audit record when creating entry', async () => {
+  describe("createEntry - audit logging", () => {
+    it("should create audit record when creating entry", async () => {
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       entryRepository.create.mockReturnValue(mockEntry as DirectoryEntry);
       entryRepository.save.mockResolvedValue(mockEntry as DirectoryEntry);
@@ -486,8 +547,8 @@ describe('DirectoriesService', () => {
       await service.createEntry(
         mockDirectoryId,
         {
-          name: 'Test Entry',
-          code: 'TEST',
+          name: "Test Entry",
+          code: "TEST",
           status: EntryStatus.ACTIVE,
           data: {},
         },
@@ -506,10 +567,10 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('updateEntry - audit logging', () => {
-    it('should capture old and new values when updating entry', async () => {
-      const oldEntry = { ...mockEntry, name: 'Old Name', version: 1 };
-      const updatedEntry = { ...mockEntry, name: 'New Name', version: 2 };
+  describe("updateEntry - audit logging", () => {
+    it("should capture old and new values when updating entry", async () => {
+      const oldEntry = { ...mockEntry, name: "Old Name", version: 1 };
+      const updatedEntry = { ...mockEntry, name: "New Name", version: 2 };
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       entryRepository.findOne.mockResolvedValue(oldEntry as DirectoryEntry);
@@ -520,7 +581,7 @@ describe('DirectoriesService', () => {
       await service.updateEntry(
         mockDirectoryId,
         mockEntryId,
-        { name: 'New Name' },
+        { name: "New Name" },
         mockOrganizationId,
         mockUserId,
       );
@@ -530,8 +591,8 @@ describe('DirectoriesService', () => {
           entryId: mockEntryId,
           action: DirectoryAuditAction.UPDATE,
           changedBy: mockUserId,
-          oldValues: { name: 'Old Name' },
-          newValues: { name: 'New Name' },
+          oldValues: { name: "Old Name" },
+          newValues: { name: "New Name" },
         }),
       );
     });
@@ -541,30 +602,49 @@ describe('DirectoriesService', () => {
   // HIERARCHY
   // ==========================================================================
 
-  describe('getHierarchyTree', () => {
-    it('should build nested tree for hierarchical directory', async () => {
+  describe("getHierarchyTree", () => {
+    it("should build nested tree for hierarchical directory", async () => {
       const hierarchicalDir = { ...mockDirectory, isHierarchical: true };
-      const rootEntry = { ...mockEntry, id: 'root-1', parentId: null, sortOrder: 1 };
-      const childEntry = { ...mockEntry, id: 'child-1', parentId: 'root-1', sortOrder: 2 };
+      const rootEntry = {
+        ...mockEntry,
+        id: "root-1",
+        parentId: null,
+        sortOrder: 1,
+      };
+      const childEntry = {
+        ...mockEntry,
+        id: "child-1",
+        parentId: "root-1",
+        sortOrder: 2,
+      };
 
       const mockQueryBuilder = createMockQueryBuilder();
       mockQueryBuilder.getMany.mockResolvedValue([rootEntry, childEntry]);
 
-      directoryRepository.findOne.mockResolvedValue(hierarchicalDir as Directory);
-      entryRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      directoryRepository.findOne.mockResolvedValue(
+        hierarchicalDir as Directory,
+      );
+      entryRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
-      const result = await service.getHierarchyTree(mockDirectoryId, mockOrganizationId);
+      const result = await service.getHierarchyTree(
+        mockDirectoryId,
+        mockOrganizationId,
+      );
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('root-1');
+      expect(result[0].id).toBe("root-1");
       expect(result[0].children).toHaveLength(1);
-      expect(result[0].children[0].id).toBe('child-1');
+      expect(result[0].children[0].id).toBe("child-1");
     });
 
-    it('should throw BadRequestException for non-hierarchical directory', async () => {
+    it("should throw BadRequestException for non-hierarchical directory", async () => {
       const nonHierarchicalDir = { ...mockDirectory, isHierarchical: false };
 
-      directoryRepository.findOne.mockResolvedValue(nonHierarchicalDir as Directory);
+      directoryRepository.findOne.mockResolvedValue(
+        nonHierarchicalDir as Directory,
+      );
 
       await expect(
         service.getHierarchyTree(mockDirectoryId, mockOrganizationId),
@@ -572,14 +652,21 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('moveEntry', () => {
-    it('should move entry to new parent', async () => {
+  describe("moveEntry", () => {
+    it("should move entry to new parent", async () => {
       const hierarchicalDir = { ...mockDirectory, isHierarchical: true };
-      const parentEntry = { ...mockEntry, id: 'parent-1' };
-      const entryToMove = { ...mockEntry, id: 'move-1', parentId: null, version: 1 };
-      const movedEntry = { ...entryToMove, parentId: 'parent-1', version: 2 };
+      const parentEntry = { ...mockEntry, id: "parent-1" };
+      const entryToMove = {
+        ...mockEntry,
+        id: "move-1",
+        parentId: null,
+        version: 1,
+      };
+      const movedEntry = { ...entryToMove, parentId: "parent-1", version: 2 };
 
-      directoryRepository.findOne.mockResolvedValue(hierarchicalDir as Directory);
+      directoryRepository.findOne.mockResolvedValue(
+        hierarchicalDir as Directory,
+      );
       entryRepository.findOne
         .mockResolvedValueOnce(entryToMove as DirectoryEntry)
         .mockResolvedValueOnce(parentEntry as DirectoryEntry);
@@ -587,73 +674,97 @@ describe('DirectoriesService', () => {
       auditRepository.create.mockReturnValue(mockAudit as DirectoryEntryAudit);
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
-      const dto: MoveEntryDto = { newParentId: 'parent-1' };
+      const dto: MoveEntryDto = { newParentId: "parent-1" };
 
       const result = await service.moveEntry(
         mockDirectoryId,
-        'move-1',
+        "move-1",
         dto,
         mockOrganizationId,
         mockUserId,
       );
 
-      expect(result.parentId).toBe('parent-1');
+      expect(result.parentId).toBe("parent-1");
       expect(result.version).toBe(2);
       expect(auditRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           action: DirectoryAuditAction.UPDATE,
           oldValues: { parentId: null },
-          newValues: { parentId: 'parent-1' },
-          changeReason: 'Entry moved in hierarchy',
+          newValues: { parentId: "parent-1" },
+          changeReason: "Entry moved in hierarchy",
         }),
       );
     });
 
-    it('should throw BadRequestException when entry is its own parent', async () => {
+    it("should throw BadRequestException when entry is its own parent", async () => {
       const hierarchicalDir = { ...mockDirectory, isHierarchical: true };
 
-      directoryRepository.findOne.mockResolvedValue(hierarchicalDir as Directory);
+      directoryRepository.findOne.mockResolvedValue(
+        hierarchicalDir as Directory,
+      );
       entryRepository.findOne.mockResolvedValue(mockEntry as DirectoryEntry);
 
       const dto: MoveEntryDto = { newParentId: mockEntryId };
 
       await expect(
-        service.moveEntry(mockDirectoryId, mockEntryId, dto, mockOrganizationId, mockUserId),
+        service.moveEntry(
+          mockDirectoryId,
+          mockEntryId,
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should detect and prevent cycles', async () => {
+    it("should detect and prevent cycles", async () => {
       const hierarchicalDir = { ...mockDirectory, isHierarchical: true };
-      const entry1 = { ...mockEntry, id: 'entry-1', parentId: null };
-      const entry2 = { ...mockEntry, id: 'entry-2', parentId: 'entry-1' };
-      const entry3 = { ...mockEntry, id: 'entry-3', parentId: 'entry-2' };
+      const entry1 = { ...mockEntry, id: "entry-1", parentId: null };
+      const entry2 = { ...mockEntry, id: "entry-2", parentId: "entry-1" };
+      const entry3 = { ...mockEntry, id: "entry-3", parentId: "entry-2" };
 
-      directoryRepository.findOne.mockResolvedValue(hierarchicalDir as Directory);
+      directoryRepository.findOne.mockResolvedValue(
+        hierarchicalDir as Directory,
+      );
       entryRepository.findOne
         .mockResolvedValueOnce(entry1 as DirectoryEntry)
         .mockResolvedValueOnce(entry3 as DirectoryEntry)
         .mockResolvedValueOnce(entry2 as DirectoryEntry)
         .mockResolvedValueOnce(entry1 as DirectoryEntry);
 
-      const dto: MoveEntryDto = { newParentId: 'entry-3' };
+      const dto: MoveEntryDto = { newParentId: "entry-3" };
 
       await expect(
-        service.moveEntry(mockDirectoryId, 'entry-1', dto, mockOrganizationId, mockUserId),
+        service.moveEntry(
+          mockDirectoryId,
+          "entry-1",
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should validate parent exists', async () => {
+    it("should validate parent exists", async () => {
       const hierarchicalDir = { ...mockDirectory, isHierarchical: true };
 
-      directoryRepository.findOne.mockResolvedValue(hierarchicalDir as Directory);
+      directoryRepository.findOne.mockResolvedValue(
+        hierarchicalDir as Directory,
+      );
       entryRepository.findOne
         .mockResolvedValueOnce(mockEntry as DirectoryEntry)
         .mockResolvedValueOnce(null);
 
-      const dto: MoveEntryDto = { newParentId: 'non-existent' };
+      const dto: MoveEntryDto = { newParentId: "non-existent" };
 
       await expect(
-        service.moveEntry(mockDirectoryId, mockEntryId, dto, mockOrganizationId, mockUserId),
+        service.moveEntry(
+          mockDirectoryId,
+          mockEntryId,
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -662,8 +773,8 @@ describe('DirectoriesService', () => {
   // INLINE CREATE
   // ==========================================================================
 
-  describe('inlineCreateEntry', () => {
-    it('should create entry with ACTIVE status when no approval required', async () => {
+  describe("inlineCreateEntry", () => {
+    it("should create entry with ACTIVE status when no approval required", async () => {
       const dir = {
         ...mockDirectory,
         settings: { allow_inline_create: true, approval_required: false },
@@ -671,7 +782,7 @@ describe('DirectoriesService', () => {
 
       const newEntry = {
         ...mockEntry,
-        name: 'New Entry',
+        name: "New Entry",
         status: EntryStatus.ACTIVE,
       };
 
@@ -682,8 +793,8 @@ describe('DirectoriesService', () => {
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
       const dto: InlineCreateEntryDto = {
-        name: 'New Entry',
-        code: 'NEW',
+        name: "New Entry",
+        code: "NEW",
       };
 
       const result = await service.inlineCreateEntry(
@@ -697,7 +808,7 @@ describe('DirectoriesService', () => {
       expect(result.origin).toBe(EntryOrigin.LOCAL);
     });
 
-    it('should create entry with PENDING_APPROVAL status when approval required', async () => {
+    it("should create entry with PENDING_APPROVAL status when approval required", async () => {
       const dir = {
         ...mockDirectory,
         settings: { allow_inline_create: true, approval_required: true },
@@ -705,7 +816,7 @@ describe('DirectoriesService', () => {
 
       const newEntry = {
         ...mockEntry,
-        name: 'New Entry',
+        name: "New Entry",
         status: EntryStatus.PENDING_APPROVAL,
       };
 
@@ -716,7 +827,7 @@ describe('DirectoriesService', () => {
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
       const dto: InlineCreateEntryDto = {
-        name: 'New Entry',
+        name: "New Entry",
       };
 
       const result = await service.inlineCreateEntry(
@@ -729,7 +840,7 @@ describe('DirectoriesService', () => {
       expect(result.status).toBe(EntryStatus.PENDING_APPROVAL);
     });
 
-    it('should throw BadRequestException if allow_inline_create is false', async () => {
+    it("should throw BadRequestException if allow_inline_create is false", async () => {
       const dir = {
         ...mockDirectory,
         settings: { allow_inline_create: false },
@@ -738,15 +849,20 @@ describe('DirectoriesService', () => {
       directoryRepository.findOne.mockResolvedValue(dir as Directory);
 
       const dto: InlineCreateEntryDto = {
-        name: 'New Entry',
+        name: "New Entry",
       };
 
       await expect(
-        service.inlineCreateEntry(mockDirectoryId, dto, mockOrganizationId, mockUserId),
+        service.inlineCreateEntry(
+          mockDirectoryId,
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should validate parentId for hierarchical directories', async () => {
+    it("should validate parentId for hierarchical directories", async () => {
       const dir = {
         ...mockDirectory,
         isHierarchical: true,
@@ -757,16 +873,21 @@ describe('DirectoriesService', () => {
       entryRepository.findOne.mockResolvedValue(null);
 
       const dto: InlineCreateEntryDto = {
-        name: 'New Entry',
-        parentId: 'non-existent',
+        name: "New Entry",
+        parentId: "non-existent",
       };
 
       await expect(
-        service.inlineCreateEntry(mockDirectoryId, dto, mockOrganizationId, mockUserId),
+        service.inlineCreateEntry(
+          mockDirectoryId,
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when parentId provided for non-hierarchical directory', async () => {
+    it("should throw BadRequestException when parentId provided for non-hierarchical directory", async () => {
       const dir = {
         ...mockDirectory,
         isHierarchical: false,
@@ -776,12 +897,17 @@ describe('DirectoriesService', () => {
       directoryRepository.findOne.mockResolvedValue(dir as Directory);
 
       const dto: InlineCreateEntryDto = {
-        name: 'New Entry',
-        parentId: 'some-parent',
+        name: "New Entry",
+        parentId: "some-parent",
       };
 
       await expect(
-        service.inlineCreateEntry(mockDirectoryId, dto, mockOrganizationId, mockUserId),
+        service.inlineCreateEntry(
+          mockDirectoryId,
+          dto,
+          mockOrganizationId,
+          mockUserId,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -790,10 +916,10 @@ describe('DirectoriesService', () => {
   // ADDITIONAL COVERAGE
   // ==========================================================================
 
-  describe('findOne (Directory)', () => {
-    it('should return directory with sorted fields', async () => {
-      const field1 = { id: 'f1', sortOrder: 2 } as DirectoryField;
-      const field2 = { id: 'f2', sortOrder: 1 } as DirectoryField;
+  describe("findOne (Directory)", () => {
+    it("should return directory with sorted fields", async () => {
+      const field1 = { id: "f1", sortOrder: 2 } as DirectoryField;
+      const field2 = { id: "f2", sortOrder: 1 } as DirectoryField;
       const dirWithFields = {
         ...mockDirectory,
         fields: [field1, field2],
@@ -807,25 +933,25 @@ describe('DirectoriesService', () => {
       expect(result.fields[1].sortOrder).toBe(2);
     });
 
-    it('should throw NotFoundException for wrong organization', async () => {
+    it("should throw NotFoundException for wrong organization", async () => {
       const dir = {
         ...mockDirectory,
         scope: DirectoryScope.ORGANIZATION,
-        organizationId: 'other-org',
+        organizationId: "other-org",
       };
 
       directoryRepository.findOne.mockResolvedValue(dir as Directory);
 
-      await expect(service.findOne(mockDirectoryId, mockOrganizationId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findOne(mockDirectoryId, mockOrganizationId),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    it('should allow access to HQ-scoped directories from any org', async () => {
+    it("should allow access to HQ-scoped directories from any org", async () => {
       const dir = {
         ...mockDirectory,
         scope: DirectoryScope.HQ,
-        organizationId: 'hq-org',
+        organizationId: "hq-org",
       };
 
       directoryRepository.findOne.mockResolvedValue(dir as Directory);
@@ -837,8 +963,8 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('findOneEntry', () => {
-    it('should return entry with relations', async () => {
+  describe("findOneEntry", () => {
+    it("should return entry with relations", async () => {
       const entryWithRelations = {
         ...mockEntry,
         parent: null,
@@ -846,21 +972,27 @@ describe('DirectoriesService', () => {
       };
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
-      entryRepository.findOne.mockResolvedValue(entryWithRelations as DirectoryEntry);
+      entryRepository.findOne.mockResolvedValue(
+        entryWithRelations as DirectoryEntry,
+      );
 
-      const result = await service.findOneEntry(mockDirectoryId, mockEntryId, mockOrganizationId);
+      const result = await service.findOneEntry(
+        mockDirectoryId,
+        mockEntryId,
+        mockOrganizationId,
+      );
 
       expect(entryRepository.findOne).toHaveBeenCalledWith({
         where: { id: mockEntryId, directoryId: mockDirectoryId },
-        relations: ['parent', 'children'],
+        relations: ["parent", "children"],
       });
       expect(result).toEqual(entryWithRelations);
     });
 
-    it('should throw NotFoundException for wrong organization', async () => {
+    it("should throw NotFoundException for wrong organization", async () => {
       const entry = {
         ...mockEntry,
-        organizationId: 'other-org',
+        organizationId: "other-org",
       };
 
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
@@ -872,15 +1004,20 @@ describe('DirectoriesService', () => {
     });
   });
 
-  describe('removeEntry', () => {
-    it('should soft delete entry and create audit record', async () => {
+  describe("removeEntry", () => {
+    it("should soft delete entry and create audit record", async () => {
       directoryRepository.findOne.mockResolvedValue(mockDirectory as Directory);
       entryRepository.findOne.mockResolvedValue(mockEntry as DirectoryEntry);
       entryRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
       auditRepository.create.mockReturnValue(mockAudit as DirectoryEntryAudit);
       auditRepository.save.mockResolvedValue(mockAudit as DirectoryEntryAudit);
 
-      await service.removeEntry(mockDirectoryId, mockEntryId, mockOrganizationId, mockUserId);
+      await service.removeEntry(
+        mockDirectoryId,
+        mockEntryId,
+        mockOrganizationId,
+        mockUserId,
+      );
 
       expect(entryRepository.softDelete).toHaveBeenCalledWith(mockEntryId);
       expect(auditRepository.create).toHaveBeenCalledWith(

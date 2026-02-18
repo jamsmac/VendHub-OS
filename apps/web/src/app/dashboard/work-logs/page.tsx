@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Clock,
   Search,
@@ -13,10 +13,9 @@ import {
   Timer,
   CalendarDays,
   FileText,
-  AlertTriangle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,17 +23,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface WorkLog {
   id: string;
@@ -44,7 +38,7 @@ interface WorkLog {
     lastName: string;
     position: string;
   };
-  type: 'shift' | 'task' | 'break' | 'overtime';
+  type: "shift" | "task" | "break" | "overtime";
   clockIn: string;
   clockOut?: string;
   duration?: number; // minutes
@@ -58,7 +52,7 @@ interface WorkLog {
     serialNumber: string;
   };
   notes?: string;
-  status: 'active' | 'completed' | 'approved' | 'rejected';
+  status: "active" | "completed" | "approved" | "rejected";
   createdAt: string;
 }
 
@@ -69,12 +63,12 @@ interface TimeOffRequest {
     firstName: string;
     lastName: string;
   };
-  type: 'vacation' | 'sick' | 'personal' | 'unpaid';
+  type: "vacation" | "sick" | "personal" | "unpaid";
   startDate: string;
   endDate: string;
   days: number;
   reason?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   approvedBy?: {
     firstName: string;
     lastName: string;
@@ -83,56 +77,58 @@ interface TimeOffRequest {
 }
 
 const workLogTypeLabels: Record<string, string> = {
-  shift: 'Смена',
-  task: 'Задача',
-  break: 'Перерыв',
-  overtime: 'Переработка',
+  shift: "Смена",
+  task: "Задача",
+  break: "Перерыв",
+  overtime: "Переработка",
 };
 
 const workLogTypeColors: Record<string, string> = {
-  shift: 'bg-blue-500/10 text-blue-500',
-  task: 'bg-green-500/10 text-green-500',
-  break: 'bg-amber-500/10 text-amber-500',
-  overtime: 'bg-purple-500/10 text-purple-500',
+  shift: "bg-blue-500/10 text-blue-500",
+  task: "bg-green-500/10 text-green-500",
+  break: "bg-amber-500/10 text-amber-500",
+  overtime: "bg-purple-500/10 text-purple-500",
 };
 
 const statusLabels: Record<string, string> = {
-  active: 'Активен',
-  completed: 'Завершён',
-  approved: 'Одобрен',
-  rejected: 'Отклонён',
-  pending: 'Ожидает',
+  active: "Активен",
+  completed: "Завершён",
+  approved: "Одобрен",
+  rejected: "Отклонён",
+  pending: "Ожидает",
 };
 
 const statusColors: Record<string, string> = {
-  active: 'bg-green-500/10 text-green-500',
-  completed: 'bg-blue-500/10 text-blue-500',
-  approved: 'bg-emerald-500/10 text-emerald-500',
-  rejected: 'bg-red-500/10 text-red-500',
-  pending: 'bg-amber-500/10 text-amber-500',
+  active: "bg-green-500/10 text-green-500",
+  completed: "bg-blue-500/10 text-blue-500",
+  approved: "bg-emerald-500/10 text-emerald-500",
+  rejected: "bg-red-500/10 text-red-500",
+  pending: "bg-amber-500/10 text-amber-500",
 };
 
 const timeOffTypeLabels: Record<string, string> = {
-  vacation: 'Отпуск',
-  sick: 'Больничный',
-  personal: 'Личные',
-  unpaid: 'За свой счёт',
+  vacation: "Отпуск",
+  sick: "Больничный",
+  personal: "Личные",
+  unpaid: "За свой счёт",
 };
 
 const timeOffTypeColors: Record<string, string> = {
-  vacation: 'bg-blue-500/10 text-blue-500',
-  sick: 'bg-red-500/10 text-red-500',
-  personal: 'bg-purple-500/10 text-purple-500',
-  unpaid: 'bg-muted text-muted-foreground',
+  vacation: "bg-blue-500/10 text-blue-500",
+  sick: "bg-red-500/10 text-red-500",
+  personal: "bg-purple-500/10 text-purple-500",
+  unpaid: "bg-muted text-muted-foreground",
 };
 
 export default function WorkLogsPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('logs');
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [dateFilter] = useState<string>('today');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [activeTab, setActiveTab] = useState("logs");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [dateFilter] = useState<string>("today");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -140,55 +136,73 @@ export default function WorkLogsPage() {
   }, [search]);
 
   // Fetch work logs
-  const { data: workLogs, isLoading: logsLoading, isError: logsError } = useQuery<WorkLog[]>({
-    queryKey: ['work-logs', debouncedSearch, dateFilter, selectedDate],
+  const {
+    data: workLogs,
+    isLoading: logsLoading,
+    isError: _logsError,
+  } = useQuery<WorkLog[]>({
+    queryKey: ["work-logs", debouncedSearch, dateFilter, selectedDate],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      params.append('date', selectedDate);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      params.append("date", selectedDate);
       const res = await api.get(`/work-logs?${params}`);
       return res.data;
     },
-    enabled: activeTab === 'logs',
+    enabled: activeTab === "logs",
   });
 
   // Fetch time off requests
-  const { data: timeOffRequests, isLoading: timeOffLoading } = useQuery<TimeOffRequest[]>({
-    queryKey: ['time-off-requests', search],
+  const { data: timeOffRequests, isLoading: timeOffLoading } = useQuery<
+    TimeOffRequest[]
+  >({
+    queryKey: ["time-off-requests", search],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (search) params.append("search", search);
       const res = await api.get(`/work-logs/time-off?${params}`);
       return res.data;
     },
-    enabled: activeTab === 'time-off',
+    enabled: activeTab === "time-off",
   });
 
   // Approve time off mutation
   const approveTimeOffMutation = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' }) => {
+    mutationFn: async ({
+      id,
+      action,
+    }: {
+      id: string;
+      action: "approve" | "reject";
+    }) => {
       return api.post(`/work-logs/time-off/${id}/${action}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['time-off-requests'] });
-      toast.success('Статус обновлён');
+      queryClient.invalidateQueries({ queryKey: ["time-off-requests"] });
+      toast.success("Статус обновлён");
     },
     onError: () => {
-      toast.error('Ошибка обновления');
+      toast.error("Ошибка обновления");
     },
   });
 
   // Approve work log mutation
   const approveWorkLogMutation = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' }) => {
+    mutationFn: async ({
+      id,
+      action,
+    }: {
+      id: string;
+      action: "approve" | "reject";
+    }) => {
       return api.post(`/work-logs/${id}/${action}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['work-logs'] });
-      toast.success('Статус обновлён');
+      queryClient.invalidateQueries({ queryKey: ["work-logs"] });
+      toast.success("Статус обновлён");
     },
     onError: () => {
-      toast.error('Ошибка обновления');
+      toast.error("Ошибка обновления");
     },
   });
 
@@ -198,12 +212,18 @@ export default function WorkLogsPage() {
     return `${hours}ч ${mins}м`;
   };
 
-  const stats = useMemo(() => ({
-    totalHours: workLogs?.reduce((sum, log) => sum + (log.duration || 0), 0) || 0,
-    activeNow: workLogs?.filter((l) => l.status === 'active').length || 0,
-    pendingApproval: workLogs?.filter((l) => l.status === 'completed').length || 0,
-    pendingTimeOff: timeOffRequests?.filter((r) => r.status === 'pending').length || 0,
-  }), [workLogs, timeOffRequests]);
+  const stats = useMemo(
+    () => ({
+      totalHours:
+        workLogs?.reduce((sum, log) => sum + (log.duration || 0), 0) || 0,
+      activeNow: workLogs?.filter((l) => l.status === "active").length || 0,
+      pendingApproval:
+        workLogs?.filter((l) => l.status === "completed").length || 0,
+      pendingTimeOff:
+        timeOffRequests?.filter((r) => r.status === "pending").length || 0,
+    }),
+    [workLogs, timeOffRequests],
+  );
 
   return (
     <div className="space-y-6">
@@ -235,7 +255,9 @@ export default function WorkLogsPage() {
               <Timer className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{formatDuration(stats.totalHours)}</p>
+              <p className="text-2xl font-bold">
+                {formatDuration(stats.totalHours)}
+              </p>
               <p className="text-sm text-muted-foreground">Всего часов</p>
             </div>
           </div>
@@ -258,7 +280,9 @@ export default function WorkLogsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.pendingApproval}</p>
-              <p className="text-sm text-muted-foreground">Ожидают подтверждения</p>
+              <p className="text-sm text-muted-foreground">
+                Ожидают подтверждения
+              </p>
             </div>
           </div>
         </div>
@@ -286,7 +310,9 @@ export default function WorkLogsPage() {
             <CalendarDays className="w-4 h-4 mr-2" />
             Отпуска
             {stats.pendingTimeOff > 0 && (
-              <Badge className="ml-2 bg-amber-500">{stats.pendingTimeOff}</Badge>
+              <Badge className="ml-2 bg-amber-500">
+                {stats.pendingTimeOff}
+              </Badge>
             )}
           </TabsTrigger>
         </TabsList>
@@ -364,9 +390,9 @@ export default function WorkLogsPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            {new Date(log.clockIn).toLocaleTimeString('ru-RU', {
-                              hour: '2-digit',
-                              minute: '2-digit',
+                            {new Date(log.clockIn).toLocaleTimeString("ru-RU", {
+                              hour: "2-digit",
+                              minute: "2-digit",
                             })}
                           </p>
                           {log.location && (
@@ -380,10 +406,13 @@ export default function WorkLogsPage() {
                       <TableCell>
                         {log.clockOut ? (
                           <p className="font-medium">
-                            {new Date(log.clockOut).toLocaleTimeString('ru-RU', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(log.clockOut).toLocaleTimeString(
+                              "ru-RU",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </p>
                         ) : (
                           <Badge className="bg-green-500/10 text-green-500">
@@ -394,7 +423,9 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         {log.duration ? (
-                          <span className="font-medium">{formatDuration(log.duration)}</span>
+                          <span className="font-medium">
+                            {formatDuration(log.duration)}
+                          </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -405,13 +436,18 @@ export default function WorkLogsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {log.status === 'completed' && (
+                        {log.status === "completed" && (
                           <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-green-500 hover:text-green-600"
-                              onClick={() => approveWorkLogMutation.mutate({ id: log.id, action: 'approve' })}
+                              onClick={() =>
+                                approveWorkLogMutation.mutate({
+                                  id: log.id,
+                                  action: "approve",
+                                })
+                              }
                             >
                               <CheckCircle2 className="w-4 h-4" />
                             </Button>
@@ -419,7 +455,12 @@ export default function WorkLogsPage() {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                              onClick={() => approveWorkLogMutation.mutate({ id: log.id, action: 'reject' })}
+                              onClick={() =>
+                                approveWorkLogMutation.mutate({
+                                  id: log.id,
+                                  action: "reject",
+                                })
+                              }
                             >
                               <XCircle className="w-4 h-4" />
                             </Button>
@@ -432,7 +473,9 @@ export default function WorkLogsPage() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
                       <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Записей не найдено</p>
+                      <p className="text-muted-foreground">
+                        Записей не найдено
+                      </p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -491,7 +534,8 @@ export default function WorkLogsPage() {
                             </span>
                           </div>
                           <p className="font-medium">
-                            {request.employee.firstName} {request.employee.lastName}
+                            {request.employee.firstName}{" "}
+                            {request.employee.lastName}
                           </p>
                         </div>
                       </TableCell>
@@ -502,17 +546,24 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">
-                          {new Date(request.startDate).toLocaleDateString('ru-RU')}
+                          {new Date(request.startDate).toLocaleDateString(
+                            "ru-RU",
+                          )}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          — {new Date(request.endDate).toLocaleDateString('ru-RU')}
+                          —{" "}
+                          {new Date(request.endDate).toLocaleDateString(
+                            "ru-RU",
+                          )}
                         </p>
                       </TableCell>
                       <TableCell>
                         <span className="font-medium">{request.days}</span>
                       </TableCell>
                       <TableCell>
-                        <p className="text-sm line-clamp-2">{request.reason || '—'}</p>
+                        <p className="text-sm line-clamp-2">
+                          {request.reason || "—"}
+                        </p>
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[request.status]}>
@@ -520,13 +571,18 @@ export default function WorkLogsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {request.status === 'pending' && (
+                        {request.status === "pending" && (
                           <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-green-500 hover:text-green-600"
-                              onClick={() => approveTimeOffMutation.mutate({ id: request.id, action: 'approve' })}
+                              onClick={() =>
+                                approveTimeOffMutation.mutate({
+                                  id: request.id,
+                                  action: "approve",
+                                })
+                              }
                             >
                               <CheckCircle2 className="w-4 h-4" />
                             </Button>
@@ -534,7 +590,12 @@ export default function WorkLogsPage() {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                              onClick={() => approveTimeOffMutation.mutate({ id: request.id, action: 'reject' })}
+                              onClick={() =>
+                                approveTimeOffMutation.mutate({
+                                  id: request.id,
+                                  action: "reject",
+                                })
+                              }
                             >
                               <XCircle className="w-4 h-4" />
                             </Button>

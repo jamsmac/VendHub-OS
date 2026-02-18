@@ -3,7 +3,7 @@
  * Extracts current authenticated user from request
  */
 
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 export interface ICurrentUser {
   id: string;
@@ -15,10 +15,16 @@ export interface ICurrentUser {
   organizationId: string;
   permissions?: string[];
   language?: string;
+  sessionId?: string;
+  jti?: string;
 }
 
 export const CurrentUser = createParamDecorator(
-  (data: keyof ICurrentUser | undefined, ctx: ExecutionContext): ICurrentUser | any => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (
+    data: keyof ICurrentUser | undefined,
+    ctx: ExecutionContext,
+  ): ICurrentUser | any => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user as ICurrentUser;
 

@@ -14,7 +14,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -22,17 +22,34 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
-} from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import { ComplaintsService, CreateComplaintDto, UpdateComplaintDto, CreateRefundDto, QueryComplaintsDto } from './complaints.service';
-import { ComplaintStatus, ComplaintPriority, ComplaintCategory, ComplaintSource } from './entities/complaint.entity';
-import { Public } from '../../common/decorators/public.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser, CurrentUserId, CurrentOrganizationId } from '../../common/decorators/current-user.decorator';
+} from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
+import {
+  ComplaintsService,
+  CreateComplaintDto,
+  UpdateComplaintDto,
+  CreateRefundDto,
+  QueryComplaintsDto,
+} from "./complaints.service";
+import {
+  ComplaintStatus,
+  ComplaintPriority,
+  ComplaintCategory,
+  ComplaintSource,
+} from "./entities/complaint.entity";
+import { CreatePublicComplaintDto } from "./dto/create-public-complaint.dto";
+import { Public } from "../../common/decorators/public.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
+import {
+  CurrentUser,
+  CurrentUserId,
+  CurrentOrganizationId,
+} from "../../common/decorators/current-user.decorator";
+import { UserRole } from "../../common/enums";
 
-@ApiTags('Complaints')
+@ApiTags("Complaints")
 @ApiBearerAuth()
-@Controller('complaints')
+@Controller("complaints")
 export class ComplaintsController {
   constructor(private readonly complaintsService: ComplaintsService) {}
 
@@ -41,36 +58,32 @@ export class ComplaintsController {
   // ============================================================================
 
   @Post()
-  @ApiOperation({ summary: 'Create new complaint' })
-  @ApiResponse({ status: 201, description: 'Complaint created' })
+  @ApiOperation({ summary: "Create new complaint" })
+  @ApiResponse({ status: 201, description: "Complaint created" })
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateComplaintDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
+    const organizationId =
+      user && user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
+        : orgId;
     return this.complaintsService.create({
       ...dto,
-      organizationId: dto.organizationId || orgId,
+      organizationId,
     });
   }
 
-  @Post('public')
+  @Post("public")
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 complaints/min per IP -- prevent spam
-  @ApiOperation({ summary: 'Create complaint via QR code (public)' })
-  @ApiResponse({ status: 201, description: 'Complaint created' })
+  @ApiOperation({ summary: "Create complaint via QR code (public)" })
+  @ApiResponse({ status: 201, description: "Complaint created" })
   @HttpCode(HttpStatus.CREATED)
-  async createPublic(
-    @Body() dto: {
-      qrCode: string;
-      customerName?: string;
-      customerPhone?: string;
-      customerEmail?: string;
-      category: ComplaintCategory;
-      subject: string;
-      description: string;
-    },
-  ) {
+  async createPublic(@Body() dto: CreatePublicComplaintDto) {
     // Get QR code info
     const qrCodeInfo = await this.complaintsService.getQrCodeByCode(dto.qrCode);
 
@@ -89,35 +102,56 @@ export class ComplaintsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Query complaints with filters' })
-  @ApiQuery({ name: 'status', required: false, enum: ComplaintStatus, isArray: true })
-  @ApiQuery({ name: 'priority', required: false, enum: ComplaintPriority, isArray: true })
-  @ApiQuery({ name: 'category', required: false, enum: ComplaintCategory, isArray: true })
-  @ApiQuery({ name: 'assignedToId', required: false })
-  @ApiQuery({ name: 'machineId', required: false })
-  @ApiQuery({ name: 'dateFrom', required: false })
-  @ApiQuery({ name: 'dateTo', required: false })
-  @ApiQuery({ name: 'search', required: false })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @ApiOperation({ summary: "Query complaints with filters" })
+  @ApiQuery({
+    name: "status",
+    required: false,
+    enum: ComplaintStatus,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: "priority",
+    required: false,
+    enum: ComplaintPriority,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: "category",
+    required: false,
+    enum: ComplaintCategory,
+    isArray: true,
+  })
+  @ApiQuery({ name: "assignedToId", required: false })
+  @ApiQuery({ name: "machineId", required: false })
+  @ApiQuery({ name: "dateFrom", required: false })
+  @ApiQuery({ name: "dateTo", required: false })
+  @ApiQuery({ name: "search", required: false })
+  @ApiQuery({ name: "page", required: false })
+  @ApiQuery({ name: "limit", required: false })
+  @Roles("owner", "admin", "manager", "operator")
   async query(
     @Query() query: QueryComplaintsDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
+    const organizationId =
+      user.role === UserRole.OWNER && query.organizationId
+        ? query.organizationId
+        : orgId;
     return this.complaintsService.query({
       ...query,
-      organizationId: query.organizationId || orgId,
+      organizationId,
     });
   }
 
-  @Get('my')
-  @ApiOperation({ summary: 'Get complaints assigned to me' })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Get("my")
+  @ApiOperation({ summary: "Get complaints assigned to me" })
+  @Roles("owner", "admin", "manager", "operator")
   async getMyComplaints(
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
-    @Query('status') status?: ComplaintStatus[],
+    @Query("status") status?: ComplaintStatus[],
   ) {
     return this.complaintsService.query({
       organizationId: orgId,
@@ -126,15 +160,15 @@ export class ComplaintsController {
     });
   }
 
-  @Get('statistics')
-  @ApiOperation({ summary: 'Get complaint statistics' })
-  @ApiQuery({ name: 'dateFrom', required: true })
-  @ApiQuery({ name: 'dateTo', required: true })
-  @Roles('owner', 'admin', 'manager')
+  @Get("statistics")
+  @ApiOperation({ summary: "Get complaint statistics" })
+  @ApiQuery({ name: "dateFrom", required: true })
+  @ApiQuery({ name: "dateTo", required: true })
+  @Roles("owner", "admin", "manager")
   async getStatistics(
     @CurrentOrganizationId() orgId: string,
-    @Query('dateFrom') dateFrom: string,
-    @Query('dateTo') dateTo: string,
+    @Query("dateFrom") dateFrom: string,
+    @Query("dateTo") dateTo: string,
   ) {
     return this.complaintsService.getStatistics(
       orgId,
@@ -143,27 +177,27 @@ export class ComplaintsController {
     );
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get complaint by ID' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager', 'operator')
-  async findById(@Param('id', ParseUUIDPipe) id: string) {
+  @Get(":id")
+  @ApiOperation({ summary: "Get complaint by ID" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
+  async findById(@Param("id", ParseUUIDPipe) id: string) {
     return this.complaintsService.findById(id);
   }
 
-  @Get('number/:number')
-  @ApiOperation({ summary: 'Get complaint by number' })
-  @ApiParam({ name: 'number', type: String })
-  async findByNumber(@Param('number') number: string) {
+  @Get("number/:number")
+  @ApiOperation({ summary: "Get complaint by number" })
+  @ApiParam({ name: "number", type: String })
+  async findByNumber(@Param("number") number: string) {
     return this.complaintsService.findByNumber(number);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update complaint' })
-  @ApiParam({ name: 'id', type: String })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Patch(":id")
+  @ApiOperation({ summary: "Update complaint" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateComplaintDto,
     @CurrentUserId() userId: string,
   ) {
@@ -174,49 +208,49 @@ export class ComplaintsController {
   // Actions
   // ============================================================================
 
-  @Post(':id/assign')
-  @ApiOperation({ summary: 'Assign complaint to user' })
-  @Roles('owner', 'admin', 'manager')
+  @Post(":id/assign")
+  @ApiOperation({ summary: "Assign complaint to user" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.OK)
   async assign(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('assignedToId', ParseUUIDPipe) assignedToId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("assignedToId", ParseUUIDPipe) assignedToId: string,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.assign(id, assignedToId, userId);
   }
 
-  @Post(':id/resolve')
-  @ApiOperation({ summary: 'Resolve complaint' })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Post(":id/resolve")
+  @ApiOperation({ summary: "Resolve complaint" })
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.OK)
   async resolve(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('resolution') resolution: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("resolution") resolution: string,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.resolve(id, resolution, userId);
   }
 
-  @Post(':id/escalate')
-  @ApiOperation({ summary: 'Escalate complaint' })
-  @Roles('owner', 'admin', 'manager', 'operator')
+  @Post(":id/escalate")
+  @ApiOperation({ summary: "Escalate complaint" })
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.OK)
   async escalate(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('reason') reason: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("reason") reason: string,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.escalate(id, reason, userId);
   }
 
-  @Post(':id/feedback')
+  @Post(":id/feedback")
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 feedback submissions/min per IP
-  @ApiOperation({ summary: 'Submit customer feedback' })
+  @ApiOperation({ summary: "Submit customer feedback" })
   @HttpCode(HttpStatus.OK)
   async submitFeedback(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { rating: number; comment?: string },
   ) {
     return this.complaintsService.submitFeedback(id, body.rating, body.comment);
@@ -226,25 +260,31 @@ export class ComplaintsController {
   // Comments
   // ============================================================================
 
-  @Get(':id/comments')
-  @ApiOperation({ summary: 'Get complaint comments' })
-  @ApiQuery({ name: 'includeInternal', required: false, type: Boolean })
+  @Get(":id/comments")
+  @ApiOperation({ summary: "Get complaint comments" })
+  @ApiQuery({ name: "includeInternal", required: false, type: Boolean })
   async getComments(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query('includeInternal') includeInternal?: boolean,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query("includeInternal") includeInternal?: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @CurrentUser() user?: any,
   ) {
     // Only internal users can see internal comments
-    const canSeeInternal = user && ['owner', 'admin', 'manager', 'operator'].includes(user.role);
-    return this.complaintsService.getComments(id, canSeeInternal && includeInternal !== false);
+    const canSeeInternal =
+      user && ["owner", "admin", "manager", "operator"].includes(user.role);
+    return this.complaintsService.getComments(
+      id,
+      canSeeInternal && includeInternal !== false,
+    );
   }
 
-  @Post(':id/comments')
-  @ApiOperation({ summary: 'Add comment to complaint' })
+  @Post(":id/comments")
+  @ApiOperation({ summary: "Add comment to complaint" })
   @HttpCode(HttpStatus.CREATED)
   async addComment(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { content: string; isInternal?: boolean; attachments?: string[] },
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body()
+    body: { content: string; isInternal?: boolean; attachments?: string[] },
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.addComment({
@@ -260,13 +300,13 @@ export class ComplaintsController {
   // Refunds
   // ============================================================================
 
-  @Post(':id/refunds')
-  @ApiOperation({ summary: 'Request refund for complaint' })
-  @Roles('owner', 'admin', 'manager')
+  @Post(":id/refunds")
+  @ApiOperation({ summary: "Request refund for complaint" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async createRefund(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: Omit<CreateRefundDto, 'complaintId' | 'requestedById'>,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: Omit<CreateRefundDto, "complaintId" | "requestedById">,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.createRefund({
@@ -276,36 +316,40 @@ export class ComplaintsController {
     });
   }
 
-  @Post('refunds/:refundId/approve')
-  @ApiOperation({ summary: 'Approve refund' })
-  @Roles('owner', 'admin')
+  @Post("refunds/:refundId/approve")
+  @ApiOperation({ summary: "Approve refund" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async approveRefund(
-    @Param('refundId', ParseUUIDPipe) refundId: string,
+    @Param("refundId", ParseUUIDPipe) refundId: string,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.approveRefund(refundId, userId);
   }
 
-  @Post('refunds/:refundId/process')
-  @ApiOperation({ summary: 'Process refund' })
-  @Roles('owner', 'admin', 'accountant')
+  @Post("refunds/:refundId/process")
+  @ApiOperation({ summary: "Process refund" })
+  @Roles("owner", "admin", "accountant")
   @HttpCode(HttpStatus.OK)
   async processRefund(
-    @Param('refundId', ParseUUIDPipe) refundId: string,
-    @Body('referenceNumber') referenceNumber: string,
+    @Param("refundId", ParseUUIDPipe) refundId: string,
+    @Body("referenceNumber") referenceNumber: string,
     @CurrentUserId() userId: string,
   ) {
-    return this.complaintsService.processRefund(refundId, userId, referenceNumber);
+    return this.complaintsService.processRefund(
+      refundId,
+      userId,
+      referenceNumber,
+    );
   }
 
-  @Post('refunds/:refundId/reject')
-  @ApiOperation({ summary: 'Reject refund' })
-  @Roles('owner', 'admin')
+  @Post("refunds/:refundId/reject")
+  @ApiOperation({ summary: "Reject refund" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async rejectRefund(
-    @Param('refundId', ParseUUIDPipe) refundId: string,
-    @Body('reason') reason: string,
+    @Param("refundId", ParseUUIDPipe) refundId: string,
+    @Body("reason") reason: string,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.rejectRefund(refundId, userId, reason);
@@ -315,28 +359,30 @@ export class ComplaintsController {
   // QR Codes
   // ============================================================================
 
-  @Post('qr-codes/generate')
-  @ApiOperation({ summary: 'Generate QR code for machine' })
-  @Roles('owner', 'admin', 'manager')
+  @Post("qr-codes/generate")
+  @ApiOperation({ summary: "Generate QR code for machine" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async generateQrCode(
-    @Body('machineId', ParseUUIDPipe) machineId: string,
+    @Body("machineId", ParseUUIDPipe) machineId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.complaintsService.generateQrCode(orgId, machineId);
   }
 
-  @Get('qr-codes/machine/:machineId')
-  @ApiOperation({ summary: 'Get QR codes for machine' })
-  @Roles('owner', 'admin', 'manager')
-  async getQrCodesForMachine(@Param('machineId', ParseUUIDPipe) machineId: string) {
+  @Get("qr-codes/machine/:machineId")
+  @ApiOperation({ summary: "Get QR codes for machine" })
+  @Roles("owner", "admin", "manager")
+  async getQrCodesForMachine(
+    @Param("machineId", ParseUUIDPipe) machineId: string,
+  ) {
     return this.complaintsService.getQrCodesForMachine(machineId);
   }
 
-  @Get('qr-codes/:code')
+  @Get("qr-codes/:code")
   @Public()
-  @ApiOperation({ summary: 'Get QR code info' })
-  async getQrCode(@Param('code') code: string) {
+  @ApiOperation({ summary: "Get QR code info" })
+  async getQrCode(@Param("code") code: string) {
     return this.complaintsService.getQrCodeByCode(code);
   }
 
@@ -344,8 +390,8 @@ export class ComplaintsController {
   // Templates
   // ============================================================================
 
-  @Get('templates')
-  @ApiOperation({ summary: 'Get complaint templates' })
+  @Get("templates")
+  @ApiOperation({ summary: "Get complaint templates" })
   async getTemplates(@CurrentOrganizationId() orgId: string) {
     return this.complaintsService.getTemplates(orgId);
   }

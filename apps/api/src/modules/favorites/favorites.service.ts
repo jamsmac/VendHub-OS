@@ -8,12 +8,12 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { Favorite, FavoriteType } from './entities/favorite.entity';
-import { Product } from '../products/entities/product.entity';
-import { Machine } from '../machines/entities/machine.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { Favorite, FavoriteType } from "./entities/favorite.entity";
+import { Product } from "../products/entities/product.entity";
+import { Machine } from "../machines/entities/machine.entity";
 import {
   AddFavoriteDto,
   UpdateFavoriteDto,
@@ -28,7 +28,7 @@ import {
   AddFavoriteResultDto,
   FavoriteStatusDto,
   FavoriteStatusBulkDto,
-} from './dto/favorite.dto';
+} from "./dto/favorite.dto";
 
 @Injectable()
 export class FavoritesService {
@@ -50,23 +50,34 @@ export class FavoritesService {
   /**
    * Добавить в избранное
    */
-  async addFavorite(userId: string, dto: AddFavoriteDto): Promise<AddFavoriteResultDto> {
+  async addFavorite(
+    userId: string,
+    dto: AddFavoriteDto,
+  ): Promise<AddFavoriteResultDto> {
     // Validate based on type
     if (dto.type === FavoriteType.PRODUCT) {
       if (!dto.productId) {
-        throw new BadRequestException('productId is required for product favorites');
+        throw new BadRequestException(
+          "productId is required for product favorites",
+        );
       }
-      const product = await this.productRepo.findOne({ where: { id: dto.productId } });
+      const product = await this.productRepo.findOne({
+        where: { id: dto.productId },
+      });
       if (!product) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException("Product not found");
       }
     } else if (dto.type === FavoriteType.MACHINE) {
       if (!dto.machineId) {
-        throw new BadRequestException('machineId is required for machine favorites');
+        throw new BadRequestException(
+          "machineId is required for machine favorites",
+        );
       }
-      const machine = await this.machineRepo.findOne({ where: { id: dto.machineId } });
+      const machine = await this.machineRepo.findOne({
+        where: { id: dto.machineId },
+      });
       if (!machine) {
-        throw new NotFoundException('Machine not found');
+        throw new NotFoundException("Machine not found");
       }
     }
 
@@ -75,8 +86,10 @@ export class FavoritesService {
       where: {
         userId,
         type: dto.type,
-        productId: dto.productId || null as any,
-        machineId: dto.machineId || null as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        productId: dto.productId || (null as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        machineId: dto.machineId || (null as any),
       },
     });
 
@@ -84,17 +97,17 @@ export class FavoritesService {
       return {
         success: true,
         id: existing.id,
-        message: 'Already in favorites',
+        message: "Already in favorites",
         alreadyExists: true,
       };
     }
 
     // Get next sort order
     const maxSort = await this.favoriteRepo
-      .createQueryBuilder('f')
-      .select('MAX(f.sortOrder)', 'max')
-      .where('f.userId = :userId', { userId })
-      .andWhere('f.type = :type', { type: dto.type })
+      .createQueryBuilder("f")
+      .select("MAX(f.sortOrder)", "max")
+      .where("f.userId = :userId", { userId })
+      .andWhere("f.type = :type", { type: dto.type })
       .getRawOne();
 
     const favorite = this.favoriteRepo.create({
@@ -104,6 +117,7 @@ export class FavoritesService {
       machineId: dto.type === FavoriteType.MACHINE ? dto.machineId : undefined,
       notes: dto.notes,
       sortOrder: (maxSort?.max || 0) + 1,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const saved = await this.favoriteRepo.save(favorite);
@@ -112,8 +126,10 @@ export class FavoritesService {
 
     return {
       success: true,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       id: Array.isArray(saved) ? (saved as any)[0].id : (saved as any).id,
-      message: 'Added to favorites',
+      message: "Added to favorites",
       alreadyExists: false,
     };
   }
@@ -122,10 +138,13 @@ export class FavoritesService {
    * Удалить из избранного
    */
   async removeFavorite(userId: string, favoriteId: string): Promise<void> {
-    const result = await this.favoriteRepo.delete({ id: favoriteId, userId });
+    const result = await this.favoriteRepo.softDelete({
+      id: favoriteId,
+      userId,
+    });
 
     if (result.affected === 0) {
-      throw new NotFoundException('Favorite not found');
+      throw new NotFoundException("Favorite not found");
     }
 
     this.logger.log(`User ${userId} removed favorite ${favoriteId}`);
@@ -142,13 +161,15 @@ export class FavoritesService {
     const where = {
       userId,
       type,
-      ...(type === FavoriteType.PRODUCT ? { productId: itemId } : { machineId: itemId }),
+      ...(type === FavoriteType.PRODUCT
+        ? { productId: itemId }
+        : { machineId: itemId }),
     };
 
-    const result = await this.favoriteRepo.delete(where);
+    const result = await this.favoriteRepo.softDelete(where);
 
     if (result.affected === 0) {
-      throw new NotFoundException('Favorite not found');
+      throw new NotFoundException("Favorite not found");
     }
   }
 
@@ -165,7 +186,7 @@ export class FavoritesService {
     });
 
     if (!favorite) {
-      throw new NotFoundException('Favorite not found');
+      throw new NotFoundException("Favorite not found");
     }
 
     Object.assign(favorite, dto);
@@ -185,19 +206,23 @@ export class FavoritesService {
     const where = {
       userId,
       type,
-      ...(type === FavoriteType.PRODUCT ? { productId: itemId } : { machineId: itemId }),
+      ...(type === FavoriteType.PRODUCT
+        ? { productId: itemId }
+        : { machineId: itemId }),
     };
 
     const existing = await this.favoriteRepo.findOne({ where });
 
     if (existing) {
-      await this.favoriteRepo.delete(existing.id);
+      await this.favoriteRepo.softDelete(existing.id);
       return { isFavorite: false, favoriteId: null };
     }
 
     const dto: AddFavoriteDto = {
       type,
-      ...(type === FavoriteType.PRODUCT ? { productId: itemId } : { machineId: itemId }),
+      ...(type === FavoriteType.PRODUCT
+        ? { productId: itemId }
+        : { machineId: itemId }),
     };
 
     const result = await this.addFavorite(userId, dto);
@@ -221,10 +246,11 @@ export class FavoritesService {
       try {
         const result = await this.addFavorite(userId, item);
         results.push(result);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         results.push({
           success: false,
-          id: '',
+          id: "",
           message: error.message,
           alreadyExists: false,
         });
@@ -237,8 +263,11 @@ export class FavoritesService {
   /**
    * Массовое удаление
    */
-  async removeFavoritesBulk(userId: string, dto: RemoveFavoritesBulkDto): Promise<number> {
-    const result = await this.favoriteRepo.delete({
+  async removeFavoritesBulk(
+    userId: string,
+    dto: RemoveFavoritesBulkDto,
+  ): Promise<number> {
+    const result = await this.favoriteRepo.softDelete({
       id: In(dto.ids),
       userId,
     });
@@ -249,7 +278,10 @@ export class FavoritesService {
   /**
    * Изменить порядок
    */
-  async reorderFavorites(userId: string, dto: ReorderFavoritesDto): Promise<void> {
+  async reorderFavorites(
+    userId: string,
+    dto: ReorderFavoritesDto,
+  ): Promise<void> {
     for (let i = 0; i < dto.orderedIds.length; i++) {
       await this.favoriteRepo.update(
         { id: dto.orderedIds[i], userId },
@@ -265,23 +297,29 @@ export class FavoritesService {
   /**
    * Получить все избранное пользователя
    */
-  async getFavorites(userId: string, filter: FavoriteFilterDto): Promise<FavoritesListDto> {
+  async getFavorites(
+    userId: string,
+    filter: FavoriteFilterDto,
+  ): Promise<FavoritesListDto> {
     const { type, page = 1, limit = 50 } = filter;
 
     const qb = this.favoriteRepo
-      .createQueryBuilder('f')
-      .leftJoinAndSelect('f.product', 'p')
-      .leftJoinAndSelect('p.category', 'pc')
-      .leftJoinAndSelect('f.machine', 'm')
-      .where('f.userId = :userId', { userId })
-      .orderBy('f.sortOrder', 'ASC')
-      .addOrderBy('f.createdAt', 'DESC');
+      .createQueryBuilder("f")
+      .leftJoinAndSelect("f.product", "p")
+      .leftJoinAndSelect("p.category", "pc")
+      .leftJoinAndSelect("f.machine", "m")
+      .where("f.userId = :userId", { userId })
+      .orderBy("f.sortOrder", "ASC")
+      .addOrderBy("f.createdAt", "DESC");
 
     if (type) {
-      qb.andWhere('f.type = :type', { type });
+      qb.andWhere("f.type = :type", { type });
     }
 
-    const favorites = await qb.skip((page - 1) * limit).take(limit).getMany();
+    const favorites = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
 
     const products: FavoriteProductDto[] = [];
     const machines: FavoriteMachineDto[] = [];
@@ -292,7 +330,7 @@ export class FavoritesService {
           id: fav.id,
           type: fav.type,
           productId: fav.productId,
-          machineId: '',
+          machineId: "",
           notes: fav.notes,
           sortOrder: fav.sortOrder,
           createdAt: fav.created_at,
@@ -302,7 +340,8 @@ export class FavoritesService {
             nameUz: fav.product.nameUz,
             price: fav.product.sellingPrice,
             imageUrl: fav.product.imageUrl,
-            categoryName: (fav.product.category as any)?.name || '',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            categoryName: (fav.product.category as any)?.name || "",
             isAvailable: fav.product.isActive,
           },
         });
@@ -310,7 +349,7 @@ export class FavoritesService {
         machines.push({
           id: fav.id,
           type: fav.type,
-          productId: '',
+          productId: "",
           machineId: fav.machineId,
           notes: fav.notes,
           sortOrder: fav.sortOrder,
@@ -330,8 +369,12 @@ export class FavoritesService {
     }
 
     const [totalProducts, totalMachines] = await Promise.all([
-      this.favoriteRepo.count({ where: { userId, type: FavoriteType.PRODUCT } }),
-      this.favoriteRepo.count({ where: { userId, type: FavoriteType.MACHINE } }),
+      this.favoriteRepo.count({
+        where: { userId, type: FavoriteType.PRODUCT },
+      }),
+      this.favoriteRepo.count({
+        where: { userId, type: FavoriteType.MACHINE },
+      }),
     ]);
 
     return {
@@ -345,7 +388,11 @@ export class FavoritesService {
   /**
    * Получить избранные продукты
    */
-  async getFavoriteProducts(userId: string, page = 1, limit = 50): Promise<FavoriteProductDto[]> {
+  async getFavoriteProducts(
+    userId: string,
+    page = 1,
+    limit = 50,
+  ): Promise<FavoriteProductDto[]> {
     const result = await this.getFavorites(userId, {
       type: FavoriteType.PRODUCT,
       page,
@@ -357,7 +404,11 @@ export class FavoritesService {
   /**
    * Получить избранные автоматы
    */
-  async getFavoriteMachines(userId: string, page = 1, limit = 50): Promise<FavoriteMachineDto[]> {
+  async getFavoriteMachines(
+    userId: string,
+    page = 1,
+    limit = 50,
+  ): Promise<FavoriteMachineDto[]> {
     const result = await this.getFavorites(userId, {
       type: FavoriteType.MACHINE,
       page,
@@ -377,14 +428,16 @@ export class FavoritesService {
     const where = {
       userId,
       type,
-      ...(type === FavoriteType.PRODUCT ? { productId: itemId } : { machineId: itemId }),
+      ...(type === FavoriteType.PRODUCT
+        ? { productId: itemId }
+        : { machineId: itemId }),
     };
 
     const favorite = await this.favoriteRepo.findOne({ where });
 
     return {
       isFavorite: !!favorite,
-      favoriteId: favorite?.id || '',
+      favoriteId: favorite?.id || "",
     };
   }
 
@@ -408,8 +461,8 @@ export class FavoritesService {
 
     const items: Record<string, boolean> = {};
     for (const id of itemIds) {
-      const fav = favorites.find(f =>
-        type === FavoriteType.PRODUCT ? f.productId === id : f.machineId === id
+      const fav = favorites.find((f) =>
+        type === FavoriteType.PRODUCT ? f.productId === id : f.machineId === id,
       );
       items[id] = !!fav;
     }
@@ -420,10 +473,16 @@ export class FavoritesService {
   /**
    * Получить количество избранного
    */
-  async getFavoritesCount(userId: string): Promise<{ products: number; machines: number }> {
+  async getFavoritesCount(
+    userId: string,
+  ): Promise<{ products: number; machines: number }> {
     const [products, machines] = await Promise.all([
-      this.favoriteRepo.count({ where: { userId, type: FavoriteType.PRODUCT } }),
-      this.favoriteRepo.count({ where: { userId, type: FavoriteType.MACHINE } }),
+      this.favoriteRepo.count({
+        where: { userId, type: FavoriteType.PRODUCT },
+      }),
+      this.favoriteRepo.count({
+        where: { userId, type: FavoriteType.MACHINE },
+      }),
     ]);
 
     return { products, machines };

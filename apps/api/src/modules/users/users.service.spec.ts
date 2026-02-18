@@ -1,23 +1,23 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { UsersService } from './users.service';
-import { User, UserStatus } from './entities/user.entity';
+import { UsersService } from "./users.service";
+import { User, UserStatus } from "./entities/user.entity";
 
-const ORG_ID = 'org-uuid-00000000-0000-0000-0000-000000000001';
+const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 
-describe('UsersService', () => {
+describe("UsersService", () => {
   let service: UsersService;
   let userRepository: jest.Mocked<Repository<User>>;
 
   const mockUser = {
-    id: 'user-uuid-1',
-    email: 'test@vendhub.uz',
-    firstName: 'Test',
-    lastName: 'User',
-    role: 'operator',
+    id: "user-uuid-1",
+    email: "test@vendhub.uz",
+    firstName: "Test",
+    lastName: "User",
+    role: "operator",
     status: UserStatus.ACTIVE,
     organizationId: ORG_ID,
     organization: null,
@@ -34,8 +34,8 @@ describe('UsersService', () => {
 
   const mockPendingUser = {
     ...mockUser,
-    id: 'user-uuid-2',
-    email: 'pending@vendhub.uz',
+    id: "user-uuid-2",
+    email: "pending@vendhub.uz",
     status: UserStatus.PENDING,
   } as unknown as User;
 
@@ -73,7 +73,7 @@ describe('UsersService', () => {
     userRepository = module.get(getRepositoryToken(User));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -81,12 +81,18 @@ describe('UsersService', () => {
   // CREATE
   // ============================================================================
 
-  describe('create', () => {
-    it('should create a new user', async () => {
+  describe("create", () => {
+    it("should create a new user", async () => {
       userRepository.create.mockReturnValue(mockUser);
       userRepository.save.mockResolvedValue(mockUser);
 
-      const dto = { email: 'test@vendhub.uz', password: 'pass123', firstName: 'Test', lastName: 'User' };
+      const dto = {
+        email: "test@vendhub.uz",
+        password: "pass123",
+        firstName: "Test",
+        lastName: "User",
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.create(dto as any);
 
       expect(result).toEqual(mockUser);
@@ -94,11 +100,17 @@ describe('UsersService', () => {
       expect(userRepository.save).toHaveBeenCalledWith(mockUser);
     });
 
-    it('should pass dto fields through to create', async () => {
-      const dto = { email: 'new@vendhub.uz', password: 'secret', firstName: 'New', lastName: 'Person' };
+    it("should pass dto fields through to create", async () => {
+      const dto = {
+        email: "new@vendhub.uz",
+        password: "secret",
+        firstName: "New",
+        lastName: "Person",
+      };
       userRepository.create.mockReturnValue(mockUser);
       userRepository.save.mockResolvedValue(mockUser);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.create(dto as any);
 
       expect(userRepository.create).toHaveBeenCalledWith(dto);
@@ -109,45 +121,45 @@ describe('UsersService', () => {
   // FIND ALL
   // ============================================================================
 
-  describe('findAll', () => {
-    it('should return paginated users for organization', async () => {
+  describe("findAll", () => {
+    it("should return paginated users for organization", async () => {
       const result = await service.findAll(ORG_ID, { page: 1, limit: 20 });
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("totalPages", 1);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
     });
 
-    it('should filter by role', async () => {
-      await service.findAll(ORG_ID, { role: 'operator' });
+    it("should filter by role", async () => {
+      await service.findAll(ORG_ID, { role: "operator" });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'user.role = :role',
-        { role: 'operator' },
+        "user.role = :role",
+        { role: "operator" },
       );
     });
 
-    it('should filter by status', async () => {
-      await service.findAll(ORG_ID, { status: 'active' });
+    it("should filter by status", async () => {
+      await service.findAll(ORG_ID, { status: "active" });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'user.status = :status',
-        { status: 'active' },
+        "user.status = :status",
+        { status: "active" },
       );
     });
 
-    it('should filter by search term', async () => {
-      await service.findAll(ORG_ID, { search: 'john' });
+    it("should filter by search term", async () => {
+      await service.findAll(ORG_ID, { search: "john" });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
-        { search: '%john%' },
+        "(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)",
+        { search: "%john%" },
       );
     });
 
-    it('should default to page 1 and limit 20', async () => {
+    it("should default to page 1 and limit 20", async () => {
       const result = await service.findAll(ORG_ID);
 
       expect(result.page).toBe(1);
@@ -159,23 +171,23 @@ describe('UsersService', () => {
   // FIND BY ID
   // ============================================================================
 
-  describe('findById', () => {
-    it('should return user with organization relation', async () => {
+  describe("findById", () => {
+    it("should return user with organization relation", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findById('user-uuid-1');
+      const result = await service.findById("user-uuid-1");
 
       expect(result).toEqual(mockUser);
       expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'user-uuid-1' },
-        relations: ['organization'],
+        where: { id: "user-uuid-1" },
+        relations: ["organization"],
       });
     });
 
-    it('should return null when user not found', async () => {
+    it("should return null when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById('non-existent');
+      const result = await service.findById("non-existent");
 
       expect(result).toBeNull();
     });
@@ -185,23 +197,23 @@ describe('UsersService', () => {
   // FIND BY EMAIL
   // ============================================================================
 
-  describe('findByEmail', () => {
-    it('should return user by email', async () => {
+  describe("findByEmail", () => {
+    it("should return user by email", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findByEmail('test@vendhub.uz');
+      const result = await service.findByEmail("test@vendhub.uz");
 
       expect(result).toEqual(mockUser);
       expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { email: 'test@vendhub.uz' },
-        relations: ['organization'],
+        where: { email: "test@vendhub.uz" },
+        relations: ["organization"],
       });
     });
 
-    it('should return null for non-existent email', async () => {
+    it("should return null for non-existent email", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findByEmail('nobody@vendhub.uz');
+      const result = await service.findByEmail("nobody@vendhub.uz");
 
       expect(result).toBeNull();
     });
@@ -211,22 +223,30 @@ describe('UsersService', () => {
   // UPDATE
   // ============================================================================
 
-  describe('update', () => {
-    it('should update user when found', async () => {
+  describe("update", () => {
+    it("should update user when found", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
-      userRepository.save.mockResolvedValue({ ...mockUser, firstName: 'Updated' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userRepository.save.mockResolvedValue({
+        ...mockUser,
+        firstName: "Updated",
+      } as any);
 
-      const result = await service.update('user-uuid-1', { firstName: 'Updated' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update("user-uuid-1", {
+        firstName: "Updated",
+      } as any);
 
-      expect(result.firstName).toBe('Updated');
+      expect(result.firstName).toBe("Updated");
       expect(userRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update('non-existent', { firstName: 'Updated' } as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.update("non-existent", { firstName: "Updated" } as any),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -235,20 +255,22 @@ describe('UsersService', () => {
   // REMOVE (SOFT DELETE)
   // ============================================================================
 
-  describe('remove', () => {
-    it('should soft remove user when found', async () => {
+  describe("remove", () => {
+    it("should soft remove user when found", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       userRepository.softRemove.mockResolvedValue(mockUser);
 
-      await service.remove('user-uuid-1');
+      await service.remove("user-uuid-1");
 
       expect(userRepository.softRemove).toHaveBeenCalledWith(mockUser);
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.remove("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -256,28 +278,37 @@ describe('UsersService', () => {
   // APPROVE USER
   // ============================================================================
 
-  describe('approveUser', () => {
-    it('should approve a pending user', async () => {
+  describe("approveUser", () => {
+    it("should approve a pending user", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({ ...mockPendingUser } as any);
       userRepository.save.mockImplementation(async (user) => user as User);
 
-      const result = await service.approveUser('user-uuid-2', 'admin-uuid');
+      const result = await service.approveUser("user-uuid-2", "admin-uuid");
 
       expect(result.status).toBe(UserStatus.ACTIVE);
-      expect(result.approvedById).toBe('admin-uuid');
+      expect(result.approvedById).toBe("admin-uuid");
       expect(result.approvedAt).toBeInstanceOf(Date);
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.approveUser('non-existent', 'admin-uuid')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.approveUser("non-existent", "admin-uuid"),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when user is not pending', async () => {
-      userRepository.findOne.mockResolvedValue({ ...mockUser, status: UserStatus.ACTIVE } as any);
+    it("should throw BadRequestException when user is not pending", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        status: UserStatus.ACTIVE,
+      } as any);
 
-      await expect(service.approveUser('user-uuid-1', 'admin-uuid')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.approveUser("user-uuid-1", "admin-uuid"),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -285,23 +316,32 @@ describe('UsersService', () => {
   // REJECT USER
   // ============================================================================
 
-  describe('rejectUser', () => {
-    it('should reject a pending user with reason', async () => {
+  describe("rejectUser", () => {
+    it("should reject a pending user with reason", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({ ...mockPendingUser } as any);
       userRepository.save.mockImplementation(async (user) => user as User);
 
-      const result = await service.rejectUser('user-uuid-2', 'admin-uuid', 'Not eligible');
+      const result = await service.rejectUser(
+        "user-uuid-2",
+        "admin-uuid",
+        "Not eligible",
+      );
 
       expect(result.status).toBe(UserStatus.REJECTED);
-      expect(result.rejectedById).toBe('admin-uuid');
-      expect(result.rejectionReason).toBe('Not eligible');
+      expect(result.rejectedById).toBe("admin-uuid");
+      expect(result.rejectionReason).toBe("Not eligible");
     });
 
-    it('should throw BadRequestException when user is not pending', async () => {
-      userRepository.findOne.mockResolvedValue({ ...mockUser, status: UserStatus.ACTIVE } as any);
+    it("should throw BadRequestException when user is not pending", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        status: UserStatus.ACTIVE,
+      } as any);
 
       await expect(
-        service.rejectUser('user-uuid-1', 'admin-uuid', 'reason'),
+        service.rejectUser("user-uuid-1", "admin-uuid", "reason"),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -310,15 +350,19 @@ describe('UsersService', () => {
   // UPDATE LAST LOGIN
   // ============================================================================
 
-  describe('updateLastLogin', () => {
-    it('should update last login timestamp and IP', async () => {
+  describe("updateLastLogin", () => {
+    it("should update last login timestamp and IP", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.update.mockResolvedValue(undefined as any);
 
-      await service.updateLastLogin('user-uuid-1', '192.168.1.1');
+      await service.updateLastLogin("user-uuid-1", "192.168.1.1");
 
-      expect(userRepository.update).toHaveBeenCalledWith('user-uuid-1', expect.objectContaining({
-        lastLoginIp: '192.168.1.1',
-      }));
+      expect(userRepository.update).toHaveBeenCalledWith(
+        "user-uuid-1",
+        expect.objectContaining({
+          lastLoginIp: "192.168.1.1",
+        }),
+      );
     });
   });
 
@@ -326,8 +370,8 @@ describe('UsersService', () => {
   // COUNT BY ORGANIZATION
   // ============================================================================
 
-  describe('countByOrganization', () => {
-    it('should return count of users in organization', async () => {
+  describe("countByOrganization", () => {
+    it("should return count of users in organization", async () => {
       userRepository.count.mockResolvedValue(5);
 
       const result = await service.countByOrganization(ORG_ID);

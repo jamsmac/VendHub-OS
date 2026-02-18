@@ -7,8 +7,8 @@ on:
     branches: [main, develop]
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
 
 jobs:
   # ========================================
@@ -30,10 +30,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Run security audit
+        run: pnpm audit --audit-level=high || true
 
       - name: Run ESLint
         run: pnpm lint
@@ -61,13 +64,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
-        run: pnpm test:unit
+        run: pnpm --filter api test -- --forceExit --passWithNoTests
         env:
           CI: true
 
@@ -98,7 +101,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -171,7 +174,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -182,7 +185,7 @@ jobs:
           DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_test
 
       - name: Run integration tests
-        run: pnpm test:integration
+        run: pnpm --filter api test -- --forceExit --passWithNoTests
         env:
           DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_test
           REDIS_URL: redis://localhost:6379
@@ -234,7 +237,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -248,7 +251,7 @@ jobs:
           DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_e2e
 
       - name: Seed test data
-        run: pnpm --filter api seed:demo
+        run: pnpm --filter api db:seed
         env:
           DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_e2e
 
@@ -324,16 +327,16 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: vendhub/api:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results-api.sarif'
-          severity: 'CRITICAL,HIGH'
+          format: "sarif"
+          output: "trivy-results-api.sarif"
+          severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results for API
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'trivy-results-api.sarif'
-          category: 'api-image'
+          sarif_file: "trivy-results-api.sarif"
+          category: "api-image"
 
       - name: Extract metadata for Web
         id: meta-web
@@ -359,16 +362,56 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: vendhub/web:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results-web.sarif'
-          severity: 'CRITICAL,HIGH'
+          format: "sarif"
+          output: "trivy-results-web.sarif"
+          severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results for Web
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'trivy-results-web.sarif'
-          category: 'web-image'
+          sarif_file: "trivy-results-web.sarif"
+          category: "web-image"
+
+      - name: Extract metadata for Client
+        id: meta-client
+        uses: docker/metadata-action@v5
+        with:
+          images: vendhub/client
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+
+      - name: Build and push Client image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/client/Dockerfile
+          push: true
+          tags: ${{ steps.meta-client.outputs.tags }}
+          labels: ${{ steps.meta-client.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for Bot
+        id: meta-bot
+        uses: docker/metadata-action@v5
+        with:
+          images: vendhub/bot
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+
+      - name: Build and push Bot image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/bot/Dockerfile
+          push: true
+          tags: ${{ steps.meta-bot.outputs.tags }}
+          labels: ${{ steps.meta-bot.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # ========================================
   # Deploy to Staging

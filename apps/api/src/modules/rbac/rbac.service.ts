@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { Role } from './entities/role.entity';
-import { Permission } from './entities/permission.entity';
-import { User } from '../users/entities/user.entity';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-import { CreatePermissionDto } from './dto/create-permission.dto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { Role } from "./entities/role.entity";
+import { Permission } from "./entities/permission.entity";
+import { User } from "../users/entities/user.entity";
+import { CreateRoleDto } from "./dto/create-role.dto";
+import { UpdateRoleDto } from "./dto/update-role.dto";
+import { CreatePermissionDto } from "./dto/create-permission.dto";
 
 @Injectable()
 export class RbacService {
@@ -25,7 +30,11 @@ export class RbacService {
 
   async createRole(dto: CreateRoleDto, organizationId?: string): Promise<Role> {
     const existing = await this.roleRepository.findOne({
-      where: { name: dto.name, organizationId: organizationId || undefined as any },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where: {
+        name: dto.name,
+        organizationId: organizationId || (undefined as any),
+      },
     });
     if (existing) {
       throw new BadRequestException(`Role "${dto.name}" already exists`);
@@ -50,10 +59,10 @@ export class RbacService {
   async updateRole(id: string, dto: UpdateRoleDto): Promise<Role> {
     const role = await this.roleRepository.findOne({ where: { id } });
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException("Role not found");
     }
     if (role.isSystem && dto.name && dto.name !== role.name) {
-      throw new BadRequestException('Cannot rename a system role');
+      throw new BadRequestException("Cannot rename a system role");
     }
 
     Object.assign(role, dto);
@@ -65,10 +74,10 @@ export class RbacService {
   async deleteRole(id: string): Promise<void> {
     const role = await this.roleRepository.findOne({ where: { id } });
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException("Role not found");
     }
     if (role.isSystem) {
-      throw new BadRequestException('Cannot delete a system role');
+      throw new BadRequestException("Cannot delete a system role");
     }
     await this.roleRepository.softRemove(role);
   }
@@ -79,22 +88,33 @@ export class RbacService {
     page?: number;
     limit?: number;
   }) {
-    const { organizationId, includeGlobal = true, page = 1, limit = 50 } = options || {};
+    const {
+      organizationId,
+      includeGlobal = true,
+      page = 1,
+      limit = 50,
+    } = options || {};
 
-    const query = this.roleRepository.createQueryBuilder('role')
-      .leftJoinAndSelect('role.permissions', 'permission')
-      .where('role.deleted_at IS NULL');
+    const query = this.roleRepository
+      .createQueryBuilder("role")
+      .leftJoinAndSelect("role.permissions", "permission")
+      .where("role.deleted_at IS NULL");
 
     if (organizationId) {
       if (includeGlobal) {
-        query.andWhere('(role.organization_id = :organizationId OR role.organization_id IS NULL)', { organizationId });
+        query.andWhere(
+          "(role.organization_id = :organizationId OR role.organization_id IS NULL)",
+          { organizationId },
+        );
       } else {
-        query.andWhere('role.organization_id = :organizationId', { organizationId });
+        query.andWhere("role.organization_id = :organizationId", {
+          organizationId,
+        });
       }
     }
 
     const total = await query.getCount();
-    query.orderBy('role.level', 'DESC');
+    query.orderBy("role.level", "DESC");
     query.skip((page - 1) * limit).take(limit);
 
     const data = await query.getMany();
@@ -104,10 +124,10 @@ export class RbacService {
   async findRoleById(id: string): Promise<Role> {
     const role = await this.roleRepository.findOne({
       where: { id },
-      relations: ['permissions'],
+      relations: ["permissions"],
     });
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException("Role not found");
     }
     return role;
   }
@@ -119,7 +139,9 @@ export class RbacService {
       where: { resource: dto.resource, action: dto.action },
     });
     if (existing) {
-      throw new BadRequestException(`Permission "${dto.resource}:${dto.action}" already exists`);
+      throw new BadRequestException(
+        `Permission "${dto.resource}:${dto.action}" already exists`,
+      );
     }
 
     const permission = this.permissionRepository.create({
@@ -132,9 +154,14 @@ export class RbacService {
     return this.permissionRepository.save(permission);
   }
 
-  async findAllPermissions(options?: { resource?: string; page?: number; limit?: number }) {
+  async findAllPermissions(options?: {
+    resource?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const { resource, page = 1, limit = 200 } = options || {};
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { isActive: true };
     if (resource) {
       where.resource = resource;
@@ -142,7 +169,7 @@ export class RbacService {
 
     const [data, total] = await this.permissionRepository.findAndCount({
       where,
-      order: { resource: 'ASC', action: 'ASC' },
+      order: { resource: "ASC", action: "ASC" },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -152,16 +179,21 @@ export class RbacService {
 
   // ==================== Role-Permission Assignment ====================
 
-  async syncRolePermissions(roleId: string, permissionIds: string[]): Promise<Role> {
+  async syncRolePermissions(
+    roleId: string,
+    permissionIds: string[],
+  ): Promise<Role> {
     const role = await this.roleRepository.findOne({
       where: { id: roleId },
-      relations: ['permissions'],
+      relations: ["permissions"],
     });
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException("Role not found");
     }
 
-    const permissions = await this.permissionRepository.findBy({ id: In(permissionIds) });
+    const permissions = await this.permissionRepository.findBy({
+      id: In(permissionIds),
+    });
     role.permissions = permissions;
     await this.roleRepository.save(role);
 
@@ -173,16 +205,17 @@ export class RbacService {
   async assignRoleToUser(userId: string, roleId: string): Promise<void> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['roles'],
+      relations: ["roles"],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
 
     const role = await this.roleRepository.findOneBy({ id: roleId });
-    if (!role) throw new NotFoundException('Role not found');
+    if (!role) throw new NotFoundException("Role not found");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const alreadyAssigned = user.roles?.some((r: any) => r.id === roleId);
     if (alreadyAssigned) {
-      throw new BadRequestException('Role already assigned to user');
+      throw new BadRequestException("Role already assigned to user");
     }
 
     user.roles = [...(user.roles || []), role];
@@ -192,10 +225,11 @@ export class RbacService {
   async removeRoleFromUser(userId: string, roleId: string): Promise<void> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['roles'],
+      relations: ["roles"],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user.roles = (user.roles || []).filter((r: any) => r.id !== roleId);
     await this.userRepository.save(user);
   }
@@ -203,9 +237,9 @@ export class RbacService {
   async getUserRoles(userId: string): Promise<Role[]> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['roles', 'roles.permissions'],
+      relations: ["roles", "roles.permissions"],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
     return user.roles || [];
   }
 
@@ -224,12 +258,17 @@ export class RbacService {
     return Array.from(permissionMap.values());
   }
 
-  async hasPermission(userId: string, resource: string, action: string): Promise<boolean> {
+  async hasPermission(
+    userId: string,
+    resource: string,
+    action: string,
+  ): Promise<boolean> {
     const permissions = await this.getUserPermissions(userId);
     return permissions.some(
       (p) =>
-        (p.resource === resource && (p.action === action || p.action === 'manage')) ||
-        (p.resource === '*' && p.action === 'manage'),
+        (p.resource === resource &&
+          (p.action === action || p.action === "manage")) ||
+        (p.resource === "*" && p.action === "manage"),
     );
   }
 }

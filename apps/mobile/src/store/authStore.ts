@@ -3,9 +3,9 @@
  * Manages authentication state
  */
 
-import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
-import { api } from '../services/api';
+import { create } from "zustand";
+import * as SecureStore from "expo-secure-store";
+import { api } from "../services/api";
 
 interface User {
   id: string;
@@ -31,9 +31,9 @@ interface AuthState {
   clearError: () => void;
 }
 
-const ACCESS_TOKEN_KEY = 'vendhub_access_token';
-const REFRESH_TOKEN_KEY = 'vendhub_refresh_token';
-const USER_KEY = 'vendhub_user';
+const ACCESS_TOKEN_KEY = "vendhub_access_token";
+const REFRESH_TOKEN_KEY = "vendhub_refresh_token";
+const USER_KEY = "vendhub_user";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post("/auth/login", { email, password });
       const { accessToken, refreshToken, user } = response.data;
 
       // Store tokens securely
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
 
       // Update API headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
 
       set({
         user,
@@ -65,8 +65,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Ошибка входа';
+      const message = error.response?.data?.message || "Ошибка входа";
       set({ error: message, isLoading: false });
       throw new Error(message);
     }
@@ -80,7 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await SecureStore.deleteItemAsync(USER_KEY);
 
       // Clear API headers
-      delete api.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common["Authorization"];
 
       set({
         user: null,
@@ -90,7 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   },
 
@@ -108,11 +109,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Set token in API headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
 
       // Verify token by fetching user
       try {
-        const response = await api.get('/auth/me');
+        const response = await api.get("/auth/me");
         const user = response.data.data;
 
         set({
@@ -125,14 +126,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } catch {
         // Token invalid, try refresh
         try {
-          const refreshResponse = await api.post('/auth/refresh', { refreshToken });
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken, user } = refreshResponse.data;
+          const refreshResponse = await api.post("/auth/refresh", {
+            refreshToken,
+          });
+          const {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            user,
+          } = refreshResponse.data;
 
           await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, newAccessToken);
           await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken);
           await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
 
-          api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+          api.defaults.headers.common["Authorization"] =
+            `Bearer ${newAccessToken}`;
 
           set({
             user,
@@ -147,7 +155,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }
     } catch (error) {
-      console.error('Check auth error:', error);
+      console.error("Check auth error:", error);
       set({ isLoading: false, isAuthenticated: false });
     }
   },

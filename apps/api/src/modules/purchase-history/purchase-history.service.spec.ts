@@ -1,12 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { PurchaseHistoryService } from './purchase-history.service';
-import { PurchaseHistory, PurchaseStatus } from './entities/purchase-history.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
+import { PurchaseHistoryService } from "./purchase-history.service";
+import {
+  PurchaseHistory,
+  PurchaseStatus,
+} from "./entities/purchase-history.entity";
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -39,12 +46,12 @@ const createMockQueryBuilder = () => ({
   limit: jest.fn().mockReturnThis(),
 });
 
-describe('PurchaseHistoryService', () => {
+describe("PurchaseHistoryService", () => {
   let service: PurchaseHistoryService;
   let repository: MockRepository<PurchaseHistory>;
 
-  const orgId = 'org-1';
-  const userId = 'user-1';
+  const orgId = "org-1";
+  const userId = "user-1";
 
   beforeEach(async () => {
     repository = createMockRepository<PurchaseHistory>();
@@ -59,7 +66,7 @@ describe('PurchaseHistoryService', () => {
     service = module.get<PurchaseHistoryService>(PurchaseHistoryService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -67,20 +74,21 @@ describe('PurchaseHistoryService', () => {
   // create
   // ==========================================================================
 
-  describe('create', () => {
+  describe("create", () => {
     const dto = {
-      purchaseDate: new Date('2024-03-15'),
-      productId: 'prod-1',
+      purchaseDate: new Date("2024-03-15"),
+      productId: "prod-1",
       quantity: 100,
       unitPrice: 15000,
     };
 
-    it('should create a purchase with calculated VAT (default 12%)', async () => {
-      const created = { id: 'ph-1', ...dto, vatRate: 12 };
+    it("should create a purchase with calculated VAT (default 12%)", async () => {
+      const created = { id: "ph-1", ...dto, vatRate: 12 };
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      const result = await service.create(orgId, userId, dto as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.create(orgId, userId, dto as any);
 
       // subtotal = 100 * 15000 = 1500000
       // vatAmount = 1500000 * 12 / 100 = 180000
@@ -88,7 +96,7 @@ describe('PurchaseHistoryService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          productId: 'prod-1',
+          productId: "prod-1",
           quantity: 100,
           unitPrice: 15000,
           vatRate: 12,
@@ -100,11 +108,12 @@ describe('PurchaseHistoryService', () => {
       );
     });
 
-    it('should use provided vatRate instead of default', async () => {
+    it("should use provided vatRate instead of default", async () => {
       const dtoWithVat = { ...dto, vatRate: 0 };
-      repository.create!.mockReturnValue({ id: 'ph-2' });
-      repository.save!.mockResolvedValue({ id: 'ph-2' });
+      repository.create!.mockReturnValue({ id: "ph-2" });
+      repository.save!.mockResolvedValue({ id: "ph-2" });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.create(orgId, userId, dtoWithVat as any);
 
       expect(repository.create).toHaveBeenCalledWith(
@@ -116,25 +125,27 @@ describe('PurchaseHistoryService', () => {
       );
     });
 
-    it('should default currency to UZS', async () => {
-      repository.create!.mockReturnValue({ id: 'ph-3' });
-      repository.save!.mockResolvedValue({ id: 'ph-3' });
+    it("should default currency to UZS", async () => {
+      repository.create!.mockReturnValue({ id: "ph-3" });
+      repository.save!.mockResolvedValue({ id: "ph-3" });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.create(orgId, userId, dto as any);
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ currency: 'UZS', exchangeRate: 1 }),
+        expect.objectContaining({ currency: "UZS", exchangeRate: 1 }),
       );
     });
 
-    it('should set importSource to manual', async () => {
-      repository.create!.mockReturnValue({ id: 'ph-4' });
-      repository.save!.mockResolvedValue({ id: 'ph-4' });
+    it("should set importSource to manual", async () => {
+      repository.create!.mockReturnValue({ id: "ph-4" });
+      repository.save!.mockResolvedValue({ id: "ph-4" });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.create(orgId, userId, dto as any);
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ importSource: 'manual' }),
+        expect.objectContaining({ importSource: "manual" }),
       );
     });
   });
@@ -143,22 +154,33 @@ describe('PurchaseHistoryService', () => {
   // bulkCreate
   // ==========================================================================
 
-  describe('bulkCreate', () => {
-    it('should create multiple purchases with shared import session ID', async () => {
+  describe("bulkCreate", () => {
+    it("should create multiple purchases with shared import session ID", async () => {
       const dto = {
         purchases: [
-          { purchaseDate: new Date(), productId: 'p-1', quantity: 10, unitPrice: 100 },
-          { purchaseDate: new Date(), productId: 'p-2', quantity: 20, unitPrice: 200 },
+          {
+            purchaseDate: new Date(),
+            productId: "p-1",
+            quantity: 10,
+            unitPrice: 100,
+          },
+          {
+            purchaseDate: new Date(),
+            productId: "p-2",
+            quantity: 20,
+            unitPrice: 200,
+          },
         ],
       };
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.bulkCreate(orgId, userId, dto as any);
 
       expect(result.created).toBe(2);
       expect(result.importSessionId).toBeDefined();
-      expect(typeof result.importSessionId).toBe('string');
+      expect(typeof result.importSessionId).toBe("string");
     });
   });
 
@@ -166,11 +188,11 @@ describe('PurchaseHistoryService', () => {
   // findAll
   // ==========================================================================
 
-  describe('findAll', () => {
-    it('should return paginated results with defaults', async () => {
+  describe("findAll", () => {
+    it("should return paginated results with defaults", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(50);
-      mockQb.getMany.mockResolvedValue([{ id: 'ph-1' }]);
+      mockQb.getMany.mockResolvedValue([{ id: "ph-1" }]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
       const result = await service.findAll(orgId, {});
@@ -180,39 +202,47 @@ describe('PurchaseHistoryService', () => {
       expect(result.limit).toBe(20);
     });
 
-    it('should filter by supplierId', async () => {
+    it("should filter by supplierId", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      await service.findAll(orgId, { supplierId: 'sup-1' } as any);
-
-      expect(mockQb.andWhere).toHaveBeenCalledWith('ph.supplierId = :supplierId', { supplierId: 'sup-1' });
-    });
-
-    it('should filter by status', async () => {
-      const mockQb = createMockQueryBuilder();
-      mockQb.getCount.mockResolvedValue(0);
-      mockQb.getMany.mockResolvedValue([]);
-      repository.createQueryBuilder!.mockReturnValue(mockQb);
-
-      await service.findAll(orgId, { status: PurchaseStatus.PENDING } as any);
-
-      expect(mockQb.andWhere).toHaveBeenCalledWith('ph.status = :status', { status: PurchaseStatus.PENDING });
-    });
-
-    it('should filter by search term', async () => {
-      const mockQb = createMockQueryBuilder();
-      mockQb.getCount.mockResolvedValue(0);
-      mockQb.getMany.mockResolvedValue([]);
-      repository.createQueryBuilder!.mockReturnValue(mockQb);
-
-      await service.findAll(orgId, { search: 'INV-001' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll(orgId, { supplierId: "sup-1" } as any);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        '(ph.invoiceNumber ILIKE :search OR ph.batchNumber ILIKE :search OR ph.notes ILIKE :search)',
-        { search: '%INV-001%' },
+        "ph.supplierId = :supplierId",
+        { supplierId: "sup-1" },
+      );
+    });
+
+    it("should filter by status", async () => {
+      const mockQb = createMockQueryBuilder();
+      mockQb.getCount.mockResolvedValue(0);
+      mockQb.getMany.mockResolvedValue([]);
+      repository.createQueryBuilder!.mockReturnValue(mockQb);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll(orgId, { status: PurchaseStatus.PENDING } as any);
+
+      expect(mockQb.andWhere).toHaveBeenCalledWith("ph.status = :status", {
+        status: PurchaseStatus.PENDING,
+      });
+    });
+
+    it("should filter by search term", async () => {
+      const mockQb = createMockQueryBuilder();
+      mockQb.getCount.mockResolvedValue(0);
+      mockQb.getMany.mockResolvedValue([]);
+      repository.createQueryBuilder!.mockReturnValue(mockQb);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll(orgId, { search: "INV-001" } as any);
+
+      expect(mockQb.andWhere).toHaveBeenCalledWith(
+        "(ph.invoiceNumber ILIKE :search OR ph.batchNumber ILIKE :search OR ph.notes ILIKE :search)",
+        { search: "%INV-001%" },
       );
     });
   });
@@ -221,20 +251,22 @@ describe('PurchaseHistoryService', () => {
   // findById
   // ==========================================================================
 
-  describe('findById', () => {
-    it('should return purchase when found', async () => {
-      const purchase = { id: 'ph-1', productId: 'p-1' };
+  describe("findById", () => {
+    it("should return purchase when found", async () => {
+      const purchase = { id: "ph-1", productId: "p-1" };
       repository.findOne!.mockResolvedValue(purchase);
 
-      const result = await service.findById('ph-1');
+      const result = await service.findById("ph-1");
 
       expect(result).toEqual(purchase);
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it("should throw NotFoundException when not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.findById('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.findById("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -242,10 +274,10 @@ describe('PurchaseHistoryService', () => {
   // update
   // ==========================================================================
 
-  describe('update', () => {
-    it('should update a PENDING purchase', async () => {
+  describe("update", () => {
+    it("should update a PENDING purchase", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.PENDING,
         quantity: 100,
         unitPrice: 15000,
@@ -254,21 +286,25 @@ describe('PurchaseHistoryService', () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.update('ph-1', { quantity: 200 } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update("ph-1", { quantity: 200 } as any);
 
       expect(result.quantity).toBe(200);
     });
 
-    it('should throw BadRequestException when updating non-PENDING purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.RECEIVED };
+    it("should throw BadRequestException when updating non-PENDING purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.RECEIVED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      await expect(service.update('ph-1', { quantity: 200 } as any)).rejects.toThrow(BadRequestException);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await expect(
+        service.update("ph-1", { quantity: 200 } as any),
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('should recalculate VAT and total when price changes', async () => {
+    it("should recalculate VAT and total when price changes", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.PENDING,
         quantity: 10,
         unitPrice: 1000,
@@ -277,7 +313,8 @@ describe('PurchaseHistoryService', () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.update('ph-1', { unitPrice: 2000 } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update("ph-1", { unitPrice: 2000 } as any);
 
       // subtotal = 10 * 2000 = 20000, vat = 2400, total = 22400
       expect(result.vatAmount).toBe(2400);
@@ -289,10 +326,10 @@ describe('PurchaseHistoryService', () => {
   // receive
   // ==========================================================================
 
-  describe('receive', () => {
-    it('should mark a PENDING purchase as RECEIVED', async () => {
+  describe("receive", () => {
+    it("should mark a PENDING purchase as RECEIVED", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.PENDING,
         notes: null,
         deliveryNoteNumber: null,
@@ -300,35 +337,38 @@ describe('PurchaseHistoryService', () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.receive('ph-1', userId);
+      const result = await service.receive("ph-1", userId);
 
       expect(result.status).toBe(PurchaseStatus.RECEIVED);
       expect(result.deliveryDate).toBeInstanceOf(Date);
     });
 
-    it('should throw BadRequestException when receiving non-PENDING purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.CANCELLED };
+    it("should throw BadRequestException when receiving non-PENDING purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.CANCELLED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      await expect(service.receive('ph-1', userId)).rejects.toThrow(BadRequestException);
+      await expect(service.receive("ph-1", userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
-    it('should append notes when provided in dto', async () => {
+    it("should append notes when provided in dto", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.PENDING,
-        notes: 'Original note',
+        notes: "Original note",
         deliveryNoteNumber: null,
       };
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.receive('ph-1', userId, {
-        notes: 'Received in good condition',
+      const result = await service.receive("ph-1", userId, {
+        notes: "Received in good condition",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      expect(result.notes).toContain('Original note');
-      expect(result.notes).toContain('[Received] Received in good condition');
+      expect(result.notes).toContain("Original note");
+      expect(result.notes).toContain("[Received] Received in good condition");
     });
   });
 
@@ -336,22 +376,22 @@ describe('PurchaseHistoryService', () => {
   // cancel
   // ==========================================================================
 
-  describe('cancel', () => {
-    it('should cancel a PENDING purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.PENDING };
+  describe("cancel", () => {
+    it("should cancel a PENDING purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.PENDING };
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.cancel('ph-1');
+      const result = await service.cancel("ph-1");
 
       expect(result.status).toBe(PurchaseStatus.CANCELLED);
     });
 
-    it('should throw BadRequestException when cancelling non-PENDING purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.RECEIVED };
+    it("should throw BadRequestException when cancelling non-PENDING purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.RECEIVED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      await expect(service.cancel('ph-1')).rejects.toThrow(BadRequestException);
+      await expect(service.cancel("ph-1")).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -359,10 +399,10 @@ describe('PurchaseHistoryService', () => {
   // returnPurchase
   // ==========================================================================
 
-  describe('returnPurchase', () => {
-    it('should return a RECEIVED purchase', async () => {
+  describe("returnPurchase", () => {
+    it("should return a RECEIVED purchase", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.RECEIVED,
         metadata: {},
         notes: null,
@@ -370,37 +410,42 @@ describe('PurchaseHistoryService', () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.returnPurchase('ph-1', { reason: 'Defective' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.returnPurchase("ph-1", {
+        reason: "Defective",
+      } as any);
 
       expect(result.status).toBe(PurchaseStatus.RETURNED);
-      expect(result.metadata.returnReason).toBe('Defective');
+      expect(result.metadata.returnReason).toBe("Defective");
     });
 
-    it('should throw BadRequestException when returning non-RECEIVED purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.PENDING };
+    it("should throw BadRequestException when returning non-RECEIVED purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.PENDING };
       repository.findOne!.mockResolvedValue(purchase);
 
       await expect(
-        service.returnPurchase('ph-1', { reason: 'Defective' } as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.returnPurchase("ph-1", { reason: "Defective" } as any),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should append return notes when provided', async () => {
+    it("should append return notes when provided", async () => {
       const purchase = {
-        id: 'ph-1',
+        id: "ph-1",
         status: PurchaseStatus.RECEIVED,
         metadata: {},
-        notes: 'Previous note',
+        notes: "Previous note",
       };
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      const result = await service.returnPurchase('ph-1', {
-        reason: 'Wrong item',
-        notes: 'Returned to supplier',
+      const result = await service.returnPurchase("ph-1", {
+        reason: "Wrong item",
+        notes: "Returned to supplier",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      expect(result.notes).toContain('[Returned] Returned to supplier');
+      expect(result.notes).toContain("[Returned] Returned to supplier");
     });
   });
 
@@ -408,39 +453,39 @@ describe('PurchaseHistoryService', () => {
   // remove
   // ==========================================================================
 
-  describe('remove', () => {
-    it('should soft-delete a PENDING purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.PENDING };
+  describe("remove", () => {
+    it("should soft-delete a PENDING purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.PENDING };
       repository.findOne!.mockResolvedValue(purchase);
       repository.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.remove('ph-1');
+      await service.remove("ph-1");
 
-      expect(repository.softDelete).toHaveBeenCalledWith('ph-1');
+      expect(repository.softDelete).toHaveBeenCalledWith("ph-1");
     });
 
-    it('should soft-delete a CANCELLED purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.CANCELLED };
+    it("should soft-delete a CANCELLED purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.CANCELLED };
       repository.findOne!.mockResolvedValue(purchase);
       repository.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.remove('ph-1');
+      await service.remove("ph-1");
 
-      expect(repository.softDelete).toHaveBeenCalledWith('ph-1');
+      expect(repository.softDelete).toHaveBeenCalledWith("ph-1");
     });
 
-    it('should throw BadRequestException when deleting RECEIVED purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.RECEIVED };
+    it("should throw BadRequestException when deleting RECEIVED purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.RECEIVED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      await expect(service.remove('ph-1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove("ph-1")).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException when deleting RETURNED purchase', async () => {
-      const purchase = { id: 'ph-1', status: PurchaseStatus.RETURNED };
+    it("should throw BadRequestException when deleting RETURNED purchase", async () => {
+      const purchase = { id: "ph-1", status: PurchaseStatus.RETURNED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      await expect(service.remove('ph-1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove("ph-1")).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -448,15 +493,15 @@ describe('PurchaseHistoryService', () => {
   // getStats
   // ==========================================================================
 
-  describe('getStats', () => {
-    it('should return parsed purchase statistics', async () => {
+  describe("getStats", () => {
+    it("should return parsed purchase statistics", async () => {
       const mockQb = createMockQueryBuilder();
       const clonedQb = createMockQueryBuilder();
       mockQb.clone.mockReturnValue(clonedQb);
 
       clonedQb.getRawOne.mockResolvedValue({
-        totalPurchases: '50',
-        totalAmount: '5000000.00',
+        totalPurchases: "50",
+        totalAmount: "5000000.00",
       });
       clonedQb.getRawMany.mockResolvedValue([]);
       clonedQb.clone.mockReturnValue(clonedQb);
@@ -471,23 +516,26 @@ describe('PurchaseHistoryService', () => {
       expect(result.byProduct).toEqual([]);
     });
 
-    it('should parse supplier and product breakdowns', async () => {
+    it("should parse supplier and product breakdowns", async () => {
       const mockQb = createMockQueryBuilder();
       const clonedQb = createMockQueryBuilder();
       mockQb.clone.mockReturnValue(clonedQb);
       clonedQb.clone.mockReturnValue(clonedQb);
 
       let callCount = 0;
-      clonedQb.getRawOne.mockResolvedValue({ totalPurchases: '10', totalAmount: '100000' });
+      clonedQb.getRawOne.mockResolvedValue({
+        totalPurchases: "10",
+        totalAmount: "100000",
+      });
       clonedQb.getRawMany.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.resolve([
-            { supplierId: 's-1', count: '5', totalAmount: '50000' },
+            { supplierId: "s-1", count: "5", totalAmount: "50000" },
           ]);
         }
         return Promise.resolve([
-          { productId: 'p-1', count: '3', totalAmount: '30000' },
+          { productId: "p-1", count: "3", totalAmount: "30000" },
         ]);
       });
 
@@ -496,9 +544,9 @@ describe('PurchaseHistoryService', () => {
       const result = await service.getStats(orgId);
 
       expect(result.bySupplier).toHaveLength(1);
-      expect(result.bySupplier[0].supplierId).toBe('s-1');
+      expect(result.bySupplier[0].supplierId).toBe("s-1");
       expect(result.byProduct).toHaveLength(1);
-      expect(result.byProduct[0].productId).toBe('p-1');
+      expect(result.byProduct[0].productId).toBe("p-1");
     });
   });
 });

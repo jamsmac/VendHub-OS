@@ -8,9 +8,9 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, IsNull, LessThan, MoreThan } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In, IsNull, LessThan, MoreThan } from "typeorm";
 // BullMQ is optional - queue functionality can be disabled
 // import { InjectQueue } from '@nestjs/bullmq';
 // import { Queue } from 'bullmq';
@@ -26,9 +26,9 @@ import {
   NotificationStatus,
   NotificationPriority,
   NotificationType,
-} from './entities/notification.entity';
-import { PushSubscription } from './entities/push-subscription.entity';
-import { FcmToken, DeviceType } from './entities/fcm-token.entity';
+} from "./entities/notification.entity";
+import { PushSubscription } from "./entities/push-subscription.entity";
+import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 
 // ============================================================================
 // DTOs
@@ -43,7 +43,7 @@ export interface CreateNotificationDto {
   body: string;
   titleUz?: string;
   bodyUz?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   imageUrl?: string;
   actionUrl?: string;
   channels: NotificationChannel[];
@@ -59,11 +59,11 @@ export interface SendTemplatedNotificationDto {
   recipientEmail?: string;
   recipientPhone?: string;
   recipientTelegramId?: string;
-  variables: Record<string, any>;
+  variables: Record<string, unknown>;
   channels?: NotificationChannel[];
   priority?: NotificationPriority;
   scheduledFor?: Date;
-  language?: 'ru' | 'uz';
+  language?: "ru" | "uz";
 }
 
 export interface CreateCampaignDto {
@@ -73,11 +73,11 @@ export interface CreateCampaignDto {
   templateId?: string;
   title: string;
   body: string;
-  data?: Record<string, any>;
-  targetType: 'all' | 'role' | 'custom' | 'filter';
+  data?: Record<string, unknown>;
+  targetType: "all" | "role" | "custom" | "filter";
   targetRoles?: string[];
   targetUserIds?: string[];
-  targetFilter?: Record<string, any>;
+  targetFilter?: Record<string, unknown>;
   channels: NotificationChannel[];
   scheduledFor?: Date;
 }
@@ -134,7 +134,9 @@ export class NotificationsService {
       userId: dto.userId,
       type: dto.type,
       priority: dto.priority || NotificationPriority.NORMAL,
-      status: dto.scheduledFor ? NotificationStatus.PENDING : NotificationStatus.QUEUED,
+      status: dto.scheduledFor
+        ? NotificationStatus.PENDING
+        : NotificationStatus.QUEUED,
       content: {
         title: dto.title,
         body: dto.body,
@@ -181,46 +183,48 @@ export class NotificationsService {
       limit = 20,
     } = query;
 
-    const qb = this.notificationRepo.createQueryBuilder('n');
+    const qb = this.notificationRepo.createQueryBuilder("n");
 
     if (userId) {
-      qb.andWhere('n.userId = :userId', { userId });
+      qb.andWhere("n.userId = :userId", { userId });
     }
 
     if (organizationId) {
-      qb.andWhere('n.organizationId = :organizationId', { organizationId });
+      qb.andWhere("n.organizationId = :organizationId", { organizationId });
     }
 
     if (type?.length) {
-      qb.andWhere('n.type IN (:...type)', { type });
+      qb.andWhere("n.type IN (:...type)", { type });
     }
 
     if (status?.length) {
-      qb.andWhere('n.status IN (:...status)', { status });
+      qb.andWhere("n.status IN (:...status)", { status });
     }
 
     if (isRead !== undefined) {
       if (isRead) {
-        qb.andWhere('n.readAt IS NOT NULL');
+        qb.andWhere("n.readAt IS NOT NULL");
       } else {
-        qb.andWhere('n.readAt IS NULL');
+        qb.andWhere("n.readAt IS NULL");
       }
     }
 
     if (dateFrom) {
-      qb.andWhere('n.createdAt >= :dateFrom', { dateFrom });
+      qb.andWhere("n.createdAt >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('n.createdAt <= :dateTo', { dateTo });
+      qb.andWhere("n.createdAt <= :dateTo", { dateTo });
     }
 
     // Exclude expired
-    qb.andWhere('(n.expiresAt IS NULL OR n.expiresAt > :now)', { now: new Date() });
+    qb.andWhere("(n.expiresAt IS NULL OR n.expiresAt > :now)", {
+      now: new Date(),
+    });
 
     const total = await qb.getCount();
 
-    qb.orderBy('n.createdAt', 'DESC');
+    qb.orderBy("n.createdAt", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -262,7 +266,7 @@ export class NotificationsService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.notificationRepo.delete(id);
+    await this.notificationRepo.softDelete(id);
   }
 
   // ============================================================================
@@ -284,24 +288,24 @@ export class NotificationsService {
   ) {
     const { page = 1, limit = 20, userId, type, status } = options || {};
 
-    const qb = this.notificationRepo.createQueryBuilder('n');
-    qb.where('n.organizationId = :organizationId', { organizationId });
+    const qb = this.notificationRepo.createQueryBuilder("n");
+    qb.where("n.organizationId = :organizationId", { organizationId });
 
     if (userId) {
-      qb.andWhere('n.userId = :userId', { userId });
+      qb.andWhere("n.userId = :userId", { userId });
     }
 
     if (type) {
-      qb.andWhere('n.type = :type', { type });
+      qb.andWhere("n.type = :type", { type });
     }
 
     if (status) {
-      qb.andWhere('n.status = :status', { status });
+      qb.andWhere("n.status = :status", { status });
     }
 
     const total = await qb.getCount();
 
-    qb.orderBy('n.createdAt', 'DESC');
+    qb.orderBy("n.createdAt", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -326,7 +330,7 @@ export class NotificationsService {
       body: string;
       status: NotificationStatus;
       priority: NotificationPriority;
-      data: Record<string, any>;
+      data: Record<string, unknown>;
       scheduledFor: Date;
       expiresAt: Date;
     }>,
@@ -342,7 +346,8 @@ export class NotificationsService {
     }
     if (data.status) notification.status = data.status;
     if (data.priority) notification.priority = data.priority;
-    if (data.data) notification.metadata = { ...notification.metadata, ...data.data };
+    if (data.data)
+      notification.metadata = { ...notification.metadata, ...data.data };
     if (data.scheduledFor) notification.scheduledAt = data.scheduledFor;
     if (data.expiresAt) notification.expiresAt = data.expiresAt;
 
@@ -355,16 +360,20 @@ export class NotificationsService {
   async cancel(id: string): Promise<Notification> {
     const notification = await this.findById(id);
 
-    if (notification.status !== NotificationStatus.PENDING &&
-        notification.status !== NotificationStatus.QUEUED) {
-      throw new BadRequestException('Можно отменить только ожидающие уведомления');
+    if (
+      notification.status !== NotificationStatus.PENDING &&
+      notification.status !== NotificationStatus.QUEUED
+    ) {
+      throw new BadRequestException(
+        "Можно отменить только ожидающие уведомления",
+      );
     }
 
     notification.status = NotificationStatus.CANCELLED;
     notification.updated_at = new Date();
 
     // Удалить из очереди
-    await this.queueRepo.delete({ notificationId: id });
+    await this.queueRepo.softDelete({ notificationId: id });
 
     return this.notificationRepo.save(notification);
   }
@@ -381,8 +390,8 @@ export class NotificationsService {
       userId: notification.userId,
       type: notification.type,
       priority: notification.priority,
-      title: notification.content?.title || '',
-      body: notification.content?.body || '',
+      title: notification.content?.title || "",
+      body: notification.content?.body || "",
       titleUz: notification.content?.titleUz,
       bodyUz: notification.content?.bodyUz,
       data: notification.metadata,
@@ -396,49 +405,61 @@ export class NotificationsService {
    * Получить статистику уведомлений
    */
   async getStats(organizationId: string, dateFrom?: Date, dateTo?: Date) {
-    const qb = this.notificationRepo.createQueryBuilder('n');
-    qb.where('n.organizationId = :organizationId', { organizationId });
+    const qb = this.notificationRepo.createQueryBuilder("n");
+    qb.where("n.organizationId = :organizationId", { organizationId });
 
     if (dateFrom) {
-      qb.andWhere('n.createdAt >= :dateFrom', { dateFrom });
+      qb.andWhere("n.createdAt >= :dateFrom", { dateFrom });
     }
     if (dateTo) {
-      qb.andWhere('n.createdAt <= :dateTo', { dateTo });
+      qb.andWhere("n.createdAt <= :dateTo", { dateTo });
     }
 
     const total = await qb.getCount();
 
     const byStatus = await this.notificationRepo
-      .createQueryBuilder('n')
-      .select('n.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('n.organizationId = :organizationId', { organizationId })
-      .groupBy('n.status')
+      .createQueryBuilder("n")
+      .select("n.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("n.organizationId = :organizationId", { organizationId })
+      .groupBy("n.status")
       .getRawMany();
 
     const byType = await this.notificationRepo
-      .createQueryBuilder('n')
-      .select('n.type', 'type')
-      .addSelect('COUNT(*)', 'count')
-      .where('n.organizationId = :organizationId', { organizationId })
-      .groupBy('n.type')
+      .createQueryBuilder("n")
+      .select("n.type", "type")
+      .addSelect("COUNT(*)", "count")
+      .where("n.organizationId = :organizationId", { organizationId })
+      .groupBy("n.type")
       .getRawMany();
 
     const byChannel = await this.logRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.notification', 'n')
-      .select('l.channel', 'channel')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('SUM(CASE WHEN l.status = \'delivered\' THEN 1 ELSE 0 END)', 'delivered')
-      .addSelect('SUM(CASE WHEN l.status = \'failed\' THEN 1 ELSE 0 END)', 'failed')
-      .where('n.organizationId = :organizationId', { organizationId })
-      .groupBy('l.channel')
+      .createQueryBuilder("l")
+      .innerJoin("l.notification", "n")
+      .select("l.channel", "channel")
+      .addSelect("COUNT(*)", "count")
+      .addSelect(
+        "SUM(CASE WHEN l.status = 'delivered' THEN 1 ELSE 0 END)",
+        "delivered",
+      )
+      .addSelect(
+        "SUM(CASE WHEN l.status = 'failed' THEN 1 ELSE 0 END)",
+        "failed",
+      )
+      .where("n.organizationId = :organizationId", { organizationId })
+      .groupBy("l.channel")
       .getRawMany();
 
     return {
       total,
-      byStatus: byStatus.reduce((acc, row) => ({ ...acc, [row.status]: parseInt(row.count) }), {}),
-      byType: byType.reduce((acc, row) => ({ ...acc, [row.type]: parseInt(row.count) }), {}),
+      byStatus: byStatus.reduce(
+        (acc, row) => ({ ...acc, [row.status]: parseInt(row.count) }),
+        {},
+      ),
+      byType: byType.reduce(
+        (acc, row) => ({ ...acc, [row.type]: parseInt(row.count) }),
+        {},
+      ),
       byChannel,
     };
   }
@@ -447,7 +468,7 @@ export class NotificationsService {
    * Массовое удаление уведомлений
    */
   async bulkDelete(ids: string[]): Promise<number> {
-    const result = await this.notificationRepo.delete({ id: In(ids) });
+    const result = await this.notificationRepo.softDelete({ id: In(ids) });
     return result.affected || 0;
   }
 
@@ -466,7 +487,7 @@ export class NotificationsService {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - olderThanDays);
 
-    const result = await this.notificationRepo.delete({
+    const result = await this.notificationRepo.softDelete({
       created_at: LessThan(cutoff),
       status: In([NotificationStatus.READ, NotificationStatus.DELIVERED]),
     });
@@ -478,7 +499,9 @@ export class NotificationsService {
   // TEMPLATED NOTIFICATIONS
   // ============================================================================
 
-  async sendTemplated(dto: SendTemplatedNotificationDto): Promise<Notification> {
+  async sendTemplated(
+    dto: SendTemplatedNotificationDto,
+  ): Promise<Notification> {
     const template = await this.templateRepo.findOne({
       where: { code: dto.templateCode, isActive: true },
     });
@@ -500,25 +523,33 @@ export class NotificationsService {
     const filteredChannels = userSettings
       ? channels.filter((ch) => {
           // Check channel-specific settings
-          if (ch === NotificationChannel.PUSH && !userSettings.pushEnabled) return false;
-          if (ch === NotificationChannel.EMAIL && !userSettings.emailEnabled) return false;
-          if (ch === NotificationChannel.SMS && !userSettings.smsEnabled) return false;
-          if (ch === NotificationChannel.TELEGRAM && !userSettings.telegramEnabled) return false;
-          if (ch === NotificationChannel.IN_APP && !userSettings.inAppEnabled) return false;
+          if (ch === NotificationChannel.PUSH && !userSettings.pushEnabled)
+            return false;
+          if (ch === NotificationChannel.EMAIL && !userSettings.emailEnabled)
+            return false;
+          if (ch === NotificationChannel.SMS && !userSettings.smsEnabled)
+            return false;
+          if (
+            ch === NotificationChannel.TELEGRAM &&
+            !userSettings.telegramEnabled
+          )
+            return false;
+          if (ch === NotificationChannel.IN_APP && !userSettings.inAppEnabled)
+            return false;
           return true;
         })
       : channels;
 
     // Determine language
-    const language = dto.language || userSettings?.language || 'ru';
+    const language = dto.language || userSettings?.language || "ru";
 
     // Interpolate template
     const title = this.interpolate(
-      language === 'uz' ? template.titleUz : template.titleRu,
+      language === "uz" ? template.titleUz : template.titleRu,
       dto.variables,
     );
     const body = this.interpolate(
-      language === 'uz' ? template.bodyUz : template.bodyRu,
+      language === "uz" ? template.bodyUz : template.bodyRu,
       dto.variables,
     );
 
@@ -535,7 +566,10 @@ export class NotificationsService {
     });
   }
 
-  private interpolate(template: string, variables: Record<string, any>): string {
+  private interpolate(
+    template: string,
+    variables: Record<string, unknown>,
+  ): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return variables[key] !== undefined ? String(variables[key]) : match;
     });
@@ -563,7 +597,7 @@ export class NotificationsService {
         userId,
         organizationId,
         enabled: true,
-        language: 'ru',
+        language: "ru",
         typeSettings: {},
         ...updates,
       });
@@ -582,7 +616,7 @@ export class NotificationsService {
         { organizationId, isActive: true },
         { isSystem: true, isActive: true },
       ],
-      order: { type: 'ASC', name: 'ASC' },
+      order: { type: "ASC", name: "ASC" },
     });
   }
 
@@ -594,7 +628,9 @@ export class NotificationsService {
     return template;
   }
 
-  async createTemplate(data: Partial<NotificationTemplate>): Promise<NotificationTemplate> {
+  async createTemplate(
+    data: Partial<NotificationTemplate>,
+  ): Promise<NotificationTemplate> {
     const template = this.templateRepo.create({
       ...data,
       isActive: true,
@@ -603,7 +639,10 @@ export class NotificationsService {
     return this.templateRepo.save(template) as Promise<NotificationTemplate>;
   }
 
-  async updateTemplate(id: string, data: Partial<NotificationTemplate>): Promise<NotificationTemplate> {
+  async updateTemplate(
+    id: string,
+    data: Partial<NotificationTemplate>,
+  ): Promise<NotificationTemplate> {
     const template = await this.getTemplate(id);
     Object.assign(template, data);
     template.updated_at = new Date();
@@ -628,12 +667,17 @@ export class NotificationsService {
         body: dto.body,
       },
       channels: dto.channels,
-      audienceType: dto.targetType === 'custom' ? 'users' : dto.targetType === 'role' ? 'roles' : dto.targetType,
+      audienceType:
+        dto.targetType === "custom"
+          ? "users"
+          : dto.targetType === "role"
+            ? "roles"
+            : dto.targetType,
       roles: dto.targetRoles,
       userIds: dto.targetUserIds || [],
       filter: dto.targetFilter ? { conditions: [] } : undefined,
       scheduledAt: dto.scheduledFor,
-      status: dto.scheduledFor ? 'scheduled' : 'draft',
+      status: dto.scheduledFor ? "scheduled" : "draft",
       estimatedRecipients: totalRecipients,
       totalSent: 0,
       totalDelivered: 0,
@@ -650,11 +694,11 @@ export class NotificationsService {
       throw new NotFoundException(`Кампания ${id} не найдена`);
     }
 
-    if (campaign.status !== 'draft' && campaign.status !== 'scheduled') {
-      throw new BadRequestException('Кампания уже запущена');
+    if (campaign.status !== "draft" && campaign.status !== "scheduled") {
+      throw new BadRequestException("Кампания уже запущена");
     }
 
-    campaign.status = 'in_progress';
+    campaign.status = "in_progress";
     campaign.startedAt = new Date();
     await this.campaignRepo.save(campaign);
 
@@ -667,11 +711,13 @@ export class NotificationsService {
   async getCampaigns(organizationId: string): Promise<NotificationCampaign[]> {
     return this.campaignRepo.find({
       where: { organizationId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
-  private async calculateCampaignRecipients(dto: CreateCampaignDto): Promise<number> {
+  private async calculateCampaignRecipients(
+    dto: CreateCampaignDto,
+  ): Promise<number> {
     // This would query users based on targeting criteria
     // Simplified for now
     if (dto.targetUserIds?.length) {
@@ -695,8 +741,8 @@ export class NotificationsService {
         userId: notification.userId,
         recipient: {},
         content: {
-          title: notification.content?.title || '',
-          body: notification.content?.body || '',
+          title: notification.content?.title || "",
+          body: notification.content?.body || "",
         },
       });
 
@@ -727,7 +773,7 @@ export class NotificationsService {
         status: NotificationStatus.QUEUED,
         scheduledAt: LessThan(new Date()),
       },
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
       take: 100,
     });
 
@@ -736,6 +782,7 @@ export class NotificationsService {
         await this.sendToChannel(entry);
         entry.status = NotificationStatus.SENT;
         entry.processedAt = new Date();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         entry.status = NotificationStatus.FAILED;
         entry.lastError = error.message;
@@ -819,7 +866,7 @@ export class NotificationsService {
   async triggerByEvent(
     organizationId: string,
     eventType: NotificationType,
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): Promise<void> {
     const rules = await this.ruleRepo.find({
       where: {
@@ -844,7 +891,9 @@ export class NotificationsService {
           where: {
             organizationId,
             type: eventType,
-            created_at: MoreThan(new Date(Date.now() - rule.cooldownMinutes * 60000)),
+            created_at: MoreThan(
+              new Date(Date.now() - rule.cooldownMinutes * 60000),
+            ),
           },
         });
         if (recent > 0) continue;
@@ -865,32 +914,35 @@ export class NotificationsService {
     }
   }
 
-  private checkRuleConditions(rule: NotificationRule, data: Record<string, any>): boolean {
+  private checkRuleConditions(
+    rule: NotificationRule,
+    data: Record<string, unknown>,
+  ): boolean {
     if (!rule.conditions?.length) return true;
 
     for (const condition of rule.conditions) {
       const value = data[condition.field];
 
       switch (condition.operator) {
-        case 'equals':
+        case "equals":
           if (value !== condition.value) return false;
           break;
-        case 'not_equals':
+        case "not_equals":
           if (value === condition.value) return false;
           break;
-        case 'greater_than':
+        case "greater_than":
           if (value <= condition.value) return false;
           break;
-        case 'less_than':
+        case "less_than":
           if (value >= condition.value) return false;
           break;
-        case 'in':
+        case "in":
           if (!condition.value.includes(value)) return false;
           break;
-        case 'not_in':
+        case "not_in":
           if (condition.value.includes(value)) return false;
           break;
-        case 'contains':
+        case "contains":
           if (!String(value).includes(condition.value)) return false;
           break;
       }
@@ -899,15 +951,21 @@ export class NotificationsService {
     return true;
   }
 
-  private resolveRecipient(rule: NotificationRule, data: Record<string, any>): string | undefined {
-    if (rule.recipientType === 'specific_users' && rule.specificUserIds?.length) {
+  private resolveRecipient(
+    rule: NotificationRule,
+    data: Record<string, unknown>,
+  ): string | undefined {
+    if (
+      rule.recipientType === "specific_users" &&
+      rule.specificUserIds?.length
+    ) {
       return rule.specificUserIds[0];
     }
     // For assignee or manager types, try to get from data
-    if (rule.recipientType === 'assignee' && data.assigneeId) {
+    if (rule.recipientType === "assignee" && data.assigneeId) {
       return data.assigneeId;
     }
-    if (rule.recipientType === 'manager' && data.managerId) {
+    if (rule.recipientType === "manager" && data.managerId) {
       return data.managerId;
     }
     return undefined;
@@ -967,7 +1025,7 @@ export class NotificationsService {
     });
 
     if (!subscription) {
-      throw new NotFoundException('Push subscription not found');
+      throw new NotFoundException("Push subscription not found");
     }
 
     // Soft deactivate rather than hard delete
@@ -1029,7 +1087,7 @@ export class NotificationsService {
     });
 
     if (!fcmToken) {
-      throw new NotFoundException('FCM token not found');
+      throw new NotFoundException("FCM token not found");
     }
 
     // Soft deactivate rather than hard delete

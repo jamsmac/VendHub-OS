@@ -1,14 +1,16 @@
-import { useEffect, useRef, MutableRefObject } from 'react';
-import { Wrapper, Status } from '@googlemaps/react-wrapper';
+import { useEffect, useRef, MutableRefObject } from "react";
+import { Wrapper, Status } from "@googlemaps/react-wrapper";
 
 interface GoogleMapProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   machines: any[];
   userLocation: { latitude: number; longitude: number } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onMachineClick?: (machine: any) => void;
   mapRef?: MutableRefObject<google.maps.Map | null>;
 }
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
 // Tashkent center as default
 const DEFAULT_CENTER = { lat: 41.2995, lng: 69.2401 };
@@ -40,9 +42,9 @@ function MapComponent({
       fullscreenControl: false,
       styles: [
         {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }],
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }],
         },
       ],
     });
@@ -77,13 +79,13 @@ function MapComponent({
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 8,
-          fillColor: '#4285F4',
+          fillColor: "#4285F4",
           fillOpacity: 1,
-          strokeColor: '#ffffff',
+          strokeColor: "#ffffff",
           strokeWeight: 2,
         },
         zIndex: 1000,
-        title: 'Вы здесь',
+        title: "Вы здесь",
       });
     }
   }, [userLocation]);
@@ -107,10 +109,14 @@ function MapComponent({
           url: `data:image/svg+xml,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
               <circle cx="20" cy="20" r="18" fill="${
-                machine.status === 'active' ? '#43302b' : '#9ca3af'
+                machine.status === "active" ? "#43302b" : "#9ca3af"
               }" stroke="white" stroke-width="3"/>
               <text x="20" y="26" text-anchor="middle" font-size="16">${
-                machine.type === 'coffee' ? '☕' : machine.type === 'snack' ? '🍫' : '🥤'
+                machine.type === "coffee"
+                  ? "☕"
+                  : machine.type === "snack"
+                    ? "🍫"
+                    : "🥤"
               }</text>
             </svg>
           `)}`,
@@ -118,10 +124,10 @@ function MapComponent({
           anchor: new google.maps.Point(20, 20),
         },
         title: machine.name,
-        zIndex: machine.status === 'active' ? 100 : 50,
+        zIndex: machine.status === "active" ? 100 : 50,
       });
 
-      marker.addListener('click', () => {
+      marker.addListener("click", () => {
         onMachineClick?.(machine);
       });
 
@@ -129,9 +135,7 @@ function MapComponent({
     });
   }, [machines, onMachineClick]);
 
-  return (
-    <div ref={containerRef} className="w-full h-full" />
-  );
+  return <div ref={containerRef} className="w-full h-full" />;
 }
 
 function LoadingRender() {

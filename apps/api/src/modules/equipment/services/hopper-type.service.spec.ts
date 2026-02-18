@@ -1,12 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
-import { HopperTypeService } from './hopper-type.service';
-import { HopperType } from '../entities/equipment-component.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
+import { NotFoundException } from "@nestjs/common";
+import { HopperTypeService } from "./hopper-type.service";
+import { HopperType } from "../entities/equipment-component.entity";
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -29,17 +33,17 @@ const createMockQueryBuilder = () => ({
   getOne: jest.fn(),
 });
 
-describe('HopperTypeService', () => {
+describe("HopperTypeService", () => {
   let service: HopperTypeService;
   let repo: MockRepository<HopperType>;
 
-  const orgId = 'org-uuid-1';
-  const userId = 'user-uuid-1';
+  const orgId = "org-uuid-1";
+  const userId = "user-uuid-1";
 
   const mockHopperType: Partial<HopperType> = {
-    id: 'ht-uuid-1',
+    id: "ht-uuid-1",
     organizationId: orgId,
-    name: 'Standard Hopper',
+    name: "Standard Hopper",
     isActive: true,
     created_at: new Date(),
   };
@@ -57,20 +61,21 @@ describe('HopperTypeService', () => {
     service = module.get<HopperTypeService>(HopperTypeService);
   });
 
-  describe('create', () => {
-    it('should create a hopper type successfully', async () => {
-      const dto = { name: 'Large Hopper', capacity: 500 };
-      const created = { id: 'ht-new', ...dto, organizationId: orgId };
+  describe("create", () => {
+    it("should create a hopper type successfully", async () => {
+      const dto = { name: "Large Hopper", capacity: 500 };
+      const created = { id: "ht-new", ...dto, organizationId: orgId };
       repo.create!.mockReturnValue(created);
       repo.save!.mockResolvedValue(created);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.create(orgId, userId, dto as any);
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
           created_by_id: userId,
-          name: 'Large Hopper',
+          name: "Large Hopper",
         }),
       );
       expect(repo.save).toHaveBeenCalledWith(created);
@@ -78,8 +83,8 @@ describe('HopperTypeService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return paginated list with defaults', async () => {
+  describe("findAll", () => {
+    it("should return paginated list with defaults", async () => {
       const qb = createMockQueryBuilder();
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[mockHopperType], 1]);
@@ -87,119 +92,129 @@ describe('HopperTypeService', () => {
       const result = await service.findAll(orgId, {});
 
       expect(qb.where).toHaveBeenCalledWith(
-        'h.organizationId = :organizationId',
+        "h.organizationId = :organizationId",
         { organizationId: orgId },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith('h.deleted_at IS NULL');
-      expect(qb.andWhere).toHaveBeenCalledWith('h.isActive = true');
+      expect(qb.andWhere).toHaveBeenCalledWith("h.deleted_at IS NULL");
+      expect(qb.andWhere).toHaveBeenCalledWith("h.isActive = true");
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(20);
     });
 
-    it('should not filter by active when activeOnly is false', async () => {
+    it("should not filter by active when activeOnly is false", async () => {
       const qb = createMockQueryBuilder();
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAll(orgId, { activeOnly: false } as any);
 
       const activeCalls = qb.andWhere.mock.calls.filter(
-        (c: string[]) => c[0] === 'h.isActive = true',
+        (c: string[]) => c[0] === "h.isActive = true",
       );
       expect(activeCalls).toHaveLength(0);
     });
 
-    it('should apply search filter', async () => {
+    it("should apply search filter", async () => {
       const qb = createMockQueryBuilder();
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await service.findAll(orgId, { search: 'standard' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll(orgId, { search: "standard" } as any);
 
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'h.name ILIKE :search',
-        { search: '%standard%' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith("h.name ILIKE :search", {
+        search: "%standard%",
+      });
     });
 
-    it('should apply custom pagination', async () => {
+    it("should apply custom pagination", async () => {
       const qb = createMockQueryBuilder();
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAll(orgId, { page: 2, limit: 5 } as any);
 
       expect(qb.skip).toHaveBeenCalledWith(5);
       expect(qb.take).toHaveBeenCalledWith(5);
     });
 
-    it('should order by name ascending', async () => {
+    it("should order by name ascending", async () => {
       const qb = createMockQueryBuilder();
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
       await service.findAll(orgId, {});
 
-      expect(qb.orderBy).toHaveBeenCalledWith('h.name', 'ASC');
+      expect(qb.orderBy).toHaveBeenCalledWith("h.name", "ASC");
     });
   });
 
-  describe('findOne', () => {
-    it('should return hopper type when found', async () => {
+  describe("findOne", () => {
+    it("should return hopper type when found", async () => {
       repo.findOne!.mockResolvedValue(mockHopperType);
 
-      const result = await service.findOne(orgId, 'ht-uuid-1');
+      const result = await service.findOne(orgId, "ht-uuid-1");
 
       expect(result).toEqual(mockHopperType);
       expect(repo.findOne).toHaveBeenCalledWith({
-        where: { id: 'ht-uuid-1', organizationId: orgId },
+        where: { id: "ht-uuid-1", organizationId: orgId },
       });
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it("should throw NotFoundException when not found", async () => {
       repo.findOne!.mockResolvedValue(null);
 
-      await expect(service.findOne(orgId, 'missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(orgId, "missing")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
-  describe('update', () => {
-    it('should update hopper type fields', async () => {
+  describe("update", () => {
+    it("should update hopper type fields", async () => {
       const existing = { ...mockHopperType };
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      const result = await service.update(orgId, 'ht-uuid-1', { name: 'Big Hopper' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update(orgId, "ht-uuid-1", {
+        name: "Big Hopper",
+      } as any);
 
-      expect(result.name).toBe('Big Hopper');
+      expect(result.name).toBe("Big Hopper");
       expect(repo.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException for non-existent hopper type', async () => {
+    it("should throw NotFoundException for non-existent hopper type", async () => {
       repo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.update(orgId, 'missing', { name: 'X' } as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.update(orgId, "missing", { name: "X" } as any),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('delete', () => {
-    it('should soft-delete the hopper type', async () => {
+  describe("delete", () => {
+    it("should soft-delete the hopper type", async () => {
       repo.findOne!.mockResolvedValue(mockHopperType);
       repo.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.delete(orgId, 'ht-uuid-1');
+      await service.delete(orgId, "ht-uuid-1");
 
-      expect(repo.softDelete).toHaveBeenCalledWith('ht-uuid-1');
+      expect(repo.softDelete).toHaveBeenCalledWith("ht-uuid-1");
     });
 
-    it('should throw NotFoundException for non-existent hopper type', async () => {
+    it("should throw NotFoundException for non-existent hopper type", async () => {
       repo.findOne!.mockResolvedValue(null);
 
-      await expect(service.delete(orgId, 'missing')).rejects.toThrow(NotFoundException);
+      await expect(service.delete(orgId, "missing")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

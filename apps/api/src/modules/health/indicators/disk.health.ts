@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
   HealthIndicator,
   HealthIndicatorResult,
   HealthCheckError,
-} from '@nestjs/terminus';
-import * as fs from 'fs';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+} from "@nestjs/terminus";
+import * as fs from "fs";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
@@ -49,6 +49,7 @@ export class DiskHealthIndicator extends HealthIndicator {
         `Disk usage exceeded threshold: ${usedPercent.toFixed(2)}% > ${(thresholdPercent * 100).toFixed(0)}%`,
         this.getStatus(key, false, details),
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error instanceof HealthCheckError) {
         throw error;
@@ -61,9 +62,7 @@ export class DiskHealthIndicator extends HealthIndicator {
     }
   }
 
-  private async getDiskInfo(
-    path: string,
-  ): Promise<{
+  private async getDiskInfo(path: string): Promise<{
     total: number;
     used: number;
     available: number;
@@ -91,6 +90,7 @@ export class DiskHealthIndicator extends HealthIndicator {
         const usedPercent = (used / total) * 100;
 
         return { total, used, available, usedPercent };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (statError: any) {
         throw new Error(`Cannot determine disk usage: ${statError.message}`);
       }
@@ -98,7 +98,7 @@ export class DiskHealthIndicator extends HealthIndicator {
   }
 
   private formatBytes(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const units = ["B", "KB", "MB", "GB", "TB"];
     let unitIndex = 0;
     let value = bytes;
 

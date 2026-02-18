@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Wrench,
   Plus,
@@ -18,17 +18,17 @@ import {
   Coffee,
   Play,
   FileCheck,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -36,25 +36,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface MaintenanceRequest {
   id: string;
@@ -65,9 +65,18 @@ interface MaintenanceRequest {
     serialNumber: string;
     address: string;
   };
-  type: 'preventive' | 'corrective' | 'emergency' | 'inspection';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  status: 'draft' | 'submitted' | 'approved' | 'scheduled' | 'in_progress' | 'completed' | 'verified' | 'rejected' | 'cancelled';
+  type: "preventive" | "corrective" | "emergency" | "inspection";
+  priority: "low" | "medium" | "high" | "critical";
+  status:
+    | "draft"
+    | "submitted"
+    | "approved"
+    | "scheduled"
+    | "in_progress"
+    | "completed"
+    | "verified"
+    | "rejected"
+    | "cancelled";
   title: string;
   description: string;
   assignedTo?: {
@@ -82,64 +91,64 @@ interface MaintenanceRequest {
 }
 
 const typeLabels: Record<string, string> = {
-  preventive: 'Профилактика',
-  corrective: 'Ремонт',
-  emergency: 'Аварийный',
-  inspection: 'Осмотр',
+  preventive: "Профилактика",
+  corrective: "Ремонт",
+  emergency: "Аварийный",
+  inspection: "Осмотр",
 };
 
 const typeColors: Record<string, string> = {
-  preventive: 'bg-blue-500/10 text-blue-500',
-  corrective: 'bg-amber-500/10 text-amber-500',
-  emergency: 'bg-red-500/10 text-red-500',
-  inspection: 'bg-green-500/10 text-green-500',
+  preventive: "bg-blue-500/10 text-blue-500",
+  corrective: "bg-amber-500/10 text-amber-500",
+  emergency: "bg-red-500/10 text-red-500",
+  inspection: "bg-green-500/10 text-green-500",
 };
 
 const priorityLabels: Record<string, string> = {
-  low: 'Низкий',
-  medium: 'Средний',
-  high: 'Высокий',
-  critical: 'Критический',
+  low: "Низкий",
+  medium: "Средний",
+  high: "Высокий",
+  critical: "Критический",
 };
 
 const priorityColors: Record<string, string> = {
-  low: 'bg-muted text-muted-foreground',
-  medium: 'bg-blue-500/10 text-blue-500',
-  high: 'bg-amber-500/10 text-amber-500',
-  critical: 'bg-red-500/10 text-red-500',
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-blue-500/10 text-blue-500",
+  high: "bg-amber-500/10 text-amber-500",
+  critical: "bg-red-500/10 text-red-500",
 };
 
 const statusLabels: Record<string, string> = {
-  draft: 'Черновик',
-  submitted: 'Подана',
-  approved: 'Одобрена',
-  scheduled: 'Запланирована',
-  in_progress: 'В работе',
-  completed: 'Завершена',
-  verified: 'Проверена',
-  rejected: 'Отклонена',
-  cancelled: 'Отменена',
+  draft: "Черновик",
+  submitted: "Подана",
+  approved: "Одобрена",
+  scheduled: "Запланирована",
+  in_progress: "В работе",
+  completed: "Завершена",
+  verified: "Проверена",
+  rejected: "Отклонена",
+  cancelled: "Отменена",
 };
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-muted text-muted-foreground',
-  submitted: 'bg-blue-500/10 text-blue-500',
-  approved: 'bg-green-500/10 text-green-500',
-  scheduled: 'bg-purple-500/10 text-purple-500',
-  in_progress: 'bg-amber-500/10 text-amber-500',
-  completed: 'bg-emerald-500/10 text-emerald-500',
-  verified: 'bg-green-600/10 text-green-600',
-  rejected: 'bg-red-500/10 text-red-500',
-  cancelled: 'bg-muted text-muted-foreground',
+  draft: "bg-muted text-muted-foreground",
+  submitted: "bg-blue-500/10 text-blue-500",
+  approved: "bg-green-500/10 text-green-500",
+  scheduled: "bg-purple-500/10 text-purple-500",
+  in_progress: "bg-amber-500/10 text-amber-500",
+  completed: "bg-emerald-500/10 text-emerald-500",
+  verified: "bg-green-600/10 text-green-600",
+  rejected: "bg-red-500/10 text-red-500",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 export default function MaintenancePage() {
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -148,14 +157,24 @@ export default function MaintenancePage() {
   }, [search]);
 
   // Fetch maintenance requests
-  const { data: requests, isLoading, isError } = useQuery<MaintenanceRequest[]>({
-    queryKey: ['maintenance', debouncedSearch, statusFilter, typeFilter, priorityFilter],
+  const {
+    data: requests,
+    isLoading,
+    isError,
+  } = useQuery<MaintenanceRequest[]>({
+    queryKey: [
+      "maintenance",
+      debouncedSearch,
+      statusFilter,
+      typeFilter,
+      priorityFilter,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (typeFilter !== 'all') params.append('type', typeFilter);
-      if (priorityFilter !== 'all') params.append('priority', priorityFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (typeFilter !== "all") params.append("type", typeFilter);
+      if (priorityFilter !== "all") params.append("priority", priorityFilter);
       const res = await api.get(`/maintenance?${params}`);
       return res.data;
     },
@@ -167,28 +186,43 @@ export default function MaintenancePage() {
       return api.post(`/maintenance/${id}/${action}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['maintenance'] });
-      toast.success('Статус обновлён');
+      queryClient.invalidateQueries({ queryKey: ["maintenance"] });
+      toast.success("Статус обновлён");
     },
     onError: () => {
-      toast.error('Ошибка обновления статуса');
+      toast.error("Ошибка обновления статуса");
     },
   });
 
-  const stats = useMemo(() => ({
-    total: requests?.length || 0,
-    inProgress: requests?.filter((r) => r.status === 'in_progress').length || 0,
-    scheduled: requests?.filter((r) => r.status === 'scheduled').length || 0,
-    critical: requests?.filter((r) => r.priority === 'critical' && !['completed', 'verified', 'cancelled'].includes(r.status)).length || 0,
-  }), [requests]);
+  const stats = useMemo(
+    () => ({
+      total: requests?.length || 0,
+      inProgress:
+        requests?.filter((r) => r.status === "in_progress").length || 0,
+      scheduled: requests?.filter((r) => r.status === "scheduled").length || 0,
+      critical:
+        requests?.filter(
+          (r) =>
+            r.priority === "critical" &&
+            !["completed", "verified", "cancelled"].includes(r.status),
+        ).length || 0,
+    }),
+    [requests],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить заявки</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['maintenance'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить заявки
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["maintenance"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -219,7 +253,7 @@ export default function MaintenancePage() {
             <MaintenanceForm
               onSuccess={() => {
                 setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['maintenance'] });
+                queryClient.invalidateQueries({ queryKey: ["maintenance"] });
               }}
             />
           </DialogContent>
@@ -294,11 +328,14 @@ export default function MaintenancePage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
               Все статусы
             </DropdownMenuItem>
             {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setStatusFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -313,11 +350,14 @@ export default function MaintenancePage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setTypeFilter('all')}>
+            <DropdownMenuItem onClick={() => setTypeFilter("all")}>
               Все типы
             </DropdownMenuItem>
             {Object.entries(typeLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setTypeFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setTypeFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -332,11 +372,14 @@ export default function MaintenancePage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setPriorityFilter('all')}>
+            <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
               Все приоритеты
             </DropdownMenuItem>
             {Object.entries(priorityLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setPriorityFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setPriorityFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -404,7 +447,8 @@ export default function MaintenancePage() {
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-muted-foreground" />
                         <span>
-                          {request.assignedTo.firstName} {request.assignedTo.lastName}
+                          {request.assignedTo.firstName}{" "}
+                          {request.assignedTo.lastName}
                         </span>
                       </div>
                     ) : (
@@ -419,7 +463,11 @@ export default function MaintenancePage() {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Действия">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Действия"
+                        >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -429,49 +477,79 @@ export default function MaintenancePage() {
                           Редактировать
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {request.status === 'draft' && (
+                        {request.status === "draft" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'submit' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "submit",
+                              })
+                            }
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Подать заявку
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'submitted' && (
+                        {request.status === "submitted" && (
                           <>
                             <DropdownMenuItem
-                              onClick={() => transitionMutation.mutate({ id: request.id, action: 'approve' })}
+                              onClick={() =>
+                                transitionMutation.mutate({
+                                  id: request.id,
+                                  action: "approve",
+                                })
+                              }
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
                               Одобрить
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => transitionMutation.mutate({ id: request.id, action: 'reject' })}
+                              onClick={() =>
+                                transitionMutation.mutate({
+                                  id: request.id,
+                                  action: "reject",
+                                })
+                              }
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Отклонить
                             </DropdownMenuItem>
                           </>
                         )}
-                        {request.status === 'scheduled' && (
+                        {request.status === "scheduled" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'start' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "start",
+                              })
+                            }
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Начать работу
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'in_progress' && (
+                        {request.status === "in_progress" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'complete' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "complete",
+                              })
+                            }
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
                             Завершить
                           </DropdownMenuItem>
                         )}
-                        {request.status === 'completed' && (
+                        {request.status === "completed" && (
                           <DropdownMenuItem
-                            onClick={() => transitionMutation.mutate({ id: request.id, action: 'verify' })}
+                            onClick={() =>
+                              transitionMutation.mutate({
+                                id: request.id,
+                                action: "verify",
+                              })
+                            }
                           >
                             <FileCheck className="w-4 h-4 mr-2" />
                             Подтвердить
@@ -498,15 +576,21 @@ export default function MaintenancePage() {
 }
 
 // Maintenance Form Component
-function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest; onSuccess: () => void }) {
+function MaintenanceForm({
+  request,
+  onSuccess,
+}: {
+  request?: MaintenanceRequest;
+  onSuccess: () => void;
+}) {
   const [formData, setFormData] = useState({
-    machineId: request?.machineId || '',
-    type: request?.type || 'corrective',
-    priority: request?.priority || 'medium',
-    title: request?.title || '',
-    description: request?.description || '',
-    scheduledDate: request?.scheduledDate || '',
-    estimatedCost: request?.estimatedCost || '',
+    machineId: request?.machineId || "",
+    type: request?.type || "corrective",
+    priority: request?.priority || "medium",
+    title: request?.title || "",
+    description: request?.description || "",
+    scheduledDate: request?.scheduledDate || "",
+    estimatedCost: request?.estimatedCost || "",
   });
 
   const mutation = useMutation({
@@ -514,14 +598,14 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
       if (request) {
         return api.patch(`/maintenance/${request.id}`, data);
       }
-      return api.post('/maintenance', data);
+      return api.post("/maintenance", data);
     },
     onSuccess: () => {
-      toast.success(request ? 'Заявка обновлена' : 'Заявка создана');
+      toast.success(request ? "Заявка обновлена" : "Заявка создана");
       onSuccess();
     },
     onError: () => {
-      toast.error('Ошибка сохранения');
+      toast.error("Ошибка сохранения");
     },
   });
 
@@ -546,7 +630,10 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
           <label className="text-sm font-medium">Тип работ</label>
           <Select
             value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value as any })}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onValueChange={(value) =>
+              setFormData({ ...formData, type: value as any })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Выберите тип работ" />
@@ -564,7 +651,10 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
           <label className="text-sm font-medium">Приоритет</label>
           <Select
             value={formData.priority}
-            onValueChange={(value) => setFormData({ ...formData, priority: value as any })}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onValueChange={(value) =>
+              setFormData({ ...formData, priority: value as any })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Выберите приоритет" />
@@ -583,7 +673,9 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
         <label className="text-sm font-medium">Описание</label>
         <Textarea
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
           className="h-24 resize-none"
           placeholder="Подробное описание проблемы и необходимых работ"
           required
@@ -595,7 +687,9 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
           <Input
             type="date"
             value={formData.scheduledDate}
-            onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, scheduledDate: e.target.value })
+            }
           />
         </div>
         <div>
@@ -603,14 +697,20 @@ function MaintenanceForm({ request, onSuccess }: { request?: MaintenanceRequest;
           <Input
             type="number"
             value={formData.estimatedCost}
-            onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, estimatedCost: e.target.value })
+            }
             placeholder="0"
           />
         </div>
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Сохранение...' : request ? 'Обновить' : 'Создать'}
+          {mutation.isPending
+            ? "Сохранение..."
+            : request
+              ? "Обновить"
+              : "Создать"}
         </Button>
       </div>
     </form>

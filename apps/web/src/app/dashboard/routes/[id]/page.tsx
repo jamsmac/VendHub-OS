@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { use, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { use, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Route,
   ArrowLeft,
@@ -19,28 +19,28 @@ import {
   Clock,
   Coffee,
   AlertTriangle,
-} from 'lucide-react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { routesApi } from '@/lib/api';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/dialog";
+import { routesApi } from "@/lib/api";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-interface RouteDetail {
+interface _RouteDetail {
   id: string;
   name: string;
   description?: string;
-  status: 'draft' | 'active' | 'inactive';
+  status: "draft" | "active" | "inactive";
   totalDistanceKm?: number;
   estimatedDurationMinutes?: number;
   createdAt: string;
@@ -54,10 +54,25 @@ interface RouteStop {
   estimatedDurationMinutes?: number;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  draft: { label: 'Черновик', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  active: { label: 'Активен', color: 'text-green-600', bgColor: 'bg-green-100' },
-  inactive: { label: 'Неактивен', color: 'text-red-600', bgColor: 'bg-red-100' },
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  draft: {
+    label: "Черновик",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  active: {
+    label: "Активен",
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  inactive: {
+    label: "Неактивен",
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
 };
 
 function DetailSkeleton() {
@@ -106,116 +121,130 @@ function DetailSkeleton() {
   );
 }
 
-export default function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function RouteDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isAddStopOpen, setIsAddStopOpen] = useState(false);
-  const [newStopMachineId, setNewStopMachineId] = useState('');
+  const [newStopMachineId, setNewStopMachineId] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [confirmState, setConfirmState] = useState<{ title: string; action: () => void } | null>(null);
+  const [editName, setEditName] = useState("");
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    action: () => void;
+  } | null>(null);
 
-  const { data: route, isLoading, isError } = useQuery({
-    queryKey: ['routes', id],
+  const {
+    data: route,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["routes", id],
     queryFn: () => routesApi.getById(id).then((res) => res.data),
   });
 
   const { data: stops } = useQuery({
-    queryKey: ['routes', id, 'stops'],
+    queryKey: ["routes", id, "stops"],
     queryFn: () => routesApi.getStops(id).then((res) => res.data),
     enabled: !!route,
   });
 
   const updateMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => routesApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id] });
+      queryClient.invalidateQueries({ queryKey: ["routes", id] });
       setIsEditing(false);
-      toast.success('Маршрут обновлён');
+      toast.success("Маршрут обновлён");
     },
     onError: () => {
-      toast.error('Не удалось обновить маршрут');
+      toast.error("Не удалось обновить маршрут");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => routesApi.delete(id),
     onSuccess: () => {
-      toast.success('Маршрут удалён');
-      router.push('/dashboard/routes');
+      toast.success("Маршрут удалён");
+      router.push("/dashboard/routes");
     },
     onError: () => {
-      toast.error('Не удалось удалить маршрут');
+      toast.error("Не удалось удалить маршрут");
     },
   });
 
   const optimizeMutation = useMutation({
     mutationFn: () => routesApi.optimize(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id] });
-      queryClient.invalidateQueries({ queryKey: ['routes', id, 'stops'] });
-      toast.success('Маршрут оптимизирован');
+      queryClient.invalidateQueries({ queryKey: ["routes", id] });
+      queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
+      toast.success("Маршрут оптимизирован");
     },
     onError: () => {
-      toast.error('Не удалось оптимизировать маршрут');
+      toast.error("Не удалось оптимизировать маршрут");
     },
   });
 
   const startMutation = useMutation({
     mutationFn: () => routesApi.start(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id] });
-      toast.success('Маршрут активирован');
+      queryClient.invalidateQueries({ queryKey: ["routes", id] });
+      toast.success("Маршрут активирован");
     },
     onError: () => {
-      toast.error('Не удалось активировать маршрут');
+      toast.error("Не удалось активировать маршрут");
     },
   });
 
   const completeMutation = useMutation({
     mutationFn: () => routesApi.complete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id] });
-      toast.success('Маршрут завершён');
+      queryClient.invalidateQueries({ queryKey: ["routes", id] });
+      toast.success("Маршрут завершён");
     },
     onError: () => {
-      toast.error('Не удалось завершить маршрут');
+      toast.error("Не удалось завершить маршрут");
     },
   });
 
   const addStopMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => routesApi.addStop(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id, 'stops'] });
+      queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
       setIsAddStopOpen(false);
-      setNewStopMachineId('');
-      toast.success('Остановка добавлена');
+      setNewStopMachineId("");
+      toast.success("Остановка добавлена");
     },
     onError: () => {
-      toast.error('Не удалось добавить остановку');
+      toast.error("Не удалось добавить остановку");
     },
   });
 
   const removeStopMutation = useMutation({
     mutationFn: (stopId: string) => routesApi.removeStop(id, stopId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id, 'stops'] });
-      toast.success('Остановка удалена');
+      queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
+      toast.success("Остановка удалена");
     },
     onError: () => {
-      toast.error('Не удалось удалить остановку');
+      toast.error("Не удалось удалить остановку");
     },
   });
 
   const reorderMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => routesApi.reorderStops(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['routes', id, 'stops'] });
-      toast.success('Порядок обновлён');
+      queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
+      toast.success("Порядок обновлён");
     },
     onError: () => {
-      toast.error('Не удалось изменить порядок');
+      toast.error("Не удалось изменить порядок");
     },
   });
 
@@ -228,8 +257,14 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить маршрут</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['routes', id] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить маршрут
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["routes", id] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -254,11 +289,14 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
   const status = statusConfig[route.status] || statusConfig.draft;
   const stopList: RouteStop[] = Array.isArray(stops) ? stops : [];
 
-  const handleMoveStop = (stopIndex: number, direction: 'up' | 'down') => {
+  const handleMoveStop = (stopIndex: number, direction: "up" | "down") => {
     const newOrder = stopList.map((s: RouteStop) => s.id);
-    const swapIndex = direction === 'up' ? stopIndex - 1 : stopIndex + 1;
+    const swapIndex = direction === "up" ? stopIndex - 1 : stopIndex + 1;
     if (swapIndex < 0 || swapIndex >= newOrder.length) return;
-    [newOrder[stopIndex], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[stopIndex]];
+    [newOrder[stopIndex], newOrder[swapIndex]] = [
+      newOrder[swapIndex],
+      newOrder[stopIndex],
+    ];
     reorderMutation.mutate({ stopIds: newOrder });
   };
 
@@ -287,7 +325,7 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                     disabled={updateMutation.isPending}
                     onClick={() => updateMutation.mutate({ name: editName })}
                   >
-                    {updateMutation.isPending ? 'Сохранение...' : 'Сохранить'}
+                    {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
                   </Button>
                   <Button
                     size="sm"
@@ -313,7 +351,9 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                   </Button>
                 </>
               )}
-              <span className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+              >
                 {status.label}
               </span>
             </div>
@@ -323,24 +363,24 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
         <div className="flex gap-2">
-          {route.status === 'draft' && (
+          {route.status === "draft" && (
             <Button
               variant="outline"
               disabled={startMutation.isPending}
               onClick={() => startMutation.mutate()}
             >
               <Play className="h-4 w-4 mr-2" />
-              {startMutation.isPending ? 'Активация...' : 'Активировать'}
+              {startMutation.isPending ? "Активация..." : "Активировать"}
             </Button>
           )}
-          {route.status === 'active' && (
+          {route.status === "active" && (
             <Button
               variant="outline"
               disabled={completeMutation.isPending}
               onClick={() => completeMutation.mutate()}
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              {completeMutation.isPending ? 'Завершение...' : 'Завершить'}
+              {completeMutation.isPending ? "Завершение..." : "Завершить"}
             </Button>
           )}
           <Button
@@ -349,17 +389,20 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
             onClick={() => optimizeMutation.mutate()}
           >
             <Zap className="h-4 w-4 mr-2" />
-            {optimizeMutation.isPending ? 'Оптимизация...' : 'Оптимизировать'}
+            {optimizeMutation.isPending ? "Оптимизация..." : "Оптимизировать"}
           </Button>
           <Button
             variant="destructive"
             disabled={deleteMutation.isPending}
             onClick={() => {
-              setConfirmState({ title: 'Удалить маршрут?', action: () => deleteMutation.mutate() });
+              setConfirmState({
+                title: "Удалить маршрут?",
+                action: () => deleteMutation.mutate(),
+              });
             }}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            {deleteMutation.isPending ? 'Удаление...' : 'Удалить'}
+            {deleteMutation.isPending ? "Удаление..." : "Удалить"}
           </Button>
         </div>
       </div>
@@ -384,7 +427,9 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                 <Ruler className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Расстояние</p>
-                  <p className="text-xl font-bold">{route.totalDistanceKm.toFixed(1)} км</p>
+                  <p className="text-xl font-bold">
+                    {route.totalDistanceKm.toFixed(1)} км
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -398,7 +443,8 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                 <div>
                   <p className="text-sm text-muted-foreground">Время</p>
                   <p className="text-xl font-bold">
-                    {Math.floor(route.estimatedDurationMinutes / 60)}ч {route.estimatedDurationMinutes % 60}мин
+                    {Math.floor(route.estimatedDurationMinutes / 60)}ч{" "}
+                    {route.estimatedDurationMinutes % 60}мин
                   </p>
                 </div>
               </div>
@@ -443,7 +489,7 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                     }
                     disabled={!newStopMachineId || addStopMutation.isPending}
                   >
-                    {addStopMutation.isPending ? 'Добавление...' : 'Добавить'}
+                    {addStopMutation.isPending ? "Добавление..." : "Добавить"}
                   </Button>
                 </div>
               </DialogContent>
@@ -470,7 +516,8 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                     <div className="flex items-center gap-2">
                       <Coffee className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="font-medium truncate">
-                        {stop.machine?.name || `Остановка ${stop.sequenceNumber || index + 1}`}
+                        {stop.machine?.name ||
+                          `Остановка ${stop.sequenceNumber || index + 1}`}
                       </span>
                     </div>
                     {stop.machine?.address && (
@@ -490,7 +537,7 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                       size="sm"
                       aria-label="Переместить вверх"
                       disabled={index === 0 || reorderMutation.isPending}
-                      onClick={() => handleMoveStop(index, 'up')}
+                      onClick={() => handleMoveStop(index, "up")}
                     >
                       <ArrowUp className="h-4 w-4" />
                     </Button>
@@ -498,8 +545,11 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                       variant="ghost"
                       size="sm"
                       aria-label="Переместить вниз"
-                      disabled={index === stopList.length - 1 || reorderMutation.isPending}
-                      onClick={() => handleMoveStop(index, 'down')}
+                      disabled={
+                        index === stopList.length - 1 ||
+                        reorderMutation.isPending
+                      }
+                      onClick={() => handleMoveStop(index, "down")}
                     >
                       <ArrowDown className="h-4 w-4" />
                     </Button>
@@ -510,7 +560,10 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
                       className="text-destructive hover:text-destructive"
                       disabled={removeStopMutation.isPending}
                       onClick={() => {
-                        setConfirmState({ title: 'Удалить остановку?', action: () => removeStopMutation.mutate(stop.id) });
+                        setConfirmState({
+                          title: "Удалить остановку?",
+                          action: () => removeStopMutation.mutate(stop.id),
+                        });
                       }}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -525,8 +578,10 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
 
       <ConfirmDialog
         open={!!confirmState}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
-        title={confirmState?.title ?? ''}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
+        title={confirmState?.title ?? ""}
         onConfirm={() => confirmState?.action()}
       />
     </div>

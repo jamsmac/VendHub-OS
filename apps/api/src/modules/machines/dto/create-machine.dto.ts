@@ -15,24 +15,24 @@ import {
   MaxLength,
   Min,
   Max,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { MachineType, MachineStatus } from '../entities/machine.entity';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { MachineType, MachineStatus } from "../entities/machine.entity";
 
 export class CreateMachineDto {
-  @ApiProperty({ example: 'Кофе-автомат Mega #1' })
+  @ApiProperty({ example: "Кофе-автомат Mega #1" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   name: string;
 
-  @ApiProperty({ example: 'VH-001' })
+  @ApiProperty({ example: "VH-001" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   code: string;
 
-  @ApiProperty({ example: 'CF-2024-001-TAS' })
+  @ApiProperty({ example: "CF-2024-001-TAS" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -48,13 +48,13 @@ export class CreateMachineDto {
   @IsEnum(MachineStatus)
   status?: MachineStatus = MachineStatus.DISABLED;
 
-  @ApiPropertyOptional({ example: 'Necta' })
+  @ApiPropertyOptional({ example: "Necta" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   manufacturer?: string;
 
-  @ApiPropertyOptional({ example: 'Krea Touch' })
+  @ApiPropertyOptional({ example: "Krea Touch" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -92,15 +92,15 @@ export class CreateMachineDto {
   @ApiPropertyOptional({ example: { temperature: { coffee: 85 } } })
   @IsOptional()
   @IsObject()
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 
-  @ApiPropertyOptional({ example: ['cash', 'card', 'payme'] })
+  @ApiPropertyOptional({ example: ["cash", "card", "payme"] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   paymentMethods?: string[];
 
-  @ApiPropertyOptional({ example: 'https://vendhub.uz/c/VH-001' })
+  @ApiPropertyOptional({ example: "https://vendhub.uz/c/VH-001" })
   @IsOptional()
   @IsString()
   qrCodeComplaint?: string;
@@ -112,7 +112,7 @@ export class CreateMachineDto {
 }
 
 export class UpdateMachineDto {
-  @ApiPropertyOptional({ example: 'Кофе-автомат Mega #1' })
+  @ApiPropertyOptional({ example: "Кофе-автомат Mega #1" })
   @IsOptional()
   @IsString()
   @MaxLength(255)
@@ -160,7 +160,7 @@ export class UpdateMachineDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -4,30 +4,30 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 
 ## Tech Stack (VERIFIED -- DO NOT DEVIATE)
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Backend | NestJS | 11.1 |
-| ORM | TypeORM | 0.3.20 |
-| Database | PostgreSQL | 16 |
-| Cache/Queue | Redis 7 + BullMQ 5 + ioredis | |
-| Validation | class-validator + class-transformer | 0.14 |
-| API Docs | @nestjs/swagger | 11 |
-| Auth | Passport + JWT + TOTP (otplib) | |
-| Real-time | Socket.IO + Redis adapter | 4.7 |
-| Admin Panel | Next.js 16.1 + React 19 | App Router |
-| Client PWA | Vite 5.4 + React 19 | |
-| Mobile | React Native + Expo 52 | |
-| Bot | Telegraf | 4.16 |
-| State | Zustand 5 | |
-| Forms | React Hook Form 7.61 + Zod | |
-| UI | shadcn/ui + Radix UI + TailwindCSS 3.4 | |
-| Tables | @tanstack/react-table 8 | |
-| Charts | Recharts 2.15 | |
-| Icons | Lucide React | |
-| Monorepo | Turborepo 2.5 + pnpm 9.15 | |
-| Testing | Jest 29 + Playwright 1.48 | |
-| Infra | Docker + Kubernetes + Terraform | |
-| Monitoring | Prometheus + Grafana + Loki | |
+| Layer       | Technology                             | Version    |
+| ----------- | -------------------------------------- | ---------- |
+| Backend     | NestJS                                 | 11.1       |
+| ORM         | TypeORM                                | 0.3.20     |
+| Database    | PostgreSQL                             | 16         |
+| Cache/Queue | Redis 7 + BullMQ 5 + ioredis           |            |
+| Validation  | class-validator + class-transformer    | 0.14       |
+| API Docs    | @nestjs/swagger                        | 11         |
+| Auth        | Passport + JWT + TOTP (otplib)         |            |
+| Real-time   | Socket.IO + Redis adapter              | 4.7        |
+| Admin Panel | Next.js 16.1 + React 19                | App Router |
+| Client PWA  | Vite 5.4 + React 19                    |            |
+| Mobile      | React Native + Expo 52                 |            |
+| Bot         | Telegraf                               | 4.16       |
+| State       | Zustand 5                              |            |
+| Forms       | React Hook Form 7.61 + Zod             |            |
+| UI          | shadcn/ui + Radix UI + TailwindCSS 3.4 |            |
+| Tables      | @tanstack/react-table 8                |            |
+| Charts      | Recharts 2.15                          |            |
+| Icons       | Lucide React                           |            |
+| Monorepo    | Turborepo 2.5 + pnpm 9.15              |            |
+| Testing     | Jest 29 + Playwright 1.48              |            |
+| Infra       | Docker + Kubernetes + Terraform        |            |
+| Monitoring  | Prometheus + Grafana + Loki            |            |
 
 **CRITICAL:** NEVER use Drizzle, MySQL, tRPC, or Express standalone. Those are WRONG and come from outdated skill docs.
 
@@ -63,9 +63,9 @@ vendhub-unified/
 Every entity MUST extend BaseEntity. No exceptions.
 
 ```typescript
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { BaseEntity } from "../../../common/entities/base.entity";
 
-@Entity('table_name')
+@Entity("table_name")
 export class MyEntity extends BaseEntity {
   // BaseEntity provides: id (UUID), created_at, updated_at,
   // deleted_at, created_by_id, updated_by_id
@@ -119,15 +119,15 @@ Every module must be registered in `app.module.ts`, have at least one test, and 
 
 ## RBAC Roles (7 roles)
 
-| Role | Level | Access |
-|------|-------|--------|
-| owner | System-wide | Full access, organization management |
-| admin | Organization | Full org access, user management |
-| manager | Organization | Operations, reports, tasks |
-| operator | Field | Machines, inventory, tasks (assigned) |
-| warehouse | Organization | Inventory, warehouse, stock |
-| accountant | Organization | Finance, reports, reconciliation |
-| viewer | Organization | Read-only access |
+| Role       | Level        | Access                                |
+| ---------- | ------------ | ------------------------------------- |
+| owner      | System-wide  | Full access, organization management  |
+| admin      | Organization | Full org access, user management      |
+| manager    | Organization | Operations, reports, tasks            |
+| operator   | Field        | Machines, inventory, tasks (assigned) |
+| warehouse  | Organization | Inventory, warehouse, stock           |
+| accountant | Organization | Finance, reports, reconciliation      |
+| viewer     | Organization | Read-only access                      |
 
 ## API Module Pattern
 
@@ -147,7 +147,7 @@ src/modules/<module-name>/
 ## Key API Conventions
 
 - API prefix: `api/v1`
-- Swagger UI: `/api/docs`
+- Swagger UI: `/docs`
 - Auth: Bearer JWT token
 - Guards: `JwtAuthGuard`, `RolesGuard`, `OrganizationGuard`, `ThrottlerGuard`
 - Decorators: `@Public()`, `@Roles()`, `@Auth()`
@@ -167,6 +167,7 @@ src/modules/<module-name>/
 ## Environment Variables
 
 Configured via `.env` (see `.env.example` for 100+ options):
+
 - DB: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - Redis: `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
 - JWT: `JWT_SECRET`, `JWT_EXPIRES_IN`
@@ -214,46 +215,47 @@ pnpm docker:logs            # View logs
 
 ## Docker Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| postgres | 5432 | PostgreSQL 16 |
-| redis | 6379 | Redis 7 |
-| api | 4000 | NestJS backend |
-| web | 3000 | Next.js admin |
-| client | 5173 | Vite PWA |
-| bot | - | Telegram bot |
+| Service  | Port | Description    |
+| -------- | ---- | -------------- |
+| postgres | 5432 | PostgreSQL 16  |
+| redis    | 6379 | Redis 7        |
+| api      | 4000 | NestJS backend |
+| web      | 3000 | Next.js admin  |
+| client   | 5173 | Vite PWA       |
+| bot      | -    | Telegram bot   |
 
 ## Skills (AI Agent Tools)
 
 19 specialized skills in `.claude/commands/` directory for domain-specific code generation:
 
-| Skill | Purpose |
-|-------|---------|
-| `vhm24-api-generator` | NestJS REST API endpoint generation |
-| `vhm24-auth-rbac` | Authentication and RBAC |
-| `vhm24-charts` | Recharts data visualization |
-| `vhm24-component-lib` | UI component library (shadcn/ui) |
-| `vhm24-db-expert` | TypeORM schema and migrations |
-| `vhm24-devops` | Docker, K8s, CI/CD |
-| `vhm24-docs-generator` | Documentation generation |
-| `vhm24-forms` | React Hook Form + Zod |
-| `vhm24-i18n` | Localization (uz, ru, en) |
-| `vhm24-mobile` | React Native/Expo mobile |
-| `vhm24-monitoring` | Prometheus, Grafana, logging |
-| `vhm24-orchestrator` | Workflow coordination |
-| `vhm24-payments` | Payme, Click, Uzum Bank |
-| `vhm24-qa-review` | Code review and QA |
-| `vhm24-realtime` | Socket.IO real-time |
-| `vhm24-security-hardening` | Security best practices |
-| `vhm24-testing` | Jest + Playwright testing |
-| `vhm24-ui-generator` | React UI generation |
-| `vhm24-ux-spec` | UX specifications |
+| Skill                      | Purpose                             |
+| -------------------------- | ----------------------------------- |
+| `vhm24-api-generator`      | NestJS REST API endpoint generation |
+| `vhm24-auth-rbac`          | Authentication and RBAC             |
+| `vhm24-charts`             | Recharts data visualization         |
+| `vhm24-component-lib`      | UI component library (shadcn/ui)    |
+| `vhm24-db-expert`          | TypeORM schema and migrations       |
+| `vhm24-devops`             | Docker, K8s, CI/CD                  |
+| `vhm24-docs-generator`     | Documentation generation            |
+| `vhm24-forms`              | React Hook Form + Zod               |
+| `vhm24-i18n`               | Localization (uz, ru, en)           |
+| `vhm24-mobile`             | React Native/Expo mobile            |
+| `vhm24-monitoring`         | Prometheus, Grafana, logging        |
+| `vhm24-orchestrator`       | Workflow coordination               |
+| `vhm24-payments`           | Payme, Click, Uzum Bank             |
+| `vhm24-qa-review`          | Code review and QA                  |
+| `vhm24-realtime`           | Socket.IO real-time                 |
+| `vhm24-security-hardening` | Security best practices             |
+| `vhm24-testing`            | Jest + Playwright testing           |
+| `vhm24-ui-generator`       | React UI generation                 |
+| `vhm24-ux-spec`            | UX specifications                   |
 
 ## Migration Context
 
 Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (37 modules).
 
 Strategies per module:
+
 - **MERGE** (25): Both repos have it, combine field-by-field
 - **PORT** (24): Only in VHM24-repo, move to VendHub OS
 - **KEEP** (4): Only in VendHub OS, don't touch
@@ -280,16 +282,16 @@ npx jest --passWithNoTests          # Tests pass
 
 ## Key Files
 
-| What | Path |
-|------|------|
-| Master Prompt | `MASTER_PROMPT.md` |
-| Migration Plan | `MIGRATION_PLAN_v4.md` |
-| UI/UX Spec | `UI_UX_SPECIFICATION.md` |
-| TypeORM Config | `vendhub-unified/apps/api/src/database/typeorm.config.ts` |
-| API Modules | `vendhub-unified/apps/api/src/modules/` |
-| Base Entity | `vendhub-unified/apps/api/src/common/entities/base.entity.ts` |
-| App Module | `vendhub-unified/apps/api/src/app.module.ts` |
-| Skills | `.claude/commands/` |
-| Docker Compose | `vendhub-unified/docker-compose.yml` |
-| Turbo Config | `vendhub-unified/turbo.json` |
-| CI Pipeline | `vendhub-unified/.github/workflows/ci.yml` |
+| What           | Path                                                          |
+| -------------- | ------------------------------------------------------------- |
+| Master Prompt  | `MASTER_PROMPT.md`                                            |
+| Migration Plan | `MIGRATION_PLAN_v4.md`                                        |
+| UI/UX Spec     | `UI_UX_SPECIFICATION.md`                                      |
+| TypeORM Config | `vendhub-unified/apps/api/src/database/typeorm.config.ts`     |
+| API Modules    | `vendhub-unified/apps/api/src/modules/`                       |
+| Base Entity    | `vendhub-unified/apps/api/src/common/entities/base.entity.ts` |
+| App Module     | `vendhub-unified/apps/api/src/app.module.ts`                  |
+| Skills         | `.claude/commands/`                                           |
+| Docker Compose | `vendhub-unified/docker-compose.yml`                          |
+| Turbo Config   | `vendhub-unified/turbo.json`                                  |
+| CI Pipeline    | `vendhub-unified/.github/workflows/ci.yml`                    |

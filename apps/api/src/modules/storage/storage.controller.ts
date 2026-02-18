@@ -18,9 +18,9 @@ import {
   Res,
   StreamableFile,
   UseGuards,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { Response } from "express";
 import {
   ApiTags,
   ApiOperation,
@@ -29,38 +29,31 @@ import {
   ApiConsumes,
   ApiBody,
   ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
+} from "@nestjs/swagger";
 
-import { StorageService, UploadResult, PresignedUrlResult, FileMetadata } from './storage.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentOrganizationId } from '../../common/decorators/current-user.decorator';
+import {
+  StorageService,
+  UploadResult,
+  PresignedUrlResult,
+  FileMetadata,
+} from "./storage.service";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
+import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 
-// DTOs
-class UploadFileDto {
-  folder: string;
-  category?: 'image' | 'document' | 'spreadsheet' | 'any';
-}
+import { UploadFileDto } from "./dto/upload-file.dto";
+import { UploadBase64Dto } from "./dto/upload-base64.dto";
+import { PresignedUploadDto } from "./dto/presigned-upload.dto";
+import { PresignedDownloadQueryDto } from "./dto/presigned-download-query.dto";
+import { ListFilesQueryDto } from "./dto/list-files-query.dto";
+import { DeleteFilesDto } from "./dto/delete-files.dto";
+import { CopyFileDto } from "./dto/copy-file.dto";
+import { MoveFileDto } from "./dto/move-file.dto";
 
-class PresignedUploadDto {
-  folder: string;
-  fileName: string;
-  mimeType: string;
-  category?: 'image' | 'document' | 'spreadsheet' | 'any';
-  expiresInSeconds?: number;
-}
-
-class UploadBase64Dto {
-  folder: string;
-  fileName: string;
-  base64Data: string;
-}
-
-@ApiTags('Storage')
+@ApiTags("Storage")
 @ApiBearerAuth()
-@Controller('storage')
+@Controller("storage")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
@@ -69,36 +62,44 @@ export class StorageController {
   // UPLOAD
   // ========================================================================
 
-  @Post('upload')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload file directly' })
+  @Post("upload")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @UseInterceptors(FileInterceptor("file"))
+  @ApiConsumes("multipart/form-data")
+  @ApiOperation({ summary: "Upload file directly" })
   @ApiBody({
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        file: { type: 'string', format: 'binary' },
-        folder: { type: 'string', example: 'tasks/photos' },
-        category: { type: 'string', enum: ['image', 'document', 'spreadsheet', 'any'] },
+        file: { type: "string", format: "binary" },
+        folder: { type: "string", example: "tasks/photos" },
+        category: {
+          type: "string",
+          enum: ["image", "document", "spreadsheet", "any"],
+        },
       },
     },
   })
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, description: "File uploaded successfully" })
+  @ApiResponse({ status: 400, description: "Invalid file or parameters" })
   async uploadFile(
     @CurrentOrganizationId() organizationId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadFileDto,
   ): Promise<UploadResult> {
     if (!file) {
-      throw new Error('No file provided');
+      throw new Error("No file provided");
     }
 
     // Validate file size
-    const category = dto.category || 'default';
+    const category = dto.category || "default";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!this.storageService.validateFileSize(file.size, category as any)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const maxSize = this.storageService.getMaxFileSize(category as any);
-      throw new Error(`File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`);
+      throw new Error(
+        `File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`,
+      );
     }
 
     return this.storageService.uploadFile(
@@ -110,10 +111,17 @@ export class StorageController {
     );
   }
 
-  @Post('upload/base64')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Upload base64 encoded file' })
-  @ApiResponse({ status: 201 })
+  @Post("upload/base64")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Upload base64 encoded file" })
+  @ApiResponse({
+    status: 201,
+    description: "Base64 file uploaded successfully",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid base64 data or parameters",
+  })
   async uploadBase64(
     @CurrentOrganizationId() organizationId: string,
     @Body() dto: UploadBase64Dto,
@@ -121,15 +129,19 @@ export class StorageController {
     return this.storageService.uploadBase64(
       organizationId,
       dto.folder,
-      dto.base64Data,
-      dto.fileName,
+      dto.base64_data,
+      dto.file_name,
     );
   }
 
-  @Post('presigned-url')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get presigned URL for client-side upload' })
-  @ApiResponse({ status: 201 })
+  @Post("presigned-url")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get presigned URL for client-side upload" })
+  @ApiResponse({ status: 201, description: "Presigned upload URL generated" })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid parameters or MIME type not allowed",
+  })
   async getPresignedUploadUrl(
     @CurrentOrganizationId() organizationId: string,
     @Body() dto: PresignedUploadDto,
@@ -137,10 +149,10 @@ export class StorageController {
     return this.storageService.getPresignedUploadUrl(
       organizationId,
       dto.folder,
-      dto.fileName,
-      dto.mimeType,
-      dto.category || 'any',
-      dto.expiresInSeconds || 3600,
+      dto.file_name,
+      dto.mime_type,
+      dto.category || "any",
+      dto.expires_in_seconds || 3600,
     );
   }
 
@@ -148,43 +160,45 @@ export class StorageController {
   // DOWNLOAD
   // ========================================================================
 
-  @Get('download/:key(*)')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Download file' })
-  @ApiParam({ name: 'key', description: 'File key' })
+  @Get("download/:key(*)")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Download file" })
+  @ApiParam({ name: "key", description: "File key" })
+  @ApiResponse({ status: 200, description: "File stream returned" })
+  @ApiResponse({ status: 404, description: "File not found" })
   async downloadFile(
-    @Param('key') key: string,
+    @Param("key") key: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const { buffer, contentType } = await this.storageService.getFile(key);
 
     res.set({
-      'Content-Type': contentType,
-      'Content-Disposition': `attachment; filename="${key.split('/').pop()}"`,
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename="${key.split("/").pop()}"`,
     });
 
     return new StreamableFile(buffer);
   }
 
-  @Get('presigned-download/:key(*)')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get presigned download URL' })
-  @ApiParam({ name: 'key', description: 'File key' })
-  @ApiQuery({ name: 'expiresIn', required: false, type: Number })
-  @ApiQuery({ name: 'fileName', required: false, type: String })
+  @Get("presigned-download/:key(*)")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get presigned download URL" })
+  @ApiParam({ name: "key", description: "File key" })
+  @ApiResponse({ status: 200, description: "Presigned download URL generated" })
+  @ApiResponse({ status: 400, description: "Invalid parameters" })
   async getPresignedDownloadUrl(
-    @Param('key') key: string,
-    @Query('expiresIn') expiresIn?: number,
-    @Query('fileName') fileName?: string,
+    @Param("key") key: string,
+    @Query() query: PresignedDownloadQueryDto,
   ): Promise<{ url: string; expiresAt: Date }> {
+    const expiresIn = query.expires_in || 3600;
     const url = await this.storageService.getPresignedDownloadUrl(
       key,
-      expiresIn || 3600,
-      fileName,
+      expiresIn,
+      query.file_name,
     );
 
     const expiresAt = new Date();
-    expiresAt.setSeconds(expiresAt.getSeconds() + (expiresIn || 3600));
+    expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
     return { url, expiresAt };
   }
@@ -193,71 +207,86 @@ export class StorageController {
   // FILE MANAGEMENT
   // ========================================================================
 
-  @Get('files')
-  @Roles('manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'List files in folder' })
-  @ApiQuery({ name: 'folder', required: true })
-  @ApiQuery({ name: 'maxFiles', required: false, type: Number })
+  @Get("files")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List files in folder" })
+  @ApiResponse({ status: 200, description: "List of files returned" })
   async listFiles(
     @CurrentOrganizationId() organizationId: string,
-    @Query('folder') folder: string,
-    @Query('maxFiles') maxFiles?: number,
+    @Query() query: ListFilesQueryDto,
   ): Promise<FileMetadata[]> {
-    return this.storageService.listFiles(organizationId, folder, maxFiles || 1000);
+    return this.storageService.listFiles(
+      organizationId,
+      query.folder,
+      query.max_files || 1000,
+    );
   }
 
-  @Get('files/metadata/:key(*)')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get file metadata' })
-  @ApiParam({ name: 'key', description: 'File key' })
-  async getFileMetadata(@Param('key') key: string): Promise<FileMetadata> {
+  @Get("files/metadata/:key(*)")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get file metadata" })
+  @ApiParam({ name: "key", description: "File key" })
+  @ApiResponse({ status: 200, description: "File metadata returned" })
+  @ApiResponse({ status: 404, description: "File not found" })
+  async getFileMetadata(@Param("key") key: string): Promise<FileMetadata> {
     return this.storageService.getFileMetadata(key);
   }
 
-  @Get('files/exists/:key(*)')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Check if file exists' })
-  @ApiParam({ name: 'key', description: 'File key' })
-  async fileExists(@Param('key') key: string): Promise<{ exists: boolean }> {
+  @Get("files/exists/:key(*)")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Check if file exists" })
+  @ApiParam({ name: "key", description: "File key" })
+  @ApiResponse({ status: 200, description: "File existence check result" })
+  async fileExists(@Param("key") key: string): Promise<{ exists: boolean }> {
     const exists = await this.storageService.fileExists(key);
     return { exists };
   }
 
-  @Delete('files/:key(*)')
-  @Roles('manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Delete file' })
-  @ApiParam({ name: 'key', description: 'File key' })
+  @Delete("files/:key(*)")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Delete file" })
+  @ApiParam({ name: "key", description: "File key" })
+  @ApiResponse({ status: 204, description: "File deleted successfully" })
+  @ApiResponse({ status: 400, description: "Failed to delete file" })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteFile(@Param('key') key: string): Promise<void> {
+  async deleteFile(@Param("key") key: string): Promise<void> {
     await this.storageService.deleteFile(key);
   }
 
-  @Post('files/delete-bulk')
-  @Roles('manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Delete multiple files' })
-  async deleteFiles(@Body('keys') keys: string[]): Promise<{ deleted: number; failed: number }> {
-    return this.storageService.deleteFiles(keys);
+  @Post("files/delete-bulk")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Delete multiple files" })
+  @ApiResponse({ status: 200, description: "Bulk delete result" })
+  @ApiResponse({ status: 400, description: "Invalid parameters" })
+  async deleteFiles(
+    @Body() dto: DeleteFilesDto,
+  ): Promise<{ deleted: number; failed: number }> {
+    return this.storageService.deleteFiles(dto.keys);
   }
 
-  @Post('files/copy')
-  @Roles('manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Copy file' })
-  async copyFile(
-    @Body('sourceKey') sourceKey: string,
-    @Body('destinationKey') destinationKey: string,
-  ): Promise<{ url: string }> {
-    const url = await this.storageService.copyFile(sourceKey, destinationKey);
+  @Post("files/copy")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Copy file" })
+  @ApiResponse({ status: 200, description: "File copied successfully" })
+  @ApiResponse({ status: 400, description: "Failed to copy file" })
+  async copyFile(@Body() dto: CopyFileDto): Promise<{ url: string }> {
+    const url = await this.storageService.copyFile(
+      dto.source_key,
+      dto.destination_key,
+    );
     return { url };
   }
 
-  @Post('files/move')
-  @Roles('manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Move file' })
-  async moveFile(
-    @Body('sourceKey') sourceKey: string,
-    @Body('destinationKey') destinationKey: string,
-  ): Promise<{ url: string }> {
-    const url = await this.storageService.moveFile(sourceKey, destinationKey);
+  @Post("files/move")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Move file" })
+  @ApiResponse({ status: 200, description: "File moved successfully" })
+  @ApiResponse({ status: 400, description: "Failed to move file" })
+  async moveFile(@Body() dto: MoveFileDto): Promise<{ url: string }> {
+    const url = await this.storageService.moveFile(
+      dto.source_key,
+      dto.destination_key,
+    );
     return { url };
   }
 
@@ -265,24 +294,25 @@ export class StorageController {
   // HELPERS
   // ========================================================================
 
-  @Get('config')
-  @Roles('operator', 'technician', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get storage configuration' })
+  @Get("config")
+  @Roles("operator", "technician", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get storage configuration" })
+  @ApiResponse({ status: 200, description: "Storage configuration returned" })
   async getConfig(): Promise<{
     maxFileSizes: Record<string, number>;
     allowedMimeTypes: Record<string, string[]>;
   }> {
     return {
       maxFileSizes: {
-        image: this.storageService.getMaxFileSize('image'),
-        document: this.storageService.getMaxFileSize('document'),
-        spreadsheet: this.storageService.getMaxFileSize('spreadsheet'),
-        default: this.storageService.getMaxFileSize('default'),
+        image: this.storageService.getMaxFileSize("image"),
+        document: this.storageService.getMaxFileSize("document"),
+        spreadsheet: this.storageService.getMaxFileSize("spreadsheet"),
+        default: this.storageService.getMaxFileSize("default"),
       },
       allowedMimeTypes: {
-        image: this.storageService.getAllowedMimeTypes('image'),
-        document: this.storageService.getAllowedMimeTypes('document'),
-        spreadsheet: this.storageService.getAllowedMimeTypes('spreadsheet'),
+        image: this.storageService.getAllowedMimeTypes("image"),
+        document: this.storageService.getAllowedMimeTypes("document"),
+        spreadsheet: this.storageService.getAllowedMimeTypes("spreadsheet"),
       },
     };
   }

@@ -16,39 +16,39 @@ import {
   MaxLength,
   Min,
   ValidateNested,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 
 export enum TaskType {
-  REPLENISHMENT = 'replenishment',
-  COLLECTION = 'collection',
-  MAINTENANCE = 'maintenance',
-  CLEANING = 'cleaning',
-  INSTALLATION = 'installation',
-  RELOCATION = 'relocation',
-  DECOMMISSION = 'decommission',
-  INSPECTION = 'inspection',
-  REPAIR = 'repair',
-  COMPLAINT = 'complaint',
-  OTHER = 'other',
+  REPLENISHMENT = "replenishment",
+  COLLECTION = "collection",
+  MAINTENANCE = "maintenance",
+  CLEANING = "cleaning",
+  INSTALLATION = "installation",
+  RELOCATION = "relocation",
+  DECOMMISSION = "decommission",
+  INSPECTION = "inspection",
+  REPAIR = "repair",
+  COMPLAINT = "complaint",
+  OTHER = "other",
 }
 
 export enum TaskStatus {
-  PENDING = 'pending',
-  ASSIGNED = 'assigned',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-  ON_HOLD = 'on_hold',
-  FAILED = 'failed',
+  PENDING = "pending",
+  ASSIGNED = "assigned",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+  ON_HOLD = "on_hold",
+  FAILED = "failed",
 }
 
 export enum TaskPriority {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  NORMAL = "normal",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export class ChecklistItemDto {
@@ -56,7 +56,7 @@ export class ChecklistItemDto {
   @IsNumber()
   id: number;
 
-  @ApiProperty({ description: 'Checklist item text' })
+  @ApiProperty({ description: "Checklist item text" })
   @IsString()
   item: string;
 
@@ -76,13 +76,13 @@ export class CreateTaskDto {
   @IsEnum(TaskPriority)
   priority?: TaskPriority = TaskPriority.NORMAL;
 
-  @ApiProperty({ example: 'Пополнение VH-002' })
+  @ApiProperty({ example: "Пополнение VH-002" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   title: string;
 
-  @ApiPropertyOptional({ example: 'Пополнить снековый автомат' })
+  @ApiPropertyOptional({ example: "Пополнить снековый автомат" })
   @IsOptional()
   @IsString()
   description?: string;
@@ -134,7 +134,7 @@ export class CreateTaskDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class UpdateTaskDto {
@@ -196,17 +196,18 @@ export class UpdateTaskDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   photos?: any[];
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  result?: Record<string, any>;
+  result?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class StartTaskDto {
@@ -225,12 +226,13 @@ export class CompleteTaskDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   photos?: any[];
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  result?: Record<string, any>;
+  result?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()

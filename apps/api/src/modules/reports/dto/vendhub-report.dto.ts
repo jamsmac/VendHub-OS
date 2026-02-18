@@ -3,8 +3,16 @@
  * Две структуры отчетов: A (По типам платежей) и B (Финансовая аналитика)
  */
 
-import { IsEnum, IsDateString, IsOptional, IsArray, IsUUID, IsBoolean, IsString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsEnum,
+  IsDateString,
+  IsOptional,
+  IsArray,
+  IsUUID,
+  IsBoolean,
+  IsString,
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 // ============================================================================
 // ENUMS - Типы данных VendHub
@@ -14,47 +22,47 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
  * Типы платежей (order_resource)
  */
 export enum PaymentResourceType {
-  QR = 'QR',                    // Таможенный платеж (QR-оплата)
-  CASH = 'CASH',                // Оплата наличными
-  CREDIT = 'CREDIT',            // Оплата кредита
-  VIP = 'VIP',                  // VIP-заказы
-  TEST = 'TEST',                // testShipment
+  QR = "QR", // Таможенный платеж (QR-оплата)
+  CASH = "CASH", // Оплата наличными
+  CREDIT = "CREDIT", // Оплата кредита
+  VIP = "VIP", // VIP-заказы
+  TEST = "TEST", // testShipment
 }
 
 /**
  * Статус оплаты
  */
 export enum PaymentStatusType {
-  PAID = 'Оплачено',
-  REFUNDED = 'Возвращен',
+  PAID = "Оплачено",
+  REFUNDED = "Возвращен",
 }
 
 /**
  * Статус доставки (brew_status)
  */
 export enum BrewStatusType {
-  DELIVERED = 'Доставлен',
-  DELIVERY_CONFIRMED = 'Доставка подтверждена',
-  DELIVERY_FAILED = 'Сбой доставки',
-  NOT_DELIVERED = 'Не доставлено',
+  DELIVERED = "Доставлен",
+  DELIVERY_CONFIRMED = "Доставка подтверждена",
+  DELIVERY_FAILED = "Сбой доставки",
+  NOT_DELIVERED = "Не доставлено",
 }
 
 /**
  * QR платежные системы
  */
 export enum QRPaymentSystem {
-  PAYME = 'Payme',
-  CLICK = 'Click',
-  UZUM = 'Uzum',
+  PAYME = "Payme",
+  CLICK = "Click",
+  UZUM = "Uzum",
 }
 
 /**
  * Структура отчета
  */
 export enum ReportStructure {
-  A = 'A',                      // По типам платежей
-  B = 'B',                      // Финансовая аналитика
-  FULL = 'A+B',                 // Полная (обе структуры)
+  A = "A", // По типам платежей
+  B = "B", // Финансовая аналитика
+  FULL = "A+B", // Полная (обе структуры)
 }
 
 // ============================================================================
@@ -65,20 +73,65 @@ export enum ReportStructure {
  * Ингредиенты VendHub (14 наименований)
  */
 export const VENDHUB_INGREDIENTS = {
-  COFFEE_BEANS: { name: 'Кофе зерновой', nameUz: 'Kofe donasi', unit: 'г', pricePerUnit: 239 },
-  DRY_MILK: { name: 'Сухое молоко', nameUz: 'Quruq sut', unit: 'г', pricePerUnit: 120 },
-  SUGAR: { name: 'Сахар', nameUz: 'Shakar', unit: 'г', pricePerUnit: 15 },
-  CHOCOLATE: { name: 'Шоколад', nameUz: 'Shokolad', unit: 'г', pricePerUnit: 178.2 },
-  MACCOFFEE_3IN1: { name: 'MacCoffee 3в1', nameUz: 'MacCoffee 3in1', unit: 'г', pricePerUnit: 80 },
-  BERRY_TEA: { name: 'Ягодный чай', nameUz: 'Rezavorli choy', unit: 'г', pricePerUnit: 144 },
-  LEMON_TEA: { name: 'Лимонный чай', nameUz: 'Limonli choy', unit: 'г', pricePerUnit: 144 },
-  MATCHA: { name: 'Матча', nameUz: 'Matcha', unit: 'г', pricePerUnit: 235.2 },
-  SYRUP_VANILLA: { name: 'Сироп ваниль', nameUz: 'Vanil siropi', unit: 'мл', pricePerUnit: 75 },
-  SYRUP_CARAMEL: { name: 'Сироп карамель', nameUz: 'Karamel siropi', unit: 'мл', pricePerUnit: 75 },
-  SYRUP_COCONUT: { name: 'Сироп кокос', nameUz: 'Kokos siropi', unit: 'мл', pricePerUnit: 75 },
-  WATER: { name: 'Вода', nameUz: 'Suv', unit: 'мл', pricePerUnit: 1.058 },
-  ICE: { name: 'Лёд', nameUz: 'Muz', unit: 'г', pricePerUnit: 2 },
-  CUP: { name: 'Стакан', nameUz: 'Stakan', unit: 'шт', pricePerUnit: 3800 },
+  COFFEE_BEANS: {
+    name: "Кофе зерновой",
+    nameUz: "Kofe donasi",
+    unit: "г",
+    pricePerUnit: 239,
+  },
+  DRY_MILK: {
+    name: "Сухое молоко",
+    nameUz: "Quruq sut",
+    unit: "г",
+    pricePerUnit: 120,
+  },
+  SUGAR: { name: "Сахар", nameUz: "Shakar", unit: "г", pricePerUnit: 15 },
+  CHOCOLATE: {
+    name: "Шоколад",
+    nameUz: "Shokolad",
+    unit: "г",
+    pricePerUnit: 178.2,
+  },
+  MACCOFFEE_3IN1: {
+    name: "MacCoffee 3в1",
+    nameUz: "MacCoffee 3in1",
+    unit: "г",
+    pricePerUnit: 80,
+  },
+  BERRY_TEA: {
+    name: "Ягодный чай",
+    nameUz: "Rezavorli choy",
+    unit: "г",
+    pricePerUnit: 144,
+  },
+  LEMON_TEA: {
+    name: "Лимонный чай",
+    nameUz: "Limonli choy",
+    unit: "г",
+    pricePerUnit: 144,
+  },
+  MATCHA: { name: "Матча", nameUz: "Matcha", unit: "г", pricePerUnit: 235.2 },
+  SYRUP_VANILLA: {
+    name: "Сироп ваниль",
+    nameUz: "Vanil siropi",
+    unit: "мл",
+    pricePerUnit: 75,
+  },
+  SYRUP_CARAMEL: {
+    name: "Сироп карамель",
+    nameUz: "Karamel siropi",
+    unit: "мл",
+    pricePerUnit: 75,
+  },
+  SYRUP_COCONUT: {
+    name: "Сироп кокос",
+    nameUz: "Kokos siropi",
+    unit: "мл",
+    pricePerUnit: 75,
+  },
+  WATER: { name: "Вода", nameUz: "Suv", unit: "мл", pricePerUnit: 1.058 },
+  ICE: { name: "Лёд", nameUz: "Muz", unit: "г", pricePerUnit: 2 },
+  CUP: { name: "Стакан", nameUz: "Stakan", unit: "шт", pricePerUnit: 3800 },
 } as const;
 
 // ============================================================================
@@ -89,45 +142,45 @@ export const VENDHUB_INGREDIENTS = {
  * Запрос на генерацию VendHub отчета
  */
 export class GenerateVendHubReportDto {
-  @ApiProperty({ description: 'Дата начала периода' })
+  @ApiProperty({ description: "Дата начала периода" })
   @IsDateString()
   dateFrom: string;
 
-  @ApiProperty({ description: 'Дата окончания периода' })
+  @ApiProperty({ description: "Дата окончания периода" })
   @IsDateString()
   dateTo: string;
 
-  @ApiProperty({ enum: ReportStructure, description: 'Структура отчета' })
+  @ApiProperty({ enum: ReportStructure, description: "Структура отчета" })
   @IsEnum(ReportStructure)
   structure: ReportStructure;
 
-  @ApiPropertyOptional({ type: [String], description: 'ID автоматов (фильтр)' })
+  @ApiPropertyOptional({ type: [String], description: "ID автоматов (фильтр)" })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   machineIds?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'ID продуктов (фильтр)' })
+  @ApiPropertyOptional({ type: [String], description: "ID продуктов (фильтр)" })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   productIds?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'ID локаций (фильтр)' })
+  @ApiPropertyOptional({ type: [String], description: "ID локаций (фильтр)" })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   locationIds?: string[];
 
-  @ApiPropertyOptional({ description: 'Включить тестовые заказы' })
+  @ApiPropertyOptional({ description: "Включить тестовые заказы" })
   @IsOptional()
   @IsBoolean()
   includeTestOrders?: boolean;
 
-  @ApiPropertyOptional({ description: 'Язык отчета (ru/uz)' })
+  @ApiPropertyOptional({ description: "Язык отчета (ru/uz)" })
   @IsOptional()
   @IsString()
-  language?: 'ru' | 'uz';
+  language?: "ru" | "uz";
 }
 
 // ============================================================================
@@ -179,8 +232,8 @@ export interface StructureASummaryDto {
  * По месяцам (Structure A)
  */
 export interface MonthlyPaymentTypeDto {
-  month: string;           // "2025-01"
-  monthName: string;       // "Январь 2025"
+  month: string; // "2025-01"
+  monthName: string; // "Январь 2025"
   cash: { count: number; amount: number };
   qr: { count: number; amount: number };
   vip: { count: number; amount: number };
@@ -192,8 +245,8 @@ export interface MonthlyPaymentTypeDto {
  * По дням недели (Structure A) - 7 строк
  */
 export interface WeekdayPaymentTypeDto {
-  dayOfWeek: number;       // 0-6
-  dayName: string;         // "Понедельник"
+  dayOfWeek: number; // 0-6
+  dayName: string; // "Понедельник"
   cash: { count: number; amount: number };
   qr: { count: number; amount: number };
   vip: { count: number; amount: number };
@@ -267,7 +320,7 @@ export interface QRReconciliationDto {
   externalTotal: number;
   difference: number;
   differencePercent: number;
-  status: 'OK' | 'WARNING' | 'CRITICAL';
+  status: "OK" | "WARNING" | "CRITICAL";
 }
 
 /**
@@ -276,7 +329,7 @@ export interface QRReconciliationDto {
 export interface CrossAnalysisDto {
   topProducts: string[];
   topMachines: string[];
-  matrix: number[][];      // [product][machine] = orderCount
+  matrix: number[][]; // [product][machine] = orderCount
   hourlyAnalysis: {
     hour: number;
     orderCount: number;
@@ -302,7 +355,7 @@ export interface StructureBSummaryDto {
   };
   finance: {
     totalRevenue: number;
-    costOfGoods: number;      // Себестоимость (кофейные)
+    costOfGoods: number; // Себестоимость (кофейные)
     grossProfit: number;
     marginPercent: number;
     averageCheck: number;
@@ -337,8 +390,8 @@ export interface MonthlyFinancialDto {
  * По дням (Structure B) - По ДАТАМ (много строк)
  */
 export interface DailyFinancialDto {
-  date: string;            // "2025-01-15"
-  dayOfWeek: string;       // "Среда"
+  date: string; // "2025-01-15"
+  dayOfWeek: string; // "Среда"
   orderCount: number;
   successfulCount: number;
   failedCount: number;
@@ -400,7 +453,7 @@ export interface IngredientConsumptionSummaryDto {
  */
 export interface IngredientConsumptionMonthlyDto {
   month: string;
-  ingredients: Record<string, number>;  // ingredientCode -> consumption
+  ingredients: Record<string, number>; // ingredientCode -> consumption
   totalCost: number;
 }
 
@@ -484,7 +537,7 @@ export interface VendHubReportStructureA {
     months: MonthlyDetailedDto[];
     products: ProductPaymentTypeDto[];
     machines: MachinePaymentTypeDto[];
-    qrShare: MachinePaymentTypeDto[];  // Доля QR по автоматам
+    qrShare: MachinePaymentTypeDto[]; // Доля QR по автоматам
     payme: QRPaymentDetailDto[];
     click: QRPaymentDetailDto[];
   };
@@ -492,18 +545,22 @@ export interface VendHubReportStructureA {
   // VIP и Кредит
   vipSummary: {
     total: PaymentTypeSummaryDto;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details: any[];
     products: ProductPaymentTypeDto[];
   };
   creditSummary: {
     total: PaymentTypeSummaryDto;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details: any[];
   };
 
   // Служебные
   qrReconciliation: QRReconciliationDto[];
   crossAnalysis: CrossAnalysisDto;
-  dailyReport: any[];  // Ежедневно по датам (223 строки)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dailyReport: any[]; // Ежедневно по датам (223 строки)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   averageCheck: any;
 }
 
@@ -542,7 +599,7 @@ export interface VendHubFullReportDto {
     generationTimeMs: number;
     period: { from: Date; to: Date };
     structure: ReportStructure;
-    language: 'ru' | 'uz';
+    language: "ru" | "uz";
     organizationId: string;
     filters: {
       machineIds?: string[];
@@ -565,9 +622,14 @@ export interface VendHubFullReportDto {
       marginTrend: number;
     };
     alerts: {
-      type: 'low_stock' | 'high_failure_rate' | 'margin_decline' | 'qr_discrepancy';
-      severity: 'info' | 'warning' | 'critical';
+      type:
+        | "low_stock"
+        | "high_failure_rate"
+        | "margin_decline"
+        | "qr_discrepancy";
+      severity: "info" | "warning" | "critical";
       message: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data?: any;
     }[];
   };
@@ -582,48 +644,48 @@ export interface VendHubFullReportDto {
  */
 export const STRUCTURE_A_SHEETS = {
   // Общие (6)
-  CONTENTS: 'Содержание',
-  SUMMARY: 'Сводка',
-  BY_MONTHS: 'По_месяцам',
-  BY_DAYS: 'По_дням',               // По дням недели!
-  BY_MACHINES: 'По_автоматам',
-  BY_PRODUCTS: 'По_продуктам',
+  CONTENTS: "Содержание",
+  SUMMARY: "Сводка",
+  BY_MONTHS: "По_месяцам",
+  BY_DAYS: "По_дням", // По дням недели!
+  BY_MACHINES: "По_автоматам",
+  BY_PRODUCTS: "По_продуктам",
 
   // Наличные (12)
-  CASH_SUMMARY: 'Наличные',
-  CASH_MONTHS: 'Наличные_месяцы',
-  CASH_PRODUCTS: 'Наличные_продукты',
-  CASH_MACHINES: 'Наличные_автоматы',
+  CASH_SUMMARY: "Наличные",
+  CASH_MONTHS: "Наличные_месяцы",
+  CASH_PRODUCTS: "Наличные_продукты",
+  CASH_MACHINES: "Наличные_автоматы",
   // + Нал_Май ... Нал_Декабрь (8 листов)
 
   // QR (16)
-  QR_SUMMARY: 'QR_Сводка',
-  QR_MONTHS: 'QR_месяцы',
-  QR_PRODUCTS: 'QR_продукты',
-  QR_MACHINES: 'QR_автоматы',
-  QR_SHARE: 'QR_доля_автоматы',
-  QR_PAYME: 'QR_Payme',
-  QR_CLICK: 'QR_Click',
+  QR_SUMMARY: "QR_Сводка",
+  QR_MONTHS: "QR_месяцы",
+  QR_PRODUCTS: "QR_продукты",
+  QR_MACHINES: "QR_автоматы",
+  QR_SHARE: "QR_доля_автоматы",
+  QR_PAYME: "QR_Payme",
+  QR_CLICK: "QR_Click",
   // + QR_Май ... QR_Декабрь (8 листов)
 
   // VIP и Кредит (5)
-  VIP_SUMMARY: 'VIP',
-  VIP_DETAILS: 'VIP_детализация',
-  VIP_PRODUCTS: 'VIP_продукты',
-  CREDIT_SUMMARY: 'Кредит',
-  CREDIT_DETAILS: 'Кредит_детализация',
+  VIP_SUMMARY: "VIP",
+  VIP_DETAILS: "VIP_детализация",
+  VIP_PRODUCTS: "VIP_продукты",
+  CREDIT_SUMMARY: "Кредит",
+  CREDIT_DETAILS: "Кредит_детализация",
 
   // Продукты по месяцам (8)
   // Прод_Май ... Прод_Декабрь
 
   // Служебные (7)
-  QR_RECONCILIATION: 'Сверка_QR',
-  STATUSES: 'Статусы',
-  FAILURES: 'Сбои',
-  CROSS_ANALYSIS: 'Кросс_анализ',
-  DAILY: 'Ежедневно',               // По датам!
-  AVERAGE_CHECK: 'Средний_чек',
-  VERIFICATION: 'Верификация',
+  QR_RECONCILIATION: "Сверка_QR",
+  STATUSES: "Статусы",
+  FAILURES: "Сбои",
+  CROSS_ANALYSIS: "Кросс_анализ",
+  DAILY: "Ежедневно", // По датам!
+  AVERAGE_CHECK: "Средний_чек",
+  VERIFICATION: "Верификация",
 } as const;
 
 /**
@@ -631,23 +693,23 @@ export const STRUCTURE_A_SHEETS = {
  */
 export const STRUCTURE_B_SHEETS = {
   // Общие (5)
-  SUMMARY: 'Сводка',
-  BY_MONTHS: 'По месяцам',
-  BY_DAYS: 'По дням',               // По датам!
-  BY_MACHINES: 'По автоматам',
-  BY_PRODUCTS: 'По продуктам',
+  SUMMARY: "Сводка",
+  BY_MONTHS: "По месяцам",
+  BY_DAYS: "По дням", // По датам!
+  BY_MACHINES: "По автоматам",
+  BY_PRODUCTS: "По продуктам",
 
   // Ингредиенты (5)
-  INGREDIENTS_SUMMARY: 'Расход ингр. сводка',
-  INGREDIENTS_MONTHS: 'Расход ингр. по месяцам',
-  INGREDIENTS_MACHINES: 'Расход ингр. по автоматам',
-  INGREDIENTS_DAYS: 'Расход ингр. по дням',
+  INGREDIENTS_SUMMARY: "Расход ингр. сводка",
+  INGREDIENTS_MONTHS: "Расход ингр. по месяцам",
+  INGREDIENTS_MACHINES: "Расход ингр. по автоматам",
+  INGREDIENTS_DAYS: "Расход ингр. по дням",
 
   // Дополнительные (4)
-  QR_RECONCILIATION: 'Сверка QR',
-  FAILURES: 'Сбои',
-  PRICE_HISTORY: 'История цен',
-  PURCHASES: 'Закупки',
+  QR_RECONCILIATION: "Сверка QR",
+  FAILURES: "Сбои",
+  PRICE_HISTORY: "История цен",
+  PURCHASES: "Закупки",
 } as const;
 
 /**
@@ -656,17 +718,17 @@ export const STRUCTURE_B_SHEETS = {
 export const VERIFICATION_RULES = {
   // Payme файлы
   PAYME_HEADER_ROW: 6,
-  PAYME_AMOUNT_COLUMN: 'СУММА БЕЗ КОМИССИИ',
+  PAYME_AMOUNT_COLUMN: "СУММА БЕЗ КОМИССИИ",
 
   // Фильтры
-  INGREDIENT_FILTER: ['Доставлен', 'Доставка подтверждена'] as string[],
-  PAYMENT_FILTER: ['Оплачено'] as string[],
+  INGREDIENT_FILTER: ["Доставлен", "Доставка подтверждена"] as string[],
+  PAYMENT_FILTER: ["Оплачено"] as string[],
 
   // Допуски сверки QR
-  QR_TOLERANCE_OK: 0.01,        // < 1%
-  QR_TOLERANCE_WARNING: 0.03,   // 1-3%
+  QR_TOLERANCE_OK: 0.01, // < 1%
+  QR_TOLERANCE_WARNING: 0.03, // 1-3%
   // > 3% = CRITICAL
 
   // Холодные напитки
-  COLD_DRINKS_MACHINE: '039ec91c0000',
+  COLD_DRINKS_MACHINE: "039ec91c0000",
 } as const;

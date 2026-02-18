@@ -1,11 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useRef, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Upload,
   FileSpreadsheet,
-  Search,
   MoreVertical,
   Eye,
   CheckCircle,
@@ -25,20 +24,20 @@ import {
   X,
   RefreshCw,
   History,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -46,23 +45,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { importApi } from '@/lib/api';
-import { formatDateTime } from '@/lib/utils';
-import { toast } from 'sonner';
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { importApi } from "@/lib/api";
+import { formatDateTime } from "@/lib/utils";
+import { toast } from "sonner";
 
 // --- Types ---
 
@@ -116,8 +115,8 @@ interface AuditLogEntry {
   action: string;
   table_name: string;
   row_id?: string;
-  before?: Record<string, any>;
-  after?: Record<string, any>;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -132,75 +131,177 @@ interface SessionsResponse {
 }
 
 type ImportDomain =
-  | 'PRODUCTS'
-  | 'MACHINES'
-  | 'USERS'
-  | 'EMPLOYEES'
-  | 'TRANSACTIONS'
-  | 'SALES'
-  | 'INVENTORY'
-  | 'CUSTOMERS'
-  | 'PRICES'
-  | 'CATEGORIES'
-  | 'LOCATIONS'
-  | 'CONTRACTORS';
+  | "PRODUCTS"
+  | "MACHINES"
+  | "USERS"
+  | "EMPLOYEES"
+  | "TRANSACTIONS"
+  | "SALES"
+  | "INVENTORY"
+  | "CUSTOMERS"
+  | "PRICES"
+  | "CATEGORIES"
+  | "LOCATIONS"
+  | "CONTRACTORS";
 
 type ImportStatus =
-  | 'CREATED'
-  | 'UPLOADING'
-  | 'UPLOADED'
-  | 'CLASSIFYING'
-  | 'CLASSIFIED'
-  | 'MAPPING'
-  | 'MAPPED'
-  | 'VALIDATING'
-  | 'VALIDATED'
-  | 'AWAITING_APPROVAL'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXECUTING'
-  | 'COMPLETED'
-  | 'COMPLETED_WITH_ERRORS'
-  | 'FAILED';
+  | "CREATED"
+  | "UPLOADING"
+  | "UPLOADED"
+  | "CLASSIFYING"
+  | "CLASSIFIED"
+  | "MAPPING"
+  | "MAPPED"
+  | "VALIDATING"
+  | "VALIDATED"
+  | "AWAITING_APPROVAL"
+  | "APPROVED"
+  | "REJECTED"
+  | "EXECUTING"
+  | "COMPLETED"
+  | "COMPLETED_WITH_ERRORS"
+  | "FAILED";
 
 // --- Config Maps ---
 
-const statusConfig: Record<ImportStatus, { label: string; color: string; bgColor: string }> = {
-  CREATED: { label: 'Создана', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  UPLOADING: { label: 'Загрузка', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  UPLOADED: { label: 'Загружена', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  CLASSIFYING: { label: 'Классификация', color: 'text-indigo-700', bgColor: 'bg-indigo-100' },
-  CLASSIFIED: { label: 'Классифицирована', color: 'text-indigo-700', bgColor: 'bg-indigo-100' },
-  MAPPING: { label: 'Маппинг', color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
-  MAPPED: { label: 'Маппинг завершён', color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
-  VALIDATING: { label: 'Валидация', color: 'text-amber-700', bgColor: 'bg-amber-100' },
-  VALIDATED: { label: 'Проверена', color: 'text-amber-700', bgColor: 'bg-amber-100' },
-  AWAITING_APPROVAL: { label: 'Ожидает одобрения', color: 'text-orange-700', bgColor: 'bg-orange-100' },
-  APPROVED: { label: 'Одобрена', color: 'text-green-700', bgColor: 'bg-green-100' },
-  REJECTED: { label: 'Отклонена', color: 'text-red-700', bgColor: 'bg-red-100' },
-  EXECUTING: { label: 'Выполняется', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  COMPLETED: { label: 'Завершена', color: 'text-green-700', bgColor: 'bg-green-100' },
-  COMPLETED_WITH_ERRORS: { label: 'Завершена с ошибками', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
-  FAILED: { label: 'Ошибка', color: 'text-red-700', bgColor: 'bg-red-100' },
+const statusConfig: Record<
+  ImportStatus,
+  { label: string; color: string; bgColor: string }
+> = {
+  CREATED: {
+    label: "Создана",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  UPLOADING: {
+    label: "Загрузка",
+    color: "text-blue-700",
+    bgColor: "bg-blue-100",
+  },
+  UPLOADED: {
+    label: "Загружена",
+    color: "text-blue-700",
+    bgColor: "bg-blue-100",
+  },
+  CLASSIFYING: {
+    label: "Классификация",
+    color: "text-indigo-700",
+    bgColor: "bg-indigo-100",
+  },
+  CLASSIFIED: {
+    label: "Классифицирована",
+    color: "text-indigo-700",
+    bgColor: "bg-indigo-100",
+  },
+  MAPPING: { label: "Маппинг", color: "text-cyan-700", bgColor: "bg-cyan-100" },
+  MAPPED: {
+    label: "Маппинг завершён",
+    color: "text-cyan-700",
+    bgColor: "bg-cyan-100",
+  },
+  VALIDATING: {
+    label: "Валидация",
+    color: "text-amber-700",
+    bgColor: "bg-amber-100",
+  },
+  VALIDATED: {
+    label: "Проверена",
+    color: "text-amber-700",
+    bgColor: "bg-amber-100",
+  },
+  AWAITING_APPROVAL: {
+    label: "Ожидает одобрения",
+    color: "text-orange-700",
+    bgColor: "bg-orange-100",
+  },
+  APPROVED: {
+    label: "Одобрена",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
+  },
+  REJECTED: {
+    label: "Отклонена",
+    color: "text-red-700",
+    bgColor: "bg-red-100",
+  },
+  EXECUTING: {
+    label: "Выполняется",
+    color: "text-blue-700",
+    bgColor: "bg-blue-100",
+  },
+  COMPLETED: {
+    label: "Завершена",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
+  },
+  COMPLETED_WITH_ERRORS: {
+    label: "Завершена с ошибками",
+    color: "text-yellow-700",
+    bgColor: "bg-yellow-100",
+  },
+  FAILED: { label: "Ошибка", color: "text-red-700", bgColor: "bg-red-100" },
 };
 
-const domainConfig: Record<ImportDomain, { label: string; color: string; bgColor: string }> = {
-  PRODUCTS: { label: 'Продукты', color: 'text-green-700', bgColor: 'bg-green-100' },
-  MACHINES: { label: 'Автоматы', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  USERS: { label: 'Пользователи', color: 'text-purple-700', bgColor: 'bg-purple-100' },
-  EMPLOYEES: { label: 'Сотрудники', color: 'text-indigo-700', bgColor: 'bg-indigo-100' },
-  TRANSACTIONS: { label: 'Транзакции', color: 'text-orange-700', bgColor: 'bg-orange-100' },
-  SALES: { label: 'Продажи', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
-  INVENTORY: { label: 'Инвентарь', color: 'text-teal-700', bgColor: 'bg-teal-100' },
-  CUSTOMERS: { label: 'Клиенты', color: 'text-pink-700', bgColor: 'bg-pink-100' },
-  PRICES: { label: 'Цены', color: 'text-amber-700', bgColor: 'bg-amber-100' },
-  CATEGORIES: { label: 'Категории', color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
-  LOCATIONS: { label: 'Локации', color: 'text-sky-700', bgColor: 'bg-sky-100' },
-  CONTRACTORS: { label: 'Контрагенты', color: 'text-slate-700', bgColor: 'bg-slate-100' },
+const domainConfig: Record<
+  ImportDomain,
+  { label: string; color: string; bgColor: string }
+> = {
+  PRODUCTS: {
+    label: "Продукты",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
+  },
+  MACHINES: {
+    label: "Автоматы",
+    color: "text-blue-700",
+    bgColor: "bg-blue-100",
+  },
+  USERS: {
+    label: "Пользователи",
+    color: "text-purple-700",
+    bgColor: "bg-purple-100",
+  },
+  EMPLOYEES: {
+    label: "Сотрудники",
+    color: "text-indigo-700",
+    bgColor: "bg-indigo-100",
+  },
+  TRANSACTIONS: {
+    label: "Транзакции",
+    color: "text-orange-700",
+    bgColor: "bg-orange-100",
+  },
+  SALES: {
+    label: "Продажи",
+    color: "text-emerald-700",
+    bgColor: "bg-emerald-100",
+  },
+  INVENTORY: {
+    label: "Инвентарь",
+    color: "text-teal-700",
+    bgColor: "bg-teal-100",
+  },
+  CUSTOMERS: {
+    label: "Клиенты",
+    color: "text-pink-700",
+    bgColor: "bg-pink-100",
+  },
+  PRICES: { label: "Цены", color: "text-amber-700", bgColor: "bg-amber-100" },
+  CATEGORIES: {
+    label: "Категории",
+    color: "text-cyan-700",
+    bgColor: "bg-cyan-100",
+  },
+  LOCATIONS: { label: "Локации", color: "text-sky-700", bgColor: "bg-sky-100" },
+  CONTRACTORS: {
+    label: "Контрагенты",
+    color: "text-slate-700",
+    bgColor: "bg-slate-100",
+  },
 };
 
 const domainOptions = [
-  { value: 'ALL', label: 'Все домены' },
+  { value: "ALL", label: "Все домены" },
   ...Object.entries(domainConfig).map(([key, cfg]) => ({
     value: key,
     label: cfg.label,
@@ -208,26 +309,35 @@ const domainOptions = [
 ];
 
 const statusFilterOptions = [
-  { value: 'ALL', label: 'Все статусы' },
+  { value: "ALL", label: "Все статусы" },
   ...Object.entries(statusConfig).map(([key, cfg]) => ({
     value: key,
     label: cfg.label,
   })),
 ];
 
-const ACCEPTED_FORMATS = '.csv,.xls,.xlsx,.json';
+const ACCEPTED_FORMATS = ".csv,.xls,.xlsx,.json";
 const PAGE_SIZE = 20;
 
 // --- Wizard Steps ---
 
-type WizardStep = 'upload' | 'classification' | 'mapping' | 'validation' | 'approve';
+type WizardStep =
+  | "upload"
+  | "classification"
+  | "mapping"
+  | "validation"
+  | "approve";
 
-const wizardSteps: { id: WizardStep; label: string; icon: React.ElementType }[] = [
-  { id: 'upload', label: 'Загрузка', icon: FileUp },
-  { id: 'classification', label: 'Классификация', icon: ClipboardList },
-  { id: 'mapping', label: 'Маппинг колонок', icon: Columns },
-  { id: 'validation', label: 'Валидация', icon: ShieldCheck },
-  { id: 'approve', label: 'Одобрение', icon: Play },
+const wizardSteps: {
+  id: WizardStep;
+  label: string;
+  icon: React.ElementType;
+}[] = [
+  { id: "upload", label: "Загрузка", icon: FileUp },
+  { id: "classification", label: "Классификация", icon: ClipboardList },
+  { id: "mapping", label: "Маппинг колонок", icon: Columns },
+  { id: "validation", label: "Валидация", icon: ShieldCheck },
+  { id: "approve", label: "Одобрение", icon: Play },
 ];
 
 function formatFileSize(bytes: number): string {
@@ -238,122 +348,139 @@ function formatFileSize(bytes: number): string {
 
 export default function ImportPage() {
   // --- List state ---
-  const [domainFilter, setDomainFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [domainFilter, setDomainFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
 
   // --- Wizard state ---
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardStep, setWizardStep] = useState<WizardStep>('upload');
+  const [wizardStep, setWizardStep] = useState<WizardStep>("upload");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [wizardSessionId, setWizardSessionId] = useState<string | null>(null);
-  const [domainOverride, setDomainOverride] = useState<string>('');
-  const [columnOverrides, setColumnOverrides] = useState<Record<string, string>>({});
+  const [domainOverride, setDomainOverride] = useState<string>("");
+  const [columnOverrides, setColumnOverrides] = useState<
+    Record<string, string>
+  >({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- Detail state ---
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState('info');
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
+  const [detailTab, setDetailTab] = useState("info");
 
   // --- Reject state ---
   const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  const [rejectReason, setRejectReason] = useState("");
 
   const queryClient = useQueryClient();
 
   // --- Queries ---
 
   const queryParams = {
-    domain: domainFilter !== 'ALL' ? domainFilter : undefined,
-    status: statusFilter !== 'ALL' ? statusFilter : undefined,
+    domain: domainFilter !== "ALL" ? domainFilter : undefined,
+    status: statusFilter !== "ALL" ? statusFilter : undefined,
     page,
     limit: PAGE_SIZE,
   };
 
   const { data: sessionsResponse, isLoading } = useQuery({
-    queryKey: ['import-sessions', queryParams],
+    queryKey: ["import-sessions", queryParams],
     queryFn: () =>
-      importApi.getSessions(queryParams).then((res) => res.data as SessionsResponse),
+      importApi
+        .getSessions(queryParams)
+        .then((res) => res.data as SessionsResponse),
   });
 
   const { data: wizardSession, refetch: refetchWizardSession } = useQuery({
-    queryKey: ['import-session', wizardSessionId],
+    queryKey: ["import-session", wizardSessionId],
     queryFn: () =>
-      importApi.getSession(wizardSessionId!).then((res) => res.data as ImportSession),
+      importApi
+        .getSession(wizardSessionId!)
+        .then((res) => res.data as ImportSession),
     enabled: !!wizardSessionId,
   });
 
-  const { data: detailSession, refetch: refetchDetailSession } = useQuery({
-    queryKey: ['import-session-detail', selectedSessionId],
+  const { data: detailSession, refetch: _refetchDetailSession } = useQuery({
+    queryKey: ["import-session-detail", selectedSessionId],
     queryFn: () =>
-      importApi.getSession(selectedSessionId!).then((res) => res.data as ImportSession),
+      importApi
+        .getSession(selectedSessionId!)
+        .then((res) => res.data as ImportSession),
     enabled: !!selectedSessionId && detailOpen,
   });
 
   const { data: auditLog } = useQuery({
-    queryKey: ['import-audit-log', selectedSessionId],
+    queryKey: ["import-audit-log", selectedSessionId],
     queryFn: () =>
-      importApi.getAuditLog(selectedSessionId!).then((res) => res.data as AuditLogEntry[]),
-    enabled: !!selectedSessionId && detailOpen && detailTab === 'audit',
+      importApi
+        .getAuditLog(selectedSessionId!)
+        .then((res) => res.data as AuditLogEntry[]),
+    enabled: !!selectedSessionId && detailOpen && detailTab === "audit",
   });
 
   const sessions = sessionsResponse?.data || [];
-  const meta = sessionsResponse?.meta || { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 };
+  const meta = sessionsResponse?.meta || {
+    total: 0,
+    page: 1,
+    limit: PAGE_SIZE,
+    totalPages: 1,
+  };
 
   // --- Mutations ---
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
       return importApi.createSession(formData);
     },
     onSuccess: (res) => {
       const session = res.data as ImportSession;
       setWizardSessionId(session.id);
-      toast.success('Файл загружен успешно');
-      setWizardStep('classification');
+      toast.success("Файл загружен успешно");
+      setWizardStep("classification");
     },
     onError: () => {
-      toast.error('Ошибка при загрузке файла');
+      toast.error("Ошибка при загрузке файла");
     },
   });
 
   const classifyMutation = useMutation({
     mutationFn: (id: string) => importApi.classifySession(id),
     onSuccess: () => {
-      toast.success('Классификация завершена');
+      toast.success("Классификация завершена");
       refetchWizardSession();
-      setWizardStep('mapping');
+      setWizardStep("mapping");
     },
     onError: () => {
-      toast.error('Ошибка классификации');
+      toast.error("Ошибка классификации");
     },
   });
 
   const validateMutation = useMutation({
     mutationFn: (id: string) => importApi.validateSession(id),
     onSuccess: () => {
-      toast.success('Валидация завершена');
+      toast.success("Валидация завершена");
       refetchWizardSession();
-      setWizardStep('validation');
+      setWizardStep("validation");
     },
     onError: () => {
-      toast.error('Ошибка валидации');
+      toast.error("Ошибка валидации");
     },
   });
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => importApi.approveSession(id),
     onSuccess: () => {
-      toast.success('Импорт одобрен и запущен');
-      queryClient.invalidateQueries({ queryKey: ['import-sessions'] });
+      toast.success("Импорт одобрен и запущен");
+      queryClient.invalidateQueries({ queryKey: ["import-sessions"] });
       resetWizard();
     },
     onError: () => {
-      toast.error('Ошибка при одобрении импорта');
+      toast.error("Ошибка при одобрении импорта");
     },
   });
 
@@ -361,14 +488,14 @@ export default function ImportPage() {
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       importApi.rejectSession(id, { reason }),
     onSuccess: () => {
-      toast.success('Импорт отклонён');
-      queryClient.invalidateQueries({ queryKey: ['import-sessions'] });
+      toast.success("Импорт отклонён");
+      queryClient.invalidateQueries({ queryKey: ["import-sessions"] });
       setRejectOpen(false);
-      setRejectReason('');
+      setRejectReason("");
       resetWizard();
     },
     onError: () => {
-      toast.error('Ошибка при отклонении');
+      toast.error("Ошибка при отклонении");
     },
   });
 
@@ -376,10 +503,10 @@ export default function ImportPage() {
 
   const resetWizard = () => {
     setWizardOpen(false);
-    setWizardStep('upload');
+    setWizardStep("upload");
     setUploadedFile(null);
     setWizardSessionId(null);
-    setDomainOverride('');
+    setDomainOverride("");
     setColumnOverrides({});
   };
 
@@ -418,7 +545,7 @@ export default function ImportPage() {
     }
   };
 
-  const handleValidate = () => {
+  () => {
     if (wizardSessionId) {
       validateMutation.mutate(wizardSessionId);
     }
@@ -438,25 +565,26 @@ export default function ImportPage() {
 
   const handleViewSession = (session: ImportSession) => {
     setSelectedSessionId(session.id);
-    setDetailTab('info');
+    setDetailTab("info");
     setDetailOpen(true);
   };
 
-  const getStepIndex = (step: WizardStep) => wizardSteps.findIndex((s) => s.id === step);
+  const getStepIndex = (step: WizardStep) =>
+    wizardSteps.findIndex((s) => s.id === step);
 
   // --- Render Wizard Step Content ---
 
   const renderWizardStepContent = () => {
     switch (wizardStep) {
-      case 'upload':
+      case "upload":
         return (
           <div className="space-y-4">
             {/* Drop zone */}
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
                 isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:border-primary/50"
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -526,7 +654,7 @@ export default function ImportPage() {
           </div>
         );
 
-      case 'classification':
+      case "classification":
         return (
           <div className="space-y-4">
             {wizardSession ? (
@@ -539,33 +667,53 @@ export default function ImportPage() {
                         <p className="font-medium">{wizardSession.file_name}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Строк в файле</p>
-                        <p className="font-medium">{wizardSession.total_rows}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Строк в файле
+                        </p>
+                        <p className="font-medium">
+                          {wizardSession.total_rows}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Определённый домен</p>
+                        <p className="text-sm text-muted-foreground">
+                          Определённый домен
+                        </p>
                         <div className="flex items-center gap-2 mt-1">
                           {wizardSession.detected_domain ? (
                             <>
                               <Badge
                                 className={`${domainConfig[wizardSession.detected_domain]?.bgColor} ${domainConfig[wizardSession.detected_domain]?.color} border-0`}
                               >
-                                {domainConfig[wizardSession.detected_domain]?.label || wizardSession.detected_domain}
+                                {domainConfig[wizardSession.detected_domain]
+                                  ?.label || wizardSession.detected_domain}
                               </Badge>
-                              {wizardSession.classification_confidence != null && (
+                              {wizardSession.classification_confidence !=
+                                null && (
                                 <span className="text-sm text-muted-foreground">
-                                  ({(wizardSession.classification_confidence * 100).toFixed(0)}%)
+                                  (
+                                  {(
+                                    wizardSession.classification_confidence *
+                                    100
+                                  ).toFixed(0)}
+                                  %)
                                 </span>
                               )}
                             </>
                           ) : (
-                            <span className="text-muted-foreground">Не определён</span>
+                            <span className="text-muted-foreground">
+                              Не определён
+                            </span>
                           )}
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Переопределить домен</p>
-                        <Select value={domainOverride} onValueChange={setDomainOverride}>
+                        <p className="text-sm text-muted-foreground">
+                          Переопределить домен
+                        </p>
+                        <Select
+                          value={domainOverride}
+                          onValueChange={setDomainOverride}
+                        >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Авто" />
                           </SelectTrigger>
@@ -584,7 +732,10 @@ export default function ImportPage() {
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setWizardStep('upload')}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setWizardStep("upload")}
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Назад
                   </Button>
@@ -594,13 +745,15 @@ export default function ImportPage() {
                       onClick={handleClassify}
                       disabled={classifyMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 mr-2 ${classifyMutation.isPending ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 mr-2 ${classifyMutation.isPending ? "animate-spin" : ""}`}
+                      />
                       Переклассифицировать
                     </Button>
                     <Button
                       onClick={() => {
                         if (wizardSession.detected_domain || domainOverride) {
-                          setWizardStep('mapping');
+                          setWizardStep("mapping");
                         } else {
                           handleClassify();
                         }
@@ -616,16 +769,19 @@ export default function ImportPage() {
             ) : (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 mx-auto animate-spin text-muted-foreground" />
-                <p className="mt-2 text-muted-foreground">Загрузка данных сессии...</p>
+                <p className="mt-2 text-muted-foreground">
+                  Загрузка данных сессии...
+                </p>
               </div>
             )}
           </div>
         );
 
-      case 'mapping':
+      case "mapping":
         return (
           <div className="space-y-4">
-            {wizardSession?.column_mappings && wizardSession.column_mappings.length > 0 ? (
+            {wizardSession?.column_mappings &&
+            wizardSession.column_mappings.length > 0 ? (
               <>
                 <Card>
                   <CardContent className="p-0">
@@ -641,14 +797,18 @@ export default function ImportPage() {
                         {wizardSession.column_mappings.map((mapping, idx) => (
                           <TableRow
                             key={idx}
-                            className={mapping.auto_detected ? '' : 'bg-amber-50'}
+                            className={
+                              mapping.auto_detected ? "" : "bg-amber-50"
+                            }
                           >
                             <TableCell className="font-mono text-sm">
                               {mapping.source_column}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{mapping.target_column || '-'}</span>
+                                <span className="font-medium">
+                                  {mapping.target_column || "-"}
+                                </span>
                                 {mapping.auto_detected ? (
                                   <CheckCircle className="h-4 w-4 text-green-500" />
                                 ) : (
@@ -664,7 +824,9 @@ export default function ImportPage() {
                             <TableCell>
                               <Input
                                 placeholder="Оставить как есть"
-                                value={columnOverrides[mapping.source_column] || ''}
+                                value={
+                                  columnOverrides[mapping.source_column] || ""
+                                }
                                 onChange={(e) =>
                                   setColumnOverrides((prev) => ({
                                     ...prev,
@@ -704,7 +866,10 @@ export default function ImportPage() {
             )}
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setWizardStep('classification')}>
+              <Button
+                variant="outline"
+                onClick={() => setWizardStep("classification")}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Назад
               </Button>
@@ -732,7 +897,7 @@ export default function ImportPage() {
           </div>
         );
 
-      case 'validation':
+      case "validation":
         return (
           <div className="space-y-4">
             {wizardSession ? (
@@ -744,7 +909,9 @@ export default function ImportPage() {
                       <div className="flex items-center gap-2">
                         <XCircle className="h-5 w-5 text-red-500" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Ошибки</p>
+                          <p className="text-sm text-muted-foreground">
+                            Ошибки
+                          </p>
                           <p className="text-xl font-bold text-red-600">
                             {wizardSession.errors_count}
                           </p>
@@ -757,7 +924,9 @@ export default function ImportPage() {
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-amber-500" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Предупреждения</p>
+                          <p className="text-sm text-muted-foreground">
+                            Предупреждения
+                          </p>
                           <p className="text-xl font-bold text-amber-600">
                             {wizardSession.warnings_count}
                           </p>
@@ -770,7 +939,9 @@ export default function ImportPage() {
                       <div className="flex items-center gap-2">
                         <Info className="h-5 w-5 text-blue-500" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Проверено строк</p>
+                          <p className="text-sm text-muted-foreground">
+                            Проверено строк
+                          </p>
                           <p className="text-xl font-bold text-blue-600">
                             {wizardSession.total_rows}
                           </p>
@@ -781,109 +952,132 @@ export default function ImportPage() {
                 </div>
 
                 {/* Validation Errors Table */}
-                {wizardSession.validation_errors && wizardSession.validation_errors.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        Ошибки валидации
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-20">Строка</TableHead>
-                            <TableHead>Поле</TableHead>
-                            <TableHead>Сообщение</TableHead>
-                            <TableHead>Значение</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {wizardSession.validation_errors.slice(0, 50).map((err, idx) => (
-                            <TableRow key={idx} className="bg-red-50/50">
-                              <TableCell className="font-mono text-sm">
-                                #{err.row}
-                              </TableCell>
-                              <TableCell className="font-medium">{err.field}</TableCell>
-                              <TableCell className="text-sm">{err.message}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground font-mono">
-                                {err.value || '-'}
-                              </TableCell>
+                {wizardSession.validation_errors &&
+                  wizardSession.validation_errors.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-500" />
+                          Ошибки валидации
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-20">Строка</TableHead>
+                              <TableHead>Поле</TableHead>
+                              <TableHead>Сообщение</TableHead>
+                              <TableHead>Значение</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      {wizardSession.validation_errors.length > 50 && (
-                        <p className="text-sm text-muted-foreground p-4 text-center">
-                          Показано 50 из {wizardSession.validation_errors.length} ошибок
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                          </TableHeader>
+                          <TableBody>
+                            {wizardSession.validation_errors
+                              .slice(0, 50)
+                              .map((err, idx) => (
+                                <TableRow key={idx} className="bg-red-50/50">
+                                  <TableCell className="font-mono text-sm">
+                                    #{err.row}
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {err.field}
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {err.message}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground font-mono">
+                                    {err.value || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                        {wizardSession.validation_errors.length > 50 && (
+                          <p className="text-sm text-muted-foreground p-4 text-center">
+                            Показано 50 из{" "}
+                            {wizardSession.validation_errors.length} ошибок
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
 
                 {/* Validation Warnings Table */}
-                {wizardSession.validation_warnings && wizardSession.validation_warnings.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        Предупреждения
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-20">Строка</TableHead>
-                            <TableHead>Поле</TableHead>
-                            <TableHead>Сообщение</TableHead>
-                            <TableHead>Значение</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {wizardSession.validation_warnings.slice(0, 30).map((warn, idx) => (
-                            <TableRow key={idx} className="bg-amber-50/50">
-                              <TableCell className="font-mono text-sm">
-                                #{warn.row}
-                              </TableCell>
-                              <TableCell className="font-medium">{warn.field}</TableCell>
-                              <TableCell className="text-sm">{warn.message}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground font-mono">
-                                {warn.value || '-'}
-                              </TableCell>
+                {wizardSession.validation_warnings &&
+                  wizardSession.validation_warnings.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          Предупреждения
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-20">Строка</TableHead>
+                              <TableHead>Поле</TableHead>
+                              <TableHead>Сообщение</TableHead>
+                              <TableHead>Значение</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      {wizardSession.validation_warnings.length > 30 && (
-                        <p className="text-sm text-muted-foreground p-4 text-center">
-                          Показано 30 из {wizardSession.validation_warnings.length} предупреждений
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                          </TableHeader>
+                          <TableBody>
+                            {wizardSession.validation_warnings
+                              .slice(0, 30)
+                              .map((warn, idx) => (
+                                <TableRow key={idx} className="bg-amber-50/50">
+                                  <TableCell className="font-mono text-sm">
+                                    #{warn.row}
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {warn.field}
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {warn.message}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground font-mono">
+                                    {warn.value || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                        {wizardSession.validation_warnings.length > 30 && (
+                          <p className="text-sm text-muted-foreground p-4 text-center">
+                            Показано 30 из{" "}
+                            {wizardSession.validation_warnings.length}{" "}
+                            предупреждений
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
 
-                {wizardSession.errors_count === 0 && wizardSession.warnings_count === 0 && (
-                  <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-8">
-                      <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
-                      <p className="font-medium text-green-700">Валидация пройдена успешно</p>
-                      <p className="text-sm text-muted-foreground">
-                        Ошибок и предупреждений не найдено
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                {wizardSession.errors_count === 0 &&
+                  wizardSession.warnings_count === 0 && (
+                    <Card>
+                      <CardContent className="flex flex-col items-center justify-center py-8">
+                        <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
+                        <p className="font-medium text-green-700">
+                          Валидация пройдена успешно
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Ошибок и предупреждений не найдено
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setWizardStep('mapping')}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setWizardStep("mapping")}
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Назад
                   </Button>
-                  <Button onClick={() => setWizardStep('approve')}>
+                  <Button onClick={() => setWizardStep("approve")}>
                     Далее
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -897,7 +1091,7 @@ export default function ImportPage() {
           </div>
         );
 
-      case 'approve':
+      case "approve":
         return (
           <div className="space-y-4">
             {wizardSession ? (
@@ -915,44 +1109,60 @@ export default function ImportPage() {
                       <div>
                         <p className="text-sm text-muted-foreground">Домен</p>
                         <Badge
-                          className={`${domainConfig[wizardSession.domain]?.bgColor || 'bg-muted'} ${domainConfig[wizardSession.domain]?.color || 'text-muted-foreground'} border-0`}
+                          className={`${domainConfig[wizardSession.domain]?.bgColor || "bg-muted"} ${domainConfig[wizardSession.domain]?.color || "text-muted-foreground"} border-0`}
                         >
-                          {domainConfig[wizardSession.domain]?.label || wizardSession.domain}
+                          {domainConfig[wizardSession.domain]?.label ||
+                            wizardSession.domain}
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Всего строк</p>
-                        <p className="font-medium">{wizardSession.total_rows}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Всего строк
+                        </p>
+                        <p className="font-medium">
+                          {wizardSession.total_rows}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Статус</p>
                         <Badge
                           className={`${statusConfig[wizardSession.status]?.bgColor} ${statusConfig[wizardSession.status]?.color} border-0`}
                         >
-                          {statusConfig[wizardSession.status]?.label || wizardSession.status}
+                          {statusConfig[wizardSession.status]?.label ||
+                            wizardSession.status}
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Вставок (INSERT)</p>
+                        <p className="text-sm text-muted-foreground">
+                          Вставок (INSERT)
+                        </p>
                         <p className="text-lg font-bold text-green-600">
-                          {wizardSession.inserts_count ?? '-'}
+                          {wizardSession.inserts_count ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Обновлений (UPDATE)</p>
+                        <p className="text-sm text-muted-foreground">
+                          Обновлений (UPDATE)
+                        </p>
                         <p className="text-lg font-bold text-blue-600">
-                          {wizardSession.updates_count ?? '-'}
+                          {wizardSession.updates_count ?? "-"}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Ошибки</p>
-                        <p className={`font-medium ${wizardSession.errors_count > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        <p
+                          className={`font-medium ${wizardSession.errors_count > 0 ? "text-red-600" : "text-green-600"}`}
+                        >
                           {wizardSession.errors_count}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Предупреждения</p>
-                        <p className={`font-medium ${wizardSession.warnings_count > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                        <p className="text-sm text-muted-foreground">
+                          Предупреждения
+                        </p>
+                        <p
+                          className={`font-medium ${wizardSession.warnings_count > 0 ? "text-amber-600" : "text-green-600"}`}
+                        >
                           {wizardSession.warnings_count}
                         </p>
                       </div>
@@ -964,13 +1174,17 @@ export default function ImportPage() {
                   <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                     <p className="text-sm text-red-700">
-                      Обнаружены ошибки. Рекомендуется исправить файл и загрузить повторно.
+                      Обнаружены ошибки. Рекомендуется исправить файл и
+                      загрузить повторно.
                     </p>
                   </div>
                 )}
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setWizardStep('validation')}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setWizardStep("validation")}
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Назад
                   </Button>
@@ -1108,8 +1322,13 @@ export default function ImportPage() {
               </TableHeader>
               <TableBody>
                 {sessions.map((session) => {
-                  const stCfg = statusConfig[session.status] || statusConfig.CREATED;
-                  const domCfg = domainConfig[session.domain] || { label: session.domain, color: 'text-muted-foreground', bgColor: 'bg-muted' };
+                  const stCfg =
+                    statusConfig[session.status] || statusConfig.CREATED;
+                  const domCfg = domainConfig[session.domain] || {
+                    label: session.domain,
+                    color: "text-muted-foreground",
+                    bgColor: "bg-muted",
+                  };
 
                   return (
                     <TableRow
@@ -1121,12 +1340,16 @@ export default function ImportPage() {
                         {session.session_number || session.id.substring(0, 8)}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${domCfg.bgColor} ${domCfg.color} border-0 text-xs`}>
+                        <Badge
+                          className={`${domCfg.bgColor} ${domCfg.color} border-0 text-xs`}
+                        >
                           {domCfg.label}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${stCfg.bgColor} ${stCfg.color} border-0`}>
+                        <Badge
+                          className={`${stCfg.bgColor} ${stCfg.color} border-0`}
+                        >
                           {stCfg.label}
                         </Badge>
                       </TableCell>
@@ -1134,8 +1357,13 @@ export default function ImportPage() {
                         {session.file_name}
                       </TableCell>
                       <TableCell className="text-sm">
-                        <span className="font-medium">{session.processed_rows}</span>
-                        <span className="text-muted-foreground"> / {session.total_rows}</span>
+                        <span className="font-medium">
+                          {session.processed_rows}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          / {session.total_rows}
+                        </span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm">
                         {formatDateTime(session.created_at)}
@@ -1174,9 +1402,8 @@ export default function ImportPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Показано {(meta.page - 1) * meta.limit + 1}
-              {' '}-{' '}
-              {Math.min(meta.page * meta.limit, meta.total)} из {meta.total}{' '}
+              Показано {(meta.page - 1) * meta.limit + 1} -{" "}
+              {Math.min(meta.page * meta.limit, meta.total)} из {meta.total}{" "}
               сессий
             </p>
             <div className="flex items-center gap-2">
@@ -1231,10 +1458,10 @@ export default function ImportPage() {
                   <div
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-full ${
                       isActive
-                        ? 'bg-primary text-primary-foreground'
+                        ? "bg-primary text-primary-foreground"
                         : isCompleted
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-muted text-muted-foreground'
+                          ? "bg-green-100 text-green-700"
+                          : "bg-muted text-muted-foreground"
                     }`}
                   >
                     <StepIcon className="h-4 w-4 shrink-0" />
@@ -1280,7 +1507,7 @@ export default function ImportPage() {
                 onClick={handleReject}
                 disabled={!rejectReason || rejectMutation.isPending}
               >
-                {rejectMutation.isPending ? 'Обработка...' : 'Отклонить'}
+                {rejectMutation.isPending ? "Обработка..." : "Отклонить"}
               </Button>
             </div>
           </div>
@@ -1312,15 +1539,17 @@ export default function ImportPage() {
                     <Badge
                       className={`mt-1 ${statusConfig[detailSession.status]?.bgColor} ${statusConfig[detailSession.status]?.color} border-0`}
                     >
-                      {statusConfig[detailSession.status]?.label || detailSession.status}
+                      {statusConfig[detailSession.status]?.label ||
+                        detailSession.status}
                     </Badge>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Домен</p>
                     <Badge
-                      className={`mt-1 ${domainConfig[detailSession.domain]?.bgColor || 'bg-muted'} ${domainConfig[detailSession.domain]?.color || 'text-muted-foreground'} border-0`}
+                      className={`mt-1 ${domainConfig[detailSession.domain]?.bgColor || "bg-muted"} ${domainConfig[detailSession.domain]?.color || "text-muted-foreground"} border-0`}
                     >
-                      {domainConfig[detailSession.domain]?.label || detailSession.domain}
+                      {domainConfig[detailSession.domain]?.label ||
+                        detailSession.domain}
                     </Badge>
                   </div>
                   <div>
@@ -1335,59 +1564,91 @@ export default function ImportPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Строки</p>
                     <p className="font-medium">
-                      {detailSession.processed_rows} / {detailSession.total_rows}
+                      {detailSession.processed_rows} /{" "}
+                      {detailSession.total_rows}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Ошибки / Предупреждения</p>
+                    <p className="text-sm text-muted-foreground">
+                      Ошибки / Предупреждения
+                    </p>
                     <p className="font-medium">
-                      <span className={detailSession.errors_count > 0 ? 'text-red-600' : ''}>
+                      <span
+                        className={
+                          detailSession.errors_count > 0 ? "text-red-600" : ""
+                        }
+                      >
                         {detailSession.errors_count}
                       </span>
-                      {' / '}
-                      <span className={detailSession.warnings_count > 0 ? 'text-amber-600' : ''}>
+                      {" / "}
+                      <span
+                        className={
+                          detailSession.warnings_count > 0
+                            ? "text-amber-600"
+                            : ""
+                        }
+                      >
                         {detailSession.warnings_count}
                       </span>
                     </p>
                   </div>
                   {detailSession.inserts_count != null && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Вставки (INSERT)</p>
-                      <p className="font-medium text-green-600">{detailSession.inserts_count}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Вставки (INSERT)
+                      </p>
+                      <p className="font-medium text-green-600">
+                        {detailSession.inserts_count}
+                      </p>
                     </div>
                   )}
                   {detailSession.updates_count != null && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Обновления (UPDATE)</p>
-                      <p className="font-medium text-blue-600">{detailSession.updates_count}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Обновления (UPDATE)
+                      </p>
+                      <p className="font-medium text-blue-600">
+                        {detailSession.updates_count}
+                      </p>
                     </div>
                   )}
                   <div>
                     <p className="text-sm text-muted-foreground">Создана</p>
-                    <p className="text-sm">{formatDateTime(detailSession.created_at)}</p>
+                    <p className="text-sm">
+                      {formatDateTime(detailSession.created_at)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Обновлена</p>
-                    <p className="text-sm">{formatDateTime(detailSession.updated_at)}</p>
+                    <p className="text-sm">
+                      {formatDateTime(detailSession.updated_at)}
+                    </p>
                   </div>
                   {detailSession.created_by_name && (
                     <div>
                       <p className="text-sm text-muted-foreground">Создал</p>
-                      <p className="font-medium">{detailSession.created_by_name}</p>
+                      <p className="font-medium">
+                        {detailSession.created_by_name}
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {detailSession.reject_reason && (
                   <div className="p-3 rounded-lg bg-red-50 border border-red-200">
-                    <p className="text-sm font-medium text-red-700 mb-1">Причина отклонения:</p>
-                    <p className="text-sm text-red-600">{detailSession.reject_reason}</p>
+                    <p className="text-sm font-medium text-red-700 mb-1">
+                      Причина отклонения:
+                    </p>
+                    <p className="text-sm text-red-600">
+                      {detailSession.reject_reason}
+                    </p>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="validation" className="space-y-4">
-                {detailSession.validation_errors && detailSession.validation_errors.length > 0 ? (
+                {detailSession.validation_errors &&
+                detailSession.validation_errors.length > 0 ? (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
@@ -1408,11 +1669,17 @@ export default function ImportPage() {
                         <TableBody>
                           {detailSession.validation_errors.map((err, idx) => (
                             <TableRow key={idx}>
-                              <TableCell className="font-mono text-sm">#{err.row}</TableCell>
-                              <TableCell className="font-medium">{err.field}</TableCell>
-                              <TableCell className="text-sm">{err.message}</TableCell>
+                              <TableCell className="font-mono text-sm">
+                                #{err.row}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {err.field}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {err.message}
+                              </TableCell>
                               <TableCell className="text-sm text-muted-foreground font-mono">
-                                {err.value || '-'}
+                                {err.value || "-"}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -1424,45 +1691,57 @@ export default function ImportPage() {
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-8">
                       <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
-                      <p className="font-medium text-green-700">Ошибок валидации нет</p>
+                      <p className="font-medium text-green-700">
+                        Ошибок валидации нет
+                      </p>
                     </CardContent>
                   </Card>
                 )}
 
-                {detailSession.validation_warnings && detailSession.validation_warnings.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        Предупреждения ({detailSession.validation_warnings.length})
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-20">Строка</TableHead>
-                            <TableHead>Поле</TableHead>
-                            <TableHead>Сообщение</TableHead>
-                            <TableHead>Значение</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {detailSession.validation_warnings.map((warn, idx) => (
-                            <TableRow key={idx}>
-                              <TableCell className="font-mono text-sm">#{warn.row}</TableCell>
-                              <TableCell className="font-medium">{warn.field}</TableCell>
-                              <TableCell className="text-sm">{warn.message}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground font-mono">
-                                {warn.value || '-'}
-                              </TableCell>
+                {detailSession.validation_warnings &&
+                  detailSession.validation_warnings.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          Предупреждения (
+                          {detailSession.validation_warnings.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-20">Строка</TableHead>
+                              <TableHead>Поле</TableHead>
+                              <TableHead>Сообщение</TableHead>
+                              <TableHead>Значение</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )}
+                          </TableHeader>
+                          <TableBody>
+                            {detailSession.validation_warnings.map(
+                              (warn, idx) => (
+                                <TableRow key={idx}>
+                                  <TableCell className="font-mono text-sm">
+                                    #{warn.row}
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {warn.field}
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {warn.message}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground font-mono">
+                                    {warn.value || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ),
+                            )}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  )}
               </TabsContent>
 
               <TabsContent value="audit" className="space-y-4">
@@ -1490,7 +1769,9 @@ export default function ImportPage() {
                                 {entry.table_name}
                               </TableCell>
                               <TableCell className="font-mono text-sm text-muted-foreground">
-                                {entry.row_id ? entry.row_id.substring(0, 8) + '...' : '-'}
+                                {entry.row_id
+                                  ? entry.row_id.substring(0, 8) + "..."
+                                  : "-"}
                               </TableCell>
                               <TableCell className="whitespace-nowrap text-sm">
                                 {formatDateTime(entry.created_at)}
@@ -1505,7 +1786,9 @@ export default function ImportPage() {
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-8">
                       <History className="h-10 w-10 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">Записи аудита отсутствуют</p>
+                      <p className="text-muted-foreground">
+                        Записи аудита отсутствуют
+                      </p>
                     </CardContent>
                   </Card>
                 )}

@@ -2,18 +2,15 @@
  * Acknowledge / Resolve Alert DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-} from 'class-validator';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, IsOptional } from "class-validator";
 
 // ============================================================================
 // ACKNOWLEDGE ALERT DTO
 // ============================================================================
 
 export class AcknowledgeAlertDto {
-  @ApiPropertyOptional({ description: 'Acknowledgement message' })
+  @ApiPropertyOptional({ description: "Acknowledgement message" })
   @IsString()
   @IsOptional()
   message?: string;
@@ -24,7 +21,7 @@ export class AcknowledgeAlertDto {
 // ============================================================================
 
 export class ResolveAlertDto {
-  @ApiPropertyOptional({ description: 'Resolution message' })
+  @ApiPropertyOptional({ description: "Resolution message" })
   @IsString()
   @IsOptional()
   message?: string;
@@ -35,7 +32,7 @@ export class ResolveAlertDto {
 // ============================================================================
 
 export class DismissAlertDto {
-  @ApiPropertyOptional({ description: 'Dismissal reason' })
+  @ApiPropertyOptional({ description: "Dismissal reason" })
   @IsString()
   @IsOptional()
   reason?: string;

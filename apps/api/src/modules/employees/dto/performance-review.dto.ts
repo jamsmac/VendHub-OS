@@ -2,7 +2,7 @@
  * Performance Review DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsString,
   IsNumber,
@@ -15,66 +15,72 @@ import {
   MaxLength,
   Min,
   Max,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { ReviewPeriod, ReviewStatus } from '../entities/performance-review.entity';
+} from "class-validator";
+import { Type } from "class-transformer";
+import {
+  ReviewPeriod,
+  ReviewStatus,
+} from "../entities/performance-review.entity";
 
 // ============================================================================
 // CREATE & ACTION DTOs
 // ============================================================================
 
 export class CreateReviewDto {
-  @ApiProperty({ description: 'Employee ID' })
+  @ApiProperty({ description: "Employee ID" })
   @IsUUID()
   employeeId: string;
 
-  @ApiProperty({ description: 'Reviewer ID (employee or user)' })
+  @ApiProperty({ description: "Reviewer ID (employee or user)" })
   @IsUUID()
   reviewerId: string;
 
-  @ApiProperty({ description: 'Review period type', enum: ReviewPeriod })
+  @ApiProperty({ description: "Review period type", enum: ReviewPeriod })
   @IsEnum(ReviewPeriod)
   reviewPeriod: ReviewPeriod;
 
-  @ApiProperty({ description: 'Period start date (ISO format)' })
+  @ApiProperty({ description: "Period start date (ISO format)" })
   @IsDateString()
   periodStart: string;
 
-  @ApiProperty({ description: 'Period end date (ISO format)' })
+  @ApiProperty({ description: "Period end date (ISO format)" })
   @IsDateString()
   periodEnd: string;
 }
 
 export class SubmitReviewDto {
-  @ApiProperty({ description: 'Overall rating (1-5)', minimum: 1, maximum: 5 })
+  @ApiProperty({ description: "Overall rating (1-5)", minimum: 1, maximum: 5 })
   @IsNumber()
   @Min(1)
   @Max(5)
   overallRating: number;
 
-  @ApiProperty({ description: 'Category ratings object {quality, productivity, teamwork, etc.}' })
+  @ApiProperty({
+    description:
+      "Category ratings object {quality, productivity, teamwork, etc.}",
+  })
   @IsObject()
-  ratings: Record<string, any>;
+  ratings: Record<string, unknown>;
 
-  @ApiPropertyOptional({ description: 'Strengths of the employee' })
+  @ApiPropertyOptional({ description: "Strengths of the employee" })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
   strengths?: string;
 
-  @ApiPropertyOptional({ description: 'Areas for improvement' })
+  @ApiPropertyOptional({ description: "Areas for improvement" })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
   areasForImprovement?: string;
 
-  @ApiPropertyOptional({ description: 'Goals for next period' })
+  @ApiPropertyOptional({ description: "Goals for next period" })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
   goals?: string;
 
-  @ApiPropertyOptional({ description: 'Reviewer comments' })
+  @ApiPropertyOptional({ description: "Reviewer comments" })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
@@ -86,31 +92,34 @@ export class SubmitReviewDto {
 // ============================================================================
 
 export class QueryReviewsDto {
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: 'Filter by employee ID' })
+  @ApiPropertyOptional({ description: "Filter by employee ID" })
   @IsOptional()
   @IsUUID()
   employeeId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by status', enum: ReviewStatus })
+  @ApiPropertyOptional({ description: "Filter by status", enum: ReviewStatus })
   @IsOptional()
   @IsEnum(ReviewStatus)
   status?: ReviewStatus;
 
-  @ApiPropertyOptional({ description: 'Filter by review period', enum: ReviewPeriod })
+  @ApiPropertyOptional({
+    description: "Filter by review period",
+    enum: ReviewPeriod,
+  })
   @IsOptional()
   @IsEnum(ReviewPeriod)
   reviewPeriod?: ReviewPeriod;
@@ -149,7 +158,7 @@ export class PerformanceReviewDto {
   overallRating?: number | null;
 
   @ApiPropertyOptional()
-  ratings?: Record<string, any> | null;
+  ratings?: Record<string, unknown> | null;
 
   @ApiPropertyOptional()
   strengths?: string | null;

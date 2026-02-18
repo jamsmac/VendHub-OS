@@ -8,16 +8,16 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, In } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Employee,
   EmployeeDocument,
   EmployeeRole,
   EmployeeStatus,
-} from './entities/employee.entity';
+} from "./entities/employee.entity";
 import {
   CreateEmployeeDto,
   UpdateEmployeeDto,
@@ -26,20 +26,27 @@ import {
   EmployeeDto,
   EmployeeListDto,
   EmployeeStatsDto,
-} from './dto/employee.dto';
-import { Department } from './entities/department.entity';
-import { Position } from './entities/position.entity';
-import { Attendance, AttendanceStatus } from './entities/attendance.entity';
-import { LeaveRequest, LeaveType, LeaveStatus } from './entities/leave-request.entity';
-import { Payroll, PayrollStatus } from './entities/payroll.entity';
-import { PerformanceReview, ReviewStatus } from './entities/performance-review.entity';
+} from "./dto/employee.dto";
+import { Department } from "./entities/department.entity";
+import { Position } from "./entities/position.entity";
+import { Attendance, AttendanceStatus } from "./entities/attendance.entity";
+import {
+  LeaveRequest,
+  LeaveType,
+  LeaveStatus,
+} from "./entities/leave-request.entity";
+import { Payroll, PayrollStatus } from "./entities/payroll.entity";
+import {
+  PerformanceReview,
+  ReviewStatus,
+} from "./entities/performance-review.entity";
 import {
   CreateDepartmentDto,
   UpdateDepartmentDto,
   QueryDepartmentsDto,
   DepartmentDto,
   DepartmentListDto,
-} from './dto/department.dto';
+} from "./dto/department.dto";
 import {
   CheckInDto,
   CheckOutDto,
@@ -47,7 +54,7 @@ import {
   AttendanceDto,
   AttendanceListDto,
   DailyAttendanceReportDto,
-} from './dto/attendance.dto';
+} from "./dto/attendance.dto";
 import {
   CreateLeaveRequestDto,
   RejectLeaveDto,
@@ -55,20 +62,20 @@ import {
   LeaveRequestDto,
   LeaveRequestListDto,
   LeaveBalanceDto,
-} from './dto/leave-request.dto';
+} from "./dto/leave-request.dto";
 import {
   CalculatePayrollDto,
   QueryPayrollDto,
   PayrollDto,
   PayrollListDto,
-} from './dto/payroll.dto';
+} from "./dto/payroll.dto";
 import {
   CreateReviewDto,
   SubmitReviewDto,
   QueryReviewsDto,
   PerformanceReviewDto,
   PerformanceReviewListDto,
-} from './dto/performance-review.dto';
+} from "./dto/performance-review.dto";
 
 @Injectable()
 export class EmployeesService {
@@ -120,7 +127,7 @@ export class EmployeesService {
 
     this.logger.log(`Employee ${employeeNumber} created`);
 
-    this.eventEmitter.emit('employee.created', {
+    this.eventEmitter.emit("employee.created", {
       employeeId: employee.id,
       employeeNumber,
       organizationId,
@@ -142,7 +149,7 @@ export class EmployeesService {
     Object.assign(employee, dto);
     await this.employeeRepo.save(employee);
 
-    this.eventEmitter.emit('employee.updated', {
+    this.eventEmitter.emit("employee.updated", {
       employeeId: employee.id,
       organizationId,
     });
@@ -161,16 +168,16 @@ export class EmployeesService {
     const employee = await this.findEmployee(employeeId, organizationId);
 
     if (employee.status === EmployeeStatus.TERMINATED) {
-      throw new BadRequestException('Employee is already terminated');
+      throw new BadRequestException("Employee is already terminated");
     }
 
     employee.status = EmployeeStatus.TERMINATED;
     employee.terminationDate = new Date(dto.terminationDate);
-    employee.terminationReason = dto.reason || '';
+    employee.terminationReason = dto.reason || "";
 
     await this.employeeRepo.save(employee);
 
-    this.eventEmitter.emit('employee.terminated', {
+    this.eventEmitter.emit("employee.terminated", {
       employeeId: employee.id,
       organizationId,
       reason: dto.reason,
@@ -195,7 +202,7 @@ export class EmployeesService {
     });
 
     if (existing && existing.id !== employeeId) {
-      throw new ConflictException('User is already linked to another employee');
+      throw new ConflictException("User is already linked to another employee");
     }
 
     employee.userId = userId;
@@ -222,12 +229,15 @@ export class EmployeesService {
   /**
    * Мягкое удаление сотрудника
    */
-  async deleteEmployee(employeeId: string, organizationId: string): Promise<void> {
+  async deleteEmployee(
+    employeeId: string,
+    organizationId: string,
+  ): Promise<void> {
     const employee = await this.findEmployee(employeeId, organizationId);
 
     await this.employeeRepo.softRemove(employee);
 
-    this.eventEmitter.emit('employee.deleted', {
+    this.eventEmitter.emit("employee.deleted", {
       employeeId: employee.id,
       organizationId,
     });
@@ -240,7 +250,10 @@ export class EmployeesService {
   /**
    * Получить сотрудника по ID
    */
-  async getEmployee(employeeId: string, organizationId: string): Promise<EmployeeDto> {
+  async getEmployee(
+    employeeId: string,
+    organizationId: string,
+  ): Promise<EmployeeDto> {
     const employee = await this.findEmployee(employeeId, organizationId);
     return this.mapToDto(employee);
   }
@@ -255,33 +268,33 @@ export class EmployeesService {
     const { role, status, search, page = 1, limit = 20 } = filter;
 
     const qb = this.employeeRepo
-      .createQueryBuilder('e')
-      .where('e.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("e")
+      .where("e.organizationId = :organizationId", { organizationId });
 
     if (role) {
-      qb.andWhere('e.employeeRole = :role', { role });
+      qb.andWhere("e.employeeRole = :role", { role });
     }
 
     if (status) {
-      qb.andWhere('e.status = :status', { status });
+      qb.andWhere("e.status = :status", { status });
     }
 
     if (search) {
       qb.andWhere(
-        '(e.firstName ILIKE :search OR e.lastName ILIKE :search OR e.employeeNumber ILIKE :search OR e.phone ILIKE :search)',
+        "(e.firstName ILIKE :search OR e.lastName ILIKE :search OR e.employeeNumber ILIKE :search OR e.phone ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     const [items, total] = await qb
-      .orderBy('e.lastName', 'ASC')
-      .addOrderBy('e.firstName', 'ASC')
+      .orderBy("e.lastName", "ASC")
+      .addOrderBy("e.firstName", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(e => this.mapToDto(e)),
+      items: items.map((e) => this.mapToDto(e)),
       total,
       page,
       limit,
@@ -300,13 +313,17 @@ export class EmployeesService {
   ): Promise<{ items: EmployeeDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
     const [employees, total] = await this.employeeRepo.findAndCount({
-      where: { organizationId, employeeRole: role, status: EmployeeStatus.ACTIVE },
-      order: { lastName: 'ASC', firstName: 'ASC' },
+      where: {
+        organizationId,
+        employeeRole: role,
+        status: EmployeeStatus.ACTIVE,
+      },
+      order: { lastName: "ASC", firstName: "ASC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
 
-    return { items: employees.map(e => this.mapToDto(e)), total };
+    return { items: employees.map((e) => this.mapToDto(e)), total };
   }
 
   /**
@@ -320,12 +337,12 @@ export class EmployeesService {
     const safeLimit = Math.min(limit, 100);
     const [employees, total] = await this.employeeRepo.findAndCount({
       where: { organizationId, status: EmployeeStatus.ACTIVE },
-      order: { lastName: 'ASC', firstName: 'ASC' },
+      order: { lastName: "ASC", firstName: "ASC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
 
-    return { items: employees.map(e => this.mapToDto(e)), total };
+    return { items: employees.map((e) => this.mapToDto(e)), total };
   }
 
   /**
@@ -352,21 +369,21 @@ export class EmployeesService {
 
     // Status counts via SQL aggregation
     const statusCounts = await this.employeeRepo
-      .createQueryBuilder('e')
-      .select('e.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('e.organizationId = :organizationId', { organizationId })
-      .groupBy('e.status')
+      .createQueryBuilder("e")
+      .select("e.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("e.organizationId = :organizationId", { organizationId })
+      .groupBy("e.status")
       .getRawMany();
 
     // Role counts (active only)
     const roleCounts = await this.employeeRepo
-      .createQueryBuilder('e')
-      .select('e.employeeRole', 'role')
-      .addSelect('COUNT(*)', 'count')
-      .where('e.organizationId = :organizationId', { organizationId })
-      .andWhere('e.status = :status', { status: EmployeeStatus.ACTIVE })
-      .groupBy('e.employeeRole')
+      .createQueryBuilder("e")
+      .select("e.employeeRole", "role")
+      .addSelect("COUNT(*)", "count")
+      .where("e.organizationId = :organizationId", { organizationId })
+      .andWhere("e.status = :status", { status: EmployeeStatus.ACTIVE })
+      .groupBy("e.employeeRole")
       .getRawMany();
 
     // Hired and terminated this month
@@ -378,9 +395,9 @@ export class EmployeesService {
     });
 
     const terminatedThisMonth = await this.employeeRepo
-      .createQueryBuilder('e')
-      .where('e.organizationId = :organizationId', { organizationId })
-      .andWhere('e.terminationDate >= :startOfMonth', { startOfMonth })
+      .createQueryBuilder("e")
+      .where("e.organizationId = :organizationId", { organizationId })
+      .andWhere("e.terminationDate >= :startOfMonth", { startOfMonth })
       .getCount();
 
     // Build stats
@@ -442,7 +459,9 @@ export class EmployeesService {
       where: { code: dto.code, organizationId },
     });
     if (existing) {
-      throw new ConflictException(`Department code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `Department code "${dto.code}" already exists`,
+      );
     }
 
     // Validate parent department if provided
@@ -451,7 +470,7 @@ export class EmployeesService {
         where: { id: dto.parentDepartmentId, organizationId },
       });
       if (!parent) {
-        throw new NotFoundException('Parent department not found');
+        throw new NotFoundException("Parent department not found");
       }
     }
 
@@ -484,7 +503,7 @@ export class EmployeesService {
       where: { id: departmentId, organizationId },
     });
     if (!department) {
-      throw new NotFoundException('Department not found');
+      throw new NotFoundException("Department not found");
     }
 
     // Check code uniqueness if code is being changed
@@ -493,13 +512,15 @@ export class EmployeesService {
         where: { code: dto.code, organizationId },
       });
       if (existing) {
-        throw new ConflictException(`Department code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Department code "${dto.code}" already exists`,
+        );
       }
     }
 
     // Prevent circular parent reference
     if (dto.parentDepartmentId === departmentId) {
-      throw new BadRequestException('Department cannot be its own parent');
+      throw new BadRequestException("Department cannot be its own parent");
     }
 
     Object.assign(department, dto);
@@ -518,34 +539,33 @@ export class EmployeesService {
     const { page = 1, limit = 20, search, parentId, isActive } = query;
 
     const qb = this.departmentRepo
-      .createQueryBuilder('d')
-      .where('d.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("d")
+      .where("d.organizationId = :organizationId", { organizationId });
 
     if (search) {
-      qb.andWhere(
-        '(d.name ILIKE :search OR d.code ILIKE :search)',
-        { search: `%${search}%` },
-      );
+      qb.andWhere("(d.name ILIKE :search OR d.code ILIKE :search)", {
+        search: `%${search}%`,
+      });
     }
 
     if (parentId) {
-      qb.andWhere('d.parentDepartmentId = :parentId', { parentId });
+      qb.andWhere("d.parentDepartmentId = :parentId", { parentId });
     }
 
     if (isActive !== undefined) {
-      qb.andWhere('d.isActive = :isActive', { isActive });
+      qb.andWhere("d.isActive = :isActive", { isActive });
     }
 
     const [items, total] = await qb
-      .leftJoinAndSelect('d.subDepartments', 'sub')
-      .orderBy('d.sortOrder', 'ASC')
-      .addOrderBy('d.name', 'ASC')
+      .leftJoinAndSelect("d.subDepartments", "sub")
+      .orderBy("d.sortOrder", "ASC")
+      .addOrderBy("d.name", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(d => this.mapDepartmentToDto(d)),
+      items: items.map((d) => this.mapDepartmentToDto(d)),
       total,
       page,
       limit,
@@ -562,10 +582,10 @@ export class EmployeesService {
   ): Promise<DepartmentDto> {
     const department = await this.departmentRepo.findOne({
       where: { id: departmentId, organizationId },
-      relations: ['subDepartments'],
+      relations: ["subDepartments"],
     });
     if (!department) {
-      throw new NotFoundException('Department not found');
+      throw new NotFoundException("Department not found");
     }
     return this.mapDepartmentToDto(department);
   }
@@ -581,7 +601,7 @@ export class EmployeesService {
       where: { id: departmentId, organizationId },
     });
     if (!department) {
-      throw new NotFoundException('Department not found');
+      throw new NotFoundException("Department not found");
     }
 
     await this.departmentRepo.softRemove(department);
@@ -622,6 +642,7 @@ export class EmployeesService {
       code: dto.code,
       description: dto.description || null,
       departmentId: dto.departmentId || null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       level: dto.level as any,
       minSalary: dto.minSalary || null,
       maxSalary: dto.maxSalary || null,
@@ -655,7 +676,7 @@ export class EmployeesService {
       where: { id: positionId, organizationId },
     });
     if (!position) {
-      throw new NotFoundException('Position not found');
+      throw new NotFoundException("Position not found");
     }
 
     if (dto.code && dto.code !== position.code) {
@@ -663,7 +684,9 @@ export class EmployeesService {
         where: { code: dto.code, organizationId },
       });
       if (existing) {
-        throw new ConflictException(`Position code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Position code "${dto.code}" already exists`,
+        );
       }
     }
 
@@ -678,31 +701,42 @@ export class EmployeesService {
    */
   async getPositions(
     organizationId: string,
-    query: { page?: number; limit?: number; search?: string; departmentId?: string; isActive?: boolean },
-  ): Promise<{ items: Position[]; total: number; page: number; limit: number; totalPages: number }> {
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      departmentId?: string;
+      isActive?: boolean;
+    },
+  ): Promise<{
+    items: Position[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const { page = 1, limit = 20, search, departmentId, isActive } = query;
 
     const qb = this.positionRepo
-      .createQueryBuilder('p')
-      .where('p.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("p")
+      .where("p.organizationId = :organizationId", { organizationId });
 
     if (search) {
-      qb.andWhere(
-        '(p.title ILIKE :search OR p.code ILIKE :search)',
-        { search: `%${search}%` },
-      );
+      qb.andWhere("(p.title ILIKE :search OR p.code ILIKE :search)", {
+        search: `%${search}%`,
+      });
     }
 
     if (departmentId) {
-      qb.andWhere('p.departmentId = :departmentId', { departmentId });
+      qb.andWhere("p.departmentId = :departmentId", { departmentId });
     }
 
     if (isActive !== undefined) {
-      qb.andWhere('p.isActive = :isActive', { isActive });
+      qb.andWhere("p.isActive = :isActive", { isActive });
     }
 
     const [items, total] = await qb
-      .orderBy('p.title', 'ASC')
+      .orderBy("p.title", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -727,7 +761,7 @@ export class EmployeesService {
       where: { id: positionId, organizationId },
     });
     if (!position) {
-      throw new NotFoundException('Position not found');
+      throw new NotFoundException("Position not found");
     }
     return position;
   }
@@ -747,27 +781,30 @@ export class EmployeesService {
     await this.findEmployee(dto.employeeId, organizationId);
 
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dateStr = today.toISOString().split("T")[0];
 
     // Check if already checked in today
     const existing = await this.attendanceRepo.findOne({
       where: {
         employeeId: dto.employeeId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         date: new Date(dateStr) as any,
         organizationId,
       },
     });
 
     if (existing && existing.checkIn) {
-      throw new BadRequestException('Employee already checked in today');
+      throw new BadRequestException("Employee already checked in today");
     }
 
-    const attendance = existing || this.attendanceRepo.create({
-      organizationId,
-      employeeId: dto.employeeId,
-      date: new Date(dateStr),
-      status: AttendanceStatus.PRESENT,
-    });
+    const attendance =
+      existing ||
+      this.attendanceRepo.create({
+        organizationId,
+        employeeId: dto.employeeId,
+        date: new Date(dateStr),
+        status: AttendanceStatus.PRESENT,
+      });
 
     attendance.checkIn = new Date();
     attendance.note = dto.note || null;
@@ -796,22 +833,23 @@ export class EmployeesService {
     await this.findEmployee(dto.employeeId, organizationId);
 
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dateStr = today.toISOString().split("T")[0];
 
     const attendance = await this.attendanceRepo.findOne({
       where: {
         employeeId: dto.employeeId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         date: new Date(dateStr) as any,
         organizationId,
       },
     });
 
     if (!attendance) {
-      throw new BadRequestException('No check-in record found for today');
+      throw new BadRequestException("No check-in record found for today");
     }
 
     if (attendance.checkOut) {
-      throw new BadRequestException('Employee already checked out today');
+      throw new BadRequestException("Employee already checked out today");
     }
 
     attendance.checkOut = new Date();
@@ -825,7 +863,8 @@ export class EmployeesService {
 
     // Calculate total hours
     if (attendance.checkIn) {
-      const diffMs = attendance.checkOut.getTime() - attendance.checkIn.getTime();
+      const diffMs =
+        attendance.checkOut.getTime() - attendance.checkIn.getTime();
       const totalHours = diffMs / (1000 * 60 * 60);
       attendance.totalHours = Math.round(totalHours * 100) / 100;
 
@@ -849,36 +888,43 @@ export class EmployeesService {
     organizationId: string,
     query: QueryAttendanceDto,
   ): Promise<AttendanceListDto> {
-    const { page = 1, limit = 20, employeeId, dateFrom, dateTo, status } = query;
+    const {
+      page = 1,
+      limit = 20,
+      employeeId,
+      dateFrom,
+      dateTo,
+      status,
+    } = query;
 
     const qb = this.attendanceRepo
-      .createQueryBuilder('a')
-      .where('a.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("a")
+      .where("a.organizationId = :organizationId", { organizationId });
 
     if (employeeId) {
-      qb.andWhere('a.employeeId = :employeeId', { employeeId });
+      qb.andWhere("a.employeeId = :employeeId", { employeeId });
     }
 
     if (dateFrom) {
-      qb.andWhere('a.date >= :dateFrom', { dateFrom });
+      qb.andWhere("a.date >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('a.date <= :dateTo', { dateTo });
+      qb.andWhere("a.date <= :dateTo", { dateTo });
     }
 
     if (status) {
-      qb.andWhere('a.status = :status', { status });
+      qb.andWhere("a.status = :status", { status });
     }
 
     const [items, total] = await qb
-      .orderBy('a.date', 'DESC')
+      .orderBy("a.date", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(a => this.mapAttendanceToDto(a)),
+      items: items.map((a) => this.mapAttendanceToDto(a)),
       total,
       page,
       limit,
@@ -893,9 +939,10 @@ export class EmployeesService {
     organizationId: string,
     dateStr?: string,
   ): Promise<DailyAttendanceReportDto> {
-    const date = dateStr || new Date().toISOString().split('T')[0];
+    const date = dateStr || new Date().toISOString().split("T")[0];
 
     const records = await this.attendanceRepo.find({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       where: { organizationId, date: new Date(date) as any },
     });
 
@@ -936,7 +983,7 @@ export class EmployeesService {
       absentCount,
       lateCount,
       onLeaveCount,
-      records: records.map(r => this.mapAttendanceToDto(r)),
+      records: records.map((r) => this.mapAttendanceToDto(r)),
     };
   }
 
@@ -956,12 +1003,13 @@ export class EmployeesService {
       where: {
         organizationId,
         employeeId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         date: Between(startDate, endDate) as any,
       },
-      order: { date: 'ASC' },
+      order: { date: "ASC" },
     });
 
-    return records.map(r => this.mapAttendanceToDto(r));
+    return records.map((r) => this.mapAttendanceToDto(r));
   }
 
   // ============================================================================
@@ -981,7 +1029,7 @@ export class EmployeesService {
     const endDate = new Date(dto.endDate);
 
     if (endDate < startDate) {
-      throw new BadRequestException('End date must be after start date');
+      throw new BadRequestException("End date must be after start date");
     }
 
     // Calculate total days (simple calculation, excludes weekends)
@@ -990,20 +1038,22 @@ export class EmployeesService {
 
     // Check for overlapping leave requests
     const overlapping = await this.leaveRequestRepo
-      .createQueryBuilder('lr')
-      .where('lr.employeeId = :employeeId', { employeeId: dto.employeeId })
-      .andWhere('lr.organizationId = :organizationId', { organizationId })
-      .andWhere('lr.status IN (:...statuses)', {
+      .createQueryBuilder("lr")
+      .where("lr.employeeId = :employeeId", { employeeId: dto.employeeId })
+      .andWhere("lr.organizationId = :organizationId", { organizationId })
+      .andWhere("lr.status IN (:...statuses)", {
         statuses: [LeaveStatus.PENDING, LeaveStatus.APPROVED],
       })
-      .andWhere(
-        '(lr.startDate <= :endDate AND lr.endDate >= :startDate)',
-        { startDate: dto.startDate, endDate: dto.endDate },
-      )
+      .andWhere("(lr.startDate <= :endDate AND lr.endDate >= :startDate)", {
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+      })
       .getCount();
 
     if (overlapping > 0) {
-      throw new ConflictException('Leave request overlaps with an existing request');
+      throw new ConflictException(
+        "Leave request overlaps with an existing request",
+      );
     }
 
     const leaveRequest = this.leaveRequestRepo.create({
@@ -1021,7 +1071,7 @@ export class EmployeesService {
 
     this.logger.log(`Leave request created for employee ${dto.employeeId}`);
 
-    this.eventEmitter.emit('leave.requested', {
+    this.eventEmitter.emit("leave.requested", {
       leaveRequestId: leaveRequest.id,
       employeeId: dto.employeeId,
       organizationId,
@@ -1042,11 +1092,11 @@ export class EmployeesService {
       where: { id: leaveId, organizationId },
     });
     if (!leaveRequest) {
-      throw new NotFoundException('Leave request not found');
+      throw new NotFoundException("Leave request not found");
     }
 
     if (leaveRequest.status !== LeaveStatus.PENDING) {
-      throw new BadRequestException('Leave request is not in pending status');
+      throw new BadRequestException("Leave request is not in pending status");
     }
 
     leaveRequest.status = LeaveStatus.APPROVED;
@@ -1055,7 +1105,7 @@ export class EmployeesService {
 
     await this.leaveRequestRepo.save(leaveRequest);
 
-    this.eventEmitter.emit('leave.approved', {
+    this.eventEmitter.emit("leave.approved", {
       leaveRequestId: leaveRequest.id,
       employeeId: leaveRequest.employeeId,
       organizationId,
@@ -1077,11 +1127,11 @@ export class EmployeesService {
       where: { id: leaveId, organizationId },
     });
     if (!leaveRequest) {
-      throw new NotFoundException('Leave request not found');
+      throw new NotFoundException("Leave request not found");
     }
 
     if (leaveRequest.status !== LeaveStatus.PENDING) {
-      throw new BadRequestException('Leave request is not in pending status');
+      throw new BadRequestException("Leave request is not in pending status");
     }
 
     leaveRequest.status = LeaveStatus.REJECTED;
@@ -1091,7 +1141,7 @@ export class EmployeesService {
 
     await this.leaveRequestRepo.save(leaveRequest);
 
-    this.eventEmitter.emit('leave.rejected', {
+    this.eventEmitter.emit("leave.rejected", {
       leaveRequestId: leaveRequest.id,
       employeeId: leaveRequest.employeeId,
       organizationId,
@@ -1111,11 +1161,13 @@ export class EmployeesService {
       where: { id: leaveId, organizationId },
     });
     if (!leaveRequest) {
-      throw new NotFoundException('Leave request not found');
+      throw new NotFoundException("Leave request not found");
     }
 
-    if (![LeaveStatus.PENDING, LeaveStatus.APPROVED].includes(leaveRequest.status)) {
-      throw new BadRequestException('Leave request cannot be cancelled');
+    if (
+      ![LeaveStatus.PENDING, LeaveStatus.APPROVED].includes(leaveRequest.status)
+    ) {
+      throw new BadRequestException("Leave request cannot be cancelled");
     }
 
     leaveRequest.status = LeaveStatus.CANCELLED;
@@ -1131,40 +1183,48 @@ export class EmployeesService {
     organizationId: string,
     query: QueryLeaveRequestsDto,
   ): Promise<LeaveRequestListDto> {
-    const { page = 1, limit = 20, employeeId, status, leaveType, dateFrom, dateTo } = query;
+    const {
+      page = 1,
+      limit = 20,
+      employeeId,
+      status,
+      leaveType,
+      dateFrom,
+      dateTo,
+    } = query;
 
     const qb = this.leaveRequestRepo
-      .createQueryBuilder('lr')
-      .where('lr.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("lr")
+      .where("lr.organizationId = :organizationId", { organizationId });
 
     if (employeeId) {
-      qb.andWhere('lr.employeeId = :employeeId', { employeeId });
+      qb.andWhere("lr.employeeId = :employeeId", { employeeId });
     }
 
     if (status) {
-      qb.andWhere('lr.status = :status', { status });
+      qb.andWhere("lr.status = :status", { status });
     }
 
     if (leaveType) {
-      qb.andWhere('lr.leaveType = :leaveType', { leaveType });
+      qb.andWhere("lr.leaveType = :leaveType", { leaveType });
     }
 
     if (dateFrom) {
-      qb.andWhere('lr.startDate >= :dateFrom', { dateFrom });
+      qb.andWhere("lr.startDate >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('lr.endDate <= :dateTo', { dateTo });
+      qb.andWhere("lr.endDate <= :dateTo", { dateTo });
     }
 
     const [items, total] = await qb
-      .orderBy('lr.created_at', 'DESC')
+      .orderBy("lr.created_at", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(lr => this.mapLeaveRequestToDto(lr)),
+      items: items.map((lr) => this.mapLeaveRequestToDto(lr)),
       total,
       page,
       limit,
@@ -1189,14 +1249,16 @@ export class EmployeesService {
         organizationId,
         employeeId,
         status: LeaveStatus.APPROVED,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         startDate: MoreThanOrEqual(startOfYear) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         endDate: LessThanOrEqual(endOfYear) as any,
       },
     });
 
     // Default allocations (can be made configurable)
     const annualTotal = 24; // 24 days annual leave (Uzbekistan standard)
-    const sickTotal = 10;   // 10 days sick leave
+    const sickTotal = 10; // 10 days sick leave
 
     let annualUsed = 0;
     let sickUsed = 0;
@@ -1231,7 +1293,7 @@ export class EmployeesService {
   async calculatePayroll(
     organizationId: string,
     dto: CalculatePayrollDto,
-    userId: string,
+    _userId: string,
   ): Promise<PayrollDto> {
     const employee = await this.findEmployee(dto.employeeId, organizationId);
 
@@ -1242,13 +1304,14 @@ export class EmployeesService {
     const existing = await this.payrollRepo.findOne({
       where: {
         employeeId: dto.employeeId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         periodStart: periodStart as any,
         organizationId,
       },
     });
 
     if (existing && existing.status !== PayrollStatus.DRAFT) {
-      throw new ConflictException('Payroll already calculated for this period');
+      throw new ConflictException("Payroll already calculated for this period");
     }
 
     // Get attendance data for the period
@@ -1256,6 +1319,7 @@ export class EmployeesService {
       where: {
         employeeId: dto.employeeId,
         organizationId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         date: Between(periodStart, periodEnd) as any,
       },
     });
@@ -1265,14 +1329,15 @@ export class EmployeesService {
     const current = new Date(periodStart);
     while (current <= periodEnd) {
       const dayOfWeek = current.getDay();
-      if (dayOfWeek !== 0) { // Sunday is off
+      if (dayOfWeek !== 0) {
+        // Sunday is off
         workingDays++;
       }
       current.setDate(current.getDate() + 1);
     }
 
     // Calculate worked days from attendance
-    const workedDays = attendances.filter(a =>
+    const workedDays = attendances.filter((a) =>
       [AttendanceStatus.PRESENT, AttendanceStatus.LATE].includes(a.status),
     ).length;
 
@@ -1285,21 +1350,25 @@ export class EmployeesService {
     const baseSalary = employee.salary ? Number(employee.salary) : 0;
     const dailyRate = workingDays > 0 ? baseSalary / workingDays : 0;
     const actualBaseSalary = Math.round(dailyRate * workedDays * 100) / 100;
-    const overtimePay = Math.round(totalOvertimeHours * (dailyRate / 8) * 1.5 * 100) / 100;
+    const overtimePay =
+      Math.round(totalOvertimeHours * (dailyRate / 8) * 1.5 * 100) / 100;
     const bonuses = 0;
     const deductions = 0;
 
     // Uzbekistan income tax (12%)
     const grossSalary = actualBaseSalary + overtimePay + bonuses;
     const taxAmount = Math.round(grossSalary * 0.12 * 100) / 100;
-    const netSalary = Math.round((grossSalary - deductions - taxAmount) * 100) / 100;
+    const netSalary =
+      Math.round((grossSalary - deductions - taxAmount) * 100) / 100;
 
-    const payroll = existing || this.payrollRepo.create({
-      organizationId,
-      employeeId: dto.employeeId,
-      periodStart,
-      periodEnd,
-    });
+    const payroll =
+      existing ||
+      this.payrollRepo.create({
+        organizationId,
+        employeeId: dto.employeeId,
+        periodStart,
+        periodEnd,
+      });
 
     payroll.baseSalary = actualBaseSalary;
     payroll.overtimePay = overtimePay;
@@ -1307,7 +1376,7 @@ export class EmployeesService {
     payroll.deductions = deductions;
     payroll.taxAmount = taxAmount;
     payroll.netSalary = netSalary;
-    payroll.currency = 'UZS';
+    payroll.currency = "UZS";
     payroll.status = PayrollStatus.CALCULATED;
     payroll.calculatedAt = new Date();
     payroll.workingDays = workingDays;
@@ -1339,11 +1408,13 @@ export class EmployeesService {
       where: { id: payrollId, organizationId },
     });
     if (!payroll) {
-      throw new NotFoundException('Payroll record not found');
+      throw new NotFoundException("Payroll record not found");
     }
 
     if (payroll.status !== PayrollStatus.CALCULATED) {
-      throw new BadRequestException('Payroll must be in calculated status to approve');
+      throw new BadRequestException(
+        "Payroll must be in calculated status to approve",
+      );
     }
 
     payroll.status = PayrollStatus.APPROVED;
@@ -1367,11 +1438,11 @@ export class EmployeesService {
       where: { id: payrollId, organizationId },
     });
     if (!payroll) {
-      throw new NotFoundException('Payroll record not found');
+      throw new NotFoundException("Payroll record not found");
     }
 
     if (payroll.status !== PayrollStatus.APPROVED) {
-      throw new BadRequestException('Payroll must be approved before payment');
+      throw new BadRequestException("Payroll must be approved before payment");
     }
 
     payroll.status = PayrollStatus.PAID;
@@ -1380,7 +1451,7 @@ export class EmployeesService {
 
     await this.payrollRepo.save(payroll);
 
-    this.eventEmitter.emit('payroll.paid', {
+    this.eventEmitter.emit("payroll.paid", {
       payrollId: payroll.id,
       employeeId: payroll.employeeId,
       organizationId,
@@ -1397,36 +1468,43 @@ export class EmployeesService {
     organizationId: string,
     query: QueryPayrollDto,
   ): Promise<PayrollListDto> {
-    const { page = 1, limit = 20, employeeId, status, periodStart, periodEnd } = query;
+    const {
+      page = 1,
+      limit = 20,
+      employeeId,
+      status,
+      periodStart,
+      periodEnd,
+    } = query;
 
     const qb = this.payrollRepo
-      .createQueryBuilder('p')
-      .where('p.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("p")
+      .where("p.organizationId = :organizationId", { organizationId });
 
     if (employeeId) {
-      qb.andWhere('p.employeeId = :employeeId', { employeeId });
+      qb.andWhere("p.employeeId = :employeeId", { employeeId });
     }
 
     if (status) {
-      qb.andWhere('p.status = :status', { status });
+      qb.andWhere("p.status = :status", { status });
     }
 
     if (periodStart) {
-      qb.andWhere('p.periodStart >= :periodStart', { periodStart });
+      qb.andWhere("p.periodStart >= :periodStart", { periodStart });
     }
 
     if (periodEnd) {
-      qb.andWhere('p.periodEnd <= :periodEnd', { periodEnd });
+      qb.andWhere("p.periodEnd <= :periodEnd", { periodEnd });
     }
 
     const [items, total] = await qb
-      .orderBy('p.periodStart', 'DESC')
+      .orderBy("p.periodStart", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(p => this.mapPayrollToDto(p)),
+      items: items.map((p) => this.mapPayrollToDto(p)),
       total,
       page,
       limit,
@@ -1445,7 +1523,7 @@ export class EmployeesService {
       where: { id: payrollId, organizationId },
     });
     if (!payroll) {
-      throw new NotFoundException('Payroll record not found');
+      throw new NotFoundException("Payroll record not found");
     }
     return this.mapPayrollToDto(payroll);
   }
@@ -1475,7 +1553,9 @@ export class EmployeesService {
 
     await this.reviewRepo.save(review);
 
-    this.logger.log(`Performance review created for employee ${dto.employeeId}`);
+    this.logger.log(
+      `Performance review created for employee ${dto.employeeId}`,
+    );
 
     return this.mapReviewToDto(review);
   }
@@ -1492,15 +1572,15 @@ export class EmployeesService {
       where: { id: reviewId, organizationId },
     });
     if (!review) {
-      throw new NotFoundException('Performance review not found');
+      throw new NotFoundException("Performance review not found");
     }
 
     if (review.status === ReviewStatus.COMPLETED) {
-      throw new BadRequestException('Review is already completed');
+      throw new BadRequestException("Review is already completed");
     }
 
     if (review.status === ReviewStatus.CANCELLED) {
-      throw new BadRequestException('Review has been cancelled');
+      throw new BadRequestException("Review has been cancelled");
     }
 
     review.overallRating = dto.overallRating;
@@ -1514,7 +1594,7 @@ export class EmployeesService {
 
     await this.reviewRepo.save(review);
 
-    this.eventEmitter.emit('review.completed', {
+    this.eventEmitter.emit("review.completed", {
       reviewId: review.id,
       employeeId: review.employeeId,
       organizationId,
@@ -1534,29 +1614,29 @@ export class EmployeesService {
     const { page = 1, limit = 20, employeeId, status, reviewPeriod } = query;
 
     const qb = this.reviewRepo
-      .createQueryBuilder('r')
-      .where('r.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("r")
+      .where("r.organizationId = :organizationId", { organizationId });
 
     if (employeeId) {
-      qb.andWhere('r.employeeId = :employeeId', { employeeId });
+      qb.andWhere("r.employeeId = :employeeId", { employeeId });
     }
 
     if (status) {
-      qb.andWhere('r.status = :status', { status });
+      qb.andWhere("r.status = :status", { status });
     }
 
     if (reviewPeriod) {
-      qb.andWhere('r.reviewPeriod = :reviewPeriod', { reviewPeriod });
+      qb.andWhere("r.reviewPeriod = :reviewPeriod", { reviewPeriod });
     }
 
     const [items, total] = await qb
-      .orderBy('r.periodEnd', 'DESC')
+      .orderBy("r.periodEnd", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(r => this.mapReviewToDto(r)),
+      items: items.map((r) => this.mapReviewToDto(r)),
       total,
       page,
       limit,
@@ -1575,7 +1655,7 @@ export class EmployeesService {
       where: { id: reviewId, organizationId },
     });
     if (!review) {
-      throw new NotFoundException('Performance review not found');
+      throw new NotFoundException("Performance review not found");
     }
     return this.mapReviewToDto(review);
   }
@@ -1593,15 +1673,17 @@ export class EmployeesService {
     });
 
     if (!employee) {
-      throw new NotFoundException('Employee not found');
+      throw new NotFoundException("Employee not found");
     }
 
     return employee;
   }
 
-  private async generateEmployeeNumber(organizationId: string): Promise<string> {
+  private async generateEmployeeNumber(
+    organizationId: string,
+  ): Promise<string> {
     const count = await this.employeeRepo.count({ where: { organizationId } });
-    return `EMP-${String(count + 1).padStart(4, '0')}`;
+    return `EMP-${String(count + 1).padStart(4, "0")}`;
   }
 
   private mapToDto(employee: Employee): EmployeeDto {
@@ -1615,7 +1697,7 @@ export class EmployeesService {
       middleName: employee.middleName,
       fullName: [employee.firstName, employee.middleName, employee.lastName]
         .filter(Boolean)
-        .join(' '),
+        .join(" "),
       phone: employee.phone,
       email: employee.email,
       employeeRole: employee.employeeRole,
@@ -1651,7 +1733,7 @@ export class EmployeesService {
       isActive: department.isActive,
       sortOrder: department.sortOrder,
       subDepartments: department.subDepartments
-        ? department.subDepartments.map(d => this.mapDepartmentToDto(d))
+        ? department.subDepartments.map((d) => this.mapDepartmentToDto(d))
         : undefined,
       createdAt: department.created_at,
       updatedAt: department.updated_at,
@@ -1667,7 +1749,9 @@ export class EmployeesService {
       checkIn: attendance.checkIn,
       checkOut: attendance.checkOut,
       totalHours: attendance.totalHours ? Number(attendance.totalHours) : null,
-      overtimeHours: attendance.overtimeHours ? Number(attendance.overtimeHours) : null,
+      overtimeHours: attendance.overtimeHours
+        ? Number(attendance.overtimeHours)
+        : null,
       status: attendance.status,
       note: attendance.note,
       checkInLocation: attendance.checkInLocation,

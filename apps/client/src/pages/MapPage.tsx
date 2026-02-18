@@ -1,24 +1,25 @@
-import { useState, useCallback, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { Locate, List, Map as MapIcon } from 'lucide-react';
-import { GoogleMap } from '@/components/map/GoogleMap';
-import { MachineCard } from '@/components/machine/MachineCard';
-import { useGeolocation } from '@/hooks/useGeolocation';
-import { api } from '@/lib/api';
-import { cn } from '@/lib/utils';
+import { useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Locate, List, Map as MapIcon } from "lucide-react";
+import { GoogleMap } from "@/components/map/GoogleMap";
+import { MachineCard } from "@/components/machine/MachineCard";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 export function MapPage() {
   const { t } = useTranslation();
   const { position, getCurrentPosition } = useGeolocation();
-  const [view, setView] = useState<'map' | 'list'>('map');
+  const [view, setView] = useState<"map" | "list">("map");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedMachine, setSelectedMachine] = useState<any>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
   const { data: machines, isLoading } = useQuery({
-    queryKey: ['machines'],
+    queryKey: ["machines"],
     queryFn: async () => {
-      const res = await api.get('/machines');
+      const res = await api.get("/machines");
       return res.data;
     },
   });
@@ -33,6 +34,7 @@ export function MapPage() {
     }
   }, [position, getCurrentPosition]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMachineClick = useCallback((machine: any) => {
     setSelectedMachine(machine);
     if (mapRef.current) {
@@ -50,28 +52,28 @@ export function MapPage() {
       <div className="flex items-center justify-between px-4 py-2 bg-card border-b">
         <div className="flex bg-muted rounded-lg p-1">
           <button
-            onClick={() => setView('map')}
+            onClick={() => setView("map")}
             className={cn(
-              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1',
-              view === 'map'
-                ? 'bg-background shadow text-foreground'
-                : 'text-muted-foreground'
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              view === "map"
+                ? "bg-background shadow text-foreground"
+                : "text-muted-foreground",
             )}
           >
             <MapIcon className="w-4 h-4" />
-            {t('map')}
+            {t("map")}
           </button>
           <button
-            onClick={() => setView('list')}
+            onClick={() => setView("list")}
             className={cn(
-              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1',
-              view === 'list'
-                ? 'bg-background shadow text-foreground'
-                : 'text-muted-foreground'
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              view === "list"
+                ? "bg-background shadow text-foreground"
+                : "text-muted-foreground",
             )}
           >
             <List className="w-4 h-4" />
-            {t('list')}
+            {t("list")}
           </button>
         </div>
 
@@ -85,7 +87,7 @@ export function MapPage() {
 
       {/* Content */}
       <div className="flex-1 relative">
-        {view === 'map' ? (
+        {view === "map" ? (
           <>
             <GoogleMap
               machines={machines || []}
@@ -116,19 +118,20 @@ export function MapPage() {
                   />
                 ))
             ) : machines?.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               machines.map((machine: any) => (
                 <MachineCard
                   key={machine.id}
                   machine={machine}
                   onClick={() => {
                     setSelectedMachine(machine);
-                    setView('map');
+                    setView("map");
                   }}
                 />
               ))
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                {t('noMachinesNearby')}
+                {t("noMachinesNearby")}
               </p>
             )}
           </div>

@@ -2,9 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
 import {
   Task,
   TaskItem,
@@ -13,10 +13,13 @@ import {
   TaskPhoto,
   TaskStatus,
   VALID_TASK_TRANSITIONS,
-} from './entities/task.entity';
-import { CreateTaskItemDto, UpdateTaskItemDto } from './dto/task-item.dto';
-import { CreateTaskCommentDto } from './dto/task-comment.dto';
-import { CreateTaskComponentDto, CreateTaskPhotoDto } from './dto/task-component.dto';
+} from "./entities/task.entity";
+import { CreateTaskItemDto, UpdateTaskItemDto } from "./dto/task-item.dto";
+import { CreateTaskCommentDto } from "./dto/task-comment.dto";
+import {
+  CreateTaskComponentDto,
+  CreateTaskPhotoDto,
+} from "./dto/task-component.dto";
 
 @Injectable()
 export class TasksService {
@@ -50,7 +53,7 @@ export class TasksService {
     if (!allowed || !allowed.includes(target)) {
       throw new BadRequestException(
         `Invalid status transition: ${current} -> ${target}. ` +
-          `Allowed transitions from ${current}: [${(allowed || []).join(', ')}]`,
+          `Allowed transitions from ${current}: [${(allowed || []).join(", ")}]`,
       );
     }
   }
@@ -72,66 +75,73 @@ export class TasksService {
    */
   async findAll(
     organizationId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filters?: any,
-  ): Promise<{ data: Task[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    data: Task[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const page = filters?.page || 1;
     const limit = Math.min(filters?.limit || 20, 100);
 
     const query = this.taskRepository
-      .createQueryBuilder('task')
-      .leftJoinAndSelect('task.machine', 'machine')
-      .leftJoinAndSelect('task.assignedTo', 'assignedTo')
-      .leftJoinAndSelect('task.createdBy', 'createdBy')
-      .where('task.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("task")
+      .leftJoinAndSelect("task.machine", "machine")
+      .leftJoinAndSelect("task.assignedTo", "assignedTo")
+      .leftJoinAndSelect("task.createdBy", "createdBy")
+      .where("task.organizationId = :organizationId", { organizationId });
 
     if (filters?.status) {
-      query.andWhere('task.status = :status', { status: filters.status });
+      query.andWhere("task.status = :status", { status: filters.status });
     }
 
     if (filters?.assigneeId) {
-      query.andWhere('task.assignedToUserId = :assigneeId', {
+      query.andWhere("task.assignedToUserId = :assigneeId", {
         assigneeId: filters.assigneeId,
       });
     }
 
     if (filters?.machineId) {
-      query.andWhere('task.machineId = :machineId', {
+      query.andWhere("task.machineId = :machineId", {
         machineId: filters.machineId,
       });
     }
 
     if (filters?.type) {
-      query.andWhere('task.typeCode = :type', { type: filters.type });
+      query.andWhere("task.typeCode = :type", { type: filters.type });
     }
 
     if (filters?.priority) {
-      query.andWhere('task.priority = :priority', {
+      query.andWhere("task.priority = :priority", {
         priority: filters.priority,
       });
     }
 
     if (filters?.dueDateFrom) {
-      query.andWhere('task.dueDate >= :dueDateFrom', {
+      query.andWhere("task.dueDate >= :dueDateFrom", {
         dueDateFrom: filters.dueDateFrom,
       });
     }
 
     if (filters?.dueDateTo) {
-      query.andWhere('task.dueDate <= :dueDateTo', {
+      query.andWhere("task.dueDate <= :dueDateTo", {
         dueDateTo: filters.dueDateTo,
       });
     }
 
     if (filters?.search) {
       query.andWhere(
-        '(task.taskNumber ILIKE :search OR task.description ILIKE :search)',
+        "(task.taskNumber ILIKE :search OR task.description ILIKE :search)",
         { search: `%${filters.search}%` },
       );
     }
 
     const total = await query.getCount();
 
-    query.orderBy('task.dueDate', 'ASC');
+    query.orderBy("task.dueDate", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -152,7 +162,14 @@ export class TasksService {
   async findById(id: string): Promise<Task | null> {
     return this.taskRepository.findOne({
       where: { id },
-      relations: ['machine', 'assignedTo', 'createdBy', 'items', 'comments', 'components'],
+      relations: [
+        "machine",
+        "assignedTo",
+        "createdBy",
+        "items",
+        "comments",
+        "components",
+      ],
     });
   }
 
@@ -240,11 +257,7 @@ export class TasksService {
    * Reject a completed task
    * Transitions: COMPLETED -> REJECTED
    */
-  async rejectTask(
-    id: string,
-    reason: string,
-    userId: string,
-  ): Promise<Task> {
+  async rejectTask(id: string, reason: string, userId: string): Promise<Task> {
     const task = await this.findByIdOrFail(id);
     this.validateTransition(task.status, TaskStatus.REJECTED);
 
@@ -281,7 +294,7 @@ export class TasksService {
 
     if (task.status !== TaskStatus.IN_PROGRESS) {
       throw new BadRequestException(
-        'Photo before not expected in current status',
+        "Photo before not expected in current status",
       );
     }
 
@@ -303,7 +316,7 @@ export class TasksService {
     const task = await this.findByIdOrFail(id);
 
     if (task.requiresPhotoBefore && !task.photoBeforeUrl) {
-      throw new BadRequestException('Photo before is required first');
+      throw new BadRequestException("Photo before is required first");
     }
 
     task.photoAfterUrl = photoUrl;
@@ -334,6 +347,7 @@ export class TasksService {
     id: string,
     completionData: {
       completionNotes?: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       products?: any[];
       collectedCash?: number;
       location?: { latitude: number; longitude: number };
@@ -342,7 +356,7 @@ export class TasksService {
     const task = await this.findByIdOrFail(id);
 
     if (task.requiresPhotoAfter && !task.photoAfterUrl) {
-      throw new BadRequestException('Photo after is required');
+      throw new BadRequestException("Photo after is required");
     }
 
     task.status = TaskStatus.COMPLETED;
@@ -392,9 +406,9 @@ export class TasksService {
           TaskStatus.POSTPONED,
         ]),
       },
-      relations: ['machine'],
+      relations: ["machine"],
       order: {
-        dueDate: 'ASC',
+        dueDate: "ASC",
       },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
@@ -434,37 +448,37 @@ export class TasksService {
     ];
 
     const query = this.taskRepository
-      .createQueryBuilder('task')
-      .leftJoinAndSelect('task.machine', 'machine')
-      .leftJoinAndSelect('task.assignedTo', 'assignedTo')
-      .where('task.organizationId = :organizationId', { organizationId })
-      .andWhere('task.status IN (:...statuses)', { statuses: kanbanStatuses });
+      .createQueryBuilder("task")
+      .leftJoinAndSelect("task.machine", "machine")
+      .leftJoinAndSelect("task.assignedTo", "assignedTo")
+      .where("task.organizationId = :organizationId", { organizationId })
+      .andWhere("task.status IN (:...statuses)", { statuses: kanbanStatuses });
 
     if (filters?.assigneeId) {
-      query.andWhere('task.assignedToUserId = :assigneeId', {
+      query.andWhere("task.assignedToUserId = :assigneeId", {
         assigneeId: filters.assigneeId,
       });
     }
 
     if (filters?.machineId) {
-      query.andWhere('task.machineId = :machineId', {
+      query.andWhere("task.machineId = :machineId", {
         machineId: filters.machineId,
       });
     }
 
     if (filters?.type) {
-      query.andWhere('task.typeCode = :type', { type: filters.type });
+      query.andWhere("task.typeCode = :type", { type: filters.type });
     }
 
     if (filters?.priority) {
-      query.andWhere('task.priority = :priority', {
+      query.andWhere("task.priority = :priority", {
         priority: filters.priority,
       });
     }
 
     const tasks = await query
-      .orderBy('task.priority', 'DESC')
-      .addOrderBy('task.dueDate', 'ASC')
+      .orderBy("task.priority", "DESC")
+      .addOrderBy("task.dueDate", "ASC")
       .getMany();
 
     // Group by status
@@ -506,7 +520,10 @@ export class TasksService {
   /**
    * Add an item to a task (for REFILL tasks)
    */
-  async addTaskItem(taskId: string, data: CreateTaskItemDto): Promise<TaskItem> {
+  async addTaskItem(
+    taskId: string,
+    data: CreateTaskItemDto,
+  ): Promise<TaskItem> {
     // Verify task exists
     await this.findByIdOrFail(taskId);
 
@@ -561,7 +578,7 @@ export class TasksService {
 
     return this.taskItemRepository.find({
       where: { taskId },
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
     });
   }
 
@@ -600,8 +617,8 @@ export class TasksService {
 
     return this.taskCommentRepository.find({
       where: { taskId },
-      relations: ['user'],
-      order: { created_at: 'ASC' },
+      relations: ["user"],
+      order: { created_at: "ASC" },
     });
   }
 
@@ -636,7 +653,7 @@ export class TasksService {
 
     return this.taskComponentRepository.find({
       where: { taskId },
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
     });
   }
 
@@ -680,8 +697,8 @@ export class TasksService {
 
     return this.taskPhotoRepository.find({
       where: { taskId },
-      relations: ['uploadedBy'],
-      order: { created_at: 'ASC' },
+      relations: ["uploadedBy"],
+      order: { created_at: "ASC" },
     });
   }
 }

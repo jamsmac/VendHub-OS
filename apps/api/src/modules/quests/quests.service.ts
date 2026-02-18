@@ -8,16 +8,16 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Cron } from '@nestjs/schedule';
-import { Quest } from './entities/quest.entity';
-import { UserQuest } from './entities/user-quest.entity';
-import { User } from '../users/entities/user.entity';
-import { LoyaltyService } from '../loyalty/loyalty.service';
-import { PointsSource } from '../loyalty/constants/loyalty.constants';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { Cron } from "@nestjs/schedule";
+import { Quest } from "./entities/quest.entity";
+import { UserQuest } from "./entities/user-quest.entity";
+import { User } from "../users/entities/user.entity";
+import { LoyaltyService } from "../loyalty/loyalty.service";
+import { PointsSource } from "../loyalty/constants/loyalty.constants";
 import {
   QuestPeriod,
   QuestType,
@@ -31,7 +31,7 @@ import {
   WEEKLY_QUEST_TEMPLATES,
   MONTHLY_QUEST_TEMPLATES,
   ACHIEVEMENT_TEMPLATES,
-} from './constants/quest.constants';
+} from "./constants/quest.constants";
 import {
   CreateQuestDto,
   UpdateQuestDto,
@@ -43,7 +43,7 @@ import {
   ProgressUpdateResultDto,
   QuestProgressEventDto,
   QuestStatsDto,
-} from './dto/quest.dto';
+} from "./dto/quest.dto";
 
 @Injectable()
 export class QuestsService {
@@ -67,7 +67,10 @@ export class QuestsService {
   /**
    * Создать квест
    */
-  async createQuest(organizationId: string, dto: CreateQuestDto): Promise<Quest> {
+  async createQuest(
+    organizationId: string,
+    dto: CreateQuestDto,
+  ): Promise<Quest> {
     const quest = this.questRepo.create({
       organizationId,
       ...dto,
@@ -82,13 +85,17 @@ export class QuestsService {
   /**
    * Обновить квест
    */
-  async updateQuest(id: string, organizationId: string, dto: UpdateQuestDto): Promise<Quest> {
+  async updateQuest(
+    id: string,
+    organizationId: string,
+    dto: UpdateQuestDto,
+  ): Promise<Quest> {
     const quest = await this.questRepo.findOne({
       where: { id, organizationId },
     });
 
     if (!quest) {
-      throw new NotFoundException('Quest not found');
+      throw new NotFoundException("Quest not found");
     }
 
     Object.assign(quest, dto);
@@ -102,9 +109,9 @@ export class QuestsService {
    * Удалить квест
    */
   async deleteQuest(id: string, organizationId: string): Promise<void> {
-    const result = await this.questRepo.delete({ id, organizationId });
+    const result = await this.questRepo.softDelete({ id, organizationId });
     if (result.affected === 0) {
-      throw new NotFoundException('Quest not found');
+      throw new NotFoundException("Quest not found");
     }
     this.logger.log(`Deleted quest ${id}`);
   }
@@ -112,35 +119,45 @@ export class QuestsService {
   /**
    * Получить квесты организации
    */
-  async getQuests(organizationId: string, filter: QuestFilterDto): Promise<Quest[]> {
+  async getQuests(
+    organizationId: string,
+    filter: QuestFilterDto,
+  ): Promise<Quest[]> {
     const qb = this.questRepo
-      .createQueryBuilder('q')
-      .where('(q.organizationId = :organizationId OR q.organizationId IS NULL)', { organizationId })
-      .orderBy('q.displayOrder', 'ASC')
-      .addOrderBy('q.createdAt', 'DESC');
+      .createQueryBuilder("q")
+      .where(
+        "(q.organizationId = :organizationId OR q.organizationId IS NULL)",
+        { organizationId },
+      )
+      .orderBy("q.displayOrder", "ASC")
+      .addOrderBy("q.createdAt", "DESC");
 
     if (filter.period) {
-      qb.andWhere('q.period = :period', { period: filter.period });
+      qb.andWhere("q.period = :period", { period: filter.period });
     }
 
     if (filter.type) {
-      qb.andWhere('q.type = :type', { type: filter.type });
+      qb.andWhere("q.type = :type", { type: filter.type });
     }
 
     if (filter.difficulty) {
-      qb.andWhere('q.difficulty = :difficulty', { difficulty: filter.difficulty });
+      qb.andWhere("q.difficulty = :difficulty", {
+        difficulty: filter.difficulty,
+      });
     }
 
     if (filter.isActive !== undefined) {
-      qb.andWhere('q.isActive = :isActive', { isActive: filter.isActive });
+      qb.andWhere("q.isActive = :isActive", { isActive: filter.isActive });
     }
 
     if (filter.isFeatured !== undefined) {
-      qb.andWhere('q.isFeatured = :isFeatured', { isFeatured: filter.isFeatured });
+      qb.andWhere("q.isFeatured = :isFeatured", {
+        isFeatured: filter.isFeatured,
+      });
     }
 
     if (!filter.includeExpired) {
-      qb.andWhere('(q.endsAt IS NULL OR q.endsAt > :now)', { now: new Date() });
+      qb.andWhere("(q.endsAt IS NULL OR q.endsAt > :now)", { now: new Date() });
     }
 
     return qb.getMany();
@@ -159,7 +176,7 @@ export class QuestsService {
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const now = new Date();
@@ -168,14 +185,14 @@ export class QuestsService {
 
     // Get all active user quests
     const userQuests = await this.userQuestRepo
-      .createQueryBuilder('uq')
-      .leftJoinAndSelect('uq.quest', 'q')
-      .where('uq.userId = :userId', { userId })
-      .andWhere('uq.status IN (:...statuses)', {
+      .createQueryBuilder("uq")
+      .leftJoinAndSelect("uq.quest", "q")
+      .where("uq.userId = :userId", { userId })
+      .andWhere("uq.status IN (:...statuses)", {
         statuses: [QuestStatus.IN_PROGRESS, QuestStatus.COMPLETED],
       })
-      .andWhere('(uq.periodEnd IS NULL OR uq.periodEnd >= :now)', { now })
-      .orderBy('q.displayOrder', 'ASC')
+      .andWhere("(uq.periodEnd IS NULL OR uq.periodEnd >= :now)", { now })
+      .orderBy("q.displayOrder", "ASC")
       .getMany();
 
     // Map to DTOs
@@ -198,19 +215,31 @@ export class QuestsService {
     });
 
     // Group by period
-    const daily = userQuests.filter(uq => uq.quest.period === QuestPeriod.DAILY).map(mapToProgress);
-    const weekly = userQuests.filter(uq => uq.quest.period === QuestPeriod.WEEKLY).map(mapToProgress);
-    const monthly = userQuests.filter(uq => uq.quest.period === QuestPeriod.MONTHLY).map(mapToProgress);
-    const achievements = userQuests.filter(uq => uq.quest.period === QuestPeriod.ONE_TIME).map(mapToProgress);
-    const special = userQuests.filter(uq => uq.quest.period === QuestPeriod.SPECIAL).map(mapToProgress);
+    const daily = userQuests
+      .filter((uq) => uq.quest.period === QuestPeriod.DAILY)
+      .map(mapToProgress);
+    const weekly = userQuests
+      .filter((uq) => uq.quest.period === QuestPeriod.WEEKLY)
+      .map(mapToProgress);
+    const monthly = userQuests
+      .filter((uq) => uq.quest.period === QuestPeriod.MONTHLY)
+      .map(mapToProgress);
+    const achievements = userQuests
+      .filter((uq) => uq.quest.period === QuestPeriod.ONE_TIME)
+      .map(mapToProgress);
+    const special = userQuests
+      .filter((uq) => uq.quest.period === QuestPeriod.SPECIAL)
+      .map(mapToProgress);
 
     // Calculate stats
-    const readyToClaim = userQuests.filter(uq => uq.status === QuestStatus.COMPLETED).length;
+    const readyToClaim = userQuests.filter(
+      (uq) => uq.status === QuestStatus.COMPLETED,
+    ).length;
     const completedToday = userQuests.filter(
-      uq => uq.completedAt && uq.completedAt >= todayStart,
+      (uq) => uq.completedAt && uq.completedAt >= todayStart,
     ).length;
     const pointsAvailable = userQuests
-      .filter(uq => uq.status === QuestStatus.COMPLETED)
+      .filter((uq) => uq.status === QuestStatus.COMPLETED)
       .reduce((sum, uq) => sum + uq.rewardPoints, 0);
 
     return {
@@ -229,14 +258,17 @@ export class QuestsService {
   /**
    * Получить конкретный квест пользователя
    */
-  async getUserQuest(userId: string, userQuestId: string): Promise<UserQuestProgressDto> {
+  async getUserQuest(
+    userId: string,
+    userQuestId: string,
+  ): Promise<UserQuestProgressDto> {
     const uq = await this.userQuestRepo.findOne({
       where: { id: userQuestId, userId },
-      relations: ['quest'],
+      relations: ["quest"],
     });
 
     if (!uq) {
-      throw new NotFoundException('Quest not found');
+      throw new NotFoundException("Quest not found");
     }
 
     return {
@@ -261,23 +293,26 @@ export class QuestsService {
   /**
    * Claim награду за квест
    */
-  async claimReward(userId: string, userQuestId: string): Promise<ClaimResultDto> {
+  async claimReward(
+    userId: string,
+    userQuestId: string,
+  ): Promise<ClaimResultDto> {
     const uq = await this.userQuestRepo.findOne({
       where: { id: userQuestId, userId },
-      relations: ['quest'],
+      relations: ["quest"],
     });
 
     if (!uq) {
-      throw new NotFoundException('Quest not found');
+      throw new NotFoundException("Quest not found");
     }
 
     if (uq.status !== QuestStatus.COMPLETED) {
-      throw new BadRequestException('Quest is not completed');
+      throw new BadRequestException("Quest is not completed");
     }
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Award points
@@ -288,7 +323,7 @@ export class QuestsService {
       amount: uq.rewardPoints,
       source: pointsSource,
       referenceId: uq.id,
-      referenceType: 'user_quest',
+      referenceType: "user_quest",
       description: `Квест: ${uq.quest.title}`,
       descriptionUz: `Vazifa: ${uq.quest.titleUz}`,
     });
@@ -300,14 +335,16 @@ export class QuestsService {
     await this.userQuestRepo.save(uq);
 
     // Emit event
-    this.eventEmitter.emit('quest.claimed', {
+    this.eventEmitter.emit("quest.claimed", {
       userId,
       questId: uq.questId,
       userQuestId: uq.id,
       points: uq.rewardPoints,
     });
 
-    this.logger.log(`User ${userId} claimed ${uq.rewardPoints} points for quest ${uq.quest.title}`);
+    this.logger.log(
+      `User ${userId} claimed ${uq.rewardPoints} points for quest ${uq.quest.title}`,
+    );
 
     return {
       success: true,
@@ -324,14 +361,15 @@ export class QuestsService {
   async claimAllRewards(userId: string): Promise<ClaimResultDto> {
     const completedQuests = await this.userQuestRepo.find({
       where: { userId, status: QuestStatus.COMPLETED },
-      relations: ['quest'],
+      relations: ["quest"],
     });
 
     if (completedQuests.length === 0) {
-      throw new BadRequestException('No rewards to claim');
+      throw new BadRequestException("No rewards to claim");
     }
 
     let totalPoints = 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allRewards: any[] = [];
 
     for (const uq of completedQuests) {
@@ -358,9 +396,11 @@ export class QuestsService {
   /**
    * Обработать событие для обновления прогресса квестов
    */
-  @OnEvent('order.completed')
+  @OnEvent("order.completed")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleOrderCompleted(payload: any): Promise<void> {
-    const { userId, orderId, amount, productIds, machineId, categoryIds } = payload;
+    const { userId, orderId, amount, productIds, machineId, categoryIds } =
+      payload;
 
     // ORDER_COUNT
     await this.updateProgress({
@@ -454,7 +494,8 @@ export class QuestsService {
     }
   }
 
-  @OnEvent('referral.completed')
+  @OnEvent("referral.completed")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleReferralCompleted(payload: any): Promise<void> {
     await this.updateProgress({
       userId: payload.referrerId,
@@ -465,7 +506,8 @@ export class QuestsService {
     });
   }
 
-  @OnEvent('loyalty.level_up')
+  @OnEvent("loyalty.level_up")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleLevelUp(payload: any): Promise<void> {
     await this.updateProgress({
       userId: payload.userId,
@@ -479,17 +521,21 @@ export class QuestsService {
   /**
    * Обновить прогресс квестов
    */
-  private async updateProgress(event: QuestProgressEventDto): Promise<ProgressUpdateResultDto[]> {
+  private async updateProgress(
+    event: QuestProgressEventDto,
+  ): Promise<ProgressUpdateResultDto[]> {
     const { userId, eventType, value, metadata } = event;
 
     // Find matching user quests
     const userQuests = await this.userQuestRepo
-      .createQueryBuilder('uq')
-      .leftJoinAndSelect('uq.quest', 'q')
-      .where('uq.userId = :userId', { userId })
-      .andWhere('q.type = :eventType', { eventType })
-      .andWhere('uq.status = :status', { status: QuestStatus.IN_PROGRESS })
-      .andWhere('(uq.periodEnd IS NULL OR uq.periodEnd >= :now)', { now: new Date() })
+      .createQueryBuilder("uq")
+      .leftJoinAndSelect("uq.quest", "q")
+      .where("uq.userId = :userId", { userId })
+      .andWhere("q.type = :eventType", { eventType })
+      .andWhere("uq.status = :status", { status: QuestStatus.IN_PROGRESS })
+      .andWhere("(uq.periodEnd IS NULL OR uq.periodEnd >= :now)", {
+        now: new Date(),
+      })
       .getMany();
 
     const results: ProgressUpdateResultDto[] = [];
@@ -508,7 +554,9 @@ export class QuestsService {
       // Handle unique tracking (COLLECTOR, VISIT)
       if (eventType === QuestType.COLLECTOR && metadata?.productIds) {
         const existing = uq.progressDetails?.triedProducts || [];
-        const newProducts = metadata.productIds.filter((id: string) => !existing.includes(id));
+        const newProducts = metadata.productIds.filter(
+          (id: string) => !existing.includes(id),
+        );
         incrementValue = newProducts.length;
 
         if (incrementValue > 0) {
@@ -537,17 +585,23 @@ export class QuestsService {
       }
 
       // Update progress
-      uq.currentValue = Math.min(uq.currentValue + incrementValue, uq.targetValue);
+      uq.currentValue = Math.min(
+        uq.currentValue + incrementValue,
+        uq.targetValue,
+      );
 
       // Check completion
-      if (uq.currentValue >= uq.targetValue && uq.status !== QuestStatus.COMPLETED) {
+      if (
+        uq.currentValue >= uq.targetValue &&
+        uq.status !== QuestStatus.COMPLETED
+      ) {
         uq.status = QuestStatus.COMPLETED;
         uq.completedAt = new Date();
 
         // Update quest stats
-        await this.questRepo.increment({ id: quest.id }, 'totalCompleted', 1);
+        await this.questRepo.increment({ id: quest.id }, "totalCompleted", 1);
 
-        this.eventEmitter.emit('quest.completed', {
+        this.eventEmitter.emit("quest.completed", {
           userId,
           questId: quest.id,
           userQuestId: uq.id,
@@ -575,7 +629,10 @@ export class QuestsService {
   /**
    * Проверить соответствие условиям квеста
    */
-  private matchesConditions(quest: Quest, metadata: Record<string, any> | undefined): boolean {
+  private matchesConditions(
+    quest: Quest,
+    metadata: Record<string, unknown> | undefined,
+  ): boolean {
     if (!quest.metadata) return true;
     if (!metadata) return true;
 
@@ -589,25 +646,40 @@ export class QuestsService {
     }
 
     // Category/Product/Machine conditions
-    if (quest.metadata.categoryId && metadata.categoryId !== quest.metadata.categoryId) {
+    if (
+      quest.metadata.categoryId &&
+      metadata.categoryId !== quest.metadata.categoryId
+    ) {
       return false;
     }
 
-    if (quest.metadata.productId && metadata.productId !== quest.metadata.productId) {
+    if (
+      quest.metadata.productId &&
+      metadata.productId !== quest.metadata.productId
+    ) {
       return false;
     }
 
-    if (quest.metadata.machineId && metadata.machineId !== quest.metadata.machineId) {
+    if (
+      quest.metadata.machineId &&
+      metadata.machineId !== quest.metadata.machineId
+    ) {
       return false;
     }
 
     // LOYAL_CUSTOMER
-    if (quest.metadata.requiredLevel && metadata.newLevel !== quest.metadata.requiredLevel) {
+    if (
+      quest.metadata.requiredLevel &&
+      metadata.newLevel !== quest.metadata.requiredLevel
+    ) {
       return false;
     }
 
     // Min order amount
-    if (quest.metadata.minOrderAmount && metadata.amount < quest.metadata.minOrderAmount) {
+    if (
+      quest.metadata.minOrderAmount &&
+      metadata.amount < quest.metadata.minOrderAmount
+    ) {
       return false;
     }
 
@@ -626,9 +698,21 @@ export class QuestsService {
     if (!user) return;
 
     // Check if user needs daily quests
-    await this.assignPeriodQuests(userId, user.organizationId, QuestPeriod.DAILY);
-    await this.assignPeriodQuests(userId, user.organizationId, QuestPeriod.WEEKLY);
-    await this.assignPeriodQuests(userId, user.organizationId, QuestPeriod.MONTHLY);
+    await this.assignPeriodQuests(
+      userId,
+      user.organizationId,
+      QuestPeriod.DAILY,
+    );
+    await this.assignPeriodQuests(
+      userId,
+      user.organizationId,
+      QuestPeriod.WEEKLY,
+    );
+    await this.assignPeriodQuests(
+      userId,
+      user.organizationId,
+      QuestPeriod.MONTHLY,
+    );
     await this.assignAchievements(userId, user.organizationId);
   }
 
@@ -657,6 +741,7 @@ export class QuestsService {
     // Get or create quests
     let quests = await this.questRepo.find({
       where: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: In([organizationId, null as any]),
         period,
         isActive: true,
@@ -669,8 +754,12 @@ export class QuestsService {
     }
 
     // Select random quests for user
-    const count = period === QuestPeriod.DAILY ? 3 : period === QuestPeriod.WEEKLY ? 3 : 2;
-    const selectedQuests = selectRandomQuests(quests, Math.min(count, quests.length));
+    const count =
+      period === QuestPeriod.DAILY ? 3 : period === QuestPeriod.WEEKLY ? 3 : 2;
+    const selectedQuests = selectRandomQuests(
+      quests,
+      Math.min(count, quests.length),
+    );
 
     // Assign to user
     for (const quest of selectedQuests) {
@@ -687,19 +776,25 @@ export class QuestsService {
       });
 
       await this.userQuestRepo.save(userQuest);
-      await this.questRepo.increment({ id: quest.id }, 'totalStarted', 1);
+      await this.questRepo.increment({ id: quest.id }, "totalStarted", 1);
     }
 
-    this.logger.log(`Assigned ${selectedQuests.length} ${period} quests to user ${userId}`);
+    this.logger.log(
+      `Assigned ${selectedQuests.length} ${period} quests to user ${userId}`,
+    );
   }
 
   /**
    * Назначить достижения
    */
-  private async assignAchievements(userId: string, organizationId: string): Promise<void> {
+  private async assignAchievements(
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
     // Get achievements
     let achievements = await this.questRepo.find({
       where: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: In([organizationId, null as any]),
         period: QuestPeriod.ONE_TIME,
         isActive: true,
@@ -714,11 +809,13 @@ export class QuestsService {
     const existingIds = await this.userQuestRepo
       .find({
         where: { userId },
-        select: ['questId'],
+        select: ["questId"],
       })
-      .then(uqs => uqs.map(uq => uq.questId));
+      .then((uqs) => uqs.map((uq) => uq.questId));
 
-    const newAchievements = achievements.filter(a => !existingIds.includes(a.id));
+    const newAchievements = achievements.filter(
+      (a) => !existingIds.includes(a.id),
+    );
 
     for (const quest of newAchievements) {
       const userQuest = this.userQuestRepo.create({
@@ -732,25 +829,29 @@ export class QuestsService {
       });
 
       await this.userQuestRepo.save(userQuest);
-      await this.questRepo.increment({ id: quest.id }, 'totalStarted', 1);
+      await this.questRepo.increment({ id: quest.id }, "totalStarted", 1);
     }
   }
 
   /**
    * Создать квесты из шаблонов
    */
-  private async createFromTemplates(organizationId: string, period: QuestPeriod): Promise<Quest[]> {
+  private async createFromTemplates(
+    organizationId: string,
+    period: QuestPeriod,
+  ): Promise<Quest[]> {
     const templates =
       period === QuestPeriod.DAILY
         ? DAILY_QUEST_TEMPLATES
         : period === QuestPeriod.WEEKLY
-        ? WEEKLY_QUEST_TEMPLATES
-        : MONTHLY_QUEST_TEMPLATES;
+          ? WEEKLY_QUEST_TEMPLATES
+          : MONTHLY_QUEST_TEMPLATES;
 
     const quests: Quest[] = [];
 
     for (const template of templates) {
       const quest = this.questRepo.create({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: undefined as any, // Global
         title: template.title,
         titleUz: template.titleUz,
@@ -761,6 +862,7 @@ export class QuestsService {
         difficulty: QuestDifficulty.MEDIUM,
         targetValue: template.targetValue,
         rewardPoints: template.baseReward,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         metadata: (template as any).metadata || {},
         isActive: true,
       });
@@ -780,9 +882,13 @@ export class QuestsService {
     const quests: Quest[] = [];
 
     for (const template of ACHIEVEMENT_TEMPLATES) {
-      const reward = calculateQuestReward(template.baseReward, template.difficulty);
+      const reward = calculateQuestReward(
+        template.baseReward,
+        template.difficulty,
+      );
 
       const quest = this.questRepo.create({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: undefined as any, // Global
         title: template.title,
         titleUz: template.titleUz,
@@ -793,6 +899,7 @@ export class QuestsService {
         difficulty: template.difficulty,
         targetValue: template.targetValue,
         rewardPoints: reward,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         metadata: (template as any).metadata || {},
         isActive: true,
       });
@@ -812,9 +919,9 @@ export class QuestsService {
   /**
    * Сброс ежедневных квестов (ежедневно в 00:00)
    */
-  @Cron('0 0 * * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 0 * * *", { timeZone: "Asia/Tashkent" })
   async resetDailyQuests(): Promise<void> {
-    this.logger.log('Running daily quest reset');
+    this.logger.log("Running daily quest reset");
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -825,34 +932,34 @@ export class QuestsService {
       .createQueryBuilder()
       .update()
       .set({ status: QuestStatus.EXPIRED, expiredAt: new Date() })
-      .where('status IN (:...statuses)', {
+      .where("status IN (:...statuses)", {
         statuses: [QuestStatus.IN_PROGRESS, QuestStatus.COMPLETED],
       })
-      .andWhere('periodStart < :yesterday', { yesterday })
-      .andWhere('periodEnd <= :now', { now: new Date() })
+      .andWhere("periodStart < :yesterday", { yesterday })
+      .andWhere("periodEnd <= :now", { now: new Date() })
       .execute();
 
-    this.logger.log('Daily quest reset completed');
+    this.logger.log("Daily quest reset completed");
   }
 
   /**
    * Еженедельный сброс (понедельник в 00:00)
    */
-  @Cron('0 0 * * 1', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 0 * * 1", { timeZone: "Asia/Tashkent" })
   async resetWeeklyQuests(): Promise<void> {
-    this.logger.log('Running weekly quest reset');
+    this.logger.log("Running weekly quest reset");
     // Similar logic to daily
-    this.logger.log('Weekly quest reset completed');
+    this.logger.log("Weekly quest reset completed");
   }
 
   /**
    * Ежемесячный сброс (1 число в 00:00)
    */
-  @Cron('0 0 1 * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 0 1 * *", { timeZone: "Asia/Tashkent" })
   async resetMonthlyQuests(): Promise<void> {
-    this.logger.log('Running monthly quest reset');
+    this.logger.log("Running monthly quest reset");
     // Similar logic
-    this.logger.log('Monthly quest reset completed');
+    this.logger.log("Monthly quest reset completed");
   }
 
   // ============================================================================
@@ -862,29 +969,40 @@ export class QuestsService {
   /**
    * Получить статистику квестов
    */
-  async getStats(organizationId: string, dateFrom: Date, dateTo: Date): Promise<QuestStatsDto> {
+  async getStats(
+    organizationId: string,
+    dateFrom: Date,
+    dateTo: Date,
+  ): Promise<QuestStatsDto> {
     const totalQuests = await this.questRepo.count({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       where: { organizationId: In([organizationId, null as any]) },
     });
 
     const activeQuests = await this.questRepo.count({
       where: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         organizationId: In([organizationId, null as any]),
         isActive: true,
       },
     });
 
     const userQuestStats = await this.userQuestRepo
-      .createQueryBuilder('uq')
-      .leftJoin('uq.quest', 'q')
+      .createQueryBuilder("uq")
+      .leftJoin("uq.quest", "q")
       .select([
-        'COUNT(DISTINCT uq.userId) as participants',
-        'COUNT(CASE WHEN uq.status = :claimed THEN 1 END) as completed',
-        'SUM(CASE WHEN uq.status = :claimed THEN uq.pointsClaimed ELSE 0 END) as points',
+        "COUNT(DISTINCT uq.userId) as participants",
+        "COUNT(CASE WHEN uq.status = :claimed THEN 1 END) as completed",
+        "SUM(CASE WHEN uq.status = :claimed THEN uq.pointsClaimed ELSE 0 END) as points",
       ])
-      .where('q.organizationId = :organizationId OR q.organizationId IS NULL', { organizationId })
-      .andWhere('uq.startedAt BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo })
-      .setParameter('claimed', QuestStatus.CLAIMED)
+      .where("q.organizationId = :organizationId OR q.organizationId IS NULL", {
+        organizationId,
+      })
+      .andWhere("uq.startedAt BETWEEN :dateFrom AND :dateTo", {
+        dateFrom,
+        dateTo,
+      })
+      .setParameter("claimed", QuestStatus.CLAIMED)
       .getRawOne();
 
     return {
@@ -896,7 +1014,9 @@ export class QuestsService {
       totalPointsAwarded: parseInt(userQuestStats?.points) || 0,
       completionRate:
         userQuestStats?.participants > 0
-          ? Math.round((userQuestStats?.completed / userQuestStats?.participants) * 100)
+          ? Math.round(
+              (userQuestStats?.completed / userQuestStats?.participants) * 100,
+            )
           : 0,
       byPeriod: [],
       byType: [],

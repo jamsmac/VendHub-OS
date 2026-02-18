@@ -3,10 +3,15 @@
  * Provides methods for querying and managing audit logs
  */
 
-import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThan, MoreThan } from 'typeorm';
-import { NotificationsService } from '../notifications/notifications.service';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  Optional,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, LessThan, MoreThan } from "typeorm";
+import { NotificationsService } from "../notifications/notifications.service";
 import {
   AuditLog,
   AuditSnapshot,
@@ -21,13 +26,14 @@ import {
   AuditContext,
   AuditDeviceInfo,
   AuditGeoLocation,
-} from './entities/audit.entity';
+} from "./entities/audit.entity";
 
 // ============================================================================
-// DTOs
+// INTERNAL INTERFACES (for programmatic/service-to-service calls)
+// For REST API DTOs with class-validator, see ./dto/
 // ============================================================================
 
-export interface CreateAuditLogDto {
+export interface CreateAuditLogInput {
   organizationId?: string;
   userId?: string;
   userEmail?: string;
@@ -40,21 +46,22 @@ export interface CreateAuditLogDto {
   category?: AuditCategory;
   severity?: AuditSeverity;
   description?: string;
-  oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
+  oldValues?: Record<string, unknown>;
+  newValues?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   changes?: any[];
   affectedFields?: string[];
   context?: AuditContext;
   ipAddress?: string;
   deviceInfo?: AuditDeviceInfo;
   geoLocation?: AuditGeoLocation;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   isSuccess?: boolean;
   errorMessage?: string;
 }
 
-export interface QueryAuditLogsDto {
+export interface QueryAuditLogsInput {
   organizationId?: string;
   userId?: string;
   entityType?: string;
@@ -62,15 +69,15 @@ export interface QueryAuditLogsDto {
   actions?: AuditAction[];
   categories?: AuditCategory[];
   severities?: AuditSeverity[];
-  dateFrom?: Date;
-  dateTo?: Date;
+  dateFrom?: Date | string;
+  dateTo?: Date | string;
   search?: string;
   tags?: string[];
   isSuccess?: boolean;
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
+  sortOrder?: "ASC" | "DESC";
 }
 
 export interface AuditLogsPaginatedResponse {
@@ -93,7 +100,7 @@ export interface AuditStatistics {
   failedOperations: number;
 }
 
-export interface CreateSessionDto {
+export interface CreateSessionInput {
   userId: string;
   organizationId?: string;
   ipAddress?: string;
@@ -138,9 +145,9 @@ export class AuditService {
   /**
    * Create a manual audit log entry
    */
-  async createAuditLog(dto: CreateAuditLogDto): Promise<AuditLog> {
+  async createAuditLog(dto: CreateAuditLogInput): Promise<AuditLog> {
     const retentionDays = await this.getRetentionDays(
-      dto.organizationId || '',
+      dto.organizationId || "",
       dto.entityType,
     );
 
@@ -164,7 +171,9 @@ export class AuditService {
   /**
    * Query audit logs with filters and pagination
    */
-  async queryAuditLogs(query: QueryAuditLogsDto): Promise<AuditLogsPaginatedResponse> {
+  async queryAuditLogs(
+    query: QueryAuditLogsInput,
+  ): Promise<AuditLogsPaginatedResponse> {
     const {
       organizationId,
       userId,
@@ -180,62 +189,62 @@ export class AuditService {
       isSuccess,
       page = 1,
       limit = 50,
-      sortBy = 'createdAt',
-      sortOrder = 'DESC',
+      sortBy = "createdAt",
+      sortOrder = "DESC",
     } = query;
 
-    const qb = this.auditLogRepo.createQueryBuilder('audit');
+    const qb = this.auditLogRepo.createQueryBuilder("audit");
 
     // Apply filters
     if (organizationId) {
-      qb.andWhere('audit.organizationId = :organizationId', { organizationId });
+      qb.andWhere("audit.organizationId = :organizationId", { organizationId });
     }
 
     if (userId) {
-      qb.andWhere('audit.userId = :userId', { userId });
+      qb.andWhere("audit.userId = :userId", { userId });
     }
 
     if (entityType) {
-      qb.andWhere('audit.entityType = :entityType', { entityType });
+      qb.andWhere("audit.entityType = :entityType", { entityType });
     }
 
     if (entityId) {
-      qb.andWhere('audit.entityId = :entityId', { entityId });
+      qb.andWhere("audit.entityId = :entityId", { entityId });
     }
 
     if (actions?.length) {
-      qb.andWhere('audit.action IN (:...actions)', { actions });
+      qb.andWhere("audit.action IN (:...actions)", { actions });
     }
 
     if (categories?.length) {
-      qb.andWhere('audit.category IN (:...categories)', { categories });
+      qb.andWhere("audit.category IN (:...categories)", { categories });
     }
 
     if (severities?.length) {
-      qb.andWhere('audit.severity IN (:...severities)', { severities });
+      qb.andWhere("audit.severity IN (:...severities)", { severities });
     }
 
     if (dateFrom) {
-      qb.andWhere('audit.createdAt >= :dateFrom', { dateFrom });
+      qb.andWhere("audit.createdAt >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('audit.createdAt <= :dateTo', { dateTo });
+      qb.andWhere("audit.createdAt <= :dateTo", { dateTo });
     }
 
     if (search) {
       qb.andWhere(
-        '(audit.description ILIKE :search OR audit.entityName ILIKE :search OR audit.userEmail ILIKE :search)',
+        "(audit.description ILIKE :search OR audit.entityName ILIKE :search OR audit.userEmail ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     if (tags?.length) {
-      qb.andWhere('audit.tags && :tags', { tags });
+      qb.andWhere("audit.tags && :tags", { tags });
     }
 
     if (isSuccess !== undefined) {
-      qb.andWhere('audit.isSuccess = :isSuccess', { isSuccess });
+      qb.andWhere("audit.isSuccess = :isSuccess", { isSuccess });
     }
 
     // Get total count
@@ -278,7 +287,7 @@ export class AuditService {
   ): Promise<{ logs: AuditLog[]; snapshots?: AuditSnapshot[] }> {
     const logs = await this.auditLogRepo.find({
       where: { entityType, entityId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       take: options?.limit || 100,
     });
 
@@ -286,7 +295,7 @@ export class AuditService {
     if (options?.includeSnapshots) {
       snapshots = await this.snapshotRepo.find({
         where: { entityType, entityId },
-        order: { created_at: 'DESC' },
+        order: { created_at: "DESC" },
       });
     }
 
@@ -301,9 +310,9 @@ export class AuditService {
     dateFrom: Date,
     dateTo: Date,
   ): Promise<AuditStatistics> {
-    const qb = this.auditLogRepo.createQueryBuilder('audit');
-    qb.where('audit.organizationId = :organizationId', { organizationId });
-    qb.andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+    const qb = this.auditLogRepo.createQueryBuilder("audit");
+    qb.where("audit.organizationId = :organizationId", { organizationId });
+    qb.andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
       dateFrom,
       dateTo,
     });
@@ -313,15 +322,15 @@ export class AuditService {
 
     // By action
     const byActionRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select('audit.action', 'action')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("audit.action", "action")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
-      .groupBy('audit.action')
+      .groupBy("audit.action")
       .getRawMany();
 
     const byAction: Record<string, number> = {};
@@ -329,15 +338,15 @@ export class AuditService {
 
     // By category
     const byCategoryRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select('audit.category', 'category')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("audit.category", "category")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
-      .groupBy('audit.category')
+      .groupBy("audit.category")
       .getRawMany();
 
     const byCategory: Record<string, number> = {};
@@ -345,15 +354,15 @@ export class AuditService {
 
     // By severity
     const bySeverityRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select('audit.severity', 'severity')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("audit.severity", "severity")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
-      .groupBy('audit.severity')
+      .groupBy("audit.severity")
       .getRawMany();
 
     const bySeverity: Record<string, number> = {};
@@ -361,15 +370,15 @@ export class AuditService {
 
     // By entity type
     const byEntityTypeRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select('audit.entityType', 'entityType')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("audit.entityType", "entityType")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
-      .groupBy('audit.entityType')
+      .groupBy("audit.entityType")
       .getRawMany();
 
     const byEntityType: Record<string, number> = {};
@@ -379,19 +388,19 @@ export class AuditService {
 
     // By user (top 10)
     const byUserRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select('audit.userId', 'userId')
-      .addSelect('audit.userName', 'userName')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("audit.userId", "userId")
+      .addSelect("audit.userName", "userName")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
-      .andWhere('audit.userId IS NOT NULL')
-      .groupBy('audit.userId')
-      .addGroupBy('audit.userName')
-      .orderBy('count', 'DESC')
+      .andWhere("audit.userId IS NOT NULL")
+      .groupBy("audit.userId")
+      .addGroupBy("audit.userName")
+      .orderBy("count", "DESC")
       .limit(10)
       .getRawMany();
 
@@ -403,16 +412,16 @@ export class AuditService {
 
     // Recent activity (last 30 days)
     const recentActivityRaw = await this.auditLogRepo
-      .createQueryBuilder('audit')
-      .select("DATE_TRUNC('day', audit.createdAt)", 'date')
-      .addSelect('COUNT(*)', 'count')
-      .where('audit.organizationId = :organizationId', { organizationId })
-      .andWhere('audit.createdAt BETWEEN :dateFrom AND :dateTo', {
+      .createQueryBuilder("audit")
+      .select("DATE_TRUNC('day', audit.createdAt)", "date")
+      .addSelect("COUNT(*)", "count")
+      .where("audit.organizationId = :organizationId", { organizationId })
+      .andWhere("audit.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
       .groupBy("DATE_TRUNC('day', audit.createdAt)")
-      .orderBy('date', 'ASC')
+      .orderBy("date", "ASC")
       .getRawMany();
 
     const recentActivity = recentActivityRaw.map((r) => ({
@@ -462,7 +471,7 @@ export class AuditService {
     organizationId: string,
     entityType: string,
     entityId: string,
-    snapshot: Record<string, any>,
+    snapshot: Record<string, unknown>,
     options?: {
       entityName?: string;
       snapshotReason?: string;
@@ -498,7 +507,7 @@ export class AuditService {
   ): Promise<AuditSnapshot[]> {
     return this.snapshotRepo.find({
       where: { entityType, entityId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -520,7 +529,7 @@ export class AuditService {
   /**
    * Create new session
    */
-  async createSession(dto: CreateSessionDto): Promise<AuditSession> {
+  async createSession(dto: CreateSessionInput): Promise<AuditSession> {
     const session = this.sessionRepo.create({
       ...dto,
       isActive: true,
@@ -534,12 +543,12 @@ export class AuditService {
     await this.createAuditLog({
       organizationId: dto.organizationId,
       userId: dto.userId,
-      entityType: 'session',
+      entityType: "session",
       entityId: saved.id,
       action: AuditAction.LOGIN,
       category: AuditCategory.AUTHENTICATION,
       severity: AuditSeverity.INFO,
-      description: `User logged in via ${dto.loginMethod || 'password'}`,
+      description: `User logged in via ${dto.loginMethod || "password"}`,
       ipAddress: dto.ipAddress,
       deviceInfo: dto.deviceInfo,
       geoLocation: dto.geoLocation,
@@ -553,7 +562,7 @@ export class AuditService {
    */
   async endSession(
     sessionId: string,
-    reason: string = 'logout',
+    reason: string = "logout",
   ): Promise<void> {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
@@ -573,7 +582,7 @@ export class AuditService {
     await this.createAuditLog({
       organizationId: session.organizationId,
       userId: session.userId,
-      entityType: 'session',
+      entityType: "session",
       entityId: sessionId,
       action: AuditAction.LOGOUT,
       category: AuditCategory.AUTHENTICATION,
@@ -588,7 +597,7 @@ export class AuditService {
   async updateSessionActivity(sessionId: string): Promise<void> {
     await this.sessionRepo.update(sessionId, {
       lastActivityAt: new Date(),
-      actionsCount: () => 'actions_count + 1',
+      actionsCount: () => "actions_count + 1",
     });
   }
 
@@ -599,6 +608,7 @@ export class AuditService {
     userId: string,
     activeOnly: boolean = true,
   ): Promise<AuditSession[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId };
     if (activeOnly) {
       where.isActive = true;
@@ -606,7 +616,7 @@ export class AuditService {
 
     return this.sessionRepo.find({
       where,
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -615,7 +625,7 @@ export class AuditService {
    */
   async terminateAllUserSessions(
     userId: string,
-    reason: string = 'forced',
+    reason: string = "forced",
   ): Promise<number> {
     const sessions = await this.sessionRepo.find({
       where: { userId, isActive: true },
@@ -648,13 +658,13 @@ export class AuditService {
       await this.createAuditLog({
         organizationId: session.organizationId,
         userId: session.userId,
-        entityType: 'session',
+        entityType: "session",
         entityId: sessionId,
         action: AuditAction.LOGIN,
         category: AuditCategory.SECURITY,
         severity: AuditSeverity.WARNING,
         description: `Session marked as suspicious: ${reason}`,
-        tags: ['suspicious', 'security'],
+        tags: ["suspicious", "security"],
       });
     }
   }
@@ -680,6 +690,7 @@ export class AuditService {
           await this.triggerAlert(alert, log);
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Failed to check alerts: ${error.message}`);
     }
@@ -763,7 +774,7 @@ export class AuditService {
     // Update alert
     await this.alertRepo.update(alert.id, {
       lastTriggeredAt: new Date(),
-      triggerCount: () => 'trigger_count + 1',
+      triggerCount: () => "trigger_count + 1",
     });
 
     this.logger.warn(
@@ -776,13 +787,16 @@ export class AuditService {
         await this.notificationsService.create({
           organizationId: log.organizationId,
           userId: log.userId,
-          type: 'system' as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          type: "system" as any,
           title: `Audit Alert: ${alert.name}`,
           body: `Triggered by ${log.action} on ${log.entityType}. ${history.triggerReason}`,
           titleUz: `Audit Ogohlantirish: ${alert.name}`,
           bodyUz: `${log.action} harakati ${log.entityType} da amalga oshirildi`,
-          channels: ['in_app', 'push'] as any[],
-          priority: 'high' as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          channels: ["in_app", "push"] as any[],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          priority: "high" as any,
           actionUrl: `/dashboard/audit?alertId=${alert.id}`,
           data: {
             alertId: alert.id,
@@ -866,7 +880,7 @@ export class AuditService {
    * Clean up expired audit logs
    */
   async cleanupExpiredLogs(): Promise<number> {
-    const result = await this.auditLogRepo.delete({
+    const result = await this.auditLogRepo.softDelete({
       expiresAt: LessThan(new Date()),
     });
 
@@ -878,7 +892,7 @@ export class AuditService {
    * Clean up expired snapshots
    */
   async cleanupExpiredSnapshots(): Promise<number> {
-    const result = await this.snapshotRepo.delete({
+    const result = await this.snapshotRepo.softDelete({
       expiresAt: LessThan(new Date()),
     });
 
@@ -898,7 +912,7 @@ export class AuditService {
     reportType: string,
     dateFrom: Date,
     dateTo: Date,
-    filters?: Record<string, any>,
+    filters?: Record<string, unknown>,
     generatedBy?: string,
   ): Promise<AuditReport> {
     const startTime = Date.now();
@@ -906,13 +920,13 @@ export class AuditService {
     // Create report record
     const report = this.reportRepo.create({
       organizationId,
-      name: `${reportType} Report - ${dateFrom.toISOString().split('T')[0]}`,
+      name: `${reportType} Report - ${dateFrom.toISOString().split("T")[0]}`,
       reportType,
       dateFrom,
       dateTo,
       filters,
       generatedBy,
-      status: 'generating',
+      status: "generating",
     });
 
     await this.reportRepo.save(report);
@@ -941,14 +955,15 @@ export class AuditService {
         suspiciousActivities: stats.securityEvents,
       };
 
-      report.status = 'completed';
+      report.status = "completed";
       report.generationDurationMs = Date.now() - startTime;
 
       await this.reportRepo.save(report);
 
       return report;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      report.status = 'failed';
+      report.status = "failed";
       report.errorMessage = error.message;
       await this.reportRepo.save(report);
       throw error;
@@ -964,7 +979,7 @@ export class AuditService {
   ): Promise<AuditReport[]> {
     return this.reportRepo.find({
       where: { organizationId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       take: limit,
     });
   }

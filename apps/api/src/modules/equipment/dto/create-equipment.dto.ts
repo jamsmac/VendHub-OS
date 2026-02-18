@@ -2,7 +2,7 @@
  * Equipment Component DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsString,
   IsUUID,
@@ -16,106 +16,116 @@ import {
   Max,
   MaxLength,
   ValidateNested,
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 import {
   EquipmentComponentType,
   EquipmentComponentStatus,
   ComponentMaintenanceType,
-} from '../entities/equipment-component.entity';
+} from "../entities/equipment-component.entity";
 
 // ============================================================================
 // EQUIPMENT COMPONENT DTOs
 // ============================================================================
 
 export class CreateEquipmentComponentDto {
-  @ApiPropertyOptional({ description: 'Machine ID where component is installed' })
+  @ApiPropertyOptional({
+    description: "Machine ID where component is installed",
+  })
   @IsUUID()
   @IsOptional()
   machineId?: string;
 
-  @ApiProperty({ enum: EquipmentComponentType, description: 'Type of component' })
+  @ApiProperty({
+    enum: EquipmentComponentType,
+    description: "Type of component",
+  })
   @IsEnum(EquipmentComponentType)
   componentType: EquipmentComponentType;
 
-  @ApiProperty({ enum: EquipmentComponentStatus, default: EquipmentComponentStatus.NEW })
+  @ApiProperty({
+    enum: EquipmentComponentStatus,
+    default: EquipmentComponentStatus.NEW,
+  })
   @IsEnum(EquipmentComponentStatus)
   @IsOptional()
   componentStatus?: EquipmentComponentStatus = EquipmentComponentStatus.NEW;
 
-  @ApiProperty({ description: 'Component name' })
+  @ApiProperty({ description: "Component name" })
   @IsString()
   @MaxLength(200)
   name: string;
 
-  @ApiPropertyOptional({ description: 'Serial number' })
+  @ApiPropertyOptional({ description: "Serial number" })
   @IsString()
   @MaxLength(100)
   @IsOptional()
   serialNumber?: string;
 
-  @ApiPropertyOptional({ description: 'Manufacturer' })
+  @ApiPropertyOptional({ description: "Manufacturer" })
   @IsString()
   @MaxLength(100)
   @IsOptional()
   manufacturer?: string;
 
-  @ApiPropertyOptional({ description: 'Model' })
+  @ApiPropertyOptional({ description: "Model" })
   @IsString()
   @MaxLength(100)
   @IsOptional()
   model?: string;
 
-  @ApiPropertyOptional({ description: 'Purchase date' })
+  @ApiPropertyOptional({ description: "Purchase date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   purchaseDate?: Date;
 
-  @ApiPropertyOptional({ description: 'Purchase price' })
+  @ApiPropertyOptional({ description: "Purchase price" })
   @IsNumber()
   @Min(0)
   @IsOptional()
   purchasePrice?: number;
 
-  @ApiPropertyOptional({ description: 'Warranty end date' })
+  @ApiPropertyOptional({ description: "Warranty end date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   warrantyUntil?: Date;
 
-  @ApiPropertyOptional({ description: 'Installation date' })
+  @ApiPropertyOptional({ description: "Installation date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   installedAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Expected life in hours' })
+  @ApiPropertyOptional({ description: "Expected life in hours" })
   @IsInt()
   @Min(1)
   @IsOptional()
   expectedLifeHours?: number;
 
-  @ApiPropertyOptional({ description: 'Current operating hours' })
+  @ApiPropertyOptional({ description: "Current operating hours" })
   @IsInt()
   @Min(0)
   @IsOptional()
   currentHours?: number;
 
-  @ApiPropertyOptional({ description: 'Notes' })
+  @ApiPropertyOptional({ description: "Notes" })
   @IsString()
   @IsOptional()
   notes?: string;
 
-  @ApiPropertyOptional({ description: 'Metadata' })
+  @ApiPropertyOptional({ description: "Metadata" })
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-export class UpdateEquipmentComponentDto extends PartialType(CreateEquipmentComponentDto) {}
+export class UpdateEquipmentComponentDto extends PartialType(
+  CreateEquipmentComponentDto,
+) {}
 
 export class CreateComponentMaintenanceDto {
-  @ApiProperty({ description: 'Component ID' })
+  @ApiProperty({ description: "Component ID" })
   @IsUUID()
   componentId: string;
 
@@ -123,78 +133,78 @@ export class CreateComponentMaintenanceDto {
   @IsEnum(ComponentMaintenanceType)
   maintenanceType: ComponentMaintenanceType;
 
-  @ApiPropertyOptional({ description: 'Description of work' })
+  @ApiPropertyOptional({ description: "Description of work" })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Cost' })
+  @ApiPropertyOptional({ description: "Cost" })
   @IsNumber()
   @Min(0)
   @IsOptional()
   cost?: number;
 
-  @ApiPropertyOptional({ description: 'Date/time performed' })
+  @ApiPropertyOptional({ description: "Date/time performed" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   performedAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Parts used', type: [Object] })
+  @ApiPropertyOptional({ description: "Parts used", type: [Object] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PartUsedDto)
   @IsOptional()
   partsUsed?: PartUsedDto[];
 
-  @ApiPropertyOptional({ description: 'Notes' })
+  @ApiPropertyOptional({ description: "Notes" })
   @IsString()
   @IsOptional()
   notes?: string;
 
-  @ApiPropertyOptional({ description: 'Metadata' })
+  @ApiPropertyOptional({ description: "Metadata" })
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class PartUsedDto {
-  @ApiProperty({ description: 'Spare part ID' })
+  @ApiProperty({ description: "Spare part ID" })
   @IsUUID()
   sparePartId: string;
 
-  @ApiProperty({ description: 'Quantity used' })
+  @ApiProperty({ description: "Quantity used" })
   @IsInt()
   @Min(1)
   quantity: number;
 }
 
 export class CreateComponentMovementDto {
-  @ApiProperty({ description: 'Component ID' })
+  @ApiProperty({ description: "Component ID" })
   @IsUUID()
   componentId: string;
 
-  @ApiPropertyOptional({ description: 'Source machine ID' })
+  @ApiPropertyOptional({ description: "Source machine ID" })
   @IsUUID()
   @IsOptional()
   fromMachineId?: string;
 
-  @ApiPropertyOptional({ description: 'Destination machine ID' })
+  @ApiPropertyOptional({ description: "Destination machine ID" })
   @IsUUID()
   @IsOptional()
   toMachineId?: string;
 
-  @ApiPropertyOptional({ description: 'Reason for movement' })
+  @ApiPropertyOptional({ description: "Reason for movement" })
   @IsString()
   @IsOptional()
   reason?: string;
 
-  @ApiPropertyOptional({ description: 'Metadata' })
+  @ApiPropertyOptional({ description: "Metadata" })
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class EquipmentQueryDto {
-  @ApiPropertyOptional({ description: 'Filter by machine ID' })
+  @ApiPropertyOptional({ description: "Filter by machine ID" })
   @IsUUID()
   @IsOptional()
   machineId?: string;
@@ -209,7 +219,7 @@ export class EquipmentQueryDto {
   @IsOptional()
   componentStatus?: EquipmentComponentStatus;
 
-  @ApiPropertyOptional({ description: 'Search by name or serial number' })
+  @ApiPropertyOptional({ description: "Search by name or serial number" })
   @IsString()
   @IsOptional()
   search?: string;
@@ -229,18 +239,18 @@ export class EquipmentQueryDto {
   @IsOptional()
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: 'Sort by field' })
+  @ApiPropertyOptional({ description: "Sort by field" })
   @IsString()
   @IsOptional()
-  sortBy?: string = 'created_at';
+  sortBy?: string = "created_at";
 
-  @ApiPropertyOptional({ description: 'Sort direction' })
+  @ApiPropertyOptional({ description: "Sort direction" })
   @IsOptional()
-  sortOrder?: 'ASC' | 'DESC' = 'DESC';
+  sortOrder?: "ASC" | "DESC" = "DESC";
 }
 
 export class MaintenanceHistoryQueryDto {
-  @ApiPropertyOptional({ description: 'Filter by component ID' })
+  @ApiPropertyOptional({ description: "Filter by component ID" })
   @IsUUID()
   @IsOptional()
   componentId?: string;
@@ -250,13 +260,13 @@ export class MaintenanceHistoryQueryDto {
   @IsOptional()
   maintenanceType?: ComponentMaintenanceType;
 
-  @ApiPropertyOptional({ description: 'Start date' })
+  @ApiPropertyOptional({ description: "Start date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   startDate?: Date;
 
-  @ApiPropertyOptional({ description: 'End date' })
+  @ApiPropertyOptional({ description: "End date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
@@ -279,23 +289,23 @@ export class MaintenanceHistoryQueryDto {
 }
 
 export class MovementQueryDto {
-  @ApiPropertyOptional({ description: 'Filter by component ID' })
+  @ApiPropertyOptional({ description: "Filter by component ID" })
   @IsUUID()
   @IsOptional()
   componentId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by machine ID (from or to)' })
+  @ApiPropertyOptional({ description: "Filter by machine ID (from or to)" })
   @IsUUID()
   @IsOptional()
   machineId?: string;
 
-  @ApiPropertyOptional({ description: 'Start date' })
+  @ApiPropertyOptional({ description: "Start date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   startDate?: Date;
 
-  @ApiPropertyOptional({ description: 'End date' })
+  @ApiPropertyOptional({ description: "End date" })
   @IsDate()
   @Type(() => Date)
   @IsOptional()

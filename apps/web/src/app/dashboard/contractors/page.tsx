@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   Plus,
@@ -17,17 +17,17 @@ import {
   ChevronDown,
   DollarSign,
   AlertTriangle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -35,24 +35,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface Contractor {
   id: string;
@@ -60,8 +60,8 @@ interface Contractor {
   contactPerson: string;
   email: string;
   phone: string;
-  type: 'repair' | 'supply' | 'logistics' | 'cleaning' | 'other';
-  status: 'active' | 'inactive' | 'pending';
+  type: "repair" | "supply" | "logistics" | "cleaning" | "other";
+  status: "active" | "inactive" | "pending";
   rating: number;
   contractNumber?: string;
   contractEndDate?: string;
@@ -73,39 +73,39 @@ interface Contractor {
 }
 
 const typeLabels: Record<string, string> = {
-  repair: 'Ремонт',
-  supply: 'Поставка',
-  logistics: 'Логистика',
-  cleaning: 'Клининг',
-  other: 'Другое',
+  repair: "Ремонт",
+  supply: "Поставка",
+  logistics: "Логистика",
+  cleaning: "Клининг",
+  other: "Другое",
 };
 
 const typeColors: Record<string, string> = {
-  repair: 'bg-blue-500/10 text-blue-500',
-  supply: 'bg-green-500/10 text-green-500',
-  logistics: 'bg-purple-500/10 text-purple-500',
-  cleaning: 'bg-amber-500/10 text-amber-500',
-  other: 'bg-muted text-muted-foreground',
+  repair: "bg-blue-500/10 text-blue-500",
+  supply: "bg-green-500/10 text-green-500",
+  logistics: "bg-purple-500/10 text-purple-500",
+  cleaning: "bg-amber-500/10 text-amber-500",
+  other: "bg-muted text-muted-foreground",
 };
 
 const statusLabels: Record<string, string> = {
-  active: 'Активный',
-  inactive: 'Неактивный',
-  pending: 'Ожидает',
+  active: "Активный",
+  inactive: "Неактивный",
+  pending: "Ожидает",
 };
 
 const statusColors: Record<string, string> = {
-  active: 'bg-green-500/10 text-green-500',
-  inactive: 'bg-red-500/10 text-red-500',
-  pending: 'bg-amber-500/10 text-amber-500',
+  active: "bg-green-500/10 text-green-500",
+  inactive: "bg-red-500/10 text-red-500",
+  pending: "bg-amber-500/10 text-amber-500",
 };
 
 export default function ContractorsPage() {
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -114,13 +114,17 @@ export default function ContractorsPage() {
   }, [search]);
 
   // Fetch contractors
-  const { data: contractors, isLoading, isError } = useQuery<Contractor[]>({
-    queryKey: ['contractors', debouncedSearch, statusFilter, typeFilter],
+  const {
+    data: contractors,
+    isLoading,
+    isError,
+  } = useQuery<Contractor[]>({
+    queryKey: ["contractors", debouncedSearch, statusFilter, typeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (typeFilter !== 'all') params.append('type', typeFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (typeFilter !== "all") params.append("type", typeFilter);
       const res = await api.get(`/contractors?${params}`);
       return res.data;
     },
@@ -132,22 +136,25 @@ export default function ContractorsPage() {
       await api.delete(`/contractors/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contractors'] });
-      toast.success('Подрядчик удалён');
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
+      toast.success("Подрядчик удалён");
     },
     onError: () => {
-      toast.error('Не удалось удалить подрядчика');
+      toast.error("Не удалось удалить подрядчика");
     },
   });
 
-  const stats = useMemo(() => ({
-    total: contractors?.length || 0,
-    active: contractors?.filter((c) => c.status === 'active').length || 0,
-    totalSpent: contractors?.reduce((sum, c) => sum + c.totalSpent, 0) || 0,
-  }), [contractors]);
+  const stats = useMemo(
+    () => ({
+      total: contractors?.length || 0,
+      active: contractors?.filter((c) => c.status === "active").length || 0,
+      totalSpent: contractors?.reduce((sum, c) => sum + c.totalSpent, 0) || 0,
+    }),
+    [contractors],
+  );
 
   const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU').format(amount) + ' UZS';
+    return new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
   };
 
   if (isError) {
@@ -155,8 +162,14 @@ export default function ContractorsPage() {
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить подрядчиков</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['contractors'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить подрядчиков
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["contractors"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -187,7 +200,7 @@ export default function ContractorsPage() {
             <ContractorForm
               onSuccess={() => {
                 setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['contractors'] });
+                queryClient.invalidateQueries({ queryKey: ["contractors"] });
               }}
             />
           </DialogContent>
@@ -224,7 +237,9 @@ export default function ContractorsPage() {
               <DollarSign className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{formatMoney(stats.totalSpent)}</p>
+              <p className="text-2xl font-bold">
+                {formatMoney(stats.totalSpent)}
+              </p>
               <p className="text-sm text-muted-foreground">Общие расходы</p>
             </div>
           </div>
@@ -251,11 +266,14 @@ export default function ContractorsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
               Все статусы
             </DropdownMenuItem>
             {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setStatusFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -270,11 +288,14 @@ export default function ContractorsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setTypeFilter('all')}>
+            <DropdownMenuItem onClick={() => setTypeFilter("all")}>
               Все типы
             </DropdownMenuItem>
             {Object.entries(typeLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setTypeFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setTypeFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -344,12 +365,14 @@ export default function ContractorsPage() {
                           key={i}
                           className={`w-4 h-4 ${
                             i < contractor.rating
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-muted'
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-muted"
                           }`}
                         />
                       ))}
-                      <span className="text-sm ml-1">{contractor.rating.toFixed(1)}</span>
+                      <span className="text-sm ml-1">
+                        {contractor.rating.toFixed(1)}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -368,7 +391,11 @@ export default function ContractorsPage() {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Действия">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Действия"
+                        >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -409,17 +436,23 @@ export default function ContractorsPage() {
 }
 
 // Contractor Form Component
-function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; onSuccess: () => void }) {
+function ContractorForm({
+  contractor,
+  onSuccess,
+}: {
+  contractor?: Contractor;
+  onSuccess: () => void;
+}) {
   const [formData, setFormData] = useState({
-    name: contractor?.name || '',
-    contactPerson: contractor?.contactPerson || '',
-    email: contractor?.email || '',
-    phone: contractor?.phone || '',
-    type: contractor?.type || 'repair',
-    contractNumber: contractor?.contractNumber || '',
-    contractEndDate: contractor?.contractEndDate || '',
-    address: contractor?.address || '',
-    notes: contractor?.notes || '',
+    name: contractor?.name || "",
+    contactPerson: contractor?.contactPerson || "",
+    email: contractor?.email || "",
+    phone: contractor?.phone || "",
+    type: contractor?.type || "repair",
+    contractNumber: contractor?.contractNumber || "",
+    contractEndDate: contractor?.contractEndDate || "",
+    address: contractor?.address || "",
+    notes: contractor?.notes || "",
   });
 
   const mutation = useMutation({
@@ -427,14 +460,14 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
       if (contractor) {
         return api.patch(`/contractors/${contractor.id}`, data);
       }
-      return api.post('/contractors', data);
+      return api.post("/contractors", data);
     },
     onSuccess: () => {
-      toast.success(contractor ? 'Подрядчик обновлён' : 'Подрядчик добавлен');
+      toast.success(contractor ? "Подрядчик обновлён" : "Подрядчик добавлен");
       onSuccess();
     },
     onError: () => {
-      toast.error('Ошибка сохранения');
+      toast.error("Ошибка сохранения");
     },
   });
 
@@ -458,7 +491,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <label className="text-sm font-medium">Контактное лицо</label>
           <Input
             value={formData.contactPerson}
-            onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, contactPerson: e.target.value })
+            }
             required
           />
         </div>
@@ -466,7 +501,10 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <label className="text-sm font-medium">Тип услуг</label>
           <Select
             value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value as any })}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onValueChange={(value) =>
+              setFormData({ ...formData, type: value as any })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Выберите тип услуг" />
@@ -487,7 +525,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <Input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             required
           />
         </div>
@@ -495,7 +535,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <label className="text-sm font-medium">Телефон</label>
           <Input
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
             required
           />
         </div>
@@ -505,7 +547,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <label className="text-sm font-medium">Номер договора</label>
           <Input
             value={formData.contractNumber}
-            onChange={(e) => setFormData({ ...formData, contractNumber: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, contractNumber: e.target.value })
+            }
           />
         </div>
         <div>
@@ -513,7 +557,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
           <Input
             type="date"
             value={formData.contractEndDate}
-            onChange={(e) => setFormData({ ...formData, contractEndDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, contractEndDate: e.target.value })
+            }
           />
         </div>
       </div>
@@ -521,7 +567,9 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
         <label className="text-sm font-medium">Адрес</label>
         <Input
           value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, address: e.target.value })
+          }
         />
       </div>
       <div>
@@ -534,7 +582,11 @@ function ContractorForm({ contractor, onSuccess }: { contractor?: Contractor; on
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Сохранение...' : contractor ? 'Обновить' : 'Добавить'}
+          {mutation.isPending
+            ? "Сохранение..."
+            : contractor
+              ? "Обновить"
+              : "Добавить"}
         </Button>
       </div>
     </form>

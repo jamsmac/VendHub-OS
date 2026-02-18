@@ -1,26 +1,26 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, ConflictException } from "@nestjs/common";
 
-import { OperatorRatingsService } from './operator-ratings.service';
-import { OperatorRating } from './entities/operator-rating.entity';
+import { OperatorRatingsService } from "./operator-ratings.service";
+import { OperatorRating } from "./entities/operator-rating.entity";
 
-const ORG_ID = 'org-uuid-00000000-0000-0000-0000-000000000001';
-const USER_ID = 'user-uuid-00000000-0000-0000-0000-000000000001';
+const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
+const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
 
-describe('OperatorRatingsService', () => {
+describe("OperatorRatingsService", () => {
   let service: OperatorRatingsService;
   let ratingRepo: jest.Mocked<Repository<OperatorRating>>;
 
   const mockRating = {
-    id: 'rating-uuid-1',
+    id: "rating-uuid-1",
     organization_id: ORG_ID,
     user_id: USER_ID,
-    period_start: new Date('2024-01-01'),
-    period_end: new Date('2024-01-31'),
+    period_start: new Date("2024-01-01"),
+    period_end: new Date("2024-01-31"),
     total_score: 78.5,
-    grade: 'B+',
+    grade: "B+",
     rank: 1,
     task_score: 85,
     photo_compliance_rate: 90,
@@ -69,10 +69,10 @@ describe('OperatorRatingsService', () => {
 
   const mockRating2 = {
     ...mockRating,
-    id: 'rating-uuid-2',
-    user_id: 'user-uuid-2',
+    id: "rating-uuid-2",
+    user_id: "user-uuid-2",
     total_score: 65,
-    grade: 'B',
+    grade: "B",
     rank: 2,
   } as unknown as OperatorRating;
 
@@ -108,7 +108,7 @@ describe('OperatorRatingsService', () => {
     ratingRepo = module.get(getRepositoryToken(OperatorRating));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -116,11 +116,11 @@ describe('OperatorRatingsService', () => {
   // CALCULATE RATING
   // ============================================================================
 
-  describe('calculateRating', () => {
+  describe("calculateRating", () => {
     const baseDto = {
       user_id: USER_ID,
-      period_start: '2024-02-01',
-      period_end: '2024-02-29',
+      period_start: "2024-02-01",
+      period_end: "2024-02-29",
       tasks_assigned: 20,
       tasks_completed: 18,
       tasks_on_time: 15,
@@ -150,7 +150,7 @@ describe('OperatorRatingsService', () => {
       comments_sent: 8,
     };
 
-    it('should calculate and save a new rating with weighted scores', async () => {
+    it("should calculate and save a new rating with weighted scores", async () => {
       ratingRepo.findOne
         .mockResolvedValueOnce(null) // no existing rating
         .mockResolvedValueOnce(mockRating); // findById after save
@@ -158,6 +158,7 @@ describe('OperatorRatingsService', () => {
       ratingRepo.save.mockResolvedValue(mockRating);
       ratingRepo.find.mockResolvedValue([mockRating]); // for recalculateRanks
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.calculateRating(baseDto as any, ORG_ID);
 
       expect(result).toBeDefined();
@@ -165,15 +166,16 @@ describe('OperatorRatingsService', () => {
       expect(ratingRepo.save).toHaveBeenCalled();
     });
 
-    it('should throw ConflictException when rating already exists for period', async () => {
+    it("should throw ConflictException when rating already exists for period", async () => {
       ratingRepo.findOne.mockResolvedValueOnce(mockRating); // existing rating found
 
       await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.calculateRating(baseDto as any, ORG_ID),
       ).rejects.toThrow(ConflictException);
     });
 
-    it('should assign grade A+ for score >= 95', async () => {
+    it("should assign grade A+ for score >= 95", async () => {
       // We test the private calculateGrade method indirectly through calculateRating
       const highDto = {
         ...baseDto,
@@ -203,20 +205,27 @@ describe('OperatorRatingsService', () => {
       ratingRepo.findOne
         .mockResolvedValueOnce(null) // no existing
         .mockResolvedValueOnce(mockRating); // findById
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ratingRepo.create.mockImplementation((data) => data as any);
-      ratingRepo.save.mockImplementation(async (data) => ({ ...data, id: 'new-uuid' }) as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ratingRepo.save.mockImplementation(
+        async (data) => ({ ...data, id: "new-uuid" }) as any,
+      );
       ratingRepo.find.mockResolvedValue([]);
 
-      const result = await service.calculateRating(highDto as any, ORG_ID);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.calculateRating(highDto as any, ORG_ID);
 
       // The grade in create call should be A+ for perfect scores
-      expect(ratingRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        grade: expect.any(String),
-        total_score: expect.any(Number),
-      }));
+      expect(ratingRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          grade: expect.any(String),
+          total_score: expect.any(Number),
+        }),
+      );
     });
 
-    it('should handle zero tasks without division errors', async () => {
+    it("should handle zero tasks without division errors", async () => {
       const zeroDto = {
         ...baseDto,
         tasks_assigned: 0,
@@ -238,7 +247,10 @@ describe('OperatorRatingsService', () => {
       ratingRepo.find.mockResolvedValue([]);
 
       // Should not throw division by zero
-      await expect(service.calculateRating(zeroDto as any, ORG_ID)).resolves.toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await expect(
+        service.calculateRating(zeroDto as any, ORG_ID),
+      ).resolves.toBeDefined();
     });
   });
 
@@ -246,12 +258,13 @@ describe('OperatorRatingsService', () => {
   // RECALCULATE RATING
   // ============================================================================
 
-  describe('recalculateRating', () => {
-    it('should soft delete existing and create new rating', async () => {
+  describe("recalculateRating", () => {
+    it("should soft delete existing and create new rating", async () => {
       ratingRepo.findOne
         .mockResolvedValueOnce(mockRating) // findById
         .mockResolvedValueOnce(null) // no duplicate in calculateRating
         .mockResolvedValueOnce(mockRating); // findById after save
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ratingRepo.softDelete.mockResolvedValue(undefined as any);
       ratingRepo.create.mockReturnValue(mockRating);
       ratingRepo.save.mockResolvedValue(mockRating);
@@ -259,23 +272,29 @@ describe('OperatorRatingsService', () => {
 
       const dto = {
         user_id: USER_ID,
-        period_start: '2024-01-01',
-        period_end: '2024-01-31',
+        period_start: "2024-01-01",
+        period_end: "2024-01-31",
         tasks_assigned: 10,
         tasks_completed: 8,
       };
 
-      const result = await service.recalculateRating('rating-uuid-1', dto as any, ORG_ID);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.recalculateRating(
+        "rating-uuid-1",
+        dto as any,
+        ORG_ID,
+      );
 
-      expect(ratingRepo.softDelete).toHaveBeenCalledWith('rating-uuid-1');
+      expect(ratingRepo.softDelete).toHaveBeenCalledWith("rating-uuid-1");
       expect(result).toBeDefined();
     });
 
-    it('should throw NotFoundException if rating does not exist', async () => {
+    it("should throw NotFoundException if rating does not exist", async () => {
       ratingRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.recalculateRating('non-existent', {} as any, ORG_ID),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.recalculateRating("non-existent", {} as any, ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -284,24 +303,24 @@ describe('OperatorRatingsService', () => {
   // FIND BY ID
   // ============================================================================
 
-  describe('findById', () => {
-    it('should return rating when found', async () => {
+  describe("findById", () => {
+    it("should return rating when found", async () => {
       ratingRepo.findOne.mockResolvedValue(mockRating);
 
-      const result = await service.findById('rating-uuid-1', ORG_ID);
+      const result = await service.findById("rating-uuid-1", ORG_ID);
 
       expect(result).toEqual(mockRating);
       expect(ratingRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'rating-uuid-1', organization_id: ORG_ID },
+        where: { id: "rating-uuid-1", organization_id: ORG_ID },
       });
     });
 
-    it('should throw NotFoundException when rating not found', async () => {
+    it("should throw NotFoundException when rating not found", async () => {
       ratingRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.findById('non-existent', ORG_ID),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findById("non-existent", ORG_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -309,31 +328,37 @@ describe('OperatorRatingsService', () => {
   // QUERY
   // ============================================================================
 
-  describe('query', () => {
-    it('should return paginated ratings', async () => {
+  describe("query", () => {
+    it("should return paginated ratings", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.query({ page: 1, limit: 20 } as any, ORG_ID);
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("totalPages", 1);
     });
 
-    it('should filter by user_id', async () => {
-      await service.query({ user_id: USER_ID, page: 1, limit: 20 } as any, ORG_ID);
+    it("should filter by user_id", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.query(
+        { user_id: USER_ID, page: 1, limit: 20 } as any,
+        ORG_ID,
+      );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'r.user_id = :user_id',
+        "r.user_id = :user_id",
         { user_id: USER_ID },
       );
     });
 
-    it('should filter by grade', async () => {
-      await service.query({ grade: 'A', page: 1, limit: 20 } as any, ORG_ID);
+    it("should filter by grade", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.query({ grade: "A", page: 1, limit: 20 } as any, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'r.grade = :grade',
-        { grade: 'A' },
+        "r.grade = :grade",
+        { grade: "A" },
       );
     });
   });
@@ -342,20 +367,25 @@ describe('OperatorRatingsService', () => {
   // GET LEADERBOARD
   // ============================================================================
 
-  describe('getLeaderboard', () => {
-    it('should return top N ratings sorted by total_score', async () => {
+  describe("getLeaderboard", () => {
+    it("should return top N ratings sorted by total_score", async () => {
       ratingRepo.find.mockResolvedValue([mockRating, mockRating2]);
 
-      const result = await service.getLeaderboard(ORG_ID, '2024-01-01', '2024-01-31', 10);
+      const result = await service.getLeaderboard(
+        ORG_ID,
+        "2024-01-01",
+        "2024-01-31",
+        10,
+      );
 
       expect(result).toHaveLength(2);
       expect(ratingRepo.find).toHaveBeenCalledWith({
         where: {
           organization_id: ORG_ID,
-          period_start: new Date('2024-01-01'),
-          period_end: new Date('2024-01-31'),
+          period_start: new Date("2024-01-01"),
+          period_end: new Date("2024-01-31"),
         },
-        order: { total_score: 'DESC' },
+        order: { total_score: "DESC" },
         take: 10,
       });
     });
@@ -365,25 +395,33 @@ describe('OperatorRatingsService', () => {
   // GET ORGANIZATION SUMMARY
   // ============================================================================
 
-  describe('getOrganizationSummary', () => {
-    it('should return summary with averages and distribution', async () => {
+  describe("getOrganizationSummary", () => {
+    it("should return summary with averages and distribution", async () => {
       ratingRepo.find.mockResolvedValue([mockRating, mockRating2]);
 
-      const result = await service.getOrganizationSummary(ORG_ID, '2024-01-01', '2024-01-31');
+      const result = await service.getOrganizationSummary(
+        ORG_ID,
+        "2024-01-01",
+        "2024-01-31",
+      );
 
       expect(result.totalOperators).toBe(2);
       expect(result.averageScore).toBeDefined();
       expect(result.gradeDistribution).toBeDefined();
       expect(result.topPerformer).toBeDefined();
       expect(result.lowestPerformer).toBeDefined();
-      expect(result.categoryAverages).toHaveProperty('task');
-      expect(result.categoryAverages).toHaveProperty('financial');
+      expect(result.categoryAverages).toHaveProperty("task");
+      expect(result.categoryAverages).toHaveProperty("financial");
     });
 
-    it('should return zeros when no ratings exist', async () => {
+    it("should return zeros when no ratings exist", async () => {
       ratingRepo.find.mockResolvedValue([]);
 
-      const result = await service.getOrganizationSummary(ORG_ID, '2024-01-01', '2024-01-31');
+      const result = await service.getOrganizationSummary(
+        ORG_ID,
+        "2024-01-01",
+        "2024-01-31",
+      );
 
       expect(result.totalOperators).toBe(0);
       expect(result.averageScore).toBe(0);
@@ -396,20 +434,23 @@ describe('OperatorRatingsService', () => {
   // REMOVE
   // ============================================================================
 
-  describe('remove', () => {
-    it('should soft delete rating', async () => {
+  describe("remove", () => {
+    it("should soft delete rating", async () => {
       ratingRepo.findOne.mockResolvedValue(mockRating);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ratingRepo.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove('rating-uuid-1', ORG_ID);
+      await service.remove("rating-uuid-1", ORG_ID);
 
-      expect(ratingRepo.softDelete).toHaveBeenCalledWith('rating-uuid-1');
+      expect(ratingRepo.softDelete).toHaveBeenCalledWith("rating-uuid-1");
     });
 
-    it('should throw NotFoundException when rating not found', async () => {
+    it("should throw NotFoundException when rating not found", async () => {
       ratingRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent', ORG_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.remove("non-existent", ORG_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

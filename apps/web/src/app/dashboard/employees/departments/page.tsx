@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Building2,
   Plus,
@@ -13,12 +13,11 @@ import {
   Trash2,
   Users,
   CheckCircle2,
-  XCircle,
   GitBranch,
   ChevronRight,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -26,39 +25,39 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 const employeeTabs = [
-  { href: '/dashboard/employees', label: 'Сотрудники' },
-  { href: '/dashboard/employees/departments', label: 'Отделы' },
-  { href: '/dashboard/employees/attendance', label: 'Посещаемость' },
-  { href: '/dashboard/employees/leave', label: 'Отпуска' },
-  { href: '/dashboard/employees/payroll', label: 'Зарплата' },
-  { href: '/dashboard/employees/reviews', label: 'Оценки' },
+  { href: "/dashboard/employees", label: "Сотрудники" },
+  { href: "/dashboard/employees/departments", label: "Отделы" },
+  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
+  { href: "/dashboard/employees/leave", label: "Отпуска" },
+  { href: "/dashboard/employees/payroll", label: "Зарплата" },
+  { href: "/dashboard/employees/reviews", label: "Оценки" },
 ];
 
 interface Department {
@@ -85,25 +84,27 @@ interface Employee {
 export default function DepartmentsPage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null,
+  );
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: departments, isLoading } = useQuery<Department[]>({
-    queryKey: ['departments', search],
+    queryKey: ["departments", search],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (search) params.append("search", search);
       const res = await api.get(`/employees/departments?${params}`);
       return res.data;
     },
   });
 
   const { data: employees } = useQuery<Employee[]>({
-    queryKey: ['employees-list'],
+    queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get('/employees');
+      const res = await api.get("/employees");
       return res.data;
     },
   });
@@ -113,12 +114,12 @@ export default function DepartmentsPage() {
       await api.delete(`/employees/departments/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments'] });
-      toast.success('Отдел удален');
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      toast.success("Отдел удален");
       setDeleteConfirmId(null);
     },
     onError: () => {
-      toast.error('Не удалось удалить отдел');
+      toast.error("Не удалось удалить отдел");
     },
   });
 
@@ -133,8 +134,7 @@ export default function DepartmentsPage() {
     subDepartments: childDepartments.length,
   };
 
-  const getChildrenOf = (parentId: string) =>
-    flatDepartments.filter((d) => d.parent_id === parentId);
+  (parentId: string) => flatDepartments.filter((d) => d.parent_id === parentId);
 
   return (
     <div className="space-y-6">
@@ -156,8 +156,8 @@ export default function DepartmentsPage() {
             href={tab.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               pathname === tab.href
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
             }`}
           >
             {tab.label}
@@ -240,7 +240,7 @@ export default function DepartmentsPage() {
               departments={flatDepartments}
               onSuccess={() => {
                 setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['departments'] });
+                queryClient.invalidateQueries({ queryKey: ["departments"] });
               }}
             />
           </DialogContent>
@@ -248,7 +248,10 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editingDepartment} onOpenChange={(open) => !open && setEditingDepartment(null)}>
+      <Dialog
+        open={!!editingDepartment}
+        onOpenChange={(open) => !open && setEditingDepartment(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Редактировать отдел</DialogTitle>
@@ -257,10 +260,12 @@ export default function DepartmentsPage() {
             <DepartmentForm
               department={editingDepartment}
               employees={employees || []}
-              departments={flatDepartments.filter((d) => d.id !== editingDepartment.id)}
+              departments={flatDepartments.filter(
+                (d) => d.id !== editingDepartment.id,
+              )}
               onSuccess={() => {
                 setEditingDepartment(null);
-                queryClient.invalidateQueries({ queryKey: ['departments'] });
+                queryClient.invalidateQueries({ queryKey: ["departments"] });
               }}
             />
           )}
@@ -268,13 +273,17 @@ export default function DepartmentsPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+      <Dialog
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Подтвердите удаление</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Вы уверены, что хотите удалить этот отдел? Это действие нельзя отменить.
+            Вы уверены, что хотите удалить этот отдел? Это действие нельзя
+            отменить.
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
@@ -283,9 +292,11 @@ export default function DepartmentsPage() {
             <Button
               variant="destructive"
               disabled={deleteMutation.isPending}
-              onClick={() => deleteConfirmId && deleteMutation.mutate(deleteConfirmId)}
+              onClick={() =>
+                deleteConfirmId && deleteMutation.mutate(deleteConfirmId)
+              }
             >
-              {deleteMutation.isPending ? 'Удаление...' : 'Удалить'}
+              {deleteMutation.isPending ? "Удаление..." : "Удалить"}
             </Button>
           </div>
         </DialogContent>
@@ -360,7 +371,10 @@ function DepartmentRow({
     <>
       <TableRow>
         <TableCell>
-          <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 24}px` }}>
+          <div
+            className="flex items-center gap-2"
+            style={{ paddingLeft: `${level * 24}px` }}
+          >
             {level > 0 && (
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )}
@@ -379,18 +393,23 @@ function DepartmentRow({
         </TableCell>
         <TableCell>
           {department.manager ? (
-            <span>{department.manager.firstName} {department.manager.lastName}</span>
+            <span>
+              {department.manager.firstName} {department.manager.lastName}
+            </span>
           ) : (
             <span className="text-muted-foreground">--</span>
           )}
         </TableCell>
         <TableCell>{children.length}</TableCell>
         <TableCell>
-          <Badge className={department.is_active
-            ? 'bg-green-500/10 text-green-500'
-            : 'bg-red-500/10 text-red-500'
-          }>
-            {department.is_active ? 'Активный' : 'Неактивный'}
+          <Badge
+            className={
+              department.is_active
+                ? "bg-green-500/10 text-green-500"
+                : "bg-red-500/10 text-red-500"
+            }
+          >
+            {department.is_active ? "Активный" : "Неактивный"}
           </Badge>
         </TableCell>
         <TableCell>
@@ -442,12 +461,13 @@ function DepartmentForm({
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
-    name: department?.name || '',
-    code: department?.code || '',
-    description: department?.description || '',
-    manager_id: department?.manager_id || '',
-    parent_id: department?.parent_id || '',
-    is_active: department?.is_active !== undefined ? department.is_active : true,
+    name: department?.name || "",
+    code: department?.code || "",
+    description: department?.description || "",
+    manager_id: department?.manager_id || "",
+    parent_id: department?.parent_id || "",
+    is_active:
+      department?.is_active !== undefined ? department.is_active : true,
   });
 
   const mutation = useMutation({
@@ -460,14 +480,14 @@ function DepartmentForm({
       if (department) {
         return api.put(`/employees/departments/${department.id}`, payload);
       }
-      return api.post('/employees/departments', payload);
+      return api.post("/employees/departments", payload);
     },
     onSuccess: () => {
-      toast.success(department ? 'Отдел обновлен' : 'Отдел создан');
+      toast.success(department ? "Отдел обновлен" : "Отдел создан");
       onSuccess();
     },
     onError: () => {
-      toast.error('Ошибка сохранения');
+      toast.error("Ошибка сохранения");
     },
   });
 
@@ -502,7 +522,9 @@ function DepartmentForm({
         <label className="text-sm font-medium">Описание</label>
         <Input
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
           placeholder="Описание отдела"
         />
       </div>
@@ -510,7 +532,9 @@ function DepartmentForm({
         <label className="text-sm font-medium">Руководитель</label>
         <Select
           value={formData.manager_id}
-          onValueChange={(value) => setFormData({ ...formData, manager_id: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, manager_id: value })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Выберите руководителя" />
@@ -529,7 +553,9 @@ function DepartmentForm({
         <label className="text-sm font-medium">Родительский отдел</label>
         <Select
           value={formData.parent_id}
-          onValueChange={(value) => setFormData({ ...formData, parent_id: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, parent_id: value })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Нет (корневой отдел)" />
@@ -549,7 +575,9 @@ function DepartmentForm({
           type="checkbox"
           id="is_active"
           checked={formData.is_active}
-          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+          onChange={(e) =>
+            setFormData({ ...formData, is_active: e.target.checked })
+          }
           className="rounded border-input"
         />
         <label htmlFor="is_active" className="text-sm font-medium">
@@ -558,7 +586,11 @@ function DepartmentForm({
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Сохранение...' : department ? 'Обновить' : 'Создать'}
+          {mutation.isPending
+            ? "Сохранение..."
+            : department
+              ? "Обновить"
+              : "Создать"}
         </Button>
       </div>
     </form>

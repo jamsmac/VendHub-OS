@@ -11,27 +11,27 @@
  * - Clustering (optional)
  */
 
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory, Reflector } from "@nestjs/core";
 import {
   ValidationPipe,
   VersioningType,
   Logger,
   ClassSerializerInterceptor,
-} from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import helmet from 'helmet';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
-import * as Sentry from '@sentry/node';
-import { DataSource } from 'typeorm';
-import { AppModule } from './app.module';
-import { AppLoggerService } from './common/services/logger.service';
+} from "@nestjs/common";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import helmet from "helmet";
+import compression from "compression";
+import cookieParser from "cookie-parser";
+import { json, urlencoded } from "express";
+import * as Sentry from "@sentry/node";
+import { AppModule } from "./app.module";
+import { AppLoggerService } from "./common/services/logger.service";
+import { SanitizePipe } from "./common/pipes/sanitize.pipe";
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
+  const logger = new Logger("Bootstrap");
 
   // ============================================
   // SENTRY ERROR TRACKING
@@ -41,29 +41,29 @@ async function bootstrap() {
   if (sentryDsn) {
     Sentry.init({
       dsn: sentryDsn,
-      environment: process.env.NODE_ENV || 'development',
-      release: process.env.npm_package_version || '1.0.0',
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      integrations: [
-        Sentry.httpIntegration(),
-        Sentry.expressIntegration(),
-      ],
+      environment: process.env.NODE_ENV || "development",
+      release: process.env.npm_package_version || "1.0.0",
+      tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+      integrations: [Sentry.httpIntegration(), Sentry.expressIntegration()],
       beforeSend(event: Sentry.ErrorEvent) {
         // Don't send events in development unless explicitly enabled
-        if (process.env.NODE_ENV === 'development' && !process.env.SENTRY_DEV_ENABLED) {
+        if (
+          process.env.NODE_ENV === "development" &&
+          !process.env.SENTRY_DEV_ENABLED
+        ) {
           return null;
         }
         return event;
       },
     });
-    logger.log('✅ Sentry initialized');
+    logger.log("✅ Sentry initialized");
   } else {
-    logger.warn('⚠️ SENTRY_DSN not configured - error tracking disabled');
+    logger.warn("⚠️ SENTRY_DSN not configured - error tracking disabled");
   }
 
   // Create app with Express
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    logger: ["error", "warn", "log", "debug", "verbose"],
     bufferLogs: true,
   });
 
@@ -79,7 +79,7 @@ async function bootstrap() {
   // ============================================
   // TRUST PROXY (for load balancers)
   // ============================================
-  app.set('trust proxy', configService.get('TRUST_PROXY', 1));
+  app.set("trust proxy", configService.get("TRUST_PROXY", 1));
 
   // ============================================
   // SECURITY MIDDLEWARE
@@ -88,39 +88,47 @@ async function bootstrap() {
   // Helmet for security headers
   app.use(
     helmet({
-      contentSecurityPolicy: configService.get('NODE_ENV') === 'production',
+      contentSecurityPolicy: configService.get("NODE_ENV") === "production",
       crossOriginEmbedderPolicy: false,
     }),
   );
 
   // Cookie parser
-  app.use(cookieParser(configService.get('COOKIE_SECRET')));
+  app.use(cookieParser(configService.get("COOKIE_SECRET")));
 
   // Compression
   app.use(compression());
 
   // Body parsers with size limits
-  app.use(json({ limit: configService.get('MAX_BODY_SIZE', '10mb') }));
-  app.use(urlencoded({ extended: true, limit: configService.get('MAX_BODY_SIZE', '10mb') }));
+  app.use(json({ limit: configService.get("MAX_BODY_SIZE", "10mb") }));
+  app.use(
+    urlencoded({
+      extended: true,
+      limit: configService.get("MAX_BODY_SIZE", "10mb"),
+    }),
+  );
 
   // ============================================
   // CORS CONFIGURATION
   // ============================================
 
-  const corsOrigins = configService.get('CORS_ORIGINS', 'http://localhost:3000');
+  const corsOrigins = configService.get(
+    "CORS_ORIGINS",
+    "http://localhost:3000",
+  );
   app.enableCors({
-    origin: corsOrigins.split(',').map((origin: string) => origin.trim()),
+    origin: corsOrigins.split(",").map((origin: string) => origin.trim()),
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'X-Request-Id',
-      'X-Organization-Id',
-      'Accept-Language',
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-Request-Id",
+      "X-Organization-Id",
+      "Accept-Language",
     ],
-    exposedHeaders: ['X-Request-Id', 'X-Total-Count', 'X-Page', 'X-Limit'],
+    exposedHeaders: ["X-Request-Id", "X-Total-Count", "X-Page", "X-Limit"],
     maxAge: 86400, // 24 hours
   });
 
@@ -128,10 +136,10 @@ async function bootstrap() {
   // API VERSIONING
   // ============================================
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix("api");
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: "1",
   });
 
   // ============================================
@@ -139,6 +147,9 @@ async function bootstrap() {
   // ============================================
 
   app.useGlobalPipes(
+    // Input sanitization (XSS protection) - runs BEFORE validation
+    new SanitizePipe(),
+    // Validation and transformation
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
@@ -164,9 +175,11 @@ async function bootstrap() {
   // SWAGGER DOCUMENTATION
   // ============================================
 
-  if (configService.get('SWAGGER_ENABLED', 'true') === 'true') {
+  const swaggerDefault =
+    process.env.NODE_ENV === "production" ? "false" : "true";
+  if (configService.get("SWAGGER_ENABLED", swaggerDefault) === "true") {
     const config = new DocumentBuilder()
-      .setTitle(configService.get('SWAGGER_TITLE', 'VendHub API'))
+      .setTitle(configService.get("SWAGGER_TITLE", "VendHub API"))
       .setDescription(
         `
 ## VendHub Unified System API
@@ -203,70 +216,70 @@ All endpoints require JWT Bearer authentication except public endpoints.
 - Long: 100 requests/minute
         `,
       )
-      .setVersion(configService.get('SWAGGER_VERSION', '1.0.0'))
-      .setContact('VendHub Team', 'https://vendhub.uz', 'support@vendhub.uz')
-      .setLicense('Proprietary', '')
+      .setVersion(configService.get("SWAGGER_VERSION", "1.0.0"))
+      .setContact("VendHub Team", "https://vendhub.uz", "support@vendhub.uz")
+      .setLicense("Proprietary", "")
       .addServer(
-        configService.get('API_URL', 'http://localhost:4000'),
-        configService.get('NODE_ENV', 'development'),
+        configService.get("API_URL", "http://localhost:4000"),
+        configService.get("NODE_ENV", "development"),
       )
       .addBearerAuth(
         {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          name: 'Authorization',
-          description: 'Enter JWT token',
-          in: 'header',
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          name: "Authorization",
+          description: "Enter JWT token",
+          in: "header",
         },
-        'JWT-auth',
+        "JWT-auth",
       )
       .addApiKey(
         {
-          type: 'apiKey',
-          name: 'X-API-Key',
-          in: 'header',
-          description: 'API Key for machine-to-machine communication',
+          type: "apiKey",
+          name: "X-API-Key",
+          in: "header",
+          description: "API Key for machine-to-machine communication",
         },
-        'API-Key',
+        "API-Key",
       )
       // Tags
-      .addTag('auth', 'Authentication & Authorization')
-      .addTag('users', 'User Management')
-      .addTag('organizations', 'Multi-tenant Organizations')
-      .addTag('machines', 'Vending Machines')
-      .addTag('products', 'Products & Recipes')
-      .addTag('inventory', '3-Level Inventory System')
-      .addTag('tasks', 'Service Tasks & Photo Validation')
-      .addTag('payments', 'Payment Providers Integration')
-      .addTag('transactions', 'Financial Transactions')
-      .addTag('complaints', 'QR-Code Complaints with SLA')
-      .addTag('notifications', 'Multi-Channel Notifications')
-      .addTag('reports', 'Analytics & Reports')
-      .addTag('audit', 'Audit Trail')
-      .addTag('telegram-bot', 'Telegram Bot')
-      .addTag('webhooks', 'Webhook Integration')
-      .addTag('references', 'Reference Data')
-      .addTag('locations', 'Location Management')
-      .addTag('health', 'Health Checks')
+      .addTag("auth", "Authentication & Authorization")
+      .addTag("users", "User Management")
+      .addTag("organizations", "Multi-tenant Organizations")
+      .addTag("machines", "Vending Machines")
+      .addTag("products", "Products & Recipes")
+      .addTag("inventory", "3-Level Inventory System")
+      .addTag("tasks", "Service Tasks & Photo Validation")
+      .addTag("payments", "Payment Providers Integration")
+      .addTag("transactions", "Financial Transactions")
+      .addTag("complaints", "QR-Code Complaints with SLA")
+      .addTag("notifications", "Multi-Channel Notifications")
+      .addTag("reports", "Analytics & Reports")
+      .addTag("audit", "Audit Trail")
+      .addTag("telegram-bot", "Telegram Bot")
+      .addTag("webhooks", "Webhook Integration")
+      .addTag("references", "Reference Data")
+      .addTag("locations", "Location Management")
+      .addTag("health", "Health Checks")
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
 
-    SwaggerModule.setup('docs', app, document, {
+    SwaggerModule.setup("docs", app, document, {
       swaggerOptions: {
         persistAuthorization: true,
-        docExpansion: 'none',
+        docExpansion: "none",
         filter: true,
         showRequestDuration: true,
         syntaxHighlight: {
           activate: true,
-          theme: 'monokai',
+          theme: "monokai",
         },
         tryItOutEnabled: true,
       },
-      customSiteTitle: 'VendHub API Docs',
-      customfavIcon: '/favicon.ico',
+      customSiteTitle: "VendHub API Docs",
+      customfavIcon: "/favicon.ico",
       customCss: `
         .swagger-ui .topbar { background-color: #1a1a2e; }
         .swagger-ui .topbar-wrapper img { content: url('/logo.png'); }
@@ -276,33 +289,8 @@ All endpoints require JWT Bearer authentication except public endpoints.
     logger.log(`📚 Swagger docs available at /docs`);
   }
 
-  // ============================================
-  // HEALTH ENDPOINTS
-  // ============================================
-
-  // Kubernetes-style health probes
-  app.getHttpAdapter().get('/health', (_req: any, res: any) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
-  app.getHttpAdapter().get('/ready', async (_req: any, res: any) => {
-    try {
-      // Check database connectivity
-      const dataSource = app.get(DataSource);
-      await dataSource.query('SELECT 1');
-
-      res.status(200).json({
-        status: 'ready',
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(503).json({
-        status: 'not ready',
-        error: message,
-      });
-    }
-  });
+  // Health endpoints are handled by the HealthModule at /api/v1/health/*
+  // No duplicate manual health probes needed here.
 
   // ============================================
   // GRACEFUL SHUTDOWN
@@ -310,14 +298,14 @@ All endpoints require JWT Bearer authentication except public endpoints.
 
   app.enableShutdownHooks();
 
-  process.on('SIGTERM', async () => {
-    logger.log('🛑 SIGTERM received. Shutting down gracefully...');
+  process.on("SIGTERM", async () => {
+    logger.log("🛑 SIGTERM received. Shutting down gracefully...");
     await app.close();
     process.exit(0);
   });
 
-  process.on('SIGINT', async () => {
-    logger.log('🛑 SIGINT received. Shutting down gracefully...');
+  process.on("SIGINT", async () => {
+    logger.log("🛑 SIGINT received. Shutting down gracefully...");
     await app.close();
     process.exit(0);
   });
@@ -326,8 +314,8 @@ All endpoints require JWT Bearer authentication except public endpoints.
   // START SERVER
   // ============================================
 
-  const port = configService.get<number>('PORT', 4000);
-  const host = configService.get('HOST', '0.0.0.0');
+  const port = configService.get<number>("PORT", 4000);
+  const host = configService.get("HOST", "0.0.0.0");
 
   await app.listen(port, host);
 
@@ -336,37 +324,37 @@ All endpoints require JWT Bearer authentication except public endpoints.
   logger.log(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   🚀  VendHub Unified API v${configService.get('npm_package_version', '1.0.0').padEnd(40)}    ║
+║   🚀  VendHub Unified API v${configService.get("npm_package_version", "1.0.0").padEnd(40)}    ║
 ║                                                                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║                                                                              ║
 ║   📡  Server:      ${appUrl.padEnd(53)}  ║
-║   📚  Swagger:     ${(appUrl + '/docs').padEnd(53)}  ║
-║   💚  Health:      ${(appUrl + '/health').padEnd(53)}  ║
-║   ✅  Ready:       ${(appUrl + '/ready').padEnd(53)}  ║
+║   📚  Swagger:     ${(appUrl + "/docs").padEnd(53)}  ║
+║   💚  Health:      ${(appUrl + "/health").padEnd(53)}  ║
+║   ✅  Ready:       ${(appUrl + "/ready").padEnd(53)}  ║
 ║                                                                              ║
-║   🌍  Environment: ${(configService.get('NODE_ENV') || 'development').padEnd(53)}  ║
+║   🌍  Environment: ${(configService.get("NODE_ENV") || "development").padEnd(53)}  ║
 ║   🔧  Node:        ${process.version.padEnd(53)}  ║
-║   💾  Memory:      ${(Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB').padEnd(53)}  ║
+║   💾  Memory:      ${(Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB").padEnd(53)}  ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
   `);
 }
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   Sentry.captureException(reason);
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   Sentry.captureException(error);
   process.exit(1);
 });
 
 bootstrap().catch((error) => {
-  console.error('Failed to start application:', error);
+  console.error("Failed to start application:", error);
   process.exit(1);
 });

@@ -9,15 +9,18 @@ import {
   BadRequestException,
   NotFoundException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { ConfigService } from '@nestjs/config';
-import { Referral, ReferralStatus } from './entities/referral.entity';
-import { User } from '../users/entities/user.entity';
-import { LoyaltyService } from '../loyalty/loyalty.service';
-import { PointsSource, LOYALTY_BONUSES } from '../loyalty/constants/loyalty.constants';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between } from "typeorm";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { ConfigService } from "@nestjs/config";
+import { Referral, ReferralStatus } from "./entities/referral.entity";
+import { User } from "../users/entities/user.entity";
+import { LoyaltyService } from "../loyalty/loyalty.service";
+import {
+  PointsSource,
+  LOYALTY_BONUSES,
+} from "../loyalty/constants/loyalty.constants";
 import {
   ApplyReferralCodeDto,
   GenerateReferralCodeDto,
@@ -28,7 +31,7 @@ import {
   ReferralListDto,
   ApplyReferralResultDto,
   ReferralStatsDto,
-} from './dto/referral.dto';
+} from "./dto/referral.dto";
 
 @Injectable()
 export class ReferralsService {
@@ -44,7 +47,7 @@ export class ReferralsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
   ) {
-    this.appUrl = this.configService.get('APP_URL', 'https://vendhub.uz');
+    this.appUrl = this.configService.get("APP_URL", "https://vendhub.uz");
   }
 
   // ============================================================================
@@ -57,7 +60,7 @@ export class ReferralsService {
   async getReferralCode(userId: string): Promise<ReferralCodeInfoDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Generate code if not exists
@@ -79,7 +82,7 @@ export class ReferralsService {
   ): Promise<ReferralCodeInfoDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     let newCode: string;
@@ -91,7 +94,7 @@ export class ReferralsService {
       });
 
       if (existing && existing.id !== userId) {
-        throw new ConflictException('This code is already taken');
+        throw new ConflictException("This code is already taken");
       }
 
       newCode = dto.customCode;
@@ -116,12 +119,12 @@ export class ReferralsService {
     });
 
     if (!referredUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Check if already referred
     if (referredUser.referredById) {
-      throw new BadRequestException('User is already referred');
+      throw new BadRequestException("User is already referred");
     }
 
     // Find referrer by code
@@ -130,17 +133,19 @@ export class ReferralsService {
     });
 
     if (!referrer) {
-      throw new NotFoundException('Invalid referral code');
+      throw new NotFoundException("Invalid referral code");
     }
 
     // Cannot refer yourself
     if (referrer.id === referredUserId) {
-      throw new BadRequestException('Cannot use your own referral code');
+      throw new BadRequestException("Cannot use your own referral code");
     }
 
     // Same organization check
     if (referrer.organizationId !== referredUser.organizationId) {
-      throw new BadRequestException('Referral code from different organization');
+      throw new BadRequestException(
+        "Referral code from different organization",
+      );
     }
 
     // Update referred user
@@ -157,7 +162,7 @@ export class ReferralsService {
       status: ReferralStatus.PENDING,
       referrerRewardPoints: LOYALTY_BONUSES.referral,
       referredRewardPoints: LOYALTY_BONUSES.referralBonus,
-      source: dto.source || 'code',
+      source: dto.source || "code",
       utmCampaign: dto.utmCampaign,
     });
 
@@ -170,7 +175,7 @@ export class ReferralsService {
       amount: LOYALTY_BONUSES.referralBonus,
       source: PointsSource.REFERRAL_BONUS,
       referenceId: referral.id,
-      referenceType: 'referral',
+      referenceType: "referral",
       description: `Бонус по приглашению от ${referrer.firstName}`,
       descriptionUz: `${referrer.firstName} taklifi bo'yicha bonus`,
     });
@@ -180,14 +185,16 @@ export class ReferralsService {
       referredRewardPaid: true,
     });
 
-    this.eventEmitter.emit('referral.created', {
+    this.eventEmitter.emit("referral.created", {
       referralId: referral.id,
       referrerId: referrer.id,
       referredId: referredUserId,
       organizationId: referredUser.organizationId,
     });
 
-    this.logger.log(`User ${referredUserId} applied referral code from ${referrer.id}`);
+    this.logger.log(
+      `User ${referredUserId} applied referral code from ${referrer.id}`,
+    );
 
     return {
       success: true,
@@ -204,7 +211,8 @@ export class ReferralsService {
   /**
    * Активировать реферал при первом заказе
    */
-  @OnEvent('order.completed')
+  @OnEvent("order.completed")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleOrderCompleted(payload: any): Promise<void> {
     const { userId, orderId, amount } = payload;
 
@@ -214,7 +222,7 @@ export class ReferralsService {
         referredId: userId,
         status: ReferralStatus.PENDING,
       },
-      relations: ['referrer'],
+      relations: ["referrer"],
     });
 
     if (!referral) {
@@ -248,7 +256,7 @@ export class ReferralsService {
       amount: referral.referrerRewardPoints,
       source: PointsSource.REFERRAL,
       referenceId: referral.id,
-      referenceType: 'referral',
+      referenceType: "referral",
       description: `За приглашенного друга`,
       descriptionUz: `Taklif qilingan do'st uchun`,
     });
@@ -259,7 +267,7 @@ export class ReferralsService {
       referrerRewardPaid: true,
     });
 
-    this.eventEmitter.emit('referral.activated', {
+    this.eventEmitter.emit("referral.activated", {
       referralId: referral.id,
       referrerId: referral.referrerId,
       referredId: referral.referredId,
@@ -268,7 +276,9 @@ export class ReferralsService {
       organizationId: referral.organizationId,
     });
 
-    this.logger.log(`Referral ${referral.id} activated. Rewarded referrer ${referral.referrerId}`);
+    this.logger.log(
+      `Referral ${referral.id} activated. Rewarded referrer ${referral.referrerId}`,
+    );
   }
 
   // ============================================================================
@@ -281,41 +291,49 @@ export class ReferralsService {
   async getReferralSummary(userId: string): Promise<ReferralSummaryDto> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Ensure user has referral code
     if (!user.referralCode) {
       await this.getReferralCode(userId);
-      user.referralCode = (await this.userRepo.findOne({ where: { id: userId } }))?.referralCode || '';
+      user.referralCode =
+        (await this.userRepo.findOne({ where: { id: userId } }))
+          ?.referralCode || "";
     }
 
     // Get referral stats
     const referrals = await this.referralRepo.find({
       where: { referrerId: userId },
-      relations: ['referred'],
-      order: { created_at: 'DESC' },
+      relations: ["referred"],
+      order: { created_at: "DESC" },
     });
 
     const totalReferrals = referrals.length;
-    const pendingReferrals = referrals.filter(r => r.status === ReferralStatus.PENDING).length;
-    const activatedReferrals = referrals.filter(r =>
-      r.status === ReferralStatus.ACTIVATED || r.status === ReferralStatus.REWARDED
+    const pendingReferrals = referrals.filter(
+      (r) => r.status === ReferralStatus.PENDING,
+    ).length;
+    const activatedReferrals = referrals.filter(
+      (r) =>
+        r.status === ReferralStatus.ACTIVATED ||
+        r.status === ReferralStatus.REWARDED,
     ).length;
 
     const totalPointsEarned = referrals
-      .filter(r => r.referrerRewardPaid)
+      .filter((r) => r.referrerRewardPaid)
       .reduce((sum, r) => sum + r.referrerRewardPoints, 0);
 
     const pendingPoints = referrals
-      .filter(r => r.status === ReferralStatus.PENDING)
+      .filter((r) => r.status === ReferralStatus.PENDING)
       .reduce((sum, r) => sum + r.referrerRewardPoints, 0);
 
     // Map recent referrals
-    const recentReferrals = referrals.slice(0, 10).map(r => this.mapToReferralInfo(r));
+    const recentReferrals = referrals
+      .slice(0, 10)
+      .map((r) => this.mapToReferralInfo(r));
 
     return {
-      referralCode: user.referralCode || '',
+      referralCode: user.referralCode || "",
       shareLink: `${this.appUrl}/r/${user.referralCode}`,
       totalReferrals,
       pendingReferrals,
@@ -337,23 +355,23 @@ export class ReferralsService {
     const { status, dateFrom, dateTo, page = 1, limit = 20 } = filter;
 
     const qb = this.referralRepo
-      .createQueryBuilder('r')
-      .leftJoinAndSelect('r.referred', 'referred')
-      .where('r.referrerId = :userId', { userId })
-      .orderBy('r.createdAt', 'DESC');
+      .createQueryBuilder("r")
+      .leftJoinAndSelect("r.referred", "referred")
+      .where("r.referrerId = :userId", { userId })
+      .orderBy("r.createdAt", "DESC");
 
     if (status) {
-      qb.andWhere('r.status = :status', { status });
+      qb.andWhere("r.status = :status", { status });
     }
 
     if (dateFrom) {
-      qb.andWhere('r.createdAt >= :dateFrom', { dateFrom: new Date(dateFrom) });
+      qb.andWhere("r.createdAt >= :dateFrom", { dateFrom: new Date(dateFrom) });
     }
 
     if (dateTo) {
       const endDate = new Date(dateTo);
       endDate.setHours(23, 59, 59, 999);
-      qb.andWhere('r.createdAt <= :dateTo', { dateTo: endDate });
+      qb.andWhere("r.createdAt <= :dateTo", { dateTo: endDate });
     }
 
     const [items, total] = await qb
@@ -362,7 +380,7 @@ export class ReferralsService {
       .getManyAndCount();
 
     return {
-      items: items.map(r => this.mapToReferralInfo(r)),
+      items: items.map((r) => this.mapToReferralInfo(r)),
       total,
       page,
       limit,
@@ -377,50 +395,73 @@ export class ReferralsService {
   /**
    * Получить статистику реферальной программы
    */
-  async getStats(organizationId: string, dateFrom: Date, dateTo: Date): Promise<ReferralStatsDto> {
+  async getStats(
+    organizationId: string,
+    dateFrom: Date,
+    dateTo: Date,
+  ): Promise<ReferralStatsDto> {
     const referrals = await this.referralRepo.find({
       where: {
         organizationId,
         created_at: Between(dateFrom, dateTo),
       },
-      relations: ['referrer'],
+      relations: ["referrer"],
     });
 
     const totalReferrals = referrals.length;
-    const pendingReferrals = referrals.filter(r => r.status === ReferralStatus.PENDING).length;
-    const activatedReferrals = referrals.filter(r =>
-      r.status === ReferralStatus.ACTIVATED || r.status === ReferralStatus.REWARDED
+    const pendingReferrals = referrals.filter(
+      (r) => r.status === ReferralStatus.PENDING,
+    ).length;
+    const activatedReferrals = referrals.filter(
+      (r) =>
+        r.status === ReferralStatus.ACTIVATED ||
+        r.status === ReferralStatus.REWARDED,
     ).length;
 
-    const conversionRate = totalReferrals > 0
-      ? Math.round((activatedReferrals / totalReferrals) * 10000) / 100
-      : 0;
+    const conversionRate =
+      totalReferrals > 0
+        ? Math.round((activatedReferrals / totalReferrals) * 10000) / 100
+        : 0;
 
     const totalPointsAwarded = referrals
-      .filter(r => r.referrerRewardPaid)
-      .reduce((sum, r) => sum + r.referrerRewardPoints + r.referredRewardPoints, 0);
+      .filter((r) => r.referrerRewardPaid)
+      .reduce(
+        (sum, r) => sum + r.referrerRewardPoints + r.referredRewardPoints,
+        0,
+      );
 
     // Average activation time
-    const activatedWithTime = referrals.filter(r => r.activatedAt);
-    const avgActivationDays = activatedWithTime.length > 0
-      ? Math.round(
-          activatedWithTime.reduce((sum, r) => {
-            return sum + (r.activatedAt.getTime() - r.created_at.getTime()) / (1000 * 60 * 60 * 24);
-          }, 0) / activatedWithTime.length
-        )
-      : 0;
+    const activatedWithTime = referrals.filter((r) => r.activatedAt);
+    const avgActivationDays =
+      activatedWithTime.length > 0
+        ? Math.round(
+            activatedWithTime.reduce((sum, r) => {
+              return (
+                sum +
+                (r.activatedAt.getTime() - r.created_at.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
+            }, 0) / activatedWithTime.length,
+          )
+        : 0;
 
     // Top referrers
-    const referrerStats = new Map<string, { count: number; activated: number; points: number; name: string }>();
+    const referrerStats = new Map<
+      string,
+      { count: number; activated: number; points: number; name: string }
+    >();
     for (const r of referrals) {
       const stats = referrerStats.get(r.referrerId) || {
         count: 0,
         activated: 0,
         points: 0,
-        name: r.referrer?.firstName || 'Unknown',
+        name: r.referrer?.firstName || "Unknown",
       };
       stats.count++;
-      if (r.status === ReferralStatus.ACTIVATED || r.status === ReferralStatus.REWARDED) {
+      if (
+        r.status === ReferralStatus.ACTIVATED ||
+        r.status === ReferralStatus.REWARDED
+      ) {
         stats.activated++;
       }
       if (r.referrerRewardPaid) {
@@ -445,18 +486,26 @@ export class ReferralsService {
     for (const r of referrals) {
       const stats = sourceStats.get(r.source) || { count: 0, activated: 0 };
       stats.count++;
-      if (r.status !== ReferralStatus.PENDING && r.status !== ReferralStatus.CANCELLED) {
+      if (
+        r.status !== ReferralStatus.PENDING &&
+        r.status !== ReferralStatus.CANCELLED
+      ) {
         stats.activated++;
       }
       sourceStats.set(r.source, stats);
     }
 
-    const bySource = Array.from(sourceStats.entries()).map(([source, stats]) => ({
-      source,
-      count: stats.count,
-      activated: stats.activated,
-      rate: stats.count > 0 ? Math.round((stats.activated / stats.count) * 100) : 0,
-    }));
+    const bySource = Array.from(sourceStats.entries()).map(
+      ([source, stats]) => ({
+        source,
+        count: stats.count,
+        activated: stats.activated,
+        rate:
+          stats.count > 0
+            ? Math.round((stats.activated / stats.count) * 100)
+            : 0,
+      }),
+    );
 
     return {
       period: { from: dateFrom, to: dateTo },
@@ -480,17 +529,19 @@ export class ReferralsService {
    * Сгенерировать уникальный код
    */
   private async generateUniqueCode(): Promise<string> {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing characters
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude confusing characters
     let code: string;
     let attempts = 0;
 
     do {
-      code = '';
+      code = "";
       for (let i = 0; i < 8; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 
-      const existing = await this.userRepo.findOne({ where: { referralCode: code } });
+      const existing = await this.userRepo.findOne({
+        where: { referralCode: code },
+      });
       if (!existing) {
         return code;
       }
@@ -498,7 +549,7 @@ export class ReferralsService {
       attempts++;
     } while (attempts < 100);
 
-    throw new Error('Failed to generate unique referral code');
+    throw new Error("Failed to generate unique referral code");
   }
 
   /**
@@ -530,7 +581,7 @@ export class ReferralsService {
     return {
       id: referral.id,
       referredId: referral.referredId,
-      referredName: referral.referred?.firstName || 'Unknown',
+      referredName: referral.referred?.firstName || "Unknown",
       referredAvatar: referral.referred?.avatar || undefined,
       status: referral.status,
       referrerRewardPoints: referral.referrerRewardPoints,

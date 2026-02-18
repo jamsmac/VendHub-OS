@@ -3,8 +3,8 @@
  * Экспорт отчетов в Excel согласно спецификации v11.0
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import * as ExcelJS from 'exceljs';
+import { Injectable, Logger } from "@nestjs/common";
+import * as ExcelJS from "exceljs";
 import {
   VendHubFullReportDto,
   VendHubReportStructureA,
@@ -13,7 +13,7 @@ import {
   STRUCTURE_A_SHEETS,
   STRUCTURE_B_SHEETS,
   VENDHUB_INGREDIENTS,
-} from '../dto/vendhub-report.dto';
+} from "../dto/vendhub-report.dto";
 
 // ============================================================================
 // STYLING CONSTANTS
@@ -21,49 +21,61 @@ import {
 
 const STYLES = {
   HEADER: {
-    font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 },
-    fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF2E5090' } },
-    alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+    font: { bold: true, color: { argb: "FFFFFFFF" }, size: 11 },
+    fill: {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: { argb: "FF2E5090" },
+    },
+    alignment: { horizontal: "center" as const, vertical: "middle" as const },
     border: {
-      top: { style: 'thin' as const },
-      left: { style: 'thin' as const },
-      bottom: { style: 'thin' as const },
-      right: { style: 'thin' as const },
+      top: { style: "thin" as const },
+      left: { style: "thin" as const },
+      bottom: { style: "thin" as const },
+      right: { style: "thin" as const },
     },
   },
   SUBHEADER: {
     font: { bold: true, size: 10 },
-    fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFE8E8E8' } },
-    alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+    fill: {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: { argb: "FFE8E8E8" },
+    },
+    alignment: { horizontal: "center" as const, vertical: "middle" as const },
   },
   NUMBER: {
-    numFmt: '#,##0',
-    alignment: { horizontal: 'right' as const },
+    numFmt: "#,##0",
+    alignment: { horizontal: "right" as const },
   },
   CURRENCY: {
     numFmt: '#,##0" сум"',
-    alignment: { horizontal: 'right' as const },
+    alignment: { horizontal: "right" as const },
   },
   PERCENT: {
-    numFmt: '0.00%',
-    alignment: { horizontal: 'right' as const },
+    numFmt: "0.00%",
+    alignment: { horizontal: "right" as const },
   },
   TITLE: {
-    font: { bold: true, size: 14, color: { argb: 'FF2E5090' } },
-    alignment: { horizontal: 'center' as const },
+    font: { bold: true, size: 14, color: { argb: "FF2E5090" } },
+    alignment: { horizontal: "center" as const },
   },
   TOTAL_ROW: {
     font: { bold: true },
-    fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFFFF2CC' } },
+    fill: {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: { argb: "FFFFF2CC" },
+    },
   },
   OK_STATUS: {
-    font: { color: { argb: 'FF008000' } },
+    font: { color: { argb: "FF008000" } },
   },
   WARNING_STATUS: {
-    font: { color: { argb: 'FFFFA500' } },
+    font: { color: { argb: "FFFFA500" } },
   },
   CRITICAL_STATUS: {
-    font: { color: { argb: 'FFFF0000' } },
+    font: { color: { argb: "FFFF0000" } },
   },
 };
 
@@ -80,10 +92,12 @@ export class VendHubExcelExportService {
    */
   async exportToExcel(report: VendHubFullReportDto): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'VendHub OS';
+    workbook.creator = "VendHub OS";
     workbook.created = new Date();
 
-    this.logger.log(`Exporting VendHub report ${report.metadata.reportId} to Excel`);
+    this.logger.log(
+      `Exporting VendHub report ${report.metadata.reportId} to Excel`,
+    );
 
     // Create Contents sheet first
     this.createContentsSheet(workbook, report);
@@ -110,31 +124,39 @@ export class VendHubExcelExportService {
   // CONTENTS SHEET
   // ============================================================================
 
-  private createContentsSheet(workbook: ExcelJS.Workbook, report: VendHubFullReportDto): void {
-    const sheet = workbook.addWorksheet('Содержание', {
+  private createContentsSheet(
+    workbook: ExcelJS.Workbook,
+    report: VendHubFullReportDto,
+  ): void {
+    const sheet = workbook.addWorksheet("Содержание", {
       views: [{ showGridLines: false }],
     });
 
     // Title
-    sheet.mergeCells('A1:D1');
-    const titleCell = sheet.getCell('A1');
-    titleCell.value = '📊 ОТЧЁТ VENDHUB';
+    sheet.mergeCells("A1:D1");
+    const titleCell = sheet.getCell("A1");
+    titleCell.value = "📊 ОТЧЁТ VENDHUB";
     titleCell.style = STYLES.TITLE as Partial<ExcelJS.Style>;
     sheet.getRow(1).height = 30;
 
     // Period info
-    sheet.getCell('A3').value = 'Период:';
-    sheet.getCell('B3').value = `${this.formatDate(report.metadata.period.from)} — ${this.formatDate(report.metadata.period.to)}`;
-    sheet.getCell('A4').value = 'Структура:';
-    sheet.getCell('B4').value = this.getStructureName(report.metadata.structure);
-    sheet.getCell('A5').value = 'Создан:';
-    sheet.getCell('B5').value = this.formatDateTime(report.metadata.generatedAt);
-    sheet.getCell('A6').value = 'ID отчёта:';
-    sheet.getCell('B6').value = report.metadata.reportId;
+    sheet.getCell("A3").value = "Период:";
+    sheet.getCell("B3").value =
+      `${this.formatDate(report.metadata.period.from)} — ${this.formatDate(report.metadata.period.to)}`;
+    sheet.getCell("A4").value = "Структура:";
+    sheet.getCell("B4").value = this.getStructureName(
+      report.metadata.structure,
+    );
+    sheet.getCell("A5").value = "Создан:";
+    sheet.getCell("B5").value = this.formatDateTime(
+      report.metadata.generatedAt,
+    );
+    sheet.getCell("A6").value = "ID отчёта:";
+    sheet.getCell("B6").value = report.metadata.reportId;
 
     // Table of Contents
-    sheet.getCell('A8').value = 'СОДЕРЖАНИЕ';
-    sheet.getCell('A8').style = { font: { bold: true, size: 12 } };
+    sheet.getCell("A8").value = "СОДЕРЖАНИЕ";
+    sheet.getCell("A8").style = { font: { bold: true, size: 12 } };
 
     let row = 10;
     const sheets = workbook.worksheets.slice(1);
@@ -146,10 +168,10 @@ export class VendHubExcelExportService {
     }
 
     // Set column widths
-    sheet.getColumn('A').width = 5;
-    sheet.getColumn('B').width = 40;
-    sheet.getColumn('C').width = 20;
-    sheet.getColumn('D').width = 20;
+    sheet.getColumn("A").width = 5;
+    sheet.getColumn("B").width = 40;
+    sheet.getColumn("C").width = 20;
+    sheet.getColumn("D").width = 20;
   }
 
   // ============================================================================
@@ -159,9 +181,9 @@ export class VendHubExcelExportService {
   private async exportStructureA(
     workbook: ExcelJS.Workbook,
     data: VendHubReportStructureA,
-    metadata: VendHubFullReportDto['metadata'],
+    metadata: VendHubFullReportDto["metadata"],
   ): Promise<void> {
-    this.logger.log('Exporting Structure A sheets');
+    this.logger.log("Exporting Structure A sheets");
 
     // Сводка
     this.createSummarySheetA(workbook, data.summary, metadata);
@@ -179,7 +201,7 @@ export class VendHubExcelExportService {
     this.createProductPaymentTypesSheet(workbook, data.byProducts);
 
     // Наличные
-    this.createPaymentTypeDetailSheets(workbook, data.cashSummary, 'Наличные');
+    this.createPaymentTypeDetailSheets(workbook, data.cashSummary, "Наличные");
 
     // QR
     this.createQRDetailSheets(workbook, data.qrSummary);
@@ -205,72 +227,91 @@ export class VendHubExcelExportService {
 
   private createSummarySheetA(
     workbook: ExcelJS.Workbook,
-    summary: VendHubReportStructureA['summary'],
-    _metadata: VendHubFullReportDto['metadata'],
+    summary: VendHubReportStructureA["summary"],
+    _metadata: VendHubFullReportDto["metadata"],
   ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.SUMMARY);
 
     // Title
-    sheet.mergeCells('A1:G1');
-    sheet.getCell('A1').value = 'СВОДКА ПО ТИПАМ ПЛАТЕЖЕЙ';
-    sheet.getCell('A1').style = STYLES.TITLE as Partial<ExcelJS.Style>;
+    sheet.mergeCells("A1:G1");
+    sheet.getCell("A1").value = "СВОДКА ПО ТИПАМ ПЛАТЕЖЕЙ";
+    sheet.getCell("A1").style = STYLES.TITLE as Partial<ExcelJS.Style>;
     sheet.getRow(1).height = 25;
 
     // Period
-    sheet.getCell('A3').value = `Период: ${this.formatDate(summary.period.from)} — ${this.formatDate(summary.period.to)}`;
+    sheet.getCell("A3").value =
+      `Период: ${this.formatDate(summary.period.from)} — ${this.formatDate(summary.period.to)}`;
 
     // Payment types table
-    const headers = ['Тип платежа', 'Заказов', 'Сумма (сум)', '% кол-во', '% сумма', 'Ср. чек'];
+    const headers = [
+      "Тип платежа",
+      "Заказов",
+      "Сумма (сум)",
+      "% кол-во",
+      "% сумма",
+      "Ср. чек",
+    ];
     let row = 5;
 
     this.addHeaderRow(sheet, row, headers);
     row++;
 
     const icons: Record<string, string> = {
-      CASH: '💵',
-      QR: '📱',
-      VIP: '⭐',
-      CREDIT: '💳',
+      CASH: "💵",
+      QR: "📱",
+      VIP: "⭐",
+      CREDIT: "💳",
     };
 
     for (const pt of summary.byPaymentType) {
-      const icon = icons[pt.paymentType] || '';
-      sheet.getCell(`A${row}`).value = `${icon} ${this.getPaymentTypeName(pt.paymentType)}`;
+      const icon = icons[pt.paymentType] || "";
+      sheet.getCell(`A${row}`).value =
+        `${icon} ${this.getPaymentTypeName(pt.paymentType)}`;
       sheet.getCell(`B${row}`).value = pt.orderCount;
       sheet.getCell(`C${row}`).value = pt.totalAmount;
-      sheet.getCell(`C${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
+      sheet.getCell(`C${row}`).style =
+        STYLES.CURRENCY as Partial<ExcelJS.Style>;
       sheet.getCell(`D${row}`).value = pt.percentByCount / 100;
       sheet.getCell(`D${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
       sheet.getCell(`E${row}`).value = pt.percentByAmount / 100;
       sheet.getCell(`E${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
       sheet.getCell(`F${row}`).value = pt.averageCheck;
-      sheet.getCell(`F${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
+      sheet.getCell(`F${row}`).style =
+        STYLES.CURRENCY as Partial<ExcelJS.Style>;
       row++;
     }
 
     // Total row
-    sheet.getCell(`A${row}`).value = 'ИТОГО (платные)';
+    sheet.getCell(`A${row}`).value = "ИТОГО (платные)";
     sheet.getCell(`B${row}`).value = summary.totalPaid.orderCount;
     sheet.getCell(`C${row}`).value = summary.totalPaid.totalAmount;
     sheet.getCell(`D${row}`).value = 1;
     sheet.getCell(`E${row}`).value = 1;
     sheet.getCell(`F${row}`).value = summary.totalPaid.averageCheck;
     for (let col = 1; col <= 6; col++) {
-      sheet.getCell(row, col).style = STYLES.TOTAL_ROW as Partial<ExcelJS.Style>;
+      sheet.getCell(row, col).style =
+        STYLES.TOTAL_ROW as Partial<ExcelJS.Style>;
     }
     row++;
 
     // Test orders
     row += 2;
-    sheet.getCell(`A${row}`).value = `🧪 Тестовые заказы: ${summary.testOrderCount}`;
+    sheet.getCell(`A${row}`).value =
+      `🧪 Тестовые заказы: ${summary.testOrderCount}`;
 
     // QR Details
     row += 2;
-    sheet.getCell(`A${row}`).value = 'ДЕТАЛИЗАЦИЯ QR-ПЛАТЕЖЕЙ';
+    sheet.getCell(`A${row}`).value = "ДЕТАЛИЗАЦИЯ QR-ПЛАТЕЖЕЙ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
 
-    const qrHeaders = ['Система', 'Платежей', 'Сумма (сум)', '% от QR', 'Ср. платёж'];
+    const qrHeaders = [
+      "Система",
+      "Платежей",
+      "Сумма (сум)",
+      "% от QR",
+      "Ср. платёж",
+    ];
     this.addHeaderRow(sheet, row, qrHeaders);
     row++;
 
@@ -286,12 +327,24 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createMonthlyPaymentTypesSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['byMonths']): void {
+  private createMonthlyPaymentTypesSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["byMonths"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.BY_MONTHS);
 
     const headers = [
-      'Месяц', 'Наличные кол', 'Наличные сум', 'QR кол', 'QR сум',
-      'VIP кол', 'VIP сум', 'Кредит кол', 'Кредит сум', 'ИТОГО кол', 'ИТОГО сум'
+      "Месяц",
+      "Наличные кол",
+      "Наличные сум",
+      "QR кол",
+      "QR сум",
+      "VIP кол",
+      "VIP сум",
+      "Кредит кол",
+      "Кредит сум",
+      "ИТОГО кол",
+      "ИТОГО сум",
     ];
 
     this.addHeaderRow(sheet, 1, headers);
@@ -311,8 +364,9 @@ export class VendHubExcelExportService {
       sheet.getCell(`K${row}`).value = month.total.amount;
 
       // Apply currency format to amount columns
-      [3, 5, 7, 9, 11].forEach(col => {
-        sheet.getCell(row, col).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
+      [3, 5, 7, 9, 11].forEach((col) => {
+        sheet.getCell(row, col).style =
+          STYLES.CURRENCY as Partial<ExcelJS.Style>;
       });
 
       row++;
@@ -321,14 +375,29 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createWeekdaySheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['byWeekdays']): void {
+  private createWeekdaySheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["byWeekdays"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.BY_DAYS);
 
     // ⚠️ Это по ДНЯМ НЕДЕЛИ (7 строк), не по датам!
-    sheet.getCell('A1').value = '⚠️ По ДНЯМ НЕДЕЛИ (не по датам)';
-    sheet.getCell('A1').style = { font: { italic: true, color: { argb: 'FFFF6600' } } };
+    sheet.getCell("A1").value = "⚠️ По ДНЯМ НЕДЕЛИ (не по датам)";
+    sheet.getCell("A1").style = {
+      font: { italic: true, color: { argb: "FFFF6600" } },
+    };
 
-    const headers = ['День недели', 'Наличные кол', 'Наличные сум', 'QR кол', 'QR сум', 'VIP кол', 'VIP сум', 'ИТОГО кол', 'ИТОГО сум'];
+    const headers = [
+      "День недели",
+      "Наличные кол",
+      "Наличные сум",
+      "QR кол",
+      "QR сум",
+      "VIP кол",
+      "VIP сум",
+      "ИТОГО кол",
+      "ИТОГО сум",
+    ];
     this.addHeaderRow(sheet, 3, headers);
 
     let row = 4;
@@ -348,12 +417,27 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createMachinePaymentTypesSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['byMachines']): void {
+  private createMachinePaymentTypesSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["byMachines"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.BY_MACHINES);
 
     const headers = [
-      '#', 'Код', 'Адрес', 'Наличные кол', 'Наличные сум', 'QR кол', 'QR сум',
-      'VIP кол', 'VIP сум', 'Кредит кол', 'Кредит сум', 'ИТОГО кол', 'ИТОГО сум', '% выручки'
+      "#",
+      "Код",
+      "Адрес",
+      "Наличные кол",
+      "Наличные сум",
+      "QR кол",
+      "QR сум",
+      "VIP кол",
+      "VIP сум",
+      "Кредит кол",
+      "Кредит сум",
+      "ИТОГО кол",
+      "ИТОГО сум",
+      "% выручки",
     ];
 
     this.addHeaderRow(sheet, 1, headers);
@@ -382,10 +466,24 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createProductPaymentTypesSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['byProducts']): void {
+  private createProductPaymentTypesSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["byProducts"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.BY_PRODUCTS);
 
-    const headers = ['#', 'Продукт', 'Налич.кол', 'Налич.сум', 'QR кол', 'QR сум', 'VIP кол', 'VIP сум', 'Всего кол', 'Всего сум'];
+    const headers = [
+      "#",
+      "Продукт",
+      "Налич.кол",
+      "Налич.сум",
+      "QR кол",
+      "QR сум",
+      "VIP кол",
+      "VIP сум",
+      "Всего кол",
+      "Всего сум",
+    ];
     this.addHeaderRow(sheet, 1, headers);
 
     let row = 2;
@@ -407,14 +505,19 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createPaymentTypeDetailSheets(workbook: ExcelJS.Workbook, data: any, prefix: string): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private createPaymentTypeDetailSheets(
+    workbook: ExcelJS.Workbook,
+    data: any,
+    prefix: string,
+  ): void {
     // Summary sheet
     const summarySheet = workbook.addWorksheet(prefix);
-    summarySheet.getCell('A1').value = `Сводка по типу "${prefix}"`;
+    summarySheet.getCell("A1").value = `Сводка по типу "${prefix}"`;
 
     // Monthly sheet
     const monthlySheet = workbook.addWorksheet(`${prefix}_месяцы`);
-    const monthHeaders = ['Месяц', 'Заказов', 'Сумма', 'Ср.чек', 'Доля'];
+    const monthHeaders = ["Месяц", "Заказов", "Сумма", "Ср.чек", "Доля"];
     this.addHeaderRow(monthlySheet, 1, monthHeaders);
 
     let row = 2;
@@ -422,46 +525,60 @@ export class VendHubExcelExportService {
       monthlySheet.getCell(`A${row}`).value = month.monthName;
       monthlySheet.getCell(`B${row}`).value = month.total.count;
       monthlySheet.getCell(`C${row}`).value = month.total.amount;
-      monthlySheet.getCell(`D${row}`).value = month.total.count > 0 ? Math.round(month.total.amount / month.total.count) : 0;
+      monthlySheet.getCell(`D${row}`).value =
+        month.total.count > 0
+          ? Math.round(month.total.amount / month.total.count)
+          : 0;
       row++;
     }
 
     this.autoFitColumns(monthlySheet);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createQRDetailSheets(workbook: ExcelJS.Workbook, data: any): void {
     // QR Summary
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.QR_SUMMARY);
-    sheet.getCell('A1').value = 'Сводка QR-платежей';
+    sheet.getCell("A1").value = "Сводка QR-платежей";
 
     // QR Share by machines
     const shareSheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.QR_SHARE);
-    const headers = ['Автомат', 'Адрес', 'Всего заказов', 'Наличные', 'QR', 'Доля QR %'];
+    const headers = [
+      "Автомат",
+      "Адрес",
+      "Всего заказов",
+      "Наличные",
+      "QR",
+      "Доля QR %",
+    ];
     this.addHeaderRow(shareSheet, 1, headers);
 
     let row = 2;
     for (const machine of data.qrShare || []) {
       shareSheet.getCell(`A${row}`).value = machine.machineId;
-      shareSheet.getCell(`B${row}`).value = machine.address || '';
+      shareSheet.getCell(`B${row}`).value = machine.address || "";
       shareSheet.getCell(`C${row}`).value = machine.totalOrders;
       shareSheet.getCell(`D${row}`).value = machine.cashOrders;
       shareSheet.getCell(`E${row}`).value = machine.qrOrders;
       shareSheet.getCell(`F${row}`).value = machine.qrSharePercent / 100;
-      shareSheet.getCell(`F${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
+      shareSheet.getCell(`F${row}`).style =
+        STYLES.PERCENT as Partial<ExcelJS.Style>;
       row++;
     }
 
     this.autoFitColumns(shareSheet);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createVIPSheets(workbook: ExcelJS.Workbook, data: any): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.VIP_SUMMARY);
-    sheet.getCell('A1').value = 'VIP заказы';
-    sheet.getCell('A3').value = `Всего: ${data.total.orderCount} заказов, ${data.total.totalAmount} сум`;
+    sheet.getCell("A1").value = "VIP заказы";
+    sheet.getCell("A3").value =
+      `Всего: ${data.total.orderCount} заказов, ${data.total.totalAmount} сум`;
 
     // Details
     const detailSheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.VIP_DETAILS);
-    const headers = ['Дата', 'Автомат', 'Продукт', 'Сумма', 'Статус'];
+    const headers = ["Дата", "Автомат", "Продукт", "Сумма", "Статус"];
     this.addHeaderRow(detailSheet, 1, headers);
 
     let row = 2;
@@ -477,14 +594,18 @@ export class VendHubExcelExportService {
     this.autoFitColumns(detailSheet);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createCreditSheets(workbook: ExcelJS.Workbook, data: any): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.CREDIT_SUMMARY);
-    sheet.getCell('A1').value = 'Кредитные платежи';
-    sheet.getCell('A3').value = `Всего: ${data.total.orderCount} заказов, ${data.total.totalAmount} сум`;
+    sheet.getCell("A1").value = "Кредитные платежи";
+    sheet.getCell("A3").value =
+      `Всего: ${data.total.orderCount} заказов, ${data.total.totalAmount} сум`;
 
     // Details
-    const detailSheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.CREDIT_DETAILS);
-    const headers = ['Дата', 'Автомат', 'Адрес', 'Продукт', 'Сумма'];
+    const detailSheet = workbook.addWorksheet(
+      STRUCTURE_A_SHEETS.CREDIT_DETAILS,
+    );
+    const headers = ["Дата", "Автомат", "Адрес", "Продукт", "Сумма"];
     this.addHeaderRow(detailSheet, 1, headers);
 
     let row = 2;
@@ -500,12 +621,24 @@ export class VendHubExcelExportService {
     this.autoFitColumns(detailSheet);
   }
 
-  private createQRReconciliationSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['qrReconciliation']): void {
+  private createQRReconciliationSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["qrReconciliation"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.QR_RECONCILIATION);
 
     const headers = [
-      'Месяц', 'Order QR кол', 'Order QR сум', 'Payme кол', 'Payme сум',
-      'Click кол', 'Click сум', 'Внешние сум', 'Разница сум', 'Разница %', 'Статус'
+      "Месяц",
+      "Order QR кол",
+      "Order QR сум",
+      "Payme кол",
+      "Payme сум",
+      "Click кол",
+      "Click сум",
+      "Внешние сум",
+      "Разница сум",
+      "Разница %",
+      "Статус",
     ];
     this.addHeaderRow(sheet, 1, headers);
 
@@ -524,12 +657,18 @@ export class VendHubExcelExportService {
       sheet.getCell(`J${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
 
       const statusCell = sheet.getCell(`K${row}`);
-      statusCell.value = rec.status === 'OK' ? '✅ OK' : rec.status === 'WARNING' ? '⚠️ Внимание' : '❌ Критично';
-      statusCell.style = rec.status === 'OK'
-        ? STYLES.OK_STATUS as Partial<ExcelJS.Style>
-        : rec.status === 'WARNING'
-          ? STYLES.WARNING_STATUS as Partial<ExcelJS.Style>
-          : STYLES.CRITICAL_STATUS as Partial<ExcelJS.Style>;
+      statusCell.value =
+        rec.status === "OK"
+          ? "✅ OK"
+          : rec.status === "WARNING"
+            ? "⚠️ Внимание"
+            : "❌ Критично";
+      statusCell.style =
+        rec.status === "OK"
+          ? (STYLES.OK_STATUS as Partial<ExcelJS.Style>)
+          : rec.status === "WARNING"
+            ? (STYLES.WARNING_STATUS as Partial<ExcelJS.Style>)
+            : (STYLES.CRITICAL_STATUS as Partial<ExcelJS.Style>);
 
       row++;
     }
@@ -537,14 +676,17 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createCrossAnalysisSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureA['crossAnalysis']): void {
+  private createCrossAnalysisSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["crossAnalysis"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.CROSS_ANALYSIS);
 
-    sheet.getCell('A1').value = 'КРОСС-АНАЛИЗ TOP-5 × TOP-5';
-    sheet.getCell('A1').style = STYLES.TITLE as Partial<ExcelJS.Style>;
+    sheet.getCell("A1").value = "КРОСС-АНАЛИЗ TOP-5 × TOP-5";
+    sheet.getCell("A1").style = STYLES.TITLE as Partial<ExcelJS.Style>;
 
     // Matrix headers
-    sheet.getCell('A3').value = 'Продукт \\ Автомат';
+    sheet.getCell("A3").value = "Продукт \\ Автомат";
     data.topMachines.forEach((machine, i) => {
       sheet.getCell(3, i + 2).value = machine;
     });
@@ -559,15 +701,16 @@ export class VendHubExcelExportService {
 
     // Hourly analysis
     const hourlyRow = 4 + data.topProducts.length + 2;
-    sheet.getCell(`A${hourlyRow}`).value = 'ПОЧАСОВОЙ АНАЛИЗ';
+    sheet.getCell(`A${hourlyRow}`).value = "ПОЧАСОВОЙ АНАЛИЗ";
     sheet.getCell(`A${hourlyRow}`).style = { font: { bold: true, size: 11 } };
 
-    const hourHeaders = ['Час', 'Заказов', 'Сумма', 'Ср. чек'];
+    const hourHeaders = ["Час", "Заказов", "Сумма", "Ср. чек"];
     this.addHeaderRow(sheet, hourlyRow + 1, hourHeaders);
 
     let row = hourlyRow + 2;
     for (const hour of data.hourlyAnalysis) {
-      sheet.getCell(`A${row}`).value = `${String(hour.hour).padStart(2, '0')}:00`;
+      sheet.getCell(`A${row}`).value =
+        `${String(hour.hour).padStart(2, "0")}:00`;
       sheet.getCell(`B${row}`).value = hour.orderCount;
       sheet.getCell(`C${row}`).value = hour.totalAmount;
       sheet.getCell(`D${row}`).value = hour.averageCheck;
@@ -577,14 +720,30 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createDailyReportSheet(workbook: ExcelJS.Workbook, data: any[]): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private createDailyReportSheet(
+    workbook: ExcelJS.Workbook,
+    data: any[],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.DAILY);
 
     // ⚠️ Это по ДАТАМ (много строк)!
-    sheet.getCell('A1').value = '⚠️ По ДАТАМ (ежедневный отчёт)';
-    sheet.getCell('A1').style = { font: { italic: true, color: { argb: 'FFFF6600' } } };
+    sheet.getCell("A1").value = "⚠️ По ДАТАМ (ежедневный отчёт)";
+    sheet.getCell("A1").style = {
+      font: { italic: true, color: { argb: "FFFF6600" } },
+    };
 
-    const headers = ['Дата', 'Наличные кол', 'Наличные сум', 'QR кол', 'QR сум', 'VIP кол', 'VIP сум', 'ИТОГО кол', 'ИТОГО сум'];
+    const headers = [
+      "Дата",
+      "Наличные кол",
+      "Наличные сум",
+      "QR кол",
+      "QR сум",
+      "VIP кол",
+      "VIP сум",
+      "ИТОГО кол",
+      "ИТОГО сум",
+    ];
     this.addHeaderRow(sheet, 3, headers);
 
     let row = 4;
@@ -604,15 +763,16 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createAverageCheckSheet(workbook: ExcelJS.Workbook, data: any): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.AVERAGE_CHECK);
 
-    sheet.getCell('A1').value = 'СРЕДНИЙ ЧЕК';
-    sheet.getCell('A1').style = STYLES.TITLE as Partial<ExcelJS.Style>;
+    sheet.getCell("A1").value = "СРЕДНИЙ ЧЕК";
+    sheet.getCell("A1").style = STYLES.TITLE as Partial<ExcelJS.Style>;
 
     // By month
-    sheet.getCell('A3').value = 'По месяцам';
-    const monthHeaders = ['Месяц', 'Средний чек'];
+    sheet.getCell("A3").value = "По месяцам";
+    const monthHeaders = ["Месяц", "Средний чек"];
     this.addHeaderRow(sheet, 4, monthHeaders);
 
     let row = 5;
@@ -624,8 +784,8 @@ export class VendHubExcelExportService {
 
     // By product
     row += 2;
-    sheet.getCell(`A${row}`).value = 'По продуктам';
-    const prodHeaders = ['Продукт', 'Средний чек'];
+    sheet.getCell(`A${row}`).value = "По продуктам";
+    const prodHeaders = ["Продукт", "Средний чек"];
     this.addHeaderRow(sheet, row + 1, prodHeaders);
 
     row += 2;
@@ -645,9 +805,9 @@ export class VendHubExcelExportService {
   private async exportStructureB(
     workbook: ExcelJS.Workbook,
     data: VendHubReportStructureB,
-    metadata: VendHubFullReportDto['metadata'],
+    metadata: VendHubFullReportDto["metadata"],
   ): Promise<void> {
-    this.logger.log('Exporting Structure B sheets');
+    this.logger.log("Exporting Structure B sheets");
 
     // Сводка
     this.createSummarySheetB(workbook, data.summary, metadata);
@@ -673,91 +833,108 @@ export class VendHubExcelExportService {
 
   private createSummarySheetB(
     workbook: ExcelJS.Workbook,
-    summary: VendHubReportStructureB['summary'],
-    _metadata: VendHubFullReportDto['metadata'],
+    summary: VendHubReportStructureB["summary"],
+    _metadata: VendHubFullReportDto["metadata"],
   ): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.SUMMARY);
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.SUMMARY);
 
     // Title
-    sheet.mergeCells('A1:D1');
-    sheet.getCell('A1').value = 'СВОДКА VENDHUB';
-    sheet.getCell('A1').style = STYLES.TITLE as Partial<ExcelJS.Style>;
+    sheet.mergeCells("A1:D1");
+    sheet.getCell("A1").value = "СВОДКА VENDHUB";
+    sheet.getCell("A1").style = STYLES.TITLE as Partial<ExcelJS.Style>;
 
     // Period
-    sheet.getCell('A3').value = `Период: ${this.formatDate(summary.period.from)} — ${this.formatDate(summary.period.to)}`;
-    sheet.getCell('A4').value = `Количество дней: ${summary.period.dayCount}`;
+    sheet.getCell("A3").value =
+      `Период: ${this.formatDate(summary.period.from)} — ${this.formatDate(summary.period.to)}`;
+    sheet.getCell("A4").value = `Количество дней: ${summary.period.dayCount}`;
 
     // Orders section
     let row = 6;
-    sheet.getCell(`A${row}`).value = 'ЗАКАЗЫ';
+    sheet.getCell(`A${row}`).value = "ЗАКАЗЫ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
-    sheet.getCell(`A${row}`).value = 'Всего заказов:';
+    sheet.getCell(`A${row}`).value = "Всего заказов:";
     sheet.getCell(`B${row}`).value = summary.orders.total;
     row++;
-    sheet.getCell(`A${row}`).value = 'Успешных доставок:';
+    sheet.getCell(`A${row}`).value = "Успешных доставок:";
     sheet.getCell(`B${row}`).value = summary.orders.successful;
     row++;
-    sheet.getCell(`A${row}`).value = 'Сбоев доставки:';
+    sheet.getCell(`A${row}`).value = "Сбоев доставки:";
     sheet.getCell(`B${row}`).value = summary.orders.failed;
     row++;
-    sheet.getCell(`A${row}`).value = 'Процент успеха:';
+    sheet.getCell(`A${row}`).value = "Процент успеха:";
     sheet.getCell(`B${row}`).value = summary.orders.successRate / 100;
     sheet.getCell(`B${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
 
     // Finance section
     row += 2;
-    sheet.getCell(`A${row}`).value = 'ФИНАНСЫ';
+    sheet.getCell(`A${row}`).value = "ФИНАНСЫ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
-    sheet.getCell(`A${row}`).value = 'Общая выручка:';
+    sheet.getCell(`A${row}`).value = "Общая выручка:";
     sheet.getCell(`B${row}`).value = summary.finance.totalRevenue;
     sheet.getCell(`B${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Себестоимость (кофейные):';
+    sheet.getCell(`A${row}`).value = "Себестоимость (кофейные):";
     sheet.getCell(`B${row}`).value = summary.finance.costOfGoods;
     sheet.getCell(`B${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Валовая прибыль:';
+    sheet.getCell(`A${row}`).value = "Валовая прибыль:";
     sheet.getCell(`B${row}`).value = summary.finance.grossProfit;
     sheet.getCell(`B${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Маржа %:';
+    sheet.getCell(`A${row}`).value = "Маржа %:";
     sheet.getCell(`B${row}`).value = summary.finance.marginPercent / 100;
     sheet.getCell(`B${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Средний чек:';
+    sheet.getCell(`A${row}`).value = "Средний чек:";
     sheet.getCell(`B${row}`).value = summary.finance.averageCheck;
     sheet.getCell(`B${row}`).style = STYLES.CURRENCY as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Заказов в день (ср.):';
+    sheet.getCell(`A${row}`).value = "Заказов в день (ср.):";
     sheet.getCell(`B${row}`).value = summary.finance.ordersPerDay;
 
     // By payment type
     row += 2;
-    sheet.getCell(`A${row}`).value = 'ПО ТИПУ ОПЛАТЫ';
+    sheet.getCell(`A${row}`).value = "ПО ТИПУ ОПЛАТЫ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
 
     for (const pt of summary.byPaymentType) {
       sheet.getCell(`A${row}`).value = `${pt.type}:`;
-      sheet.getCell(`B${row}`).value = `${pt.orderCount} заказов, ${pt.totalAmount} сум`;
+      sheet.getCell(`B${row}`).value =
+        `${pt.orderCount} заказов, ${pt.totalAmount} сум`;
       row++;
     }
 
     this.autoFitColumns(sheet);
   }
 
-  private createMonthlyFinancialSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['byMonths']): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.BY_MONTHS);
+  private createMonthlyFinancialSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["byMonths"],
+  ): void {
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.BY_MONTHS);
 
     // ⚠️ Это ФИНАНСОВЫЕ показатели!
-    sheet.getCell('A1').value = '⚠️ ФИНАНСОВЫЕ показатели (не по типам платежей!)';
-    sheet.getCell('A1').style = { font: { italic: true, color: { argb: 'FFFF6600' } } };
+    sheet.getCell("A1").value =
+      "⚠️ ФИНАНСОВЫЕ показатели (не по типам платежей!)";
+    sheet.getCell("A1").style = {
+      font: { italic: true, color: { argb: "FFFF6600" } },
+    };
 
     const headers = [
-      'Месяц', 'Дней', 'Заказов', 'Успешных', 'Сбоев', 'Выручка',
-      'Себестоимость', 'Прибыль', 'Маржа %', 'Ср. чек', 'Заказов/день'
+      "Месяц",
+      "Дней",
+      "Заказов",
+      "Успешных",
+      "Сбоев",
+      "Выручка",
+      "Себестоимость",
+      "Прибыль",
+      "Маржа %",
+      "Ср. чек",
+      "Заказов/день",
     ];
     this.addHeaderRow(sheet, 3, headers);
 
@@ -781,16 +958,29 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createDailyFinancialSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['byDays']): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.BY_DAYS);
+  private createDailyFinancialSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["byDays"],
+  ): void {
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.BY_DAYS);
 
     // ⚠️ Это по ДАТАМ!
-    sheet.getCell('A1').value = '⚠️ По ДАТАМ (много строк)!';
-    sheet.getCell('A1').style = { font: { italic: true, color: { argb: 'FFFF6600' } } };
+    sheet.getCell("A1").value = "⚠️ По ДАТАМ (много строк)!";
+    sheet.getCell("A1").style = {
+      font: { italic: true, color: { argb: "FFFF6600" } },
+    };
 
     const headers = [
-      'Дата', 'День недели', 'Заказов', 'Успешных', 'Сбоев',
-      'Выручка', 'Себестоимость', 'Прибыль', 'Маржа %', 'Ср. чек'
+      "Дата",
+      "День недели",
+      "Заказов",
+      "Успешных",
+      "Сбоев",
+      "Выручка",
+      "Себестоимость",
+      "Прибыль",
+      "Маржа %",
+      "Ср. чек",
     ];
     this.addHeaderRow(sheet, 3, headers);
 
@@ -813,12 +1003,23 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createMachineFinancialSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['byMachines']): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.BY_MACHINES);
+  private createMachineFinancialSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["byMachines"],
+  ): void {
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.BY_MACHINES);
 
     const headers = [
-      'Машинный код', 'Адрес', 'Заказов', 'Успешных', 'Сбоев',
-      'Выручка', 'Себестоимость', 'Прибыль', 'Маржа %', 'Доля %'
+      "Машинный код",
+      "Адрес",
+      "Заказов",
+      "Успешных",
+      "Сбоев",
+      "Выручка",
+      "Себестоимость",
+      "Прибыль",
+      "Маржа %",
+      "Доля %",
     ];
     this.addHeaderRow(sheet, 1, headers);
 
@@ -842,16 +1043,28 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createProductFinancialSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['byProducts']): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.BY_PRODUCTS);
+  private createProductFinancialSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["byProducts"],
+  ): void {
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.BY_PRODUCTS);
 
     // ⚠️ Есть Категория и Себестоимость/ед.!
-    sheet.getCell('A1').value = '⚠️ ЕСТЬ Категория и Себестоимость/ед.!';
-    sheet.getCell('A1').style = { font: { italic: true, color: { argb: 'FF008000' } } };
+    sheet.getCell("A1").value = "⚠️ ЕСТЬ Категория и Себестоимость/ед.!";
+    sheet.getCell("A1").style = {
+      font: { italic: true, color: { argb: "FF008000" } },
+    };
 
     const headers = [
-      'Продукт', 'Категория', 'Кол-во', 'Выручка', 'Себестоимость/ед.',
-      'Себестоимость', 'Прибыль', 'Маржа %', 'Доля %'
+      "Продукт",
+      "Категория",
+      "Кол-во",
+      "Выручка",
+      "Себестоимость/ед.",
+      "Себестоимость",
+      "Прибыль",
+      "Маржа %",
+      "Доля %",
     ];
     this.addHeaderRow(sheet, 3, headers);
 
@@ -874,10 +1087,22 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  private createIngredientSheets(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['ingredients']): void {
+  private createIngredientSheets(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["ingredients"],
+  ): void {
     // Summary
-    const summarySheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.INGREDIENTS_SUMMARY);
-    const summaryHeaders = ['Ингредиент', 'Ед. изм.', 'Цена/ед.', 'Расход', 'Упаковок', 'Стоимость'];
+    const summarySheet = workbook.addWorksheet(
+      "B_" + STRUCTURE_B_SHEETS.INGREDIENTS_SUMMARY,
+    );
+    const summaryHeaders = [
+      "Ингредиент",
+      "Ед. изм.",
+      "Цена/ед.",
+      "Расход",
+      "Упаковок",
+      "Стоимость",
+    ];
     this.addHeaderRow(summarySheet, 1, summaryHeaders);
 
     let row = 2;
@@ -893,9 +1118,13 @@ export class VendHubExcelExportService {
     this.autoFitColumns(summarySheet);
 
     // By months
-    const monthlySheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.INGREDIENTS_MONTHS);
-    const ingredientNames = Object.values(VENDHUB_INGREDIENTS).map(i => i.name);
-    const monthlyHeaders = ['Месяц', ...ingredientNames];
+    const monthlySheet = workbook.addWorksheet(
+      "B_" + STRUCTURE_B_SHEETS.INGREDIENTS_MONTHS,
+    );
+    const ingredientNames = Object.values(VENDHUB_INGREDIENTS).map(
+      (i) => i.name,
+    );
+    const monthlyHeaders = ["Месяц", ...ingredientNames];
     this.addHeaderRow(monthlySheet, 1, monthlyHeaders);
 
     row = 2;
@@ -909,8 +1138,15 @@ export class VendHubExcelExportService {
     this.autoFitColumns(monthlySheet);
 
     // By machines
-    const machineSheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.INGREDIENTS_MACHINES);
-    const machineHeaders = ['Автомат', 'Адрес', ...ingredientNames, 'Стоимость'];
+    const machineSheet = workbook.addWorksheet(
+      "B_" + STRUCTURE_B_SHEETS.INGREDIENTS_MACHINES,
+    );
+    const machineHeaders = [
+      "Автомат",
+      "Адрес",
+      ...ingredientNames,
+      "Стоимость",
+    ];
     this.addHeaderRow(machineSheet, 1, machineHeaders);
 
     row = 2;
@@ -920,16 +1156,30 @@ export class VendHubExcelExportService {
       Object.entries(VENDHUB_INGREDIENTS).forEach(([code, _info], i) => {
         machineSheet.getCell(row, i + 3).value = machine.ingredients[code] || 0;
       });
-      machineSheet.getCell(row, ingredientNames.length + 3).value = machine.totalCost;
+      machineSheet.getCell(row, ingredientNames.length + 3).value =
+        machine.totalCost;
       row++;
     }
     this.autoFitColumns(machineSheet);
   }
 
-  private createFailuresSheet(workbook: ExcelJS.Workbook, data: VendHubReportStructureB['deliveryFailures']): void {
-    const sheet = workbook.addWorksheet('B_' + STRUCTURE_B_SHEETS.FAILURES);
+  private createFailuresSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureB["deliveryFailures"],
+  ): void {
+    const sheet = workbook.addWorksheet("B_" + STRUCTURE_B_SHEETS.FAILURES);
 
-    const headers = ['Дата', 'Время', 'Автомат', 'Адрес', 'Продукт', 'Вкус', 'Цена', 'Тип оплаты', 'Статус'];
+    const headers = [
+      "Дата",
+      "Время",
+      "Автомат",
+      "Адрес",
+      "Продукт",
+      "Вкус",
+      "Цена",
+      "Тип оплаты",
+      "Статус",
+    ];
     this.addHeaderRow(sheet, 1, headers);
 
     let row = 2;
@@ -953,34 +1203,37 @@ export class VendHubExcelExportService {
   // ANALYTICS SHEET
   // ============================================================================
 
-  private createAnalyticsSheet(workbook: ExcelJS.Workbook, analytics: VendHubFullReportDto['analytics']): void {
+  private createAnalyticsSheet(
+    workbook: ExcelJS.Workbook,
+    analytics: VendHubFullReportDto["analytics"],
+  ): void {
     if (!analytics) return;
 
-    const sheet = workbook.addWorksheet('Аналитика');
+    const sheet = workbook.addWorksheet("Аналитика");
 
-    sheet.getCell('A1').value = '📊 СВОДНАЯ АНАЛИТИКА';
-    sheet.getCell('A1').style = STYLES.TITLE as Partial<ExcelJS.Style>;
+    sheet.getCell("A1").value = "📊 СВОДНАЯ АНАЛИТИКА";
+    sheet.getCell("A1").style = STYLES.TITLE as Partial<ExcelJS.Style>;
 
     // Trends
     let row = 3;
-    sheet.getCell(`A${row}`).value = 'ТРЕНДЫ';
+    sheet.getCell(`A${row}`).value = "ТРЕНДЫ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
-    sheet.getCell(`A${row}`).value = 'Рост выручки:';
+    sheet.getCell(`A${row}`).value = "Рост выручки:";
     sheet.getCell(`B${row}`).value = analytics.trends.revenueGrowth / 100;
     sheet.getCell(`B${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Рост заказов:';
+    sheet.getCell(`A${row}`).value = "Рост заказов:";
     sheet.getCell(`B${row}`).value = analytics.trends.orderGrowth / 100;
     sheet.getCell(`B${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
     row++;
-    sheet.getCell(`A${row}`).value = 'Тренд маржи:';
+    sheet.getCell(`A${row}`).value = "Тренд маржи:";
     sheet.getCell(`B${row}`).value = analytics.trends.marginTrend / 100;
     sheet.getCell(`B${row}`).style = STYLES.PERCENT as Partial<ExcelJS.Style>;
 
     // Top Products
     row += 2;
-    sheet.getCell(`A${row}`).value = 'TOP-10 ПРОДУКТОВ';
+    sheet.getCell(`A${row}`).value = "TOP-10 ПРОДУКТОВ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
     for (const product of analytics.topProducts) {
@@ -992,7 +1245,7 @@ export class VendHubExcelExportService {
 
     // Top Machines
     row++;
-    sheet.getCell(`A${row}`).value = 'TOP-10 АВТОМАТОВ';
+    sheet.getCell(`A${row}`).value = "TOP-10 АВТОМАТОВ";
     sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11 } };
     row++;
     for (const machine of analytics.topMachines) {
@@ -1005,11 +1258,18 @@ export class VendHubExcelExportService {
     // Alerts
     if (analytics.alerts.length > 0) {
       row++;
-      sheet.getCell(`A${row}`).value = '⚠️ ПРЕДУПРЕЖДЕНИЯ';
-      sheet.getCell(`A${row}`).style = { font: { bold: true, size: 11, color: { argb: 'FFFF0000' } } };
+      sheet.getCell(`A${row}`).value = "⚠️ ПРЕДУПРЕЖДЕНИЯ";
+      sheet.getCell(`A${row}`).style = {
+        font: { bold: true, size: 11, color: { argb: "FFFF0000" } },
+      };
       row++;
       for (const alert of analytics.alerts) {
-        const icon = alert.severity === 'critical' ? '❌' : alert.severity === 'warning' ? '⚠️' : 'ℹ️';
+        const icon =
+          alert.severity === "critical"
+            ? "❌"
+            : alert.severity === "warning"
+              ? "⚠️"
+              : "ℹ️";
         sheet.getCell(`A${row}`).value = `${icon} ${alert.message}`;
         row++;
       }
@@ -1022,7 +1282,11 @@ export class VendHubExcelExportService {
   // UTILITY METHODS
   // ============================================================================
 
-  private addHeaderRow(sheet: ExcelJS.Worksheet, rowNum: number, headers: string[]): void {
+  private addHeaderRow(
+    sheet: ExcelJS.Worksheet,
+    rowNum: number,
+    headers: string[],
+  ): void {
     headers.forEach((header, i) => {
       const cell = sheet.getCell(rowNum, i + 1);
       cell.value = header;
@@ -1032,11 +1296,11 @@ export class VendHubExcelExportService {
   }
 
   private autoFitColumns(sheet: ExcelJS.Worksheet): void {
-    sheet.columns.forEach(column => {
+    sheet.columns.forEach((column) => {
       if (!column.values) return;
 
       let maxLength = 10;
-      column.values.forEach(value => {
+      column.values.forEach((value) => {
         if (value) {
           const length = String(value).length;
           if (length > maxLength) {
@@ -1049,31 +1313,31 @@ export class VendHubExcelExportService {
   }
 
   private formatDate(date: Date): string {
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    return date.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   }
 
   private formatDateTime(date: Date): string {
-    return date.toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   private getStructureName(structure: ReportStructure): string {
     switch (structure) {
       case ReportStructure.A:
-        return 'A: По типам платежей';
+        return "A: По типам платежей";
       case ReportStructure.B:
-        return 'B: Финансовая аналитика';
+        return "B: Финансовая аналитика";
       case ReportStructure.FULL:
-        return 'A+B: Полная';
+        return "A+B: Полная";
       default:
         return structure;
     }
@@ -1081,11 +1345,11 @@ export class VendHubExcelExportService {
 
   private getPaymentTypeName(type: string): string {
     const names: Record<string, string> = {
-      CASH: 'Наличные',
-      QR: 'QR',
-      VIP: 'VIP',
-      CREDIT: 'Кредит',
-      TEST: 'Тест',
+      CASH: "Наличные",
+      QR: "QR",
+      VIP: "VIP",
+      CREDIT: "Кредит",
+      TEST: "Тест",
     };
     return names[type] || type;
   }

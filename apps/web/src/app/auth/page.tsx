@@ -1,22 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { Coffee, Eye, EyeOff, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Coffee, Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useAuthStore } from "@/lib/store/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const loginSchema = z.object({
-  email: z.string().email('Введите корректный email'),
-  password: z.string().min(8, 'Минимум 8 символов'),
+  email: z.string().email("Введите корректный email"),
+  password: z.string().min(8, "Минимум 8 символов"),
   twoFactorCode: z.string().optional(),
 });
 
@@ -42,14 +48,15 @@ export default function AuthPage() {
 
       if (result.requiresTwoFactor) {
         setRequires2FA(true);
-        toast.info('Введите код из приложения аутентификации');
+        toast.info("Введите код из приложения аутентификации");
         return;
       }
 
-      toast.success('Добро пожаловать!');
-      router.push('/dashboard');
+      toast.success("Добро пожаловать!");
+      router.push("/dashboard");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(error.message || 'Ошибка входа');
+      toast.error(error.message || "Ошибка входа");
     }
   };
 
@@ -71,10 +78,12 @@ export default function AuthPage() {
                 id="email"
                 type="email"
                 placeholder="admin@vendhub.com"
-                {...register('email')}
+                {...register("email")}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -83,25 +92,34 @@ export default function AuthPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  {...register('password')}
+                  {...register("password")}
                 />
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             <div className="flex justify-end">
-              <Link href="/auth/reset-password" className="text-sm text-primary hover:underline">
+              <Link
+                href="/auth/reset-password"
+                className="text-sm text-primary hover:underline"
+              >
                 Забыли пароль?
               </Link>
             </div>
@@ -114,7 +132,7 @@ export default function AuthPage() {
                   type="text"
                   placeholder="123456"
                   maxLength={6}
-                  {...register('twoFactorCode')}
+                  {...register("twoFactorCode")}
                 />
               </div>
             )}
@@ -126,7 +144,7 @@ export default function AuthPage() {
                   Вход...
                 </>
               ) : (
-                'Войти'
+                "Войти"
               )}
             </Button>
           </form>

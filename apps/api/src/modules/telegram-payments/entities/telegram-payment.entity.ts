@@ -3,54 +3,51 @@
  * Платежи через Telegram Bot API
  */
 
-import {
-  Entity,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { User } from '../../users/entities/user.entity';
-import { Order } from '../../orders/entities/order.entity';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { User } from "../../users/entities/user.entity";
+import { Order } from "../../orders/entities/order.entity";
 import {
   TelegramPaymentStatus,
   TelegramPaymentProvider,
   TelegramPaymentCurrency,
-} from '../telegram-payments.constants';
+} from "../telegram-payments.constants";
 
-@Entity('telegram_payments')
-@Index(['userId', 'status'])
-@Index(['organizationId', 'createdAt'])
-@Index(['telegramPaymentChargeId'], { unique: true, where: '"telegram_payment_charge_id" IS NOT NULL' })
+@Entity("telegram_payments")
+@Index(["userId", "status"])
+@Index(["organizationId", "createdAt"])
+@Index(["telegramPaymentChargeId"], {
+  unique: true,
+  where: '"telegram_payment_charge_id" IS NOT NULL',
+})
 export class TelegramPayment extends BaseEntity {
-  @Column('uuid')
+  @Column("uuid")
   @Index()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "user_id" })
   user: User;
 
-  @Column('uuid')
+  @Column("uuid")
   @Index()
   organizationId: string;
 
-  @Column('uuid', { nullable: true })
+  @Column("uuid", { nullable: true })
   orderId: string;
 
-  @ManyToOne(() => Order, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'order_id' })
+  @ManyToOne(() => Order, { onDelete: "SET NULL", nullable: true })
+  @JoinColumn({ name: "order_id" })
   order: Order;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: TelegramPaymentProvider,
   })
   provider: TelegramPaymentProvider;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: TelegramPaymentStatus,
     default: TelegramPaymentStatus.PENDING,
   })
@@ -58,18 +55,18 @@ export class TelegramPayment extends BaseEntity {
   status: TelegramPaymentStatus;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: TelegramPaymentCurrency,
   })
   currency: TelegramPaymentCurrency;
 
-  @Column('decimal', { precision: 15, scale: 2 })
+  @Column("decimal", { precision: 15, scale: 2 })
   amount: number;
 
-  @Column('bigint')
+  @Column("bigint")
   telegramUserId: number;
 
-  @Column('bigint', { nullable: true })
+  @Column("bigint", { nullable: true })
   telegramChatId: number;
 
   @Column({ nullable: true })
@@ -84,7 +81,7 @@ export class TelegramPayment extends BaseEntity {
   @Column({ nullable: true })
   shippingOptionId: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   orderInfo: {
     name?: string;
     phoneNumber?: string;
@@ -99,19 +96,19 @@ export class TelegramPayment extends BaseEntity {
     };
   };
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   description: string;
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   failureReason: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   metadata: Record<string, unknown>;
 
   @Column({ nullable: true })
   refundedAt: Date;
 
-  @Column('decimal', { precision: 15, scale: 2, nullable: true })
+  @Column("decimal", { precision: 15, scale: 2, nullable: true })
   refundedAmount: number;
 
   @Column({ nullable: true })

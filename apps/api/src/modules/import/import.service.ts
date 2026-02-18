@@ -8,12 +8,12 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import * as XLSX from 'xlsx';
-import * as Papa from 'papaparse';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import * as XLSX from "xlsx";
+import * as Papa from "papaparse";
 
 import {
   ImportJob,
@@ -21,25 +21,34 @@ import {
   ImportType,
   ImportStatus,
   ImportSource,
-} from './entities/import.entity';
+} from "./entities/import.entity";
 import {
   ImportSession,
   ImportSessionStatus,
   DomainType,
   ApprovalStatus,
-} from './entities/import-session.entity';
-import { ImportAuditLog, AuditActionType } from './entities/import-audit-log.entity';
-import { SchemaDefinition, FieldDefinition } from './entities/schema-definition.entity';
-import { ValidationRule, ValidationRuleType, ValidationSeverity } from './entities/validation-rule.entity';
+} from "./entities/import-session.entity";
+import {
+  ImportAuditLog,
+  AuditActionType,
+} from "./entities/import-audit-log.entity";
+import {
+  SchemaDefinition,
+  FieldDefinition,
+} from "./entities/schema-definition.entity";
+import {
+  ValidationRule,
+  ValidationRuleType,
+  ValidationSeverity,
+} from "./entities/validation-rule.entity";
 import {
   CreateImportSessionDto,
   ClassifySessionDto,
-  ValidateSessionDto,
   ApproveSessionDto,
   RejectSessionDto,
   QueryImportSessionsDto,
   QueryAuditLogDto,
-} from './dto/import-session.dto';
+} from "./dto/import-session.dto";
 
 export interface ImportOptions {
   skipDuplicates?: boolean;
@@ -54,7 +63,7 @@ export interface ImportOptions {
 
 export interface ParsedRow {
   rowNumber: number;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   errors: { field: string; message: string }[];
   warnings: { field: string; message: string }[];
 }
@@ -125,7 +134,7 @@ export class ImportService {
 
     const saved = await this.importJobRepository.save(job);
 
-    this.eventEmitter.emit('import.created', { job: saved });
+    this.eventEmitter.emit("import.created", { job: saved });
     this.logger.log(`Import job created: ${saved.jobNumber}`);
 
     return saved;
@@ -161,24 +170,26 @@ export class ImportService {
     limit: number = 20,
   ): Promise<{ data: ImportJob[]; total: number }> {
     const qb = this.importJobRepository
-      .createQueryBuilder('ij')
-      .where('ij.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("ij")
+      .where("ij.organizationId = :organizationId", { organizationId });
 
     if (filters.importType) {
-      qb.andWhere('ij.importType = :importType', { importType: filters.importType });
+      qb.andWhere("ij.importType = :importType", {
+        importType: filters.importType,
+      });
     }
     if (filters.status) {
-      qb.andWhere('ij.status = :status', { status: filters.status });
+      qb.andWhere("ij.status = :status", { status: filters.status });
     }
     if (filters.startDate && filters.endDate) {
-      qb.andWhere('ij.createdAt BETWEEN :startDate AND :endDate', {
+      qb.andWhere("ij.createdAt BETWEEN :startDate AND :endDate", {
         startDate: filters.startDate,
         endDate: filters.endDate,
       });
     }
 
     const [data, total] = await qb
-      .orderBy('ij.createdAt', 'DESC')
+      .orderBy("ij.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -196,8 +207,14 @@ export class ImportService {
   ): Promise<ImportJob> {
     const job = await this.getImportJob(organizationId, id);
 
-    if (![ImportStatus.PENDING, ImportStatus.VALIDATING, ImportStatus.PROCESSING].includes(job.status)) {
-      throw new BadRequestException('Cannot cancel job in current status');
+    if (
+      ![
+        ImportStatus.PENDING,
+        ImportStatus.VALIDATING,
+        ImportStatus.PROCESSING,
+      ].includes(job.status)
+    ) {
+      throw new BadRequestException("Cannot cancel job in current status");
     }
 
     job.status = ImportStatus.CANCELLED;
@@ -205,7 +222,7 @@ export class ImportService {
 
     const saved = await this.importJobRepository.save(job);
 
-    this.eventEmitter.emit('import.cancelled', { job: saved, userId });
+    this.eventEmitter.emit("import.cancelled", { job: saved, userId });
     return saved;
   }
 
@@ -219,21 +236,24 @@ export class ImportService {
   async parseCSV(
     buffer: Buffer,
     options?: { delimiter?: string; encoding?: string; headerRow?: number },
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
-    const csvString = buffer.toString(options?.encoding as BufferEncoding || 'utf-8');
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
+    const csvString = buffer.toString(
+      (options?.encoding as BufferEncoding) || "utf-8",
+    );
 
     return new Promise((resolve, reject) => {
       Papa.parse(csvString, {
         header: true,
-        delimiter: options?.delimiter || ',',
+        delimiter: options?.delimiter || ",",
         skipEmptyLines: true,
         transformHeader: (header) => header.trim(),
         complete: (results) => {
           resolve({
             headers: results.meta.fields || [],
-            rows: results.data as Record<string, any>[],
+            rows: results.data as Record<string, unknown>[],
           });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         error: (error: any) => {
           reject(new BadRequestException(`CSV parse error: ${error.message}`));
         },
@@ -247,9 +267,9 @@ export class ImportService {
   async parseExcel(
     buffer: Buffer,
     options?: { sheetName?: string; headerRow?: number; startRow?: number },
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     try {
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const workbook = XLSX.read(buffer, { type: "buffer" });
 
       const sheetName = options?.sheetName || workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
@@ -258,32 +278,36 @@ export class ImportService {
         throw new BadRequestException(`Sheet "${sheetName}" not found`);
       }
 
-      const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
+      const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
         header: 1,
-        defval: '',
+        defval: "",
       });
 
       const headerRowIndex = (options?.headerRow || 1) - 1;
       const startRowIndex = (options?.startRow || 2) - 1;
 
-      const headers = (rawData[headerRowIndex] as string[]).map(h => String(h).trim());
-      const rows: Record<string, any>[] = [];
+      const headers = (rawData[headerRowIndex] as string[]).map((h) =>
+        String(h).trim(),
+      );
+      const rows: Record<string, unknown>[] = [];
 
       for (let i = startRowIndex; i < rawData.length; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rowData = rawData[i] as any[];
-        const row: Record<string, any> = {};
+        const row: Record<string, unknown> = {};
 
         headers.forEach((header, idx) => {
-          row[header] = rowData[idx] ?? '';
+          row[header] = rowData[idx] ?? "";
         });
 
         // Skip empty rows
-        if (Object.values(row).some(v => v !== '')) {
+        if (Object.values(row).some((v) => v !== "")) {
           rows.push(row);
         }
       }
 
       return { headers, rows };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       throw new BadRequestException(`Excel parse error: ${error.message}`);
     }
@@ -292,14 +316,17 @@ export class ImportService {
   /**
    * Parse JSON file
    */
-  async parseJSON(buffer: Buffer): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  async parseJSON(
+    buffer: Buffer,
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     try {
-      const data = JSON.parse(buffer.toString('utf-8'));
+      const data = JSON.parse(buffer.toString("utf-8"));
       const rows = Array.isArray(data) ? data : [data];
 
       const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
 
       return { headers, rows };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       throw new BadRequestException(`JSON parse error: ${error.message}`);
     }
@@ -315,10 +342,15 @@ export class ImportService {
   async validateImportData(
     organizationId: string,
     jobId: string,
-    rows: Record<string, any>[],
+    rows: Record<string, unknown>[],
     importType: ImportType,
     mapping?: Record<string, string>,
-  ): Promise<{ validRows: ParsedRow[]; invalidRows: ParsedRow[]; warnings: any[] }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{
+    validRows: ParsedRow[];
+    invalidRows: ParsedRow[];
+    warnings: any[];
+  }> {
     const job = await this.getImportJob(organizationId, jobId);
 
     job.status = ImportStatus.VALIDATING;
@@ -327,13 +359,16 @@ export class ImportService {
 
     const validRows: ParsedRow[] = [];
     const invalidRows: ParsedRow[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const warnings: any[] = [];
 
     const validator = this.getValidator(importType);
 
     for (let i = 0; i < rows.length; i++) {
       const rowNumber = i + 1;
-      const mappedData = mapping ? this.applyMapping(rows[i], mapping) : rows[i];
+      const mappedData = mapping
+        ? this.applyMapping(rows[i], mapping)
+        : rows[i];
 
       const result = await validator(mappedData, organizationId, rowNumber);
 
@@ -354,7 +389,9 @@ export class ImportService {
       }
 
       if (result.warnings.length > 0) {
-        warnings.push(...result.warnings.map(w => ({ row: rowNumber, ...w })));
+        warnings.push(
+          ...result.warnings.map((w) => ({ row: rowNumber, ...w })),
+        );
       }
     }
 
@@ -362,8 +399,12 @@ export class ImportService {
     job.validationWarnings = warnings;
     if (invalidRows.length === rows.length) {
       job.status = ImportStatus.VALIDATION_FAILED;
-      job.errorDetails = invalidRows.flatMap(r =>
-        r.errors.map(e => ({ row: r.rowNumber, field: e.field, message: e.message })),
+      job.errorDetails = invalidRows.flatMap((r) =>
+        r.errors.map((e) => ({
+          row: r.rowNumber,
+          field: e.field,
+          message: e.message,
+        })),
       );
     }
     await this.importJobRepository.save(job);
@@ -374,12 +415,15 @@ export class ImportService {
   /**
    * Get validator for import type
    */
-  private getValidator(
-    importType: ImportType,
-  ): (data: Record<string, any>, orgId: string, row: number) => Promise<{
+  private getValidator(importType: ImportType): (
+    data: Record<string, unknown>,
+    orgId: string,
+    row: number,
+  ) => Promise<{
     errors: { field: string; message: string }[];
     warnings: { field: string; message: string }[];
   }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const validators: Record<ImportType, any> = {
       [ImportType.PRODUCTS]: this.validateProduct.bind(this),
       [ImportType.MACHINES]: this.validateMachine.bind(this),
@@ -403,249 +447,328 @@ export class ImportService {
   // ========================================================================
 
   private async validateProduct(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
-    if (!data.name || String(data.name).trim() === '') {
-      errors.push({ field: 'name', message: 'Product name is required' });
+    if (!data.name || String(data.name).trim() === "") {
+      errors.push({ field: "name", message: "Product name is required" });
     }
 
-    if (data.price !== undefined && data.price !== '') {
+    if (data.price !== undefined && data.price !== "") {
       const price = parseFloat(data.price);
       if (isNaN(price) || price < 0) {
-        errors.push({ field: 'price', message: 'Invalid price value' });
+        errors.push({ field: "price", message: "Invalid price value" });
       }
     }
 
     if (data.barcode && String(data.barcode).length > 50) {
-      errors.push({ field: 'barcode', message: 'Barcode too long (max 50 characters)' });
+      errors.push({
+        field: "barcode",
+        message: "Barcode too long (max 50 characters)",
+      });
     }
 
     if (!data.category) {
-      warnings.push({ field: 'category', message: 'Category not specified, will use default' });
+      warnings.push({
+        field: "category",
+        message: "Category not specified, will use default",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateMachine(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
-    if (!data.serialNumber || String(data.serialNumber).trim() === '') {
-      errors.push({ field: 'serialNumber', message: 'Serial number is required' });
+    if (!data.serialNumber || String(data.serialNumber).trim() === "") {
+      errors.push({
+        field: "serialNumber",
+        message: "Serial number is required",
+      });
     }
 
     if (!data.model) {
-      warnings.push({ field: 'model', message: 'Model not specified' });
+      warnings.push({ field: "model", message: "Model not specified" });
     }
 
     return { errors, warnings };
   }
 
   private async validateUser(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.email || !this.isValidEmail(data.email)) {
-      errors.push({ field: 'email', message: 'Valid email is required' });
+      errors.push({ field: "email", message: "Valid email is required" });
     }
 
     if (!data.firstName) {
-      errors.push({ field: 'firstName', message: 'First name is required' });
+      errors.push({ field: "firstName", message: "First name is required" });
     }
 
     return { errors, warnings };
   }
 
   private async validateEmployee(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.firstName) {
-      errors.push({ field: 'firstName', message: 'First name is required' });
+      errors.push({ field: "firstName", message: "First name is required" });
     }
 
     if (!data.lastName) {
-      errors.push({ field: 'lastName', message: 'Last name is required' });
+      errors.push({ field: "lastName", message: "Last name is required" });
     }
 
     if (!data.employeeRole) {
-      errors.push({ field: 'employeeRole', message: 'Employee role is required' });
+      errors.push({
+        field: "employeeRole",
+        message: "Employee role is required",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateTransaction(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.amount || isNaN(parseFloat(data.amount))) {
-      errors.push({ field: 'amount', message: 'Valid amount is required' });
+      errors.push({ field: "amount", message: "Valid amount is required" });
     }
 
     if (!data.transactionDate) {
-      errors.push({ field: 'transactionDate', message: 'Transaction date is required' });
+      errors.push({
+        field: "transactionDate",
+        message: "Transaction date is required",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateSale(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.machineId && !data.machineSerial) {
-      errors.push({ field: 'machineId', message: 'Machine ID or serial number is required' });
+      errors.push({
+        field: "machineId",
+        message: "Machine ID or serial number is required",
+      });
     }
 
     if (!data.saleDate) {
-      errors.push({ field: 'saleDate', message: 'Sale date is required' });
+      errors.push({ field: "saleDate", message: "Sale date is required" });
     }
 
     if (!data.amount || isNaN(parseFloat(data.amount))) {
-      errors.push({ field: 'amount', message: 'Valid amount is required' });
+      errors.push({ field: "amount", message: "Valid amount is required" });
     }
 
     return { errors, warnings };
   }
 
   private async validateInventory(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.productId && !data.productSku && !data.productBarcode) {
-      errors.push({ field: 'productId', message: 'Product identifier is required' });
+      errors.push({
+        field: "productId",
+        message: "Product identifier is required",
+      });
     }
 
     if (!data.quantity || isNaN(parseFloat(data.quantity))) {
-      errors.push({ field: 'quantity', message: 'Valid quantity is required' });
+      errors.push({ field: "quantity", message: "Valid quantity is required" });
     }
 
     return { errors, warnings };
   }
 
   private async validateCustomer(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.phone && !data.email) {
-      errors.push({ field: 'phone', message: 'Phone or email is required' });
+      errors.push({ field: "phone", message: "Phone or email is required" });
     }
 
     if (data.email && !this.isValidEmail(data.email)) {
-      errors.push({ field: 'email', message: 'Invalid email format' });
+      errors.push({ field: "email", message: "Invalid email format" });
     }
 
     return { errors, warnings };
   }
 
   private async validatePrice(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.productId && !data.productSku) {
-      errors.push({ field: 'productId', message: 'Product identifier is required' });
+      errors.push({
+        field: "productId",
+        message: "Product identifier is required",
+      });
     }
 
-    if (!data.price || isNaN(parseFloat(data.price)) || parseFloat(data.price) < 0) {
-      errors.push({ field: 'price', message: 'Valid positive price is required' });
+    if (
+      !data.price ||
+      isNaN(parseFloat(data.price)) ||
+      parseFloat(data.price) < 0
+    ) {
+      errors.push({
+        field: "price",
+        message: "Valid positive price is required",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateCategory(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.name) {
-      errors.push({ field: 'name', message: 'Category name is required' });
+      errors.push({ field: "name", message: "Category name is required" });
     }
 
     return { errors, warnings };
   }
 
   private async validateLocation(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.name && !data.address) {
-      errors.push({ field: 'name', message: 'Location name or address is required' });
+      errors.push({
+        field: "name",
+        message: "Location name or address is required",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateContractor(
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
     if (!data.companyName) {
-      errors.push({ field: 'companyName', message: 'Company name is required' });
+      errors.push({
+        field: "companyName",
+        message: "Company name is required",
+      });
     }
 
     if (!data.serviceType) {
-      errors.push({ field: 'serviceType', message: 'Service type is required' });
+      errors.push({
+        field: "serviceType",
+        message: "Service type is required",
+      });
     }
 
     return { errors, warnings };
   }
 
   private async validateGeneric(
-    _data: Record<string, any>,
+    _data: Record<string, unknown>,
     _orgId: string,
     _row: number,
-  ): Promise<{ errors: { field: string; message: string }[]; warnings: { field: string; message: string }[] }> {
+  ): Promise<{
+    errors: { field: string; message: string }[];
+    warnings: { field: string; message: string }[];
+  }> {
     return { errors: [], warnings: [] };
   }
 
@@ -653,8 +776,11 @@ export class ImportService {
   // HELPER METHODS
   // ========================================================================
 
-  private applyMapping(data: Record<string, any>, mapping: Record<string, string>): Record<string, any> {
-    const result: Record<string, any> = {};
+  private applyMapping(
+    data: Record<string, unknown>,
+    mapping: Record<string, string>,
+  ): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
 
     for (const [sourceField, targetField] of Object.entries(mapping)) {
       if (data[sourceField] !== undefined) {
@@ -699,6 +825,7 @@ export class ImportService {
     organizationId: string,
     importType?: ImportType,
   ): Promise<ImportTemplate[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { organizationId, isActive: true };
     if (importType) {
       where.importType = importType;
@@ -706,11 +833,14 @@ export class ImportService {
 
     return this.templateRepository.find({
       where,
-      order: { name: 'ASC' },
+      order: { name: "ASC" },
     });
   }
 
-  async getTemplate(organizationId: string, id: string): Promise<ImportTemplate> {
+  async getTemplate(
+    organizationId: string,
+    id: string,
+  ): Promise<ImportTemplate> {
     const template = await this.templateRepository.findOne({
       where: { id, organizationId },
     });
@@ -744,30 +874,30 @@ export class ImportService {
     userId: string,
   ): Promise<ImportSession> {
     // Determine file type from extension
-    const extension = file.originalname.split('.').pop()?.toLowerCase();
+    const extension = file.originalname.split(".").pop()?.toLowerCase();
     let fileType: string;
 
     switch (extension) {
-      case 'csv':
-        fileType = 'csv';
+      case "csv":
+        fileType = "csv";
         break;
-      case 'xlsx':
-      case 'xls':
-        fileType = 'xlsx';
+      case "xlsx":
+      case "xls":
+        fileType = "xlsx";
         break;
-      case 'json':
-        fileType = 'json';
+      case "json":
+        fileType = "json";
         break;
       default:
         throw new BadRequestException(`Unsupported file format: ${extension}`);
     }
 
     // Parse file to extract headers and sample data
-    let parsed: { headers: string[]; rows: Record<string, any>[] };
+    let parsed: { headers: string[]; rows: Record<string, unknown>[] };
 
-    if (fileType === 'csv') {
+    if (fileType === "csv") {
       parsed = await this.parseCSV(file.buffer);
-    } else if (fileType === 'xlsx') {
+    } else if (fileType === "xlsx") {
       parsed = await this.parseExcel(file.buffer);
     } else {
       parsed = await this.parseJSON(file.buffer);
@@ -788,7 +918,7 @@ export class ImportService {
 
     if (!domain) {
       throw new BadRequestException(
-        'Could not auto-detect import domain. Please specify the domain manually.',
+        "Could not auto-detect import domain. Please specify the domain manually.",
       );
     }
 
@@ -817,12 +947,12 @@ export class ImportService {
       import_job_id: null,
       started_at: new Date(),
       completed_at: null,
-      message: 'File uploaded successfully. Ready for classification.',
+      message: "File uploaded successfully. Ready for classification.",
     });
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.created', { session: saved });
+    this.eventEmitter.emit("import.session.created", { session: saved });
     this.logger.log(`Import session created: ${saved.id} for domain ${domain}`);
 
     return saved;
@@ -831,7 +961,9 @@ export class ImportService {
   /**
    * Auto-detect domain from file headers by matching against all schema definitions.
    */
-  private async autoDetectDomain(headers: string[]): Promise<DomainType | undefined> {
+  private async autoDetectDomain(
+    headers: string[],
+  ): Promise<DomainType | undefined> {
     const schemas = await this.schemaDefRepo.find({
       where: { is_active: true },
     });
@@ -840,7 +972,7 @@ export class ImportService {
       return undefined;
     }
 
-    const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
+    const normalizedHeaders = headers.map((h) => h.toLowerCase().trim());
     let bestDomain: DomainType | undefined;
     let bestScore = 0;
 
@@ -852,10 +984,10 @@ export class ImportService {
         const allNames = [
           fieldDef.name.toLowerCase(),
           fieldDef.display_name.toLowerCase(),
-          ...fieldDef.synonyms.map(s => s.toLowerCase()),
+          ...fieldDef.synonyms.map((s) => s.toLowerCase()),
         ];
 
-        const matched = normalizedHeaders.some(h => allNames.includes(h));
+        const matched = normalizedHeaders.some((h) => allNames.includes(h));
         if (matched) {
           matchCount++;
         }
@@ -885,7 +1017,10 @@ export class ImportService {
   ): Promise<ImportSession> {
     const session = await this.getSession(sessionId, organizationId);
 
-    if (session.status !== ImportSessionStatus.UPLOADED && session.status !== ImportSessionStatus.CLASSIFIED) {
+    if (
+      session.status !== ImportSessionStatus.UPLOADED &&
+      session.status !== ImportSessionStatus.CLASSIFIED
+    ) {
       throw new BadRequestException(
         `Cannot classify session in status: ${session.status}. Session must be in UPLOADED or CLASSIFIED status.`,
       );
@@ -913,10 +1048,10 @@ export class ImportService {
         confidence: 100,
         column_mapping: dto.columnMapping,
         unmapped_columns: session.unmapped_columns,
-        method: 'manual',
+        method: "manual",
       };
       session.status = ImportSessionStatus.CLASSIFIED;
-      session.message = 'Classification completed with manual mapping.';
+      session.message = "Classification completed with manual mapping.";
 
       return this.sessionRepo.save(session);
     }
@@ -933,7 +1068,11 @@ export class ImportService {
     }
 
     const headers: string[] = session.file_metadata?.headers || [];
-    const { mapping, unmappedColumns, confidence } = this.matchColumns(headers, schemaDef.field_definitions, schemaDef.required_fields);
+    const { mapping, unmappedColumns, confidence } = this.matchColumns(
+      headers,
+      schemaDef.field_definitions,
+      schemaDef.required_fields,
+    );
 
     session.column_mapping = mapping;
     session.unmapped_columns = unmappedColumns;
@@ -943,7 +1082,7 @@ export class ImportService {
       confidence,
       column_mapping: mapping,
       unmapped_columns: unmappedColumns,
-      method: 'auto',
+      method: "auto",
       schema_version: schemaDef.version,
     };
     session.status = ImportSessionStatus.CLASSIFIED;
@@ -951,8 +1090,10 @@ export class ImportService {
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.classified', { session: saved });
-    this.logger.log(`Session ${sessionId} classified with confidence ${confidence}%`);
+    this.eventEmitter.emit("import.session.classified", { session: saved });
+    this.logger.log(
+      `Session ${sessionId} classified with confidence ${confidence}%`,
+    );
 
     return saved;
   }
@@ -970,23 +1111,37 @@ export class ImportService {
     headers: string[],
     fieldDefinitions: FieldDefinition[],
     requiredFields: string[],
-  ): { mapping: Record<string, string>; unmappedColumns: string[]; confidence: number } {
+  ): {
+    mapping: Record<string, string>;
+    unmappedColumns: string[];
+    confidence: number;
+  } {
     const mapping: Record<string, string> = {};
     const matchedHeaders = new Set<string>();
 
-    const normalizedHeaders = headers.map(h => h.toLowerCase().trim().replace(/[\s_-]+/g, '_'));
+    const normalizedHeaders = headers.map((h) =>
+      h
+        .toLowerCase()
+        .trim()
+        .replace(/[\s_-]+/g, "_"),
+    );
 
     for (const fieldDef of fieldDefinitions) {
       // Build list of all possible names for this field (including synonyms)
       const allNames = [
-        fieldDef.name.toLowerCase().replace(/[\s_-]+/g, '_'),
-        fieldDef.display_name.toLowerCase().replace(/[\s_-]+/g, '_'),
-        ...fieldDef.synonyms.map(s => s.toLowerCase().replace(/[\s_-]+/g, '_')),
+        fieldDef.name.toLowerCase().replace(/[\s_-]+/g, "_"),
+        fieldDef.display_name.toLowerCase().replace(/[\s_-]+/g, "_"),
+        ...fieldDef.synonyms.map((s) =>
+          s.toLowerCase().replace(/[\s_-]+/g, "_"),
+        ),
       ];
 
       // Find the first matching header
       for (let i = 0; i < normalizedHeaders.length; i++) {
-        if (allNames.includes(normalizedHeaders[i]) && !matchedHeaders.has(headers[i])) {
+        if (
+          allNames.includes(normalizedHeaders[i]) &&
+          !matchedHeaders.has(headers[i])
+        ) {
           mapping[headers[i]] = fieldDef.name;
           matchedHeaders.add(headers[i]);
           break;
@@ -995,12 +1150,14 @@ export class ImportService {
     }
 
     // Find unmapped columns
-    const unmappedColumns = headers.filter(h => !matchedHeaders.has(h));
+    const unmappedColumns = headers.filter((h) => !matchedHeaders.has(h));
 
     // Calculate confidence based on required fields matched
     const totalRequired = requiredFields.length || 1;
     const mappedTargetFields = new Set(Object.values(mapping));
-    const matchedRequired = requiredFields.filter(rf => mappedTargetFields.has(rf)).length;
+    const matchedRequired = requiredFields.filter((rf) =>
+      mappedTargetFields.has(rf),
+    ).length;
     const confidence = Math.min((matchedRequired / totalRequired) * 100, 100);
 
     return { mapping, unmappedColumns, confidence };
@@ -1014,7 +1171,7 @@ export class ImportService {
     mapping: Record<string, string>,
   ): string[] {
     const mappedSources = new Set(Object.keys(mapping));
-    return headers.filter(h => !mappedSources.has(h));
+    return headers.filter((h) => !mappedSources.has(h));
   }
 
   /**
@@ -1027,30 +1184,39 @@ export class ImportService {
   ): Promise<ImportSession> {
     const session = await this.getSession(sessionId, organizationId);
 
-    if (session.status !== ImportSessionStatus.CLASSIFIED && session.status !== ImportSessionStatus.MAPPED) {
+    if (
+      session.status !== ImportSessionStatus.CLASSIFIED &&
+      session.status !== ImportSessionStatus.MAPPED
+    ) {
       throw new BadRequestException(
         `Cannot validate session in status: ${session.status}. Session must be in CLASSIFIED or MAPPED status.`,
       );
     }
 
     session.status = ImportSessionStatus.VALIDATING;
-    session.message = 'Validation in progress...';
+    session.message = "Validation in progress...";
     await this.sessionRepo.save(session);
 
     // Get validation rules for this domain, sorted by priority
     const rules = await this.validationRuleRepo.find({
       where: { domain: session.domain, is_active: true },
-      order: { priority: 'ASC' },
+      order: { priority: "ASC" },
     });
 
     // Get the data rows from file_metadata
-    const allRows: Record<string, any>[] = session.file_metadata?.sampleData || [];
+    const allRows: Record<string, unknown>[] =
+      session.file_metadata?.sampleData || [];
     const columnMapping = session.column_mapping || {};
     const totalRows = session.file_metadata?.rows || allRows.length;
 
     let validRows = 0;
     let invalidRows = 0;
-    const errors: { row: number; field: string; message: string; severity: string }[] = [];
+    const errors: {
+      row: number;
+      field: string;
+      message: string;
+      severity: string;
+    }[] = [];
     const warnings: { row: number; field: string; message: string }[] = [];
 
     for (let i = 0; i < allRows.length; i++) {
@@ -1058,7 +1224,7 @@ export class ImportService {
       const row = allRows[i];
 
       // Map source columns to target fields
-      const mappedRow: Record<string, any> = {};
+      const mappedRow: Record<string, unknown> = {};
       for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
         if (row[sourceCol] !== undefined) {
           mappedRow[targetField] = row[sourceCol];
@@ -1070,7 +1236,12 @@ export class ImportService {
       // Apply each validation rule
       for (const rule of rules) {
         const fieldValue = mappedRow[rule.field_name];
-        const validationResult = this.applyValidationRule(rule, fieldValue, mappedRow, rowNumber);
+        const validationResult = this.applyValidationRule(
+          rule,
+          fieldValue,
+          mappedRow,
+          rowNumber,
+        );
 
         if (!validationResult.valid) {
           if (rule.severity === ValidationSeverity.ERROR) {
@@ -1079,7 +1250,7 @@ export class ImportService {
               row: rowNumber,
               field: rule.field_name,
               message: validationResult.message,
-              severity: 'error',
+              severity: "error",
             });
           } else if (rule.severity === ValidationSeverity.WARNING) {
             warnings.push({
@@ -1129,8 +1300,10 @@ export class ImportService {
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.validated', { session: saved });
-    this.logger.log(`Session ${sessionId} validated: ${validRows} valid, ${invalidRows} invalid`);
+    this.eventEmitter.emit("import.session.validated", { session: saved });
+    this.logger.log(
+      `Session ${sessionId} validated: ${validRows} valid, ${invalidRows} invalid`,
+    );
 
     return saved;
   }
@@ -1140,29 +1313,40 @@ export class ImportService {
    */
   private applyValidationRule(
     rule: ValidationRule,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
-    row: Record<string, any>,
+    row: Record<string, unknown>,
     rowNumber: number,
   ): { valid: boolean; message: string } {
     const def = rule.rule_definition;
 
-    const formatMessage = (template: string | null, defaultMsg: string): string => {
+    const formatMessage = (
+      template: string | null,
+      defaultMsg: string,
+    ): string => {
       if (!template) return defaultMsg;
       return template
         .replace(/\{\{field\}\}/g, rule.field_name)
-        .replace(/\{\{value\}\}/g, String(value ?? ''))
+        .replace(/\{\{value\}\}/g, String(value ?? ""))
         .replace(/\{\{row\}\}/g, String(rowNumber));
     };
 
     switch (rule.rule_type) {
       case ValidationRuleType.REQUIRED: {
-        if (value === undefined || value === null || String(value).trim() === '') {
+        if (
+          value === undefined ||
+          value === null ||
+          String(value).trim() === ""
+        ) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" is required`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" is required`,
+            ),
           };
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.RANGE: {
@@ -1170,41 +1354,53 @@ export class ImportService {
         if (isNaN(numValue)) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" must be a number`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" must be a number`,
+            ),
           };
         }
         if (def.min !== undefined && numValue < def.min) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" must be at least ${def.min}`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" must be at least ${def.min}`,
+            ),
           };
         }
         if (def.max !== undefined && numValue > def.max) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" must be at most ${def.max}`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" must be at most ${def.max}`,
+            ),
           };
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.REGEX: {
         if (value === undefined || value === null) {
-          return { valid: true, message: '' };
+          return { valid: true, message: "" };
         }
         const regex = new RegExp(def.pattern);
         if (!regex.test(String(value))) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" does not match required pattern`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" does not match required pattern`,
+            ),
           };
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.ENUM: {
         if (value === undefined || value === null) {
-          return { valid: true, message: '' };
+          return { valid: true, message: "" };
         }
         const allowedValues: string[] = def.values || [];
         if (!allowedValues.includes(String(value))) {
@@ -1212,83 +1408,104 @@ export class ImportService {
             valid: false,
             message: formatMessage(
               rule.error_message_template,
-              `Field "${rule.field_name}" must be one of: ${allowedValues.join(', ')}`,
+              `Field "${rule.field_name}" must be one of: ${allowedValues.join(", ")}`,
             ),
           };
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.LENGTH: {
         if (value === undefined || value === null) {
-          return { valid: true, message: '' };
+          return { valid: true, message: "" };
         }
         const strValue = String(value);
         if (def.min_length !== undefined && strValue.length < def.min_length) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" must be at least ${def.min_length} characters`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" must be at least ${def.min_length} characters`,
+            ),
           };
         }
         if (def.max_length !== undefined && strValue.length > def.max_length) {
           return {
             valid: false,
-            message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" must be at most ${def.max_length} characters`),
+            message: formatMessage(
+              rule.error_message_template,
+              `Field "${rule.field_name}" must be at most ${def.max_length} characters`,
+            ),
           };
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.FORMAT: {
         if (value === undefined || value === null) {
-          return { valid: true, message: '' };
+          return { valid: true, message: "" };
         }
-        if (def.format === 'email') {
+        if (def.format === "email") {
           if (!this.isValidEmail(String(value))) {
             return {
               valid: false,
-              message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" is not a valid email`),
+              message: formatMessage(
+                rule.error_message_template,
+                `Field "${rule.field_name}" is not a valid email`,
+              ),
             };
           }
         }
-        if (def.format === 'uuid') {
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (def.format === "uuid") {
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (!uuidRegex.test(String(value))) {
             return {
               valid: false,
-              message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" is not a valid UUID`),
+              message: formatMessage(
+                rule.error_message_template,
+                `Field "${rule.field_name}" is not a valid UUID`,
+              ),
             };
           }
         }
-        if (def.format === 'date') {
+        if (def.format === "date") {
           const dateValue = new Date(value);
           if (isNaN(dateValue.getTime())) {
             return {
               valid: false,
-              message: formatMessage(rule.error_message_template, `Field "${rule.field_name}" is not a valid date`),
+              message: formatMessage(
+                rule.error_message_template,
+                `Field "${rule.field_name}" is not a valid date`,
+              ),
             };
           }
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.UNIQUE: {
         // Unique validation would require checking the entire dataset or DB.
         // This is a placeholder -- full unique checks happen during execution.
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.FOREIGN_KEY: {
         // FK validation would require DB lookup.
         // This is a placeholder -- full FK checks happen during execution.
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.CROSS_FIELD: {
         // Cross-field validation using dependent_field and condition from rule_definition
-        if (def.condition === 'required_if' && def.dependent_field) {
+        if (def.condition === "required_if" && def.dependent_field) {
           const dependentValue = row[def.dependent_field];
-          if (dependentValue && (value === undefined || value === null || String(value).trim() === '')) {
+          if (
+            dependentValue &&
+            (value === undefined ||
+              value === null ||
+              String(value).trim() === "")
+          ) {
             return {
               valid: false,
               message: formatMessage(
@@ -1298,17 +1515,17 @@ export class ImportService {
             };
           }
         }
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       case ValidationRuleType.CUSTOM: {
         // Custom rules would execute a stored expression or function.
         // Placeholder for future implementation.
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
       }
 
       default:
-        return { valid: true, message: '' };
+        return { valid: true, message: "" };
     }
   }
 
@@ -1338,13 +1555,15 @@ export class ImportService {
       session.status = ImportSessionStatus.APPROVED;
       session.message = `Auto-approved: confidence ${confidence.toFixed(1)}%, no validation errors.`;
 
-      this.eventEmitter.emit('import.session.auto_approved', { session });
-      this.logger.log(`Session ${sessionId} auto-approved with confidence ${confidence}%`);
+      this.eventEmitter.emit("import.session.auto_approved", { session });
+      this.logger.log(
+        `Session ${sessionId} auto-approved with confidence ${confidence}%`,
+      );
     } else {
       session.status = ImportSessionStatus.AWAITING_APPROVAL;
       session.message = `Awaiting manual approval. Confidence: ${confidence.toFixed(1)}%, errors: ${session.validation_report?.errors?.length || 0}.`;
 
-      this.eventEmitter.emit('import.session.awaiting_approval', { session });
+      this.eventEmitter.emit("import.session.awaiting_approval", { session });
       this.logger.log(`Session ${sessionId} submitted for approval`);
     }
 
@@ -1372,11 +1591,14 @@ export class ImportService {
     session.approved_by_user_id = userId;
     session.approved_at = new Date();
     session.status = ImportSessionStatus.APPROVED;
-    session.message = 'Session approved.';
+    session.message = "Session approved.";
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.approved', { session: saved, userId });
+    this.eventEmitter.emit("import.session.approved", {
+      session: saved,
+      userId,
+    });
     this.logger.log(`Session ${sessionId} approved by user ${userId}`);
 
     // Auto-execute if requested
@@ -1413,8 +1635,14 @@ export class ImportService {
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.rejected', { session: saved, userId, reason: dto.reason });
-    this.logger.log(`Session ${sessionId} rejected by user ${userId}: ${dto.reason}`);
+    this.eventEmitter.emit("import.session.rejected", {
+      session: saved,
+      userId,
+      reason: dto.reason,
+    });
+    this.logger.log(
+      `Session ${sessionId} rejected by user ${userId}: ${dto.reason}`,
+    );
 
     return saved;
   }
@@ -1441,12 +1669,13 @@ export class ImportService {
     }
 
     session.status = ImportSessionStatus.EXECUTING;
-    session.message = 'Executing import...';
+    session.message = "Executing import...";
     await this.sessionRepo.save(session);
 
     const startTime = Date.now();
     const columnMapping = session.column_mapping || {};
-    const allRows: Record<string, any>[] = session.file_metadata?.sampleData || [];
+    const allRows: Record<string, unknown>[] =
+      session.file_metadata?.sampleData || [];
 
     let successful = 0;
     let failed = 0;
@@ -1477,7 +1706,7 @@ export class ImportService {
         const row = allRows[i];
 
         // Map source columns to target fields
-        const mappedRow: Record<string, any> = {};
+        const mappedRow: Record<string, unknown> = {};
         for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
           if (row[sourceCol] !== undefined) {
             mappedRow[targetField] = row[sourceCol];
@@ -1485,7 +1714,7 @@ export class ImportService {
         }
 
         // Add organization_id to the mapped data
-        mappedRow['organization_id'] = organizationId;
+        mappedRow["organization_id"] = organizationId;
 
         try {
           // Build insert query (simplified -- in production would use entity manager)
@@ -1502,8 +1731,8 @@ export class ImportService {
           }
 
           const values = Object.values(mappedRow);
-          const placeholders = fields.map((_, idx) => `$${idx + 1}`).join(', ');
-          const columnNames = fields.map(f => `"${f}"`).join(', ');
+          const placeholders = fields.map((_, idx) => `$${idx + 1}`).join(", ");
+          const columnNames = fields.map((f) => `"${f}"`).join(", ");
 
           const query = `INSERT INTO "${tableName}" (${columnNames}) VALUES (${placeholders}) RETURNING id`;
           const result = await queryRunner.query(query, values);
@@ -1529,6 +1758,7 @@ export class ImportService {
           await queryRunner.manager.save(ImportAuditLog, auditLog);
 
           successful++;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (rowError: any) {
           // Create audit log for failed row
           const auditLog = this.auditLogRepo.create({
@@ -1554,6 +1784,7 @@ export class ImportService {
       }
 
       await queryRunner.commitTransaction();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       await queryRunner.rollbackTransaction();
       session.status = ImportSessionStatus.FAILED;
@@ -1570,8 +1801,10 @@ export class ImportService {
       };
 
       const savedFailed = await this.sessionRepo.save(session);
-      this.eventEmitter.emit('import.session.failed', { session: savedFailed });
-      this.logger.error(`Session ${sessionId} execution failed: ${error.message}`);
+      this.eventEmitter.emit("import.session.failed", { session: savedFailed });
+      this.logger.error(
+        `Session ${sessionId} execution failed: ${error.message}`,
+      );
 
       return savedFailed;
     } finally {
@@ -1603,8 +1836,10 @@ export class ImportService {
 
     const saved = await this.sessionRepo.save(session);
 
-    this.eventEmitter.emit('import.session.completed', { session: saved });
-    this.logger.log(`Session ${sessionId} execution completed: ${successful} successful, ${failed} failed`);
+    this.eventEmitter.emit("import.session.completed", { session: saved });
+    this.logger.log(
+      `Session ${sessionId} execution completed: ${successful} successful, ${failed} failed`,
+    );
 
     return saved;
   }
@@ -1615,32 +1850,39 @@ export class ImportService {
   async getSessions(
     query: QueryImportSessionsDto,
     organizationId: string,
-  ): Promise<{ data: ImportSession[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ImportSession[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = query.page || 1;
     const limit = query.limit || 20;
 
     const qb = this.sessionRepo
-      .createQueryBuilder('s')
-      .where('s.organization_id = :organizationId', { organizationId });
+      .createQueryBuilder("s")
+      .where("s.organization_id = :organizationId", { organizationId });
 
     if (query.domain) {
-      qb.andWhere('s.domain = :domain', { domain: query.domain });
+      qb.andWhere("s.domain = :domain", { domain: query.domain });
     }
     if (query.status) {
-      qb.andWhere('s.status = :status', { status: query.status });
+      qb.andWhere("s.status = :status", { status: query.status });
     }
     if (query.approvalStatus) {
-      qb.andWhere('s.approval_status = :approvalStatus', { approvalStatus: query.approvalStatus });
+      qb.andWhere("s.approval_status = :approvalStatus", {
+        approvalStatus: query.approvalStatus,
+      });
     }
     if (query.dateFrom) {
-      qb.andWhere('s.created_at >= :dateFrom', { dateFrom: query.dateFrom });
+      qb.andWhere("s.created_at >= :dateFrom", { dateFrom: query.dateFrom });
     }
     if (query.dateTo) {
-      qb.andWhere('s.created_at <= :dateTo', { dateTo: query.dateTo });
+      qb.andWhere("s.created_at <= :dateTo", { dateTo: query.dateTo });
     }
 
     const [data, total] = await qb
-      .orderBy('s.created_at', 'DESC')
+      .orderBy("s.created_at", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -1651,7 +1893,10 @@ export class ImportService {
   /**
    * Get a single session by ID with all details.
    */
-  async getSession(sessionId: string, organizationId: string): Promise<ImportSession> {
+  async getSession(
+    sessionId: string,
+    organizationId: string,
+  ): Promise<ImportSession> {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId, organization_id: organizationId },
     });
@@ -1670,7 +1915,12 @@ export class ImportService {
     sessionId: string,
     query: QueryAuditLogDto,
     organizationId: string,
-  ): Promise<{ data: ImportAuditLog[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ImportAuditLog[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     // Verify session exists and belongs to organization
     await this.getSession(sessionId, organizationId);
 
@@ -1678,19 +1928,21 @@ export class ImportService {
     const limit = query.limit || 20;
 
     const qb = this.auditLogRepo
-      .createQueryBuilder('al')
-      .where('al.session_id = :sessionId', { sessionId })
-      .andWhere('al.organization_id = :organizationId', { organizationId });
+      .createQueryBuilder("al")
+      .where("al.session_id = :sessionId", { sessionId })
+      .andWhere("al.organization_id = :organizationId", { organizationId });
 
     if (query.actionType) {
-      qb.andWhere('al.action_type = :actionType', { actionType: query.actionType });
+      qb.andWhere("al.action_type = :actionType", {
+        actionType: query.actionType,
+      });
     }
     if (query.tableName) {
-      qb.andWhere('al.table_name = :tableName', { tableName: query.tableName });
+      qb.andWhere("al.table_name = :tableName", { tableName: query.tableName });
     }
 
     const [data, total] = await qb
-      .orderBy('al.executed_at', 'ASC')
+      .orderBy("al.executed_at", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -1702,6 +1954,7 @@ export class ImportService {
    * Get schema definitions, optionally filtered by domain.
    */
   async getSchemaDefinitions(domain?: DomainType): Promise<SchemaDefinition[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { is_active: true };
     if (domain) {
       where.domain = domain;
@@ -1709,7 +1962,7 @@ export class ImportService {
 
     return this.schemaDefRepo.find({
       where,
-      order: { domain: 'ASC', table_name: 'ASC' },
+      order: { domain: "ASC", table_name: "ASC" },
     });
   }
 
@@ -1717,6 +1970,7 @@ export class ImportService {
    * Get validation rules, optionally filtered by domain.
    */
   async getValidationRules(domain?: DomainType): Promise<ValidationRule[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { is_active: true };
     if (domain) {
       where.domain = domain;
@@ -1724,7 +1978,7 @@ export class ImportService {
 
     return this.validationRuleRepo.find({
       where,
-      order: { domain: 'ASC', priority: 'ASC' },
+      order: { domain: "ASC", priority: "ASC" },
     });
   }
 }

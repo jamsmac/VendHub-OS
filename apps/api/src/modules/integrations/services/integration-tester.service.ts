@@ -1,14 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Integration } from '../entities/integration.entity';
-import { PaymentExecutorService, CreatePaymentRequest } from './payment-executor.service';
-import { IntegrationService } from './integration.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { Integration } from "../entities/integration.entity";
+import {
+  PaymentExecutorService,
+  CreatePaymentRequest,
+} from "./payment-executor.service";
+import { IntegrationService } from "./integration.service";
 import {
   IntegrationTestCase,
   TestResult,
   TestAssertion,
   IntegrationStatus,
   HttpMethod,
-} from '../types/integration.types';
+} from "../types/integration.types";
 
 export interface TestSuiteResult {
   integrationId: string;
@@ -49,13 +52,14 @@ export class IntegrationTesterService {
       results.push(result);
     }
 
-    const passedTests = results.filter(r => r.passed).length;
-    const failedTests = results.filter(r => !r.passed).length;
+    const passedTests = results.filter((r) => r.passed).length;
+    const failedTests = results.filter((r) => !r.passed).length;
 
     // Update integration status based on results
-    const newStatus = passedTests === testCases.length
-      ? IntegrationStatus.TESTING
-      : IntegrationStatus.ERROR;
+    const newStatus =
+      passedTests === testCases.length
+        ? IntegrationStatus.TESTING
+        : IntegrationStatus.ERROR;
 
     await this.integrationService.update(
       integration.id,
@@ -63,11 +67,9 @@ export class IntegrationTesterService {
       {
         status: newStatus,
         lastTestedAt: new Date(),
-        lastError: failedTests > 0
-          ? `${failedTests} tests failed`
-          : undefined,
+        lastError: failedTests > 0 ? `${failedTests} tests failed` : undefined,
       },
-      'system',
+      "system",
     );
 
     return {
@@ -85,29 +87,33 @@ export class IntegrationTesterService {
   /**
    * Run a single test case
    */
-  async runTestCase(integration: Integration, testCase: IntegrationTestCase): Promise<TestResult> {
+  async runTestCase(
+    integration: Integration,
+    testCase: IntegrationTestCase,
+  ): Promise<TestResult> {
     const startTime = Date.now();
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let response: any;
 
       // Execute based on endpoint type
       switch (testCase.endpoint) {
-        case 'createPayment':
+        case "createPayment":
           response = await this.paymentExecutor.createPayment(
             integration,
             testCase.requestData as CreatePaymentRequest,
           );
           break;
 
-        case 'checkStatus':
+        case "checkStatus":
           response = await this.paymentExecutor.checkPaymentStatus(
             integration,
             testCase.requestData.paymentId,
           );
           break;
 
-        case 'cancelPayment':
+        case "cancelPayment":
           response = await this.paymentExecutor.cancelPayment(
             integration,
             testCase.requestData.paymentId,
@@ -119,13 +125,13 @@ export class IntegrationTesterService {
       }
 
       // Run assertions
-      const assertionResults = testCase.assertions.map(assertion => ({
+      const assertionResults = testCase.assertions.map((assertion) => ({
         assertion,
         passed: this.checkAssertion(assertion, response),
         actual: this.getValueByPath(response, assertion.path),
       }));
 
-      const passed = assertionResults.every(r => r.passed);
+      const passed = assertionResults.every((r) => r.passed);
 
       return {
         testId: testCase.id,
@@ -144,6 +150,7 @@ export class IntegrationTesterService {
         },
         assertions: assertionResults,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       return {
         testId: testCase.id,
@@ -160,7 +167,7 @@ export class IntegrationTesterService {
           headers: {},
           body: error.response?.data || { error: error.message },
         },
-        assertions: testCase.assertions.map(a => ({
+        assertions: testCase.assertions.map((a) => ({
           assertion: a,
           passed: false,
           actual: null,
@@ -184,31 +191,32 @@ export class IntegrationTesterService {
       // Try a minimal request
       const testPayment: CreatePaymentRequest = {
         amount: 1000,
-        currency: 'UZS',
+        currency: "UZS",
         orderId: `test_${Date.now()}`,
-        description: 'Connectivity test',
+        description: "Connectivity test",
       };
 
       await this.paymentExecutor.createPayment(integration, testPayment);
 
       return {
         success: true,
-        message: 'Connection successful',
+        message: "Connection successful",
         latency: Date.now() - startTime,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Check if it's an auth error (which means connectivity works)
       if (error.response?.status === 401 || error.response?.status === 403) {
         return {
           success: true,
-          message: 'Connection successful (authentication required)',
+          message: "Connection successful (authentication required)",
           latency: Date.now() - startTime,
         };
       }
 
       return {
         success: false,
-        message: error.message || 'Connection failed',
+        message: error.message || "Connection failed",
         latency: Date.now() - startTime,
       };
     }
@@ -239,7 +247,7 @@ export class IntegrationTesterService {
     if (missingCredentials.length > 0) {
       return {
         valid: false,
-        message: 'Missing required credentials',
+        message: "Missing required credentials",
         missingCredentials,
       };
     }
@@ -248,7 +256,7 @@ export class IntegrationTesterService {
     try {
       const testPayment: CreatePaymentRequest = {
         amount: 100,
-        currency: 'UZS',
+        currency: "UZS",
         orderId: `auth_test_${Date.now()}`,
       };
 
@@ -256,20 +264,21 @@ export class IntegrationTesterService {
 
       return {
         valid: true,
-        message: 'Credentials validated successfully',
+        message: "Credentials validated successfully",
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         return {
           valid: false,
-          message: 'Invalid credentials',
+          message: "Invalid credentials",
         };
       }
 
       // Other errors might not be auth related
       return {
         valid: true,
-        message: 'Credentials appear valid (non-auth error occurred)',
+        message: "Credentials appear valid (non-auth error occurred)",
       };
     }
   }
@@ -285,30 +294,30 @@ export class IntegrationTesterService {
     // Test 1: Create Payment
     if (config.endpoints.createPayment) {
       testCases.push({
-        id: 'test_create_payment',
-        name: 'Create Payment',
-        description: 'Test payment creation endpoint',
-        endpoint: 'createPayment',
+        id: "test_create_payment",
+        name: "Create Payment",
+        description: "Test payment creation endpoint",
+        endpoint: "createPayment",
         method: config.endpoints.createPayment.method,
         requestData: {
           amount: 10000,
-          currency: 'UZS',
+          currency: "UZS",
           orderId: `test_${Date.now()}`,
-          description: 'Test payment',
+          description: "Test payment",
         },
         expectedStatus: 200,
         assertions: [
           {
-            type: 'exists',
-            path: 'paymentId',
+            type: "exists",
+            path: "paymentId",
             expected: true,
-            message: 'Payment ID should be returned',
+            message: "Payment ID should be returned",
           },
           {
-            type: 'type',
-            path: 'status',
-            expected: 'string',
-            message: 'Status should be a string',
+            type: "type",
+            path: "status",
+            expected: "string",
+            message: "Status should be a string",
           },
         ],
       });
@@ -317,21 +326,21 @@ export class IntegrationTesterService {
     // Test 2: Check Status
     if (config.endpoints.checkStatus) {
       testCases.push({
-        id: 'test_check_status',
-        name: 'Check Payment Status',
-        description: 'Test payment status check endpoint',
-        endpoint: 'checkStatus',
+        id: "test_check_status",
+        name: "Check Payment Status",
+        description: "Test payment status check endpoint",
+        endpoint: "checkStatus",
         method: config.endpoints.checkStatus.method,
         requestData: {
-          paymentId: 'test_payment_id', // Will be replaced with actual ID
+          paymentId: "test_payment_id", // Will be replaced with actual ID
         },
         expectedStatus: 200,
         assertions: [
           {
-            type: 'exists',
-            path: 'status',
+            type: "exists",
+            path: "status",
             expected: true,
-            message: 'Status should be returned',
+            message: "Status should be returned",
           },
         ],
       });
@@ -339,23 +348,23 @@ export class IntegrationTesterService {
 
     // Test 3: Amount validation
     testCases.push({
-      id: 'test_min_amount',
-      name: 'Minimum Amount Validation',
-      description: 'Test minimum payment amount',
-      endpoint: 'createPayment',
+      id: "test_min_amount",
+      name: "Minimum Amount Validation",
+      description: "Test minimum payment amount",
+      endpoint: "createPayment",
       method: HttpMethod.POST,
       requestData: {
         amount: config.minAmount || 100,
-        currency: 'UZS',
+        currency: "UZS",
         orderId: `test_min_${Date.now()}`,
       },
       expectedStatus: 200,
       assertions: [
         {
-          type: 'exists',
-          path: 'paymentId',
+          type: "exists",
+          path: "paymentId",
           expected: true,
-          message: 'Minimum amount should be accepted',
+          message: "Minimum amount should be accepted",
         },
       ],
     });
@@ -363,23 +372,23 @@ export class IntegrationTesterService {
     // Test 4: Invalid amount (below minimum)
     if (config.minAmount) {
       testCases.push({
-        id: 'test_below_min_amount',
-        name: 'Below Minimum Amount',
-        description: 'Test rejection of amount below minimum',
-        endpoint: 'createPayment',
+        id: "test_below_min_amount",
+        name: "Below Minimum Amount",
+        description: "Test rejection of amount below minimum",
+        endpoint: "createPayment",
         method: HttpMethod.POST,
         requestData: {
           amount: config.minAmount - 1,
-          currency: 'UZS',
+          currency: "UZS",
           orderId: `test_invalid_${Date.now()}`,
         },
         expectedStatus: 400,
         assertions: [
           {
-            type: 'exists',
-            path: 'error',
+            type: "exists",
+            path: "error",
             expected: true,
-            message: 'Error should be returned for invalid amount',
+            message: "Error should be returned for invalid amount",
           },
         ],
       });
@@ -392,15 +401,16 @@ export class IntegrationTesterService {
   // Assertion Checking
   // ============================================
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private checkAssertion(assertion: TestAssertion, response: any): boolean {
     const actual = this.getValueByPath(response, assertion.path);
 
     switch (assertion.type) {
-      case 'equals':
+      case "equals":
         return actual === assertion.expected;
 
-      case 'contains':
-        if (typeof actual === 'string') {
+      case "contains":
+        if (typeof actual === "string") {
           return actual.includes(assertion.expected);
         }
         if (Array.isArray(actual)) {
@@ -408,13 +418,15 @@ export class IntegrationTesterService {
         }
         return false;
 
-      case 'exists':
-        return assertion.expected ? actual !== undefined && actual !== null : actual === undefined || actual === null;
+      case "exists":
+        return assertion.expected
+          ? actual !== undefined && actual !== null
+          : actual === undefined || actual === null;
 
-      case 'type':
+      case "type":
         return typeof actual === assertion.expected;
 
-      case 'regex':
+      case "regex":
         return new RegExp(assertion.expected).test(String(actual));
 
       default:
@@ -422,8 +434,9 @@ export class IntegrationTesterService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getValueByPath(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split(".").reduce((current, key) => current?.[key], obj);
   }
 
   // ============================================
@@ -431,29 +444,29 @@ export class IntegrationTesterService {
   // ============================================
 
   private generateSummary(results: TestResult[]): string {
-    const passed = results.filter(r => r.passed);
-    const failed = results.filter(r => !r.passed);
+    const passed = results.filter((r) => r.passed);
+    const failed = results.filter((r) => !r.passed);
 
     let summary = `Test Results: ${passed.length}/${results.length} passed\n\n`;
 
     if (passed.length > 0) {
-      summary += '✅ Passed:\n';
+      summary += "✅ Passed:\n";
       for (const result of passed) {
         summary += `  - ${result.testId}\n`;
       }
     }
 
     if (failed.length > 0) {
-      summary += '\n❌ Failed:\n';
+      summary += "\n❌ Failed:\n";
       for (const result of failed) {
         summary += `  - ${result.testId}`;
         if (result.error) {
           summary += `: ${result.error}`;
         }
-        summary += '\n';
+        summary += "\n";
 
         // Show failed assertions
-        const failedAssertions = result.assertions.filter(a => !a.passed);
+        const failedAssertions = result.assertions.filter((a) => !a.passed);
         for (const a of failedAssertions) {
           summary += `    └─ ${a.assertion.message} (expected: ${a.assertion.expected}, got: ${a.actual})\n`;
         }

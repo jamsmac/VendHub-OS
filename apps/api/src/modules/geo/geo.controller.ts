@@ -3,26 +3,19 @@
  * API endpoints для геолокации и карт
  */
 
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Public } from '../auth/decorators/public.decorator';
-import { User } from '../users/entities/user.entity';
-import { GeoService } from './geo.service';
+} from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { Public } from "../auth/decorators/public.decorator";
+import { User } from "../users/entities/user.entity";
+import { GeoService } from "./geo.service";
 import {
   CoordinatesDto,
   NearbyMachinesQueryDto,
@@ -36,10 +29,10 @@ import {
   AutocompleteResultDto,
   MapMachinesResultDto,
   StaticMapResultDto,
-} from './dto/geo.dto';
+} from "./dto/geo.dto";
 
-@ApiTags('Geo')
-@Controller('geo')
+@ApiTags("Geo")
+@Controller("geo")
 export class GeoController {
   constructor(private readonly geoService: GeoService) {}
 
@@ -47,12 +40,12 @@ export class GeoController {
   // PUBLIC ENDPOINTS
   // ============================================================================
 
-  @Get('autocomplete')
+  @Get("autocomplete")
   @Public()
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests/min -- protects Google Maps API quota
   @ApiOperation({
-    summary: 'Address autocomplete',
-    description: 'Автокомплит адресов в Узбекистане',
+    summary: "Address autocomplete",
+    description: "Автокомплит адресов в Узбекистане",
   })
   @ApiResponse({ status: 200, type: [AutocompleteResultDto] })
   async autocomplete(
@@ -61,12 +54,12 @@ export class GeoController {
     return this.geoService.autocompleteAddress(query.input, query.sessionToken);
   }
 
-  @Post('geocode')
+  @Post("geocode")
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests/min -- protects Google Maps API quota
   @ApiOperation({
-    summary: 'Geocode address',
-    description: 'Преобразовать адрес в координаты',
+    summary: "Geocode address",
+    description: "Преобразовать адрес в координаты",
   })
   @ApiResponse({ status: 200, type: GeocodingResultDto })
   async geocode(@Body() dto: GeocodeAddressDto) {
@@ -84,16 +77,19 @@ export class GeoController {
     };
   }
 
-  @Post('reverse-geocode')
+  @Post("reverse-geocode")
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests/min -- protects Google Maps API quota
   @ApiOperation({
-    summary: 'Reverse geocode',
-    description: 'Преобразовать координаты в адрес',
+    summary: "Reverse geocode",
+    description: "Преобразовать координаты в адрес",
   })
   @ApiResponse({ status: 200, type: GeocodingResultDto })
   async reverseGeocode(@Body() dto: CoordinatesDto) {
-    const result = await this.geoService.reverseGeocode({ latitude: dto.lat, longitude: dto.lng });
+    const result = await this.geoService.reverseGeocode({
+      latitude: dto.lat,
+      longitude: dto.lng,
+    });
     if (!result) return null;
     return {
       formattedAddress: result.formattedAddress,
@@ -111,12 +107,12 @@ export class GeoController {
   // AUTHENTICATED ENDPOINTS
   // ============================================================================
 
-  @Get('nearby-machines')
+  @Get("nearby-machines")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Find nearby machines',
-    description: 'Найти ближайшие автоматы',
+    summary: "Find nearby machines",
+    description: "Найти ближайшие автоматы",
   })
   @ApiResponse({ status: 200, type: NearbyMachinesResultDto })
   async findNearbyMachines(
@@ -134,6 +130,7 @@ export class GeoController {
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const machines = nearbyMachines.map((nm: any) => ({
       id: nm.machine.id,
       name: nm.machine.name,
@@ -153,12 +150,12 @@ export class GeoController {
     };
   }
 
-  @Get('machines-in-bounds')
+  @Get("machines-in-bounds")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Get machines in map bounds',
-    description: 'Получить автоматы в видимой области карты',
+    summary: "Get machines in map bounds",
+    description: "Получить автоматы в видимой области карты",
   })
   @ApiResponse({ status: 200, type: MapMachinesResultDto })
   async getMachinesInBounds(
@@ -166,12 +163,18 @@ export class GeoController {
     @Query() bounds: MapBoundsDto,
   ) {
     const machines = await this.geoService.getMachinesInBounds(
-      { north: bounds.neLat, south: bounds.swLat, east: bounds.neLng, west: bounds.swLng },
+      {
+        north: bounds.neLat,
+        south: bounds.swLat,
+        east: bounds.neLng,
+        west: bounds.swLng,
+      },
       user.organizationId,
       bounds.zoom || 12,
     );
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       machines: machines.map((m: any) => ({
         id: m.id,
         name: m.name,
@@ -187,21 +190,19 @@ export class GeoController {
     };
   }
 
-  @Get('directions')
+  @Get("directions")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Get directions',
-    description: 'Получить маршрут до точки',
+    summary: "Get directions",
+    description: "Получить маршрут до точки",
   })
   @ApiResponse({ status: 200, type: DirectionsResultDto })
-  async getDirections(
-    @Query() query: DirectionsQueryDto,
-  ) {
+  async getDirections(@Query() query: DirectionsQueryDto) {
     const result = await this.geoService.getDirections(
       { latitude: query.originLat, longitude: query.originLng },
       { latitude: query.destLat, longitude: query.destLng },
-      query.mode || 'walking',
+      query.mode || "walking",
     );
 
     if (!result) {
@@ -220,38 +221,41 @@ export class GeoController {
     };
   }
 
-  @Get('static-map')
+  @Get("static-map")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Get static map URL',
-    description: 'Получить URL статичной карты',
+    summary: "Get static map URL",
+    description: "Получить URL статичной карты",
   })
   @ApiResponse({ status: 200, type: StaticMapResultDto })
   getStaticMap(
     @Query() coords: CoordinatesDto,
-    @Query('zoom') zoom?: number,
-    @Query('size') size?: string,
+    @Query("zoom") zoom?: number,
+    @Query("size") size?: string,
   ) {
-    const mapSize = size || '400x300';
-    const [width, height] = mapSize.split('x').map(Number);
+    const mapSize = size || "400x300";
+    const [width, height] = mapSize.split("x").map(Number);
 
     return {
-      url: this.geoService.getStaticMapUrl({ latitude: coords.lat, longitude: coords.lng }, {
-        zoom: zoom || 15,
-        size: mapSize,
-      }),
+      url: this.geoService.getStaticMapUrl(
+        { latitude: coords.lat, longitude: coords.lng },
+        {
+          zoom: zoom || 15,
+          size: mapSize,
+        },
+      ),
       width: width || 400,
       height: height || 300,
     };
   }
 
-  @Post('distance')
+  @Post("distance")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Calculate distance',
-    description: 'Рассчитать расстояние между двумя точками',
+    summary: "Calculate distance",
+    description: "Рассчитать расстояние между двумя точками",
   })
   async calculateDistance(
     @Body() body: { from: CoordinatesDto; to: CoordinatesDto },

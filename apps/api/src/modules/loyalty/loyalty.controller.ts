@@ -13,36 +13,38 @@ import {
   HttpCode,
   HttpStatus,
   ValidationPipe,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User, UserRole } from '../users/entities/user.entity';
-import { LoyaltyService } from './loyalty.service';
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User, UserRole } from "../users/entities/user.entity";
+import { LoyaltyService } from "./loyalty.service";
 import {
   SpendPointsDto,
   AdjustPointsDto,
   PointsHistoryQueryDto,
   LoyaltyStatsQueryDto,
+  LeaderboardQueryDto,
   LoyaltyBalanceDto,
   EarnPointsResultDto,
   SpendPointsResultDto,
   PointsHistoryResponseDto,
   LoyaltyStatsDto,
   AllLevelsInfoDto,
-} from './dto/loyalty.dto';
+  LeaderboardResponseDto,
+} from "./dto/loyalty.dto";
 
-@ApiTags('Loyalty')
+@ApiTags("Loyalty")
 @ApiBearerAuth()
-@Controller('loyalty')
+@Controller("loyalty")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LoyaltyController {
   constructor(private readonly loyaltyService: LoyaltyService) {}
@@ -51,9 +53,9 @@ export class LoyaltyController {
   // USER ENDPOINTS
   // ============================================================================
 
-  @Get('balance')
+  @Get("balance")
   @ApiOperation({
-    summary: 'Get loyalty balance and status',
+    summary: "Get loyalty balance and status",
     description: `
 Получить текущий баланс баллов, уровень лояльности и прогресс.
 
@@ -75,10 +77,11 @@ export class LoyaltyController {
     return this.loyaltyService.getBalance(user.id);
   }
 
-  @Get('history')
+  @Get("history")
   @ApiOperation({
-    summary: 'Get points transaction history',
-    description: 'Получить историю всех операций с баллами с пагинацией и фильтрами.',
+    summary: "Get points transaction history",
+    description:
+      "Получить историю всех операций с баллами с пагинацией и фильтрами.",
   })
   @ApiResponse({ status: 200, type: PointsHistoryResponseDto })
   async getHistory(
@@ -88,20 +91,21 @@ export class LoyaltyController {
     return this.loyaltyService.getHistory(user.id, query);
   }
 
-  @Get('levels')
+  @Get("levels")
   @ApiOperation({
-    summary: 'Get all loyalty levels info',
-    description: 'Получить информацию обо всех уровнях лояльности и текущем уровне пользователя.',
+    summary: "Get all loyalty levels info",
+    description:
+      "Получить информацию обо всех уровнях лояльности и текущем уровне пользователя.",
   })
   @ApiResponse({ status: 200, type: AllLevelsInfoDto })
   async getLevels(@CurrentUser() user: User): Promise<AllLevelsInfoDto> {
     return this.loyaltyService.getAllLevels(user.id);
   }
 
-  @Post('spend')
+  @Post("spend")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Spend points on order',
+    summary: "Spend points on order",
     description: `
 Использовать баллы для скидки на заказ.
 
@@ -112,7 +116,10 @@ export class LoyaltyController {
     `,
   })
   @ApiResponse({ status: 200, type: SpendPointsResultDto })
-  @ApiResponse({ status: 400, description: 'Insufficient points or validation error' })
+  @ApiResponse({
+    status: 400,
+    description: "Insufficient points or validation error",
+  })
   async spendPoints(
     @CurrentUser() user: User,
     @Body(ValidationPipe) dto: SpendPointsDto,
@@ -122,20 +129,49 @@ export class LoyaltyController {
       organizationId: user.organizationId,
       amount: dto.points,
       referenceId: dto.orderId,
-      referenceType: 'order',
+      referenceType: "order",
       description: dto.description,
     });
+  }
+
+  @Get("leaderboard")
+  @ApiOperation({
+    summary: "Get loyalty leaderboard",
+    description: `
+Рейтинг пользователей по заработанным баллам за период.
+
+**Периоды:**
+- \`week\` — текущая неделя
+- \`month\` — текущий месяц
+- \`all\` — за всё время
+
+**Возвращает:**
+- Топ пользователей с количеством заработанных баллов
+- Позицию текущего пользователя в рейтинге
+- Информацию об уровне лояльности и серии каждого участника
+    `,
+  })
+  @ApiResponse({ status: 200, type: LeaderboardResponseDto })
+  async getLeaderboard(
+    @CurrentUser() user: User,
+    @Query(ValidationPipe) query: LeaderboardQueryDto,
+  ): Promise<LeaderboardResponseDto> {
+    return this.loyaltyService.getLeaderboard(
+      user.organizationId,
+      user.id,
+      query,
+    );
   }
 
   // ============================================================================
   // ADMIN ENDPOINTS
   // ============================================================================
 
-  @Post('admin/adjust')
+  @Post("admin/adjust")
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Adjust user points (Admin)',
+    summary: "Adjust user points (Admin)",
     description: `
 Корректировка баллов пользователя администратором.
 
@@ -148,7 +184,7 @@ export class LoyaltyController {
     `,
   })
   @ApiResponse({ status: 200, type: EarnPointsResultDto })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 404, description: "User not found" })
   async adjustPoints(
     @CurrentUser() admin: User,
     @Body(ValidationPipe) dto: AdjustPointsDto,
@@ -162,10 +198,10 @@ export class LoyaltyController {
     );
   }
 
-  @Get('admin/stats')
+  @Get("admin/stats")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({
-    summary: 'Get loyalty program statistics (Admin)',
+    summary: "Get loyalty program statistics (Admin)",
     description: `
 Статистика программы лояльности за период.
 
@@ -185,16 +221,21 @@ export class LoyaltyController {
     return this.loyaltyService.getStats(user.organizationId, query);
   }
 
-  @Get('admin/expiring')
+  @Get("admin/expiring")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({
-    summary: 'Get users with expiring points (Admin)',
-    description: 'Получить список пользователей с баллами, которые скоро сгорят.',
+    summary: "Get users with expiring points (Admin)",
+    description:
+      "Получить список пользователей с баллами, которые скоро сгорят.",
   })
-  @ApiQuery({ name: 'days', required: false, description: 'Days until expiry (default: 30)' })
+  @ApiQuery({
+    name: "days",
+    required: false,
+    description: "Days until expiry (default: 30)",
+  })
   async getExpiringPoints(
     @CurrentUser() user: User,
-    @Query('days') days?: number,
+    @Query("days") days?: number,
   ) {
     return this.loyaltyService.getExpiringPointsReport(
       user.organizationId,
@@ -206,10 +247,10 @@ export class LoyaltyController {
   // PUBLIC ENDPOINTS (no auth required)
   // ============================================================================
 
-  @Get('levels/info')
+  @Get("levels/info")
   @ApiOperation({
-    summary: 'Get loyalty levels information (public)',
-    description: 'Публичная информация о программе лояльности и уровнях.',
+    summary: "Get loyalty levels information (public)",
+    description: "Публичная информация о программе лояльности и уровнях.",
   })
   async getLevelsInfo(): Promise<AllLevelsInfoDto> {
     return this.loyaltyService.getAllLevels();

@@ -2,17 +2,17 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   StockMovement,
   StockMovementType,
   StockMovementStatus,
   InventoryBatch,
-} from './entities/warehouse.entity';
-import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
-import { CreateInventoryBatchDto } from './dto/create-inventory-batch.dto';
+} from "./entities/warehouse.entity";
+import { CreateStockMovementDto } from "./dto/create-stock-movement.dto";
+import { CreateInventoryBatchDto } from "./dto/create-inventory-batch.dto";
 
 @Injectable()
 export class StockTakeService {
@@ -28,10 +28,15 @@ export class StockTakeService {
   // STOCK MOVEMENT MANAGEMENT
   // ============================================================================
 
-  async createMovement(dto: CreateStockMovementDto, userId: string): Promise<StockMovement> {
+  async createMovement(
+    dto: CreateStockMovementDto,
+    userId: string,
+  ): Promise<StockMovement> {
     // Validate that at least one warehouse is specified
     if (!dto.fromWarehouseId && !dto.toWarehouseId) {
-      throw new BadRequestException('At least one of fromWarehouseId or toWarehouseId must be provided');
+      throw new BadRequestException(
+        "At least one of fromWarehouseId or toWarehouseId must be provided",
+      );
     }
 
     const movement = this.stockMovementRepository.create({
@@ -40,7 +45,7 @@ export class StockTakeService {
       toWarehouseId: dto.toWarehouseId ?? null,
       productId: dto.productId,
       quantity: dto.quantity,
-      unitOfMeasure: dto.unitOfMeasure ?? 'pcs',
+      unitOfMeasure: dto.unitOfMeasure ?? "pcs",
       type: dto.type,
       status: StockMovementStatus.PENDING,
       referenceNumber: dto.referenceNumber,
@@ -54,20 +59,25 @@ export class StockTakeService {
     return this.stockMovementRepository.save(movement);
   }
 
-  async completeMovement(movementId: string, userId: string): Promise<StockMovement> {
+  async completeMovement(
+    movementId: string,
+    userId: string,
+  ): Promise<StockMovement> {
     const movement = await this.stockMovementRepository.findOne({
       where: { id: movementId },
     });
     if (!movement) {
-      throw new NotFoundException(`Stock movement with ID ${movementId} not found`);
+      throw new NotFoundException(
+        `Stock movement with ID ${movementId} not found`,
+      );
     }
 
     if (movement.status === StockMovementStatus.COMPLETED) {
-      throw new BadRequestException('This movement has already been completed');
+      throw new BadRequestException("This movement has already been completed");
     }
 
     if (movement.status === StockMovementStatus.CANCELLED) {
-      throw new BadRequestException('Cannot complete a cancelled movement');
+      throw new BadRequestException("Cannot complete a cancelled movement");
     }
 
     movement.status = StockMovementStatus.COMPLETED;
@@ -78,20 +88,25 @@ export class StockTakeService {
     return this.stockMovementRepository.save(movement);
   }
 
-  async cancelMovement(movementId: string, userId: string): Promise<StockMovement> {
+  async cancelMovement(
+    movementId: string,
+    userId: string,
+  ): Promise<StockMovement> {
     const movement = await this.stockMovementRepository.findOne({
       where: { id: movementId },
     });
     if (!movement) {
-      throw new NotFoundException(`Stock movement with ID ${movementId} not found`);
+      throw new NotFoundException(
+        `Stock movement with ID ${movementId} not found`,
+      );
     }
 
     if (movement.status === StockMovementStatus.COMPLETED) {
-      throw new BadRequestException('Cannot cancel a completed movement');
+      throw new BadRequestException("Cannot cancel a completed movement");
     }
 
     if (movement.status === StockMovementStatus.CANCELLED) {
-      throw new BadRequestException('This movement is already cancelled');
+      throw new BadRequestException("This movement is already cancelled");
     }
 
     movement.status = StockMovementStatus.CANCELLED;
@@ -120,32 +135,34 @@ export class StockTakeService {
       limit = 20,
     } = filters || {};
 
-    const query = this.stockMovementRepository.createQueryBuilder('movement');
+    const query = this.stockMovementRepository.createQueryBuilder("movement");
 
-    query.where('movement.organizationId = :organizationId', { organizationId });
+    query.where("movement.organizationId = :organizationId", {
+      organizationId,
+    });
 
     if (warehouseId) {
       query.andWhere(
-        '(movement.fromWarehouseId = :warehouseId OR movement.toWarehouseId = :warehouseId)',
+        "(movement.fromWarehouseId = :warehouseId OR movement.toWarehouseId = :warehouseId)",
         { warehouseId },
       );
     }
 
     if (productId) {
-      query.andWhere('movement.productId = :productId', { productId });
+      query.andWhere("movement.productId = :productId", { productId });
     }
 
     if (type) {
-      query.andWhere('movement.type = :type', { type });
+      query.andWhere("movement.type = :type", { type });
     }
 
     if (status) {
-      query.andWhere('movement.status = :status', { status });
+      query.andWhere("movement.status = :status", { status });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('movement.requestedAt', 'DESC');
+    query.orderBy("movement.requestedAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -164,7 +181,10 @@ export class StockTakeService {
   // INVENTORY BATCH MANAGEMENT
   // ============================================================================
 
-  async createBatch(dto: CreateInventoryBatchDto, userId: string): Promise<InventoryBatch> {
+  async createBatch(
+    dto: CreateInventoryBatchDto,
+    userId: string,
+  ): Promise<InventoryBatch> {
     const batch = this.inventoryBatchRepository.create({
       organizationId: dto.organizationId,
       warehouseId: dto.warehouseId,
@@ -172,7 +192,7 @@ export class StockTakeService {
       batchNumber: dto.batchNumber,
       quantity: dto.quantity,
       remainingQuantity: dto.quantity, // Initially, remaining equals total
-      unitOfMeasure: dto.unitOfMeasure ?? 'pcs',
+      unitOfMeasure: dto.unitOfMeasure ?? "pcs",
       costPerUnit: dto.costPerUnit,
       expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : null,
       notes: dto.notes,
@@ -198,18 +218,20 @@ export class StockTakeService {
     userId: string,
   ): Promise<{ batches: InventoryBatch[]; totalDepleted: number }> {
     if (quantityToDeplete <= 0) {
-      throw new BadRequestException('Quantity to deplete must be greater than zero');
+      throw new BadRequestException(
+        "Quantity to deplete must be greater than zero",
+      );
     }
 
     // Get available batches ordered by FIFO (oldest received first, then nearest expiry)
     const batches = await this.inventoryBatchRepository
-      .createQueryBuilder('batch')
-      .where('batch.warehouseId = :warehouseId', { warehouseId })
-      .andWhere('batch.productId = :productId', { productId })
-      .andWhere('batch.organizationId = :organizationId', { organizationId })
-      .andWhere('batch.remainingQuantity > 0')
-      .orderBy('batch.receivedAt', 'ASC')
-      .addOrderBy('batch.expiryDate', 'ASC', 'NULLS LAST')
+      .createQueryBuilder("batch")
+      .where("batch.warehouseId = :warehouseId", { warehouseId })
+      .andWhere("batch.productId = :productId", { productId })
+      .andWhere("batch.organizationId = :organizationId", { organizationId })
+      .andWhere("batch.remainingQuantity > 0")
+      .orderBy("batch.receivedAt", "ASC")
+      .addOrderBy("batch.expiryDate", "ASC", "NULLS LAST")
       .getMany();
 
     if (batches.length === 0) {
@@ -272,25 +294,25 @@ export class StockTakeService {
       limit = 20,
     } = filters || {};
 
-    const query = this.inventoryBatchRepository.createQueryBuilder('batch');
+    const query = this.inventoryBatchRepository.createQueryBuilder("batch");
 
-    query.where('batch.organizationId = :organizationId', { organizationId });
+    query.where("batch.organizationId = :organizationId", { organizationId });
 
     if (warehouseId) {
-      query.andWhere('batch.warehouseId = :warehouseId', { warehouseId });
+      query.andWhere("batch.warehouseId = :warehouseId", { warehouseId });
     }
 
     if (productId) {
-      query.andWhere('batch.productId = :productId', { productId });
+      query.andWhere("batch.productId = :productId", { productId });
     }
 
     if (onlyAvailable) {
-      query.andWhere('batch.remainingQuantity > 0');
+      query.andWhere("batch.remainingQuantity > 0");
     }
 
     const total = await query.getCount();
 
-    query.orderBy('batch.receivedAt', 'DESC');
+    query.orderBy("batch.receivedAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 

@@ -3,10 +3,10 @@
  * Shows user's purchase history
  */
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Coffee,
@@ -16,38 +16,53 @@ import {
   Clock,
   Search,
   ChevronRight,
-} from 'lucide-react';
-import { api } from '@/lib/api';
-import { formatCurrency, formatDate } from '@/lib/utils';
+} from "lucide-react";
+import { api } from "@/lib/api";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
-type TransactionStatus = 'completed' | 'pending' | 'failed' | 'refunded';
-type FilterPeriod = 'all' | 'today' | 'week' | 'month';
+type TransactionStatus = "completed" | "pending" | "failed" | "refunded";
+type FilterPeriod = "all" | "today" | "week" | "month";
 
 // Status config labels are resolved inside the component with t()
-const statusConfigStatic: Record<TransactionStatus, { icon: any; color: string; labelKey: string }> = {
-  completed: { icon: CheckCircle, color: 'text-green-500', labelKey: 'statusCompleted' },
-  pending: { icon: Clock, color: 'text-yellow-500', labelKey: 'statusPending' },
-  failed: { icon: XCircle, color: 'text-red-500', labelKey: 'statusFailed' },
-  refunded: { icon: CreditCard, color: 'text-blue-500', labelKey: 'statusRefunded' },
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const statusConfigStatic: Record<
+  TransactionStatus,
+  { icon: any; color: string; labelKey: string }
+> = {
+  completed: {
+    icon: CheckCircle,
+    color: "text-green-500",
+    labelKey: "statusCompleted",
+  },
+  pending: { icon: Clock, color: "text-yellow-500", labelKey: "statusPending" },
+  failed: { icon: XCircle, color: "text-red-500", labelKey: "statusFailed" },
+  refunded: {
+    icon: CreditCard,
+    color: "text-blue-500",
+    labelKey: "statusRefunded",
+  },
 };
 
 export function TransactionHistoryPage() {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
-  const [period, setPeriod] = useState<FilterPeriod>('all');
-  const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'all'>('all');
+  const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState<FilterPeriod>("all");
+  const [statusFilter, setStatusFilter] = useState<TransactionStatus | "all">(
+    "all",
+  );
 
   const { data: transactions, isLoading } = useQuery({
-    queryKey: ['transactions', period, statusFilter],
+    queryKey: ["transactions", period, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (period !== 'all') params.set('period', period);
-      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (period !== "all") params.set("period", period);
+      if (statusFilter !== "all") params.set("status", statusFilter);
       const res = await api.get(`/transactions/my?${params}`);
       return res.data;
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredTransactions = transactions?.filter((tx: any) => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
@@ -68,7 +83,7 @@ export function TransactionHistoryPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-xl font-bold">{t('purchaseHistory')}</h1>
+        <h1 className="text-xl font-bold">{t("purchaseHistory")}</h1>
       </div>
 
       {/* Search & Filters */}
@@ -80,7 +95,7 @@ export function TransactionHistoryPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('searchByNameOrId')}
+            placeholder={t("searchByNameOrId")}
             className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -88,18 +103,18 @@ export function TransactionHistoryPage() {
         {/* Period Filter */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           {[
-            { value: 'all', label: t('periodAll') },
-            { value: 'today', label: t('periodToday') },
-            { value: 'week', label: t('periodWeek') },
-            { value: 'month', label: t('periodMonth') },
+            { value: "all", label: t("periodAll") },
+            { value: "today", label: t("periodToday") },
+            { value: "week", label: t("periodWeek") },
+            { value: "month", label: t("periodMonth") },
           ].map((item) => (
             <button
               key={item.value}
               onClick={() => setPeriod(item.value as FilterPeriod)}
               className={`px-4 py-2 rounded-xl text-sm whitespace-nowrap transition-colors ${
                 period === item.value
-                  ? 'bg-primary text-white'
-                  : 'bg-muted hover:bg-muted/80'
+                  ? "bg-primary text-white"
+                  : "bg-muted hover:bg-muted/80"
               }`}
             >
               {item.label}
@@ -110,14 +125,14 @@ export function TransactionHistoryPage() {
         {/* Status Filter */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           <button
-            onClick={() => setStatusFilter('all')}
+            onClick={() => setStatusFilter("all")}
             className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-colors ${
-              statusFilter === 'all'
-                ? 'bg-primary/10 text-primary'
-                : 'bg-muted hover:bg-muted/80'
+              statusFilter === "all"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted hover:bg-muted/80"
             }`}
           >
-            {t('allStatuses')}
+            {t("allStatuses")}
           </button>
           {Object.entries(statusConfigStatic).map(([key, config]) => (
             <button
@@ -125,8 +140,8 @@ export function TransactionHistoryPage() {
               onClick={() => setStatusFilter(key as TransactionStatus)}
               className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap flex items-center gap-1 transition-colors ${
                 statusFilter === key
-                  ? 'bg-primary/10 text-primary'
-                  : 'bg-muted hover:bg-muted/80'
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted hover:bg-muted/80"
               }`}
             >
               <config.icon className={`w-3 h-3 ${config.color}`} />
@@ -140,16 +155,16 @@ export function TransactionHistoryPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-20 rounded-2xl bg-muted animate-pulse"
-            />
+            <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />
           ))}
         </div>
       ) : filteredTransactions?.length > 0 ? (
         <div className="space-y-3">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {filteredTransactions.map((tx: any) => {
-            const statusStatic = statusConfigStatic[tx.status as TransactionStatus] || statusConfigStatic.completed;
+            const statusStatic =
+              statusConfigStatic[tx.status as TransactionStatus] ||
+              statusConfigStatic.completed;
             const StatusIcon = statusStatic.icon;
 
             return (
@@ -176,7 +191,7 @@ export function TransactionHistoryPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="font-medium truncate">
-                        {tx.product?.name || t('purchase')}
+                        {tx.product?.name || t("purchase")}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
                         {tx.machine?.name}
@@ -187,8 +202,12 @@ export function TransactionHistoryPage() {
                         {formatCurrency(tx.amount)}
                       </p>
                       <div className="flex items-center gap-1 text-xs">
-                        <StatusIcon className={`w-3 h-3 ${statusStatic.color}`} />
-                        <span className={statusStatic.color}>{t(statusStatic.labelKey)}</span>
+                        <StatusIcon
+                          className={`w-3 h-3 ${statusStatic.color}`}
+                        />
+                        <span className={statusStatic.color}>
+                          {t(statusStatic.labelKey)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -205,9 +224,9 @@ export function TransactionHistoryPage() {
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium">{t('noTransactions')}</p>
+          <p className="font-medium">{t("noTransactions")}</p>
           <p className="text-sm mt-1">
-            {search ? t('tryDifferentSearch') : t('purchasesWillAppearHere')}
+            {search ? t("tryDifferentSearch") : t("purchasesWillAppearHere")}
           </p>
         </div>
       )}
@@ -215,29 +234,43 @@ export function TransactionHistoryPage() {
       {/* Summary Stats */}
       {transactions?.length > 0 && (
         <div className="card-coffee p-4 mt-6">
-          <h3 className="text-sm font-medium mb-3">{t('statistics')}</h3>
+          <h3 className="text-sm font-medium mb-3">{t("statistics")}</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">
-                {transactions.filter((tx: any) => tx.status === 'completed').length}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {
+                  transactions.filter((tx: any) => tx.status === "completed")
+                    .length
+                }
               </p>
-              <p className="text-xs text-muted-foreground">{t('profilePurchases')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("profilePurchases")}
+              </p>
             </div>
             <div>
               <p className="text-2xl font-bold text-primary">
                 {formatCurrency(
                   transactions
-                    .filter((tx: any) => tx.status === 'completed')
-                    .reduce((sum: number, tx: any) => sum + tx.amount, 0)
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    .filter((tx: any) => tx.status === "completed")
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    .reduce((sum: number, tx: any) => sum + tx.amount, 0),
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">{t('spent')}</p>
+              <p className="text-xs text-muted-foreground">{t("spent")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-primary">
-                {transactions.filter((tx: any) => tx.status === 'refunded').length}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {
+                  transactions.filter((tx: any) => tx.status === "refunded")
+                    .length
+                }
               </p>
-              <p className="text-xs text-muted-foreground">{t('refundsCount')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("refundsCount")}
+              </p>
             </div>
           </div>
         </div>

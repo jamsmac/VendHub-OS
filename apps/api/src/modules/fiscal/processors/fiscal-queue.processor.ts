@@ -1,9 +1,9 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { Logger } from '@nestjs/common';
-import { FiscalService } from '../services/fiscal.service';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Job } from "bullmq";
+import { Logger } from "@nestjs/common";
+import { FiscalService } from "../services/fiscal.service";
 
-@Processor('fiscal')
+@Processor("fiscal")
 export class FiscalQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(FiscalQueueProcessor.name);
 
@@ -17,13 +17,16 @@ export class FiscalQueueProcessor extends WorkerHost {
     try {
       await this.fiscalService.processQueueItem(job.data.queueItemId);
       this.logger.log(`Successfully processed: ${job.data.queueItemId}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this.logger.error(`Failed to process ${job.data.queueItemId}: ${error.message}`);
+      this.logger.error(
+        `Failed to process ${job.data.queueItemId}: ${error.message}`,
+      );
       throw error;
     }
   }
 
-  @OnWorkerEvent('failed')
+  @OnWorkerEvent("failed")
   onFailed(job: Job, error: Error): void {
     this.logger.error(
       `Job ${job.id} failed after ${job.attemptsMade} attempts: ${error.message}`,

@@ -11,7 +11,7 @@ import {
   ParseUUIDPipe,
   NotFoundException,
   ForbiddenException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -19,18 +19,22 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger';
-import { VehiclesService } from './vehicles.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User, UserRole } from '../users/entities/user.entity';
-import { CreateVehicleDto, UpdateVehicleDto, UpdateOdometerDto } from './dto/create-vehicle.dto';
-import { VehicleType, VehicleStatus } from './entities/vehicle.entity';
+} from "@nestjs/swagger";
+import { VehiclesService } from "./vehicles.service";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User, UserRole } from "../users/entities/user.entity";
+import {
+  CreateVehicleDto,
+  UpdateVehicleDto,
+  UpdateOdometerDto,
+} from "./dto/create-vehicle.dto";
+import { VehicleType, VehicleStatus } from "./entities/vehicle.entity";
 
-@ApiTags('vehicles')
-@Controller('vehicles')
+@ApiTags("vehicles")
+@Controller("vehicles")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class VehiclesController {
@@ -38,29 +42,33 @@ export class VehiclesController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create a new vehicle' })
-  @ApiResponse({ status: 201, description: 'Vehicle created' })
+  @ApiOperation({ summary: "Create a new vehicle" })
+  @ApiResponse({ status: 201, description: "Vehicle created" })
   create(@Body() dto: CreateVehicleDto, @CurrentUser() user: User) {
-    const organizationId = dto.organizationId || user.organizationId;
+    const organizationId =
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
+        : user.organizationId;
     return this.vehiclesService.create(dto, organizationId, user.id);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all vehicles' })
-  @ApiQuery({ name: 'type', required: false, enum: VehicleType })
-  @ApiQuery({ name: 'ownerId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, enum: VehicleStatus })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @ApiOperation({ summary: "List all vehicles" })
+  @ApiQuery({ name: "type", required: false, enum: VehicleType })
+  @ApiQuery({ name: "ownerId", required: false, type: String })
+  @ApiQuery({ name: "status", required: false, enum: VehicleStatus })
+  @ApiQuery({ name: "search", required: false, type: String })
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
   findAll(
     @CurrentUser() user: User,
-    @Query('type') type?: VehicleType,
-    @Query('ownerId') ownerId?: string,
-    @Query('status') status?: VehicleStatus,
-    @Query('search') search?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query("type") type?: VehicleType,
+    @Query("ownerId") ownerId?: string,
+    @Query("status") status?: VehicleStatus,
+    @Query("search") search?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
   ) {
     return this.vehiclesService.findAll(user.organizationId, {
       type,
@@ -72,27 +80,31 @@ export class VehiclesController {
     });
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get vehicle by ID' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @ApiOperation({ summary: "Get vehicle by ID" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     const vehicle = await this.vehiclesService.findById(id);
-    if (!vehicle) throw new NotFoundException('Vehicle not found');
-    if (vehicle.organizationId !== user.organizationId && user.role !== UserRole.OWNER) {
+    if (!vehicle) throw new NotFoundException("Vehicle not found");
+    if (
+      vehicle.organizationId !== user.organizationId &&
+      user.role !== UserRole.OWNER
+    ) {
       throw new ForbiddenException();
     }
     return vehicle;
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update vehicle' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Update vehicle" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateVehicleDto,
     @CurrentUser() user: User,
   ) {
@@ -100,12 +112,12 @@ export class VehiclesController {
     return this.vehiclesService.update(id, dto, user.id);
   }
 
-  @Patch(':id/odometer')
+  @Patch(":id/odometer")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update vehicle odometer' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Update vehicle odometer" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async updateOdometer(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateOdometerDto,
     @CurrentUser() user: User,
   ) {
@@ -113,23 +125,29 @@ export class VehiclesController {
     return this.vehiclesService.updateOdometer(id, dto.odometer, user.id);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Delete vehicle (soft delete)' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Delete vehicle (soft delete)" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async remove(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     await this.verifyVehicleAccess(id, user);
     return this.vehiclesService.remove(id);
   }
 
-  private async verifyVehicleAccess(vehicleId: string, user: User): Promise<void> {
+  private async verifyVehicleAccess(
+    vehicleId: string,
+    user: User,
+  ): Promise<void> {
     const vehicle = await this.vehiclesService.findById(vehicleId);
-    if (!vehicle) throw new NotFoundException('Vehicle not found');
-    if (vehicle.organizationId !== user.organizationId && user.role !== UserRole.OWNER) {
-      throw new ForbiddenException('Access denied to this vehicle');
+    if (!vehicle) throw new NotFoundException("Vehicle not found");
+    if (
+      vehicle.organizationId !== user.organizationId &&
+      user.role !== UserRole.OWNER
+    ) {
+      throw new ForbiddenException("Access denied to this vehicle");
     }
   }
 }

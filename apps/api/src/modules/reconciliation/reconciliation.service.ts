@@ -8,23 +8,23 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   ReconciliationRun,
   ReconciliationMismatch,
   HwImportedSale,
   ReconciliationStatus,
   MismatchType,
-} from './entities/reconciliation.entity';
+} from "./entities/reconciliation.entity";
 import {
   CreateReconciliationRunDto,
   ResolveMismatchDto,
   ImportHwSalesDto,
   QueryReconciliationRunsDto,
   QueryMismatchesDto,
-} from './dto/create-reconciliation-run.dto';
+} from "./dto/create-reconciliation-run.dto";
 
 @Injectable()
 export class ReconciliationService {
@@ -67,7 +67,7 @@ export class ReconciliationService {
 
     this.logger.log(
       `Reconciliation run ${saved.id} created for org ${organizationId} ` +
-      `(${dto.dateFrom} to ${dto.dateTo})`,
+        `(${dto.dateFrom} to ${dto.dateTo})`,
     );
 
     return saved;
@@ -84,7 +84,7 @@ export class ReconciliationService {
     const run = await this.runRepo.findOne({ where: { id: runId } });
 
     if (!run) {
-      throw new NotFoundException('Reconciliation run not found');
+      throw new NotFoundException("Reconciliation run not found");
     }
 
     if (run.status !== ReconciliationStatus.PENDING) {
@@ -103,15 +103,15 @@ export class ReconciliationService {
     try {
       // 2) Load HW sales for the period
       const hwSalesQuery = this.hwSaleRepo
-        .createQueryBuilder('hw')
-        .where('hw.organizationId = :orgId', { orgId: run.organizationId })
-        .andWhere('hw.saleDate BETWEEN :from AND :to', {
+        .createQueryBuilder("hw")
+        .where("hw.organizationId = :orgId", { orgId: run.organizationId })
+        .andWhere("hw.saleDate BETWEEN :from AND :to", {
           from: run.dateFrom,
           to: run.dateTo,
         });
 
       if (run.machineIds && run.machineIds.length > 0) {
-        hwSalesQuery.andWhere('hw.machineCode IN (:...machineCodes)', {
+        hwSalesQuery.andWhere("hw.machineCode IN (:...machineCodes)", {
           machineCodes: run.machineIds,
         });
       }
@@ -151,7 +151,7 @@ export class ReconciliationService {
           mismatchType: MismatchType.ORDER_NOT_FOUND,
           matchScore: 0,
           sourcesData: { hw: hw.rawData },
-          description: 'HW sale has no matching order number',
+          description: "HW sale has no matching order number",
         });
       }
 
@@ -200,7 +200,9 @@ export class ReconciliationService {
 
       // 6) Calculate summary
       const matchRate =
-        totalRecords > 0 ? Math.round((matched / totalRecords) * 10000) / 100 : 0;
+        totalRecords > 0
+          ? Math.round((matched / totalRecords) * 10000) / 100
+          : 0;
 
       run.summary = {
         totalRecords,
@@ -219,7 +221,7 @@ export class ReconciliationService {
 
       this.logger.log(
         `Reconciliation run ${run.id} completed: ` +
-        `${matched}/${totalRecords} matched (${matchRate}%)`,
+          `${matched}/${totalRecords} matched (${matchRate}%)`,
       );
 
       return run;
@@ -250,27 +252,33 @@ export class ReconciliationService {
   async findAll(
     organizationId: string,
     params: QueryReconciliationRunsDto,
-  ): Promise<{ items: ReconciliationRun[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: ReconciliationRun[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const { status, dateFrom, dateTo, page = 1, limit = 20 } = params;
 
     const qb = this.runRepo
-      .createQueryBuilder('r')
-      .where('r.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("r")
+      .where("r.organizationId = :organizationId", { organizationId });
 
     if (status) {
-      qb.andWhere('r.status = :status', { status });
+      qb.andWhere("r.status = :status", { status });
     }
 
     if (dateFrom) {
-      qb.andWhere('r.dateFrom >= :dateFrom', { dateFrom });
+      qb.andWhere("r.dateFrom >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('r.dateTo <= :dateTo', { dateTo });
+      qb.andWhere("r.dateTo <= :dateTo", { dateTo });
     }
 
     const [items, total] = await qb
-      .orderBy('r.createdAt', 'DESC')
+      .orderBy("r.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -290,11 +298,11 @@ export class ReconciliationService {
   async findOne(id: string): Promise<ReconciliationRun> {
     const run = await this.runRepo.findOne({
       where: { id },
-      relations: ['mismatches'],
+      relations: ["mismatches"],
     });
 
     if (!run) {
-      throw new NotFoundException('Reconciliation run not found');
+      throw new NotFoundException("Reconciliation run not found");
     }
 
     return run;
@@ -306,23 +314,29 @@ export class ReconciliationService {
   async getMismatches(
     runId: string,
     params: QueryMismatchesDto,
-  ): Promise<{ items: ReconciliationMismatch[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: ReconciliationMismatch[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const { mismatchType, isResolved, page = 1, limit = 20 } = params;
 
     const qb = this.mismatchRepo
-      .createQueryBuilder('m')
-      .where('m.runId = :runId', { runId });
+      .createQueryBuilder("m")
+      .where("m.runId = :runId", { runId });
 
     if (mismatchType) {
-      qb.andWhere('m.mismatchType = :mismatchType', { mismatchType });
+      qb.andWhere("m.mismatchType = :mismatchType", { mismatchType });
     }
 
     if (isResolved !== undefined) {
-      qb.andWhere('m.isResolved = :isResolved', { isResolved });
+      qb.andWhere("m.isResolved = :isResolved", { isResolved });
     }
 
     const [items, total] = await qb
-      .orderBy('m.createdAt', 'DESC')
+      .orderBy("m.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -351,11 +365,11 @@ export class ReconciliationService {
     const mismatch = await this.mismatchRepo.findOne({ where: { id } });
 
     if (!mismatch) {
-      throw new NotFoundException('Mismatch not found');
+      throw new NotFoundException("Mismatch not found");
     }
 
     if (mismatch.isResolved) {
-      throw new BadRequestException('Mismatch is already resolved');
+      throw new BadRequestException("Mismatch is already resolved");
     }
 
     mismatch.isResolved = true;
@@ -402,7 +416,7 @@ export class ReconciliationService {
         importRowNumber: index + 1,
         importedByUserId: userId,
         created_by_id: userId,
-        rawData: sale as unknown as Record<string, any>,
+        rawData: sale as unknown as Record<string, unknown>,
       }),
     );
 
@@ -426,7 +440,7 @@ export class ReconciliationService {
     const run = await this.runRepo.findOne({ where: { id } });
 
     if (!run) {
-      throw new NotFoundException('Reconciliation run not found');
+      throw new NotFoundException("Reconciliation run not found");
     }
 
     if (

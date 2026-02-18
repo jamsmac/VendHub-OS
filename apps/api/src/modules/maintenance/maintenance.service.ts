@@ -8,11 +8,11 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, In } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron, CronExpression } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan, In } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 import {
   MaintenanceRequest,
@@ -23,7 +23,7 @@ import {
   MaintenanceType,
   MaintenancePriority,
   VALID_MAINTENANCE_TRANSITIONS,
-} from './entities/maintenance.entity';
+} from "./entities/maintenance.entity";
 import {
   CreateMaintenanceRequestDto,
   UpdateMaintenanceRequestDto,
@@ -42,7 +42,7 @@ import {
   UpdateMaintenanceScheduleDto,
   ScheduleQueryDto,
   MaintenanceStatsDto,
-} from './dto/maintenance.dto';
+} from "./dto/maintenance.dto";
 
 @Injectable()
 export class MaintenanceService {
@@ -77,11 +77,13 @@ export class MaintenanceService {
     });
 
     // Calculate SLA due date based on priority
-    request.slaDueDate = this.calculateSlaDueDate(dto.priority || MaintenancePriority.NORMAL);
+    request.slaDueDate = this.calculateSlaDueDate(
+      dto.priority || MaintenancePriority.NORMAL,
+    );
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.created', { request: saved });
+    this.eventEmitter.emit("maintenance.created", { request: saved });
     this.logger.log(`Maintenance request created: ${saved.requestNumber}`);
 
     return saved;
@@ -90,7 +92,12 @@ export class MaintenanceService {
   async findAll(
     organizationId: string,
     query: MaintenanceQueryDto,
-  ): Promise<{ data: MaintenanceRequest[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: MaintenanceRequest[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const {
       status,
       statuses,
@@ -106,53 +113,65 @@ export class MaintenanceService {
       search,
       page = 1,
       limit = 20,
-      sortBy = 'createdAt',
-      sortOrder = 'DESC',
+      sortBy = "createdAt",
+      sortOrder = "DESC",
     } = query;
 
     const qb = this.maintenanceRepository
-      .createQueryBuilder('m')
-      .where('m.organizationId = :organizationId', { organizationId })
-      .andWhere('m.deletedAt IS NULL');
+      .createQueryBuilder("m")
+      .where("m.organizationId = :organizationId", { organizationId })
+      .andWhere("m.deletedAt IS NULL");
 
     // Filters
     if (status) {
-      qb.andWhere('m.status = :status', { status });
+      qb.andWhere("m.status = :status", { status });
     }
     if (statuses?.length) {
-      qb.andWhere('m.status IN (:...statuses)', { statuses });
+      qb.andWhere("m.status IN (:...statuses)", { statuses });
     }
     if (maintenanceType) {
-      qb.andWhere('m.maintenanceType = :maintenanceType', { maintenanceType });
+      qb.andWhere("m.maintenanceType = :maintenanceType", { maintenanceType });
     }
     if (priority) {
-      qb.andWhere('m.priority = :priority', { priority });
+      qb.andWhere("m.priority = :priority", { priority });
     }
     if (machineId) {
-      qb.andWhere('m.machineId = :machineId', { machineId });
+      qb.andWhere("m.machineId = :machineId", { machineId });
     }
     if (technicianId) {
-      qb.andWhere('m.assignedTechnicianId = :technicianId', { technicianId });
+      qb.andWhere("m.assignedTechnicianId = :technicianId", { technicianId });
     }
     if (createdByUserId) {
-      qb.andWhere('m.createdByUserId = :createdByUserId', { createdByUserId });
+      qb.andWhere("m.createdByUserId = :createdByUserId", { createdByUserId });
     }
     if (startDate && endDate) {
-      qb.andWhere('m.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+      qb.andWhere("m.createdAt BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
     }
     if (overdueOnly) {
-      qb.andWhere('m.slaDueDate < NOW()')
-        .andWhere('m.status NOT IN (:...completedStatuses)', {
-          completedStatuses: [MaintenanceStatus.COMPLETED, MaintenanceStatus.VERIFIED, MaintenanceStatus.CANCELLED],
-        });
+      qb.andWhere("m.slaDueDate < NOW()").andWhere(
+        "m.status NOT IN (:...completedStatuses)",
+        {
+          completedStatuses: [
+            MaintenanceStatus.COMPLETED,
+            MaintenanceStatus.VERIFIED,
+            MaintenanceStatus.CANCELLED,
+          ],
+        },
+      );
     }
     if (slaBreachedOnly) {
-      qb.andWhere('m.slaBreached = true');
+      qb.andWhere("m.slaBreached = true");
     }
     if (search) {
-      qb.andWhere('(m.title ILIKE :search OR m.requestNumber ILIKE :search OR m.description ILIKE :search)', {
-        search: `%${search}%`,
-      });
+      qb.andWhere(
+        "(m.title ILIKE :search OR m.requestNumber ILIKE :search OR m.description ILIKE :search)",
+        {
+          search: `%${search}%`,
+        },
+      );
     }
 
     // Sorting
@@ -167,10 +186,13 @@ export class MaintenanceService {
     return { data, total, page, limit };
   }
 
-  async findOne(organizationId: string, id: string): Promise<MaintenanceRequest> {
+  async findOne(
+    organizationId: string,
+    id: string,
+  ): Promise<MaintenanceRequest> {
     const request = await this.maintenanceRepository.findOne({
       where: { id, organizationId },
-      relations: ['parts', 'workLogs'],
+      relations: ["parts", "workLogs"],
     });
 
     if (!request) {
@@ -188,13 +210,13 @@ export class MaintenanceService {
     const request = await this.findOne(organizationId, id);
 
     if (request.status !== MaintenanceStatus.DRAFT) {
-      throw new BadRequestException('Can only update draft requests');
+      throw new BadRequestException("Can only update draft requests");
     }
 
     Object.assign(request, dto);
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.updated', { request: saved });
+    this.eventEmitter.emit("maintenance.updated", { request: saved });
     return saved;
   }
 
@@ -202,18 +224,21 @@ export class MaintenanceService {
     const request = await this.findOne(organizationId, id);
 
     if (request.status !== MaintenanceStatus.DRAFT) {
-      throw new BadRequestException('Can only delete draft requests');
+      throw new BadRequestException("Can only delete draft requests");
     }
 
     await this.maintenanceRepository.softDelete(id);
-    this.eventEmitter.emit('maintenance.deleted', { requestId: id });
+    this.eventEmitter.emit("maintenance.deleted", { requestId: id });
   }
 
   // ========================================================================
   // WORKFLOW METHODS
   // ========================================================================
 
-  private validateTransition(currentStatus: MaintenanceStatus, newStatus: MaintenanceStatus): void {
+  private validateTransition(
+    currentStatus: MaintenanceStatus,
+    newStatus: MaintenanceStatus,
+  ): void {
     const validTransitions = VALID_MAINTENANCE_TRANSITIONS[currentStatus];
     if (!validTransitions.includes(newStatus)) {
       throw new BadRequestException(
@@ -222,14 +247,18 @@ export class MaintenanceService {
     }
   }
 
-  async submit(organizationId: string, id: string, userId: string): Promise<MaintenanceRequest> {
+  async submit(
+    organizationId: string,
+    id: string,
+    userId: string,
+  ): Promise<MaintenanceRequest> {
     const request = await this.findOne(organizationId, id);
     this.validateTransition(request.status, MaintenanceStatus.SUBMITTED);
 
     request.status = MaintenanceStatus.SUBMITTED;
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.submitted', { request: saved, userId });
+    this.eventEmitter.emit("maintenance.submitted", { request: saved, userId });
     return saved;
   }
 
@@ -252,7 +281,7 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.approved', { request: saved, userId });
+    this.eventEmitter.emit("maintenance.approved", { request: saved, userId });
     return saved;
   }
 
@@ -270,7 +299,11 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.rejected', { request: saved, userId, reason: dto.reason });
+    this.eventEmitter.emit("maintenance.rejected", {
+      request: saved,
+      userId,
+      reason: dto.reason,
+    });
     return saved;
   }
 
@@ -293,7 +326,10 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.assigned', { request: saved, technicianId: dto.technicianId });
+    this.eventEmitter.emit("maintenance.assigned", {
+      request: saved,
+      technicianId: dto.technicianId,
+    });
     return saved;
   }
 
@@ -315,7 +351,7 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.started', { request: saved, userId });
+    this.eventEmitter.emit("maintenance.started", { request: saved, userId });
     return saved;
   }
 
@@ -330,7 +366,10 @@ export class MaintenanceService {
     request.status = MaintenanceStatus.AWAITING_PARTS;
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.awaiting_parts', { request: saved, userId });
+    this.eventEmitter.emit("maintenance.awaiting_parts", {
+      request: saved,
+      userId,
+    });
     return saved;
   }
 
@@ -366,7 +405,9 @@ export class MaintenanceService {
 
     if (request.downtimeStart && request.downtimeEnd) {
       request.downtimeMinutes = Math.round(
-        (new Date(request.downtimeEnd).getTime() - new Date(request.downtimeStart).getTime()) / 60000,
+        (new Date(request.downtimeEnd).getTime() -
+          new Date(request.downtimeStart).getTime()) /
+          60000,
       );
     }
 
@@ -380,7 +421,7 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.completed', { request: saved, userId });
+    this.eventEmitter.emit("maintenance.completed", { request: saved, userId });
     return saved;
   }
 
@@ -405,7 +446,11 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.verified', { request: saved, userId, passed: dto.passed });
+    this.eventEmitter.emit("maintenance.verified", {
+      request: saved,
+      userId,
+      passed: dto.passed,
+    });
     return saved;
   }
 
@@ -423,7 +468,11 @@ export class MaintenanceService {
 
     const saved = await this.maintenanceRepository.save(request);
 
-    this.eventEmitter.emit('maintenance.cancelled', { request: saved, userId, reason });
+    this.eventEmitter.emit("maintenance.cancelled", {
+      request: saved,
+      userId,
+      reason,
+    });
     return saved;
   }
 
@@ -485,7 +534,10 @@ export class MaintenanceService {
   ): Promise<void> {
     const request = await this.findOne(organizationId, requestId);
 
-    await this.partRepository.delete({ id: partId, maintenanceRequestId: requestId });
+    await this.partRepository.softDelete({
+      id: partId,
+      maintenanceRequestId: requestId,
+    });
 
     // Recalculate total cost
     await this.calculateTotalCost(request);
@@ -505,15 +557,17 @@ export class MaintenanceService {
     await this.findOne(organizationId, requestId);
 
     // Calculate duration
-    const [startHour, startMin] = dto.startTime.split(':').map(Number);
-    const [endHour, endMin] = dto.endTime.split(':').map(Number);
-    const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+    const [startHour, startMin] = dto.startTime.split(":").map(Number);
+    const [endHour, endMin] = dto.endTime.split(":").map(Number);
+    const durationMinutes = endHour * 60 + endMin - (startHour * 60 + startMin);
 
     if (durationMinutes <= 0) {
-      throw new BadRequestException('End time must be after start time');
+      throw new BadRequestException("End time must be after start time");
     }
 
-    const laborCost = dto.hourlyRate ? (dto.hourlyRate / 60) * durationMinutes : undefined;
+    const laborCost = dto.hourlyRate
+      ? (dto.hourlyRate / 60) * durationMinutes
+      : undefined;
 
     const workLog = this.workLogRepository.create({
       maintenanceRequestId: requestId,
@@ -548,14 +602,17 @@ export class MaintenanceService {
     if (dto.startTime || dto.endTime) {
       const startTime = dto.startTime || workLog.startTime;
       const endTime = dto.endTime || workLog.endTime;
-      const [startHour, startMin] = startTime.split(':').map(Number);
-      const [endHour, endMin] = endTime.split(':').map(Number);
-      workLog.durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+      const [startHour, startMin] = startTime.split(":").map(Number);
+      const [endHour, endMin] = endTime.split(":").map(Number);
+      workLog.durationMinutes =
+        endHour * 60 + endMin - (startHour * 60 + startMin);
     }
 
     if (dto.hourlyRate !== undefined || dto.startTime || dto.endTime) {
       const hourlyRate = dto.hourlyRate ?? workLog.hourlyRate;
-      workLog.laborCost = hourlyRate ? (hourlyRate / 60) * workLog.durationMinutes : undefined;
+      workLog.laborCost = hourlyRate
+        ? (hourlyRate / 60) * workLog.durationMinutes
+        : undefined;
     }
 
     return this.workLogRepository.save(workLog);
@@ -567,7 +624,10 @@ export class MaintenanceService {
     logId: string,
   ): Promise<void> {
     await this.findOne(organizationId, requestId);
-    await this.workLogRepository.delete({ id: logId, maintenanceRequestId: requestId });
+    await this.workLogRepository.softDelete({
+      id: logId,
+      maintenanceRequestId: requestId,
+    });
   }
 
   // ========================================================================
@@ -597,30 +657,39 @@ export class MaintenanceService {
     organizationId: string,
     query: ScheduleQueryDto,
   ): Promise<{ data: MaintenanceSchedule[]; total: number }> {
-    const { machineId, maintenanceType, activeOnly, dueWithinDays, page = 1, limit = 20 } = query;
+    const {
+      machineId,
+      maintenanceType,
+      activeOnly,
+      dueWithinDays,
+      page = 1,
+      limit = 20,
+    } = query;
 
     const qb = this.scheduleRepository
-      .createQueryBuilder('s')
-      .where('s.organizationId = :organizationId', { organizationId })
-      .andWhere('s.deletedAt IS NULL');
+      .createQueryBuilder("s")
+      .where("s.organizationId = :organizationId", { organizationId })
+      .andWhere("s.deletedAt IS NULL");
 
     if (machineId) {
-      qb.andWhere('(s.machineId = :machineId OR s.machineId IS NULL)', { machineId });
+      qb.andWhere("(s.machineId = :machineId OR s.machineId IS NULL)", {
+        machineId,
+      });
     }
     if (maintenanceType) {
-      qb.andWhere('s.maintenanceType = :maintenanceType', { maintenanceType });
+      qb.andWhere("s.maintenanceType = :maintenanceType", { maintenanceType });
     }
     if (activeOnly) {
-      qb.andWhere('s.isActive = true');
+      qb.andWhere("s.isActive = true");
     }
     if (dueWithinDays) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + dueWithinDays);
-      qb.andWhere('s.nextDueDate <= :futureDate', { futureDate });
+      qb.andWhere("s.nextDueDate <= :futureDate", { futureDate });
     }
 
     const [data, total] = await qb
-      .orderBy('s.nextDueDate', 'ASC')
+      .orderBy("s.nextDueDate", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -659,25 +728,41 @@ export class MaintenanceService {
   // STATISTICS
   // ========================================================================
 
-  async getStats(organizationId: string, startDate?: Date, endDate?: Date): Promise<MaintenanceStatsDto> {
+  async getStats(
+    organizationId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<MaintenanceStatsDto> {
     const qb = this.maintenanceRepository
-      .createQueryBuilder('m')
-      .where('m.organizationId = :organizationId', { organizationId })
-      .andWhere('m.deletedAt IS NULL');
+      .createQueryBuilder("m")
+      .where("m.organizationId = :organizationId", { organizationId })
+      .andWhere("m.deletedAt IS NULL");
 
     if (startDate && endDate) {
-      qb.andWhere('m.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+      qb.andWhere("m.createdAt BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
     }
 
     const requests = await qb.getMany();
 
-    const byStatus: Record<MaintenanceStatus, number> = {} as Record<MaintenanceStatus, number>;
-    const byType: Record<MaintenanceType, number> = {} as Record<MaintenanceType, number>;
-    const byPriority: Record<MaintenancePriority, number> = {} as Record<MaintenancePriority, number>;
+    const byStatus: Record<MaintenanceStatus, number> = {} as Record<
+      MaintenanceStatus,
+      number
+    >;
+    const byType: Record<MaintenanceType, number> = {} as Record<
+      MaintenanceType,
+      number
+    >;
+    const byPriority: Record<MaintenancePriority, number> = {} as Record<
+      MaintenancePriority,
+      number
+    >;
 
-    Object.values(MaintenanceStatus).forEach(s => byStatus[s] = 0);
-    Object.values(MaintenanceType).forEach(t => byType[t] = 0);
-    Object.values(MaintenancePriority).forEach(p => byPriority[p] = 0);
+    Object.values(MaintenanceStatus).forEach((s) => (byStatus[s] = 0));
+    Object.values(MaintenanceType).forEach((t) => (byType[t] = 0));
+    Object.values(MaintenancePriority).forEach((p) => (byPriority[p] = 0));
 
     let totalCost = 0;
     let totalDowntime = 0;
@@ -724,7 +809,7 @@ export class MaintenanceService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async checkScheduledMaintenance(): Promise<void> {
-    this.logger.log('Checking scheduled maintenance...');
+    this.logger.log("Checking scheduled maintenance...");
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -746,11 +831,13 @@ export class MaintenanceService {
           {
             maintenanceType: schedule.maintenanceType,
             priority: MaintenancePriority.NORMAL,
-            machineId: schedule.machineId || '',
+            machineId: schedule.machineId || "",
             title: `Scheduled: ${schedule.name}`,
             description: schedule.description,
             estimatedDuration: schedule.estimatedDuration,
-            estimatedCost: schedule.estimatedCost ? Number(schedule.estimatedCost) : undefined,
+            estimatedCost: schedule.estimatedCost
+              ? Number(schedule.estimatedCost)
+              : undefined,
             maintenanceScheduleId: schedule.id,
           },
         );
@@ -761,16 +848,21 @@ export class MaintenanceService {
         schedule.timesExecuted++;
         await this.scheduleRepository.save(schedule);
 
-        this.logger.log(`Created maintenance request ${request.requestNumber} from schedule ${schedule.name}`);
+        this.logger.log(
+          `Created maintenance request ${request.requestNumber} from schedule ${schedule.name}`,
+        );
       } catch (error: unknown) {
-        this.logger.error(`Failed to create request from schedule ${schedule.id}`, error instanceof Error ? error.stack : error);
+        this.logger.error(
+          `Failed to create request from schedule ${schedule.id}`,
+          error instanceof Error ? error.stack : error,
+        );
       }
     }
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async checkSlaBreaches(): Promise<void> {
-    this.logger.log('Checking SLA breaches...');
+    this.logger.log("Checking SLA breaches...");
 
     const now = new Date();
     const overdueRequests = await this.maintenanceRepository.find({
@@ -791,10 +883,12 @@ export class MaintenanceService {
       request.slaBreached = true;
       await this.maintenanceRepository.save(request);
 
-      this.eventEmitter.emit('maintenance.sla_breached', { request });
+      this.eventEmitter.emit("maintenance.sla_breached", { request });
     }
 
-    this.logger.log(`Marked ${overdueRequests.length} requests as SLA breached`);
+    this.logger.log(
+      `Marked ${overdueRequests.length} requests as SLA breached`,
+    );
   }
 
   // ========================================================================
@@ -825,32 +919,37 @@ export class MaintenanceService {
     const workLogs = await this.workLogRepository.find({
       where: { maintenanceRequestId: request.id, isBillable: true },
     });
-    request.laborCost = workLogs.reduce((sum, w) => sum + (Number(w.laborCost) || 0), 0);
+    request.laborCost = workLogs.reduce(
+      (sum, w) => sum + (Number(w.laborCost) || 0),
+      0,
+    );
 
     request.totalCost = Number(request.partsCost) + Number(request.laborCost);
   }
 
   private calculateNextDueDate(schedule: MaintenanceSchedule): Date {
-    const baseDate = schedule.lastExecutedDate ? new Date(schedule.lastExecutedDate) : new Date();
+    const baseDate = schedule.lastExecutedDate
+      ? new Date(schedule.lastExecutedDate)
+      : new Date();
     const nextDate = new Date(baseDate);
 
     switch (schedule.frequencyType) {
-      case 'daily':
+      case "daily":
         nextDate.setDate(nextDate.getDate() + schedule.frequencyValue);
         break;
-      case 'weekly':
+      case "weekly":
         nextDate.setDate(nextDate.getDate() + schedule.frequencyValue * 7);
         break;
-      case 'monthly':
+      case "monthly":
         nextDate.setMonth(nextDate.getMonth() + schedule.frequencyValue);
         if (schedule.dayOfMonth) {
           nextDate.setDate(schedule.dayOfMonth);
         }
         break;
-      case 'quarterly':
+      case "quarterly":
         nextDate.setMonth(nextDate.getMonth() + schedule.frequencyValue * 3);
         break;
-      case 'yearly':
+      case "yearly":
         nextDate.setFullYear(nextDate.getFullYear() + schedule.frequencyValue);
         break;
       default:

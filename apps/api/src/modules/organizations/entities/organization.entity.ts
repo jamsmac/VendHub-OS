@@ -11,68 +11,56 @@ import {
   JoinColumn,
   Index,
   BeforeInsert,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+} from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import {
+  CommissionType,
+  ContractType,
+  ContractStatus,
+} from "../../../common/enums";
+
+export { CommissionType, ContractType, ContractStatus };
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export enum OrganizationType {
-  HEADQUARTERS = 'headquarters', // Main company (parent of all)
-  FRANCHISE = 'franchise', // Franchisee
-  BRANCH = 'branch', // Company branch
-  OPERATOR = 'operator', // Independent operator
-  PARTNER = 'partner', // Business partner
+  HEADQUARTERS = "headquarters", // Main company (parent of all)
+  FRANCHISE = "franchise", // Franchisee
+  BRANCH = "branch", // Company branch
+  OPERATOR = "operator", // Independent operator
+  PARTNER = "partner", // Business partner
 }
 
 export enum OrganizationStatus {
-  ACTIVE = 'active',
-  PENDING = 'pending',
-  SUSPENDED = 'suspended',
-  TERMINATED = 'terminated',
+  ACTIVE = "active",
+  PENDING = "pending",
+  SUSPENDED = "suspended",
+  TERMINATED = "terminated",
 }
 
 export enum SubscriptionTier {
-  FREE = 'free',
-  STARTER = 'starter',
-  PROFESSIONAL = 'professional',
-  ENTERPRISE = 'enterprise',
-  CUSTOM = 'custom',
-}
-
-export enum ContractType {
-  FRANCHISE = 'franchise',
-  PARTNERSHIP = 'partnership',
-  LEASE = 'lease',
-  SERVICE = 'service',
-}
-
-export enum ContractStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  EXPIRED = 'expired',
-  TERMINATED = 'terminated',
-}
-
-export enum CommissionType {
-  PERCENTAGE = 'percentage',
-  FIXED = 'fixed',
-  TIERED = 'tiered',
-  HYBRID = 'hybrid',
+  FREE = "free",
+  STARTER = "starter",
+  PROFESSIONAL = "professional",
+  ENTERPRISE = "enterprise",
+  CUSTOM = "custom",
 }
 
 // ============================================================================
 // ORGANIZATION ENTITY
 // ============================================================================
 
-@Entity('organizations')
-@Index(['slug'], { unique: true, where: '"deleted_at" IS NULL' })
-@Index(['parentId'])
-@Index(['type'])
-@Index(['status'])
-@Index(['inn'], { unique: true, where: '"inn" IS NOT NULL AND "deleted_at" IS NULL' })
+@Entity("organizations")
+@Index(["slug"], { unique: true, where: '"deleted_at" IS NULL' })
+@Index(["parentId"])
+@Index(["type"])
+@Index(["status"])
+@Index(["inn"], {
+  unique: true,
+  where: '"inn" IS NOT NULL AND "deleted_at" IS NULL',
+})
 export class Organization extends BaseEntity {
   // Basic info
   @Column({ length: 200 })
@@ -84,26 +72,34 @@ export class Organization extends BaseEntity {
   @Column({ length: 100 })
   slug: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   logo: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   // Type and hierarchy
-  @Column({ type: 'enum', enum: OrganizationType, default: OrganizationType.OPERATOR })
+  @Column({
+    type: "enum",
+    enum: OrganizationType,
+    default: OrganizationType.OPERATOR,
+  })
   type: OrganizationType;
 
-  @Column({ type: 'enum', enum: OrganizationStatus, default: OrganizationStatus.PENDING })
+  @Column({
+    type: "enum",
+    enum: OrganizationStatus,
+    default: OrganizationStatus.PENDING,
+  })
   status: OrganizationStatus;
 
   @Column({ nullable: true })
   parentId: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   hierarchyLevel: number; // 0 = root, 1 = child, etc.
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   hierarchyPath: string; // e.g., "/root-uuid/parent-uuid/this-uuid"
 
   // Contact info
@@ -116,7 +112,7 @@ export class Organization extends BaseEntity {
   @Column({ length: 20, nullable: true })
   phoneSecondary: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   address: string;
 
   @Column({ length: 100, nullable: true })
@@ -128,10 +124,10 @@ export class Organization extends BaseEntity {
   @Column({ length: 20, nullable: true })
   postalCode: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
   latitude: number;
 
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
   longitude: number;
 
   // Legal info (Uzbekistan)
@@ -160,7 +156,7 @@ export class Organization extends BaseEntity {
   accountantName: string;
 
   // Fiscal data (OFD Integration)
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   fiscalSettings: {
     terminalId?: string;
     terminalPassword?: string;
@@ -171,20 +167,24 @@ export class Organization extends BaseEntity {
   };
 
   // Subscription
-  @Column({ type: 'enum', enum: SubscriptionTier, default: SubscriptionTier.FREE })
+  @Column({
+    type: "enum",
+    enum: SubscriptionTier,
+    default: SubscriptionTier.FREE,
+  })
   subscriptionTier: SubscriptionTier;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   subscriptionStartDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   subscriptionExpiresAt: Date;
 
   @Column({ default: false })
   isTrialUsed: boolean;
 
   // Limits based on subscription
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   limits: {
     maxMachines: number;
     maxUsers: number;
@@ -196,7 +196,7 @@ export class Organization extends BaseEntity {
   };
 
   // Current usage (cached, updated periodically)
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   usage: {
     machines: number;
     users: number;
@@ -208,7 +208,7 @@ export class Organization extends BaseEntity {
   };
 
   // Settings
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   settings: {
     timezone: string;
     currency: string;
@@ -239,7 +239,7 @@ export class Organization extends BaseEntity {
   };
 
   // Commission settings (for franchises)
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   commissionSettings: {
     type: CommissionType;
     rate?: number; // Percentage
@@ -254,7 +254,7 @@ export class Organization extends BaseEntity {
   };
 
   // API Keys for integrations
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   apiKeys: {
     id: string;
     key: string;
@@ -268,7 +268,7 @@ export class Organization extends BaseEntity {
   }[];
 
   // Webhooks
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   webhooks: {
     id: string;
     url: string;
@@ -281,18 +281,28 @@ export class Organization extends BaseEntity {
   }[];
 
   // Integrations
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   integrations: {
     payme?: { merchantId: string; secretKey: string; isActive: boolean };
-    click?: { merchantId: string; serviceId: string; secretKey: string; isActive: boolean };
+    click?: {
+      merchantId: string;
+      serviceId: string;
+      secretKey: string;
+      isActive: boolean;
+    };
     telegram?: { botToken: string; chatId: string; isActive: boolean };
-    sms?: { provider: string; apiKey: string; senderId: string; isActive: boolean };
+    sms?: {
+      provider: string;
+      apiKey: string;
+      senderId: string;
+      isActive: boolean;
+    };
     myId?: { clientId: string; clientSecret: string; isActive: boolean }; // myID.uz auth
   };
 
   // Metadata
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
   // Activity flags
   @Column({ default: true })
@@ -301,30 +311,30 @@ export class Organization extends BaseEntity {
   @Column({ default: false })
   isVerified: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   verifiedAt: Date;
 
   @Column({ nullable: true })
   verifiedByUserId: string;
 
   // Relations
-  @ManyToOne('Organization', 'children', { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'parent_id' })
+  @ManyToOne("Organization", "children", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "parent_id" })
   parent: Organization;
 
-  @OneToMany('Organization', 'parent')
+  @OneToMany("Organization", "parent")
   children: Organization[];
 
-  @OneToMany('User', 'organization')
-  users: import('../../users/entities/user.entity').User[];
+  @OneToMany("User", "organization")
+  users: import("../../users/entities/user.entity").User[];
 
-  @OneToMany('Machine', 'organization')
-  machines: import('../../machines/entities/machine.entity').Machine[];
+  @OneToMany("Machine", "organization")
+  machines: import("../../machines/entities/machine.entity").Machine[];
 
-  @OneToMany('Location', 'organization')
-  locations: import('../../locations/entities/location.entity').Location[];
+  @OneToMany("Location", "organization")
+  locations: import("../../locations/entities/location.entity").Location[];
 
-  @OneToMany('OrganizationContract', 'organization')
+  @OneToMany("OrganizationContract", "organization")
   contracts: OrganizationContract[];
 
   // Auto-generate slug
@@ -333,8 +343,8 @@ export class Organization extends BaseEntity {
     if (!this.slug) {
       const base = this.name
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
       const random = Math.random().toString(36).substring(2, 6);
       this.slug = `${base}-${random}`;
     }
@@ -350,7 +360,8 @@ export class Organization extends BaseEntity {
   }
 
   get isSubscriptionActive(): boolean {
-    if (!this.subscriptionExpiresAt) return this.subscriptionTier === SubscriptionTier.FREE;
+    if (!this.subscriptionExpiresAt)
+      return this.subscriptionTier === SubscriptionTier.FREE;
     return new Date() < this.subscriptionExpiresAt;
   }
 
@@ -369,12 +380,12 @@ export class Organization extends BaseEntity {
 // ORGANIZATION CONTRACT ENTITY
 // ============================================================================
 
-@Entity('organization_contracts')
-@Index(['organizationId'])
-@Index(['counterpartyId'])
-@Index(['contractNumber'], { unique: true, where: '"deleted_at" IS NULL' })
-@Index(['status'])
-@Index(['endDate'])
+@Entity("organization_contracts")
+@Index(["organizationId"])
+@Index(["counterpartyId"])
+@Index(["contractNumber"], { unique: true, where: '"deleted_at" IS NULL' })
+@Index(["status"])
+@Index(["endDate"])
 export class OrganizationContract extends BaseEntity {
   @Column()
   organizationId: string;
@@ -385,65 +396,65 @@ export class OrganizationContract extends BaseEntity {
   @Column({ length: 50 })
   contractNumber: string;
 
-  @Column({ type: 'enum', enum: ContractType })
+  @Column({ type: "enum", enum: ContractType })
   contractType: ContractType;
 
-  @Column({ type: 'enum', enum: ContractStatus, default: ContractStatus.DRAFT })
+  @Column({ type: "enum", enum: ContractStatus, default: ContractStatus.DRAFT })
   status: ContractStatus;
 
   @Column({ length: 500, nullable: true })
   subject: string;
 
   // Dates
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   startDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   endDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   signedDate: Date;
 
   @Column({ default: false })
   autoRenew: boolean;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   renewalPeriodMonths: number;
 
   // Financial terms
-  @Column({ type: 'enum', enum: CommissionType, nullable: true })
+  @Column({ type: "enum", enum: CommissionType, nullable: true })
   commissionType: CommissionType;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 5, scale: 2, nullable: true })
   commissionRate: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   fixedAmount: number;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   commissionTiers: {
     minAmount: number;
     maxAmount: number;
     rate: number;
   }[];
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   minimumMonthlyFee: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   franchiseFee: number; // One-time franchise fee
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   deposit: number;
 
-  @Column({ type: 'int', default: 30 })
+  @Column({ type: "int", default: 30 })
   paymentTermDays: number;
 
-  @Column({ length: 3, default: 'UZS' })
+  @Column({ length: 3, default: "UZS" })
   currency: string;
 
   // Territory (for exclusive franchise)
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   territory: {
     regions?: string[];
     cities?: string[];
@@ -454,7 +465,7 @@ export class OrganizationContract extends BaseEntity {
   };
 
   // Documents
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   documents: {
     id: string;
     name: string;
@@ -465,26 +476,31 @@ export class OrganizationContract extends BaseEntity {
   }[];
 
   // Terms and conditions
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   termsAndConditions: string;
 
   // Contacts
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   contacts: {
     primary: { name: string; phone: string; email: string; position: string };
-    secondary?: { name: string; phone: string; email: string; position: string };
+    secondary?: {
+      name: string;
+      phone: string;
+      email: string;
+      position: string;
+    };
   };
 
   // Notes
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
   // Relations
-  @ManyToOne('Organization', 'contracts', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'organization_id' })
+  @ManyToOne("Organization", "contracts", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
   // Computed
@@ -512,18 +528,18 @@ export class OrganizationContract extends BaseEntity {
 // ============================================================================
 
 export enum InvitationStatus {
-  PENDING = 'pending',
-  ACCEPTED = 'accepted',
-  DECLINED = 'declined',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  DECLINED = "declined",
+  EXPIRED = "expired",
+  CANCELLED = "cancelled",
 }
 
-@Entity('organization_invitations')
-@Index(['organizationId'])
-@Index(['email'])
-@Index(['token'], { unique: true })
-@Index(['status'])
+@Entity("organization_invitations")
+@Index(["organizationId"])
+@Index(["email"])
+@Index(["token"], { unique: true })
+@Index(["status"])
 export class OrganizationInvitation extends BaseEntity {
   @Column()
   organizationId: string;
@@ -543,16 +559,20 @@ export class OrganizationInvitation extends BaseEntity {
   @Column({ length: 100 })
   token: string;
 
-  @Column({ type: 'enum', enum: InvitationStatus, default: InvitationStatus.PENDING })
+  @Column({
+    type: "enum",
+    enum: InvitationStatus,
+    default: InvitationStatus.PENDING,
+  })
   status: InvitationStatus;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   message: string; // Personal message from inviter
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: "timestamp" })
   expiresAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   acceptedAt: Date;
 
   @Column({ nullable: true })
@@ -561,21 +581,25 @@ export class OrganizationInvitation extends BaseEntity {
   @Column()
   invitedByUserId: string;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
   // Relations
-  @ManyToOne('Organization', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'organization_id' })
+  @ManyToOne("Organization", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
   // Computed
   get isExpired(): boolean {
-    return this.status === InvitationStatus.PENDING && new Date() > this.expiresAt;
+    return (
+      this.status === InvitationStatus.PENDING && new Date() > this.expiresAt
+    );
   }
 
   get isValid(): boolean {
-    return this.status === InvitationStatus.PENDING && new Date() < this.expiresAt;
+    return (
+      this.status === InvitationStatus.PENDING && new Date() < this.expiresAt
+    );
   }
 }
 
@@ -584,25 +608,25 @@ export class OrganizationInvitation extends BaseEntity {
 // ============================================================================
 
 export enum AuditAction {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  INVITE = 'invite',
-  ROLE_CHANGE = 'role_change',
-  SETTINGS_CHANGE = 'settings_change',
-  SUBSCRIPTION_CHANGE = 'subscription_change',
-  API_KEY_CREATE = 'api_key_create',
-  API_KEY_REVOKE = 'api_key_revoke',
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LOGIN = "login",
+  LOGOUT = "logout",
+  INVITE = "invite",
+  ROLE_CHANGE = "role_change",
+  SETTINGS_CHANGE = "settings_change",
+  SUBSCRIPTION_CHANGE = "subscription_change",
+  API_KEY_CREATE = "api_key_create",
+  API_KEY_REVOKE = "api_key_revoke",
 }
 
-@Entity('organization_audit_logs')
-@Index(['organizationId'])
-@Index(['userId'])
-@Index(['action'])
-@Index(['createdAt'])
-@Index(['entityType', 'entityId'])
+@Entity("organization_audit_logs")
+@Index(["organizationId"])
+@Index(["userId"])
+@Index(["action"])
+@Index(["createdAt"])
+@Index(["entityType", "entityId"])
 export class OrganizationAuditLog extends BaseEntity {
   @Column()
   organizationId: string;
@@ -610,7 +634,7 @@ export class OrganizationAuditLog extends BaseEntity {
   @Column({ nullable: true })
   userId: string;
 
-  @Column({ type: 'enum', enum: AuditAction })
+  @Column({ type: "enum", enum: AuditAction })
   action: AuditAction;
 
   @Column({ length: 100 })
@@ -619,16 +643,16 @@ export class OrganizationAuditLog extends BaseEntity {
   @Column({ nullable: true })
   entityId: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  oldValues: Record<string, any>;
+  @Column({ type: "jsonb", nullable: true })
+  oldValues: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', nullable: true })
-  newValues: Record<string, any>;
+  @Column({ type: "jsonb", nullable: true })
+  newValues: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   context: {
     ipAddress?: string;
     userAgent?: string;
@@ -637,8 +661,8 @@ export class OrganizationAuditLog extends BaseEntity {
   };
 
   // Relations
-  @ManyToOne('Organization', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'organization_id' })
+  @ManyToOne("Organization", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "organization_id" })
   organization: Organization;
 }
 
@@ -646,7 +670,10 @@ export class OrganizationAuditLog extends BaseEntity {
 // DEFAULT SUBSCRIPTION LIMITS
 // ============================================================================
 
-export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, Organization['limits']> = {
+export const SUBSCRIPTION_LIMITS: Record<
+  SubscriptionTier,
+  Organization["limits"]
+> = {
   [SubscriptionTier.FREE]: {
     maxMachines: 3,
     maxUsers: 2,
@@ -654,7 +681,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, Organization['limits'
     maxLocations: 3,
     maxTransactionsPerMonth: 1000,
     maxStorageMb: 100,
-    features: ['basic_reports', 'telegram_notifications'],
+    features: ["basic_reports", "telegram_notifications"],
   },
   [SubscriptionTier.STARTER]: {
     maxMachines: 10,
@@ -663,7 +690,12 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, Organization['limits'
     maxLocations: 10,
     maxTransactionsPerMonth: 10000,
     maxStorageMb: 500,
-    features: ['basic_reports', 'telegram_notifications', 'email_notifications', 'api_access'],
+    features: [
+      "basic_reports",
+      "telegram_notifications",
+      "email_notifications",
+      "api_access",
+    ],
   },
   [SubscriptionTier.PROFESSIONAL]: {
     maxMachines: 50,
@@ -673,14 +705,14 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, Organization['limits'
     maxTransactionsPerMonth: 100000,
     maxStorageMb: 2000,
     features: [
-      'advanced_reports',
-      'telegram_notifications',
-      'email_notifications',
-      'sms_notifications',
-      'api_access',
-      'webhooks',
-      'fiscal_integration',
-      'multi_warehouse',
+      "advanced_reports",
+      "telegram_notifications",
+      "email_notifications",
+      "sms_notifications",
+      "api_access",
+      "webhooks",
+      "fiscal_integration",
+      "multi_warehouse",
     ],
   },
   [SubscriptionTier.ENTERPRISE]: {
@@ -691,18 +723,18 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, Organization['limits'
     maxTransactionsPerMonth: 0,
     maxStorageMb: 0,
     features: [
-      'advanced_reports',
-      'telegram_notifications',
-      'email_notifications',
-      'sms_notifications',
-      'api_access',
-      'webhooks',
-      'fiscal_integration',
-      'multi_warehouse',
-      'white_label',
-      'dedicated_support',
-      'custom_integrations',
-      'franchise_management',
+      "advanced_reports",
+      "telegram_notifications",
+      "email_notifications",
+      "sms_notifications",
+      "api_access",
+      "webhooks",
+      "fiscal_integration",
+      "multi_warehouse",
+      "white_label",
+      "dedicated_support",
+      "custom_integrations",
+      "franchise_management",
     ],
   },
   [SubscriptionTier.CUSTOM]: {

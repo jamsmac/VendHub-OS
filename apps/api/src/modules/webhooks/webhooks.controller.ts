@@ -14,55 +14,46 @@ import {
   Query,
   UseGuards,
   Req,
-  Headers,
   HttpCode,
   HttpStatus,
   BadRequestException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { WebhooksService, WebhookEvent } from './webhooks.service';
-import * as crypto from 'crypto';
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
+import { WebhooksService, WebhookEvent } from "./webhooks.service";
+import {
+  CreateWebhookDto,
+  UpdateWebhookDto,
+  FilterWebhooksDto,
+  WebhookLogsQueryDto,
+  TestWebhookDto,
+} from "./dto";
+import * as crypto from "crypto";
 
-// DTOs
-class CreateWebhookDto {
-  url: string;
-  events: WebhookEvent[];
-  description?: string;
-  isActive?: boolean;
-}
-
-class UpdateWebhookDto {
-  url?: string;
-  events?: WebhookEvent[];
-  description?: string;
-  isActive?: boolean;
-}
-
-@ApiTags('webhooks')
-@Controller('webhooks')
+@ApiTags("webhooks")
+@Controller("webhooks")
 export class WebhooksController {
   // In-memory storage (would be database in production)
   private webhooks: Map<
     string,
     {
       id: string;
-      organizationId: string;
+      organization_id: string;
       url: string;
       events: WebhookEvent[];
       secret: string;
       description?: string;
-      isActive: boolean;
-      createdAt: Date;
-      lastTriggeredAt?: Date;
-      failureCount: number;
+      is_active: boolean;
+      created_at: Date;
+      last_triggered_at?: Date;
+      failure_count: number;
     }
   > = new Map();
 
@@ -74,25 +65,27 @@ export class WebhooksController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new webhook endpoint' })
-  @ApiResponse({ status: 201, description: 'Webhook created' })
+  @ApiOperation({ summary: "Create a new webhook endpoint" })
+  @ApiResponse({ status: 201, description: "Webhook created successfully" })
+  @ApiResponse({ status: 400, description: "Invalid input data" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createWebhook(@Req() req: any, @Body() dto: CreateWebhookDto) {
-    const organizationId = req.user.organizationId;
+    const organization_id = req.user.organizationId;
     const id = crypto.randomUUID();
-    const secret = crypto.randomBytes(32).toString('hex');
+    const secret = crypto.randomBytes(32).toString("hex");
 
     const webhook = {
       id,
-      organizationId,
+      organization_id,
       url: dto.url,
       events: dto.events,
       secret,
       description: dto.description,
-      isActive: dto.isActive ?? true,
-      createdAt: new Date(),
-      failureCount: 0,
+      is_active: dto.is_active ?? true,
+      created_at: new Date(),
+      failure_count: 0,
     };
 
     this.webhooks.set(id, webhook);
@@ -103,48 +96,80 @@ export class WebhooksController {
       events: dto.events,
       secret, // Only shown once on creation!
       description: dto.description,
-      isActive: webhook.isActive,
-      createdAt: webhook.createdAt,
+      is_active: webhook.is_active,
+      created_at: webhook.created_at,
     };
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List all webhooks for organization' })
-  listWebhooks(@Req() req: any) {
-    const organizationId = req.user.organizationId;
+  @ApiOperation({ summary: "List all webhooks for organization" })
+  @ApiResponse({ status: 200, description: "List of webhooks" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  listWebhooks(@Req() req: any, @Query() filter: FilterWebhooksDto) {
+    const organization_id = req.user.organizationId;
 
-    const orgWebhooks = Array.from(this.webhooks.values())
-      .filter((w) => w.organizationId === organizationId)
-      .map((w) => ({
+    let orgWebhooks = Array.from(this.webhooks.values()).filter(
+      (w) => w.organization_id === organization_id,
+    );
+
+    // Apply filters
+    if (filter.is_active !== undefined) {
+      orgWebhooks = orgWebhooks.filter((w) => w.is_active === filter.is_active);
+    }
+
+    if (filter.event) {
+      orgWebhooks = orgWebhooks.filter((w) => w.events.includes(filter.event!));
+    }
+
+    if (filter.search) {
+      const searchLower = filter.search.toLowerCase();
+      orgWebhooks = orgWebhooks.filter(
+        (w) =>
+          w.url.toLowerCase().includes(searchLower) ||
+          (w.description && w.description.toLowerCase().includes(searchLower)),
+      );
+    }
+
+    // Pagination
+    const total = orgWebhooks.length;
+    const page = filter.page ?? 1;
+    const limit = filter.limit ?? 20;
+    const offset = (page - 1) * limit;
+    const paginatedWebhooks = orgWebhooks.slice(offset, offset + limit);
+
+    return {
+      webhooks: paginatedWebhooks.map((w) => ({
         id: w.id,
         url: w.url,
         events: w.events,
         description: w.description,
-        isActive: w.isActive,
-        createdAt: w.createdAt,
-        lastTriggeredAt: w.lastTriggeredAt,
-        failureCount: w.failureCount,
-      }));
-
-    return {
-      webhooks: orgWebhooks,
-      total: orgWebhooks.length,
+        is_active: w.is_active,
+        created_at: w.created_at,
+        last_triggered_at: w.last_triggered_at,
+        failure_count: w.failure_count,
+      })),
+      total,
+      page,
+      limit,
     };
   }
 
-  @Get(':id')
+  @Get(":id")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get webhook details' })
-  getWebhook(@Req() req: any, @Param('id') id: string) {
+  @ApiOperation({ summary: "Get webhook details" })
+  @ApiResponse({ status: 200, description: "Webhook details" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getWebhook(@Req() req: any, @Param("id") id: string) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
     return {
@@ -152,27 +177,30 @@ export class WebhooksController {
       url: webhook.url,
       events: webhook.events,
       description: webhook.description,
-      isActive: webhook.isActive,
-      createdAt: webhook.createdAt,
-      lastTriggeredAt: webhook.lastTriggeredAt,
-      failureCount: webhook.failureCount,
+      is_active: webhook.is_active,
+      created_at: webhook.created_at,
+      last_triggered_at: webhook.last_triggered_at,
+      failure_count: webhook.failure_count,
     };
   }
 
-  @Put(':id')
+  @Put(":id")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update webhook' })
+  @ApiOperation({ summary: "Update webhook" })
+  @ApiResponse({ status: 200, description: "Webhook updated" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
   updateWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @Req() req: any,
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() dto: UpdateWebhookDto,
   ) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
     const updated = {
@@ -180,7 +208,7 @@ export class WebhooksController {
       url: dto.url ?? webhook.url,
       events: dto.events ?? webhook.events,
       description: dto.description ?? webhook.description,
-      isActive: dto.isActive ?? webhook.isActive,
+      is_active: dto.is_active ?? webhook.is_active,
     };
 
     this.webhooks.set(id, updated);
@@ -190,39 +218,45 @@ export class WebhooksController {
       url: updated.url,
       events: updated.events,
       description: updated.description,
-      isActive: updated.isActive,
+      is_active: updated.is_active,
     };
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete webhook' })
-  deleteWebhook(@Req() req: any, @Param('id') id: string) {
+  @ApiOperation({ summary: "Delete webhook" })
+  @ApiResponse({ status: 204, description: "Webhook deleted" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteWebhook(@Req() req: any, @Param("id") id: string) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
     this.webhooks.delete(id);
   }
 
-  @Post(':id/regenerate-secret')
+  @Post(":id/regenerate-secret")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Regenerate webhook secret' })
-  regenerateSecret(@Req() req: any, @Param('id') id: string) {
+  @ApiOperation({ summary: "Regenerate webhook secret" })
+  @ApiResponse({ status: 200, description: "New secret generated" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  regenerateSecret(@Req() req: any, @Param("id") id: string) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
-    const newSecret = crypto.randomBytes(32).toString('hex');
+    const newSecret = crypto.randomBytes(32).toString("hex");
     webhook.secret = newSecret;
     this.webhooks.set(id, webhook);
 
@@ -232,149 +266,111 @@ export class WebhooksController {
     };
   }
 
-  @Post(':id/test')
+  @Post(":id/test")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Send test webhook' })
-  async testWebhook(@Req() req: any, @Param('id') id: string) {
+  @ApiOperation({ summary: "Send test webhook delivery" })
+  @ApiResponse({ status: 200, description: "Test webhook sent" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
+  async testWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @Req() req: any,
+    @Param("id") id: string,
+    @Body() dto: TestWebhookDto,
+  ) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
-    await this.webhooksService.send(
-      webhook.organizationId,
-      WebhookEvent.MACHINE_STATUS_CHANGED,
-      {
-        test: true,
-        message: 'This is a test webhook',
-        timestamp: new Date().toISOString(),
-      },
-      [webhook],
-    );
+    const event = dto.event ?? WebhookEvent.MACHINE_STATUS_CHANGED;
+    const payload = dto.payload ?? {
+      test: true,
+      message: "This is a test webhook",
+      timestamp: new Date().toISOString(),
+    };
 
-    return { message: 'Test webhook sent' };
+    await this.webhooksService.send(webhook.organization_id, event, payload, [
+      {
+        url: webhook.url,
+        events: webhook.events as string[],
+        secret: webhook.secret,
+        isActive: webhook.is_active,
+      },
+    ]);
+
+    return { message: "Test webhook sent", event };
   }
 
   // ========================================================================
   // WEBHOOK EVENTS LIST
   // ========================================================================
 
-  @Get('events/list')
-  @ApiOperation({ summary: 'List available webhook events' })
+  @Get("events/list")
+  @ApiOperation({ summary: "List available webhook events" })
+  @ApiResponse({ status: 200, description: "Available webhook events" })
   listEvents() {
     return {
       events: [
         {
           name: WebhookEvent.MACHINE_STATUS_CHANGED,
-          description: 'Machine status changed (online/offline/error)',
+          description: "Machine status changed (online/offline/error)",
         },
         {
           name: WebhookEvent.INVENTORY_LOW,
-          description: 'Inventory level below threshold',
+          description: "Inventory level below threshold",
         },
         {
           name: WebhookEvent.TASK_CREATED,
-          description: 'New task created',
+          description: "New task created",
         },
         {
           name: WebhookEvent.TASK_COMPLETED,
-          description: 'Task completed',
+          description: "Task completed",
         },
         {
           name: WebhookEvent.SALE_COMPLETED,
-          description: 'Sale/transaction completed',
+          description: "Sale/transaction completed",
         },
         {
           name: WebhookEvent.PAYMENT_RECEIVED,
-          description: 'Payment received',
+          description: "Payment received",
         },
       ],
     };
   }
 
   // ========================================================================
-  // INCOMING WEBHOOKS (from external services)
-  // ========================================================================
-
-  @Post('incoming/payme')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Payme payment callback' })
-  async paymeCallback(
-    @Body() body: any,
-    @Headers('authorization') _auth: string,
-  ) {
-    // Validate Basic auth header
-    // Process Payme callback
-    return {
-      jsonrpc: '2.0',
-      id: body.id,
-      result: { allow: true },
-    };
-  }
-
-  @Post('incoming/click/prepare')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Click prepare callback' })
-  async clickPrepare(@Body() body: any) {
-    // Process Click prepare request
-    return {
-      click_trans_id: body.click_trans_id,
-      merchant_trans_id: body.merchant_trans_id,
-      merchant_prepare_id: Date.now(),
-      error: 0,
-      error_note: 'Success',
-    };
-  }
-
-  @Post('incoming/click/complete')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Click complete callback' })
-  async clickComplete(@Body() body: any) {
-    // Process Click complete request
-    return {
-      click_trans_id: body.click_trans_id,
-      merchant_trans_id: body.merchant_trans_id,
-      merchant_confirm_id: Date.now(),
-      error: 0,
-      error_note: 'Success',
-    };
-  }
-
-  @Post('incoming/uzum')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Uzum Bank callback' })
-  async uzumCallback(@Body() _body: any) {
-    // Process Uzum callback
-    return { success: true };
-  }
-
-  // ========================================================================
   // WEBHOOK LOGS
   // ========================================================================
 
-  @Get(':id/logs')
+  @Get(":id/logs")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('owner', 'admin')
+  @Roles("owner", "admin")
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get webhook delivery logs' })
+  @ApiOperation({ summary: "Get webhook delivery logs" })
+  @ApiResponse({ status: 200, description: "Webhook delivery logs" })
+  @ApiResponse({ status: 400, description: "Webhook not found" })
   getWebhookLogs(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @Req() req: any,
-    @Param('id') id: string,
-    @Query('limit') _limit = 50,
+    @Param("id") id: string,
+    @Query() query: WebhookLogsQueryDto,
   ) {
     const webhook = this.webhooks.get(id);
 
-    if (!webhook || webhook.organizationId !== req.user.organizationId) {
-      throw new BadRequestException('Webhook not found');
+    if (!webhook || webhook.organization_id !== req.user.organizationId) {
+      throw new BadRequestException("Webhook not found");
     }
 
-    // In production, fetch from database
+    // In production, fetch from database with query filters applied
     return {
       logs: [],
       total: 0,
+      page: query.page ?? 1,
+      limit: query.limit ?? 50,
     };
   }
 }

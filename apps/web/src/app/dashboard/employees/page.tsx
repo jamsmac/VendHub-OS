@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   UserCog,
   Plus,
@@ -20,16 +20,16 @@ import {
   Clock,
   ChevronDown,
   AlertTriangle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -37,32 +37,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 const employeeTabs = [
-  { href: '/dashboard/employees', label: 'Сотрудники' },
-  { href: '/dashboard/employees/departments', label: 'Отделы' },
-  { href: '/dashboard/employees/attendance', label: 'Посещаемость' },
-  { href: '/dashboard/employees/leave', label: 'Отпуска' },
-  { href: '/dashboard/employees/payroll', label: 'Зарплата' },
-  { href: '/dashboard/employees/reviews', label: 'Оценки' },
+  { href: "/dashboard/employees", label: "Сотрудники" },
+  { href: "/dashboard/employees/departments", label: "Отделы" },
+  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
+  { href: "/dashboard/employees/leave", label: "Отпуска" },
+  { href: "/dashboard/employees/payroll", label: "Зарплата" },
+  { href: "/dashboard/employees/reviews", label: "Оценки" },
 ];
 
 interface Employee {
@@ -73,8 +73,8 @@ interface Employee {
   phone: string;
   position: string;
   department: string;
-  role: 'admin' | 'manager' | 'operator' | 'warehouse' | 'accountant';
-  status: 'active' | 'inactive' | 'on_leave';
+  role: "admin" | "manager" | "operator" | "warehouse" | "accountant";
+  status: "active" | "inactive" | "on_leave";
   hireDate: string;
   salary?: number;
   address?: string;
@@ -83,32 +83,32 @@ interface Employee {
 }
 
 const roleLabels: Record<string, string> = {
-  admin: 'Администратор',
-  manager: 'Менеджер',
-  operator: 'Оператор',
-  warehouse: 'Кладовщик',
-  accountant: 'Бухгалтер',
+  admin: "Администратор",
+  manager: "Менеджер",
+  operator: "Оператор",
+  warehouse: "Кладовщик",
+  accountant: "Бухгалтер",
 };
 
 const statusLabels: Record<string, string> = {
-  active: 'Активный',
-  inactive: 'Неактивный',
-  on_leave: 'В отпуске',
+  active: "Активный",
+  inactive: "Неактивный",
+  on_leave: "В отпуске",
 };
 
 const statusColors: Record<string, string> = {
-  active: 'bg-green-500/10 text-green-500',
-  inactive: 'bg-red-500/10 text-red-500',
-  on_leave: 'bg-amber-500/10 text-amber-500',
+  active: "bg-green-500/10 text-green-500",
+  inactive: "bg-red-500/10 text-red-500",
+  on_leave: "bg-amber-500/10 text-amber-500",
 };
 
 export default function EmployeesPage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -117,13 +117,17 @@ export default function EmployeesPage() {
   }, [search]);
 
   // Fetch employees
-  const { data: employees, isLoading, isError } = useQuery<Employee[]>({
-    queryKey: ['employees', debouncedSearch, statusFilter, roleFilter],
+  const {
+    data: employees,
+    isLoading,
+    isError,
+  } = useQuery<Employee[]>({
+    queryKey: ["employees", debouncedSearch, statusFilter, roleFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (roleFilter !== 'all') params.append('role', roleFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (roleFilter !== "all") params.append("role", roleFilter);
       const res = await api.get(`/employees?${params}`);
       return res.data;
     },
@@ -135,28 +139,37 @@ export default function EmployeesPage() {
       await api.delete(`/employees/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success('Сотрудник удалён');
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      toast.success("Сотрудник удалён");
     },
     onError: () => {
-      toast.error('Не удалось удалить сотрудника');
+      toast.error("Не удалось удалить сотрудника");
     },
   });
 
-  const stats = useMemo(() => ({
-    total: employees?.length || 0,
-    active: employees?.filter((e) => e.status === 'active').length || 0,
-    onLeave: employees?.filter((e) => e.status === 'on_leave').length || 0,
-    inactive: employees?.filter((e) => e.status === 'inactive').length || 0,
-  }), [employees]);
+  const stats = useMemo(
+    () => ({
+      total: employees?.length || 0,
+      active: employees?.filter((e) => e.status === "active").length || 0,
+      onLeave: employees?.filter((e) => e.status === "on_leave").length || 0,
+      inactive: employees?.filter((e) => e.status === "inactive").length || 0,
+    }),
+    [employees],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить сотрудников</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['employees'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить сотрудников
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+          }
+        >
           Повторить
         </Button>
       </div>
@@ -187,7 +200,7 @@ export default function EmployeesPage() {
             <EmployeeForm
               onSuccess={() => {
                 setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['employees'] });
+                queryClient.invalidateQueries({ queryKey: ["employees"] });
               }}
             />
           </DialogContent>
@@ -202,8 +215,8 @@ export default function EmployeesPage() {
             href={tab.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               pathname === tab.href
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
             }`}
           >
             {tab.label}
@@ -279,16 +292,16 @@ export default function EmployeesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
               Все статусы
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('active')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("active")}>
               Активные
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('on_leave')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("on_leave")}>
               В отпуске
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('inactive')}>
+            <DropdownMenuItem onClick={() => setStatusFilter("inactive")}>
               Неактивные
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -302,11 +315,14 @@ export default function EmployeesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setRoleFilter('all')}>
+            <DropdownMenuItem onClick={() => setRoleFilter("all")}>
               Все роли
             </DropdownMenuItem>
             {Object.entries(roleLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setRoleFilter(value)}>
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setRoleFilter(value)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -388,12 +404,16 @@ export default function EmployeesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(employee.hireDate).toLocaleDateString('ru-RU')}
+                    {new Date(employee.hireDate).toLocaleDateString("ru-RU")}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Действия">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Действия"
+                        >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -430,18 +450,24 @@ export default function EmployeesPage() {
 }
 
 // Employee Form Component
-function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess: () => void }) {
+function EmployeeForm({
+  employee,
+  onSuccess,
+}: {
+  employee?: Employee;
+  onSuccess: () => void;
+}) {
   const [formData, setFormData] = useState({
-    firstName: employee?.firstName || '',
-    lastName: employee?.lastName || '',
-    email: employee?.email || '',
-    phone: employee?.phone || '',
-    position: employee?.position || '',
-    department: employee?.department || '',
-    role: employee?.role || 'operator',
-    hireDate: employee?.hireDate || new Date().toISOString().split('T')[0],
-    salary: employee?.salary || '',
-    address: employee?.address || '',
+    firstName: employee?.firstName || "",
+    lastName: employee?.lastName || "",
+    email: employee?.email || "",
+    phone: employee?.phone || "",
+    position: employee?.position || "",
+    department: employee?.department || "",
+    role: employee?.role || "operator",
+    hireDate: employee?.hireDate || new Date().toISOString().split("T")[0],
+    salary: employee?.salary || "",
+    address: employee?.address || "",
   });
 
   const mutation = useMutation({
@@ -449,14 +475,14 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
       if (employee) {
         return api.patch(`/employees/${employee.id}`, data);
       }
-      return api.post('/employees', data);
+      return api.post("/employees", data);
     },
     onSuccess: () => {
-      toast.success(employee ? 'Сотрудник обновлён' : 'Сотрудник добавлен');
+      toast.success(employee ? "Сотрудник обновлён" : "Сотрудник добавлен");
       onSuccess();
     },
     onError: () => {
-      toast.error('Ошибка сохранения');
+      toast.error("Ошибка сохранения");
     },
   });
 
@@ -472,7 +498,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Имя</label>
           <Input
             value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, firstName: e.target.value })
+            }
             required
           />
         </div>
@@ -480,7 +508,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Фамилия</label>
           <Input
             value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, lastName: e.target.value })
+            }
             required
           />
         </div>
@@ -491,7 +521,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <Input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             required
           />
         </div>
@@ -499,7 +531,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Телефон</label>
           <Input
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
             required
           />
         </div>
@@ -509,7 +543,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Должность</label>
           <Input
             value={formData.position}
-            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, position: e.target.value })
+            }
             required
           />
         </div>
@@ -517,7 +553,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Отдел</label>
           <Input
             value={formData.department}
-            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, department: e.target.value })
+            }
             required
           />
         </div>
@@ -527,7 +565,10 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <label className="text-sm font-medium">Роль</label>
           <Select
             value={formData.role}
-            onValueChange={(value) => setFormData({ ...formData, role: value as any })}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onValueChange={(value) =>
+              setFormData({ ...formData, role: value as any })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Выберите роль" />
@@ -546,7 +587,9 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
           <Input
             type="date"
             value={formData.hireDate}
-            onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, hireDate: e.target.value })
+            }
             required
           />
         </div>
@@ -555,12 +598,18 @@ function EmployeeForm({ employee, onSuccess }: { employee?: Employee; onSuccess:
         <label className="text-sm font-medium">Адрес</label>
         <Input
           value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, address: e.target.value })
+          }
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Сохранение...' : employee ? 'Обновить' : 'Добавить'}
+          {mutation.isPending
+            ? "Сохранение..."
+            : employee
+              ? "Обновить"
+              : "Добавить"}
         </Button>
       </div>
     </form>

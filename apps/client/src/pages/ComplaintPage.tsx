@@ -3,21 +3,37 @@
  * Customer complaint submission form
  */
 
-import { useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-import { api } from '../lib/api';
+import { useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { api } from "../lib/api";
 
 const complaintTypes = [
-  { id: 'product_not_dispensed', labelKey: 'complaintProductNotDispensed', icon: '💰' },
-  { id: 'product_defective', labelKey: 'complaintProductDefective', icon: '⚠️' },
-  { id: 'product_not_available', labelKey: 'complaintProductNotAvailable', icon: '❌' },
-  { id: 'payment_issue', labelKey: 'complaintPaymentIssue', icon: '💳' },
-  { id: 'machine_malfunction', labelKey: 'complaintMachineMalfunction', icon: '🔧' },
-  { id: 'machine_dirty', labelKey: 'complaintMachineDirty', icon: '🧹' },
-  { id: 'other', labelKey: 'complaintOther', icon: '💬' },
+  {
+    id: "product_not_dispensed",
+    labelKey: "complaintProductNotDispensed",
+    icon: "💰",
+  },
+  {
+    id: "product_defective",
+    labelKey: "complaintProductDefective",
+    icon: "⚠️",
+  },
+  {
+    id: "product_not_available",
+    labelKey: "complaintProductNotAvailable",
+    icon: "❌",
+  },
+  { id: "payment_issue", labelKey: "complaintPaymentIssue", icon: "💳" },
+  {
+    id: "machine_malfunction",
+    labelKey: "complaintMachineMalfunction",
+    icon: "🔧",
+  },
+  { id: "machine_dirty", labelKey: "complaintMachineDirty", icon: "🧹" },
+  { id: "other", labelKey: "complaintOther", icon: "💬" },
 ];
 
 export function ComplaintPage() {
@@ -26,17 +42,20 @@ export function ComplaintPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [step, setStep] = useState<'type' | 'details' | 'contact' | 'success'>('type');
-  const [complaintType, setComplaintType] = useState('');
-  const [description, setDescription] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<"type" | "details" | "contact" | "success">(
+    "type",
+  );
+  const [complaintType, setComplaintType] = useState("");
+  const [description, setDescription] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
 
   // Get machine info
   const { data: machine, isLoading } = useQuery({
-    queryKey: ['machine', machineId],
-    queryFn: () => api.get(`/machines/${machineId}`).then((res) => res.data.data),
+    queryKey: ["machine", machineId],
+    queryFn: () =>
+      api.get(`/machines/${machineId}`).then((res) => res.data.data),
     enabled: !!machineId,
   });
 
@@ -44,22 +63,23 @@ export function ComplaintPage() {
   const submitMutation = useMutation({
     mutationFn: async () => {
       const formData = new FormData();
-      formData.append('machineId', machineId!);
-      formData.append('complaintType', complaintType);
-      formData.append('description', description);
-      formData.append('customerPhone', phone);
-      if (email) formData.append('customerEmail', email);
-      if (photo) formData.append('photo', photo);
+      formData.append("machineId", machineId!);
+      formData.append("complaintType", complaintType);
+      formData.append("description", description);
+      formData.append("customerPhone", phone);
+      if (email) formData.append("customerEmail", email);
+      if (photo) formData.append("photo", photo);
 
-      return api.post('/complaints/public/submit', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      return api.post("/complaints/public/submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
     },
     onSuccess: () => {
-      setStep('success');
+      setStep("success");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || t('errorSending'));
+      toast.error(error.response?.data?.message || t("errorSending"));
     },
   });
 
@@ -84,28 +104,38 @@ export function ComplaintPage() {
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            {step !== 'success' && (
+            {step !== "success" && (
               <button
                 onClick={() => {
-                  if (step === 'details') setStep('type');
-                  else if (step === 'contact') setStep('details');
+                  if (step === "details") setStep("type");
+                  else if (step === "contact") setStep("details");
                   else navigate(-1);
                 }}
                 className="p-2 -ml-2 text-gray-600"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             )}
-            <h1 className="text-xl font-bold">{t('complaint')}</h1>
+            <h1 className="text-xl font-bold">{t("complaint")}</h1>
           </div>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Machine Info */}
-        {machine && step !== 'success' && (
+        {machine && step !== "success" && (
           <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -113,9 +143,13 @@ export function ComplaintPage() {
               </div>
               <div>
                 <h2 className="font-semibold">{machine.name}</h2>
-                <p className="text-sm text-gray-500">#{machine.machineNumber}</p>
+                <p className="text-sm text-gray-500">
+                  #{machine.machineNumber}
+                </p>
                 {machine.address && (
-                  <p className="text-xs text-gray-400 mt-1">{machine.address}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {machine.address}
+                  </p>
                 )}
               </div>
             </div>
@@ -123,23 +157,35 @@ export function ComplaintPage() {
         )}
 
         {/* Step: Select Type */}
-        {step === 'type' && (
+        {step === "type" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">{t('selectProblemType')}</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {t("selectProblemType")}
+            </h2>
             <div className="space-y-3">
               {complaintTypes.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => {
                     setComplaintType(type.id);
-                    setStep('details');
+                    setStep("details");
                   }}
                   className="w-full flex items-center gap-4 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <span className="text-2xl">{type.icon}</span>
                   <span className="font-medium">{t(type.labelKey)}</span>
-                  <svg className="w-5 h-5 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-5 h-5 text-gray-400 ml-auto"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               ))}
@@ -148,61 +194,90 @@ export function ComplaintPage() {
         )}
 
         {/* Step: Details */}
-        {step === 'details' && (
+        {step === "details" && (
           <div>
             <div className="mb-4">
               <span className="inline-flex items-center gap-2 text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
                 {complaintTypes.find((ct) => ct.id === complaintType)?.icon}
-                {t(complaintTypes.find((ct) => ct.id === complaintType)?.labelKey || '')}
+                {t(
+                  complaintTypes.find((ct) => ct.id === complaintType)
+                    ?.labelKey || "",
+                )}
               </span>
             </div>
 
-            <h2 className="text-lg font-semibold mb-4">{t('describeIssue')}</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("describeIssue")}</h2>
 
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('describeWhatHappened')}
+              placeholder={t("describeWhatHappened")}
               className="w-full h-32 p-4 bg-white rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none"
             />
 
             <div className="mt-4">
-              <label className="block text-sm font-medium mb-2">{t('addPhotoOptional')}</label>
+              <label className="block text-sm font-medium mb-2">
+                {t("addPhotoOptional")}
+              </label>
               <label className="flex items-center justify-center gap-2 h-24 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-500 transition-colors">
                 {photo ? (
-                  <span className="text-green-600">✓ {t('photoAdded')}</span>
+                  <span className="text-green-600">✓ {t("photoAdded")}</span>
                 ) : (
                   <>
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
-                    <span className="text-gray-500">{t('addPhoto')}</span>
+                    <span className="text-gray-500">{t("addPhoto")}</span>
                   </>
                 )}
-                <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
               </label>
             </div>
 
             <button
-              onClick={() => setStep('contact')}
+              onClick={() => setStep("contact")}
               disabled={!description.trim()}
               className="w-full mt-6 py-4 bg-indigo-600 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('next')}
+              {t("next")}
             </button>
           </div>
         )}
 
         {/* Step: Contact */}
-        {step === 'contact' && (
+        {step === "contact" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">{t('contactDetails')}</h2>
-            <p className="text-gray-500 mb-6">{t('providePhoneForFeedback')}</p>
+            <h2 className="text-lg font-semibold mb-4">
+              {t("contactDetails")}
+            </h2>
+            <p className="text-gray-500 mb-6">{t("providePhoneForFeedback")}</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">{t('phoneRequired')}</label>
+                <label className="block text-sm font-medium mb-2">
+                  {t("phoneRequired")}
+                </label>
                 <input
                   type="tel"
                   value={phone}
@@ -213,7 +288,9 @@ export function ComplaintPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">{t('emailOptional')}</label>
+                <label className="block text-sm font-medium mb-2">
+                  {t("emailOptional")}
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -232,32 +309,44 @@ export function ComplaintPage() {
               {submitMutation.isPending ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  {t('sending')}
+                  {t("sending")}
                 </>
               ) : (
-                t('submitComplaint')
+                t("submitComplaint")
               )}
             </button>
           </div>
         )}
 
         {/* Step: Success */}
-        {step === 'success' && (
+        {step === "success" && (
           <div className="text-center py-12">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-10 h-10 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-2">{t('complaintSentTitle')}</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              {t("complaintSentTitle")}
+            </h2>
             <p className="text-gray-500 mb-8">
-              {t('complaintSentDescription')}
+              {t("complaintSentDescription")}
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-medium"
             >
-              {t('goHome')}
+              {t("goHome")}
             </button>
           </div>
         )}

@@ -7,11 +7,25 @@
 // Device Types
 // ============================================
 
-export type FiscalDeviceStatus = 'active' | 'inactive' | 'error' | 'maintenance';
-export type FiscalShiftStatus = 'open' | 'closed';
-export type FiscalReceiptStatus = 'pending' | 'processing' | 'success' | 'failed' | 'cancelled';
-export type FiscalReceiptType = 'sale' | 'refund';
-export type FiscalQueueStatus = 'pending' | 'processing' | 'success' | 'failed' | 'retry';
+export type FiscalDeviceStatus =
+  | "active"
+  | "inactive"
+  | "error"
+  | "maintenance";
+export type FiscalShiftStatus = "open" | "closed";
+export type FiscalReceiptStatus =
+  | "pending"
+  | "processing"
+  | "success"
+  | "failed"
+  | "cancelled";
+export type FiscalReceiptType = "sale" | "refund";
+export type FiscalQueueStatus =
+  | "pending"
+  | "processing"
+  | "success"
+  | "failed"
+  | "retry";
 
 export interface FiscalDevice {
   id: string;
@@ -132,7 +146,9 @@ export interface FiscalReceiptMetadata {
   locationId?: string;
   operatorId?: string;
   comment?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawRequest?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawResponse?: any;
 }
 
@@ -145,6 +161,7 @@ export interface FiscalQueueItem {
   organizationId: string;
   deviceId: string;
   operation: FiscalQueueOperation;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any;
   status: FiscalQueueStatus;
   priority: number;
@@ -152,6 +169,7 @@ export interface FiscalQueueItem {
   maxRetries: number;
   nextRetryAt?: string;
   lastError?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result?: any;
   processedAt?: string;
   createdAt: string;
@@ -159,11 +177,11 @@ export interface FiscalQueueItem {
 }
 
 export type FiscalQueueOperation =
-  | 'receipt_sale'
-  | 'receipt_refund'
-  | 'shift_open'
-  | 'shift_close'
-  | 'x_report';
+  | "receipt_sale"
+  | "receipt_refund"
+  | "shift_open"
+  | "shift_close"
+  | "x_report";
 
 // ============================================
 // Request/Response Types

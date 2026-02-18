@@ -2,34 +2,32 @@
  * Payroll DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  IsString,
   IsOptional,
   IsUUID,
   IsEnum,
   IsDateString,
   IsInt,
-  MaxLength,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { PayrollStatus } from '../entities/payroll.entity';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { PayrollStatus } from "../entities/payroll.entity";
 
 // ============================================================================
 // ACTION DTOs
 // ============================================================================
 
 export class CalculatePayrollDto {
-  @ApiProperty({ description: 'Employee ID' })
+  @ApiProperty({ description: "Employee ID" })
   @IsUUID()
   employeeId: string;
 
-  @ApiProperty({ description: 'Period start date (ISO format)' })
+  @ApiProperty({ description: "Period start date (ISO format)" })
   @IsDateString()
   periodStart: string;
 
-  @ApiProperty({ description: 'Period end date (ISO format)' })
+  @ApiProperty({ description: "Period end date (ISO format)" })
   @IsDateString()
   periodEnd: string;
 }
@@ -39,36 +37,36 @@ export class CalculatePayrollDto {
 // ============================================================================
 
 export class QueryPayrollDto {
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: 'Filter by employee ID' })
+  @ApiPropertyOptional({ description: "Filter by employee ID" })
   @IsOptional()
   @IsUUID()
   employeeId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by status', enum: PayrollStatus })
+  @ApiPropertyOptional({ description: "Filter by status", enum: PayrollStatus })
   @IsOptional()
   @IsEnum(PayrollStatus)
   status?: PayrollStatus;
 
-  @ApiPropertyOptional({ description: 'Period start date (ISO format)' })
+  @ApiPropertyOptional({ description: "Period start date (ISO format)" })
   @IsOptional()
   @IsDateString()
   periodStart?: string;
 
-  @ApiPropertyOptional({ description: 'Period end date (ISO format)' })
+  @ApiPropertyOptional({ description: "Period end date (ISO format)" })
   @IsOptional()
   @IsDateString()
   periodEnd?: string;
@@ -143,7 +141,7 @@ export class PayrollDto {
   overtimeHours: number;
 
   @ApiPropertyOptional()
-  details?: Record<string, any> | null;
+  details?: Record<string, unknown> | null;
 
   @ApiPropertyOptional()
   note?: string | null;

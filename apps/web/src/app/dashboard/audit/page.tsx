@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   FileText,
   Search,
@@ -13,29 +13,26 @@ import {
   User,
   Eye,
   Activity,
-  ChevronDown,
-  ChevronUp,
   RefreshCw,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { auditApi } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { auditApi } from "@/lib/api";
 
 interface AuditLog {
   id: string;
@@ -50,9 +47,12 @@ interface AuditLog {
   category?: string;
   severity?: string;
   description?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
+  newValues?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   changes?: { field: string; oldValue: any; newValue: any }[];
+
   ipAddress?: string;
   isSuccess: boolean;
   errorMessage?: string;
@@ -69,49 +69,60 @@ interface AuditStats {
   failedOperations: number;
 }
 
-const severityConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  debug: { label: 'Отладка', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  info: { label: 'Инфо', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  warning: { label: 'Внимание', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
-  error: { label: 'Ошибка', color: 'text-red-600', bgColor: 'bg-red-100' },
-  critical: { label: 'Критично', color: 'text-red-800', bgColor: 'bg-red-200' },
+const severityConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  debug: {
+    label: "Отладка",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
+  info: { label: "Инфо", color: "text-blue-600", bgColor: "bg-blue-100" },
+  warning: {
+    label: "Внимание",
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-100",
+  },
+  error: { label: "Ошибка", color: "text-red-600", bgColor: "bg-red-100" },
+  critical: { label: "Критично", color: "text-red-800", bgColor: "bg-red-200" },
 };
 
 const actionLabels: Record<string, string> = {
-  create: 'Создание',
-  update: 'Изменение',
-  delete: 'Удаление',
-  soft_delete: 'Мягкое удаление',
-  restore: 'Восстановление',
-  login: 'Вход',
-  logout: 'Выход',
-  login_failed: 'Неудачный вход',
-  password_change: 'Смена пароля',
-  password_reset: 'Сброс пароля',
-  permission_change: 'Изменение прав',
-  settings_change: 'Изменение настроек',
-  export: 'Экспорт',
-  import: 'Импорт',
-  bulk_update: 'Массовое обновление',
-  bulk_delete: 'Массовое удаление',
-  payment_processed: 'Платёж',
-  refund_issued: 'Возврат',
-  machine_status_change: 'Смена статуса автомата',
-  inventory_adjustment: 'Корректировка запаса',
-  fiscal_operation: 'Фискальная операция',
+  create: "Создание",
+  update: "Изменение",
+  delete: "Удаление",
+  soft_delete: "Мягкое удаление",
+  restore: "Восстановление",
+  login: "Вход",
+  logout: "Выход",
+  login_failed: "Неудачный вход",
+  password_change: "Смена пароля",
+  password_reset: "Сброс пароля",
+  permission_change: "Изменение прав",
+  settings_change: "Изменение настроек",
+  export: "Экспорт",
+  import: "Импорт",
+  bulk_update: "Массовое обновление",
+  bulk_delete: "Массовое удаление",
+  payment_processed: "Платёж",
+  refund_issued: "Возврат",
+  machine_status_change: "Смена статуса автомата",
+  inventory_adjustment: "Корректировка запаса",
+  fiscal_operation: "Фискальная операция",
 };
 
 const categoryLabels: Record<string, string> = {
-  authentication: 'Аутентификация',
-  authorization: 'Авторизация',
-  data_access: 'Доступ к данным',
-  data_modification: 'Изменение данных',
-  system: 'Система',
-  security: 'Безопасность',
-  compliance: 'Соответствие',
-  financial: 'Финансы',
-  operational: 'Операции',
-  integration: 'Интеграции',
+  authentication: "Аутентификация",
+  authorization: "Авторизация",
+  data_access: "Доступ к данным",
+  data_modification: "Изменение данных",
+  system: "Система",
+  security: "Безопасность",
+  compliance: "Соответствие",
+  financial: "Финансы",
+  operational: "Операции",
+  integration: "Интеграции",
 };
 
 function StatsCardSkeleton() {
@@ -150,8 +161,8 @@ function LogCardSkeleton() {
 }
 
 export default function AuditPage() {
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -162,8 +173,18 @@ export default function AuditPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: logs, isLoading, isError } = useQuery({
-    queryKey: ['audit', 'logs', debouncedSearch, severityFilter, categoryFilter],
+  const {
+    data: logs,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "audit",
+      "logs",
+      debouncedSearch,
+      severityFilter,
+      categoryFilter,
+    ],
     queryFn: () =>
       auditApi
         .getLogs({
@@ -176,11 +197,13 @@ export default function AuditPage() {
   });
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
-    queryKey: ['audit', 'statistics'],
+    queryKey: ["audit", "statistics"],
     queryFn: () =>
       auditApi
         .getStatistics({
-          dateFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          dateFrom: new Date(
+            Date.now() - 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
           dateTo: new Date().toISOString(),
         })
         .then((res) => res.data),
@@ -189,22 +212,31 @@ export default function AuditPage() {
   const logList: AuditLog[] = Array.isArray(logs) ? logs : [];
   const stats: AuditStats | null = statsData || null;
 
-  const quickStats = useMemo(() => ({
-    total: stats?.totalEvents || logList.length,
-    security: stats?.securityEvents || 0,
-    failed: stats?.failedOperations || logList.filter((l) => !l.isSuccess).length,
-    today: logList.filter(
-      (l) => new Date(l.createdAt).toDateString() === new Date().toDateString()
-    ).length,
-  }), [stats, logList]);
+  const quickStats = useMemo(
+    () => ({
+      total: stats?.totalEvents || logList.length,
+      security: stats?.securityEvents || 0,
+      failed:
+        stats?.failedOperations || logList.filter((l) => !l.isSuccess).length,
+      today: logList.filter(
+        (l) =>
+          new Date(l.createdAt).toDateString() === new Date().toDateString(),
+      ).length,
+    }),
+    [stats, logList],
+  );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить журнал аудита</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['audit'] })}>
+        <p className="text-muted-foreground mb-4">
+          Не удалось загрузить журнал аудита
+        </p>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["audit"] })}
+        >
           Повторить
         </Button>
       </div>
@@ -217,13 +249,15 @@ export default function AuditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Аудит</h1>
-          <p className="text-muted-foreground">Журнал действий и безопасности системы</p>
+          <p className="text-muted-foreground">
+            Журнал действий и безопасности системы
+          </p>
         </div>
         <Button
           variant="outline"
           onClick={() => {
-            queryClient.invalidateQueries({ queryKey: ['audit'] });
-            toast.success('Данные обновлены');
+            queryClient.invalidateQueries({ queryKey: ["audit"] });
+            toast.success("Данные обновлены");
           }}
         >
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -241,7 +275,9 @@ export default function AuditPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Всего событий</p>
+                    <p className="text-sm text-muted-foreground">
+                      Всего событий
+                    </p>
                     <p className="text-2xl font-bold">{quickStats.total}</p>
                   </div>
                   <Activity className="h-8 w-8 text-muted-foreground" />
@@ -252,8 +288,12 @@ export default function AuditPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Безопасность</p>
-                    <p className="text-2xl font-bold text-yellow-600">{quickStats.security}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Безопасность
+                    </p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {quickStats.security}
+                    </p>
                   </div>
                   <Shield className="h-8 w-8 text-yellow-600" />
                 </div>
@@ -264,7 +304,9 @@ export default function AuditPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Ошибки</p>
-                    <p className="text-2xl font-bold text-red-600">{quickStats.failed}</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {quickStats.failed}
+                    </p>
                   </div>
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
@@ -275,7 +317,9 @@ export default function AuditPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Сегодня</p>
-                    <p className="text-2xl font-bold text-blue-600">{quickStats.today}</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {quickStats.today}
+                    </p>
                   </div>
                   <Clock className="h-8 w-8 text-blue-600" />
                 </div>
@@ -301,7 +345,9 @@ export default function AuditPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {severityFilter ? severityConfig[severityFilter]?.label : 'Важность'}
+              {severityFilter
+                ? severityConfig[severityFilter]?.label
+                : "Важность"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -309,7 +355,10 @@ export default function AuditPage() {
               Все уровни
             </DropdownMenuItem>
             {Object.entries(severityConfig).map(([key, config]) => (
-              <DropdownMenuItem key={key} onClick={() => setSeverityFilter(key)}>
+              <DropdownMenuItem
+                key={key}
+                onClick={() => setSeverityFilter(key)}
+              >
                 {config.label}
               </DropdownMenuItem>
             ))}
@@ -319,7 +368,7 @@ export default function AuditPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {categoryFilter ? categoryLabels[categoryFilter] : 'Категория'}
+              {categoryFilter ? categoryLabels[categoryFilter] : "Категория"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -327,7 +376,10 @@ export default function AuditPage() {
               Все категории
             </DropdownMenuItem>
             {Object.entries(categoryLabels).map(([key, label]) => (
-              <DropdownMenuItem key={key} onClick={() => setCategoryFilter(key)}>
+              <DropdownMenuItem
+                key={key}
+                onClick={() => setCategoryFilter(key)}
+              >
                 {label}
               </DropdownMenuItem>
             ))}
@@ -338,20 +390,25 @@ export default function AuditPage() {
       {/* Audit Log List */}
       {isLoading ? (
         <div className="space-y-4">
-          {Array.from({ length: 8 }).map((_, i) => <LogCardSkeleton key={i} />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <LogCardSkeleton key={i} />
+          ))}
         </div>
       ) : logList.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-lg font-medium">Записей не найдено</p>
-            <p className="text-muted-foreground">Нет записей аудита по выбранным фильтрам</p>
+            <p className="text-muted-foreground">
+              Нет записей аудита по выбранным фильтрам
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {logList.map((log: AuditLog) => {
-            const severity = severityConfig[log.severity || 'info'] || severityConfig.info;
+            const severity =
+              severityConfig[log.severity || "info"] || severityConfig.info;
 
             return (
               <Card
@@ -362,7 +419,9 @@ export default function AuditPage() {
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${log.isSuccess ? 'bg-muted' : 'bg-red-100'}`}>
+                      <div
+                        className={`h-10 w-10 rounded-full flex items-center justify-center ${log.isSuccess ? "bg-muted" : "bg-red-100"}`}
+                      >
                         {log.isSuccess ? (
                           <FileText className="h-5 w-5 text-muted-foreground" />
                         ) : (
@@ -374,7 +433,9 @@ export default function AuditPage() {
                           <h3 className="font-medium">
                             {actionLabels[log.action] || log.action}
                           </h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${severity.bgColor} ${severity.color}`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${severity.bgColor} ${severity.color}`}
+                          >
                             {severity.label}
                           </span>
                           {log.category && (
@@ -383,7 +444,9 @@ export default function AuditPage() {
                             </span>
                           )}
                           {!log.isSuccess && (
-                            <Badge variant="destructive" className="text-xs">Ошибка</Badge>
+                            <Badge variant="destructive" className="text-xs">
+                              Ошибка
+                            </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
@@ -400,17 +463,21 @@ export default function AuditPage() {
                             </span>
                           )}
                           {log.description && (
-                            <span className="max-w-[300px] truncate">{log.description}</span>
+                            <span className="max-w-[300px] truncate">
+                              {log.description}
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-muted-foreground">
-                        {new Date(log.createdAt).toLocaleString('ru-RU')}
+                        {new Date(log.createdAt).toLocaleString("ru-RU")}
                       </p>
                       {log.ipAddress && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{log.ipAddress}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {log.ipAddress}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -434,51 +501,79 @@ export default function AuditPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Действие</p>
-                  <p className="font-medium">{actionLabels[selectedLog.action] || selectedLog.action}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Действие
+                  </p>
+                  <p className="font-medium">
+                    {actionLabels[selectedLog.action] || selectedLog.action}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Статус</p>
-                  <Badge variant={selectedLog.isSuccess ? 'default' : 'destructive'}>
-                    {selectedLog.isSuccess ? 'Успешно' : 'Ошибка'}
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Статус
+                  </p>
+                  <Badge
+                    variant={selectedLog.isSuccess ? "default" : "destructive"}
+                  >
+                    {selectedLog.isSuccess ? "Успешно" : "Ошибка"}
                   </Badge>
                 </div>
                 {selectedLog.userName && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Пользователь</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Пользователь
+                    </p>
                     <p>{selectedLog.userName}</p>
                     {selectedLog.userEmail && (
-                      <p className="text-sm text-muted-foreground">{selectedLog.userEmail}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedLog.userEmail}
+                      </p>
                     )}
                   </div>
                 )}
                 {selectedLog.userRole && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Роль</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Роль
+                    </p>
                     <p>{selectedLog.userRole}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Объект</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Объект
+                  </p>
                   <p>{selectedLog.entityName || selectedLog.entityType}</p>
                   {selectedLog.entityId && (
-                    <p className="text-xs text-muted-foreground font-mono">{selectedLog.entityId}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {selectedLog.entityId}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Дата и время</p>
-                  <p>{new Date(selectedLog.createdAt).toLocaleString('ru-RU')}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Дата и время
+                  </p>
+                  <p>
+                    {new Date(selectedLog.createdAt).toLocaleString("ru-RU")}
+                  </p>
                 </div>
                 {selectedLog.ipAddress && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">IP-адрес</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      IP-адрес
+                    </p>
                     <p className="font-mono">{selectedLog.ipAddress}</p>
                   </div>
                 )}
                 {selectedLog.severity && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Важность</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${severityConfig[selectedLog.severity]?.bgColor} ${severityConfig[selectedLog.severity]?.color}`}>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Важность
+                    </p>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${severityConfig[selectedLog.severity]?.bgColor} ${severityConfig[selectedLog.severity]?.color}`}
+                    >
                       {severityConfig[selectedLog.severity]?.label}
                     </span>
                   </div>
@@ -487,14 +582,18 @@ export default function AuditPage() {
 
               {selectedLog.description && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Описание</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Описание
+                  </p>
                   <p className="text-sm">{selectedLog.description}</p>
                 </div>
               )}
 
               {selectedLog.errorMessage && (
                 <div>
-                  <p className="text-sm font-medium text-red-500 mb-1">Сообщение об ошибке</p>
+                  <p className="text-sm font-medium text-red-500 mb-1">
+                    Сообщение об ошибке
+                  </p>
                   <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg font-mono">
                     {selectedLog.errorMessage}
                   </p>
@@ -503,7 +602,9 @@ export default function AuditPage() {
 
               {selectedLog.changes && selectedLog.changes.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Изменения</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">
+                    Изменения
+                  </p>
                   <div className="border rounded-lg divide-y">
                     {selectedLog.changes.map((change, i) => (
                       <div key={i} className="p-3 text-sm">

@@ -1,11 +1,11 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
+import { firstValueFrom } from "rxjs";
 import {
   MultiKassaReceiptItem,
   MultiKassaReceiptResponse,
-} from '../../integrations/templates/multikassa.template';
+} from "../../integrations/templates/multikassa.template";
 
 export interface MultiKassaCredentials {
   login: string;
@@ -47,7 +47,7 @@ export interface ShiftStatusResponse {
   success: boolean;
   shiftId: string;
   shiftNumber: number;
-  status: 'open' | 'closed';
+  status: "open" | "closed";
   openedAt: string;
   closedAt?: string;
   cashierName: string;
@@ -69,7 +69,7 @@ export interface XReportResponse {
 }
 
 export interface CreateReceiptRequest {
-  type: 'sale' | 'refund';
+  type: "sale" | "refund";
   items: MultiKassaReceiptItem[];
   payment: {
     cash: number;
@@ -117,8 +117,9 @@ export class MultiKassaService {
    */
   private async request<T>(
     deviceId: string,
-    method: 'GET' | 'POST',
+    method: "GET" | "POST",
     path: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any,
   ): Promise<T> {
     const config = this.getConfig(deviceId);
@@ -126,7 +127,7 @@ export class MultiKassaService {
 
     const auth = Buffer.from(
       `${config.credentials.login}:${config.credentials.password}`,
-    ).toString('base64');
+    ).toString("base64");
 
     try {
       const response = await firstValueFrom(
@@ -135,22 +136,23 @@ export class MultiKassaService {
           url,
           data,
           headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
           timeout: 30000,
         }),
       );
 
       return response.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(
         `MultiKassa API error: ${error.message}`,
         error.response?.data,
       );
       throw new HttpException(
-        error.response?.data?.message || 'MultiKassa API error',
+        error.response?.data?.message || "MultiKassa API error",
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -170,9 +172,11 @@ export class MultiKassaService {
     this.logger.log(`Opening shift for device ${deviceId}`);
 
     const config = this.getConfig(deviceId);
-    const cashierName = request.cashierName || config.credentials.defaultCashier || 'VendHub';
+    const cashierName =
+      request.cashierName || config.credentials.defaultCashier || "VendHub";
 
-    const response = await this.request<any>(deviceId, 'POST', '/shift/open', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(deviceId, "POST", "/shift/open", {
       cashier_name: cashierName,
     });
 
@@ -190,7 +194,13 @@ export class MultiKassaService {
   async closeShift(deviceId: string): Promise<CloseShiftResponse> {
     this.logger.log(`Closing shift for device ${deviceId}`);
 
-    const response = await this.request<any>(deviceId, 'POST', '/shift/close', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(
+      deviceId,
+      "POST",
+      "/shift/close",
+      {},
+    );
 
     return {
       success: true,
@@ -209,7 +219,8 @@ export class MultiKassaService {
    * Get shift status
    */
   async getShiftStatus(deviceId: string): Promise<ShiftStatusResponse> {
-    const response = await this.request<any>(deviceId, 'GET', '/shift/status');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(deviceId, "GET", "/shift/status");
 
     return {
       success: true,
@@ -231,7 +242,12 @@ export class MultiKassaService {
    * Get X-report (intermediate report)
    */
   async getXReport(deviceId: string): Promise<XReportResponse> {
-    const response = await this.request<any>(deviceId, 'GET', '/shift/x-report');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(
+      deviceId,
+      "GET",
+      "/shift/x-report",
+    );
 
     return {
       success: true,
@@ -259,7 +275,13 @@ export class MultiKassaService {
 
     const payload = this.buildReceiptPayload(request);
 
-    const response = await this.request<any>(deviceId, 'POST', '/receipt/sale', payload);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(
+      deviceId,
+      "POST",
+      "/receipt/sale",
+      payload,
+    );
 
     return {
       success: true,
@@ -281,9 +303,15 @@ export class MultiKassaService {
   ): Promise<MultiKassaReceiptResponse> {
     this.logger.log(`Creating refund receipt for device ${deviceId}`);
 
-    const payload = this.buildReceiptPayload({ ...request, type: 'refund' });
+    const payload = this.buildReceiptPayload({ ...request, type: "refund" });
 
-    const response = await this.request<any>(deviceId, 'POST', '/receipt/refund', payload);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await this.request<any>(
+      deviceId,
+      "POST",
+      "/receipt/refund",
+      payload,
+    );
 
     return {
       success: true,
@@ -299,10 +327,11 @@ export class MultiKassaService {
   /**
    * Build receipt payload for API
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildReceiptPayload(request: CreateReceiptRequest): any {
     return {
       type: request.type,
-      items: request.items.map(item => ({
+      items: request.items.map((item) => ({
         name: item.name,
         ikpu_code: item.ikpu_code,
         package_code: item.package_code,
@@ -361,7 +390,7 @@ export class MultiKassaService {
   async isShiftOpen(deviceId: string): Promise<boolean> {
     try {
       const status = await this.getShiftStatus(deviceId);
-      return status.status === 'open';
+      return status.status === "open";
     } catch {
       return false;
     }
@@ -382,7 +411,8 @@ export class MultiKassaService {
 
     const config = this.getConfig(deviceId);
     return this.openShift(deviceId, {
-      cashierName: cashierName || config.credentials.defaultCashier || 'VendHub Auto',
+      cashierName:
+        cashierName || config.credentials.defaultCashier || "VendHub Auto",
     });
   }
 }

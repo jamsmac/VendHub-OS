@@ -13,28 +13,28 @@ import {
   IsObject,
   MaxLength,
   Min,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 
 export enum InventoryLevel {
-  WAREHOUSE = 'warehouse',
-  OPERATOR = 'operator',
-  MACHINE = 'machine',
+  WAREHOUSE = "warehouse",
+  OPERATOR = "operator",
+  MACHINE = "machine",
 }
 
 export enum MovementType {
-  PURCHASE = 'purchase',
-  TRANSFER_IN = 'transfer_in',
-  TRANSFER_OUT = 'transfer_out',
-  SALE = 'sale',
-  REPLENISHMENT = 'replenishment',
-  COLLECTION = 'collection',
-  ADJUSTMENT = 'adjustment',
-  WRITE_OFF = 'write_off',
-  RETURN = 'return',
-  LOSS = 'loss',
-  FOUND = 'found',
+  PURCHASE = "purchase",
+  TRANSFER_IN = "transfer_in",
+  TRANSFER_OUT = "transfer_out",
+  SALE = "sale",
+  REPLENISHMENT = "replenishment",
+  COLLECTION = "collection",
+  ADJUSTMENT = "adjustment",
+  WRITE_OFF = "write_off",
+  RETURN = "return",
+  LOSS = "loss",
+  FOUND = "found",
 }
 
 export class CreateInventoryDto {
@@ -174,7 +174,7 @@ export class UpdateInventoryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class TransferInventoryDto {
@@ -254,7 +254,7 @@ export class AdjustInventoryDto {
   @IsNumber()
   newQuantity: number;
 
-  @ApiProperty({ example: 'Коррекция после инвентаризации' })
+  @ApiProperty({ example: "Коррекция после инвентаризации" })
   @IsString()
   @IsNotEmpty()
   reason: string;
@@ -276,7 +276,7 @@ export class WriteOffInventoryDto {
   @Min(1)
   quantity: number;
 
-  @ApiProperty({ example: 'Истек срок годности' })
+  @ApiProperty({ example: "Истек срок годности" })
   @IsString()
   @IsNotEmpty()
   reason: string;
@@ -318,11 +318,11 @@ export class QueryInventoryDto {
   @IsUUID()
   warehouseId?: string;
 
-  @ApiPropertyOptional({ description: 'Show only low stock items' })
+  @ApiPropertyOptional({ description: "Show only low stock items" })
   @IsOptional()
   lowStock?: boolean;
 
-  @ApiPropertyOptional({ description: 'Show only items expiring soon' })
+  @ApiPropertyOptional({ description: "Show only items expiring soon" })
   @IsOptional()
   expiringSoon?: boolean;
 

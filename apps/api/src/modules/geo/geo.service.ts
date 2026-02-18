@@ -3,16 +3,13 @@
  * Геолокация и интеграция с Google Maps
  */
 
-import {
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { Machine } from '../machines/entities/machine.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
+import { Machine } from "../machines/entities/machine.entity";
 
 // ============================================================================
 // TYPES
@@ -71,7 +68,7 @@ export interface PlaceAutocompleteResult {
 export class GeoService {
   private readonly logger = new Logger(GeoService.name);
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://maps.googleapis.com/maps/api';
+  private readonly baseUrl = "https://maps.googleapis.com/maps/api";
 
   // Tashkent center for default
   private readonly defaultCenter: Coordinates = {
@@ -85,7 +82,7 @@ export class GeoService {
     @InjectRepository(Machine)
     private readonly machineRepo: Repository<Machine>,
   ) {
-    this.apiKey = this.configService.get<string>('GOOGLE_MAPS_API_KEY', '');
+    this.apiKey = this.configService.get<string>("GOOGLE_MAPS_API_KEY", "");
   }
 
   // ============================================================================
@@ -97,7 +94,7 @@ export class GeoService {
    */
   async geocodeAddress(address: string): Promise<GeocodingResult | null> {
     if (!this.apiKey) {
-      this.logger.warn('Google Maps API key not configured');
+      this.logger.warn("Google Maps API key not configured");
       return null;
     }
 
@@ -107,18 +104,19 @@ export class GeoService {
           params: {
             address,
             key: this.apiKey,
-            language: 'ru',
-            region: 'uz',
+            language: "ru",
+            region: "uz",
           },
         }),
       );
 
-      if (response.data.status !== 'OK' || !response.data.results?.length) {
+      if (response.data.status !== "OK" || !response.data.results?.length) {
         return null;
       }
 
       const result = response.data.results[0];
       return this.parseGeocodingResult(result);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Geocoding failed: ${error.message}`);
       return null;
@@ -139,16 +137,17 @@ export class GeoService {
           params: {
             latlng: `${coords.latitude},${coords.longitude}`,
             key: this.apiKey,
-            language: 'ru',
+            language: "ru",
           },
         }),
       );
 
-      if (response.data.status !== 'OK' || !response.data.results?.length) {
+      if (response.data.status !== "OK" || !response.data.results?.length) {
         return null;
       }
 
       return this.parseGeocodingResult(response.data.results[0]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Reverse geocoding failed: ${error.message}`);
       return null;
@@ -189,11 +188,11 @@ export class GeoService {
     `;
 
     const qb = this.machineRepo
-      .createQueryBuilder('m')
-      .addSelect(haversineQuery, 'distance')
-      .where('m.organizationId = :organizationId', { organizationId })
-      .andWhere('m.latitude IS NOT NULL')
-      .andWhere('m.longitude IS NOT NULL')
+      .createQueryBuilder("m")
+      .addSelect(haversineQuery, "distance")
+      .where("m.organizationId = :organizationId", { organizationId })
+      .andWhere("m.latitude IS NOT NULL")
+      .andWhere("m.longitude IS NOT NULL")
       .andWhere(`${haversineQuery} <= :maxDistance`, {
         lat: coords.latitude,
         lng: coords.longitude,
@@ -203,18 +202,23 @@ export class GeoService {
         lat: coords.latitude,
         lng: coords.longitude,
       })
-      .orderBy('distance', 'ASC')
+      .orderBy("distance", "ASC")
       .limit(limit);
 
     if (onlyOnline) {
-      qb.andWhere('m.isOnline = :isOnline', { isOnline: true });
+      qb.andWhere("m.isOnline = :isOnline", { isOnline: true });
     }
 
     // Filter by product if specified
     if (productId) {
-      qb.innerJoin('m.inventory', 'inv', 'inv.productId = :productId AND inv.quantity > 0', {
-        productId,
-      });
+      qb.innerJoin(
+        "m.inventory",
+        "inv",
+        "inv.productId = :productId AND inv.quantity > 0",
+        {
+          productId,
+        },
+      );
     }
 
     const results = await qb.getRawAndEntities();
@@ -240,18 +244,18 @@ export class GeoService {
     _zoom: number,
   ): Promise<Machine[]> {
     const machines = await this.machineRepo
-      .createQueryBuilder('m')
-      .where('m.organizationId = :organizationId', { organizationId })
-      .andWhere('m.latitude BETWEEN :south AND :north', {
+      .createQueryBuilder("m")
+      .where("m.organizationId = :organizationId", { organizationId })
+      .andWhere("m.latitude BETWEEN :south AND :north", {
         south: bounds.south,
         north: bounds.north,
       })
-      .andWhere('m.longitude BETWEEN :west AND :east', {
+      .andWhere("m.longitude BETWEEN :west AND :east", {
         west: bounds.west,
         east: bounds.east,
       })
-      .andWhere('m.latitude IS NOT NULL')
-      .andWhere('m.longitude IS NOT NULL')
+      .andWhere("m.latitude IS NOT NULL")
+      .andWhere("m.longitude IS NOT NULL")
       .getMany();
 
     return machines;
@@ -267,7 +271,7 @@ export class GeoService {
   async getDirections(
     origin: Coordinates,
     destination: Coordinates,
-    mode: 'walking' | 'driving' | 'transit' = 'walking',
+    mode: "walking" | "driving" | "transit" = "walking",
   ): Promise<DirectionsResult | null> {
     if (!this.apiKey) {
       return null;
@@ -281,12 +285,12 @@ export class GeoService {
             destination: `${destination.latitude},${destination.longitude}`,
             mode,
             key: this.apiKey,
-            language: 'ru',
+            language: "ru",
           },
         }),
       );
 
-      if (response.data.status !== 'OK' || !response.data.routes?.length) {
+      if (response.data.status !== "OK" || !response.data.routes?.length) {
         return null;
       }
 
@@ -297,12 +301,14 @@ export class GeoService {
         distance: leg.distance.value,
         duration: leg.duration.value,
         polyline: route.overview_polyline.points,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         steps: leg.steps.map((step: any) => ({
-          instruction: step.html_instructions.replace(/<[^>]*>/g, ''),
+          instruction: step.html_instructions.replace(/<[^>]*>/g, ""),
           distance: step.distance.value,
           duration: step.duration.value,
         })),
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Directions failed: ${error.message}`);
       return null;
@@ -315,7 +321,7 @@ export class GeoService {
   async getDistanceMatrix(
     origin: Coordinates,
     destinations: Coordinates[],
-    mode: 'walking' | 'driving' = 'walking',
+    mode: "walking" | "driving" = "walking",
   ): Promise<Array<{ distance: number; duration: number }> | null> {
     if (!this.apiKey || destinations.length === 0) {
       return null;
@@ -323,8 +329,8 @@ export class GeoService {
 
     try {
       const destinationsStr = destinations
-        .map(d => `${d.latitude},${d.longitude}`)
-        .join('|');
+        .map((d) => `${d.latitude},${d.longitude}`)
+        .join("|");
 
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/distancematrix/json`, {
@@ -337,15 +343,17 @@ export class GeoService {
         }),
       );
 
-      if (response.data.status !== 'OK') {
+      if (response.data.status !== "OK") {
         return null;
       }
 
       const elements = response.data.rows[0]?.elements || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return elements.map((el: any) => ({
-        distance: el.status === 'OK' ? el.distance.value : -1,
-        duration: el.status === 'OK' ? el.duration.value : -1,
+        distance: el.status === "OK" ? el.distance.value : -1,
+        duration: el.status === "OK" ? el.duration.value : -1,
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Distance matrix failed: ${error.message}`);
       return null;
@@ -373,23 +381,25 @@ export class GeoService {
           params: {
             input,
             key: this.apiKey,
-            language: 'ru',
-            components: 'country:uz',
+            language: "ru",
+            components: "country:uz",
             sessiontoken: sessionToken,
           },
         }),
       );
 
-      if (response.data.status !== 'OK') {
+      if (response.data.status !== "OK") {
         return [];
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return response.data.predictions.map((p: any) => ({
         placeId: p.place_id,
         description: p.description,
         mainText: p.structured_formatting?.main_text || p.description,
-        secondaryText: p.structured_formatting?.secondary_text || '',
+        secondaryText: p.structured_formatting?.secondary_text || "",
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Autocomplete failed: ${error.message}`);
       return [];
@@ -410,13 +420,13 @@ export class GeoService {
           params: {
             place_id: placeId,
             key: this.apiKey,
-            language: 'ru',
-            fields: 'formatted_address,geometry,address_components',
+            language: "ru",
+            fields: "formatted_address,geometry,address_components",
           },
         }),
       );
 
-      if (response.data.status !== 'OK') {
+      if (response.data.status !== "OK") {
         return null;
       }
 
@@ -428,6 +438,7 @@ export class GeoService {
         placeId,
         components: this.parseAddressComponents(result.address_components),
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Place details failed: ${error.message}`);
       return null;
@@ -446,30 +457,38 @@ export class GeoService {
     options: {
       zoom?: number;
       size?: string;
-      markers?: Array<{ lat: number; lng: number; label?: string; color?: string }>;
+      markers?: Array<{
+        lat: number;
+        lng: number;
+        label?: string;
+        color?: string;
+      }>;
       path?: string; // encoded polyline
     } = {},
   ): string {
-    const { zoom = 15, size = '400x300', markers = [], path } = options;
+    const { zoom = 15, size = "400x300", markers = [], path } = options;
 
     const params = new URLSearchParams({
       center: `${center.latitude},${center.longitude}`,
       zoom: zoom.toString(),
       size,
       key: this.apiKey,
-      maptype: 'roadmap',
+      maptype: "roadmap",
     });
 
     // Add markers
     for (const marker of markers) {
-      const color = marker.color || 'red';
-      const label = marker.label || '';
-      params.append('markers', `color:${color}|label:${label}|${marker.lat},${marker.lng}`);
+      const color = marker.color || "red";
+      const label = marker.label || "";
+      params.append(
+        "markers",
+        `color:${color}|label:${label}|${marker.lat},${marker.lng}`,
+      );
     }
 
     // Add path
     if (path) {
-      params.append('path', `enc:${path}`);
+      params.append("path", `enc:${path}`);
     }
 
     return `${this.baseUrl}/staticmap?${params.toString()}`;
@@ -491,7 +510,10 @@ export class GeoService {
 
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+      Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -522,6 +544,7 @@ export class GeoService {
   // HELPERS
   // ============================================================================
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseGeocodingResult(result: any): GeocodingResult {
     return {
       formattedAddress: result.formatted_address,
@@ -532,23 +555,29 @@ export class GeoService {
     };
   }
 
-  private parseAddressComponents(components: any[]): GeocodingResult['components'] {
-    const result: GeocodingResult['components'] = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private parseAddressComponents(
+    components: any[],
+  ): GeocodingResult["components"] {
+    const result: GeocodingResult["components"] = {};
 
     for (const component of components || []) {
       const types = component.types || [];
 
-      if (types.includes('country')) {
+      if (types.includes("country")) {
         result.country = component.long_name;
-      } else if (types.includes('locality')) {
+      } else if (types.includes("locality")) {
         result.city = component.long_name;
-      } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
+      } else if (
+        types.includes("sublocality") ||
+        types.includes("sublocality_level_1")
+      ) {
         result.district = component.long_name;
-      } else if (types.includes('route')) {
+      } else if (types.includes("route")) {
         result.street = component.long_name;
-      } else if (types.includes('street_number')) {
+      } else if (types.includes("street_number")) {
         result.building = component.long_name;
-      } else if (types.includes('postal_code')) {
+      } else if (types.includes("postal_code")) {
         result.postalCode = component.long_name;
       }
     }

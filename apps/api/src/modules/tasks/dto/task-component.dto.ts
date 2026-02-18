@@ -8,86 +8,91 @@ import {
   IsNumber,
   MaxLength,
   Min,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ComponentRole } from '../entities/task.entity';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ComponentRole } from "../entities/task.entity";
 
 export class CreateTaskComponentDto {
-  @ApiProperty({ description: 'Component ID' })
+  @ApiProperty({ description: "Component ID" })
   @IsUUID()
   @IsNotEmpty()
   componentId: string;
 
-  @ApiProperty({ enum: ComponentRole, description: 'Component role in the task' })
+  @ApiProperty({
+    enum: ComponentRole,
+    description: "Component role in the task",
+  })
   @IsEnum(ComponentRole)
   role: ComponentRole;
 
-  @ApiPropertyOptional({ description: 'Serial number' })
+  @ApiPropertyOptional({ description: "Serial number" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   serialNumber?: string;
 
-  @ApiPropertyOptional({ description: 'Notes (replacement reason, condition, etc.)' })
+  @ApiPropertyOptional({
+    description: "Notes (replacement reason, condition, etc.)",
+  })
   @IsOptional()
   @IsString()
   notes?: string;
 
-  @ApiPropertyOptional({ description: 'Additional metadata' })
+  @ApiPropertyOptional({ description: "Additional metadata" })
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class CreateTaskPhotoDto {
   @ApiProperty({
-    example: 'before',
-    enum: ['before', 'after', 'during', 'other'],
-    description: 'Photo category',
+    example: "before",
+    enum: ["before", "after", "during", "other"],
+    description: "Photo category",
   })
   @IsString()
   @IsNotEmpty()
-  category: 'before' | 'after' | 'during' | 'other';
+  category: "before" | "after" | "during" | "other";
 
-  @ApiProperty({ description: 'File URL' })
+  @ApiProperty({ description: "File URL" })
   @IsString()
   @IsNotEmpty()
   url: string;
 
-  @ApiPropertyOptional({ description: 'Thumbnail URL' })
+  @ApiPropertyOptional({ description: "Thumbnail URL" })
   @IsOptional()
   @IsString()
   thumbnailUrl?: string;
 
-  @ApiPropertyOptional({ description: 'File size in bytes' })
+  @ApiPropertyOptional({ description: "File size in bytes" })
   @IsOptional()
   @IsNumber()
   @Min(0)
   fileSize?: number;
 
-  @ApiPropertyOptional({ description: 'MIME type' })
+  @ApiPropertyOptional({ description: "MIME type" })
   @IsOptional()
   @IsString()
   mimeType?: string;
 
-  @ApiPropertyOptional({ description: 'Photo latitude' })
+  @ApiPropertyOptional({ description: "Photo latitude" })
   @IsOptional()
   @IsNumber()
   latitude?: number;
 
-  @ApiPropertyOptional({ description: 'Photo longitude' })
+  @ApiPropertyOptional({ description: "Photo longitude" })
   @IsOptional()
   @IsNumber()
   longitude?: number;
 
-  @ApiPropertyOptional({ description: 'Photo description' })
+  @ApiPropertyOptional({ description: "Photo description" })
   @IsOptional()
   @IsString()
   description?: string;
 }
 
 export class AssignTaskDto {
-  @ApiProperty({ description: 'User ID to assign the task to' })
+  @ApiProperty({ description: "User ID to assign the task to" })
   @IsUUID()
   @IsNotEmpty()
   userId: string;
@@ -95,8 +100,8 @@ export class AssignTaskDto {
 
 export class PostponeTaskDto {
   @ApiProperty({
-    example: 'Автомат заблокирован, нет доступа',
-    description: 'Postpone reason',
+    example: "Автомат заблокирован, нет доступа",
+    description: "Postpone reason",
   })
   @IsString()
   @IsNotEmpty()
@@ -105,8 +110,8 @@ export class PostponeTaskDto {
 
 export class RejectTaskDto {
   @ApiProperty({
-    example: 'Пополнение не полное',
-    description: 'Rejection reason',
+    example: "Пополнение не полное",
+    description: "Rejection reason",
   })
   @IsString()
   @IsNotEmpty()

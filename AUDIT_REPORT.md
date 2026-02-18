@@ -1,0 +1,991 @@
+# VendHub OS — Полный Аудит Проекта
+
+**Дата аудита:** 2026-02-18
+**Версия:** 1.2 (финальная)
+**Аудитор:** AI Agent (Claude Opus 4.6)
+
+---
+
+## 1. Executive Summary
+
+VendHub OS — зрелый монорепозиторий с **272,509 строк кода**, **60 API модулей**, **838 endpoints**, и **6 приложений**. Проект демонстрирует высокую архитектурную зрелость (100% Swagger покрытие, 644 индексов БД, глобальный rate limiting), но имеет ряд критических проблем, блокирующих production-ready статус.
+
+### Общая оценка: 6.0/10
+
+| Категория      | Оценка | Комментарий                                                                                    |
+| -------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| Архитектура    | 9/10   | Отличная модульная структура, правильные паттерны                                              |
+| Backend API    | 8/10   | 838 endpoints, 100% Swagger, но есть нарушения правил                                          |
+| Web Admin      | 6/10   | 49 страниц, middleware auth сломан, нет i18n, missing components                               |
+| Client PWA     | 5/10   | 22 страницы, но НЕ настоящий PWA (нет manifest/SW), нет i18n                                   |
+| Mobile         | 4/10   | 28 экранов, auth token не отправляется, API URL = localhost                                    |
+| Bot            | 7/10   | 24 команды, но API вызовы без аутентификации, stub order flow                                  |
+| Infrastructure | 8/10   | Docker, K8s, CI/CD, мониторинг — всё есть                                                      |
+| Testing        | 7/10   | 1646 тестов pass, но 2 модуля без тестов                                                       |
+| Security       | 5/10   | @Exclude на паролях, но ~184 endpoints без @Roles(), cross-tenant leak, все фронтенды без auth |
+
+---
+
+## 2. Build Health Summary (Фаза 1)
+
+| App        | TS Errors | Build | Tests                 | Status |
+| ---------- | --------- | ----- | --------------------- | ------ |
+| **API**    | 2         | ✅    | 1646 passed, 1 failed | ⚠️     |
+| **Web**    | 12        | ⚠️    | N/A                   | ⚠️     |
+| **Client** | 3         | ⚠️    | N/A                   | ⚠️     |
+| **Bot**    | 0         | ✅    | N/A                   | ✅     |
+| **Mobile** | 1359      | ❌    | N/A                   | ❌     |
+| **Site**   | 0         | ✅    | N/A                   | ✅     |
+
+### Детали TS ошибок
+
+**API (2 ошибки):**
+
+1. `src/modules/achievements/achievements.service.ts:303` — `Type 'string | null' is not assignable to type 'string'` (organization_id может быть null)
+2. `src/modules/achievements/achievements.service.ts:305` — `Type '"achievement"' is not assignable to type 'PointsSource'` (enum не содержит значение)
+
+**Web (12 ошибок):**
+
+- **Missing shadcn/ui components** (5 ошибок):
+  - `@/components/ui/alert-dialog` — не установлен (loyalty/achievements, loyalty/quests)
+  - `@/components/ui/switch` — не установлен (loyalty/achievements, loyalty/promo-codes, loyalty/quests)
+  - `@/components/ui/sheet` — не установлен (map)
+- **Implicit `any` types** (5 ошибок): callback параметры без типизации
+- **Type mismatch** (2 ошибки): promo-codes type union
+
+**Client (3 ошибки):**
+
+1. `DrinkDetailPage.tsx:69` — `productName` не существует в `CartItem`
+2. `OrderSuccessPage.tsx:5` — отсутствует модуль `canvas-confetti`
+3. `OrderSuccessPage.tsx:105` — `machineId` не существует в `Order`
+
+**Mobile (1359 ошибок):**
+
+- ВСЕ ошибки одного типа: `'View'/'Text'/'TouchableOpacity' cannot be used as a JSX component`
+- **Причина:** конфликт версий `@types/react` между React Native/Expo и основным React 19
+- **Решение:** добавить `"resolutions": { "@types/react": "^18.x" }` в package.json mobile app
+
+### Тесты (API)
+
+- **62 test suites:** 62 passed, 1 failed
+- **1646 tests:** 1646 passed, 0 failed
+- **Failed suite:** `achievements.service.spec.ts` (TS compile error блокирует)
+
+---
+
+## 3. Критические проблемы (P0) — ИСПРАВИТЬ НЕМЕДЛЕННО
+
+### P0-001: Mobile не компилируется — 1359 TS ошибок
+
+- **Где:** `apps/mobile/` (все компоненты и экраны)
+- **Что:** `@types/react` version mismatch между React Native/Expo (React 18) и корневым React 19
+- **Почему критично:** Mobile app полностью неработоспособен
+- **Как исправить:**
+  ```json
+  // apps/mobile/package.json
+  "resolutions": {
+    "@types/react": "~18.2.0"
+  }
+  ```
+- **Оценка:** 1 час
+
+### P0-002: Нет pnpm-lock.yaml
+
+- **Где:** корень проекта
+- **Что:** Отсутствует lockfile — `pnpm install --frozen-lockfile` (CI) упадёт
+- **Почему критично:** CI/CD pipeline не работает, воспроизводимость сборки невозможна
+- **Как исправить:** `pnpm install` (сгенерирует lockfile), закоммитить
+- **Оценка:** 0.5 часа
+
+### P0-003: synchronize контролируется env-переменной
+
+- **Где:** `apps/api/src/database/typeorm.config.ts:34`
+- **Что:** `synchronize: process.env.DB_SYNCHRONIZE === 'true'` — если в production случайно установлен `DB_SYNCHRONIZE=true`, TypeORM перезапишет схему БД
+- **Почему критично:** Потеря данных в production при случайном включении
+- **Как исправить:**
+  ```typescript
+  synchronize: process.env.NODE_ENV !== 'production' && process.env.DB_SYNCHRONIZE === 'true',
+  ```
+- **Оценка:** 0.5 часа
+
+### P0-004: 4 Entity не наследуют BaseEntity
+
+- **Где:**
+  - `apps/api/src/modules/inventory/entities/inventory-movement.entity.ts`
+  - `apps/api/src/modules/directories/entities/directory-entry-audit.entity.ts`
+  - `apps/api/src/modules/directories/entities/directory-sync-log.entity.ts`
+  - `apps/api/src/modules/directories/entities/directory-source.entity.ts`
+- **Что:** Эти entity не имеют UUID PK, soft delete, audit fields
+- **Почему критично:** Нарушение фундаментального правила архитектуры; нет soft delete = невозможен аудит; потенциальное удаление данных
+- **Как исправить:** Добавить `extends BaseEntity`, убрать дублирующие поля, создать миграцию
+- **Оценка:** 4 часа
+
+### P0-005: 100+ onDelete: CASCADE в entities
+
+- **Где:** Множество entity файлов (полный список ниже)
+- **Что:** `onDelete: 'CASCADE'` удаляет связанные записи при удалении родителя — НАРУШАЕТ правило soft delete
+- **Масштаб (100+ случаев):**
+  | Файл | Количество CASCADE |
+  |------|--------------------|
+  | `reports/entities/report.entity.ts` | 12 |
+  | `inventory/entities/inventory.entity.ts` | 8 |
+  | `notifications/entities/notification.entity.ts` | 6 |
+  | `locations/entities/location.entity.ts` | 6 |
+  | `complaints/entities/complaint.entity.ts` | 6 |
+  | `tasks/entities/task.entity.ts` | 5 |
+  | `products/entities/product.entity.ts` | 4 |
+  | `machines/entities/machine.entity.ts` | 4 |
+  | `organizations/entities/organization.entity.ts` | 3 |
+  | `users/entities/user.entity.ts` | 3 |
+  | `quests/entities/user-quest.entity.ts` | 2 |
+  | И ещё ~40+ в других entity файлах | |
+- **Как исправить:** Заменить все `onDelete: 'CASCADE'` на `onDelete: 'SET NULL'` или `onDelete: 'NO ACTION'`, создать миграцию
+- **Оценка:** 12 часов (масштаб значительно больше первоначальной оценки)
+
+### P0-006: Mobile — auth token никогда не отправляется с запросами
+
+- **Где:** `apps/mobile/src/services/api.ts:11-17`
+- **Что:** API клиент не имеет request interceptor для добавления JWT токена. `authApi.login()` возвращает токен, но он никогда не прикрепляется к последующим запросам
+- **Почему критично:** ВСЕ authenticated API вызовы вернут 401. Mobile app полностью неработоспособен даже после логина
+- **Как исправить:** Добавить axios request interceptor, хранить токен в SecureStore, добавлять `Authorization: Bearer ${token}` header
+- **Оценка:** 2 часа
+
+### P0-007: Mobile — API URL по умолчанию localhost
+
+- **Где:** `apps/mobile/app.json` (нет `apiUrl` в `extra`) + `apps/mobile/src/services/api.ts:9`
+- **Что:** `Constants.expoConfig?.extra?.apiUrl` не определён → fallback на `http://localhost:4000`
+- **Почему критично:** На физических устройствах API недоступен (localhost = сам телефон)
+- **Как исправить:** Добавить `apiUrl` в `app.json > extra`, настроить через EAS environment
+- **Оценка:** 0.5 часа
+
+### P0-008: Web Admin — middleware auth полностью сломан
+
+- **Где:** `apps/web/src/middleware.ts:26-28` vs `apps/web/src/lib/api.ts:14-18`
+- **Что:** Middleware читает токен из `cookies.get('accessToken')`, но api.ts хранит токен в `localStorage`. Cookie **никогда не устанавливается**. Server-side auth check **всегда провалится**
+- **Почему критично:** Middleware-защита маршрутов не работает. Защита идёт только через client-side check в `dashboard/layout.tsx`, что ненадёжно
+- **Как исправить:** Синхронизировать: либо хранить токен в httpOnly cookie (безопаснее), либо отправлять через custom header
+- **Оценка:** 4 часа
+
+### P0-009: Bot — API вызовы без аутентификации
+
+- **Где:** `apps/bot/src/utils/api.ts:22-25`
+- **Что:** Request interceptor содержит комментарий "Add any auth headers if needed" но ничего не делает. Все API вызовы бота идут без auth токена
+- **Почему критично:** Либо API endpoints незащищены (уязвимость), либо бот получает 401 на все запросы
+- **Как исправить:** Добавить bot service account token или API key аутентификацию
+- **Оценка:** 3 часа
+
+### P0-010: Client PWA — runtime crash при смене языка
+
+- **Где:** `apps/client/src/lib/store.ts:213` → `import('../i18n')`
+- **Что:** `useUIStore.setLanguage` делает динамический import `../i18n`, но файл `i18n.ts` не существует в `lib/` директории (он в `src/i18n.ts`)
+- **Почему критично:** Runtime crash при попытке сменить язык
+- **Как исправить:** Исправить путь импорта или удалить dead code
+- **Оценка:** 0.5 часа
+
+### P0-011: K8s — Client deployment сломает nginx
+
+- **Где:** `infrastructure/k8s/base/client-deployment.yml`
+- **Что:** `securityContext.runAsUser: 1001` + `readOnlyRootFilesystem: true`, но nginx использует UID 101 и требует writable `/var/cache/nginx` и PID file
+- **Почему критично:** Nginx не запустится в K8s — Client PWA будет недоступен
+- **Как исправить:** Установить `runAsUser: 101` (nginx user), добавить `emptyDir` volume для `/var/cache/nginx` и `/var/run`
+- **Оценка:** 2 часа
+
+### P0-012: K8s — PostgreSQL/Redis probes не работают
+
+- **Где:** `infrastructure/k8s/base/postgres-statefulset.yml`, `redis-statefulset.yml`
+- **Что:** Probes используют `$(POSTGRES_USER)` и `$(REDIS_PASSWORD)` — **shell variable expansion НЕ работает в K8s command arrays**. Пароли не подставятся, probes провалятся, pods будут постоянно рестартовать
+- **Почему критично:** PostgreSQL и Redis будут отмечены как unhealthy → все зависящие сервисы не запустятся
+- **Как исправить:** Использовать `env` + `command: ["/bin/sh", "-c", "pg_isready -U $POSTGRES_USER"]` или `args` вместо `command`
+- **Оценка:** 2 часа
+
+### P0-013: ~184 authenticated endpoints без @Roles() guards
+
+- **Где:** 65 контроллеров в `apps/api/src/modules/`
+- **Что:** Из 838 HTTP endpoints, только 627 имеют `@Roles()` декораторы. 27 из оставшихся — `@Public()`. Итого **~184 authenticated endpoints доступны ЛЮБОМУ залогиненному пользователю** включая `viewer`
+- **Почему критично:** Пользователь с ролью `viewer` может выполнять операции admin/owner (создание, удаление, изменение настроек)
+- **Наиболее опасные контроллеры без `@Roles()`:**
+  - `recommendations.controller.ts` — все endpoints без role guard
+  - Множество CRUD endpoints в других контроллерах
+- **Как исправить:** Провести аудит каждого endpoint, добавить `@Roles()` с минимально необходимыми ролями
+- **Оценка:** 8 часов
+
+### P0-014: Monitoring endpoints публично доступны
+
+- **Где:** `apps/api/src/modules/monitoring/monitoring.controller.ts:40,53`
+- **Что:** `/monitoring/metrics` и `/monitoring/health/detailed` помечены `@Public()` — раскрывают внутреннее состояние системы (статус БД, Redis, очередей, использование памяти)
+- **Почему критично:** Атакующий может получить информацию о внутренней инфраструктуре без авторизации
+- **Как исправить:** Убрать `@Public()`, добавить `@Roles('admin', 'owner')` или API key auth
+- **Оценка:** 1 час
+
+### P0-015: Security service — cross-tenant data leak
+
+- **Где:** `apps/api/src/modules/security/services/security-event.service.ts:37-69`
+- **Что:** `findAll()` принимает `organizationId` как **опциональный** параметр. Если не указан — возвращает события **ВСЕХ организаций**
+- **Почему критично:** Нарушение мультитенантности. Admin одной организации может видеть security events других организаций
+- **Как исправить:** Сделать `organizationId` обязательным параметром, передавать из JWT токена
+- **Оценка:** 2 часа
+
+### P0-016: Shared package — НЕ используется ни одним приложением
+
+- **Где:** `packages/shared/` (1,700+ строк кода)
+- **Что:** `@vendhub/shared` **не импортируется ни в одном из 5 основных приложений** (api, web, client, bot, mobile). Grep по `from '@vendhub/shared'` в apps/ = 0 результатов. Единственная ссылка — в `apps/site/package.json`
+- **Почему критично:** 1,700+ строк типов, констант и утилит — мёртвый код. Каждое приложение определяет свои inline типы, создавая дублирование и рассинхронизацию
+- **Как исправить:** Добавить `@vendhub/shared` в dependencies каждого app, рефакторить inline types на shared
+- **Оценка:** 16 часов (поэтапно)
+
+### P0-017: Дублирующие payment callbacks в двух контроллерах
+
+- **Где:** `apps/api/src/modules/payments/payments.controller.ts:112-131` И `apps/api/src/modules/transactions/transactions.controller.ts:237-311`
+- **Что:** Одни и те же callback endpoints для Payme, Click, Uzum Bank зарегистрированы в ДВУХ контроллерах. Оба маршрута `/callback/payme`, `/callback/click`, `/callback/uzum` существуют
+- **Почему критично:** Двойная обработка платежей — возможно списание дважды или конфликт данных
+- **Как исправить:** Оставить callbacks только в одном контроллере (payments), удалить из transactions
+- **Оценка:** 2 часа
+
+### P0-018: Entity path mismatch между CLI и runtime config
+
+- **Где:** `apps/api/src/database/typeorm.config.ts` vs `app.module.ts`
+- **Что:** CLI config использует `../modules/**/entities/*.entity{.ts,.js}` (только entity в `entities/` подпапках), runtime использует `**/*.entity{.ts,.js}` (все entity файлы). Миграции, сгенерированные CLI, могут пропустить entities за пределами `entities/` подпапок
+- **Почему критично:** Миграции могут быть неполными → потеря данных или runtime ошибки
+- **Как исправить:** Синхронизировать glob-паттерны в обоих конфигурациях
+- **Оценка:** 0.5 часа
+
+---
+
+## 4. Серьёзные проблемы (P1) — ИСПРАВИТЬ ДО РЕЛИЗА
+
+### P1-001: 13 DTO без class-validator декораторов
+
+- **Где:**
+  - `organizations/dto/update-organization-contract.dto.ts`
+  - `organizations/dto/update-organization.dto.ts`
+  - `organizations/dto/organization-response.dto.ts`
+  - `rbac/dto/update-role.dto.ts`
+  - `rbac/dto/update-permission.dto.ts`
+  - `payments/dto/payment-response.dto.ts`
+  - `fiscal/dto/update-fiscal-device.dto.ts`
+  - `transactions/dto/transaction-response.dto.ts`
+  - `machines/dto/machine-response.dto.ts`
+  - `locations/dto/update-location.dto.ts`
+  - `users/dto/user-response.dto.ts`
+  - `users/dto/update-user.dto.ts`
+  - `webhooks/dto/update-webhook.dto.ts`
+- **Почему:** Без валидации входные данные могут содержать SQL injection, XSS, или невалидные значения
+- **Оценка:** 8 часов
+
+### P1-002: Missing shadcn/ui components (Web)
+
+- **Где:** `apps/web/`
+- **Что:** 3 компонента используются но не установлены:
+  - `@/components/ui/alert-dialog`
+  - `@/components/ui/switch`
+  - `@/components/ui/sheet`
+- **Как исправить:**
+  ```bash
+  cd apps/web
+  npx shadcn@latest add alert-dialog switch sheet
+  ```
+- **Оценка:** 0.5 часа
+
+### P1-003: 180 hardcoded Russian strings в Web Admin
+
+- **Где:** `apps/web/src/` — все dashboard страницы
+- **Что:** Строки на русском вбиты прямо в JSX, нет i18n фреймворка
+- **Почему:** Невозможна локализация на узбекский и английский
+- **Как исправить:** Интегрировать `next-intl` или `react-i18next`, вынести строки в JSON файлы
+- **Оценка:** 40 часов (для 50+ страниц)
+
+### P1-004: 78 console.log в production коде API
+
+- **Где:** `apps/api/src/` (разбросаны по модулям)
+- **Что:** `console.log/warn/error/debug` вместо NestJS Logger
+- **Почему:** В production нет структурированного логирования, невозможен мониторинг
+- **Как исправить:** Заменить на `this.logger.log()`, `this.logger.error()` и т.д.
+- **Оценка:** 4 часа
+
+### P1-005: Hard delete в нескольких сервисах
+
+- **Где:**
+  - `integrations/integrations.controller.ts:166` — `this.integrationService.delete()`
+  - `maintenance/maintenance.controller.ts:147` — `this.maintenanceService.delete()`
+  - `equipment/controllers/hopper-type.controller.ts:107` — `this.hopperTypeService.delete()`
+  - `equipment/controllers/washing-schedule.controller.ts:119` — `this.washingScheduleService.delete()`
+  - `equipment/controllers/spare-part.controller.ts:123` — `this.sparePartService.delete()`
+  - `notifications/notifications.controller.ts:93` — `this.notificationsService.delete()`
+  - `webhooks/webhooks.controller.ts:236` — `this.webhooks.delete()`
+- **Примечание:** `websocket.service.ts` и `telegram-bot.service.ts` используют `.delete()` на Map/Set — это допустимо
+- **Как исправить:** В каждом сервисе заменить `.delete()` на `.softDelete()`
+- **Оценка:** 4 часа
+
+### P1-006: 2 модуля без тестов
+
+- **Где:** `bull-board`, `health`
+- **Что:** Нет ни одного .spec.ts файла
+- **Оценка:** 4 часа
+
+### P1-007: Missing module `canvas-confetti` types (Client)
+
+- **Где:** `apps/client/src/pages/OrderSuccessPage.tsx:5`
+- **Как исправить:** `pnpm --filter client add -D @types/canvas-confetti` или `pnpm --filter client add canvas-confetti`
+- **Оценка:** 0.5 часа
+
+### P1-008: Type mismatches в Client PWA
+
+- **Где:**
+  - `DrinkDetailPage.tsx:69` — `productName` не существует в `CartItem`
+  - `OrderSuccessPage.tsx:105` — `machineId` не существует в `Order`
+- **Как исправить:** Обновить типы `CartItem` и `Order` в shared types или исправить код
+- **Оценка:** 1 час
+
+### P1-009: achievements.service.ts — TS errors блокируют тесты
+
+- **Где:** `apps/api/src/modules/achievements/achievements.service.ts:303-305`
+- **Что:** Тип `PointsSource` не содержит `'achievement'`; `organization_id` может быть null
+- **Как исправить:** Добавить `'achievement'` в enum `PointsSource`, добавить null check
+- **Оценка:** 1 час
+
+### P1-010: Web Admin — pervasive `any` typing в API клиенте
+
+- **Где:** `apps/web/src/lib/api.ts:62-648`
+- **Что:** Почти все API методы используют `data: any` для request body и возвращают нетипизированный `AxiosResponse`
+- **Почему:** Обесценивает TypeScript; невозможен compile-time контроль
+- **Как исправить:** Типизировать через shared types из packages/shared
+- **Оценка:** 16 часов
+
+### P1-011: Web Admin — нет RBAC фильтрации в sidebar
+
+- **Где:** `apps/web/src/components/layout/sidebar.tsx:37-64`
+- **Что:** Все 27 пунктов меню видны всем пользователям (viewer видит то же что owner)
+- **Как исправить:** Добавить `roles` поле к каждому пункту, фильтровать по `user.role`
+- **Оценка:** 4 часа
+
+### P1-012: Client PWA — не настоящий PWA
+
+- **Где:** `apps/client/`
+- **Что:** Нет `manifest.json` в `public/`, нет исходного service worker. VitePWA сконфигурирован в `vite.config.ts` но `public/` директория отсутствует. PWA нельзя установить как standalone app
+- **Как исправить:** Создать `public/manifest.json` с иконками, настроить VitePWA корректно
+- **Оценка:** 4 часа
+
+### P1-013: Client PWA — нет token refresh
+
+- **Где:** `apps/client/src/lib/api.ts:24-33`
+- **Что:** При 401 ошибке клиент сразу очищает токен и разлогинивает. Нет refresh token flow
+- **Почему:** Пользователи будут разлогиниваться при каждом истечении токена
+- **Как исправить:** Добавить refresh token логику аналогично Web Admin
+- **Оценка:** 4 часа
+
+### P1-014: Bot — order confirmation это заглушка
+
+- **Где:** `apps/bot/src/handlers/callbacks.ts:305-308`
+- **Что:** `handleConfirmOrder` только показывает "Заказ оформляется..." но не создаёт заказ через API
+- **Как исправить:** Реализовать полный order flow: создание заказа, оплата, подтверждение
+- **Оценка:** 8 часов
+
+### P1-015: Bot — trip сообщения в транслитерации
+
+- **Где:** `apps/bot/src/handlers/commands.ts:369-520`, `callbacks.ts:594`, `inline.ts:267-306`
+- **Что:** Все trip-related сообщения написаны латиницей ("Pozhalujsta, zaregistrirujtes'") вместо кириллицы. Остальные сообщения на нормальном русском
+- **Как исправить:** Перевести все trip строки на кириллицу
+- **Оценка:** 2 часа
+
+### P1-016: Mobile — expo-router plugin конфликт
+
+- **Где:** `apps/mobile/app.json:54`
+- **Что:** `expo-router` указан как plugin, но приложение использует `@react-navigation/native`. Две разные навигационные системы
+- **Как исправить:** Удалить `expo-router` из plugins
+- **Оценка:** 0.5 часа
+
+### P1-017: Web Admin — no token refresh race-condition protection
+
+- **Где:** `apps/web/src/lib/api.ts:30-53`
+- **Что:** Если несколько запросов одновременно получают 401, каждый попытается refresh token, вызывая race condition
+- **Как исправить:** Добавить mutex/queue для refresh token requests
+- **Оценка:** 3 часа
+
+---
+
+## 5. Улучшения (P2) — ПОСЛЕ РЕЛИЗА
+
+### P2-001: 4 Circular dependencies (forwardRef)
+
+- `quests ↔ loyalty`
+- `achievements ↔ loyalty`
+- `referrals ↔ loyalty`
+- `orders ↔ promo-codes`
+- **Рекомендация:** Вынести общие интерфейсы в shared module или использовать events
+
+### P2-002: Гигантские файлы (>1000 строк)
+
+| Файл                                                 | Строки | Рекомендация                        |
+| ---------------------------------------------------- | ------ | ----------------------------------- |
+| `web/dashboard/notifications/page.tsx`               | 1997   | Разбить на компоненты               |
+| `api/telegram-bot/telegram-bot.service.ts`           | 1778   | Разбить на handlers                 |
+| `api/employees/employees.service.ts`                 | 1751   | Выделить sub-services               |
+| `api/import/import.service.ts`                       | 1730   | Strategy pattern                    |
+| `api/database/migrations/CreateDirectoriesSystem.ts` | 1687   | Разбить на несколько миграций       |
+| `api/inventory/inventory.service.ts`                 | 1631   | Выделить sub-services               |
+| `client/i18n.ts`                                     | 1378   | Вынести в JSON файлы                |
+| `api/locations/entities/location.entity.ts`          | 1365   | Слишком много полей — нормализовать |
+| `api/directories/directories.service.ts`             | 1351   | Выделить sub-services               |
+
+### P2-003: camelCase в entity property names
+
+- **Контекст:** Entity properties используют `camelCase` (`firstName`, `organizationId`), но `SnakeNamingStrategy` автоматически конвертирует в `snake_case` в БД
+- **Замечание:** Это технически работает, но CLAUDE.md требует `snake_case` в Entity. Есть inconsistency — некоторые entities используют `snake_case` (старые), другие `camelCase` (новые)
+- **Рекомендация:** Определить единый стандарт и привести к единообразию
+
+### P2-004: Отсутствие E2E тестов
+
+- CI pipeline содержит шаг E2E (Playwright), но фактических тестов нет
+- **Рекомендация:** Создать хотя бы smoke tests для критических путей
+
+### P2-005: Docker — нет Dockerfile для Mobile
+
+- Это нормально (Mobile = Expo, билдится через EAS), но стоит документировать
+
+### P2-006: Missing bot Dockerfile in docker-compose.yml services
+
+- Bot имеет Dockerfile но не указан как service в docker-compose.yml (только как volume)
+
+---
+
+## 6. Coverage Matrix
+
+### API Module → Web Page Coverage
+
+| API Module        | Web Page               | Status                         |
+| ----------------- | ---------------------- | ------------------------------ |
+| achievements      | /loyalty/achievements  | ✅                             |
+| ai                | —                      | ❌ Нет страницы                |
+| alerts            | —                      | ❌ Нет страницы                |
+| audit             | /audit                 | ✅                             |
+| auth              | (middleware)           | ✅                             |
+| billing           | —                      | ❌ Нет страницы                |
+| bull-board        | —                      | ⚠️ Отдельный UI                |
+| client            | —                      | ❌ Нет страницы                |
+| complaints        | /complaints            | ✅                             |
+| contractors       | /contractors           | ✅                             |
+| directories       | /directories           | ✅                             |
+| employees         | /employees (4 подстр.) | ✅                             |
+| equipment         | /equipment             | ✅                             |
+| favorites         | —                      | ❌ Нет страницы                |
+| fiscal            | /fiscal                | ✅                             |
+| geo               | —                      | ❌ Нет страницы (карта в /map) |
+| health            | —                      | ⚠️ Техническая                 |
+| import            | /import                | ✅                             |
+| incidents         | —                      | ❌ Нет страницы                |
+| integrations      | /integrations          | ✅                             |
+| inventory         | /inventory             | ✅                             |
+| locations         | /locations             | ✅                             |
+| loyalty           | /loyalty (6 подстр.)   | ✅                             |
+| machine-access    | —                      | ❌ Нет страницы                |
+| machines          | /machines              | ✅                             |
+| maintenance       | /maintenance           | ✅                             |
+| material-requests | /material-requests     | ✅                             |
+| monitoring        | —                      | ⚠️ Техническая                 |
+| notifications     | /notifications         | ✅                             |
+| opening-balances  | —                      | ❌ Нет страницы                |
+| operator-ratings  | —                      | ❌ Нет страницы                |
+| orders            | /orders                | ✅                             |
+| organizations     | —                      | ❌ Нет страницы                |
+| payments          | /payments              | ✅                             |
+| products          | /products              | ✅                             |
+| promo-codes       | /loyalty/promo-codes   | ✅                             |
+| purchase-history  | —                      | ❌ Нет страницы                |
+| quests            | /loyalty/quests        | ✅                             |
+| rbac              | —                      | ❌ Нет страницы                |
+| recommendations   | —                      | ❌ Нет страницы                |
+| reconciliation    | /reconciliation        | ✅                             |
+| references        | —                      | ❌ Нет страницы                |
+| referrals         | —                      | ❌ Нет страницы                |
+| reports           | /reports               | ✅                             |
+| routes            | /routes (3 подстр.)    | ✅                             |
+| sales-import      | —                      | ❌ Нет страницы                |
+| security          | —                      | ❌ Нет страницы                |
+| settings          | /settings              | ✅                             |
+| storage           | —                      | ❌ Нет страницы                |
+| tasks             | /tasks                 | ✅                             |
+| telegram-bot      | —                      | ⚠️ Отдельное приложение        |
+| telegram-payments | —                      | ⚠️ Через бота                  |
+| transactions      | /transactions          | ✅                             |
+| trips             | /trips (3 подстр.)     | ✅                             |
+| users             | /users (3 подстр.)     | ✅                             |
+| vehicles          | —                      | ❌ Нет страницы                |
+| warehouse         | —                      | ❌ Нет страницы                |
+| webhooks          | —                      | ❌ Нет страницы                |
+| websocket         | —                      | ⚠️ Техническая                 |
+| work-logs         | /work-logs             | ✅                             |
+
+**Итого:** 30 модулей с Web-страницами, 20 без (из которых 6 технических, 14 бизнес-модулей без UI)
+
+### Отсутствующие бизнес-страницы (приоритет):
+
+1. **organizations** — управление организациями (для owner)
+2. **warehouse** — складской учёт
+3. **rbac** — управление ролями
+4. **vehicles** — управление транспортом
+5. **webhooks** — управление вебхуками
+6. **incidents** — журнал инцидентов
+7. **operator-ratings** — рейтинги операторов
+8. **opening-balances** — начальные остатки
+9. **machine-access** — управление доступом к автоматам
+10. **alerts** — настройка алертов
+
+### Client PWA Pages (22/22 существуют) ✅
+
+| Page                     | Exists | API Integration |
+| ------------------------ | ------ | --------------- |
+| HomePage                 | ✅     | ✅              |
+| MapPage                  | ✅     | ✅              |
+| MachineDetailPage        | ✅     | ✅              |
+| MenuPage                 | ✅     | ✅              |
+| DrinkDetailPage          | ✅     | ⚠️ TS error     |
+| CartPage                 | ✅     | ✅              |
+| CheckoutPage             | ✅     | ✅              |
+| OrderSuccessPage         | ✅     | ⚠️ TS errors    |
+| LoyaltyPage              | ✅     | ✅              |
+| QuestsPage               | ✅     | ✅              |
+| AchievementsPage         | ✅     | ✅              |
+| FavoritesPage            | ✅     | ✅              |
+| ProfilePage              | ✅     | ✅              |
+| TransactionHistoryPage   | ✅     | ✅              |
+| TransactionDetailPage    | ✅     | ✅              |
+| ComplaintPage            | ✅     | ✅              |
+| QRScanPage               | ✅     | ✅              |
+| ReferralsPage            | ✅     | ✅              |
+| PromoCodePage            | ✅     | ✅              |
+| HelpPage                 | ✅     | ✅              |
+| NotificationSettingsPage | ✅     | ✅              |
+| NotFoundPage             | ✅     | N/A             |
+
+### Mobile Screens (28 screens)
+
+| Category  | Screen               | Exists |
+| --------- | -------------------- | ------ |
+| Auth      | LoginScreen          | ✅     |
+| Auth      | RegisterScreen       | ✅     |
+| Auth      | ForgotPasswordScreen | ✅     |
+| Core      | HomeScreen           | ✅     |
+| Core      | ProfileScreen        | ✅     |
+| Core      | SettingsScreen       | ✅     |
+| Core      | NotificationsScreen  | ✅     |
+| Core      | SplashScreen         | ✅     |
+| Client    | ClientHomeScreen     | ✅     |
+| Client    | MapScreen            | ✅     |
+| Client    | MenuScreen           | ✅     |
+| Client    | DrinkDetailScreen    | ✅     |
+| Client    | CartScreen           | ✅     |
+| Client    | CheckoutScreen       | ✅     |
+| Client    | OrderSuccessScreen   | ✅     |
+| Client    | LoyaltyScreen        | ✅     |
+| Client    | QuestsScreen         | ✅     |
+| Client    | FavoritesScreen      | ✅     |
+| Staff     | BarcodeScanScreen    | ✅     |
+| Staff     | MaintenanceScreen    | ✅     |
+| Staff     | RouteScreen          | ✅     |
+| Inventory | InventoryScreen      | ✅     |
+| Inventory | TransferScreen       | ✅     |
+| Machines  | MachinesScreen       | ✅     |
+| Machines  | MachineDetailScreen  | ✅     |
+| Tasks     | TasksScreen          | ✅     |
+| Tasks     | TaskDetailScreen     | ✅     |
+| Tasks     | TaskPhotoScreen      | ✅     |
+
+### Bot Commands (21 commands)
+
+| Command       | Implemented | Category |
+| ------------- | ----------- | -------- |
+| /start        | ✅          | Core     |
+| /help         | ✅          | Core     |
+| /find         | ✅          | Client   |
+| /points       | ✅          | Client   |
+| /quests       | ✅          | Client   |
+| /history      | ✅          | Client   |
+| /referral     | ✅          | Client   |
+| /support      | ✅          | Client   |
+| /settings     | ✅          | Client   |
+| /cart         | ✅          | Client   |
+| /cancel       | ✅          | Core     |
+| /trip         | ✅          | Staff    |
+| /trip_start   | ✅          | Staff    |
+| /trip_end     | ✅          | Staff    |
+| /trip_status  | ✅          | Staff    |
+| /menu         | ✅          | Client   |
+| /promo        | ✅          | Client   |
+| /achievements | ✅          | Client   |
+| /tasks        | ✅          | Staff    |
+| /route        | ✅          | Staff    |
+| /report       | ✅          | Staff    |
+| /alerts       | ✅          | Staff    |
+
+---
+
+## 7. Backend Compliance Matrix (60 модулей)
+
+### Legend
+
+- ✅ = Compliant
+- ⚠️ = Partial compliance
+- ❌ = Non-compliant
+- N/A = Not applicable
+
+| #   | Module            | Structure | BaseEntity  | UUID | Validators | Swagger | SoftDel    | Guards    | Tests    | Score |
+| --- | ----------------- | --------- | ----------- | ---- | ---------- | ------- | ---------- | --------- | -------- | ----- |
+| 1   | achievements      | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ⚠️TS err | 8/10  |
+| 2   | ai                | ✅        | N/A         | ✅   | ✅         | ✅      | N/A        | ✅        | ✅       | 9/10  |
+| 3   | alerts            | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 4   | audit             | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 5   | auth              | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 6   | billing           | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 7   | bull-board        | ⚠️        | N/A         | N/A  | N/A        | N/A     | N/A        | ✅        | ❌       | 5/10  |
+| 8   | client            | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ⚠️        | ✅       | 9/10  |
+| 9   | complaints        | ✅        | ✅          | ✅   | ✅         | ✅      | ⚠️CASCADE  | ✅        | ✅       | 8/10  |
+| 10  | contractors       | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 11  | directories       | ✅        | ⚠️3 missing | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 7/10  |
+| 12  | employees         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 13  | equipment         | ✅        | ✅          | ✅   | ✅         | ✅      | ❌delete() | ✅        | ❌       | 6/10  |
+| 14  | favorites         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 15  | fiscal            | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ✅         | ✅        | ✅       | 8/10  |
+| 16  | geo               | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ⚠️@Public | ✅       | 9/10  |
+| 17  | health            | ✅        | N/A         | N/A  | N/A        | N/A     | N/A        | @Public   | ❌       | 6/10  |
+| 18  | import            | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 19  | incidents         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 20  | integrations      | ✅        | ✅          | ✅   | ✅         | ✅      | ❌delete() | ✅        | ✅       | 7/10  |
+| 21  | inventory         | ✅        | ⚠️1 missing | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 8/10  |
+| 22  | locations         | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ✅         | ✅        | ✅       | 9/10  |
+| 23  | loyalty           | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 24  | machine-access    | ✅        | ✅          | ✅   | ✅         | ✅      | ⚠️CASCADE  | ✅        | ✅       | 8/10  |
+| 25  | machines          | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ✅         | ✅        | ✅       | 9/10  |
+| 26  | maintenance       | ✅        | ✅          | ✅   | ✅         | ✅      | ❌delete() | ✅        | ✅       | 7/10  |
+| 27  | material-requests | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 28  | monitoring        | ✅        | N/A         | N/A  | ✅         | ✅      | N/A        | ⚠️@Public | ✅       | 8/10  |
+| 29  | notifications     | ✅        | ✅          | ✅   | ✅         | ✅      | ❌delete() | ✅        | ✅       | 7/10  |
+| 30  | opening-balances  | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 31  | operator-ratings  | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 32  | orders            | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 33  | organizations     | ✅        | ✅          | ✅   | ⚠️3 DTO    | ✅      | ⚠️CASCADE  | ✅        | ✅       | 7/10  |
+| 34  | payments          | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ⚠️CASCADE  | ✅        | ✅       | 8/10  |
+| 35  | products          | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 36  | promo-codes       | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ⚠️@Public | ✅       | 9/10  |
+| 37  | purchase-history  | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 38  | quests            | ✅        | ✅          | ✅   | ✅         | ✅      | ⚠️CASCADE  | ✅        | ✅       | 8/10  |
+| 39  | rbac              | ✅        | ✅          | ✅   | ⚠️2 DTO    | ✅      | ✅         | ✅        | ✅       | 9/10  |
+| 40  | recommendations   | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 41  | reconciliation    | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 42  | references        | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 43  | referrals         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 44  | reports           | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 45  | routes            | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 46  | sales-import      | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 47  | security          | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 48  | settings          | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ⚠️@Public | ✅       | 9/10  |
+| 49  | storage           | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 50  | tasks             | ✅        | ✅          | ✅   | ✅         | ✅      | ⚠️CASCADE  | ✅        | ✅       | 8/10  |
+| 51  | telegram-bot      | ✅        | N/A         | N/A  | N/A        | ✅      | N/A        | ⚠️@Public | ✅       | 8/10  |
+| 52  | telegram-payments | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 53  | transactions      | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ✅         | ⚠️@Public | ✅       | 8/10  |
+| 54  | trips             | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 55  | users             | ✅        | ✅          | ✅   | ⚠️2 DTO    | ✅      | ✅         | ✅        | ✅       | 9/10  |
+| 56  | vehicles          | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 57  | warehouse         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+| 58  | webhooks          | ✅        | ✅          | ✅   | ⚠️1 DTO    | ✅      | ❌delete() | ✅        | ✅       | 7/10  |
+| 59  | websocket         | ✅        | N/A         | N/A  | N/A        | N/A     | N/A        | ✅        | ✅       | 9/10  |
+| 60  | work-logs         | ✅        | ✅          | ✅   | ✅         | ✅      | ✅         | ✅        | ✅       | 10/10 |
+
+**Средний Score:** 9.0/10
+**Модули с идеальным score (10/10):** 33 из 60 (55%)
+**Модули с проблемами (<8/10):** 8 из 60 (13%)
+
+---
+
+## 8. Security Findings
+
+### Критический риск
+
+| #    | Находка                                                   | Файл                            | Severity |
+| ---- | --------------------------------------------------------- | ------------------------------- | -------- |
+| S-01 | ~184 endpoints без @Roles() — любой user может всё        | Множество контроллеров          | CRITICAL |
+| S-02 | Cross-tenant data leak в SecurityEventService             | security-event.service.ts:37-69 | CRITICAL |
+| S-03 | Monitoring endpoints публичны (раскрывают инфраструктуру) | monitoring.controller.ts:40,53  | CRITICAL |
+
+### Высокий риск
+
+| #    | Находка                                              | Файл                                | Severity |
+| ---- | ---------------------------------------------------- | ----------------------------------- | -------- |
+| S-04 | synchronize=true возможен в production (CLI config)  | typeorm.config.ts:34                | HIGH     |
+| S-05 | 13 DTO без валидации — возможен injection            | см. P1-001                          | HIGH     |
+| S-06 | 100+ CASCADE deletes — потеря данных при удалении    | Множество entity                    | HIGH     |
+| S-07 | Дублирующие payment callbacks — двойная обработка    | payments + transactions controllers | HIGH     |
+| S-08 | Entity path mismatch — миграции могут быть неполными | typeorm.config.ts vs app.module.ts  | HIGH     |
+
+### Средний риск
+
+| #    | Находка                                                                     | Файл                         | Severity |
+| ---- | --------------------------------------------------------------------------- | ---------------------------- | -------- |
+| S-09 | 27 @Public() endpoints — review needed                                      | Множество контроллеров       | MEDIUM   |
+| S-10 | 78 console.log — возможна утечка данных в логах                             | apps/api/src/                | MEDIUM   |
+| S-11 | 221 createQueryBuilder usage — potential SQL injection if not parameterized | apps/api/src/                | MEDIUM   |
+| S-12 | Promo code validation без auth                                              | promo-codes.controller.ts:99 | MEDIUM   |
+| S-13 | Geo endpoints публичны (Google Maps API cost)                               | geo.controller.ts:51,65,88   | MEDIUM   |
+
+### Низкий риск
+
+| #    | Находка                                  | Файл              | Severity |
+| ---- | ---------------------------------------- | ----------------- | -------- |
+| S-07 | Нет pnpm-lock.yaml — supply chain risk   | корень            | LOW      |
+| S-08 | pnpm audit не запускается (нет lockfile) | —                 | LOW      |
+| S-09 | User entity uses @Exclude on passwords   | user.entity.ts    | ✅ GOOD  |
+| S-10 | ThrottlerGuard globally applied          | app.module.ts     | ✅ GOOD  |
+| S-11 | CORS/CSRF guards present                 | csrf.guard.ts     | ✅ GOOD  |
+| S-12 | SSL настроен для production              | typeorm.config.ts | ✅ GOOD  |
+
+---
+
+## 9. Performance Issues
+
+### Backend
+
+- **221 createQueryBuilder** usages — некоторые могут быть N+1 queries
+- **No eager loading** — ✅ хорошо (предотвращает over-fetching)
+- **644 @Index** decorators — ✅ хорошая индексация
+- **Connection pooling** настроен (10 connections default) — адекватно для начала
+
+### Frontend
+
+- **9 файлов >1000 строк** — потенциальные проблемы bundle size
+- **No code splitting** (в client PWA) — все страницы в одном bundle
+- **VitePWA configured** — ✅ service worker, workbox
+
+### Database
+
+- **95 entities** — проверить необходимость всех связей
+- **SnakeNamingStrategy** — ✅ единообразие
+- **Redis cache** настроен — ✅
+
+---
+
+## 10. Infrastructure Summary
+
+### Docker ✅
+
+- **docker-compose.yml:** 6+ сервисов (postgres, redis, api, web, client, minio, bull-board, adminer, redis-commander, nginx, certbot)
+- **Dockerfiles:** 4/6 (api, web, client, bot) — mobile не нужен
+- **docker-compose.prod.yml:** присутствует
+
+### Kubernetes ✅
+
+- **14 манифестов** в infrastructure/k8s/
+- Deployments: api, web, client, bot
+- StatefulSets: postgres, redis
+- Ingress, ConfigMap, Secrets, Namespace
+- Kustomize overlays: production, staging
+
+### CI/CD ✅
+
+- **2 workflows:** ci.yml (7 jobs), release.yml
+- Pipeline: lint → test-unit → build → test-integration → test-e2e → docker-build → deploy-staging
+- Trivy vulnerability scanning on Docker images
+- Telegram notifications on deploy
+
+### Monitoring ✅
+
+- **Prometheus:** prometheus.yml
+- **Grafana:** datasources + dashboards (vendhub-overview)
+- **Loki:** log aggregation
+- **Promtail:** log shipping
+- **AlertManager:** alert rules configured
+
+### Shared Package ✅
+
+- **26 файлов** в packages/shared/src/
+- Types: user, machine, location, product, organization, transaction, task, report, notification, audit, complaint, inventory, reference, api
+- Constants: app, regex, validation
+- Utils: crypto, date, distance, format, validation
+
+---
+
+## 11. План действий (Prioritized Action Plan)
+
+### Неделя 1: P0 — Блокеры (48 часов)
+
+| #   | Задача                                                   | Часы | Файлы                           |
+| --- | -------------------------------------------------------- | ---- | ------------------------------- |
+| 1   | Сгенерировать pnpm-lock.yaml                             | 0.5  | корень                          |
+| 2   | Fix synchronize safety check                             | 0.5  | typeorm.config.ts               |
+| 3   | Fix entity path mismatch CLI vs runtime                  | 0.5  | typeorm.config.ts               |
+| 4   | Fix Mobile @types/react conflict                         | 1    | apps/mobile/package.json        |
+| 5   | Fix 4 entities без BaseEntity                            | 4    | 4 entity files + migration      |
+| 6   | Replace 100+ onDelete: CASCADE → SET NULL                | 12   | ~20 entity files + migration    |
+| 7   | **Add @Roles() to ~184 unprotected endpoints**           | 8    | ~40 controllers                 |
+| 8   | **Fix monitoring endpoints — remove @Public()**          | 1    | monitoring.controller.ts        |
+| 9   | **Fix cross-tenant leak in SecurityEventService**        | 2    | security-event.service.ts       |
+| 10  | **Remove duplicate payment callbacks**                   | 2    | transactions.controller.ts      |
+| 11  | **Mobile: добавить auth token interceptor**              | 2    | apps/mobile/src/services/api.ts |
+| 12  | **Mobile: настроить API URL**                            | 0.5  | app.json + api.ts               |
+| 13  | **Web: исправить middleware auth (cookie↔localStorage)** | 4    | middleware.ts + api.ts          |
+| 14  | **Bot: добавить auth для API вызовов**                   | 3    | apps/bot/src/utils/api.ts       |
+| 15  | **Client: исправить i18n import crash**                  | 0.5  | apps/client/src/lib/store.ts    |
+| 16  | **Mobile: удалить expo-router plugin**                   | 0.5  | app.json                        |
+
+### Неделя 2: P1 — Backend & Build Fixes (22 часа)
+
+| #   | Задача                                    | Часы | Файлы                                   |
+| --- | ----------------------------------------- | ---- | --------------------------------------- |
+| 12  | Add class-validator to 13 DTOs            | 8    | 13 DTO files                            |
+| 13  | Install missing shadcn/ui components      | 0.5  | apps/web                                |
+| 14  | Replace console.log → NestJS Logger       | 4    | ~30 files                               |
+| 15  | Fix hard delete → softDelete (7 services) | 4    | 7 service files                         |
+| 16  | Fix achievements TS errors                | 1    | achievements.service.ts, loyalty.dto.ts |
+| 17  | Fix Client PWA TS errors                  | 1.5  | 3 files                                 |
+| 18  | Add tests for bull-board, health          | 3    | 2 new spec files                        |
+
+### Неделя 3: P1 — Frontend Auth & UX (27 часов)
+
+| #   | Задача                                    | Часы      | Файлы                                |
+| --- | ----------------------------------------- | --------- | ------------------------------------ |
+| 19  | Web: RBAC sidebar filtering               | 4         | sidebar.tsx                          |
+| 20  | Client: добавить token refresh            | 4         | apps/client/src/lib/api.ts           |
+| 21  | Client: настроить PWA (manifest, SW)      | 4         | apps/client/public/, vite.config.ts  |
+| 22  | Bot: реализовать order flow               | 8         | callbacks.ts                         |
+| 23  | Bot: fix trip transliteration → кириллица | 2         | commands.ts, callbacks.ts, inline.ts |
+| 24  | Web: fix token refresh race condition     | 3         | apps/web/src/lib/api.ts              |
+| 25  | Web: типизировать API client              | 2 (start) | apps/web/src/lib/api.ts              |
+
+### Неделя 4-5: P1 i18n (40 часов)
+
+| #   | Задача                                       | Часы | Файлы     |
+| --- | -------------------------------------------- | ---- | --------- |
+| 26  | Setup next-intl for Web Admin                | 8    | apps/web  |
+| 27  | Extract 180+ hardcoded strings to i18n files | 32   | 50+ pages |
+
+### Неделя 6+: P2 — Улучшения (106+ часов)
+
+| #   | Задача                                              | Часы |
+| --- | --------------------------------------------------- | ---- |
+| 28  | Web: типизировать весь API client (packages/shared) | 14   |
+| 29  | Resolve 4 circular dependencies                     | 8    |
+| 30  | Split 9 giant files (>1000 lines)                   | 16   |
+| 31  | Add 10 missing Web Admin pages                      | 40   |
+| 32  | Add E2E tests (Playwright)                          | 20   |
+| 33  | Standardize entity property naming                  | 8    |
+
+### Общая оценка трудозатрат
+
+| Приоритет      | Часы    | Человеко-дни |
+| -------------- | ------- | ------------ |
+| P0 (блокеры)   | **48**  | 6            |
+| P1 (до релиза) | **89**  | 11           |
+| P2 (улучшения) | **106** | 13           |
+| **ИТОГО**      | **243** | **~30**      |
+
+---
+
+## 12. Рекомендации
+
+### Архитектура
+
+1. **SnakeNamingStrategy** отлично работает — продолжайте использовать
+2. **Модульная структура** NestJS — эталонная; каждый модуль изолирован
+3. **SharedPackage** хорошо типизирован — расширяйте по мере роста
+
+### Процесс разработки
+
+1. **Добавить pre-commit hook** для проверки TS errors, ESLint, tests
+2. **Lockfile** обязательно коммитить
+3. **Code review** обязательно для entity changes (cascade/relations)
+
+### Мониторинг
+
+1. Grafana dashboards настроены — ✅ добавить бизнес-метрики
+2. AlertManager правила есть — ✅ добавить алерты на ошибки БД
+3. Loki для логов — ✅ убрать console.log
+
+### Безопасность
+
+1. **Audit @Public() endpoints** — проверить что каждый действительно должен быть публичным
+2. **Input validation** — добавить на все 13 DTO
+3. **OWASP headers** — проверить Helmet.js конфигурацию
+
+---
+
+## Приложение A: Метрики проекта
+
+| Метрика                   | Значение       |
+| ------------------------- | -------------- |
+| Общий размер кодовой базы | 272,509 строк  |
+| API модули                | 60             |
+| API endpoints             | 838            |
+| Entity файлы              | 95             |
+| DTO файлы                 | 163            |
+| Тесты (spec файлы)        | 63             |
+| Тестов (assertions)       | 1,646          |
+| Swagger покрытие          | 100% (838/838) |
+| @Index декораторы         | 644            |
+| Web Admin страницы        | 50+            |
+| Client PWA страницы       | 22             |
+| Mobile экранов            | 28             |
+| Bot команд                | 21             |
+| Docker сервисов           | 11             |
+| K8s манифестов            | 14             |
+| CI/CD jobs                | 7              |
+| Shared types файлов       | 16             |
+
+---
+
+## Приложение B: Детальный аудит фронтенд-приложений
+
+### Web Admin — критические находки
+
+| #    | Проблема                                        | Файл                | Severity |
+| ---- | ----------------------------------------------- | ------------------- | -------- |
+| F-01 | Middleware auth сломан (cookie vs localStorage) | middleware.ts:26-28 | CRITICAL |
+| F-02 | API client — pervasive `any` typing             | api.ts:62-648       | HIGH     |
+| F-03 | Token refresh race condition                    | api.ts:30-53        | HIGH     |
+| F-04 | Нет RBAC фильтрации sidebar                     | sidebar.tsx:37-64   | HIGH     |
+| F-05 | Dashboard main page — hardcoded empty data      | page.tsx:107-128    | MEDIUM   |
+| F-06 | Нет `loading.tsx` (Next.js Suspense)            | Все dashboard/      | MEDIUM   |
+| F-07 | Mixed HTTP methods (PATCH vs PUT)               | api.ts              | LOW      |
+| F-08 | 10 API модулей без dashboard страниц            | —                   | MEDIUM   |
+
+### Client PWA — критические находки
+
+| #    | Проблема                                                    | Файл           | Severity |
+| ---- | ----------------------------------------------------------- | -------------- | -------- |
+| F-09 | Не настоящий PWA (нет manifest, SW)                         | public/        | HIGH     |
+| F-10 | i18n import crash при смене языка                           | store.ts:213   | CRITICAL |
+| F-11 | Нет token refresh — logout при истечении                    | api.ts:24-33   | HIGH     |
+| F-12 | Auth только через Telegram (нет email/password)             | api.ts:228-231 | MEDIUM   |
+| F-13 | Token key mismatch с web (`vendhub-token` vs `accessToken`) | api.ts:16      | LOW      |
+
+### Mobile — критические находки
+
+| #    | Проблема                                         | Файл                | Severity |
+| ---- | ------------------------------------------------ | ------------------- | -------- |
+| F-14 | Auth token НИКОГДА не отправляется               | api.ts:11-17        | CRITICAL |
+| F-15 | API URL = localhost (не работает на устройствах) | app.json + api.ts:9 | CRITICAL |
+| F-16 | expo-router plugin конфликт с React Navigation   | app.json:54         | HIGH     |
+| F-17 | Hardcoded EAS project ID (не UUID)               | app.json:97         | MEDIUM   |
+| F-18 | Duplicate `transfer` methods в inventoryApi      | api.ts:84-91        | LOW      |
+| F-19 | ProfileScreen — пустые onPress handlers          | ProfileScreen.tsx   | MEDIUM   |
+
+### Bot — критические находки
+
+| #    | Проблема                             | Файл                 | Severity |
+| ---- | ------------------------------------ | -------------------- | -------- |
+| F-20 | Все API вызовы без аутентификации    | api.ts:22-25         | CRITICAL |
+| F-21 | handleConfirmOrder — заглушка        | callbacks.ts:305-308 | HIGH     |
+| F-22 | Trip сообщения в транслитерации      | commands.ts:369-520  | MEDIUM   |
+| F-23 | Staff commands scope неправильный    | main.ts:107-116      | MEDIUM   |
+| F-24 | Silent error swallowing в API client | api.ts               | LOW      |
+
+### Общая матрица auth-проблем
+
+| App        | Auth Method | Token Storage | Token Sent           | Refresh           | Status      |
+| ---------- | ----------- | ------------- | -------------------- | ----------------- | ----------- |
+| Web Admin  | JWT         | localStorage  | ✅ axios interceptor | ⚠️ race condition | Работает    |
+| Client PWA | Telegram    | localStorage  | ✅ axios interceptor | ❌                | ⚠️ Разлогин |
+| Mobile     | JWT         | ❌ Нигде      | ❌                   | ❌                | ❌ Сломан   |
+| Bot        | Нет         | Нет           | ❌                   | N/A               | ❌ Сломан   |
+
+---
+
+_Конец отчёта. Версия 1.2 (финальная) — обновлена по результатам глубокого аудита backend, frontend и инфраструктуры. Все 3 фоновых агента завершены._

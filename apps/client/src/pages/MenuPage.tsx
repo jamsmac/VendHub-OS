@@ -1,25 +1,25 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Coffee, Cookie, Droplets } from 'lucide-react';
-import { api } from '@/lib/api';
-import { formatPrice, cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { ArrowLeft, Coffee, Cookie, Droplets, Star } from "lucide-react";
+import { api } from "@/lib/api";
+import { formatPrice, cn } from "@/lib/utils";
+import { useState } from "react";
 
 export function MenuPage() {
   const { machineId } = useParams();
   const { t } = useTranslation();
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState("all");
 
   const categories = [
-    { id: 'all', label: t('menuCategoryAll'), icon: null },
-    { id: 'coffee', label: t('coffee'), icon: Coffee },
-    { id: 'drink', label: t('drinks'), icon: Droplets },
-    { id: 'snack', label: t('snacks'), icon: Cookie },
+    { id: "all", label: t("menuCategoryAll"), icon: null },
+    { id: "coffee", label: t("coffee"), icon: Coffee },
+    { id: "drink", label: t("drinks"), icon: Droplets },
+    { id: "snack", label: t("snacks"), icon: Cookie },
   ];
 
   const { data: machine } = useQuery({
-    queryKey: ['machine', machineId],
+    queryKey: ["machine", machineId],
     queryFn: async () => {
       const res = await api.get(`/machines/${machineId}`);
       return res.data;
@@ -28,18 +28,19 @@ export function MenuPage() {
   });
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ['products', machineId],
+    queryKey: ["products", machineId],
     queryFn: async () => {
       // В реальном приложении - запрос продуктов для конкретного автомата
-      const res = await api.get('/products');
+      const res = await api.get("/products");
       return res.data;
     },
   });
 
   const filteredProducts =
-    activeCategory === 'all'
+    activeCategory === "all"
       ? products
-      : products?.filter((p: any) => p.type === activeCategory);
+      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        products?.filter((p: any) => p.type === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,7 +55,7 @@ export function MenuPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="font-semibold">{machine?.name || t('menu')}</h1>
+              <h1 className="font-semibold">{machine?.name || t("menu")}</h1>
               <p className="text-xs text-muted-foreground">
                 {machine?.location?.address}
               </p>
@@ -70,10 +71,10 @@ export function MenuPage() {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors',
+                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
                   activeCategory === cat.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground",
                 )}
               >
                 {cat.icon && <cat.icon className="w-4 h-4" />}
@@ -99,14 +100,19 @@ export function MenuPage() {
           </div>
         ) : filteredProducts?.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {filteredProducts.map((product: any) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                machineId={machineId}
+              />
             ))}
           </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <Coffee className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>{t('noProductsAvailable')}</p>
+            <p>{t("noProductsAvailable")}</p>
           </div>
         )}
       </div>
@@ -114,9 +120,28 @@ export function MenuPage() {
   );
 }
 
-function ProductCard({ product }: { product: any }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ProductCard({
+  product,
+  machineId,
+}: {
+  product: any;
+  machineId?: string;
+}) {
+  const navigate = useNavigate();
+  const isCustomizable = product.type === "coffee" || product.type === "drink";
+
+  const handleClick = () => {
+    if (isCustomizable && machineId) {
+      navigate(`/drink/${machineId}/${product.id}`);
+    }
+  };
+
   return (
-    <div className="card-coffee overflow-hidden">
+    <div
+      className={`card-coffee overflow-hidden ${isCustomizable ? "cursor-pointer active:scale-[0.98] transition-transform" : ""}`}
+      onClick={handleClick}
+    >
       {/* Image */}
       <div className="aspect-square bg-muted relative">
         {product.image ? (
@@ -127,9 +152,9 @@ function ProductCard({ product }: { product: any }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl">
-            {product.type === 'coffee' && '☕'}
-            {product.type === 'drink' && '🥤'}
-            {product.type === 'snack' && '🍫'}
+            {product.type === "coffee" && "☕"}
+            {product.type === "drink" && "🥤"}
+            {product.type === "snack" && "🍫"}
           </div>
         )}
 
@@ -137,6 +162,14 @@ function ProductCard({ product }: { product: any }) {
         <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded-lg text-sm font-bold">
           {formatPrice(product.sellPrice)}
         </div>
+
+        {/* Customizable indicator */}
+        {isCustomizable && (
+          <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-medium px-2 py-0.5 rounded-full text-primary flex items-center gap-1">
+            <Star className="w-3 h-3" />
+            Настроить
+          </div>
+        )}
       </div>
 
       {/* Info */}
@@ -146,6 +179,12 @@ function ProductCard({ product }: { product: any }) {
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {product.description}
           </p>
+        )}
+        {product.rating && (
+          <div className="flex items-center gap-1 mt-1.5">
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <span className="text-xs font-medium">{product.rating}</span>
+          </div>
         )}
       </div>
     </div>

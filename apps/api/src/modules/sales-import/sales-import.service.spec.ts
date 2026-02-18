@@ -1,13 +1,24 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
-import { SalesImportService } from './sales-import.service';
-import { SalesImport, ImportStatus, ImportFileType } from './entities/sales-import.entity';
-import { CreateSalesImportDto, QuerySalesImportsDto } from './dto/create-sales-import.dto';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
+import { NotFoundException } from "@nestjs/common";
+import { SalesImportService } from "./sales-import.service";
+import {
+  SalesImport,
+  ImportStatus,
+  ImportFileType,
+} from "./entities/sales-import.entity";
+import {
+  CreateSalesImportDto,
+  QuerySalesImportsDto,
+} from "./dto/create-sales-import.dto";
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -35,7 +46,7 @@ const createMockQueryBuilder = () => ({
   getRawMany: jest.fn(),
 });
 
-describe('SalesImportService', () => {
+describe("SalesImportService", () => {
   let service: SalesImportService;
   let repository: MockRepository<SalesImport>;
 
@@ -52,7 +63,7 @@ describe('SalesImportService', () => {
     service = module.get<SalesImportService>(SalesImportService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -60,56 +71,56 @@ describe('SalesImportService', () => {
   // CREATE
   // ==========================================================================
 
-  describe('create', () => {
-    it('should create a new import record with PENDING status', async () => {
+  describe("create", () => {
+    it("should create a new import record with PENDING status", async () => {
       const dto: CreateSalesImportDto = {
-        filename: 'sales_jan_2025.xlsx',
+        filename: "sales_jan_2025.xlsx",
         fileType: ImportFileType.EXCEL,
       };
 
       const created = {
-        id: 'imp-1',
-        organizationId: 'org-1',
-        uploadedByUserId: 'user-1',
+        id: "imp-1",
+        organizationId: "org-1",
+        uploadedByUserId: "user-1",
         filename: dto.filename,
         fileType: dto.fileType,
         fileId: null,
         status: ImportStatus.PENDING,
-        created_by_id: 'user-1',
+        created_by_id: "user-1",
       };
 
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      const result = await service.create('org-1', 'user-1', dto);
+      const result = await service.create("org-1", "user-1", dto);
 
       expect(repository.create).toHaveBeenCalledWith({
-        organizationId: 'org-1',
-        uploadedByUserId: 'user-1',
-        filename: 'sales_jan_2025.xlsx',
+        organizationId: "org-1",
+        uploadedByUserId: "user-1",
+        filename: "sales_jan_2025.xlsx",
         fileType: ImportFileType.EXCEL,
         fileId: null,
         status: ImportStatus.PENDING,
-        created_by_id: 'user-1',
+        created_by_id: "user-1",
       });
       expect(result.status).toBe(ImportStatus.PENDING);
     });
 
-    it('should set fileId when provided in dto', async () => {
+    it("should set fileId when provided in dto", async () => {
       const dto: CreateSalesImportDto = {
-        filename: 'sales.csv',
+        filename: "sales.csv",
         fileType: ImportFileType.CSV,
-        fileId: 'file-uuid-123',
+        fileId: "file-uuid-123",
       };
 
-      const created = { ...dto, id: 'imp-2', status: ImportStatus.PENDING };
+      const created = { ...dto, id: "imp-2", status: ImportStatus.PENDING };
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      await service.create('org-1', 'user-1', dto);
+      await service.create("org-1", "user-1", dto);
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ fileId: 'file-uuid-123' }),
+        expect.objectContaining({ fileId: "file-uuid-123" }),
       );
     });
   });
@@ -118,10 +129,10 @@ describe('SalesImportService', () => {
   // START PROCESSING
   // ==========================================================================
 
-  describe('startProcessing', () => {
-    it('should set status to PROCESSING and record start time', async () => {
+  describe("startProcessing", () => {
+    it("should set status to PROCESSING and record start time", async () => {
       const existing = {
-        id: 'imp-1',
+        id: "imp-1",
         status: ImportStatus.PENDING,
         startedAt: null,
       };
@@ -133,17 +144,18 @@ describe('SalesImportService', () => {
         startedAt: expect.any(Date),
       });
 
-      const result = await service.startProcessing('imp-1');
+      const result = await service.startProcessing("imp-1");
 
       expect(result.status).toBe(ImportStatus.PROCESSING);
       expect(existing.startedAt).toBeInstanceOf(Date);
     });
 
-    it('should throw NotFoundException when import not found', async () => {
+    it("should throw NotFoundException when import not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.startProcessing('non-existent'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.startProcessing("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -151,10 +163,10 @@ describe('SalesImportService', () => {
   // UPDATE PROGRESS
   // ==========================================================================
 
-  describe('updateProgress', () => {
-    it('should update totalRows, successRows and failedRows', async () => {
+  describe("updateProgress", () => {
+    it("should update totalRows, successRows and failedRows", async () => {
       const existing = {
-        id: 'imp-1',
+        id: "imp-1",
         totalRows: 0,
         successRows: 0,
         failedRows: 0,
@@ -164,7 +176,7 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      const result = await service.updateProgress('imp-1', {
+      await service.updateProgress("imp-1", {
         totalRows: 100,
         successRows: 90,
         failedRows: 10,
@@ -175,29 +187,33 @@ describe('SalesImportService', () => {
       expect(existing.failedRows).toBe(10);
     });
 
-    it('should append errors to existing errors array', async () => {
+    it("should append errors to existing errors array", async () => {
       const existing = {
-        id: 'imp-1',
+        id: "imp-1",
         totalRows: 100,
         successRows: 0,
         failedRows: 0,
-        errors: [{ row: 1, field: 'amount', message: 'Invalid' }],
+        errors: [{ row: 1, field: "amount", message: "Invalid" }],
       };
 
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      await service.updateProgress('imp-1', {
-        errors: [{ row: 5, field: 'date', message: 'Bad format' }],
+      await service.updateProgress("imp-1", {
+        errors: [{ row: 5, field: "date", message: "Bad format" }],
       });
 
       expect(existing.errors).toHaveLength(2);
-      expect(existing.errors[1]).toEqual({ row: 5, field: 'date', message: 'Bad format' });
+      expect(existing.errors[1]).toEqual({
+        row: 5,
+        field: "date",
+        message: "Bad format",
+      });
     });
 
-    it('should not modify fields that are not provided', async () => {
+    it("should not modify fields that are not provided", async () => {
       const existing = {
-        id: 'imp-1',
+        id: "imp-1",
         totalRows: 50,
         successRows: 30,
         failedRows: 5,
@@ -207,7 +223,7 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      await service.updateProgress('imp-1', { successRows: 35 });
+      await service.updateProgress("imp-1", { successRows: 35 });
 
       expect(existing.totalRows).toBe(50);
       expect(existing.failedRows).toBe(5);
@@ -219,10 +235,10 @@ describe('SalesImportService', () => {
   // COMPLETE
   // ==========================================================================
 
-  describe('complete', () => {
-    it('should mark as COMPLETED when all rows succeed', async () => {
+  describe("complete", () => {
+    it("should mark as COMPLETED when all rows succeed", async () => {
       const existing = {
-        id: 'imp-1',
+        id: "imp-1",
         totalRows: 100,
         successRows: 100,
         failedRows: 0,
@@ -235,19 +251,19 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      const result = await service.complete('imp-1', {
+      await service.complete("imp-1", {
         totalAmount: 5000000,
         transactionsCreated: 100,
       });
 
       expect(existing.status).toBe(ImportStatus.COMPLETED);
-      expect(existing.message).toContain('Successfully imported 100');
+      expect(existing.message).toContain("Successfully imported 100");
       expect(existing.completedAt).toBeInstanceOf(Date);
     });
 
-    it('should mark as FAILED when all rows fail', async () => {
+    it("should mark as FAILED when all rows fail", async () => {
       const existing = {
-        id: 'imp-2',
+        id: "imp-2",
         totalRows: 50,
         successRows: 0,
         failedRows: 50,
@@ -260,15 +276,15 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      await service.complete('imp-2', {});
+      await service.complete("imp-2", {});
 
       expect(existing.status).toBe(ImportStatus.FAILED);
-      expect(existing.message).toContain('failed');
+      expect(existing.message).toContain("failed");
     });
 
-    it('should mark as PARTIAL when some rows succeed and some fail', async () => {
+    it("should mark as PARTIAL when some rows succeed and some fail", async () => {
       const existing = {
-        id: 'imp-3',
+        id: "imp-3",
         totalRows: 100,
         successRows: 70,
         failedRows: 30,
@@ -281,16 +297,16 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      await service.complete('imp-3', { totalAmount: 3500000 });
+      await service.complete("imp-3", { totalAmount: 3500000 });
 
       expect(existing.status).toBe(ImportStatus.PARTIAL);
-      expect(existing.message).toContain('70 success');
-      expect(existing.message).toContain('30 failed');
+      expect(existing.message).toContain("70 success");
+      expect(existing.message).toContain("30 failed");
     });
 
-    it('should store the summary object', async () => {
+    it("should store the summary object", async () => {
       const existing = {
-        id: 'imp-4',
+        id: "imp-4",
         totalRows: 10,
         successRows: 10,
         failedRows: 0,
@@ -303,8 +319,12 @@ describe('SalesImportService', () => {
       repository.findOne!.mockResolvedValue(existing);
       repository.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      const summary = { totalAmount: 1000000, transactionsCreated: 10, machinesProcessed: 3 };
-      await service.complete('imp-4', summary);
+      const summary = {
+        totalAmount: 1000000,
+        transactionsCreated: 10,
+        machinesProcessed: 3,
+      };
+      await service.complete("imp-4", summary);
 
       expect(existing.summary).toEqual(summary);
     });
@@ -314,15 +334,15 @@ describe('SalesImportService', () => {
   // FIND ALL
   // ==========================================================================
 
-  describe('findAll', () => {
-    it('should return paginated import records', async () => {
+  describe("findAll", () => {
+    it("should return paginated import records", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(25);
-      mockQb.getMany.mockResolvedValue([{ id: 'imp-1' }, { id: 'imp-2' }]);
+      mockQb.getMany.mockResolvedValue([{ id: "imp-1" }, { id: "imp-2" }]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
       const params: QuerySalesImportsDto = { page: 1, limit: 20 };
-      const result = await service.findAll('org-1', params);
+      const result = await service.findAll("org-1", params);
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(25);
@@ -330,41 +350,48 @@ describe('SalesImportService', () => {
       expect(result.limit).toBe(20);
     });
 
-    it('should apply status filter', async () => {
+    it("should apply status filter", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
       const params: QuerySalesImportsDto = { status: ImportStatus.COMPLETED };
-      await service.findAll('org-1', params);
+      await service.findAll("org-1", params);
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith('si.status = :status', { status: ImportStatus.COMPLETED });
+      expect(mockQb.andWhere).toHaveBeenCalledWith("si.status = :status", {
+        status: ImportStatus.COMPLETED,
+      });
     });
 
-    it('should apply date range filters', async () => {
+    it("should apply date range filters", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
       const params: QuerySalesImportsDto = {
-        dateFrom: '2025-01-01',
-        dateTo: '2025-12-31',
+        dateFrom: "2025-01-01",
+        dateTo: "2025-12-31",
       };
-      await service.findAll('org-1', params);
+      await service.findAll("org-1", params);
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith('si.created_at >= :dateFrom', { dateFrom: '2025-01-01' });
-      expect(mockQb.andWhere).toHaveBeenCalledWith('si.created_at <= :dateTo', { dateTo: '2025-12-31' });
+      expect(mockQb.andWhere).toHaveBeenCalledWith(
+        "si.created_at >= :dateFrom",
+        { dateFrom: "2025-01-01" },
+      );
+      expect(mockQb.andWhere).toHaveBeenCalledWith("si.created_at <= :dateTo", {
+        dateTo: "2025-12-31",
+      });
     });
 
-    it('should use default pagination when not specified', async () => {
+    it("should use default pagination when not specified", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      const result = await service.findAll('org-1', {});
+      const result = await service.findAll("org-1", {});
 
       expect(result.page).toBe(1);
       expect(result.limit).toBe(20);
@@ -377,22 +404,29 @@ describe('SalesImportService', () => {
   // FIND BY ID
   // ==========================================================================
 
-  describe('findById', () => {
-    it('should return an import record by id', async () => {
-      const record = { id: 'imp-1', filename: 'test.xlsx', status: ImportStatus.COMPLETED };
+  describe("findById", () => {
+    it("should return an import record by id", async () => {
+      const record = {
+        id: "imp-1",
+        filename: "test.xlsx",
+        status: ImportStatus.COMPLETED,
+      };
       repository.findOne!.mockResolvedValue(record);
 
-      const result = await service.findById('imp-1');
+      const result = await service.findById("imp-1");
 
       expect(result).toEqual(record);
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: 'imp-1' } });
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: "imp-1" },
+      });
     });
 
-    it('should throw NotFoundException when record not found', async () => {
+    it("should throw NotFoundException when record not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.findById('non-existent'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.findById("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -400,22 +434,27 @@ describe('SalesImportService', () => {
   // REMOVE
   // ==========================================================================
 
-  describe('remove', () => {
-    it('should soft delete an import record', async () => {
-      const record = { id: 'imp-1', filename: 'test.xlsx' };
+  describe("remove", () => {
+    it("should soft delete an import record", async () => {
+      const record = { id: "imp-1", filename: "test.xlsx" };
       repository.findOne!.mockResolvedValue(record);
-      repository.softDelete!.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] });
+      repository.softDelete!.mockResolvedValue({
+        affected: 1,
+        raw: {},
+        generatedMaps: [],
+      });
 
-      await service.remove('imp-1');
+      await service.remove("imp-1");
 
-      expect(repository.softDelete).toHaveBeenCalledWith('imp-1');
+      expect(repository.softDelete).toHaveBeenCalledWith("imp-1");
     });
 
-    it('should throw NotFoundException when record to delete not found', async () => {
+    it("should throw NotFoundException when record to delete not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.remove("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -423,27 +462,27 @@ describe('SalesImportService', () => {
   // GET STATS
   // ==========================================================================
 
-  describe('getStats', () => {
-    it('should return import statistics', async () => {
+  describe("getStats", () => {
+    it("should return import statistics", async () => {
       const statsQb = createMockQueryBuilder();
       const statusQb = createMockQueryBuilder();
 
       statsQb.getRawOne.mockResolvedValue({
-        totalImports: '15',
-        lastImportDate: new Date('2025-06-01'),
-        successRate: '80.00',
+        totalImports: "15",
+        lastImportDate: new Date("2025-06-01"),
+        successRate: "80.00",
       });
 
       statusQb.getRawMany.mockResolvedValue([
-        { status: ImportStatus.COMPLETED, count: '12' },
-        { status: ImportStatus.FAILED, count: '3' },
+        { status: ImportStatus.COMPLETED, count: "12" },
+        { status: ImportStatus.FAILED, count: "3" },
       ]);
 
-      repository.createQueryBuilder!
-        .mockReturnValueOnce(statsQb)
+      repository
+        .createQueryBuilder!.mockReturnValueOnce(statsQb)
         .mockReturnValueOnce(statusQb);
 
-      const result = await service.getStats('org-1');
+      const result = await service.getStats("org-1");
 
       expect(result.totalImports).toBe(15);
       expect(result.successRate).toBe(80);
@@ -451,22 +490,22 @@ describe('SalesImportService', () => {
       expect(result.byStatus[ImportStatus.FAILED]).toBe(3);
     });
 
-    it('should return zeros when no imports exist', async () => {
+    it("should return zeros when no imports exist", async () => {
       const statsQb = createMockQueryBuilder();
       const statusQb = createMockQueryBuilder();
 
       statsQb.getRawOne.mockResolvedValue({
-        totalImports: '0',
+        totalImports: "0",
         lastImportDate: null,
-        successRate: '0',
+        successRate: "0",
       });
       statusQb.getRawMany.mockResolvedValue([]);
 
-      repository.createQueryBuilder!
-        .mockReturnValueOnce(statsQb)
+      repository
+        .createQueryBuilder!.mockReturnValueOnce(statsQb)
         .mockReturnValueOnce(statusQb);
 
-      const result = await service.getStats('org-1');
+      const result = await service.getStats("org-1");
 
       expect(result.totalImports).toBe(0);
       expect(result.lastImportDate).toBeNull();
@@ -474,18 +513,18 @@ describe('SalesImportService', () => {
       expect(result.byStatus).toEqual({});
     });
 
-    it('should handle null stats result gracefully', async () => {
+    it("should handle null stats result gracefully", async () => {
       const statsQb = createMockQueryBuilder();
       const statusQb = createMockQueryBuilder();
 
       statsQb.getRawOne.mockResolvedValue(null);
       statusQb.getRawMany.mockResolvedValue([]);
 
-      repository.createQueryBuilder!
-        .mockReturnValueOnce(statsQb)
+      repository
+        .createQueryBuilder!.mockReturnValueOnce(statsQb)
         .mockReturnValueOnce(statusQb);
 
-      const result = await service.getStats('org-1');
+      const result = await service.getStats("org-1");
 
       expect(result.totalImports).toBe(0);
       expect(result.successRate).toBe(0);

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Mail,
@@ -13,44 +13,84 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-} from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usersApi } from '@/lib/api';
-import { UserForm, UserFormData } from '@/components/users/UserForm';
-import { RoleAssignment } from '@/components/users/RoleAssignment';
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usersApi } from "@/lib/api";
+import { UserForm, UserFormData } from "@/components/users/UserForm";
+import { RoleAssignment } from "@/components/users/RoleAssignment";
 
-const roleConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  owner: { label: 'Владелец', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-  admin: { label: 'Администратор', color: 'text-red-600', bgColor: 'bg-red-100' },
-  manager: { label: 'Менеджер', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  operator: { label: 'Оператор', color: 'text-green-600', bgColor: 'bg-green-100' },
-  warehouse: { label: 'Склад', color: 'text-orange-600', bgColor: 'bg-orange-100' },
-  accountant: { label: 'Бухгалтер', color: 'text-cyan-600', bgColor: 'bg-cyan-100' },
-  viewer: { label: 'Наблюдатель', color: 'text-muted-foreground', bgColor: 'bg-muted' },
+const roleConfig: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  owner: {
+    label: "Владелец",
+    color: "text-purple-600",
+    bgColor: "bg-purple-100",
+  },
+  admin: {
+    label: "Администратор",
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  manager: {
+    label: "Менеджер",
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  operator: {
+    label: "Оператор",
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  warehouse: {
+    label: "Склад",
+    color: "text-orange-600",
+    bgColor: "bg-orange-100",
+  },
+  accountant: {
+    label: "Бухгалтер",
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-100",
+  },
+  viewer: {
+    label: "Наблюдатель",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
+  },
 };
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  active: { label: 'Активен', color: 'text-green-600', icon: CheckCircle },
-  inactive: { label: 'Неактивен', color: 'text-muted-foreground', icon: XCircle },
-  suspended: { label: 'Заблокирован', color: 'text-red-600', icon: XCircle },
-  pending: { label: 'Ожидает', color: 'text-yellow-600', icon: Shield },
-  rejected: { label: 'Отклонен', color: 'text-red-600', icon: XCircle },
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const statusConfig: Record<
+  string,
+  { label: string; color: string; icon: any }
+> = {
+  active: { label: "Активен", color: "text-green-600", icon: CheckCircle },
+  inactive: {
+    label: "Неактивен",
+    color: "text-muted-foreground",
+    icon: XCircle,
+  },
+  suspended: { label: "Заблокирован", color: "text-red-600", icon: XCircle },
+  pending: { label: "Ожидает", color: "text-yellow-600", icon: Shield },
+  rejected: { label: "Отклонен", color: "text-red-600", icon: XCircle },
 };
 
 export default function UserDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  useRouter();
   const queryClient = useQueryClient();
   const userId = params.id as string;
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => usersApi.getById(userId).then((res) => res.data.data || res.data),
+    queryKey: ["user", userId],
+    queryFn: () =>
+      usersApi.getById(userId).then((res) => res.data.data || res.data),
     enabled: !!userId,
   });
 
@@ -59,13 +99,15 @@ export default function UserDetailPage() {
     try {
       // Remove empty password
       const payload = { ...data };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!payload.password) delete (payload as any).password;
       await usersApi.update(userId, payload);
-      queryClient.invalidateQueries({ queryKey: ['user', userId] });
-      toast.success('Данные обновлены');
+      queryClient.invalidateQueries({ queryKey: ["user", userId] });
+      toast.success("Данные обновлены");
       setIsEditing(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Ошибка обновления');
+      toast.error(error.response?.data?.message || "Ошибка обновления");
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +135,8 @@ export default function UserDetailPage() {
   const role = roleConfig[user.role] || roleConfig.viewer;
   const status = statusConfig[user.status] || statusConfig.inactive;
   const StatusIcon = status.icon;
-  const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+  const initials =
+    `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
 
   return (
     <div className="space-y-6">
@@ -124,10 +167,10 @@ export default function UserDetailPage() {
           </div>
         </div>
         <Button
-          variant={isEditing ? 'outline' : 'default'}
+          variant={isEditing ? "outline" : "default"}
           onClick={() => setIsEditing(!isEditing)}
         >
-          {isEditing ? 'Отменить' : 'Редактировать'}
+          {isEditing ? "Отменить" : "Редактировать"}
         </Button>
       </div>
 
@@ -138,7 +181,7 @@ export default function UserDetailPage() {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            phone: user.phone || '',
+            phone: user.phone || "",
             role: user.role,
           }}
           onSubmit={handleUpdate}
@@ -182,18 +225,20 @@ export default function UserDetailPage() {
                 <div className="flex items-center gap-3 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Создан:{' '}
-                    {new Date(user.createdAt || user.created_at).toLocaleDateString('ru-RU')}
+                    Создан:{" "}
+                    {new Date(
+                      user.createdAt || user.created_at,
+                    ).toLocaleDateString("ru-RU")}
                   </span>
                 </div>
                 {(user.lastLoginAt || user.last_login_at) && (
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      Последний вход:{' '}
-                      {new Date(user.lastLoginAt || user.last_login_at).toLocaleDateString(
-                        'ru-RU'
-                      )}
+                      Последний вход:{" "}
+                      {new Date(
+                        user.lastLoginAt || user.last_login_at,
+                      ).toLocaleDateString("ru-RU")}
                     </span>
                   </div>
                 )}

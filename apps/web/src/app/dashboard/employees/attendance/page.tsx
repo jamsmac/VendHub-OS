@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Clock,
   Users,
@@ -13,11 +13,10 @@ import {
   CalendarDays,
   LogIn,
   LogOut,
-  Plus,
   Timer,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -25,33 +24,33 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 const employeeTabs = [
-  { href: '/dashboard/employees', label: 'Сотрудники' },
-  { href: '/dashboard/employees/departments', label: 'Отделы' },
-  { href: '/dashboard/employees/attendance', label: 'Посещаемость' },
-  { href: '/dashboard/employees/leave', label: 'Отпуска' },
-  { href: '/dashboard/employees/payroll', label: 'Зарплата' },
-  { href: '/dashboard/employees/reviews', label: 'Оценки' },
+  { href: "/dashboard/employees", label: "Сотрудники" },
+  { href: "/dashboard/employees/departments", label: "Отделы" },
+  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
+  { href: "/dashboard/employees/leave", label: "Отпуска" },
+  { href: "/dashboard/employees/payroll", label: "Зарплата" },
+  { href: "/dashboard/employees/reviews", label: "Оценки" },
 ];
 
 interface AttendanceRecord {
@@ -63,7 +62,7 @@ interface AttendanceRecord {
   check_out_time?: string;
   total_hours?: number;
   overtime_hours?: number;
-  status: 'PRESENT' | 'ABSENT' | 'LATE' | 'HALF_DAY' | 'ON_LEAVE';
+  status: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "ON_LEAVE";
   note?: string;
   location?: string;
 }
@@ -83,32 +82,32 @@ interface Employee {
 }
 
 const statusLabels: Record<string, string> = {
-  PRESENT: 'Присутствует',
-  ABSENT: 'Отсутствует',
-  LATE: 'Опоздание',
-  HALF_DAY: 'Полдня',
-  ON_LEAVE: 'В отпуске',
+  PRESENT: "Присутствует",
+  ABSENT: "Отсутствует",
+  LATE: "Опоздание",
+  HALF_DAY: "Полдня",
+  ON_LEAVE: "В отпуске",
 };
 
 const statusColors: Record<string, string> = {
-  PRESENT: 'bg-green-500/10 text-green-500',
-  ABSENT: 'bg-red-500/10 text-red-500',
-  LATE: 'bg-amber-500/10 text-amber-500',
-  HALF_DAY: 'bg-blue-500/10 text-blue-500',
-  ON_LEAVE: 'bg-violet-500/10 text-violet-500',
+  PRESENT: "bg-green-500/10 text-green-500",
+  ABSENT: "bg-red-500/10 text-red-500",
+  LATE: "bg-amber-500/10 text-amber-500",
+  HALF_DAY: "bg-blue-500/10 text-blue-500",
+  ON_LEAVE: "bg-violet-500/10 text-violet-500",
 };
 
 export default function AttendancePage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split("T")[0],
   );
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
 
   const { data: attendance, isLoading } = useQuery<AttendanceRecord[]>({
-    queryKey: ['attendance', selectedDate],
+    queryKey: ["attendance", selectedDate],
     queryFn: async () => {
       const res = await api.get(`/employees/attendance?date=${selectedDate}`);
       return res.data;
@@ -116,17 +115,19 @@ export default function AttendancePage() {
   });
 
   const { data: dailyReport } = useQuery<DailyReport>({
-    queryKey: ['attendance-daily-report', selectedDate],
+    queryKey: ["attendance-daily-report", selectedDate],
     queryFn: async () => {
-      const res = await api.get(`/employees/attendance/daily-report?date=${selectedDate}`);
+      const res = await api.get(
+        `/employees/attendance/daily-report?date=${selectedDate}`,
+      );
       return res.data;
     },
   });
 
   const { data: employees } = useQuery<Employee[]>({
-    queryKey: ['employees-list'],
+    queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get('/employees');
+      const res = await api.get("/employees");
       return res.data;
     },
   });
@@ -140,15 +141,15 @@ export default function AttendancePage() {
   };
 
   const formatTime = (time?: string) => {
-    if (!time) return '--';
-    return new Date(time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
+    if (!time) return "--";
+    return new Date(time).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatHours = (hours?: number) => {
-    if (!hours && hours !== 0) return '--';
+    if (!hours && hours !== 0) return "--";
     return `${hours.toFixed(1)} ч`;
   };
 
@@ -172,8 +173,8 @@ export default function AttendancePage() {
             href={tab.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               pathname === tab.href
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
             }`}
           >
             {tab.label}
@@ -267,8 +268,10 @@ export default function AttendancePage() {
                 employees={employees || []}
                 onSuccess={() => {
                   setIsCheckInOpen(false);
-                  queryClient.invalidateQueries({ queryKey: ['attendance'] });
-                  queryClient.invalidateQueries({ queryKey: ['attendance-daily-report'] });
+                  queryClient.invalidateQueries({ queryKey: ["attendance"] });
+                  queryClient.invalidateQueries({
+                    queryKey: ["attendance-daily-report"],
+                  });
                 }}
               />
             </DialogContent>
@@ -288,8 +291,10 @@ export default function AttendancePage() {
                 employees={employees || []}
                 onSuccess={() => {
                   setIsCheckOutOpen(false);
-                  queryClient.invalidateQueries({ queryKey: ['attendance'] });
-                  queryClient.invalidateQueries({ queryKey: ['attendance-daily-report'] });
+                  queryClient.invalidateQueries({ queryKey: ["attendance"] });
+                  queryClient.invalidateQueries({
+                    queryKey: ["attendance-daily-report"],
+                  });
                 }}
               />
             </DialogContent>
@@ -373,7 +378,9 @@ export default function AttendancePage() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
                   <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Нет данных о посещаемости за выбранную дату</p>
+                  <p className="text-muted-foreground">
+                    Нет данных о посещаемости за выбранную дату
+                  </p>
                 </TableCell>
               </TableRow>
             )}
@@ -392,18 +399,18 @@ function CheckInForm({
   onSuccess: () => void;
 }) {
   const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
   const [formData, setFormData] = useState({
-    employee_id: '',
+    employee_id: "",
     time: timeStr,
-    note: '',
-    location: '',
+    note: "",
+    location: "",
   });
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post('/employees/attendance/check-in', {
+      return api.post("/employees/attendance/check-in", {
         employee_id: data.employee_id,
         time: data.time,
         note: data.note || undefined,
@@ -411,11 +418,11 @@ function CheckInForm({
       });
     },
     onSuccess: () => {
-      toast.success('Приход отмечен');
+      toast.success("Приход отмечен");
       onSuccess();
     },
     onError: () => {
-      toast.error('Не удалось отметить приход');
+      toast.error("Не удалось отметить приход");
     },
   });
 
@@ -430,7 +437,9 @@ function CheckInForm({
         <label className="text-sm font-medium">Сотрудник</label>
         <Select
           value={formData.employee_id}
-          onValueChange={(value) => setFormData({ ...formData, employee_id: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, employee_id: value })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Выберите сотрудника" />
@@ -465,13 +474,18 @@ function CheckInForm({
         <label className="text-sm font-medium">Локация (необязательно)</label>
         <Input
           value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, location: e.target.value })
+          }
           placeholder="Офис, удаленно и т.д."
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="submit" disabled={mutation.isPending || !formData.employee_id}>
-          {mutation.isPending ? 'Сохранение...' : 'Отметить приход'}
+        <Button
+          type="submit"
+          disabled={mutation.isPending || !formData.employee_id}
+        >
+          {mutation.isPending ? "Сохранение..." : "Отметить приход"}
         </Button>
       </div>
     </form>
@@ -486,26 +500,26 @@ function CheckOutForm({
   onSuccess: () => void;
 }) {
   const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
   const [formData, setFormData] = useState({
-    employee_id: '',
+    employee_id: "",
     time: timeStr,
   });
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post('/employees/attendance/check-out', {
+      return api.post("/employees/attendance/check-out", {
         employee_id: data.employee_id,
         time: data.time,
       });
     },
     onSuccess: () => {
-      toast.success('Уход отмечен');
+      toast.success("Уход отмечен");
       onSuccess();
     },
     onError: () => {
-      toast.error('Не удалось отметить уход');
+      toast.error("Не удалось отметить уход");
     },
   });
 
@@ -520,7 +534,9 @@ function CheckOutForm({
         <label className="text-sm font-medium">Сотрудник</label>
         <Select
           value={formData.employee_id}
-          onValueChange={(value) => setFormData({ ...formData, employee_id: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, employee_id: value })
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Выберите сотрудника" />
@@ -544,8 +560,11 @@ function CheckOutForm({
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="submit" disabled={mutation.isPending || !formData.employee_id}>
-          {mutation.isPending ? 'Сохранение...' : 'Отметить уход'}
+        <Button
+          type="submit"
+          disabled={mutation.isPending || !formData.employee_id}
+        >
+          {mutation.isPending ? "Сохранение..." : "Отметить уход"}
         </Button>
       </div>
     </form>

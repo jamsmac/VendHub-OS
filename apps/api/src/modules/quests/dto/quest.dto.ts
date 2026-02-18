@@ -3,7 +3,7 @@
  * Data Transfer Objects для системы квестов
  */
 
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsString,
   IsEnum,
@@ -15,14 +15,14 @@ import {
   IsUUID,
   Min,
   IsObject,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
+} from "class-validator";
+import { Transform } from "class-transformer";
 import {
   QuestPeriod,
   QuestType,
   QuestDifficulty,
   QuestStatus,
-} from '../constants/quest.constants';
+} from "../constants/quest.constants";
 
 // ============================================================================
 // REQUEST DTOs
@@ -32,20 +32,20 @@ import {
  * Создание квеста
  */
 export class CreateQuestDto {
-  @ApiProperty({ description: 'Quest title', example: 'Первый заказ дня' })
+  @ApiProperty({ description: "Quest title", example: "Первый заказ дня" })
   @IsString()
   title: string;
 
-  @ApiPropertyOptional({ description: 'Quest title in Uzbek' })
+  @ApiPropertyOptional({ description: "Quest title in Uzbek" })
   @IsString()
   @IsOptional()
   titleUz?: string;
 
-  @ApiProperty({ description: 'Quest description' })
+  @ApiProperty({ description: "Quest description" })
   @IsString()
   description: string;
 
-  @ApiPropertyOptional({ description: 'Quest description in Uzbek' })
+  @ApiPropertyOptional({ description: "Quest description in Uzbek" })
   @IsString()
   @IsOptional()
   descriptionUz?: string;
@@ -58,72 +58,76 @@ export class CreateQuestDto {
   @IsEnum(QuestType)
   type: QuestType;
 
-  @ApiPropertyOptional({ enum: QuestDifficulty, default: QuestDifficulty.MEDIUM })
+  @ApiPropertyOptional({
+    enum: QuestDifficulty,
+    default: QuestDifficulty.MEDIUM,
+  })
   @IsEnum(QuestDifficulty)
   @IsOptional()
   difficulty?: QuestDifficulty;
 
-  @ApiProperty({ description: 'Target value', example: 3 })
+  @ApiProperty({ description: "Target value", example: 3 })
   @IsInt()
   @Min(1)
   targetValue: number;
 
-  @ApiProperty({ description: 'Points reward', example: 50 })
+  @ApiProperty({ description: "Points reward", example: 50 })
   @IsInt()
   @Min(1)
   rewardPoints: number;
 
-  @ApiPropertyOptional({ description: 'Additional rewards' })
+  @ApiPropertyOptional({ description: "Additional rewards" })
   @IsArray()
   @IsOptional()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalRewards?: any[];
 
-  @ApiPropertyOptional({ description: 'Quest metadata' })
+  @ApiPropertyOptional({ description: "Quest metadata" })
   @IsObject()
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
-  @ApiPropertyOptional({ description: 'Unlock requirements' })
+  @ApiPropertyOptional({ description: "Unlock requirements" })
   @IsObject()
   @IsOptional()
-  requirements?: Record<string, any>;
+  requirements?: Record<string, unknown>;
 
-  @ApiPropertyOptional({ description: 'Icon emoji', default: '🎯' })
+  @ApiPropertyOptional({ description: "Icon emoji", default: "🎯" })
   @IsString()
   @IsOptional()
   icon?: string;
 
-  @ApiPropertyOptional({ description: 'Badge color', default: '#4CAF50' })
+  @ApiPropertyOptional({ description: "Badge color", default: "#4CAF50" })
   @IsString()
   @IsOptional()
   color?: string;
 
-  @ApiPropertyOptional({ description: 'Image URL' })
+  @ApiPropertyOptional({ description: "Image URL" })
   @IsString()
   @IsOptional()
   imageUrl?: string;
 
-  @ApiPropertyOptional({ description: 'Quest starts at' })
+  @ApiPropertyOptional({ description: "Quest starts at" })
   @IsDateString()
   @IsOptional()
   startsAt?: string;
 
-  @ApiPropertyOptional({ description: 'Quest ends at' })
+  @ApiPropertyOptional({ description: "Quest ends at" })
   @IsDateString()
   @IsOptional()
   endsAt?: string;
 
-  @ApiPropertyOptional({ description: 'Is active', default: true })
+  @ApiPropertyOptional({ description: "Is active", default: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'Is featured', default: false })
+  @ApiPropertyOptional({ description: "Is featured", default: false })
   @IsBoolean()
   @IsOptional()
   isFeatured?: boolean;
 
-  @ApiPropertyOptional({ description: 'Display order', default: 0 })
+  @ApiPropertyOptional({ description: "Display order", default: 0 })
   @IsInt()
   @IsOptional()
   displayOrder?: number;
@@ -153,22 +157,22 @@ export class QuestFilterDto {
   @IsOptional()
   difficulty?: QuestDifficulty;
 
-  @ApiPropertyOptional({ description: 'Show only active' })
+  @ApiPropertyOptional({ description: "Show only active" })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'Show only featured' })
+  @ApiPropertyOptional({ description: "Show only featured" })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   isFeatured?: boolean;
 
-  @ApiPropertyOptional({ description: 'Include expired' })
+  @ApiPropertyOptional({ description: "Include expired" })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   includeExpired?: boolean;
 }
 
@@ -186,10 +190,10 @@ export class UserQuestFilterDto {
   @IsOptional()
   period?: QuestPeriod;
 
-  @ApiPropertyOptional({ description: 'Show only claimable' })
+  @ApiPropertyOptional({ description: "Show only claimable" })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === "true" || value === true)
   claimable?: boolean;
 }
 
@@ -197,7 +201,7 @@ export class UserQuestFilterDto {
  * Claim rewards DTO
  */
 export class ClaimQuestRewardDto {
-  @ApiProperty({ description: 'User quest ID' })
+  @ApiProperty({ description: "User quest ID" })
   @IsUUID()
   userQuestId: string;
 }
@@ -220,6 +224,7 @@ export class QuestInfoDto {
   @ApiProperty({ enum: QuestDifficulty }) difficulty: QuestDifficulty;
   @ApiProperty() targetValue: number;
   @ApiProperty() rewardPoints: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @ApiProperty() additionalRewards: any[];
   @ApiProperty() icon: string;
   @ApiProperty() color: string;
@@ -255,31 +260,31 @@ export class UserQuestProgressDto {
  * Сводка квестов пользователя
  */
 export class UserQuestsSummaryDto {
-  @ApiProperty({ description: 'Total active quests' })
+  @ApiProperty({ description: "Total active quests" })
   totalActive: number;
 
-  @ApiProperty({ description: 'Completed today' })
+  @ApiProperty({ description: "Completed today" })
   completedToday: number;
 
-  @ApiProperty({ description: 'Ready to claim' })
+  @ApiProperty({ description: "Ready to claim" })
   readyToClaim: number;
 
-  @ApiProperty({ description: 'Total points available' })
+  @ApiProperty({ description: "Total points available" })
   pointsAvailable: number;
 
-  @ApiProperty({ description: 'Daily quests' })
+  @ApiProperty({ description: "Daily quests" })
   daily: UserQuestProgressDto[];
 
-  @ApiProperty({ description: 'Weekly quests' })
+  @ApiProperty({ description: "Weekly quests" })
   weekly: UserQuestProgressDto[];
 
-  @ApiProperty({ description: 'Monthly quests' })
+  @ApiProperty({ description: "Monthly quests" })
   monthly: UserQuestProgressDto[];
 
-  @ApiProperty({ description: 'Achievements (one-time)' })
+  @ApiProperty({ description: "Achievements (one-time)" })
   achievements: UserQuestProgressDto[];
 
-  @ApiProperty({ description: 'Special/seasonal quests' })
+  @ApiProperty({ description: "Special/seasonal quests" })
   special: UserQuestProgressDto[];
 }
 
@@ -290,6 +295,7 @@ export class ClaimResultDto {
   @ApiProperty() success: boolean;
   @ApiProperty() pointsEarned: number;
   @ApiProperty() newBalance: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @ApiProperty() additionalRewards: any[];
   @ApiProperty() message: string;
 }
@@ -363,6 +369,7 @@ export class QuestProgressEventDto {
     amount?: number;
     hour?: number;
     referredUserId?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
 }
@@ -373,5 +380,5 @@ export class QuestProgressEventDto {
 export class UpdateProgressDto {
   userQuestId: string;
   incrementBy: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }

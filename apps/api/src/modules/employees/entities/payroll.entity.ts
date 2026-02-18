@@ -3,76 +3,70 @@
  * Employee payroll records with salary components and approval workflow
  */
 
-import {
-  Entity,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { Employee } from './employee.entity';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { Employee } from "./employee.entity";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export enum PayrollStatus {
-  DRAFT = 'draft',
-  CALCULATED = 'calculated',
-  APPROVED = 'approved',
-  PAID = 'paid',
-  CANCELLED = 'cancelled',
+  DRAFT = "draft",
+  CALCULATED = "calculated",
+  APPROVED = "approved",
+  PAID = "paid",
+  CANCELLED = "cancelled",
 }
 
 // ============================================================================
 // PAYROLL ENTITY
 // ============================================================================
 
-@Entity('payrolls')
-@Index(['employeeId', 'periodStart'], { unique: true })
-@Index(['organizationId', 'status'])
-@Index(['periodStart', 'periodEnd'])
+@Entity("payrolls")
+@Index(["employeeId", "periodStart"], { unique: true })
+@Index(["organizationId", "status"])
+@Index(["periodStart", "periodEnd"])
 export class Payroll extends BaseEntity {
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   organizationId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   employeeId: string;
 
   @ManyToOne(() => Employee, { nullable: false })
-  @JoinColumn({ name: 'employee_id' })
+  @JoinColumn({ name: "employee_id" })
   employee: Employee;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   periodStart: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   periodEnd: Date;
 
   // ============================================================================
   // SALARY COMPONENTS
   // ============================================================================
 
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  @Column({ type: "decimal", precision: 15, scale: 2 })
   baseSalary: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   overtimePay: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   bonuses: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   deductions: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   taxAmount: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  @Column({ type: "decimal", precision: 15, scale: 2 })
   netSalary: number;
 
-  @Column({ type: 'varchar', length: 10, default: 'UZS' })
+  @Column({ type: "varchar", length: 10, default: "UZS" })
   currency: string;
 
   // ============================================================================
@@ -80,46 +74,46 @@ export class Payroll extends BaseEntity {
   // ============================================================================
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: PayrollStatus,
     default: PayrollStatus.DRAFT,
   })
   status: PayrollStatus;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
+  @Column({ type: "timestamp with time zone", nullable: true })
   calculatedAt: Date | null;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   approvedById: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
+  @Column({ type: "timestamp with time zone", nullable: true })
   approvedAt: Date | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
+  @Column({ type: "timestamp with time zone", nullable: true })
   paidAt: Date | null;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ type: "varchar", length: 100, nullable: true })
   paymentReference: string | null;
 
   // ============================================================================
   // WORKING DETAILS
   // ============================================================================
 
-  @Column({ type: 'integer' })
+  @Column({ type: "integer" })
   workingDays: number;
 
-  @Column({ type: 'integer' })
+  @Column({ type: "integer" })
   workedDays: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 5, scale: 2, default: 0 })
   overtimeHours: number;
 
-  @Column({ type: 'jsonb', nullable: true })
-  details: Record<string, any> | null;
+  @Column({ type: "jsonb", nullable: true })
+  details: Record<string, unknown> | null;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   note: string | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  @Column({ type: "jsonb", nullable: true })
+  metadata: Record<string, unknown> | null;
 }

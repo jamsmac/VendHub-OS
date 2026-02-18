@@ -11,65 +11,68 @@ import {
   JoinColumn,
   Index,
   BeforeInsert,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+} from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export enum MachineType {
-  COFFEE = 'coffee',
-  SNACK = 'snack',
-  DRINK = 'drink',
-  COMBO = 'combo',
-  FRESH = 'fresh',
-  ICE_CREAM = 'ice_cream',
-  WATER = 'water',
+  COFFEE = "coffee",
+  SNACK = "snack",
+  DRINK = "drink",
+  COMBO = "combo",
+  FRESH = "fresh",
+  ICE_CREAM = "ice_cream",
+  WATER = "water",
 }
 
 export enum MachineStatus {
-  ACTIVE = 'active',
-  LOW_STOCK = 'low_stock',
-  ERROR = 'error',
-  MAINTENANCE = 'maintenance',
-  OFFLINE = 'offline',
-  DISABLED = 'disabled',
+  ACTIVE = "active",
+  LOW_STOCK = "low_stock",
+  ERROR = "error",
+  MAINTENANCE = "maintenance",
+  OFFLINE = "offline",
+  DISABLED = "disabled",
 }
 
 export enum MachineConnectionStatus {
-  ONLINE = 'online',
-  OFFLINE = 'offline',
-  UNSTABLE = 'unstable',
-  UNKNOWN = 'unknown',
+  ONLINE = "online",
+  OFFLINE = "offline",
+  UNSTABLE = "unstable",
+  UNKNOWN = "unknown",
 }
 
 export enum DepreciationMethod {
-  LINEAR = 'linear',
-  DECLINING = 'declining',
-  UNITS_OF_PRODUCTION = 'units_of_production',
+  LINEAR = "linear",
+  DECLINING = "declining",
+  UNITS_OF_PRODUCTION = "units_of_production",
 }
 
 export enum DisposalReason {
-  OBSOLETE = 'obsolete',
-  DAMAGED = 'damaged',
-  SOLD = 'sold',
-  WRITTEN_OFF = 'written_off',
-  OTHER = 'other',
+  OBSOLETE = "obsolete",
+  DAMAGED = "damaged",
+  SOLD = "sold",
+  WRITTEN_OFF = "written_off",
+  OTHER = "other",
 }
 
 // ============================================================================
 // MACHINE ENTITY
 // ============================================================================
 
-@Entity('machines')
-@Index(['organizationId'])
-@Index(['locationId'])
-@Index(['machineNumber'], { unique: true, where: '"deleted_at" IS NULL' })
-@Index(['serialNumber'], { unique: true, where: '"deleted_at" IS NULL' })
-@Index(['qrCode'], { unique: true, where: '"deleted_at" IS NULL AND "qr_code" IS NOT NULL' })
-@Index(['status'])
-@Index(['assignedOperatorId'])
+@Entity("machines")
+@Index(["organizationId"])
+@Index(["locationId"])
+@Index(["machineNumber"], { unique: true, where: '"deleted_at" IS NULL' })
+@Index(["serialNumber"], { unique: true, where: '"deleted_at" IS NULL' })
+@Index(["qrCode"], {
+  unique: true,
+  where: '"deleted_at" IS NULL AND "qr_code" IS NOT NULL',
+})
+@Index(["status"])
+@Index(["assignedOperatorId"])
 export class Machine extends BaseEntity {
   @Column()
   organizationId: string;
@@ -85,14 +88,14 @@ export class Machine extends BaseEntity {
   serialNumber: string;
 
   // Type and status
-  @Column({ type: 'enum', enum: MachineType, default: MachineType.COFFEE })
+  @Column({ type: "enum", enum: MachineType, default: MachineType.COFFEE })
   type: MachineType;
 
-  @Column({ type: 'enum', enum: MachineStatus, default: MachineStatus.ACTIVE })
+  @Column({ type: "enum", enum: MachineStatus, default: MachineStatus.ACTIVE })
   status: MachineStatus;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: MachineConnectionStatus,
     default: MachineConnectionStatus.UNKNOWN,
   })
@@ -105,7 +108,7 @@ export class Machine extends BaseEntity {
   @Column({ length: 100, nullable: true })
   model: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   yearOfManufacture: number;
 
   @Column({ length: 100, nullable: true })
@@ -115,59 +118,59 @@ export class Machine extends BaseEntity {
   @Column({ length: 100, nullable: true })
   qrCode: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   qrCodeUrl: string;
 
   // Location
   @Column({ nullable: true })
   locationId: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
   latitude: number;
 
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
   longitude: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   address: string;
 
   // Dates
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   installationDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   lastMaintenanceDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   nextMaintenanceDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastPingAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastRefillDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastCollectionDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastSyncAt: Date;
 
   // Capacity & slots
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   maxProductSlots: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   currentProductCount: number;
 
-  @Column({ type: 'int', default: 10 })
+  @Column({ type: "int", default: 10 })
   lowStockThresholdPercent: number;
 
   // Cash handling
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
   cashCapacity: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
   currentCashAmount: number;
 
   // Payment methods
@@ -188,53 +191,53 @@ export class Machine extends BaseEntity {
   assignedOperatorId: string;
 
   // Statistics (cached for performance)
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalSalesCount: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   totalRevenue: number;
 
   // Financial & Depreciation
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
   purchasePrice: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   purchaseDate: Date;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   depreciationYears: number;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: DepreciationMethod,
     default: DepreciationMethod.LINEAR,
   })
   depreciationMethod: DepreciationMethod;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   accumulatedDepreciation: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   lastDepreciationDate: Date;
 
   // Disposal (write-off)
   @Column({ default: false })
   isDisposed: boolean;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   disposalDate: Date;
 
-  @Column({ type: 'enum', enum: DisposalReason, nullable: true })
+  @Column({ type: "enum", enum: DisposalReason, nullable: true })
   disposalReason: DisposalReason;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   disposalNotes: string;
 
   @Column({ nullable: true })
   disposalTransactionId: string;
 
   // Telemetry (JSONB)
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   telemetry: {
     temperature?: number;
     humidity?: number;
@@ -250,7 +253,7 @@ export class Machine extends BaseEntity {
   };
 
   // Settings (JSONB)
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   settings: {
     operatingHours?: {
       enabled: boolean;
@@ -275,39 +278,45 @@ export class Machine extends BaseEntity {
   };
 
   // Notes & metadata
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   image: string;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
   // Contract reference
   @Column({ nullable: true })
   contractId: string;
 
   // Relations (to be connected)
-  @OneToMany('MachineSlot', 'machine')
+  @OneToMany("MachineSlot", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   slots: any[];
 
-  @OneToMany('MachineLocationHistory', 'machine')
+  @OneToMany("MachineLocationHistory", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   locationHistory: any[];
 
-  @OneToMany('MachineInventory', 'machine')
+  @OneToMany("MachineInventory", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inventory: any[];
 
-  @OneToMany('Task', 'machine')
+  @OneToMany("Task", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tasks: any[];
 
-  @OneToMany('Transaction', 'machine')
+  @OneToMany("Transaction", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactions: any[];
 
-  @OneToMany('Complaint', 'machine')
+  @OneToMany("Complaint", "machine")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   complaints: any[];
 
   // Computed properties
@@ -344,9 +353,12 @@ export class Machine extends BaseEntity {
 // MACHINE SLOT ENTITY
 // ============================================================================
 
-@Entity('machine_slots')
-@Index(['machineId'])
-@Index(['machineId', 'slotNumber'], { unique: true, where: '"deleted_at" IS NULL' })
+@Entity("machine_slots")
+@Index(["machineId"])
+@Index(["machineId", "slotNumber"], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class MachineSlot extends BaseEntity {
   @Column()
   machineId: string;
@@ -357,35 +369,35 @@ export class MachineSlot extends BaseEntity {
   @Column({ nullable: true })
   productId: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   capacity: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   currentQuantity: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
   price: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
   costPrice: number;
 
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   minQuantity: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastRefilledAt: Date;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalSold: number;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
-  @ManyToOne('Machine', 'slots', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'machine_id' })
+  @ManyToOne("Machine", "slots", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
   machine: Machine;
 
   // Computed
@@ -405,18 +417,18 @@ export class MachineSlot extends BaseEntity {
 // ============================================================================
 
 export enum MoveReason {
-  INSTALLATION = 'installation',
-  RELOCATION = 'relocation',
-  REMOVAL = 'removal',
-  MAINTENANCE = 'maintenance',
-  CONTRACT_CHANGE = 'contract_change',
-  OTHER = 'other',
+  INSTALLATION = "installation",
+  RELOCATION = "relocation",
+  REMOVAL = "removal",
+  MAINTENANCE = "maintenance",
+  CONTRACT_CHANGE = "contract_change",
+  OTHER = "other",
 }
 
-@Entity('machine_location_history')
-@Index(['machineId'])
-@Index(['movedAt'])
-@Index(['toLocationId'])
+@Entity("machine_location_history")
+@Index(["machineId"])
+@Index(["movedAt"])
+@Index(["toLocationId"])
 export class MachineLocationHistory extends BaseEntity {
   @Column()
   machineId: string;
@@ -427,23 +439,23 @@ export class MachineLocationHistory extends BaseEntity {
   @Column()
   toLocationId: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   movedAt: Date;
 
   @Column()
   movedByUserId: string;
 
-  @Column({ type: 'enum', enum: MoveReason, default: MoveReason.RELOCATION })
+  @Column({ type: "enum", enum: MoveReason, default: MoveReason.RELOCATION })
   reason: MoveReason;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
-  @ManyToOne('Machine', 'locationHistory', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'machine_id' })
+  @ManyToOne("Machine", "locationHistory", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
   machine: Machine;
 }
 
@@ -452,35 +464,35 @@ export class MachineLocationHistory extends BaseEntity {
 // ============================================================================
 
 export enum ComponentType {
-  HOPPER = 'hopper',
-  GRINDER = 'grinder',
-  BREW_UNIT = 'brew_unit',
-  MIXER = 'mixer',
-  PUMP = 'pump',
-  HEATER = 'heater',
-  DISPENSER = 'dispenser',
-  COMPRESSOR = 'compressor',
-  BOARD = 'board',
-  MOTOR = 'motor',
-  OTHER = 'other',
+  HOPPER = "hopper",
+  GRINDER = "grinder",
+  BREW_UNIT = "brew_unit",
+  MIXER = "mixer",
+  PUMP = "pump",
+  HEATER = "heater",
+  DISPENSER = "dispenser",
+  COMPRESSOR = "compressor",
+  BOARD = "board",
+  MOTOR = "motor",
+  OTHER = "other",
 }
 
 export enum ComponentStatus {
-  INSTALLED = 'installed',
-  REMOVED = 'removed',
-  IN_REPAIR = 'in_repair',
-  DISPOSED = 'disposed',
+  INSTALLED = "installed",
+  REMOVED = "removed",
+  IN_REPAIR = "in_repair",
+  DISPOSED = "disposed",
 }
 
-@Entity('machine_components')
-@Index(['machineId'])
-@Index(['serialNumber'])
-@Index(['componentType'])
+@Entity("machine_components")
+@Index(["machineId"])
+@Index(["serialNumber"])
+@Index(["componentType"])
 export class MachineComponent extends BaseEntity {
   @Column({ nullable: true })
   machineId: string | null;
 
-  @Column({ type: 'enum', enum: ComponentType })
+  @Column({ type: "enum", enum: ComponentType })
   componentType: ComponentType;
 
   @Column({ length: 200 })
@@ -495,38 +507,42 @@ export class MachineComponent extends BaseEntity {
   @Column({ length: 100, nullable: true })
   model: string;
 
-  @Column({ type: 'enum', enum: ComponentStatus, default: ComponentStatus.INSTALLED })
+  @Column({
+    type: "enum",
+    enum: ComponentStatus,
+    default: ComponentStatus.INSTALLED,
+  })
   status: ComponentStatus;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   purchaseDate: Date;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
   purchasePrice: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   installedAt: Date;
 
   @Column({ nullable: true })
   installedByUserId: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   warrantyUntil: Date;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   expectedLifeHours: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   currentHours: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
-  @ManyToOne('Machine', { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'machine_id' })
+  @ManyToOne("Machine", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "machine_id" })
   machine: Machine;
 
   // Computed
@@ -546,17 +562,17 @@ export class MachineComponent extends BaseEntity {
 // ============================================================================
 
 export enum ErrorSeverity {
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error',
-  CRITICAL = 'critical',
+  INFO = "info",
+  WARNING = "warning",
+  ERROR = "error",
+  CRITICAL = "critical",
 }
 
-@Entity('machine_error_logs')
-@Index(['machineId'])
-@Index(['occurredAt'])
-@Index(['errorCode'])
-@Index(['severity'])
+@Entity("machine_error_logs")
+@Index(["machineId"])
+@Index(["occurredAt"])
+@Index(["errorCode"])
+@Index(["severity"])
 export class MachineErrorLog extends BaseEntity {
   @Column()
   machineId: string;
@@ -564,32 +580,32 @@ export class MachineErrorLog extends BaseEntity {
   @Column({ length: 50 })
   errorCode: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   message: string;
 
-  @Column({ type: 'enum', enum: ErrorSeverity, default: ErrorSeverity.ERROR })
+  @Column({ type: "enum", enum: ErrorSeverity, default: ErrorSeverity.ERROR })
   severity: ErrorSeverity;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   occurredAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   resolvedAt: Date;
 
   @Column({ nullable: true })
   resolvedByUserId: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   resolution: string;
 
   @Column({ nullable: true })
   taskId: string; // Reference to repair task
 
-  @Column({ type: 'jsonb', default: {} })
-  context: Record<string, any>; // Additional context (telemetry snapshot, etc.)
+  @Column({ type: "jsonb", default: {} })
+  context: Record<string, unknown>; // Additional context (telemetry snapshot, etc.)
 
-  @ManyToOne('Machine', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'machine_id' })
+  @ManyToOne("Machine", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
   machine: Machine;
 
   get isResolved(): boolean {
@@ -602,40 +618,44 @@ export class MachineErrorLog extends BaseEntity {
 // ============================================================================
 
 export enum MaintenanceType {
-  CLEANING = 'cleaning',
-  INSPECTION = 'inspection',
-  CALIBRATION = 'calibration',
-  PARTS_REPLACEMENT = 'parts_replacement',
-  SOFTWARE_UPDATE = 'software_update',
-  FULL_SERVICE = 'full_service',
+  CLEANING = "cleaning",
+  INSPECTION = "inspection",
+  CALIBRATION = "calibration",
+  PARTS_REPLACEMENT = "parts_replacement",
+  SOFTWARE_UPDATE = "software_update",
+  FULL_SERVICE = "full_service",
 }
 
 export enum MaintenanceStatus {
-  SCHEDULED = 'scheduled',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  SKIPPED = 'skipped',
-  OVERDUE = 'overdue',
+  SCHEDULED = "scheduled",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  SKIPPED = "skipped",
+  OVERDUE = "overdue",
 }
 
-@Entity('machine_maintenance_schedules')
-@Index(['machineId'])
-@Index(['scheduledDate'])
-@Index(['status'])
+@Entity("machine_maintenance_schedules")
+@Index(["machineId"])
+@Index(["scheduledDate"])
+@Index(["status"])
 export class MachineMaintenanceSchedule extends BaseEntity {
   @Column()
   machineId: string;
 
-  @Column({ type: 'enum', enum: MaintenanceType })
+  @Column({ type: "enum", enum: MaintenanceType })
   maintenanceType: MaintenanceType;
 
-  @Column({ type: 'enum', enum: MaintenanceStatus, default: MaintenanceStatus.SCHEDULED })
+  @Column({
+    type: "enum",
+    enum: MaintenanceStatus,
+    default: MaintenanceStatus.SCHEDULED,
+  })
   status: MaintenanceStatus;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   scheduledDate: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   completedDate: Date;
 
   @Column({ nullable: true })
@@ -647,42 +667,42 @@ export class MachineMaintenanceSchedule extends BaseEntity {
   @Column({ nullable: true })
   taskId: string; // Reference to task
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   estimatedDurationMinutes: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   actualDurationMinutes: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
   estimatedCost: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
   actualCost: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   repeatIntervalDays: number; // For recurring maintenance
 
   @Column({ nullable: true })
   nextScheduleId: string; // Link to next scheduled maintenance
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   checklist: {
     item: string;
     completed: boolean;
     completedAt?: Date;
   }[];
 
-  @Column({ type: 'jsonb', default: {} })
-  metadata: Record<string, any>;
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
 
-  @ManyToOne('Machine', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'machine_id' })
+  @ManyToOne("Machine", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
   machine: Machine;
 
   get isOverdue(): boolean {

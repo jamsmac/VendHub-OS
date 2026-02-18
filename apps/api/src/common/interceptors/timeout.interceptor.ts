@@ -10,12 +10,12 @@ import {
   CallHandler,
   RequestTimeoutException,
   SetMetadata,
-} from '@nestjs/common';
-import { Observable, throwError, TimeoutError } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
-import { Reflector } from '@nestjs/core';
+} from "@nestjs/common";
+import { Observable, throwError, TimeoutError } from "rxjs";
+import { catchError, timeout } from "rxjs/operators";
+import { Reflector } from "@nestjs/core";
 
-export const TIMEOUT_KEY = 'request-timeout';
+export const TIMEOUT_KEY = "request-timeout";
 
 /**
  * Decorator to set custom timeout for an endpoint
@@ -30,6 +30,7 @@ const DEFAULT_TIMEOUT = 30000; // 30 seconds
 export class TimeoutInterceptor implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const customTimeout = this.reflector.getAllAndOverride<number>(
       TIMEOUT_KEY,
@@ -45,7 +46,7 @@ export class TimeoutInterceptor implements NestInterceptor {
           return throwError(
             () =>
               new RequestTimeoutException(
-                'Превышено время ожидания запроса. Попробуйте позже.',
+                "Превышено время ожидания запроса. Попробуйте позже.",
               ),
           );
         }

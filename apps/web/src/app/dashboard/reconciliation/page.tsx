@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ClipboardCheck,
   Plus,
@@ -15,14 +15,14 @@ import {
   BarChart3,
   Trash2,
   FileCheck,
-} from 'lucide-react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableHeader,
@@ -30,8 +30,8 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from '@/components/ui/table';
-import { api } from '@/lib/api';
+} from "@/components/ui/table";
+import { api } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ interface ReconciliationRun {
   id: string;
   date_from: string;
   date_to: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   match_rate: number;
   matched_count: number;
   mismatch_count: number;
@@ -56,17 +56,17 @@ interface Mismatch {
   hw_amount: number | null;
   sw_amount: number | null;
   discrepancy: number | null;
-  status: 'unresolved' | 'resolved';
+  status: "unresolved" | "resolved";
   resolution_notes: string | null;
 }
 
 type MismatchType =
-  | 'AMOUNT_MISMATCH'
-  | 'MISSING_IN_HW'
-  | 'MISSING_IN_SW'
-  | 'DUPLICATE'
-  | 'TIME_MISMATCH'
-  | 'STATUS_MISMATCH';
+  | "AMOUNT_MISMATCH"
+  | "MISSING_IN_HW"
+  | "MISSING_IN_SW"
+  | "DUPLICATE"
+  | "TIME_MISMATCH"
+  | "STATUS_MISMATCH";
 
 interface CreateRunPayload {
   date_from: string;
@@ -80,57 +80,60 @@ interface CreateRunPayload {
 // ─── Constants ────────────────────────────────────────────────────────
 
 const runStatusConfig: Record<
-  ReconciliationRun['status'],
-  { label: string; variant: 'warning' | 'info' | 'success' | 'destructive' }
+  ReconciliationRun["status"],
+  { label: string; variant: "warning" | "info" | "success" | "destructive" }
 > = {
-  PENDING: { label: 'Ожидание', variant: 'warning' },
-  PROCESSING: { label: 'В процессе', variant: 'info' },
-  COMPLETED: { label: 'Завершено', variant: 'success' },
-  FAILED: { label: 'Ошибка', variant: 'destructive' },
+  PENDING: { label: "Ожидание", variant: "warning" },
+  PROCESSING: { label: "В процессе", variant: "info" },
+  COMPLETED: { label: "Завершено", variant: "success" },
+  FAILED: { label: "Ошибка", variant: "destructive" },
 };
 
 const mismatchTypeConfig: Record<
   MismatchType,
-  { label: string; variant: 'warning' | 'info' | 'destructive' | 'secondary' | 'default' }
+  {
+    label: string;
+    variant: "warning" | "info" | "destructive" | "secondary" | "default";
+  }
 > = {
-  AMOUNT_MISMATCH: { label: 'Расхождение суммы', variant: 'warning' },
-  MISSING_IN_HW: { label: 'Нет в аппарате', variant: 'destructive' },
-  MISSING_IN_SW: { label: 'Нет в системе', variant: 'destructive' },
-  DUPLICATE: { label: 'Дубликат', variant: 'info' },
-  TIME_MISMATCH: { label: 'Расхождение времени', variant: 'secondary' },
-  STATUS_MISMATCH: { label: 'Расхождение статуса', variant: 'default' },
+  AMOUNT_MISMATCH: { label: "Расхождение суммы", variant: "warning" },
+  MISSING_IN_HW: { label: "Нет в аппарате", variant: "destructive" },
+  MISSING_IN_SW: { label: "Нет в системе", variant: "destructive" },
+  DUPLICATE: { label: "Дубликат", variant: "info" },
+  TIME_MISMATCH: { label: "Расхождение времени", variant: "secondary" },
+  STATUS_MISMATCH: { label: "Расхождение статуса", variant: "default" },
 };
 
-const ALL_SOURCES = ['SOFTWARE', 'HARDWARE', 'PAYMENT_PROVIDER'] as const;
+const ALL_SOURCES = ["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"] as const;
 
 const sourceLabels: Record<string, string> = {
-  SOFTWARE: 'Программная',
-  HARDWARE: 'Аппаратная',
-  PAYMENT_PROVIDER: 'Платёжные провайдеры',
+  SOFTWARE: "Программная",
+  HARDWARE: "Аппаратная",
+  PAYMENT_PROVIDER: "Платёжные провайдеры",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
 const formatUZS = (amount: number | null | undefined): string => {
-  if (amount == null) return '—';
-  return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
+  if (amount == null) return "—";
+  return new Intl.NumberFormat("uz-UZ").format(amount) + " сум";
 };
 
 const formatDate = (iso: string): string => {
-  return new Date(iso).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
+  return new Date(iso).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
 };
 
 const formatDateTime = (iso: string): string => {
-  return new Date(iso).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(iso).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -143,21 +146,24 @@ export default function ReconciliationPage() {
 
   // UI state
   const [showForm, setShowForm] = useState(false);
-  const [confirmState, setConfirmState] = useState<{ title: string; action: () => void } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    action: () => void;
+  } | null>(null);
   const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
-  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [resolutionNotes, setResolutionNotes] = useState("");
 
   // Form state
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [machineIdsInput, setMachineIdsInput] = useState('');
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [machineIdsInput, setMachineIdsInput] = useState("");
   const [timeTolerance, setTimeTolerance] = useState(5);
   const [amountTolerance, setAmountTolerance] = useState(1);
   const [selectedSources, setSelectedSources] = useState<string[]>([
-    'SOFTWARE',
-    'HARDWARE',
-    'PAYMENT_PROVIDER',
+    "SOFTWARE",
+    "HARDWARE",
+    "PAYMENT_PROVIDER",
   ]);
 
   // ─── Queries ──────────────────────────────────────────────────────
@@ -165,19 +171,16 @@ export default function ReconciliationPage() {
   const {
     data: runsData,
     isLoading: runsLoading,
-    isError: runsError,
+    isError: _runsError,
   } = useQuery({
-    queryKey: ['reconciliation-runs'],
-    queryFn: () => api.get('/reconciliation/runs').then((res) => res.data),
+    queryKey: ["reconciliation-runs"],
+    queryFn: () => api.get("/reconciliation/runs").then((res) => res.data),
   });
 
   const runs: ReconciliationRun[] = runsData?.data ?? runsData ?? [];
 
-  const {
-    data: mismatchesData,
-    isLoading: mismatchesLoading,
-  } = useQuery({
-    queryKey: ['reconciliation-mismatches', expandedRunId],
+  const { data: mismatchesData, isLoading: mismatchesLoading } = useQuery({
+    queryKey: ["reconciliation-mismatches", expandedRunId],
     queryFn: () =>
       api
         .get(`/reconciliation/runs/${expandedRunId}/mismatches`)
@@ -191,16 +194,16 @@ export default function ReconciliationPage() {
 
   const createRunMutation = useMutation({
     mutationFn: (payload: CreateRunPayload) =>
-      api.post('/reconciliation/runs', payload),
+      api.post("/reconciliation/runs", payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reconciliation-runs'] });
+      queryClient.invalidateQueries({ queryKey: ["reconciliation-runs"] });
       setShowForm(false);
-      setDateFrom('');
-      setDateTo('');
-      setMachineIdsInput('');
+      setDateFrom("");
+      setDateTo("");
+      setMachineIdsInput("");
       setTimeTolerance(5);
       setAmountTolerance(1);
-      setSelectedSources(['SOFTWARE', 'HARDWARE', 'PAYMENT_PROVIDER']);
+      setSelectedSources(["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"]);
     },
   });
 
@@ -211,18 +214,18 @@ export default function ReconciliationPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['reconciliation-mismatches', expandedRunId],
+        queryKey: ["reconciliation-mismatches", expandedRunId],
       });
-      queryClient.invalidateQueries({ queryKey: ['reconciliation-runs'] });
+      queryClient.invalidateQueries({ queryKey: ["reconciliation-runs"] });
       setResolvingId(null);
-      setResolutionNotes('');
+      setResolutionNotes("");
     },
   });
 
   const deleteRunMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/reconciliation/runs/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reconciliation-runs'] });
+      queryClient.invalidateQueries({ queryKey: ["reconciliation-runs"] });
       if (expandedRunId) setExpandedRunId(null);
     },
   });
@@ -236,16 +239,17 @@ export default function ReconciliationPage() {
         ? formatDateTime(
             [...runs].sort(
               (a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            )[0].created_at
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime(),
+            )[0].created_at,
           )
-        : '—',
+        : "—",
     averageMatchRate:
       runs.length > 0
         ? (
             runs.reduce((sum, r) => sum + (r.match_rate ?? 0), 0) / runs.length
           ).toFixed(1)
-        : '0',
+        : "0",
     totalMismatches: runs.reduce((sum, r) => sum + (r.mismatch_count ?? 0), 0),
   };
 
@@ -255,7 +259,7 @@ export default function ReconciliationPage() {
     if (!dateFrom || !dateTo) return;
 
     const machineIds = machineIdsInput
-      .split(',')
+      .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -273,14 +277,14 @@ export default function ReconciliationPage() {
     setSelectedSources((prev) =>
       prev.includes(source)
         ? prev.filter((s) => s !== source)
-        : [...prev, source]
+        : [...prev, source],
     );
   };
 
   const toggleExpand = (runId: string) => {
     setExpandedRunId((prev) => (prev === runId ? null : runId));
     setResolvingId(null);
-    setResolutionNotes('');
+    setResolutionNotes("");
   };
 
   // ─── Render ───────────────────────────────────────────────────────
@@ -536,7 +540,7 @@ export default function ReconciliationPage() {
                           className="grid items-center cursor-pointer hover:bg-muted/50 transition-colors px-4 py-3"
                           style={{
                             gridTemplateColumns:
-                              '80px 1fr 110px 100px 80px 100px 80px 130px 100px',
+                              "80px 1fr 110px 100px 80px 100px 80px 130px 100px",
                           }}
                           onClick={() => toggleExpand(run.id)}
                         >
@@ -544,7 +548,7 @@ export default function ReconciliationPage() {
                             {shortId(run.id)}
                           </span>
                           <span className="text-sm">
-                            {formatDate(run.date_from)} &mdash;{' '}
+                            {formatDate(run.date_from)} &mdash;{" "}
                             {formatDate(run.date_to)}
                           </span>
                           <span>
@@ -555,7 +559,7 @@ export default function ReconciliationPage() {
                           <span className="text-sm font-medium">
                             {run.match_rate != null
                               ? `${run.match_rate.toFixed(1)}%`
-                              : '—'}
+                              : "—"}
                           </span>
                           <span className="text-sm text-green-600">
                             {run.matched_count ?? 0}
@@ -575,7 +579,11 @@ export default function ReconciliationPage() {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setConfirmState({ title: 'Удалить сверку?', action: () => deleteRunMutation.mutate(run.id) });
+                                setConfirmState({
+                                  title: "Удалить сверку?",
+                                  action: () =>
+                                    deleteRunMutation.mutate(run.id),
+                                });
                               }}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -631,10 +639,10 @@ export default function ReconciliationPage() {
                                       return (
                                         <TableRow key={m.id}>
                                           <TableCell className="font-mono text-sm">
-                                            {m.order_number || '—'}
+                                            {m.order_number || "—"}
                                           </TableCell>
                                           <TableCell className="text-sm">
-                                            {m.machine_code || '—'}
+                                            {m.machine_code || "—"}
                                           </TableCell>
                                           <TableCell>
                                             <Badge variant={typeCfg.variant}>
@@ -652,20 +660,20 @@ export default function ReconciliationPage() {
                                               <span
                                                 className={
                                                   m.discrepancy > 0
-                                                    ? 'text-red-600'
+                                                    ? "text-red-600"
                                                     : m.discrepancy < 0
-                                                      ? 'text-yellow-600'
-                                                      : ''
+                                                      ? "text-yellow-600"
+                                                      : ""
                                                 }
                                               >
                                                 {formatUZS(m.discrepancy)}
                                               </span>
                                             ) : (
-                                              '—'
+                                              "—"
                                             )}
                                           </TableCell>
                                           <TableCell>
-                                            {m.status === 'resolved' ? (
+                                            {m.status === "resolved" ? (
                                               <Badge variant="success">
                                                 Решено
                                               </Badge>
@@ -676,9 +684,9 @@ export default function ReconciliationPage() {
                                             )}
                                           </TableCell>
                                           <TableCell className="text-right">
-                                            {m.status === 'resolved' ? (
+                                            {m.status === "resolved" ? (
                                               <span className="text-xs text-muted-foreground italic">
-                                                {m.resolution_notes || 'Решено'}
+                                                {m.resolution_notes || "Решено"}
                                               </span>
                                             ) : isResolving ? (
                                               <div className="flex items-center gap-2 justify-end">
@@ -688,7 +696,7 @@ export default function ReconciliationPage() {
                                                   value={resolutionNotes}
                                                   onChange={(e) =>
                                                     setResolutionNotes(
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                   onClick={(e) =>
@@ -702,10 +710,12 @@ export default function ReconciliationPage() {
                                                   }
                                                   onClick={(e) => {
                                                     e.stopPropagation();
-                                                    resolveMatchMutation.mutate({
-                                                      id: m.id,
-                                                      notes: resolutionNotes,
-                                                    });
+                                                    resolveMatchMutation.mutate(
+                                                      {
+                                                        id: m.id,
+                                                        notes: resolutionNotes,
+                                                      },
+                                                    );
                                                   }}
                                                 >
                                                   {resolveMatchMutation.isPending ? (
@@ -720,7 +730,7 @@ export default function ReconciliationPage() {
                                                   onClick={(e) => {
                                                     e.stopPropagation();
                                                     setResolvingId(null);
-                                                    setResolutionNotes('');
+                                                    setResolutionNotes("");
                                                   }}
                                                 >
                                                   <XCircle className="h-3 w-3" />
@@ -733,7 +743,7 @@ export default function ReconciliationPage() {
                                                 onClick={(e) => {
                                                   e.stopPropagation();
                                                   setResolvingId(m.id);
-                                                  setResolutionNotes('');
+                                                  setResolutionNotes("");
                                                 }}
                                               >
                                                 Разрешить
@@ -760,8 +770,10 @@ export default function ReconciliationPage() {
       )}
       <ConfirmDialog
         open={!!confirmState}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
-        title={confirmState?.title ?? ''}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
+        title={confirmState?.title ?? ""}
         onConfirm={() => confirmState?.action()}
       />
     </div>

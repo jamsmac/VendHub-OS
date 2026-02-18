@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { TasksService } from './tasks.service';
+import { TasksService } from "./tasks.service";
 import {
   Task,
   TaskItem,
@@ -11,31 +11,30 @@ import {
   TaskComponent,
   TaskPhoto,
   TaskStatus,
-  VALID_TASK_TRANSITIONS,
-} from './entities/task.entity';
+} from "./entities/task.entity";
 
-describe('TasksService', () => {
+describe("TasksService", () => {
   let service: TasksService;
   let taskRepository: jest.Mocked<Repository<Task>>;
-  let taskItemRepository: jest.Mocked<Repository<TaskItem>>;
+  let _taskItemRepository: jest.Mocked<Repository<TaskItem>>;
   let taskCommentRepository: jest.Mocked<Repository<TaskComment>>;
-  let taskComponentRepository: jest.Mocked<Repository<TaskComponent>>;
-  let taskPhotoRepository: jest.Mocked<Repository<TaskPhoto>>;
+  let _taskComponentRepository: jest.Mocked<Repository<TaskComponent>>;
+  let _taskPhotoRepository: jest.Mocked<Repository<TaskPhoto>>;
 
-  const orgId = 'org-uuid-1';
+  const orgId = "org-uuid-1";
 
   const mockTask = {
-    id: 'task-uuid-1',
-    taskNumber: 'TASK-001',
+    id: "task-uuid-1",
+    taskNumber: "TASK-001",
     organizationId: orgId,
-    machineId: 'machine-uuid-1',
-    typeCode: 'refill',
+    machineId: "machine-uuid-1",
+    typeCode: "refill",
     status: TaskStatus.PENDING,
-    priority: 'normal',
+    priority: "normal",
     assignedToUserId: null,
-    createdByUserId: 'user-uuid-1',
-    description: 'Refill VM-001',
-    dueDate: new Date('2025-06-01'),
+    createdByUserId: "user-uuid-1",
+    description: "Refill VM-001",
+    dueDate: new Date("2025-06-01"),
     startedAt: null,
     completedAt: null,
     photoBeforeUrl: null,
@@ -140,7 +139,7 @@ describe('TasksService', () => {
     taskPhotoRepository = module.get(getRepositoryToken(TaskPhoto));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -148,8 +147,8 @@ describe('TasksService', () => {
   // VALIDATE TRANSITION
   // ============================================================================
 
-  describe('validateTransition', () => {
-    it('should allow valid status transitions', () => {
+  describe("validateTransition", () => {
+    it("should allow valid status transitions", () => {
       expect(() =>
         service.validateTransition(TaskStatus.PENDING, TaskStatus.ASSIGNED),
       ).not.toThrow();
@@ -159,11 +158,14 @@ describe('TasksService', () => {
       ).not.toThrow();
 
       expect(() =>
-        service.validateTransition(TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED),
+        service.validateTransition(
+          TaskStatus.IN_PROGRESS,
+          TaskStatus.COMPLETED,
+        ),
       ).not.toThrow();
     });
 
-    it('should throw BadRequestException for invalid status transition', () => {
+    it("should throw BadRequestException for invalid status transition", () => {
       expect(() =>
         service.validateTransition(TaskStatus.PENDING, TaskStatus.COMPLETED),
       ).toThrow(BadRequestException);
@@ -182,16 +184,17 @@ describe('TasksService', () => {
   // TASK CRUD
   // ============================================================================
 
-  describe('create', () => {
-    it('should create a new task', async () => {
+  describe("create", () => {
+    it("should create a new task", async () => {
       taskRepository.create.mockReturnValue(mockTask);
       taskRepository.save.mockResolvedValue(mockTask);
 
       const result = await service.create({
         organizationId: orgId,
-        machineId: 'machine-uuid-1',
-        typeCode: 'refill',
-        description: 'Refill VM-001',
+        machineId: "machine-uuid-1",
+        typeCode: "refill",
+        description: "Refill VM-001",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockTask);
@@ -200,17 +203,17 @@ describe('TasksService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return paginated tasks for organization', async () => {
+  describe("findAll", () => {
+    it("should return paginated tasks for organization", async () => {
       const result = await service.findAll(orgId, { page: 1, limit: 20 });
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("totalPages", 1);
     });
 
-    it('should filter by status', async () => {
+    it("should filter by status", async () => {
       await service.findAll(orgId, {
         status: TaskStatus.IN_PROGRESS,
         page: 1,
@@ -218,44 +221,44 @@ describe('TasksService', () => {
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'task.status = :status',
+        "task.status = :status",
         { status: TaskStatus.IN_PROGRESS },
       );
     });
 
-    it('should filter by assigneeId', async () => {
+    it("should filter by assigneeId", async () => {
       await service.findAll(orgId, {
-        assigneeId: 'user-uuid-1',
+        assigneeId: "user-uuid-1",
         page: 1,
         limit: 20,
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'task.assignedToUserId = :assigneeId',
-        { assigneeId: 'user-uuid-1' },
+        "task.assignedToUserId = :assigneeId",
+        { assigneeId: "user-uuid-1" },
       );
     });
 
-    it('should cap limit at 100', async () => {
+    it("should cap limit at 100", async () => {
       const result = await service.findAll(orgId, { limit: 500 });
 
       expect(result.limit).toBeLessThanOrEqual(100);
     });
   });
 
-  describe('findByIdOrFail', () => {
-    it('should return task when found', async () => {
+  describe("findByIdOrFail", () => {
+    it("should return task when found", async () => {
       taskRepository.findOne.mockResolvedValue(mockTask);
 
-      const result = await service.findByIdOrFail('task-uuid-1');
+      const result = await service.findByIdOrFail("task-uuid-1");
 
       expect(result).toEqual(mockTask);
     });
 
-    it('should throw NotFoundException when task not found', async () => {
+    it("should throw NotFoundException when task not found", async () => {
       taskRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findByIdOrFail('non-existent')).rejects.toThrow(
+      await expect(service.findByIdOrFail("non-existent")).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -265,66 +268,72 @@ describe('TasksService', () => {
   // TASK STATUS OPERATIONS
   // ============================================================================
 
-  describe('assignTask', () => {
-    it('should assign a pending task to an operator', async () => {
+  describe("assignTask", () => {
+    it("should assign a pending task to an operator", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingTask = { ...mockTask, status: TaskStatus.PENDING } as any;
       taskRepository.findOne.mockResolvedValue(pendingTask);
       taskRepository.save.mockResolvedValue({
         ...pendingTask,
         status: TaskStatus.ASSIGNED,
-        assignedToUserId: 'operator-uuid-1',
+        assignedToUserId: "operator-uuid-1",
       });
 
-      const result = await service.assignTask('task-uuid-1', 'operator-uuid-1');
+      const result = await service.assignTask("task-uuid-1", "operator-uuid-1");
 
       expect(result.status).toBe(TaskStatus.ASSIGNED);
-      expect(result.assignedToUserId).toBe('operator-uuid-1');
+      expect(result.assignedToUserId).toBe("operator-uuid-1");
     });
 
-    it('should throw BadRequestException for invalid transition on assign', async () => {
+    it("should throw BadRequestException for invalid transition on assign", async () => {
       const completedTask = {
         ...mockTask,
         status: TaskStatus.COMPLETED,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(completedTask);
 
       await expect(
-        service.assignTask('task-uuid-1', 'operator-uuid-1'),
+        service.assignTask("task-uuid-1", "operator-uuid-1"),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('startTask', () => {
-    it('should start an assigned task', async () => {
+  describe("startTask", () => {
+    it("should start an assigned task", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const assignedTask = { ...mockTask, status: TaskStatus.ASSIGNED } as any;
       taskRepository.findOne.mockResolvedValue(assignedTask);
       taskRepository.save.mockImplementation((task) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
-      const result = await service.startTask('task-uuid-1', 'user-uuid-1');
+      const result = await service.startTask("task-uuid-1", "user-uuid-1");
 
       expect(result.status).toBe(TaskStatus.IN_PROGRESS);
       expect(result.startedAt).toBeInstanceOf(Date);
     });
   });
 
-  describe('completeTask', () => {
-    it('should complete a task with duration calculation', async () => {
+  describe("completeTask", () => {
+    it("should complete a task with duration calculation", async () => {
       const startedAt = new Date(Date.now() - 30 * 60 * 1000); // 30 mins ago
       const inProgressTask = {
         ...mockTask,
         status: TaskStatus.IN_PROGRESS,
         startedAt,
         requiresPhotoAfter: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(inProgressTask);
       taskRepository.save.mockImplementation((task) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
-      const result = await service.completeTask('task-uuid-1', {
-        completionNotes: 'All slots refilled',
+      const result = await service.completeTask("task-uuid-1", {
+        completionNotes: "All slots refilled",
       });
 
       expect(result.status).toBe(TaskStatus.COMPLETED);
@@ -332,30 +341,33 @@ describe('TasksService', () => {
       expect(result.actualDuration).toBeGreaterThanOrEqual(29);
     });
 
-    it('should throw BadRequestException when photo after is required but missing', async () => {
+    it("should throw BadRequestException when photo after is required but missing", async () => {
       const inProgressTask = {
         ...mockTask,
         status: TaskStatus.IN_PROGRESS,
         requiresPhotoAfter: true,
         photoAfterUrl: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(inProgressTask);
 
-      await expect(
-        service.completeTask('task-uuid-1', {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.completeTask("task-uuid-1", {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
-  describe('cancelTask', () => {
-    it('should cancel a pending task', async () => {
+  describe("cancelTask", () => {
+    it("should cancel a pending task", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingTask = { ...mockTask, status: TaskStatus.PENDING } as any;
       taskRepository.findOne.mockResolvedValue(pendingTask);
       taskRepository.save.mockImplementation((task) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
-      const result = await service.cancelTask('task-uuid-1');
+      const result = await service.cancelTask("task-uuid-1");
 
       expect(result.status).toBe(TaskStatus.CANCELLED);
     });
@@ -365,18 +377,18 @@ describe('TasksService', () => {
   // MY TASKS
   // ============================================================================
 
-  describe('getMyTasks', () => {
-    it('should return active tasks assigned to user', async () => {
+  describe("getMyTasks", () => {
+    it("should return active tasks assigned to user", async () => {
       taskRepository.findAndCount.mockResolvedValue([[mockTask], 1]);
 
-      const result = await service.getMyTasks('user-uuid-1', orgId);
+      const result = await service.getMyTasks("user-uuid-1", orgId);
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
       expect(taskRepository.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            assignedToUserId: 'user-uuid-1',
+            assignedToUserId: "user-uuid-1",
             organizationId: orgId,
           }),
         }),
@@ -388,13 +400,13 @@ describe('TasksService', () => {
   // COMMENTS
   // ============================================================================
 
-  describe('addComment', () => {
-    it('should add a comment to a task', async () => {
+  describe("addComment", () => {
+    it("should add a comment to a task", async () => {
       const mockComment = {
-        id: 'comment-uuid-1',
-        taskId: 'task-uuid-1',
-        userId: 'user-uuid-1',
-        comment: 'Test comment',
+        id: "comment-uuid-1",
+        taskId: "task-uuid-1",
+        userId: "user-uuid-1",
+        comment: "Test comment",
         isInternal: false,
       } as unknown as TaskComment;
 
@@ -402,26 +414,28 @@ describe('TasksService', () => {
       taskCommentRepository.create.mockReturnValue(mockComment);
       taskCommentRepository.save.mockResolvedValue(mockComment);
 
-      const result = await service.addComment('task-uuid-1', 'user-uuid-1', {
-        comment: 'Test comment',
+      const result = await service.addComment("task-uuid-1", "user-uuid-1", {
+        comment: "Test comment",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockComment);
       expect(taskCommentRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          taskId: 'task-uuid-1',
-          userId: 'user-uuid-1',
-          comment: 'Test comment',
+          taskId: "task-uuid-1",
+          userId: "user-uuid-1",
+          comment: "Test comment",
         }),
       );
     });
 
-    it('should throw NotFoundException when task does not exist', async () => {
+    it("should throw NotFoundException when task does not exist", async () => {
       taskRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.addComment('non-existent', 'user-uuid-1', {
-          comment: 'Test',
+        service.addComment("non-existent", "user-uuid-1", {
+          comment: "Test",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -431,20 +445,21 @@ describe('TasksService', () => {
   // SOFT DELETE
   // ============================================================================
 
-  describe('remove', () => {
-    it('should soft delete task when found', async () => {
+  describe("remove", () => {
+    it("should soft delete task when found", async () => {
       taskRepository.findOne.mockResolvedValue(mockTask);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       taskRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove('task-uuid-1');
+      await service.remove("task-uuid-1");
 
-      expect(taskRepository.softDelete).toHaveBeenCalledWith('task-uuid-1');
+      expect(taskRepository.softDelete).toHaveBeenCalledWith("task-uuid-1");
     });
 
-    it('should throw NotFoundException when task not found', async () => {
+    it("should throw NotFoundException when task not found", async () => {
       taskRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent')).rejects.toThrow(
+      await expect(service.remove("non-existent")).rejects.toThrow(
         NotFoundException,
       );
     });

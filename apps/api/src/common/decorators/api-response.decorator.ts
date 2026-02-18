@@ -3,7 +3,7 @@
  * Swagger documentation helpers
  */
 
-import { applyDecorators, Type } from '@nestjs/common';
+import { applyDecorators, Type } from "@nestjs/common";
 import {
   ApiOkResponse,
   ApiCreatedResponse,
@@ -14,7 +14,7 @@ import {
   ApiInternalServerErrorResponse,
   getSchemaPath,
   ApiExtraModels,
-} from '@nestjs/swagger';
+} from "@nestjs/swagger";
 
 /**
  * Standard paginated response wrapper
@@ -45,9 +45,10 @@ export class ApiResponseDto<T> {
 /**
  * Decorator for standard success response
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ApiStandardResponse = <TModel extends Type<any>>(
   model: TModel,
-  description = 'Success',
+  description = "Success",
 ) => {
   return applyDecorators(
     ApiExtraModels(model),
@@ -57,9 +58,9 @@ export const ApiStandardResponse = <TModel extends Type<any>>(
         allOf: [
           {
             properties: {
-              success: { type: 'boolean', example: true },
+              success: { type: "boolean", example: true },
               data: { $ref: getSchemaPath(model) },
-              timestamp: { type: 'string', example: new Date().toISOString() },
+              timestamp: { type: "string", example: new Date().toISOString() },
             },
           },
         ],
@@ -71,9 +72,10 @@ export const ApiStandardResponse = <TModel extends Type<any>>(
 /**
  * Decorator for paginated response
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ApiPaginatedResponse = <TModel extends Type<any>>(
   model: TModel,
-  description = 'Paginated list',
+  description = "Paginated list",
 ) => {
   return applyDecorators(
     ApiExtraModels(model),
@@ -83,23 +85,23 @@ export const ApiPaginatedResponse = <TModel extends Type<any>>(
         allOf: [
           {
             properties: {
-              success: { type: 'boolean', example: true },
+              success: { type: "boolean", example: true },
               data: {
-                type: 'array',
+                type: "array",
                 items: { $ref: getSchemaPath(model) },
               },
               meta: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  total: { type: 'number', example: 100 },
-                  page: { type: 'number', example: 1 },
-                  limit: { type: 'number', example: 20 },
-                  totalPages: { type: 'number', example: 5 },
-                  hasNextPage: { type: 'boolean', example: true },
-                  hasPreviousPage: { type: 'boolean', example: false },
+                  total: { type: "number", example: 100 },
+                  page: { type: "number", example: 1 },
+                  limit: { type: "number", example: 20 },
+                  totalPages: { type: "number", example: 5 },
+                  hasNextPage: { type: "boolean", example: true },
+                  hasPreviousPage: { type: "boolean", example: false },
                 },
               },
-              timestamp: { type: 'string', example: new Date().toISOString() },
+              timestamp: { type: "string", example: new Date().toISOString() },
             },
           },
         ],
@@ -111,9 +113,10 @@ export const ApiPaginatedResponse = <TModel extends Type<any>>(
 /**
  * Decorator for created response
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ApiCreated = <TModel extends Type<any>>(
   model: TModel,
-  description = 'Created successfully',
+  description = "Created successfully",
 ) => {
   return applyDecorators(
     ApiExtraModels(model),
@@ -123,10 +126,10 @@ export const ApiCreated = <TModel extends Type<any>>(
         allOf: [
           {
             properties: {
-              success: { type: 'boolean', example: true },
+              success: { type: "boolean", example: true },
               data: { $ref: getSchemaPath(model) },
-              message: { type: 'string', example: 'Created successfully' },
-              timestamp: { type: 'string', example: new Date().toISOString() },
+              message: { type: "string", example: "Created successfully" },
+              timestamp: { type: "string", example: new Date().toISOString() },
             },
           },
         ],
@@ -141,57 +144,57 @@ export const ApiCreated = <TModel extends Type<any>>(
 export const ApiErrorResponses = () => {
   return applyDecorators(
     ApiBadRequestResponse({
-      description: 'Bad Request - Validation error',
+      description: "Bad Request - Validation error",
       schema: {
         properties: {
-          success: { type: 'boolean', example: false },
-          message: { type: 'string', example: 'Validation failed' },
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "Validation failed" },
           errors: {
-            type: 'array',
-            items: { type: 'string' },
-            example: ['Email is required', 'Phone format is invalid'],
+            type: "array",
+            items: { type: "string" },
+            example: ["Email is required", "Phone format is invalid"],
           },
-          timestamp: { type: 'string', example: new Date().toISOString() },
+          timestamp: { type: "string", example: new Date().toISOString() },
         },
       },
     }),
     ApiUnauthorizedResponse({
-      description: 'Unauthorized - Invalid or missing token',
+      description: "Unauthorized - Invalid or missing token",
       schema: {
         properties: {
-          success: { type: 'boolean', example: false },
-          message: { type: 'string', example: 'Unauthorized' },
-          timestamp: { type: 'string', example: new Date().toISOString() },
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "Unauthorized" },
+          timestamp: { type: "string", example: new Date().toISOString() },
         },
       },
     }),
     ApiForbiddenResponse({
-      description: 'Forbidden - Insufficient permissions',
+      description: "Forbidden - Insufficient permissions",
       schema: {
         properties: {
-          success: { type: 'boolean', example: false },
-          message: { type: 'string', example: 'Access denied' },
-          timestamp: { type: 'string', example: new Date().toISOString() },
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "Access denied" },
+          timestamp: { type: "string", example: new Date().toISOString() },
         },
       },
     }),
     ApiNotFoundResponse({
-      description: 'Not Found - Resource does not exist',
+      description: "Not Found - Resource does not exist",
       schema: {
         properties: {
-          success: { type: 'boolean', example: false },
-          message: { type: 'string', example: 'Resource not found' },
-          timestamp: { type: 'string', example: new Date().toISOString() },
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "Resource not found" },
+          timestamp: { type: "string", example: new Date().toISOString() },
         },
       },
     }),
     ApiInternalServerErrorResponse({
-      description: 'Internal Server Error',
+      description: "Internal Server Error",
       schema: {
         properties: {
-          success: { type: 'boolean', example: false },
-          message: { type: 'string', example: 'Internal server error' },
-          timestamp: { type: 'string', example: new Date().toISOString() },
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "Internal server error" },
+          timestamp: { type: "string", example: new Date().toISOString() },
         },
       },
     }),
@@ -201,9 +204,7 @@ export const ApiErrorResponses = () => {
 /**
  * Combined decorator for standard CRUD responses
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ApiCrudResponses = <TModel extends Type<any>>(model: TModel) => {
-  return applyDecorators(
-    ApiStandardResponse(model),
-    ApiErrorResponses(),
-  );
+  return applyDecorators(ApiStandardResponse(model), ApiErrorResponses());
 };

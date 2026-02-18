@@ -8,10 +8,10 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, Between, LessThan, IsNull, Not } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In, Between, LessThan, IsNull, Not } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Complaint,
   ComplaintComment,
@@ -27,18 +27,22 @@ import {
   ComplaintActionType,
   RefundStatus,
   DEFAULT_SLA_CONFIG,
-} from './entities/complaint.entity';
+} from "./entities/complaint.entity";
 
 // SLA hours helper based on priority
 const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
-  [ComplaintPriority.CRITICAL]: DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL].resolutionTimeHours,
-  [ComplaintPriority.HIGH]: DEFAULT_SLA_CONFIG[ComplaintPriority.HIGH].resolutionTimeHours,
-  [ComplaintPriority.MEDIUM]: DEFAULT_SLA_CONFIG[ComplaintPriority.MEDIUM].resolutionTimeHours,
-  [ComplaintPriority.LOW]: DEFAULT_SLA_CONFIG[ComplaintPriority.LOW].resolutionTimeHours,
+  [ComplaintPriority.CRITICAL]:
+    DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL].resolutionTimeHours,
+  [ComplaintPriority.HIGH]:
+    DEFAULT_SLA_CONFIG[ComplaintPriority.HIGH].resolutionTimeHours,
+  [ComplaintPriority.MEDIUM]:
+    DEFAULT_SLA_CONFIG[ComplaintPriority.MEDIUM].resolutionTimeHours,
+  [ComplaintPriority.LOW]:
+    DEFAULT_SLA_CONFIG[ComplaintPriority.LOW].resolutionTimeHours,
 };
 
 // Refund method type
-type RefundMethod = 'original_payment' | 'bank_transfer' | 'cash' | 'credit';
+type RefundMethod = "original_payment" | "bank_transfer" | "cash" | "credit";
 
 // ============================================================================
 // DTOs
@@ -88,7 +92,7 @@ export interface CreateRefundDto {
   currency?: string;
   method: RefundMethod;
   reason: string;
-  bankDetails?: Record<string, any>;
+  bankDetails?: Record<string, unknown>;
   requestedById?: string;
 }
 
@@ -108,7 +112,7 @@ export interface QueryComplaintsDto {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
+  sortOrder?: "ASC" | "DESC";
 }
 
 export interface ComplaintStatistics {
@@ -171,7 +175,17 @@ export class ComplaintsService {
       source: dto.source,
       subject: dto.subject,
       description: dto.description,
-      attachments: dto.attachments ? dto.attachments.map(url => ({ id: '', type: 'image' as const, url, filename: '', size: 0, mimeType: '', uploadedAt: new Date() })) : [],
+      attachments: dto.attachments
+        ? dto.attachments.map((url) => ({
+            id: "",
+            type: "image" as const,
+            url,
+            filename: "",
+            size: 0,
+            mimeType: "",
+            uploadedAt: new Date(),
+          }))
+        : [],
       customer: {
         name: dto.customerName,
         phone: dto.customerPhone,
@@ -191,16 +205,23 @@ export class ComplaintsService {
     // Update QR code scan count if applicable
     if (dto.qrCodeId) {
       await this.qrCodeRepo.update(dto.qrCodeId, {
-        scanCount: () => 'scan_count + 1',
+        scanCount: () => "scan_count + 1",
         lastScannedAt: new Date(),
       });
     }
 
     // Log action
-    await this.logAction(saved.id, null, 'create', null, ComplaintStatus.NEW, 'Жалоба создана');
+    await this.logAction(
+      saved.id,
+      null,
+      "create",
+      null,
+      ComplaintStatus.NEW,
+      "Жалоба создана",
+    );
 
     // Emit event
-    this.eventEmitter.emit('complaint.created', saved);
+    this.eventEmitter.emit("complaint.created", saved);
 
     return saved;
   }
@@ -208,7 +229,7 @@ export class ComplaintsService {
   async findById(id: string): Promise<Complaint> {
     const complaint = await this.complaintRepo.findOne({
       where: { id },
-      relations: ['comments', 'actions', 'refunds'],
+      relations: ["comments", "actions", "refunds"],
     });
 
     if (!complaint) {
@@ -221,7 +242,7 @@ export class ComplaintsService {
   async findByNumber(ticketNumber: string): Promise<Complaint> {
     const complaint = await this.complaintRepo.findOne({
       where: { ticketNumber },
-      relations: ['comments', 'actions', 'refunds'],
+      relations: ["comments", "actions", "refunds"],
     });
 
     if (!complaint) {
@@ -247,51 +268,51 @@ export class ComplaintsService {
       search,
       page = 1,
       limit = 20,
-      sortBy = 'createdAt',
-      sortOrder = 'DESC',
+      sortBy = "createdAt",
+      sortOrder = "DESC",
     } = query;
 
-    const qb = this.complaintRepo.createQueryBuilder('c');
-    qb.where('c.organizationId = :organizationId', { organizationId });
+    const qb = this.complaintRepo.createQueryBuilder("c");
+    qb.where("c.organizationId = :organizationId", { organizationId });
 
     if (status?.length) {
-      qb.andWhere('c.status IN (:...status)', { status });
+      qb.andWhere("c.status IN (:...status)", { status });
     }
 
     if (priority?.length) {
-      qb.andWhere('c.priority IN (:...priority)', { priority });
+      qb.andWhere("c.priority IN (:...priority)", { priority });
     }
 
     if (category?.length) {
-      qb.andWhere('c.category IN (:...category)', { category });
+      qb.andWhere("c.category IN (:...category)", { category });
     }
 
     if (source?.length) {
-      qb.andWhere('c.source IN (:...source)', { source });
+      qb.andWhere("c.source IN (:...source)", { source });
     }
 
     if (assignedToId) {
-      qb.andWhere('c.assignedToId = :assignedToId', { assignedToId });
+      qb.andWhere("c.assignedToId = :assignedToId", { assignedToId });
     }
 
     if (machineId) {
-      qb.andWhere('c.machineId = :machineId', { machineId });
+      qb.andWhere("c.machineId = :machineId", { machineId });
     }
 
     if (locationId) {
-      qb.andWhere('c.locationId = :locationId', { locationId });
+      qb.andWhere("c.locationId = :locationId", { locationId });
     }
 
     if (slaBreached !== undefined) {
-      qb.andWhere('c.isSlaBreached = :slaBreached', { slaBreached });
+      qb.andWhere("c.isSlaBreached = :slaBreached", { slaBreached });
     }
 
     if (dateFrom) {
-      qb.andWhere('c.createdAt >= :dateFrom', { dateFrom });
+      qb.andWhere("c.createdAt >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('c.createdAt <= :dateTo', { dateTo });
+      qb.andWhere("c.createdAt <= :dateTo", { dateTo });
     }
 
     if (search) {
@@ -318,7 +339,11 @@ export class ComplaintsService {
     };
   }
 
-  async update(id: string, dto: UpdateComplaintDto, performedById: string): Promise<Complaint> {
+  async update(
+    id: string,
+    dto: UpdateComplaintDto,
+    performedById: string,
+  ): Promise<Complaint> {
     const complaint = await this.findById(id);
     const oldStatus = complaint.status;
 
@@ -340,40 +365,79 @@ export class ComplaintsService {
 
     // Log action
     if (dto.status && dto.status !== oldStatus) {
-      await this.logAction(id, performedById, 'status_change', oldStatus, dto.status);
+      await this.logAction(
+        id,
+        performedById,
+        "status_change",
+        oldStatus,
+        dto.status,
+      );
     }
 
     // Emit event
-    this.eventEmitter.emit('complaint.updated', { complaint: saved, changes: dto });
+    this.eventEmitter.emit("complaint.updated", {
+      complaint: saved,
+      changes: dto,
+    });
 
     return saved;
   }
 
-  async assign(id: string, assignedToId: string, performedById: string): Promise<Complaint> {
+  async assign(
+    id: string,
+    assignedToId: string,
+    performedById: string,
+  ): Promise<Complaint> {
     const complaint = await this.findById(id);
     const oldAssignee = complaint.assignedToId;
 
     complaint.assignedToId = assignedToId;
-    complaint.status = complaint.status === ComplaintStatus.NEW ? ComplaintStatus.IN_PROGRESS : complaint.status;
+    complaint.status =
+      complaint.status === ComplaintStatus.NEW
+        ? ComplaintStatus.IN_PROGRESS
+        : complaint.status;
     complaint.updated_at = new Date();
 
     const saved = await this.complaintRepo.save(complaint);
 
-    await this.logAction(id, performedById, 'assign', null, null, `Назначено на ${assignedToId}`);
+    await this.logAction(
+      id,
+      performedById,
+      "assign",
+      null,
+      null,
+      `Назначено на ${assignedToId}`,
+    );
 
-    this.eventEmitter.emit('complaint.assigned', { complaint: saved, assignedToId, oldAssignee });
+    this.eventEmitter.emit("complaint.assigned", {
+      complaint: saved,
+      assignedToId,
+      oldAssignee,
+    });
 
     return saved;
   }
 
-  async resolve(id: string, resolution: string, performedById: string): Promise<Complaint> {
-    return this.update(id, {
-      status: ComplaintStatus.RESOLVED,
-      resolution,
-    }, performedById);
+  async resolve(
+    id: string,
+    resolution: string,
+    performedById: string,
+  ): Promise<Complaint> {
+    return this.update(
+      id,
+      {
+        status: ComplaintStatus.RESOLVED,
+        resolution,
+      },
+      performedById,
+    );
   }
 
-  async escalate(id: string, reason: string, performedById: string): Promise<Complaint> {
+  async escalate(
+    id: string,
+    reason: string,
+    performedById: string,
+  ): Promise<Complaint> {
     const complaint = await this.findById(id);
 
     complaint.status = ComplaintStatus.ESCALATED;
@@ -384,9 +448,16 @@ export class ComplaintsService {
 
     const saved = await this.complaintRepo.save(complaint);
 
-    await this.logAction(id, performedById, 'escalate', complaint.status, ComplaintStatus.ESCALATED, reason);
+    await this.logAction(
+      id,
+      performedById,
+      "escalate",
+      complaint.status,
+      ComplaintStatus.ESCALATED,
+      reason,
+    );
 
-    this.eventEmitter.emit('complaint.escalated', { complaint: saved, reason });
+    this.eventEmitter.emit("complaint.escalated", { complaint: saved, reason });
 
     return saved;
   }
@@ -402,10 +473,20 @@ export class ComplaintsService {
       complaintId: dto.complaintId,
       organizationId: complaint.organizationId,
       authorId: dto.userId,
-      authorName: '',
-      authorType: dto.userId ? 'staff' : 'customer',
+      authorName: "",
+      authorType: dto.userId ? "staff" : "customer",
       content: dto.content,
-      attachments: dto.attachments ? dto.attachments.map(url => ({ id: '', type: 'document' as const, url, filename: '', size: 0, mimeType: '', uploadedAt: new Date() })) : [],
+      attachments: dto.attachments
+        ? dto.attachments.map((url) => ({
+            id: "",
+            type: "document" as const,
+            url,
+            filename: "",
+            size: 0,
+            mimeType: "",
+            uploadedAt: new Date(),
+          }))
+        : [],
       isInternal: dto.isInternal,
     });
 
@@ -417,13 +498,20 @@ export class ComplaintsService {
 
     // If external comment, may need to notify customer
     if (!dto.isInternal) {
-      this.eventEmitter.emit('complaint.comment.added', { complaint, comment: saved });
+      this.eventEmitter.emit("complaint.comment.added", {
+        complaint,
+        comment: saved,
+      });
     }
 
     return saved;
   }
 
-  async getComments(complaintId: string, includeInternal: boolean = true): Promise<ComplaintComment[]> {
+  async getComments(
+    complaintId: string,
+    includeInternal: boolean = true,
+  ): Promise<ComplaintComment[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { complaintId };
     if (!includeInternal) {
       where.isInternal = false;
@@ -431,7 +519,7 @@ export class ComplaintsService {
 
     return this.commentRepo.find({
       where,
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
     });
   }
 
@@ -447,7 +535,7 @@ export class ComplaintsService {
       organizationId: complaint.organizationId,
       originalTransactionId: dto.transactionId,
       amount: dto.amount,
-      currency: dto.currency || 'UZS',
+      currency: dto.currency || "UZS",
       refundMethod: dto.method,
       reason: dto.reason,
       refundDetails: dto.bankDetails,
@@ -460,25 +548,31 @@ export class ComplaintsService {
     await this.logAction(
       dto.complaintId,
       dto.requestedById || null,
-      'refund_requested',
+      "refund_requested",
       null,
       null,
       `Запрошен возврат ${dto.amount} ${saved.currency}`,
     );
 
-    this.eventEmitter.emit('complaint.refund.requested', { complaint, refund: saved });
+    this.eventEmitter.emit("complaint.refund.requested", {
+      complaint,
+      refund: saved,
+    });
 
     return saved;
   }
 
-  async approveRefund(refundId: string, approvedById: string): Promise<ComplaintRefund> {
+  async approveRefund(
+    refundId: string,
+    approvedById: string,
+  ): Promise<ComplaintRefund> {
     const refund = await this.refundRepo.findOne({ where: { id: refundId } });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
 
     if (refund.status !== RefundStatus.PENDING) {
-      throw new BadRequestException('Возврат уже обработан');
+      throw new BadRequestException("Возврат уже обработан");
     }
 
     refund.status = RefundStatus.APPROVED;
@@ -486,19 +580,23 @@ export class ComplaintsService {
 
     const saved = await this.refundRepo.save(refund);
 
-    this.eventEmitter.emit('complaint.refund.approved', { refund: saved });
+    this.eventEmitter.emit("complaint.refund.approved", { refund: saved });
 
     return saved;
   }
 
-  async processRefund(refundId: string, processedById: string, referenceNumber?: string): Promise<ComplaintRefund> {
+  async processRefund(
+    refundId: string,
+    processedById: string,
+    referenceNumber?: string,
+  ): Promise<ComplaintRefund> {
     const refund = await this.refundRepo.findOne({ where: { id: refundId } });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
 
     if (refund.status !== RefundStatus.APPROVED) {
-      throw new BadRequestException('Возврат должен быть сначала одобрен');
+      throw new BadRequestException("Возврат должен быть сначала одобрен");
     }
 
     refund.status = RefundStatus.COMPLETED;
@@ -514,18 +612,22 @@ export class ComplaintsService {
     await this.logAction(
       refund.complaintId,
       processedById,
-      'refund_completed',
+      "refund_completed",
       null,
       null,
       `Возврат выполнен: ${refund.amount} ${refund.currency}`,
     );
 
-    this.eventEmitter.emit('complaint.refund.completed', { refund: saved });
+    this.eventEmitter.emit("complaint.refund.completed", { refund: saved });
 
     return saved;
   }
 
-  async rejectRefund(refundId: string, rejectedById: string, reason: string): Promise<ComplaintRefund> {
+  async rejectRefund(
+    refundId: string,
+    rejectedById: string,
+    reason: string,
+  ): Promise<ComplaintRefund> {
     const refund = await this.refundRepo.findOne({ where: { id: refundId } });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
@@ -541,9 +643,12 @@ export class ComplaintsService {
   // QR CODES
   // ============================================================================
 
-  async generateQrCode(organizationId: string, machineId: string): Promise<ComplaintQrCode> {
+  async generateQrCode(
+    organizationId: string,
+    machineId: string,
+  ): Promise<ComplaintQrCode> {
     const code = this.generateRandomCode(8);
-    const baseUrl = process.env.CLIENT_URL || 'https://vendhub.uz';
+    const baseUrl = process.env.CLIENT_URL || "https://vendhub.uz";
     const url = `${baseUrl}/complaint/${code}`;
 
     const qrCode = this.qrCodeRepo.create({
@@ -564,7 +669,7 @@ export class ComplaintsService {
     });
 
     if (!qrCode) {
-      throw new NotFoundException('QR-код не найден или неактивен');
+      throw new NotFoundException("QR-код не найден или неактивен");
     }
 
     return qrCode;
@@ -573,7 +678,7 @@ export class ComplaintsService {
   async getQrCodesForMachine(machineId: string): Promise<ComplaintQrCode[]> {
     return this.qrCodeRepo.find({
       where: { machineId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
@@ -587,11 +692,14 @@ export class ComplaintsService {
         { organizationId, isActive: true },
         { organizationId: IsNull(), isActive: true }, // System templates
       ],
-      order: { category: 'ASC', name: 'ASC' },
+      order: { category: "ASC", name: "ASC" },
     });
   }
 
-  async getTemplateByCategory(organizationId: string, category: ComplaintCategory): Promise<ComplaintTemplate | null> {
+  async getTemplateByCategory(
+    organizationId: string,
+    category: ComplaintCategory,
+  ): Promise<ComplaintTemplate | null> {
     return this.templateRepo.findOne({
       where: [
         { organizationId, category, isActive: true },
@@ -607,7 +715,11 @@ export class ComplaintsService {
   async checkSlaBreaches(): Promise<number> {
     const result = await this.complaintRepo.update(
       {
-        status: In([ComplaintStatus.NEW, ComplaintStatus.IN_PROGRESS, ComplaintStatus.AWAITING_CUSTOMER]),
+        status: In([
+          ComplaintStatus.NEW,
+          ComplaintStatus.IN_PROGRESS,
+          ComplaintStatus.AWAITING_CUSTOMER,
+        ]),
         isSlaBreached: false,
         resolutionDeadline: LessThan(new Date()),
       },
@@ -626,14 +738,18 @@ export class ComplaintsService {
       });
 
       for (const complaint of breached) {
-        this.eventEmitter.emit('complaint.sla.breached', complaint);
+        this.eventEmitter.emit("complaint.sla.breached", complaint);
       }
     }
 
     return result.affected || 0;
   }
 
-  async getStatistics(organizationId: string, dateFrom: Date, dateTo: Date): Promise<ComplaintStatistics> {
+  async getStatistics(
+    organizationId: string,
+    dateFrom: Date,
+    dateTo: Date,
+  ): Promise<ComplaintStatistics> {
     const complaints = await this.complaintRepo.find({
       where: {
         organizationId,
@@ -676,7 +792,10 @@ export class ComplaintsService {
       byPriority,
       byCategory,
       slaBreached,
-      averageResolutionTime: resolvedCount > 0 ? totalResolutionTime / resolvedCount / (1000 * 60 * 60) : 0, // hours
+      averageResolutionTime:
+        resolvedCount > 0
+          ? totalResolutionTime / resolvedCount / (1000 * 60 * 60)
+          : 0, // hours
       satisfactionAverage: ratedCount > 0 ? totalSatisfaction / ratedCount : 0,
     };
   }
@@ -685,17 +804,26 @@ export class ComplaintsService {
   // CUSTOMER FEEDBACK
   // ============================================================================
 
-  async submitFeedback(complaintId: string, rating: number, comment?: string): Promise<Complaint> {
+  async submitFeedback(
+    complaintId: string,
+    rating: number,
+    comment?: string,
+  ): Promise<Complaint> {
     const complaint = await this.findById(complaintId);
 
-    if (![ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED].includes(complaint.status)) {
-      throw new BadRequestException('Можно оценить только закрытую жалобу');
+    if (
+      ![ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED].includes(
+        complaint.status,
+      )
+    ) {
+      throw new BadRequestException("Можно оценить только закрытую жалобу");
     }
 
     if (rating < 1 || rating > 5) {
-      throw new BadRequestException('Оценка должна быть от 1 до 5');
+      throw new BadRequestException("Оценка должна быть от 1 до 5");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     complaint.satisfactionRating = rating as any;
     if (comment) {
       complaint.satisfactionFeedback = comment;
@@ -709,16 +837,18 @@ export class ComplaintsService {
   // PRIVATE METHODS
   // ============================================================================
 
-  private async generateComplaintNumber(organizationId: string): Promise<string> {
+  private async generateComplaintNumber(
+    organizationId: string,
+  ): Promise<string> {
     const date = new Date();
-    const prefix = `CMP-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const prefix = `CMP-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}`;
 
     const lastComplaint = await this.complaintRepo.findOne({
       where: {
         organizationId,
         ticketNumber: Not(IsNull()),
       },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
 
     let sequence = 1;
@@ -729,12 +859,12 @@ export class ComplaintsService {
       }
     }
 
-    return `${prefix}-${String(sequence).padStart(5, '0')}`;
+    return `${prefix}-${String(sequence).padStart(5, "0")}`;
   }
 
   private generateRandomCode(length: number): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -751,23 +881,29 @@ export class ComplaintsService {
   ): Promise<void> {
     // Map string action types to enum values
     const actionTypeMap: Record<string, ComplaintActionType> = {
-      'create': ComplaintActionType.CREATED,
-      'status_change': ComplaintActionType.STATUS_CHANGED,
-      'assign': ComplaintActionType.ASSIGNED,
-      'escalate': ComplaintActionType.ESCALATED,
-      'refund_requested': ComplaintActionType.REFUND_INITIATED,
-      'refund_completed': ComplaintActionType.REFUND_COMPLETED,
-      'deleted': ComplaintActionType.STATUS_CHANGED,
+      create: ComplaintActionType.CREATED,
+      status_change: ComplaintActionType.STATUS_CHANGED,
+      assign: ComplaintActionType.ASSIGNED,
+      escalate: ComplaintActionType.ESCALATED,
+      refund_requested: ComplaintActionType.REFUND_INITIATED,
+      refund_completed: ComplaintActionType.REFUND_COMPLETED,
+      deleted: ComplaintActionType.STATUS_CHANGED,
     };
 
     const action = this.actionRepo.create({
       complaintId,
-      organizationId: '', // Will be filled from complaint
+      organizationId: "", // Will be filled from complaint
       performedById: performedById || undefined,
-      performedByName: '',
-      actionType: actionTypeMap[actionType] || ComplaintActionType.STATUS_CHANGED,
-      description: description || `${actionType}: ${oldStatus || ''} -> ${newStatus || ''}`,
-      changes: oldStatus && newStatus ? [{ field: 'status', oldValue: oldStatus, newValue: newStatus }] : undefined,
+      performedByName: "",
+      actionType:
+        actionTypeMap[actionType] || ComplaintActionType.STATUS_CHANGED,
+      description:
+        description ||
+        `${actionType}: ${oldStatus || ""} -> ${newStatus || ""}`,
+      changes:
+        oldStatus && newStatus
+          ? [{ field: "status", oldValue: oldStatus, newValue: newStatus }]
+          : undefined,
     });
 
     await this.actionRepo.save(action);
@@ -782,26 +918,30 @@ export class ComplaintsService {
         organizationId: dto.organizationId,
         isActive: true,
       },
-      order: { priority: 'DESC' },
+      order: { priority: "DESC" },
     });
 
     for (const rule of rules) {
       // Check conditions from JSONB
       let matches = true;
       for (const condition of rule.conditions || []) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const value = (dto as any)[condition.field];
         switch (condition.operator) {
-          case 'equals':
+          case "equals":
             matches = value === condition.value;
             break;
-          case 'not_equals':
+          case "not_equals":
             matches = value !== condition.value;
             break;
-          case 'in':
-            matches = Array.isArray(condition.value) && condition.value.includes(value);
+          case "in":
+            matches =
+              Array.isArray(condition.value) && condition.value.includes(value);
             break;
-          case 'not_in':
-            matches = Array.isArray(condition.value) && !condition.value.includes(value);
+          case "not_in":
+            matches =
+              Array.isArray(condition.value) &&
+              !condition.value.includes(value);
             break;
           default:
             matches = true;
@@ -814,10 +954,10 @@ export class ComplaintsService {
       // Apply actions from JSONB
       let result: { priority?: ComplaintPriority; assignedToId?: string } = {};
       for (const action of rule.actions || []) {
-        if (action.type === 'set_priority' && action.params?.priority) {
+        if (action.type === "set_priority" && action.params?.priority) {
           result.priority = action.params.priority as ComplaintPriority;
         }
-        if (action.type === 'assign' && action.params?.userId) {
+        if (action.type === "assign" && action.params?.userId) {
           result.assignedToId = action.params.userId;
         }
       }
@@ -837,7 +977,10 @@ export class ComplaintsService {
   /**
    * Find all complaints for organization (simplified alias for query)
    */
-  async findAll(organizationId: string, options?: { page?: number; limit?: number }) {
+  async findAll(
+    organizationId: string,
+    options?: { page?: number; limit?: number },
+  ) {
     return this.query({
       organizationId,
       page: options?.page || 1,
@@ -851,17 +994,25 @@ export class ComplaintsService {
   async remove(id: string, userId: string): Promise<void> {
     const complaint = await this.findById(id);
 
-    if (![ComplaintStatus.REJECTED, ComplaintStatus.DUPLICATE, ComplaintStatus.CLOSED].includes(complaint.status)) {
-      throw new BadRequestException('Можно удалить только отклонённые, дублирующиеся или закрытые жалобы');
+    if (
+      ![
+        ComplaintStatus.REJECTED,
+        ComplaintStatus.DUPLICATE,
+        ComplaintStatus.CLOSED,
+      ].includes(complaint.status)
+    ) {
+      throw new BadRequestException(
+        "Можно удалить только отклонённые, дублирующиеся или закрытые жалобы",
+      );
     }
 
     await this.logAction(
       id,
       userId,
-      'deleted',
+      "deleted",
       complaint.status,
       null,
-      'Жалоба удалена',
+      "Жалоба удалена",
     );
 
     await this.complaintRepo.softDelete(id);
@@ -873,7 +1024,11 @@ export class ComplaintsService {
    */
   async bulkUpdate(
     ids: string[],
-    data: { status?: ComplaintStatus; assignedToId?: string; priority?: ComplaintPriority },
+    data: {
+      status?: ComplaintStatus;
+      assignedToId?: string;
+      priority?: ComplaintPriority;
+    },
     userId: string,
   ): Promise<number> {
     let updated = 0;
@@ -882,8 +1037,11 @@ export class ComplaintsService {
       try {
         await this.update(id, data, userId);
         updated++;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        this.logger.warn(`Failed to update complaint ${id}: ${(error as Error).message}`);
+        this.logger.warn(
+          `Failed to update complaint ${id}: ${(error as Error).message}`,
+        );
       }
     }
 
@@ -893,18 +1051,26 @@ export class ComplaintsService {
   /**
    * Get complaints assigned to user
    */
-  async findByAssignee(userId: string, includeResolved = false): Promise<Complaint[]> {
+  async findByAssignee(
+    userId: string,
+    includeResolved = false,
+  ): Promise<Complaint[]> {
     const statuses = includeResolved
       ? Object.values(ComplaintStatus)
-      : [ComplaintStatus.NEW, ComplaintStatus.IN_PROGRESS, ComplaintStatus.AWAITING_CUSTOMER, ComplaintStatus.AWAITING_PARTS];
+      : [
+          ComplaintStatus.NEW,
+          ComplaintStatus.IN_PROGRESS,
+          ComplaintStatus.AWAITING_CUSTOMER,
+          ComplaintStatus.AWAITING_PARTS,
+        ];
 
     return this.complaintRepo.find({
       where: {
         assignedToId: userId,
         status: In(statuses),
       },
-      relations: ['comments', 'actions'],
-      order: { priority: 'DESC', created_at: 'ASC' },
+      relations: ["comments", "actions"],
+      order: { priority: "DESC", created_at: "ASC" },
     });
   }
 
@@ -914,7 +1080,7 @@ export class ComplaintsService {
   async findByMachine(machineId: string, limit = 20): Promise<Complaint[]> {
     return this.complaintRepo.find({
       where: { machineId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       take: limit,
     });
   }
@@ -922,16 +1088,22 @@ export class ComplaintsService {
   /**
    * Get open complaints count by priority
    */
-  async getOpenCountsByPriority(organizationId: string): Promise<Record<string, number>> {
+  async getOpenCountsByPriority(
+    organizationId: string,
+  ): Promise<Record<string, number>> {
     const result = await this.complaintRepo
-      .createQueryBuilder('c')
-      .select('c.priority', 'priority')
-      .addSelect('COUNT(*)', 'count')
-      .where('c.organizationId = :organizationId', { organizationId })
-      .andWhere('c.status IN (:...statuses)', {
-        statuses: [ComplaintStatus.NEW, ComplaintStatus.IN_PROGRESS, ComplaintStatus.AWAITING_CUSTOMER],
+      .createQueryBuilder("c")
+      .select("c.priority", "priority")
+      .addSelect("COUNT(*)", "count")
+      .where("c.organizationId = :organizationId", { organizationId })
+      .andWhere("c.status IN (:...statuses)", {
+        statuses: [
+          ComplaintStatus.NEW,
+          ComplaintStatus.IN_PROGRESS,
+          ComplaintStatus.AWAITING_CUSTOMER,
+        ],
       })
-      .groupBy('c.priority')
+      .groupBy("c.priority")
       .getRawMany();
 
     const counts: Record<string, number> = {
@@ -961,7 +1133,7 @@ export class ComplaintsService {
         isSlaBreached: false,
         resolutionDeadline: LessThan(twoHoursFromNow),
       },
-      order: { resolutionDeadline: 'ASC' },
+      order: { resolutionDeadline: "ASC" },
     });
   }
 }

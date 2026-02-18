@@ -1,27 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { RbacService } from './rbac.service';
-import { Role } from './entities/role.entity';
-import { Permission } from './entities/permission.entity';
-import { User } from '../users/entities/user.entity';
+import { RbacService } from "./rbac.service";
+import { Role } from "./entities/role.entity";
+import { Permission } from "./entities/permission.entity";
+import { User } from "../users/entities/user.entity";
 
-describe('RbacService', () => {
+describe("RbacService", () => {
   let service: RbacService;
   let roleRepository: jest.Mocked<Repository<Role>>;
   let permissionRepository: jest.Mocked<Repository<Permission>>;
   let userRepository: jest.Mocked<Repository<User>>;
 
-  const orgId = 'org-uuid-1';
+  const orgId = "org-uuid-1";
 
   const mockPermission: Permission = {
-    id: 'perm-uuid-1',
-    name: 'machines:read',
-    resource: 'machines',
-    action: 'read',
-    description: 'Read machines',
+    id: "perm-uuid-1",
+    name: "machines:read",
+    resource: "machines",
+    action: "read",
+    description: "Read machines",
     isActive: true,
     created_at: new Date(),
     updated_at: new Date(),
@@ -31,11 +31,11 @@ describe('RbacService', () => {
   } as unknown as Permission;
 
   const mockPermission2: Permission = {
-    id: 'perm-uuid-2',
-    name: 'machines:create',
-    resource: 'machines',
-    action: 'create',
-    description: 'Create machines',
+    id: "perm-uuid-2",
+    name: "machines:create",
+    resource: "machines",
+    action: "create",
+    description: "Create machines",
     isActive: true,
     created_at: new Date(),
     updated_at: new Date(),
@@ -45,11 +45,11 @@ describe('RbacService', () => {
   } as unknown as Permission;
 
   const mockManagePermission: Permission = {
-    id: 'perm-uuid-3',
-    name: 'machines:manage',
-    resource: 'machines',
-    action: 'manage',
-    description: 'Full manage machines',
+    id: "perm-uuid-3",
+    name: "machines:manage",
+    resource: "machines",
+    action: "manage",
+    description: "Full manage machines",
     isActive: true,
     created_at: new Date(),
     updated_at: new Date(),
@@ -59,11 +59,11 @@ describe('RbacService', () => {
   } as unknown as Permission;
 
   const mockWildcardPermission: Permission = {
-    id: 'perm-uuid-4',
-    name: '*:manage',
-    resource: '*',
-    action: 'manage',
-    description: 'Superadmin wildcard',
+    id: "perm-uuid-4",
+    name: "*:manage",
+    resource: "*",
+    action: "manage",
+    description: "Superadmin wildcard",
     isActive: true,
     created_at: new Date(),
     updated_at: new Date(),
@@ -73,9 +73,9 @@ describe('RbacService', () => {
   } as unknown as Permission;
 
   const mockRole: Role = {
-    id: 'role-uuid-1',
-    name: 'manager',
-    description: 'Organization manager',
+    id: "role-uuid-1",
+    name: "manager",
+    description: "Organization manager",
     isActive: true,
     isSystem: false,
     organizationId: orgId,
@@ -89,9 +89,9 @@ describe('RbacService', () => {
   } as unknown as Role;
 
   const mockSystemRole: Role = {
-    id: 'role-uuid-sys',
-    name: 'admin',
-    description: 'System administrator',
+    id: "role-uuid-sys",
+    name: "admin",
+    description: "System administrator",
     isActive: true,
     isSystem: true,
     organizationId: null,
@@ -105,10 +105,10 @@ describe('RbacService', () => {
   } as unknown as Role;
 
   const mockUser: User = {
-    id: 'user-uuid-1',
-    email: 'test@vendhub.uz',
-    firstName: 'Test',
-    lastName: 'User',
+    id: "user-uuid-1",
+    email: "test@vendhub.uz",
+    firstName: "Test",
+    lastName: "User",
     organizationId: orgId,
     roles: [mockRole],
     created_at: new Date(),
@@ -131,7 +131,9 @@ describe('RbacService', () => {
 
   beforeEach(async () => {
     // Reset mockQueryBuilder spies between tests
-    Object.values(mockQueryBuilder).forEach((fn) => (fn as jest.Mock).mockClear());
+    Object.values(mockQueryBuilder).forEach((fn) =>
+      (fn as jest.Mock).mockClear(),
+    );
     mockQueryBuilder.where.mockReturnThis();
     mockQueryBuilder.andWhere.mockReturnThis();
     mockQueryBuilder.orderBy.mockReturnThis();
@@ -184,7 +186,7 @@ describe('RbacService', () => {
     userRepository = module.get(getRepositoryToken(User));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -192,8 +194,8 @@ describe('RbacService', () => {
   // ROLE CRUD
   // ============================================================================
 
-  describe('createRole', () => {
-    it('should create a new role successfully', async () => {
+  describe("createRole", () => {
+    it("should create a new role successfully", async () => {
       roleRepository.findOne
         // First call: duplicate check returns null (no duplicate)
         .mockResolvedValueOnce(null)
@@ -203,52 +205,69 @@ describe('RbacService', () => {
       roleRepository.save.mockResolvedValue(mockRole);
 
       const result = await service.createRole(
-        { name: 'manager', description: 'Organization manager', level: 50 },
+        { name: "manager", description: "Organization manager", level: 50 },
         orgId,
       );
 
       expect(result).toEqual(mockRole);
       expect(roleRepository.create).toHaveBeenCalledWith({
-        name: 'manager',
-        description: 'Organization manager',
+        name: "manager",
+        description: "Organization manager",
         level: 50,
         organizationId: orgId,
       });
       expect(roleRepository.save).toHaveBeenCalledWith(mockRole);
     });
 
-    it('should throw BadRequestException when role name already exists within same org', async () => {
-      roleRepository.findOne.mockResolvedValueOnce(mockRole);
+    it("should throw BadRequestException when role name already exists within same org", async () => {
+      roleRepository.findOne
+        .mockResolvedValueOnce(mockRole)
+        .mockResolvedValueOnce(mockRole);
 
       await expect(
-        service.createRole({ name: 'manager', description: 'Duplicate' }, orgId),
+        service.createRole(
+          { name: "manager", description: "Duplicate" },
+          orgId,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       await expect(
-        service.createRole({ name: 'manager', description: 'Duplicate' }, orgId),
-      ).rejects.toThrow('Role "manager" already exists');
+        service.createRole(
+          { name: "manager", description: "Duplicate" },
+          orgId,
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('should sync permissions when permissionIds are provided', async () => {
-      const roleWithPerms = { ...mockRole, permissions: [mockPermission, mockPermission2] } as unknown as Role;
+    it("should sync permissions when permissionIds are provided", async () => {
+      const roleWithPerms = {
+        ...mockRole,
+        permissions: [mockPermission, mockPermission2],
+      } as unknown as Role;
       roleRepository.findOne
         // duplicate check
         .mockResolvedValueOnce(null)
         // syncRolePermissions -> findOne for the role
-        .mockResolvedValueOnce({ ...mockRole, permissions: [] } as unknown as Role)
+        .mockResolvedValueOnce({
+          ...mockRole,
+          permissions: [],
+        } as unknown as Role)
         // findRoleById after sync
         .mockResolvedValueOnce(roleWithPerms)
         // findRoleById at end of createRole
         .mockResolvedValueOnce(roleWithPerms);
       roleRepository.create.mockReturnValue(mockRole);
       roleRepository.save.mockResolvedValue(mockRole);
-      permissionRepository.findBy.mockResolvedValue([mockPermission, mockPermission2]);
+      permissionRepository.findBy.mockResolvedValue([
+        mockPermission,
+        mockPermission2,
+      ]);
 
       const result = await service.createRole(
         {
-          name: 'manager',
-          description: 'Manager',
-          permissionIds: ['perm-uuid-1', 'perm-uuid-2'],
+          name: "manager",
+          description: "Manager",
+          permissionIds: ["perm-uuid-1", "perm-uuid-2"],
         },
         orgId,
       );
@@ -262,56 +281,65 @@ describe('RbacService', () => {
   // UPDATE ROLE
   // ============================================================================
 
-  describe('updateRole', () => {
-    it('should update role when found', async () => {
-      const updatedRole = { ...mockRole, description: 'Updated description' } as unknown as Role;
+  describe("updateRole", () => {
+    it("should update role when found", async () => {
+      const roleClone = { ...mockRole } as unknown as Role;
+      const updatedRole = {
+        ...mockRole,
+        description: "Updated description",
+      } as unknown as Role;
       roleRepository.findOne
         // First call: find role by id
-        .mockResolvedValueOnce(mockRole)
+        .mockResolvedValueOnce(roleClone)
         // Second call: findRoleById after save
         .mockResolvedValueOnce(updatedRole);
       roleRepository.save.mockResolvedValue(updatedRole);
 
-      const result = await service.updateRole('role-uuid-1', {
-        description: 'Updated description',
+      const result = await service.updateRole("role-uuid-1", {
+        description: "Updated description",
       });
 
-      expect(result.description).toBe('Updated description');
+      expect(result.description).toBe("Updated description");
       expect(roleRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when role not found', async () => {
+    it("should throw NotFoundException when role not found", async () => {
       roleRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateRole('non-existent', { description: 'Updated' }),
+        service.updateRole("non-existent", { description: "Updated" }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when trying to rename a system role', async () => {
-      roleRepository.findOne.mockResolvedValueOnce(mockSystemRole);
+    it("should throw BadRequestException when trying to rename a system role", async () => {
+      roleRepository.findOne
+        .mockResolvedValueOnce(mockSystemRole)
+        .mockResolvedValueOnce(mockSystemRole);
 
       await expect(
-        service.updateRole('role-uuid-sys', { name: 'renamed-admin' }),
+        service.updateRole("role-uuid-sys", { name: "renamed-admin" }),
       ).rejects.toThrow(BadRequestException);
 
       await expect(
-        service.updateRole('role-uuid-sys', { name: 'renamed-admin' }),
-      ).rejects.toThrow('Cannot rename a system role');
+        service.updateRole("role-uuid-sys", { name: "renamed-admin" }),
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('should allow updating description of a system role', async () => {
-      const updatedSystemRole = { ...mockSystemRole, description: 'New desc' } as unknown as Role;
+    it("should allow updating description of a system role", async () => {
+      const updatedSystemRole = {
+        ...mockSystemRole,
+        description: "New desc",
+      } as unknown as Role;
       roleRepository.findOne
         .mockResolvedValueOnce(mockSystemRole)
         .mockResolvedValueOnce(updatedSystemRole);
       roleRepository.save.mockResolvedValue(updatedSystemRole);
 
-      const result = await service.updateRole('role-uuid-sys', {
-        description: 'New desc',
+      const result = await service.updateRole("role-uuid-sys", {
+        description: "New desc",
       });
 
-      expect(result.description).toBe('New desc');
+      expect(result.description).toBe("New desc");
     });
   });
 
@@ -319,33 +347,33 @@ describe('RbacService', () => {
   // DELETE ROLE
   // ============================================================================
 
-  describe('deleteRole', () => {
-    it('should soft delete role when found', async () => {
+  describe("deleteRole", () => {
+    it("should soft delete role when found", async () => {
       roleRepository.findOne.mockResolvedValue(mockRole);
       roleRepository.softRemove.mockResolvedValue(mockRole);
 
-      await service.deleteRole('role-uuid-1');
+      await service.deleteRole("role-uuid-1");
 
       expect(roleRepository.softRemove).toHaveBeenCalledWith(mockRole);
     });
 
-    it('should throw NotFoundException when role not found', async () => {
+    it("should throw NotFoundException when role not found", async () => {
       roleRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.deleteRole('non-existent')).rejects.toThrow(
+      await expect(service.deleteRole("non-existent")).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('should throw BadRequestException when trying to delete a system role', async () => {
+    it("should throw BadRequestException when trying to delete a system role", async () => {
       roleRepository.findOne.mockResolvedValue(mockSystemRole);
 
-      await expect(service.deleteRole('role-uuid-sys')).rejects.toThrow(
+      await expect(service.deleteRole("role-uuid-sys")).rejects.toThrow(
         BadRequestException,
       );
 
-      await expect(service.deleteRole('role-uuid-sys')).rejects.toThrow(
-        'Cannot delete a system role',
+      await expect(service.deleteRole("role-uuid-sys")).rejects.toThrow(
+        "Cannot delete a system role",
       );
     });
   });
@@ -354,50 +382,56 @@ describe('RbacService', () => {
   // FIND ALL ROLES (paginated)
   // ============================================================================
 
-  describe('findAllRoles', () => {
-    it('should return paginated roles with defaults', async () => {
+  describe("findAllRoles", () => {
+    it("should return paginated roles with defaults", async () => {
       const result = await service.findAllRoles();
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 1);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('limit', 50);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 1);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("limit", 50);
+      expect(result).toHaveProperty("totalPages", 1);
       expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
-        'role.permissions',
-        'permission',
+        "role.permissions",
+        "permission",
       );
     });
 
-    it('should filter by organizationId and include global roles by default', async () => {
+    it("should filter by organizationId and include global roles by default", async () => {
       await service.findAllRoles({ organizationId: orgId });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        '(role.organization_id = :organizationId OR role.organization_id IS NULL)',
+        "(role.organization_id = :organizationId OR role.organization_id IS NULL)",
         { organizationId: orgId },
       );
     });
 
-    it('should filter by organizationId without global roles when includeGlobal is false', async () => {
-      await service.findAllRoles({ organizationId: orgId, includeGlobal: false });
+    it("should filter by organizationId without global roles when includeGlobal is false", async () => {
+      await service.findAllRoles({
+        organizationId: orgId,
+        includeGlobal: false,
+      });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'role.organization_id = :organizationId',
+        "role.organization_id = :organizationId",
         { organizationId: orgId },
       );
     });
 
-    it('should apply pagination correctly', async () => {
+    it("should apply pagination correctly", async () => {
       await service.findAllRoles({ page: 2, limit: 10 });
 
       expect(mockQueryBuilder.skip).toHaveBeenCalledWith(10); // (2 - 1) * 10
       expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
     });
 
-    it('should order by role level descending', async () => {
+    it("should order by role level descending", async () => {
       await service.findAllRoles();
 
-      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith('role.level', 'DESC');
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        "role.level",
+        "DESC",
+      );
     });
   });
 
@@ -405,28 +439,28 @@ describe('RbacService', () => {
   // FIND ROLE BY ID
   // ============================================================================
 
-  describe('findRoleById', () => {
-    it('should return role with permissions when found', async () => {
+  describe("findRoleById", () => {
+    it("should return role with permissions when found", async () => {
       roleRepository.findOne.mockResolvedValue(mockRole);
 
-      const result = await service.findRoleById('role-uuid-1');
+      const result = await service.findRoleById("role-uuid-1");
 
       expect(result).toEqual(mockRole);
       expect(roleRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'role-uuid-1' },
-        relations: ['permissions'],
+        where: { id: "role-uuid-1" },
+        relations: ["permissions"],
       });
     });
 
-    it('should throw NotFoundException when role not found', async () => {
+    it("should throw NotFoundException when role not found", async () => {
       roleRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findRoleById('non-existent')).rejects.toThrow(
+      await expect(service.findRoleById("non-existent")).rejects.toThrow(
         NotFoundException,
       );
 
-      await expect(service.findRoleById('non-existent')).rejects.toThrow(
-        'Role not found',
+      await expect(service.findRoleById("non-existent")).rejects.toThrow(
+        "Role not found",
       );
     });
   });
@@ -435,45 +469,45 @@ describe('RbacService', () => {
   // PERMISSION CRUD
   // ============================================================================
 
-  describe('createPermission', () => {
-    it('should create a new permission', async () => {
+  describe("createPermission", () => {
+    it("should create a new permission", async () => {
       permissionRepository.findOne.mockResolvedValue(null);
       permissionRepository.create.mockReturnValue(mockPermission);
       permissionRepository.save.mockResolvedValue(mockPermission);
 
       const result = await service.createPermission({
-        name: 'machines:read',
-        resource: 'machines',
-        action: 'read',
-        description: 'Read machines',
+        name: "machines:read",
+        resource: "machines",
+        action: "read",
+        description: "Read machines",
       });
 
       expect(result).toEqual(mockPermission);
       expect(permissionRepository.create).toHaveBeenCalledWith({
-        name: 'machines:read',
-        resource: 'machines',
-        action: 'read',
-        description: 'Read machines',
+        name: "machines:read",
+        resource: "machines",
+        action: "read",
+        description: "Read machines",
       });
       expect(permissionRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException when permission already exists', async () => {
+    it("should throw BadRequestException when permission already exists", async () => {
       permissionRepository.findOne.mockResolvedValue(mockPermission);
 
       await expect(
         service.createPermission({
-          name: 'machines:read',
-          resource: 'machines',
-          action: 'read',
+          name: "machines:read",
+          resource: "machines",
+          action: "read",
         }),
       ).rejects.toThrow(BadRequestException);
 
       await expect(
         service.createPermission({
-          name: 'machines:read',
-          resource: 'machines',
-          action: 'read',
+          name: "machines:read",
+          resource: "machines",
+          action: "read",
         }),
       ).rejects.toThrow('Permission "machines:read" already exists');
     });
@@ -483,8 +517,8 @@ describe('RbacService', () => {
   // FIND ALL PERMISSIONS (paginated)
   // ============================================================================
 
-  describe('findAllPermissions', () => {
-    it('should return paginated permissions with defaults', async () => {
+  describe("findAllPermissions", () => {
+    it("should return paginated permissions with defaults", async () => {
       permissionRepository.findAndCount.mockResolvedValue([
         [mockPermission, mockPermission2],
         2,
@@ -492,28 +526,31 @@ describe('RbacService', () => {
 
       const result = await service.findAllPermissions();
 
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total', 2);
-      expect(result).toHaveProperty('page', 1);
-      expect(result).toHaveProperty('limit', 200);
-      expect(result).toHaveProperty('totalPages', 1);
+      expect(result).toHaveProperty("data");
+      expect(result).toHaveProperty("total", 2);
+      expect(result).toHaveProperty("page", 1);
+      expect(result).toHaveProperty("limit", 200);
+      expect(result).toHaveProperty("totalPages", 1);
       expect(result.data).toHaveLength(2);
     });
 
-    it('should filter by resource', async () => {
-      permissionRepository.findAndCount.mockResolvedValue([[mockPermission], 1]);
+    it("should filter by resource", async () => {
+      permissionRepository.findAndCount.mockResolvedValue([
+        [mockPermission],
+        1,
+      ]);
 
-      await service.findAllPermissions({ resource: 'machines' });
+      await service.findAllPermissions({ resource: "machines" });
 
       expect(permissionRepository.findAndCount).toHaveBeenCalledWith({
-        where: { isActive: true, resource: 'machines' },
-        order: { resource: 'ASC', action: 'ASC' },
+        where: { isActive: true, resource: "machines" },
+        order: { resource: "ASC", action: "ASC" },
         skip: 0,
         take: 200,
       });
     });
 
-    it('should apply pagination correctly', async () => {
+    it("should apply pagination correctly", async () => {
       permissionRepository.findAndCount.mockResolvedValue([[], 0]);
 
       await service.findAllPermissions({ page: 3, limit: 10 });
@@ -531,20 +568,29 @@ describe('RbacService', () => {
   // SYNC ROLE PERMISSIONS
   // ============================================================================
 
-  describe('syncRolePermissions', () => {
-    it('should set permissions on role', async () => {
-      const roleWithPerms = { ...mockRole, permissions: [mockPermission, mockPermission2] } as unknown as Role;
+  describe("syncRolePermissions", () => {
+    it("should set permissions on role", async () => {
+      const roleWithPerms = {
+        ...mockRole,
+        permissions: [mockPermission, mockPermission2],
+      } as unknown as Role;
       roleRepository.findOne
         // First call: find role with existing permissions
-        .mockResolvedValueOnce({ ...mockRole, permissions: [] } as unknown as Role)
+        .mockResolvedValueOnce({
+          ...mockRole,
+          permissions: [],
+        } as unknown as Role)
         // Second call: findRoleById at end
         .mockResolvedValueOnce(roleWithPerms);
-      permissionRepository.findBy.mockResolvedValue([mockPermission, mockPermission2]);
+      permissionRepository.findBy.mockResolvedValue([
+        mockPermission,
+        mockPermission2,
+      ]);
       roleRepository.save.mockResolvedValue(roleWithPerms);
 
-      const result = await service.syncRolePermissions('role-uuid-1', [
-        'perm-uuid-1',
-        'perm-uuid-2',
+      const result = await service.syncRolePermissions("role-uuid-1", [
+        "perm-uuid-1",
+        "perm-uuid-2",
       ]);
 
       expect(result.permissions).toHaveLength(2);
@@ -554,11 +600,11 @@ describe('RbacService', () => {
       expect(roleRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when role not found', async () => {
+    it("should throw NotFoundException when role not found", async () => {
       roleRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.syncRolePermissions('non-existent', ['perm-uuid-1']),
+        service.syncRolePermissions("non-existent", ["perm-uuid-1"]),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -567,8 +613,8 @@ describe('RbacService', () => {
   // ASSIGN ROLE TO USER
   // ============================================================================
 
-  describe('assignRoleToUser', () => {
-    it('should assign role to user successfully', async () => {
+  describe("assignRoleToUser", () => {
+    it("should assign role to user successfully", async () => {
       const userWithNoRoles = { ...mockUser, roles: [] } as unknown as User;
       userRepository.findOne.mockResolvedValue(userWithNoRoles);
       roleRepository.findOneBy.mockResolvedValue(mockRole);
@@ -577,7 +623,7 @@ describe('RbacService', () => {
         roles: [mockRole],
       } as unknown as User);
 
-      await service.assignRoleToUser('user-uuid-1', 'role-uuid-1');
+      await service.assignRoleToUser("user-uuid-1", "role-uuid-1");
 
       expect(userRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -586,42 +632,45 @@ describe('RbacService', () => {
       );
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.assignRoleToUser('non-existent', 'role-uuid-1'),
+        service.assignRoleToUser("non-existent", "role-uuid-1"),
       ).rejects.toThrow(NotFoundException);
 
       await expect(
-        service.assignRoleToUser('non-existent', 'role-uuid-1'),
-      ).rejects.toThrow('User not found');
+        service.assignRoleToUser("non-existent", "role-uuid-1"),
+      ).rejects.toThrow("User not found");
     });
 
-    it('should throw NotFoundException when role not found', async () => {
-      userRepository.findOne.mockResolvedValue({ ...mockUser, roles: [] } as unknown as User);
+    it("should throw NotFoundException when role not found", async () => {
+      userRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        roles: [],
+      } as unknown as User);
       roleRepository.findOneBy.mockResolvedValue(null);
 
       await expect(
-        service.assignRoleToUser('user-uuid-1', 'non-existent'),
+        service.assignRoleToUser("user-uuid-1", "non-existent"),
       ).rejects.toThrow(NotFoundException);
 
       await expect(
-        service.assignRoleToUser('user-uuid-1', 'non-existent'),
-      ).rejects.toThrow('Role not found');
+        service.assignRoleToUser("user-uuid-1", "non-existent"),
+      ).rejects.toThrow("Role not found");
     });
 
-    it('should throw BadRequestException when role is already assigned to user', async () => {
+    it("should throw BadRequestException when role is already assigned to user", async () => {
       userRepository.findOne.mockResolvedValue(mockUser); // mockUser already has mockRole
       roleRepository.findOneBy.mockResolvedValue(mockRole);
 
       await expect(
-        service.assignRoleToUser('user-uuid-1', 'role-uuid-1'),
+        service.assignRoleToUser("user-uuid-1", "role-uuid-1"),
       ).rejects.toThrow(BadRequestException);
 
       await expect(
-        service.assignRoleToUser('user-uuid-1', 'role-uuid-1'),
-      ).rejects.toThrow('Role already assigned to user');
+        service.assignRoleToUser("user-uuid-1", "role-uuid-1"),
+      ).rejects.toThrow("Role already assigned to user");
     });
   });
 
@@ -629,15 +678,15 @@ describe('RbacService', () => {
   // REMOVE ROLE FROM USER
   // ============================================================================
 
-  describe('removeRoleFromUser', () => {
-    it('should remove role from user successfully', async () => {
+  describe("removeRoleFromUser", () => {
+    it("should remove role from user successfully", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       userRepository.save.mockResolvedValue({
         ...mockUser,
         roles: [],
       } as unknown as User);
 
-      await service.removeRoleFromUser('user-uuid-1', 'role-uuid-1');
+      await service.removeRoleFromUser("user-uuid-1", "role-uuid-1");
 
       expect(userRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -646,16 +695,16 @@ describe('RbacService', () => {
       );
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.removeRoleFromUser('non-existent', 'role-uuid-1'),
+        service.removeRoleFromUser("non-existent", "role-uuid-1"),
       ).rejects.toThrow(NotFoundException);
 
       await expect(
-        service.removeRoleFromUser('non-existent', 'role-uuid-1'),
-      ).rejects.toThrow('User not found');
+        service.removeRoleFromUser("non-existent", "role-uuid-1"),
+      ).rejects.toThrow("User not found");
     });
   });
 
@@ -663,34 +712,38 @@ describe('RbacService', () => {
   // GET USER ROLES
   // ============================================================================
 
-  describe('getUserRoles', () => {
-    it('should return user roles with permissions', async () => {
-      userRepository.findOne.mockResolvedValue(mockUser);
+  describe("getUserRoles", () => {
+    it("should return user roles with permissions", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userRepository.findOne.mockResolvedValue({
+        ...mockUser,
+        roles: [mockRole],
+      } as any);
 
-      const result = await service.getUserRoles('user-uuid-1');
+      const result = await service.getUserRoles("user-uuid-1");
 
       expect(result).toEqual([mockRole]);
       expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'user-uuid-1' },
-        relations: ['roles', 'roles.permissions'],
+        where: { id: "user-uuid-1" },
+        relations: ["roles", "roles.permissions"],
       });
     });
 
-    it('should return empty array when user has no roles', async () => {
+    it("should return empty array when user has no roles", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: undefined,
       } as unknown as User);
 
-      const result = await service.getUserRoles('user-uuid-1');
+      const result = await service.getUserRoles("user-uuid-1");
 
       expect(result).toEqual([]);
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it("should throw NotFoundException when user not found", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getUserRoles('non-existent')).rejects.toThrow(
+      await expect(service.getUserRoles("non-existent")).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -700,16 +753,16 @@ describe('RbacService', () => {
   // GET USER PERMISSIONS (flattened, deduplicated)
   // ============================================================================
 
-  describe('getUserPermissions', () => {
-    it('should return flattened and deduplicated permissions from all roles', async () => {
+  describe("getUserPermissions", () => {
+    it("should return flattened and deduplicated permissions from all roles", async () => {
       const roleA = {
         ...mockRole,
-        id: 'role-a',
+        id: "role-a",
         permissions: [mockPermission, mockPermission2],
       } as unknown as Role;
       const roleB = {
         ...mockRole,
-        id: 'role-b',
+        id: "role-b",
         permissions: [mockPermission, mockManagePermission], // mockPermission is duplicated
       } as unknown as Role;
 
@@ -718,28 +771,28 @@ describe('RbacService', () => {
         roles: [roleA, roleB],
       } as unknown as User);
 
-      const result = await service.getUserPermissions('user-uuid-1');
+      const result = await service.getUserPermissions("user-uuid-1");
 
       // Should have 3 unique permissions, not 4 (deduplicated by id)
       expect(result).toHaveLength(3);
       const ids = result.map((p) => p.id);
-      expect(ids).toContain('perm-uuid-1');
-      expect(ids).toContain('perm-uuid-2');
-      expect(ids).toContain('perm-uuid-3');
+      expect(ids).toContain("perm-uuid-1");
+      expect(ids).toContain("perm-uuid-2");
+      expect(ids).toContain("perm-uuid-3");
     });
 
-    it('should return empty array when user has no roles', async () => {
+    it("should return empty array when user has no roles", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [],
       } as unknown as User);
 
-      const result = await service.getUserPermissions('user-uuid-1');
+      const result = await service.getUserPermissions("user-uuid-1");
 
       expect(result).toEqual([]);
     });
 
-    it('should handle roles with no permissions gracefully', async () => {
+    it("should handle roles with no permissions gracefully", async () => {
       const roleNoPerms = {
         ...mockRole,
         permissions: undefined,
@@ -750,7 +803,7 @@ describe('RbacService', () => {
         roles: [roleNoPerms],
       } as unknown as User);
 
-      const result = await service.getUserPermissions('user-uuid-1');
+      const result = await service.getUserPermissions("user-uuid-1");
 
       expect(result).toEqual([]);
     });
@@ -760,60 +813,80 @@ describe('RbacService', () => {
   // HAS PERMISSION
   // ============================================================================
 
-  describe('hasPermission', () => {
-    it('should return true when user has exact resource:action permission', async () => {
+  describe("hasPermission", () => {
+    it("should return true when user has exact resource:action permission", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [{ ...mockRole, permissions: [mockPermission] }],
       } as unknown as User);
 
-      const result = await service.hasPermission('user-uuid-1', 'machines', 'read');
+      const result = await service.hasPermission(
+        "user-uuid-1",
+        "machines",
+        "read",
+      );
 
       expect(result).toBe(true);
     });
 
-    it('should return false when user does not have the permission', async () => {
+    it("should return false when user does not have the permission", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [{ ...mockRole, permissions: [mockPermission] }],
       } as unknown as User);
 
-      const result = await service.hasPermission('user-uuid-1', 'users', 'delete');
+      const result = await service.hasPermission(
+        "user-uuid-1",
+        "users",
+        "delete",
+      );
 
       expect(result).toBe(false);
     });
 
-    it('should return true when user has manage action on the same resource', async () => {
+    it("should return true when user has manage action on the same resource", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [{ ...mockRole, permissions: [mockManagePermission] }],
       } as unknown as User);
 
       // "machines:manage" should grant any action on "machines"
-      const result = await service.hasPermission('user-uuid-1', 'machines', 'delete');
+      const result = await service.hasPermission(
+        "user-uuid-1",
+        "machines",
+        "delete",
+      );
 
       expect(result).toBe(true);
     });
 
-    it('should return true when user has wildcard *:manage permission', async () => {
+    it("should return true when user has wildcard *:manage permission", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [{ ...mockRole, permissions: [mockWildcardPermission] }],
       } as unknown as User);
 
       // "*:manage" should grant any action on any resource
-      const result = await service.hasPermission('user-uuid-1', 'reports', 'export');
+      const result = await service.hasPermission(
+        "user-uuid-1",
+        "reports",
+        "export",
+      );
 
       expect(result).toBe(true);
     });
 
-    it('should return false for user with empty roles', async () => {
+    it("should return false for user with empty roles", async () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [],
       } as unknown as User);
 
-      const result = await service.hasPermission('user-uuid-1', 'machines', 'read');
+      const result = await service.hasPermission(
+        "user-uuid-1",
+        "machines",
+        "read",
+      );
 
       expect(result).toBe(false);
     });

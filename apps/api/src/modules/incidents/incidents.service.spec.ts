@@ -1,22 +1,26 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { IncidentsService } from './incidents.service';
+import { IncidentsService } from "./incidents.service";
 import {
   Incident,
   IncidentStatus,
   IncidentType,
   IncidentPriority,
-} from './entities/incident.entity';
+} from "./entities/incident.entity";
 
 // ============================================================================
 // MOCK HELPERS
 // ============================================================================
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -45,30 +49,30 @@ const mockQueryBuilder = {
 // CONSTANTS
 // ============================================================================
 
-const ORG_ID = 'org-uuid-00000000-0000-0000-0000-000000000001';
-const USER_ID = 'user-uuid-00000000-0000-0000-0000-000000000001';
-const MACHINE_ID = 'machine-uuid-00000000-0000-0000-0000-000000000001';
+const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
+const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
+const MACHINE_ID = "machine-uuid-00000000-0000-0000-0000-000000000001";
 
 // ============================================================================
 // TESTS
 // ============================================================================
 
-describe('IncidentsService', () => {
+describe("IncidentsService", () => {
   let service: IncidentsService;
   let incidentRepo: MockRepository<Incident>;
 
   const mockIncident: Partial<Incident> = {
-    id: 'incident-uuid-1',
+    id: "incident-uuid-1",
     organization_id: ORG_ID,
     machine_id: MACHINE_ID,
     type: IncidentType.MECHANICAL_FAILURE,
     status: IncidentStatus.REPORTED,
     priority: IncidentPriority.MEDIUM,
-    title: 'Machine jammed',
-    description: 'Product stuck in slot B3',
+    title: "Machine jammed",
+    description: "Product stuck in slot B3",
     reported_by_user_id: USER_ID,
     assigned_to_user_id: null,
-    reported_at: new Date('2025-01-15T10:00:00Z'),
+    reported_at: new Date("2025-01-15T10:00:00Z"),
     resolved_at: null,
     repair_cost: null,
     insurance_claim: false,
@@ -80,19 +84,19 @@ describe('IncidentsService', () => {
 
   const mockResolvedIncident: Partial<Incident> = {
     ...mockIncident,
-    id: 'incident-uuid-2',
+    id: "incident-uuid-2",
     status: IncidentStatus.RESOLVED,
-    resolved_at: new Date('2025-01-15T14:00:00Z'),
-    resolution: 'Cleared the jam and tested',
+    resolved_at: new Date("2025-01-15T14:00:00Z"),
+    resolution: "Cleared the jam and tested",
     repair_cost: 50000,
   };
 
   const mockClosedIncident: Partial<Incident> = {
     ...mockIncident,
-    id: 'incident-uuid-3',
+    id: "incident-uuid-3",
     status: IncidentStatus.CLOSED,
-    resolved_at: new Date('2025-01-15T14:00:00Z'),
-    resolution: 'Fixed',
+    resolved_at: new Date("2025-01-15T14:00:00Z"),
+    resolution: "Fixed",
   };
 
   beforeEach(async () => {
@@ -110,7 +114,7 @@ describe('IncidentsService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -118,18 +122,19 @@ describe('IncidentsService', () => {
   // create
   // ==========================================================================
 
-  describe('create', () => {
-    it('should create an incident with default priority MEDIUM', async () => {
+  describe("create", () => {
+    it("should create an incident with default priority MEDIUM", async () => {
       const dto = {
         machine_id: MACHINE_ID,
         type: IncidentType.MECHANICAL_FAILURE,
-        title: 'Machine jammed',
-        description: 'Product stuck in slot B3',
+        title: "Machine jammed",
+        description: "Product stuck in slot B3",
       };
 
       incidentRepo.create!.mockReturnValue(mockIncident);
       incidentRepo.save!.mockResolvedValue(mockIncident);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.create(dto as any, USER_ID, ORG_ID);
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
@@ -139,7 +144,7 @@ describe('IncidentsService', () => {
           type: IncidentType.MECHANICAL_FAILURE,
           status: IncidentStatus.REPORTED,
           priority: IncidentPriority.MEDIUM,
-          title: 'Machine jammed',
+          title: "Machine jammed",
           reported_by_user_id: USER_ID,
         }),
       );
@@ -147,17 +152,24 @@ describe('IncidentsService', () => {
       expect(result).toEqual(mockIncident);
     });
 
-    it('should create an incident with explicit HIGH priority', async () => {
+    it("should create an incident with explicit HIGH priority", async () => {
       const dto = {
         machine_id: MACHINE_ID,
         type: IncidentType.VANDALISM,
-        title: 'Vandalized machine',
+        title: "Vandalized machine",
         priority: IncidentPriority.HIGH,
       };
 
-      incidentRepo.create!.mockReturnValue({ ...mockIncident, priority: IncidentPriority.HIGH });
-      incidentRepo.save!.mockResolvedValue({ ...mockIncident, priority: IncidentPriority.HIGH });
+      incidentRepo.create!.mockReturnValue({
+        ...mockIncident,
+        priority: IncidentPriority.HIGH,
+      });
+      incidentRepo.save!.mockResolvedValue({
+        ...mockIncident,
+        priority: IncidentPriority.HIGH,
+      });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.create(dto as any, USER_ID, ORG_ID);
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
@@ -166,33 +178,34 @@ describe('IncidentsService', () => {
       expect(result.priority).toBe(IncidentPriority.HIGH);
     });
 
-    it('should set insurance_claim fields when provided', async () => {
+    it("should set insurance_claim fields when provided", async () => {
       const dto = {
         machine_id: MACHINE_ID,
         type: IncidentType.THEFT,
-        title: 'Cash box stolen',
+        title: "Cash box stolen",
         insurance_claim: true,
-        insurance_claim_number: 'INS-2025-001',
+        insurance_claim_number: "INS-2025-001",
         repair_cost: 5000000,
       };
 
       incidentRepo.create!.mockReturnValue({
         ...mockIncident,
         insurance_claim: true,
-        insurance_claim_number: 'INS-2025-001',
+        insurance_claim_number: "INS-2025-001",
       });
       incidentRepo.save!.mockResolvedValue({
         ...mockIncident,
         insurance_claim: true,
-        insurance_claim_number: 'INS-2025-001',
+        insurance_claim_number: "INS-2025-001",
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.create(dto as any, USER_ID, ORG_ID);
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           insurance_claim: true,
-          insurance_claim_number: 'INS-2025-001',
+          insurance_claim_number: "INS-2025-001",
         }),
       );
     });
@@ -202,22 +215,24 @@ describe('IncidentsService', () => {
   // findById
   // ==========================================================================
 
-  describe('findById', () => {
-    it('should return an incident when found', async () => {
+  describe("findById", () => {
+    it("should return an incident when found", async () => {
       incidentRepo.findOne!.mockResolvedValue(mockIncident);
 
-      const result = await service.findById('incident-uuid-1', ORG_ID);
+      const result = await service.findById("incident-uuid-1", ORG_ID);
 
       expect(incidentRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'incident-uuid-1', organization_id: ORG_ID },
+        where: { id: "incident-uuid-1", organization_id: ORG_ID },
       });
       expect(result).toEqual(mockIncident);
     });
 
-    it('should throw NotFoundException when incident not found', async () => {
+    it("should throw NotFoundException when incident not found", async () => {
       incidentRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.findById('nonexistent', ORG_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.findById("nonexistent", ORG_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -225,22 +240,26 @@ describe('IncidentsService', () => {
   // query
   // ==========================================================================
 
-  describe('query', () => {
+  describe("query", () => {
     beforeEach(() => {
       incidentRepo.createQueryBuilder!.mockReturnValue(mockQueryBuilder);
       mockQueryBuilder.getCount.mockResolvedValue(2);
-      mockQueryBuilder.getMany.mockResolvedValue([mockIncident, mockResolvedIncident]);
+      mockQueryBuilder.getMany.mockResolvedValue([
+        mockIncident,
+        mockResolvedIncident,
+      ]);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
     });
 
-    it('should return paginated results with defaults', async () => {
+    it("should return paginated results with defaults", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.query({} as any, ORG_ID);
 
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
-        'i.organization_id = :organizationId',
+        "i.organization_id = :organizationId",
         { organizationId: ORG_ID },
       );
       expect(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
@@ -251,50 +270,55 @@ describe('IncidentsService', () => {
       expect(result.limit).toBe(20);
     });
 
-    it('should apply machine_id filter', async () => {
+    it("should apply machine_id filter", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.query({ machine_id: MACHINE_ID } as any, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'i.machine_id = :machine_id',
+        "i.machine_id = :machine_id",
         { machine_id: MACHINE_ID },
       );
     });
 
-    it('should apply status filter', async () => {
+    it("should apply status filter", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.query({ status: IncidentStatus.REPORTED } as any, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'i.status = :status',
+        "i.status = :status",
         { status: IncidentStatus.REPORTED },
       );
     });
 
-    it('should apply search filter with ILIKE', async () => {
-      await service.query({ search: 'jammed' } as any, ORG_ID);
+    it("should apply search filter with ILIKE", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.query({ search: "jammed" } as any, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        '(i.title ILIKE :search OR i.description ILIKE :search)',
-        { search: '%jammed%' },
+        "(i.title ILIKE :search OR i.description ILIKE :search)",
+        { search: "%jammed%" },
       );
     });
 
-    it('should apply date range filters', async () => {
-      const dto = { date_from: '2025-01-01', date_to: '2025-01-31' };
+    it("should apply date range filters", async () => {
+      const dto = { date_from: "2025-01-01", date_to: "2025-01-31" };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.query(dto as any, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'i.reported_at >= :date_from',
+        "i.reported_at >= :date_from",
         expect.objectContaining({ date_from: expect.any(Date) }),
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'i.reported_at <= :date_to',
+        "i.reported_at <= :date_to",
         expect.objectContaining({ date_to: expect.any(Date) }),
       );
     });
 
-    it('should calculate totalPages correctly', async () => {
+    it("should calculate totalPages correctly", async () => {
       mockQueryBuilder.getCount.mockResolvedValue(55);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.query({ page: 1, limit: 20 } as any, ORG_ID);
 
       expect(result.totalPages).toBe(3);
@@ -305,36 +329,56 @@ describe('IncidentsService', () => {
   // update
   // ==========================================================================
 
-  describe('update', () => {
-    it('should update incident fields', async () => {
+  describe("update", () => {
+    it("should update incident fields", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const dto = { title: 'Updated title', priority: IncidentPriority.HIGH };
-      const result = await service.update('incident-uuid-1', dto as any, USER_ID, ORG_ID);
+      const dto = { title: "Updated title", priority: IncidentPriority.HIGH };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update(
+        "incident-uuid-1",
+        dto as any,
+        USER_ID,
+        ORG_ID,
+      );
 
-      expect(result.title).toBe('Updated title');
+      expect(result.title).toBe("Updated title");
       expect(result.priority).toBe(IncidentPriority.HIGH);
       expect(result.updated_by_id).toBe(USER_ID);
     });
 
-    it('should set resolved_at when status transitions to RESOLVED', async () => {
+    it("should set resolved_at when status transitions to RESOLVED", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const dto = { status: IncidentStatus.RESOLVED, resolution: 'Fixed the jam' };
-      const result = await service.update('incident-uuid-1', dto as any, USER_ID, ORG_ID);
+      const dto = {
+        status: IncidentStatus.RESOLVED,
+        resolution: "Fixed the jam",
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.update(
+        "incident-uuid-1",
+        dto as any,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(result.status).toBe(IncidentStatus.RESOLVED);
       expect(result.resolved_at).toBeInstanceOf(Date);
       expect(result.resolved_by_user_id).toBe(USER_ID);
     });
 
-    it('should throw NotFoundException for missing incident', async () => {
+    it("should throw NotFoundException for missing incident", async () => {
       incidentRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.update('nonexistent', {} as any, USER_ID, ORG_ID),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.update("nonexistent", {} as any, USER_ID, ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -343,14 +387,16 @@ describe('IncidentsService', () => {
   // resolve
   // ==========================================================================
 
-  describe('resolve', () => {
-    it('should resolve an incident with resolution text', async () => {
+  describe("resolve", () => {
+    it("should resolve an incident with resolution text", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
       const result = await service.resolve(
-        'incident-uuid-1',
-        'Cleared the jam',
+        "incident-uuid-1",
+        "Cleared the jam",
         USER_ID,
         ORG_ID,
       );
@@ -364,22 +410,24 @@ describe('IncidentsService', () => {
   // close
   // ==========================================================================
 
-  describe('close', () => {
-    it('should close a resolved incident', async () => {
+  describe("close", () => {
+    it("should close a resolved incident", async () => {
       incidentRepo.findOne!.mockResolvedValueOnce({ ...mockResolvedIncident });
       incidentRepo.findOne!.mockResolvedValueOnce({ ...mockResolvedIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const result = await service.close('incident-uuid-2', USER_ID, ORG_ID);
+      const result = await service.close("incident-uuid-2", USER_ID, ORG_ID);
 
       expect(result.status).toBe(IncidentStatus.CLOSED);
     });
 
-    it('should throw BadRequestException when closing a non-resolved incident', async () => {
+    it("should throw BadRequestException when closing a non-resolved incident", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
 
       await expect(
-        service.close('incident-uuid-1', USER_ID, ORG_ID),
+        service.close("incident-uuid-1", USER_ID, ORG_ID),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -388,29 +436,43 @@ describe('IncidentsService', () => {
   // assign
   // ==========================================================================
 
-  describe('assign', () => {
-    it('should assign a user and transition REPORTED -> INVESTIGATING', async () => {
+  describe("assign", () => {
+    it("should assign a user and transition REPORTED -> INVESTIGATING", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const techId = 'tech-uuid-1';
-      const result = await service.assign('incident-uuid-1', techId, USER_ID, ORG_ID);
+      const techId = "tech-uuid-1";
+      const result = await service.assign(
+        "incident-uuid-1",
+        techId,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(result.assigned_to_user_id).toBe(techId);
       expect(result.status).toBe(IncidentStatus.INVESTIGATING);
       expect(result.updated_by_id).toBe(USER_ID);
     });
 
-    it('should assign user without changing status if not REPORTED', async () => {
+    it("should assign user without changing status if not REPORTED", async () => {
       const investigatingIncident = {
         ...mockIncident,
         status: IncidentStatus.INVESTIGATING,
       };
       incidentRepo.findOne!.mockResolvedValue({ ...investigatingIncident });
-      incidentRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
+      incidentRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const techId = 'tech-uuid-2';
-      const result = await service.assign('incident-uuid-1', techId, USER_ID, ORG_ID);
+      const techId = "tech-uuid-2";
+      const result = await service.assign(
+        "incident-uuid-1",
+        techId,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(result.assigned_to_user_id).toBe(techId);
       expect(result.status).toBe(IncidentStatus.INVESTIGATING);
@@ -421,21 +483,21 @@ describe('IncidentsService', () => {
   // findByMachine
   // ==========================================================================
 
-  describe('findByMachine', () => {
-    it('should find incidents for a machine ordered by reported_at DESC', async () => {
+  describe("findByMachine", () => {
+    it("should find incidents for a machine ordered by reported_at DESC", async () => {
       incidentRepo.find!.mockResolvedValue([mockIncident]);
 
       const result = await service.findByMachine(MACHINE_ID, ORG_ID);
 
       expect(incidentRepo.find).toHaveBeenCalledWith({
         where: { machine_id: MACHINE_ID, organization_id: ORG_ID },
-        order: { reported_at: 'DESC' },
+        order: { reported_at: "DESC" },
         take: 20,
       });
       expect(result).toHaveLength(1);
     });
 
-    it('should respect custom limit', async () => {
+    it("should respect custom limit", async () => {
       incidentRepo.find!.mockResolvedValue([]);
 
       await service.findByMachine(MACHINE_ID, ORG_ID, 5);
@@ -450,16 +512,16 @@ describe('IncidentsService', () => {
   // getStatistics
   // ==========================================================================
 
-  describe('getStatistics', () => {
+  describe("getStatistics", () => {
     beforeEach(() => {
       incidentRepo.createQueryBuilder!.mockReturnValue(mockQueryBuilder);
     });
 
     afterEach(() => jest.clearAllMocks());
 
-    it('should calculate statistics from incidents', async () => {
-      const reportedAt = new Date('2025-01-15T10:00:00Z');
-      const resolvedAt = new Date('2025-01-15T14:00:00Z');
+    it("should calculate statistics from incidents", async () => {
+      const reportedAt = new Date("2025-01-15T10:00:00Z");
+      const resolvedAt = new Date("2025-01-15T14:00:00Z");
 
       const incidents = [
         {
@@ -477,7 +539,7 @@ describe('IncidentsService', () => {
           priority: IncidentPriority.HIGH,
           repair_cost: null,
           insurance_claim: true,
-          reported_at: new Date('2025-01-16T08:00:00Z'),
+          reported_at: new Date("2025-01-16T08:00:00Z"),
           resolved_at: null,
         },
       ];
@@ -486,8 +548,8 @@ describe('IncidentsService', () => {
 
       const result = await service.getStatistics(
         ORG_ID,
-        new Date('2025-01-01'),
-        new Date('2025-01-31'),
+        new Date("2025-01-01"),
+        new Date("2025-01-31"),
       );
 
       expect(result.total).toBe(2);
@@ -500,13 +562,13 @@ describe('IncidentsService', () => {
       expect(result.averageResolutionTimeHours).toBeGreaterThan(0);
     });
 
-    it('should return zero averageResolutionTimeHours when no resolved incidents', async () => {
+    it("should return zero averageResolutionTimeHours when no resolved incidents", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
       const result = await service.getStatistics(
         ORG_ID,
-        new Date('2025-01-01'),
-        new Date('2025-01-31'),
+        new Date("2025-01-01"),
+        new Date("2025-01-31"),
       );
 
       expect(result.total).toBe(0);
@@ -518,29 +580,29 @@ describe('IncidentsService', () => {
   // remove
   // ==========================================================================
 
-  describe('remove', () => {
-    it('should soft delete a closed incident', async () => {
+  describe("remove", () => {
+    it("should soft delete a closed incident", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockClosedIncident });
       incidentRepo.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.remove('incident-uuid-3', USER_ID, ORG_ID);
+      await service.remove("incident-uuid-3", USER_ID, ORG_ID);
 
-      expect(incidentRepo.softDelete).toHaveBeenCalledWith('incident-uuid-3');
+      expect(incidentRepo.softDelete).toHaveBeenCalledWith("incident-uuid-3");
     });
 
-    it('should throw BadRequestException when deleting a non-closed incident', async () => {
+    it("should throw BadRequestException when deleting a non-closed incident", async () => {
       incidentRepo.findOne!.mockResolvedValue({ ...mockIncident });
 
       await expect(
-        service.remove('incident-uuid-1', USER_ID, ORG_ID),
+        service.remove("incident-uuid-1", USER_ID, ORG_ID),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw NotFoundException when incident does not exist', async () => {
+    it("should throw NotFoundException when incident does not exist", async () => {
       incidentRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.remove('nonexistent', USER_ID, ORG_ID),
+        service.remove("nonexistent", USER_ID, ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
   });

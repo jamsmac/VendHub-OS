@@ -1,8 +1,8 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
+import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, In } from "typeorm";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import {
   FiscalReceipt,
   FiscalShift,
@@ -13,57 +13,11 @@ import {
   FiscalShiftStatus,
   FiscalDeviceStatus,
   FiscalQueueStatus,
-} from '../entities/fiscal.entity';
-import { MultiKassaService, CreateReceiptRequest } from './multikassa.service';
-
-export interface CreateDeviceDto {
-  name: string;
-  provider: string;
-  serialNumber?: string;
-  terminalId?: string;
-  credentials: {
-    login?: string;
-    password?: string;
-    companyTin?: string;
-    apiKey?: string;
-  };
-  sandboxMode?: boolean;
-  config?: {
-    baseUrl?: string;
-    defaultCashier?: string;
-    vatRates?: number[];
-    autoOpenShift?: boolean;
-    autoCloseShift?: boolean;
-    closeShiftAt?: string;
-  };
-}
-
-export interface CreateReceiptDto {
-  deviceId: string;
-  orderId?: string;
-  transactionId?: string;
-  type: FiscalReceiptType;
-  items: {
-    name: string;
-    ikpuCode: string;
-    packageCode?: string;
-    quantity: number;
-    price: number;
-    vatRate: number;
-    unit: string;
-  }[];
-  payment: {
-    cash: number;
-    card: number;
-    other?: number;
-  };
-  metadata?: {
-    machineId?: string;
-    locationId?: string;
-    operatorId?: string;
-    comment?: string;
-  };
-}
+} from "../entities/fiscal.entity";
+import { MultiKassaService, CreateReceiptRequest } from "./multikassa.service";
+import { CreateFiscalDeviceDto } from "../dto/create-fiscal-device.dto";
+import { UpdateFiscalDeviceDto } from "../dto/update-fiscal-device.dto";
+import { CreateFiscalReceiptDto } from "../dto/create-fiscal-receipt.dto";
 
 interface ShiftOpenResult {
   shiftId?: string;
@@ -140,7 +94,7 @@ export class FiscalService {
     private deviceRepo: Repository<FiscalDevice>,
     @InjectRepository(FiscalQueue)
     private queueRepo: Repository<FiscalQueue>,
-    @InjectQueue('fiscal')
+    @InjectQueue("fiscal")
     private fiscalQueue: Queue,
     private multikassaService: MultiKassaService,
   ) {}
@@ -151,32 +105,50 @@ export class FiscalService {
 
   async createDevice(
     organizationId: string,
-    dto: CreateDeviceDto,
+    dto: CreateFiscalDeviceDto,
   ): Promise<FiscalDevice> {
+    const credentials = {
+      login: dto.credentials.login,
+      password: dto.credentials.password,
+      companyTin: dto.credentials.company_tin,
+      apiKey: dto.credentials.api_key,
+    };
+
+    const config = dto.config
+      ? {
+          baseUrl: dto.config.base_url,
+          defaultCashier: dto.config.default_cashier,
+          vatRates: dto.config.vat_rates,
+          autoOpenShift: dto.config.auto_open_shift,
+          autoCloseShift: dto.config.auto_close_shift,
+          closeShiftAt: dto.config.close_shift_at,
+        }
+      : {};
+
     const device = this.deviceRepo.create({
       organizationId,
       name: dto.name,
       provider: dto.provider,
-      serialNumber: dto.serialNumber,
-      terminalId: dto.terminalId,
-      credentials: dto.credentials,
-      sandboxMode: dto.sandboxMode ?? true,
-      config: dto.config || {},
+      serialNumber: dto.serial_number,
+      terminalId: dto.terminal_id,
+      credentials,
+      sandboxMode: dto.sandbox_mode ?? true,
+      config,
       status: FiscalDeviceStatus.INACTIVE,
     });
 
     const saved = await this.deviceRepo.save(device);
 
     // Register with provider service
-    if (dto.provider === 'multikassa') {
+    if (dto.provider === "multikassa") {
       this.multikassaService.registerDevice(saved.id, {
-        baseUrl: dto.config?.baseUrl || 'http://localhost:8080/api/v1',
-        sandboxMode: dto.sandboxMode ?? true,
+        baseUrl: dto.config?.base_url || "http://localhost:8080/api/v1",
+        sandboxMode: dto.sandbox_mode ?? true,
         credentials: {
-          login: dto.credentials.login || '',
-          password: dto.credentials.password || '',
-          companyTin: dto.credentials.companyTin || '',
-          defaultCashier: dto.config?.defaultCashier,
+          login: dto.credentials.login || "",
+          password: dto.credentials.password || "",
+          companyTin: dto.credentials.company_tin || "",
+          defaultCashier: dto.config?.default_cashier,
         },
       });
     }
@@ -188,34 +160,68 @@ export class FiscalService {
   async updateDevice(
     deviceId: string,
     organizationId: string,
-    updates: Partial<CreateDeviceDto>,
+    updates: UpdateFiscalDeviceDto,
   ): Promise<FiscalDevice> {
     const device = await this.getDevice(deviceId, organizationId);
 
     if (updates.name) device.name = updates.name;
-    if (updates.serialNumber) device.serialNumber = updates.serialNumber;
-    if (updates.terminalId) device.terminalId = updates.terminalId;
+    if (updates.serial_number) device.serialNumber = updates.serial_number;
+    if (updates.terminal_id) device.terminalId = updates.terminal_id;
     if (updates.credentials) {
-      device.credentials = { ...device.credentials, ...updates.credentials };
+      device.credentials = {
+        ...device.credentials,
+        ...(updates.credentials.login !== undefined && {
+          login: updates.credentials.login,
+        }),
+        ...(updates.credentials.password !== undefined && {
+          password: updates.credentials.password,
+        }),
+        ...(updates.credentials.company_tin !== undefined && {
+          companyTin: updates.credentials.company_tin,
+        }),
+        ...(updates.credentials.api_key !== undefined && {
+          apiKey: updates.credentials.api_key,
+        }),
+      };
     }
     if (updates.config) {
-      device.config = { ...device.config, ...updates.config };
+      device.config = {
+        ...device.config,
+        ...(updates.config.base_url !== undefined && {
+          baseUrl: updates.config.base_url,
+        }),
+        ...(updates.config.default_cashier !== undefined && {
+          defaultCashier: updates.config.default_cashier,
+        }),
+        ...(updates.config.vat_rates !== undefined && {
+          vatRates: updates.config.vat_rates,
+        }),
+        ...(updates.config.auto_open_shift !== undefined && {
+          autoOpenShift: updates.config.auto_open_shift,
+        }),
+        ...(updates.config.auto_close_shift !== undefined && {
+          autoCloseShift: updates.config.auto_close_shift,
+        }),
+        ...(updates.config.close_shift_at !== undefined && {
+          closeShiftAt: updates.config.close_shift_at,
+        }),
+      };
     }
-    if (updates.sandboxMode !== undefined) {
-      device.sandboxMode = updates.sandboxMode;
+    if (updates.sandbox_mode !== undefined) {
+      device.sandboxMode = updates.sandbox_mode;
     }
 
     const saved = await this.deviceRepo.save(device);
 
     // Update provider service
-    if (device.provider === 'multikassa') {
+    if (device.provider === "multikassa") {
       this.multikassaService.registerDevice(saved.id, {
-        baseUrl: device.config.baseUrl || 'http://localhost:8080/api/v1',
+        baseUrl: device.config.baseUrl || "http://localhost:8080/api/v1",
         sandboxMode: device.sandboxMode,
         credentials: {
-          login: device.credentials.login || '',
-          password: device.credentials.password || '',
-          companyTin: device.credentials.companyTin || '',
+          login: device.credentials.login || "",
+          password: device.credentials.password || "",
+          companyTin: device.credentials.companyTin || "",
           defaultCashier: device.config.defaultCashier,
         },
       });
@@ -224,13 +230,16 @@ export class FiscalService {
     return saved;
   }
 
-  async getDevice(deviceId: string, organizationId: string): Promise<FiscalDevice> {
+  async getDevice(
+    deviceId: string,
+    organizationId: string,
+  ): Promise<FiscalDevice> {
     const device = await this.deviceRepo.findOne({
       where: { id: deviceId, organizationId },
     });
 
     if (!device) {
-      throw new HttpException('Fiscal device not found', HttpStatus.NOT_FOUND);
+      throw new HttpException("Fiscal device not found", HttpStatus.NOT_FOUND);
     }
 
     return device;
@@ -239,17 +248,23 @@ export class FiscalService {
   async getDevices(organizationId: string): Promise<FiscalDevice[]> {
     return this.deviceRepo.find({
       where: { organizationId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
   }
 
-  async activateDevice(deviceId: string, organizationId: string): Promise<FiscalDevice> {
+  async activateDevice(
+    deviceId: string,
+    organizationId: string,
+  ): Promise<FiscalDevice> {
     const device = await this.getDevice(deviceId, organizationId);
     device.status = FiscalDeviceStatus.ACTIVE;
     return this.deviceRepo.save(device);
   }
 
-  async deactivateDevice(deviceId: string, organizationId: string): Promise<FiscalDevice> {
+  async deactivateDevice(
+    deviceId: string,
+    organizationId: string,
+  ): Promise<FiscalDevice> {
     const device = await this.getDevice(deviceId, organizationId);
     device.status = FiscalDeviceStatus.INACTIVE;
     return this.deviceRepo.save(device);
@@ -269,22 +284,23 @@ export class FiscalService {
     // Check if shift is already open
     const existingShift = await this.getCurrentShift(deviceId);
     if (existingShift) {
-      throw new HttpException('Shift is already open', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Shift is already open", HttpStatus.BAD_REQUEST);
     }
 
     // Open shift in provider
     let externalResult: ShiftOpenResult | null = null;
-    if (device.provider === 'multikassa') {
+    if (device.provider === "multikassa") {
       try {
         externalResult = await this.multikassaService.openShift(deviceId, {
           cashierName,
         });
       } catch (error: unknown) {
         // Add to queue for retry
-        await this.addToQueue(organizationId, deviceId, 'shift_open', {
+        await this.addToQueue(organizationId, deviceId, "shift_open", {
           cashierName,
         });
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         this.logger.warn(`Shift open failed, added to queue: ${errorMessage}`);
       }
     }
@@ -292,7 +308,7 @@ export class FiscalService {
     // Get last shift number
     const lastShift = await this.shiftRepo.findOne({
       where: { deviceId },
-      order: { shiftNumber: 'DESC' },
+      order: { shiftNumber: "DESC" },
     });
 
     const shift = this.shiftRepo.create({
@@ -318,12 +334,12 @@ export class FiscalService {
     const shift = await this.getCurrentShift(deviceId);
 
     if (!shift) {
-      throw new HttpException('No open shift found', HttpStatus.BAD_REQUEST);
+      throw new HttpException("No open shift found", HttpStatus.BAD_REQUEST);
     }
 
     // Close shift in provider
     let externalResult: ShiftCloseResult | null = null;
-    if (device.provider === 'multikassa') {
+    if (device.provider === "multikassa") {
       try {
         const response = await this.multikassaService.closeShift(deviceId);
         externalResult = {
@@ -334,13 +350,18 @@ export class FiscalService {
           totalCash: response.totalCash,
           totalCard: response.totalCard,
           receiptsCount: response.receiptsCount,
-          vatSummary: response.vatSummary?.map(v => ({ rate: v.rate, amount: v.amount, taxAmount: 0 })),
+          vatSummary: response.vatSummary?.map((v) => ({
+            rate: v.rate,
+            amount: v.amount,
+            taxAmount: 0,
+          })),
         };
       } catch (error: unknown) {
-        await this.addToQueue(organizationId, deviceId, 'shift_close', {
+        await this.addToQueue(organizationId, deviceId, "shift_close", {
           shiftId: shift.id,
         });
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         this.logger.warn(`Shift close failed, added to queue: ${errorMessage}`);
       }
     }
@@ -368,7 +389,7 @@ export class FiscalService {
   async getCurrentShift(deviceId: string): Promise<FiscalShift | null> {
     return this.shiftRepo.findOne({
       where: { deviceId, status: FiscalShiftStatus.OPEN },
-      order: { openedAt: 'DESC' },
+      order: { openedAt: "DESC" },
     });
   }
 
@@ -381,7 +402,7 @@ export class FiscalService {
 
     return this.shiftRepo.find({
       where: { deviceId },
-      order: { openedAt: 'DESC' },
+      order: { openedAt: "DESC" },
       take: limit,
     });
   }
@@ -394,10 +415,10 @@ export class FiscalService {
     const shift = await this.getCurrentShift(deviceId);
 
     if (!shift) {
-      throw new HttpException('No open shift found', HttpStatus.BAD_REQUEST);
+      throw new HttpException("No open shift found", HttpStatus.BAD_REQUEST);
     }
 
-    if (device.provider === 'multikassa') {
+    if (device.provider === "multikassa") {
       const xReport = await this.multikassaService.getXReport(deviceId);
       return {
         ...xReport,
@@ -423,7 +444,13 @@ export class FiscalService {
         acc.receiptsCount++;
         return acc;
       },
-      { totalSales: 0, totalRefunds: 0, totalCash: 0, totalCard: 0, receiptsCount: 0 },
+      {
+        totalSales: 0,
+        totalRefunds: 0,
+        totalCash: 0,
+        totalCard: 0,
+        receiptsCount: 0,
+      },
     );
 
     return {
@@ -440,30 +467,41 @@ export class FiscalService {
 
   async createReceipt(
     organizationId: string,
-    dto: CreateReceiptDto,
+    dto: CreateFiscalReceiptDto,
   ): Promise<FiscalReceipt> {
-    const device = await this.getDevice(dto.deviceId, organizationId);
+    const device = await this.getDevice(dto.device_id, organizationId);
 
     // Ensure shift is open
-    let shift = await this.getCurrentShift(dto.deviceId);
+    let shift = await this.getCurrentShift(dto.device_id);
     if (!shift) {
       if (device.config.autoOpenShift) {
         shift = await this.openShift(
-          dto.deviceId,
+          dto.device_id,
           organizationId,
-          device.config.defaultCashier || 'VendHub Auto',
+          device.config.defaultCashier || "VendHub Auto",
         );
       } else {
-        throw new HttpException('No open shift. Please open shift first.', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          "No open shift. Please open shift first.",
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
-    // Calculate totals
-    const items = dto.items.map(item => {
+    // Map DTO items (snake_case) to entity items (camelCase) and calculate totals
+    const items = dto.items.map((item) => {
       const total = item.price * item.quantity;
-      const vatAmount = Math.round((total * item.vatRate) / (100 + item.vatRate));
+      const vatAmount = Math.round(
+        (total * item.vat_rate) / (100 + item.vat_rate),
+      );
       return {
-        ...item,
+        name: item.name,
+        ikpuCode: item.ikpu_code,
+        packageCode: item.package_code,
+        quantity: item.quantity,
+        price: item.price,
+        vatRate: item.vat_rate,
+        unit: item.unit,
         vatAmount,
         total,
       };
@@ -472,20 +510,30 @@ export class FiscalService {
     const total = items.reduce((sum, i) => sum + i.total, 0);
     const vatTotal = items.reduce((sum, i) => sum + i.vatAmount, 0);
 
+    // Map metadata from snake_case to camelCase
+    const metadata = dto.metadata
+      ? {
+          machineId: dto.metadata.machine_id,
+          locationId: dto.metadata.location_id,
+          operatorId: dto.metadata.operator_id,
+          comment: dto.metadata.comment,
+        }
+      : {};
+
     // Create receipt record
     const receipt = this.receiptRepo.create({
       organizationId,
-      deviceId: dto.deviceId,
+      deviceId: dto.device_id,
       shiftId: shift.id,
-      orderId: dto.orderId,
-      transactionId: dto.transactionId,
+      orderId: dto.order_id,
+      transactionId: dto.transaction_id,
       type: dto.type,
       status: FiscalReceiptStatus.PENDING,
       items,
       payment: dto.payment,
       total,
       vatTotal,
-      metadata: dto.metadata || {},
+      metadata,
     });
 
     const saved = await this.receiptRepo.save(receipt);
@@ -494,10 +542,15 @@ export class FiscalService {
     try {
       await this.fiscalizeReceipt(saved, device);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(`Fiscalization failed, adding to queue: ${errorMessage}`);
-      await this.addToQueue(organizationId, dto.deviceId,
-        dto.type === FiscalReceiptType.SALE ? 'receipt_sale' : 'receipt_refund',
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      this.logger.warn(
+        `Fiscalization failed, adding to queue: ${errorMessage}`,
+      );
+      await this.addToQueue(
+        organizationId,
+        dto.device_id,
+        dto.type === FiscalReceiptType.SALE ? "receipt_sale" : "receipt_refund",
         { receiptId: saved.id },
       );
     }
@@ -513,10 +566,10 @@ export class FiscalService {
     await this.receiptRepo.save(receipt);
 
     try {
-      if (device.provider === 'multikassa') {
+      if (device.provider === "multikassa") {
         const request: CreateReceiptRequest = {
-          type: receipt.type === FiscalReceiptType.SALE ? 'sale' : 'refund',
-          items: receipt.items.map(i => ({
+          type: receipt.type === FiscalReceiptType.SALE ? "sale" : "refund",
+          items: receipt.items.map((i) => ({
             name: i.name,
             ikpu_code: i.ikpuCode,
             package_code: i.packageCode,
@@ -530,9 +583,13 @@ export class FiscalService {
           orderId: receipt.orderId,
         };
 
-        const result = receipt.type === FiscalReceiptType.SALE
-          ? await this.multikassaService.createSaleReceipt(device.id, request)
-          : await this.multikassaService.createRefundReceipt(device.id, request);
+        const result =
+          receipt.type === FiscalReceiptType.SALE
+            ? await this.multikassaService.createSaleReceipt(device.id, request)
+            : await this.multikassaService.createRefundReceipt(
+                device.id,
+                request,
+              );
 
         receipt.status = FiscalReceiptStatus.SUCCESS;
         receipt.externalReceiptId = result.receipt_id;
@@ -541,11 +598,15 @@ export class FiscalService {
         receipt.qrCodeUrl = result.qr_code_url;
         receipt.receiptUrl = result.receipt_url;
         receipt.fiscalizedAt = new Date();
-        receipt.metadata.rawResponse = result as unknown as Record<string, unknown>;
+        receipt.metadata.rawResponse = result as unknown as Record<
+          string,
+          unknown
+        >;
       }
     } catch (error: unknown) {
       receipt.status = FiscalReceiptStatus.FAILED;
-      receipt.lastError = error instanceof Error ? error.message : 'Unknown error';
+      receipt.lastError =
+        error instanceof Error ? error.message : "Unknown error";
       receipt.retryCount++;
       throw error;
     }
@@ -559,11 +620,11 @@ export class FiscalService {
   ): Promise<FiscalReceipt> {
     const receipt = await this.receiptRepo.findOne({
       where: { id: receiptId, organizationId },
-      relations: ['device', 'shift'],
+      relations: ["device", "shift"],
     });
 
     if (!receipt) {
-      throw new HttpException('Receipt not found', HttpStatus.NOT_FOUND);
+      throw new HttpException("Receipt not found", HttpStatus.NOT_FOUND);
     }
 
     return receipt;
@@ -582,30 +643,35 @@ export class FiscalService {
       offset?: number;
     },
   ): Promise<{ receipts: FiscalReceipt[]; total: number }> {
-    const query = this.receiptRepo.createQueryBuilder('receipt')
-      .where('receipt.organizationId = :organizationId', { organizationId });
+    const query = this.receiptRepo
+      .createQueryBuilder("receipt")
+      .where("receipt.organizationId = :organizationId", { organizationId });
 
     if (filters.deviceId) {
-      query.andWhere('receipt.deviceId = :deviceId', { deviceId: filters.deviceId });
+      query.andWhere("receipt.deviceId = :deviceId", {
+        deviceId: filters.deviceId,
+      });
     }
     if (filters.shiftId) {
-      query.andWhere('receipt.shiftId = :shiftId', { shiftId: filters.shiftId });
+      query.andWhere("receipt.shiftId = :shiftId", {
+        shiftId: filters.shiftId,
+      });
     }
     if (filters.type) {
-      query.andWhere('receipt.type = :type', { type: filters.type });
+      query.andWhere("receipt.type = :type", { type: filters.type });
     }
     if (filters.status) {
-      query.andWhere('receipt.status = :status', { status: filters.status });
+      query.andWhere("receipt.status = :status", { status: filters.status });
     }
     if (filters.startDate && filters.endDate) {
-      query.andWhere('receipt.createdAt BETWEEN :start AND :end', {
+      query.andWhere("receipt.createdAt BETWEEN :start AND :end", {
         start: filters.startDate,
         end: filters.endDate,
       });
     }
 
     const [receipts, total] = await query
-      .orderBy('receipt.createdAt', 'DESC')
+      .orderBy("receipt.createdAt", "DESC")
       .skip(filters.offset || 0)
       .take(filters.limit || 50)
       .getManyAndCount();
@@ -620,7 +686,7 @@ export class FiscalService {
   async addToQueue(
     organizationId: string,
     deviceId: string,
-    operation: FiscalQueue['operation'],
+    operation: FiscalQueue["operation"],
     payload: Record<string, unknown>,
     priority = 0,
   ): Promise<FiscalQueue> {
@@ -637,11 +703,15 @@ export class FiscalService {
     const saved = await this.queueRepo.save(queueItem);
 
     // Add to Bull queue for processing
-    await this.fiscalQueue.add('process', { queueItemId: saved.id }, {
-      attempts: 5,
-      backoff: { type: 'exponential', delay: 5000 },
-      priority,
-    });
+    await this.fiscalQueue.add(
+      "process",
+      { queueItemId: saved.id },
+      {
+        attempts: 5,
+        backoff: { type: "exponential", delay: 5000 },
+        priority,
+      },
+    );
 
     return saved;
   }
@@ -655,7 +725,7 @@ export class FiscalService {
 
     return this.queueRepo.find({
       where,
-      order: { priority: 'DESC', created_at: 'ASC' },
+      order: { priority: "DESC", created_at: "ASC" },
     });
   }
 
@@ -667,12 +737,14 @@ export class FiscalService {
     await this.queueRepo.save(item);
 
     try {
-      const device = await this.deviceRepo.findOne({ where: { id: item.deviceId } });
-      if (!device) throw new Error('Device not found');
+      const device = await this.deviceRepo.findOne({
+        where: { id: item.deviceId },
+      });
+      if (!device) throw new Error("Device not found");
 
       switch (item.operation) {
-        case 'receipt_sale':
-        case 'receipt_refund':
+        case "receipt_sale":
+        case "receipt_refund":
           const receipt = await this.receiptRepo.findOne({
             where: { id: item.payload.receiptId as string },
           });
@@ -681,21 +753,28 @@ export class FiscalService {
           }
           break;
 
-        case 'shift_open':
-          if (device.provider === 'multikassa') {
-            await this.multikassaService.openShift(device.id, item.payload as unknown as Parameters<typeof this.multikassaService.openShift>[1]);
+        case "shift_open":
+          if (device.provider === "multikassa") {
+            await this.multikassaService.openShift(
+              device.id,
+              item.payload as unknown as Parameters<
+                typeof this.multikassaService.openShift
+              >[1],
+            );
           }
           break;
 
-        case 'shift_close':
-          if (device.provider === 'multikassa') {
+        case "shift_close":
+          if (device.provider === "multikassa") {
             await this.multikassaService.closeShift(device.id);
           }
           break;
 
-        case 'x_report':
-          if (device.provider === 'multikassa') {
-            item.result = await this.multikassaService.getXReport(device.id) as unknown as Record<string, unknown>;
+        case "x_report":
+          if (device.provider === "multikassa") {
+            item.result = (await this.multikassaService.getXReport(
+              device.id,
+            )) as unknown as Record<string, unknown>;
           }
           break;
       }
@@ -704,12 +783,14 @@ export class FiscalService {
       item.processedAt = new Date();
     } catch (error: unknown) {
       item.status = FiscalQueueStatus.FAILED;
-      item.lastError = error instanceof Error ? error.message : 'Unknown error';
+      item.lastError = error instanceof Error ? error.message : "Unknown error";
       item.retryCount++;
 
       if (item.retryCount < item.maxRetries) {
         item.status = FiscalQueueStatus.RETRY;
-        item.nextRetryAt = new Date(Date.now() + Math.pow(2, item.retryCount) * 5000);
+        item.nextRetryAt = new Date(
+          Date.now() + Math.pow(2, item.retryCount) * 5000,
+        );
       }
     }
 
@@ -755,7 +836,10 @@ export class FiscalService {
 
     // Queue stats
     const pendingQueue = await this.queueRepo.count({
-      where: { deviceId, status: In([FiscalQueueStatus.PENDING, FiscalQueueStatus.RETRY]) },
+      where: {
+        deviceId,
+        status: In([FiscalQueueStatus.PENDING, FiscalQueueStatus.RETRY]),
+      },
     });
     const failedQueue = await this.queueRepo.count({
       where: { deviceId, status: FiscalQueueStatus.FAILED },
@@ -775,7 +859,8 @@ export class FiscalService {
         totalCash: Number(currentShift.totalCash),
         totalCard: Number(currentShift.totalCard),
         receiptsCount: currentShift.receiptsCount,
-        netTotal: Number(currentShift.totalSales) - Number(currentShift.totalRefunds),
+        netTotal:
+          Number(currentShift.totalSales) - Number(currentShift.totalRefunds),
       };
     }
 

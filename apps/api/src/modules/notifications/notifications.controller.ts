@@ -15,33 +15,41 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
-} from '@nestjs/swagger';
+} from "@nestjs/swagger";
 import {
   NotificationsService,
   CreateNotificationDto,
   SendTemplatedNotificationDto,
   CreateCampaignDto,
   QueryNotificationsDto,
-} from './notifications.service';
-import { NotificationType, NotificationStatus } from './entities/notification.entity';
+} from "./notifications.service";
+import {
+  NotificationType,
+  NotificationStatus,
+} from "./entities/notification.entity";
 import {
   SubscribePushDto,
   UnsubscribePushDto,
   RegisterFcmDto,
   UnregisterFcmDto,
-} from './dto/notification-channels.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUserId, CurrentOrganizationId } from '../../common/decorators/current-user.decorator';
+} from "./dto/notification-channels.dto";
+import { Roles } from "../../common/decorators/roles.decorator";
+import {
+  CurrentUserId,
+  CurrentOrganizationId,
+  CurrentUser,
+} from "../../common/decorators/current-user.decorator";
+import { UserRole } from "../../common/enums";
 
-@ApiTags('Notifications')
+@ApiTags("Notifications")
 @ApiBearerAuth()
-@Controller('notifications')
+@Controller("notifications")
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
@@ -50,45 +58,55 @@ export class NotificationsController {
   // ============================================================================
 
   @Get()
-  @ApiOperation({ summary: 'Get my notifications' })
-  @ApiQuery({ name: 'type', required: false, enum: NotificationType, isArray: true })
-  @ApiQuery({ name: 'status', required: false, enum: NotificationStatus, isArray: true })
-  @ApiQuery({ name: 'isRead', required: false, type: Boolean })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
+  @ApiOperation({ summary: "Get my notifications" })
+  @ApiQuery({
+    name: "type",
+    required: false,
+    enum: NotificationType,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: "status",
+    required: false,
+    enum: NotificationStatus,
+    isArray: true,
+  })
+  @ApiQuery({ name: "isRead", required: false, type: Boolean })
+  @ApiQuery({ name: "page", required: false })
+  @ApiQuery({ name: "limit", required: false })
   async getMyNotifications(
     @CurrentUserId() userId: string,
-    @Query() query: Omit<QueryNotificationsDto, 'userId'>,
+    @Query() query: Omit<QueryNotificationsDto, "userId">,
   ) {
     return this.notificationsService.query({ ...query, userId });
   }
 
-  @Get('unread-count')
-  @ApiOperation({ summary: 'Get unread notifications count' })
+  @Get("unread-count")
+  @ApiOperation({ summary: "Get unread notifications count" })
   async getUnreadCount(@CurrentUserId() userId: string) {
     const count = await this.notificationsService.getUnreadCount(userId);
     return { count };
   }
 
-  @Post(':id/read')
-  @ApiOperation({ summary: 'Mark notification as read' })
+  @Post(":id/read")
+  @ApiOperation({ summary: "Mark notification as read" })
   @HttpCode(HttpStatus.OK)
-  async markAsRead(@Param('id', ParseUUIDPipe) id: string) {
+  async markAsRead(@Param("id", ParseUUIDPipe) id: string) {
     return this.notificationsService.markAsRead(id);
   }
 
-  @Post('read-all')
-  @ApiOperation({ summary: 'Mark all notifications as read' })
+  @Post("read-all")
+  @ApiOperation({ summary: "Mark all notifications as read" })
   @HttpCode(HttpStatus.OK)
   async markAllAsRead(@CurrentUserId() userId: string) {
     const count = await this.notificationsService.markAllAsRead(userId);
     return { marked: count };
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete notification' })
+  @Delete(":id")
+  @ApiOperation({ summary: "Delete notification" })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param("id", ParseUUIDPipe) id: string) {
     await this.notificationsService.delete(id);
   }
 
@@ -96,17 +114,18 @@ export class NotificationsController {
   // User Settings
   // ============================================================================
 
-  @Get('settings')
-  @ApiOperation({ summary: 'Get my notification settings' })
+  @Get("settings")
+  @ApiOperation({ summary: "Get my notification settings" })
   async getSettings(@CurrentUserId() userId: string) {
     return this.notificationsService.getSettings(userId);
   }
 
-  @Put('settings')
-  @ApiOperation({ summary: 'Update my notification settings' })
+  @Put("settings")
+  @ApiOperation({ summary: "Update my notification settings" })
   async updateSettings(
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @Body() updates: any,
   ) {
     return this.notificationsService.updateSettings(userId, orgId, updates);
@@ -117,45 +136,67 @@ export class NotificationsController {
   // ============================================================================
 
   @Post()
-  @ApiOperation({ summary: 'Create and send notification' })
-  @Roles('owner', 'admin', 'manager')
+  @ApiOperation({ summary: "Create and send notification" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateNotificationDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
+    const organizationId =
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
+        : orgId;
     return this.notificationsService.create({
       ...dto,
-      organizationId: dto.organizationId || orgId,
+      organizationId,
     });
   }
 
-  @Post('send-templated')
-  @ApiOperation({ summary: 'Send templated notification' })
-  @Roles('owner', 'admin', 'manager')
+  @Post("send-templated")
+  @ApiOperation({ summary: "Send templated notification" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async sendTemplated(
     @Body() dto: SendTemplatedNotificationDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
+    const organizationId =
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
+        : orgId;
     return this.notificationsService.sendTemplated({
       ...dto,
-      organizationId: dto.organizationId || orgId,
+      organizationId,
     });
   }
 
-  @Get('organization')
-  @ApiOperation({ summary: 'Get all notifications for organization' })
-  @ApiQuery({ name: 'type', required: false, enum: NotificationType, isArray: true })
-  @ApiQuery({ name: 'status', required: false, enum: NotificationStatus, isArray: true })
-  @ApiQuery({ name: 'dateFrom', required: false })
-  @ApiQuery({ name: 'dateTo', required: false })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @Roles('owner', 'admin', 'manager')
+  @Get("organization")
+  @ApiOperation({ summary: "Get all notifications for organization" })
+  @ApiQuery({
+    name: "type",
+    required: false,
+    enum: NotificationType,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: "status",
+    required: false,
+    enum: NotificationStatus,
+    isArray: true,
+  })
+  @ApiQuery({ name: "dateFrom", required: false })
+  @ApiQuery({ name: "dateTo", required: false })
+  @ApiQuery({ name: "page", required: false })
+  @ApiQuery({ name: "limit", required: false })
+  @Roles("owner", "admin", "manager")
   async getOrganizationNotifications(
     @CurrentOrganizationId() orgId: string,
-    @Query() query: Omit<QueryNotificationsDto, 'organizationId'>,
+    @Query() query: Omit<QueryNotificationsDto, "organizationId">,
   ) {
     return this.notificationsService.query({ ...query, organizationId: orgId });
   }
@@ -164,25 +205,26 @@ export class NotificationsController {
   // Templates
   // ============================================================================
 
-  @Get('templates')
-  @ApiOperation({ summary: 'Get notification templates' })
-  @Roles('owner', 'admin', 'manager')
+  @Get("templates")
+  @ApiOperation({ summary: "Get notification templates" })
+  @Roles("owner", "admin", "manager")
   async getTemplates(@CurrentOrganizationId() orgId: string) {
     return this.notificationsService.getTemplates(orgId);
   }
 
-  @Get('templates/:id')
-  @ApiOperation({ summary: 'Get template by ID' })
-  @Roles('owner', 'admin', 'manager')
-  async getTemplate(@Param('id', ParseUUIDPipe) id: string) {
+  @Get("templates/:id")
+  @ApiOperation({ summary: "Get template by ID" })
+  @Roles("owner", "admin", "manager")
+  async getTemplate(@Param("id", ParseUUIDPipe) id: string) {
     return this.notificationsService.getTemplate(id);
   }
 
-  @Post('templates')
-  @ApiOperation({ summary: 'Create notification template' })
-  @Roles('owner', 'admin')
+  @Post("templates")
+  @ApiOperation({ summary: "Create notification template" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createTemplate(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @Body() data: any,
     @CurrentOrganizationId() orgId: string,
   ) {
@@ -192,11 +234,12 @@ export class NotificationsController {
     });
   }
 
-  @Patch('templates/:id')
-  @ApiOperation({ summary: 'Update notification template' })
-  @Roles('owner', 'admin')
+  @Patch("templates/:id")
+  @ApiOperation({ summary: "Update notification template" })
+  @Roles("owner", "admin")
   async updateTemplate(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @Body() data: any,
   ) {
     return this.notificationsService.updateTemplate(id, data);
@@ -206,32 +249,38 @@ export class NotificationsController {
   // Campaigns
   // ============================================================================
 
-  @Get('campaigns')
-  @ApiOperation({ summary: 'Get notification campaigns' })
-  @Roles('owner', 'admin', 'manager')
+  @Get("campaigns")
+  @ApiOperation({ summary: "Get notification campaigns" })
+  @Roles("owner", "admin", "manager")
   async getCampaigns(@CurrentOrganizationId() orgId: string) {
     return this.notificationsService.getCampaigns(orgId);
   }
 
-  @Post('campaigns')
-  @ApiOperation({ summary: 'Create notification campaign' })
-  @Roles('owner', 'admin')
+  @Post("campaigns")
+  @ApiOperation({ summary: "Create notification campaign" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createCampaign(
     @Body() dto: CreateCampaignDto,
     @CurrentOrganizationId() orgId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @CurrentUser() user: any,
   ) {
+    const organizationId =
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
+        : orgId;
     return this.notificationsService.createCampaign({
       ...dto,
-      organizationId: dto.organizationId || orgId,
+      organizationId,
     });
   }
 
-  @Post('campaigns/:id/start')
-  @ApiOperation({ summary: 'Start notification campaign' })
-  @Roles('owner', 'admin')
+  @Post("campaigns/:id/start")
+  @ApiOperation({ summary: "Start notification campaign" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
-  async startCampaign(@Param('id', ParseUUIDPipe) id: string) {
+  async startCampaign(@Param("id", ParseUUIDPipe) id: string) {
     return this.notificationsService.startCampaign(id);
   }
 
@@ -239,18 +288,18 @@ export class NotificationsController {
   // Admin Maintenance
   // ============================================================================
 
-  @Post('cleanup')
-  @ApiOperation({ summary: 'Cleanup old notifications' })
-  @Roles('owner', 'admin')
+  @Post("cleanup")
+  @ApiOperation({ summary: "Cleanup old notifications" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
-  async cleanup(@Body('olderThanDays') days: number = 90) {
+  async cleanup(@Body("olderThanDays") days: number = 90) {
     const deleted = await this.notificationsService.deleteOld(days);
     return { deleted };
   }
 
-  @Post('process-queue')
-  @ApiOperation({ summary: 'Process notification queue manually' })
-  @Roles('owner', 'admin')
+  @Post("process-queue")
+  @ApiOperation({ summary: "Process notification queue manually" })
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async processQueue() {
     await this.notificationsService.processQueue();
@@ -261,8 +310,8 @@ export class NotificationsController {
   // Push Subscriptions (Web Push)
   // ============================================================================
 
-  @Post('push/subscribe')
-  @ApiOperation({ summary: 'Register a Web Push subscription' })
+  @Post("push/subscribe")
+  @ApiOperation({ summary: "Register a Web Push subscription" })
   @HttpCode(HttpStatus.CREATED)
   async subscribePush(
     @Body() dto: SubscribePushDto,
@@ -279,8 +328,8 @@ export class NotificationsController {
     );
   }
 
-  @Delete('push/unsubscribe')
-  @ApiOperation({ summary: 'Remove a Web Push subscription by endpoint' })
+  @Delete("push/unsubscribe")
+  @ApiOperation({ summary: "Remove a Web Push subscription by endpoint" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribePush(@Body() dto: UnsubscribePushDto) {
     await this.notificationsService.unsubscribePush(dto.endpoint);
@@ -290,8 +339,8 @@ export class NotificationsController {
   // FCM Tokens (Firebase Cloud Messaging)
   // ============================================================================
 
-  @Post('fcm/register')
-  @ApiOperation({ summary: 'Register an FCM device token' })
+  @Post("fcm/register")
+  @ApiOperation({ summary: "Register an FCM device token" })
   @HttpCode(HttpStatus.CREATED)
   async registerFcm(
     @Body() dto: RegisterFcmDto,
@@ -308,8 +357,8 @@ export class NotificationsController {
     );
   }
 
-  @Delete('fcm/unregister')
-  @ApiOperation({ summary: 'Remove an FCM device token' })
+  @Delete("fcm/unregister")
+  @ApiOperation({ summary: "Remove an FCM device token" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unregisterFcm(@Body() dto: UnregisterFcmDto) {
     await this.notificationsService.unregisterFcm(dto.token);

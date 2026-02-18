@@ -3,14 +3,9 @@
  * Tracking data imports
  */
 
-import {
-  Entity,
-  Column,
-  Index,
-  BeforeInsert,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Entity, Column, Index, BeforeInsert } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 // ============================================================================
 // ENUMS
@@ -20,43 +15,43 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
  * Import Type
  */
 export enum ImportType {
-  PRODUCTS = 'products',
-  MACHINES = 'machines',
-  USERS = 'users',
-  EMPLOYEES = 'employees',
-  TRANSACTIONS = 'transactions',
-  SALES = 'sales',
-  INVENTORY = 'inventory',
-  CUSTOMERS = 'customers',
-  PRICES = 'prices',
-  CATEGORIES = 'categories',
-  LOCATIONS = 'locations',
-  CONTRACTORS = 'contractors',
+  PRODUCTS = "products",
+  MACHINES = "machines",
+  USERS = "users",
+  EMPLOYEES = "employees",
+  TRANSACTIONS = "transactions",
+  SALES = "sales",
+  INVENTORY = "inventory",
+  CUSTOMERS = "customers",
+  PRICES = "prices",
+  CATEGORIES = "categories",
+  LOCATIONS = "locations",
+  CONTRACTORS = "contractors",
 }
 
 /**
  * Import Status
  */
 export enum ImportStatus {
-  PENDING = 'pending',
-  VALIDATING = 'validating',
-  VALIDATION_FAILED = 'validation_failed',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  COMPLETED_WITH_ERRORS = 'completed_with_errors',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  VALIDATING = "validating",
+  VALIDATION_FAILED = "validation_failed",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  COMPLETED_WITH_ERRORS = "completed_with_errors",
+  FAILED = "failed",
+  CANCELLED = "cancelled",
 }
 
 /**
  * Import Source
  */
 export enum ImportSource {
-  CSV = 'csv',
-  EXCEL = 'excel',
-  JSON = 'json',
-  API = 'api',
-  LEGACY_SYSTEM = 'legacy_system',
+  CSV = "csv",
+  EXCEL = "excel",
+  JSON = "json",
+  API = "api",
+  LEGACY_SYSTEM = "legacy_system",
 }
 
 // ============================================================================
@@ -67,95 +62,101 @@ export enum ImportSource {
  * Import Job Entity
  * Tracks import job execution
  */
-@Entity('import_jobs')
-@Index(['organizationId', 'status'])
-@Index(['organizationId', 'importType'])
-@Index(['createdAt'])
+@Entity("import_jobs")
+@Index(["organizationId", "status"])
+@Index(["organizationId", "importType"])
+@Index(["createdAt"])
 export class ImportJob extends BaseEntity {
-  @ApiProperty({ description: 'Organization ID' })
-  @Column({ type: 'uuid' })
+  @ApiProperty({ description: "Organization ID" })
+  @Column({ type: "uuid" })
   organizationId: string;
 
-  @ApiProperty({ example: 'IMP-2025-001234', description: 'Import job number' })
-  @Column({ type: 'varchar', length: 50, unique: true })
+  @ApiProperty({ example: "IMP-2025-001234", description: "Import job number" })
+  @Column({ type: "varchar", length: 50, unique: true })
   jobNumber: string;
 
   @ApiProperty({ enum: ImportType })
-  @Column({ type: 'enum', enum: ImportType })
+  @Column({ type: "enum", enum: ImportType })
   importType: ImportType;
 
   @ApiProperty({ enum: ImportSource })
-  @Column({ type: 'enum', enum: ImportSource })
+  @Column({ type: "enum", enum: ImportSource })
   source: ImportSource;
 
   @ApiProperty({ enum: ImportStatus })
-  @Column({ type: 'enum', enum: ImportStatus, default: ImportStatus.PENDING })
+  @Column({ type: "enum", enum: ImportStatus, default: ImportStatus.PENDING })
   status: ImportStatus;
 
   // File info
-  @ApiPropertyOptional({ description: 'Original file name' })
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiPropertyOptional({ description: "Original file name" })
+  @Column({ type: "varchar", length: 255, nullable: true })
   fileName?: string;
 
-  @ApiPropertyOptional({ description: 'File URL in storage' })
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @ApiPropertyOptional({ description: "File URL in storage" })
+  @Column({ type: "varchar", length: 500, nullable: true })
   fileUrl?: string;
 
-  @ApiPropertyOptional({ description: 'File size in bytes' })
-  @Column({ type: 'bigint', nullable: true })
+  @ApiPropertyOptional({ description: "File size in bytes" })
+  @Column({ type: "bigint", nullable: true })
   fileSize?: number;
 
   // Processing stats
-  @ApiProperty({ description: 'Total rows in file' })
-  @Column({ type: 'integer', default: 0 })
+  @ApiProperty({ description: "Total rows in file" })
+  @Column({ type: "integer", default: 0 })
   totalRows: number;
 
-  @ApiProperty({ description: 'Rows processed' })
-  @Column({ type: 'integer', default: 0 })
+  @ApiProperty({ description: "Rows processed" })
+  @Column({ type: "integer", default: 0 })
   processedRows: number;
 
-  @ApiProperty({ description: 'Successful rows' })
-  @Column({ type: 'integer', default: 0 })
+  @ApiProperty({ description: "Successful rows" })
+  @Column({ type: "integer", default: 0 })
   successfulRows: number;
 
-  @ApiProperty({ description: 'Failed rows' })
-  @Column({ type: 'integer', default: 0 })
+  @ApiProperty({ description: "Failed rows" })
+  @Column({ type: "integer", default: 0 })
   failedRows: number;
 
-  @ApiProperty({ description: 'Skipped rows' })
-  @Column({ type: 'integer', default: 0 })
+  @ApiProperty({ description: "Skipped rows" })
+  @Column({ type: "integer", default: 0 })
   skippedRows: number;
 
   // Timing
-  @ApiPropertyOptional({ description: 'Started at' })
-  @Column({ type: 'timestamptz', nullable: true })
+  @ApiPropertyOptional({ description: "Started at" })
+  @Column({ type: "timestamptz", nullable: true })
   startedAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Completed at' })
-  @Column({ type: 'timestamptz', nullable: true })
+  @ApiPropertyOptional({ description: "Completed at" })
+  @Column({ type: "timestamptz", nullable: true })
   completedAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Processing duration in seconds' })
-  @Column({ type: 'integer', nullable: true })
+  @ApiPropertyOptional({ description: "Processing duration in seconds" })
+  @Column({ type: "integer", nullable: true })
   durationSeconds?: number;
 
   // Error handling
-  @ApiPropertyOptional({ description: 'Error message' })
-  @Column({ type: 'text', nullable: true })
+  @ApiPropertyOptional({ description: "Error message" })
+  @Column({ type: "text", nullable: true })
   errorMessage?: string;
 
-  @ApiPropertyOptional({ description: 'Error details (row-level errors)' })
-  @Column({ type: 'jsonb', nullable: true })
-  errorDetails?: { row: number; field?: string; message: string; value?: any }[];
+  @ApiPropertyOptional({ description: "Error details (row-level errors)" })
+  @Column({ type: "jsonb", nullable: true })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errorDetails?: {
+    row: number;
+    field?: string;
+    message: string;
+    value?: any;
+  }[];
 
   // Validation results
-  @ApiPropertyOptional({ description: 'Validation warnings' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Validation warnings" })
+  @Column({ type: "jsonb", nullable: true })
   validationWarnings?: { row: number; field: string; message: string }[];
 
   // Settings
-  @ApiPropertyOptional({ description: 'Import options' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Import options" })
+  @Column({ type: "jsonb", nullable: true })
   options?: {
     skipDuplicates?: boolean;
     updateExisting?: boolean;
@@ -167,8 +168,8 @@ export class ImportJob extends BaseEntity {
   };
 
   // Results summary
-  @ApiPropertyOptional({ description: 'Summary of created/updated records' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Summary of created/updated records" })
+  @Column({ type: "jsonb", nullable: true })
   summary?: {
     created: number;
     updated: number;
@@ -177,12 +178,12 @@ export class ImportJob extends BaseEntity {
   };
 
   // User tracking
-  @ApiProperty({ description: 'Created by user ID' })
-  @Column({ type: 'uuid' })
+  @ApiProperty({ description: "Created by user ID" })
+  @Column({ type: "uuid" })
   createdByUserId: string;
 
-  @ApiPropertyOptional({ description: 'Cancelled by user ID' })
-  @Column({ type: 'uuid', nullable: true })
+  @ApiPropertyOptional({ description: "Cancelled by user ID" })
+  @Column({ type: "uuid", nullable: true })
   cancelledByUserId?: string;
 
   @BeforeInsert()
@@ -191,7 +192,9 @@ export class ImportJob extends BaseEntity {
       const date = new Date();
       const year = date.getFullYear();
       const timestamp = date.getTime().toString().slice(-6);
-      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const random = Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
       this.jobNumber = `IMP-${year}-${timestamp}${random}`;
     }
   }
@@ -216,60 +219,77 @@ export class ImportJob extends BaseEntity {
  * Import Template Entity
  * Saved import configurations/mappings
  */
-@Entity('import_templates')
-@Index(['organizationId', 'importType'])
+@Entity("import_templates")
+@Index(["organizationId", "importType"])
 export class ImportTemplate extends BaseEntity {
-  @ApiProperty({ description: 'Organization ID' })
-  @Column({ type: 'uuid' })
+  @ApiProperty({ description: "Organization ID" })
+  @Column({ type: "uuid" })
   organizationId: string;
 
-  @ApiProperty({ description: 'Template name' })
-  @Column({ type: 'varchar', length: 100 })
+  @ApiProperty({ description: "Template name" })
+  @Column({ type: "varchar", length: 100 })
   name: string;
 
-  @ApiPropertyOptional({ description: 'Template description' })
-  @Column({ type: 'text', nullable: true })
+  @ApiPropertyOptional({ description: "Template description" })
+  @Column({ type: "text", nullable: true })
   description?: string;
 
   @ApiProperty({ enum: ImportType })
-  @Column({ type: 'enum', enum: ImportType })
+  @Column({ type: "enum", enum: ImportType })
   importType: ImportType;
 
   @ApiProperty({ enum: ImportSource })
-  @Column({ type: 'enum', enum: ImportSource })
+  @Column({ type: "enum", enum: ImportSource })
   source: ImportSource;
 
   // Column mappings
-  @ApiProperty({ description: 'Column mappings (source -> target)' })
-  @Column({ type: 'jsonb' })
+  @ApiProperty({ description: "Column mappings (source -> target)" })
+  @Column({ type: "jsonb" })
   columnMappings: Record<string, string>;
 
   // Default values
-  @ApiPropertyOptional({ description: 'Default values for missing fields' })
-  @Column({ type: 'jsonb', nullable: true })
-  defaultValues?: Record<string, any>;
+  @ApiPropertyOptional({ description: "Default values for missing fields" })
+  @Column({ type: "jsonb", nullable: true })
+  defaultValues?: Record<string, unknown>;
 
   // Transformations
-  @ApiPropertyOptional({ description: 'Value transformations' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Value transformations" })
+  @Column({ type: "jsonb", nullable: true })
   transformations?: {
     field: string;
-    type: 'uppercase' | 'lowercase' | 'trim' | 'replace' | 'date_format' | 'number_format' | 'lookup';
+    type:
+      | "uppercase"
+      | "lowercase"
+      | "trim"
+      | "replace"
+      | "date_format"
+      | "number_format"
+      | "lookup";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config?: any;
   }[];
 
   // Validation rules
-  @ApiPropertyOptional({ description: 'Validation rules' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Validation rules" })
+  @Column({ type: "jsonb", nullable: true })
   validationRules?: {
     field: string;
-    rule: 'required' | 'unique' | 'min' | 'max' | 'regex' | 'in_list' | 'date' | 'number';
+    rule:
+      | "required"
+      | "unique"
+      | "min"
+      | "max"
+      | "regex"
+      | "in_list"
+      | "date"
+      | "number";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config?: any;
   }[];
 
   // Options
-  @ApiPropertyOptional({ description: 'Import options' })
-  @Column({ type: 'jsonb', nullable: true })
+  @ApiPropertyOptional({ description: "Import options" })
+  @Column({ type: "jsonb", nullable: true })
   options?: {
     skipDuplicates?: boolean;
     updateExisting?: boolean;
@@ -280,11 +300,11 @@ export class ImportTemplate extends BaseEntity {
     startRow?: number;
   };
 
-  @ApiProperty({ description: 'Is active' })
-  @Column({ type: 'boolean', default: true })
+  @ApiProperty({ description: "Is active" })
+  @Column({ type: "boolean", default: true })
   isActive: boolean;
 
-  @ApiProperty({ description: 'Created by user ID' })
-  @Column({ type: 'uuid' })
+  @ApiProperty({ description: "Created by user ID" })
+  @Column({ type: "uuid" })
   createdByUserId: string;
 }

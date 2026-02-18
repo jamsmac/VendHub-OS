@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Receipt,
   CreditCard,
@@ -17,7 +23,6 @@ import {
   CheckCircle,
   XCircle,
   Plus,
-  Settings,
   Play,
   Square,
   FileText,
@@ -25,8 +30,8 @@ import {
   Download,
   QrCode,
   Search,
-} from 'lucide-react';
-import { fiscalApi } from '@/lib/api';
+} from "lucide-react";
+import { fiscalApi } from "@/lib/api";
 import type {
   FiscalDevice,
   FiscalReceipt,
@@ -39,32 +44,40 @@ import type {
   OpenShiftResponse,
   CloseShiftResponse,
   XReportResponse,
-} from '@/types/fiscal.types';
+} from "@/types/fiscal.types";
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uz-UZ', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount) + ' sum';
+  return (
+    new Intl.NumberFormat("uz-UZ", {
+      style: "decimal",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount) + " sum"
+  );
 }
 
 function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(dateStr).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function DeviceStatusBadge({ status }: { status: FiscalDeviceStatus }) {
-  const config: Record<FiscalDeviceStatus, { label: string; className: string }> = {
-    active: { label: 'Aktivnyj', className: 'bg-green-500' },
-    inactive: { label: 'Neaktivnyj', className: 'bg-gray-400' },
-    error: { label: 'Oshibka', className: 'bg-red-500' },
-    maintenance: { label: 'Obsluzhivanie', className: 'bg-yellow-500 text-white' },
+  const config: Record<
+    FiscalDeviceStatus,
+    { label: string; className: string }
+  > = {
+    active: { label: "Aktivnyj", className: "bg-green-500" },
+    inactive: { label: "Neaktivnyj", className: "bg-gray-400" },
+    error: { label: "Oshibka", className: "bg-red-500" },
+    maintenance: {
+      label: "Obsluzhivanie",
+      className: "bg-yellow-500 text-white",
+    },
   };
 
   const { label, className } = config[status];
@@ -72,12 +85,23 @@ function DeviceStatusBadge({ status }: { status: FiscalDeviceStatus }) {
 }
 
 function ReceiptStatusBadge({ status }: { status: FiscalReceiptStatus }) {
-  const config: Record<FiscalReceiptStatus, { icon: React.ElementType; label: string; className: string }> = {
-    pending: { icon: Clock, label: 'Ozhidanie', className: 'text-yellow-600' },
-    processing: { icon: RefreshCw, label: 'Obrabotka', className: 'text-blue-600 animate-spin' },
-    success: { icon: CheckCircle, label: 'Uspeshno', className: 'text-green-600' },
-    failed: { icon: XCircle, label: 'Oshibka', className: 'text-red-600' },
-    cancelled: { icon: XCircle, label: 'Otmeneno', className: 'text-gray-600' },
+  const config: Record<
+    FiscalReceiptStatus,
+    { icon: React.ElementType; label: string; className: string }
+  > = {
+    pending: { icon: Clock, label: "Ozhidanie", className: "text-yellow-600" },
+    processing: {
+      icon: RefreshCw,
+      label: "Obrabotka",
+      className: "text-blue-600 animate-spin",
+    },
+    success: {
+      icon: CheckCircle,
+      label: "Uspeshno",
+      className: "text-green-600",
+    },
+    failed: { icon: XCircle, label: "Oshibka", className: "text-red-600" },
+    cancelled: { icon: XCircle, label: "Otmeneno", className: "text-gray-600" },
   };
 
   const { icon: Icon, label, className } = config[status];
@@ -89,7 +113,13 @@ function ReceiptStatusBadge({ status }: { status: FiscalReceiptStatus }) {
   );
 }
 
-function DeviceCard({ device, onOpenShift, onCloseShift, onXReport, isActioning }: {
+function DeviceCard({
+  device,
+  onOpenShift,
+  onCloseShift,
+  onXReport,
+  isActioning,
+}: {
   device: DeviceStatistics;
   onOpenShift: (deviceId: string) => void;
   onCloseShift: (deviceId: string) => void;
@@ -119,7 +149,9 @@ function DeviceCard({ device, onOpenShift, onCloseShift, onXReport, isActioning 
             <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
               <div>Kassir: {device.currentShift.cashierName}</div>
               <div>Otkryta: {formatDateTime(device.currentShift.openedAt)}</div>
-              <div>Prodazh: {formatCurrency(device.currentShift.totalSales)}</div>
+              <div>
+                Prodazh: {formatCurrency(device.currentShift.totalSales)}
+              </div>
               <div>Chekov: {device.currentShift.receiptsCount}</div>
             </div>
           </div>
@@ -155,7 +187,8 @@ function DeviceCard({ device, onOpenShift, onCloseShift, onXReport, isActioning 
             <div className="flex items-center gap-2 text-yellow-700">
               <AlertTriangle className="h-4 w-4" />
               <span className="text-sm">
-                V ocheredi: {device.queueStats.pending} | Oshibok: {device.queueStats.failed}
+                V ocheredi: {device.queueStats.pending} | Oshibok:{" "}
+                {device.queueStats.failed}
               </span>
             </div>
           </div>
@@ -166,7 +199,7 @@ function DeviceCard({ device, onOpenShift, onCloseShift, onXReport, isActioning 
             <Button
               size="sm"
               onClick={() => onOpenShift(device.deviceId)}
-              disabled={device.status !== 'active' || isActioning}
+              disabled={device.status !== "active" || isActioning}
             >
               <Play className="h-4 w-4 mr-1" />
               Otkryt' smenu
@@ -203,8 +236,10 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
   return (
     <div className="flex items-center justify-between p-3 border-b last:border-0 hover:bg-muted/50">
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-full ${receipt.type === 'sale' ? 'bg-green-100' : 'bg-red-100'}`}>
-          {receipt.type === 'sale' ? (
+        <div
+          className={`p-2 rounded-full ${receipt.type === "sale" ? "bg-green-100" : "bg-red-100"}`}
+        >
+          {receipt.type === "sale" ? (
             <CreditCard className="h-4 w-4 text-green-600" />
           ) : (
             <RefreshCw className="h-4 w-4 text-red-600" />
@@ -212,10 +247,11 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
         </div>
         <div>
           <div className="font-medium">
-            {receipt.type === 'sale' ? 'Prodazha' : 'Vozvrat'} {formatCurrency(receipt.total)}
+            {receipt.type === "sale" ? "Prodazha" : "Vozvrat"}{" "}
+            {formatCurrency(receipt.total)}
           </div>
           <div className="text-sm text-muted-foreground">
-            {receipt.items.map(i => i.name).join(', ')}
+            {receipt.items.map((i) => i.name).join(", ")}
           </div>
           <div className="text-xs text-muted-foreground">
             {formatDateTime(receipt.createdAt)}
@@ -227,14 +263,22 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
         <ReceiptStatusBadge status={receipt.status} />
         {receipt.qrCodeUrl && (
           <Button size="sm" variant="ghost" asChild>
-            <a href={receipt.qrCodeUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={receipt.qrCodeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <QrCode className="h-4 w-4" />
             </a>
           </Button>
         )}
         {receipt.receiptUrl && (
           <Button size="sm" variant="ghost" asChild>
-            <a href={receipt.receiptUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={receipt.receiptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Download className="h-4 w-4" />
             </a>
           </Button>
@@ -247,31 +291,41 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
 export default function FiscalPage() {
   const queryClient = useQueryClient();
   const [showAddDevice, setShowAddDevice] = useState(false);
-  const [receiptFilter, setReceiptFilter] = useState<string>('');
-  const [newDevice, setNewDevice] = useState<Partial<CreateFiscalDeviceRequest>>({
-    provider: 'multikassa',
+  const [receiptFilter, setReceiptFilter] = useState<string>("");
+  const [newDevice, setNewDevice] = useState<
+    Partial<CreateFiscalDeviceRequest>
+  >({
+    provider: "multikassa",
     sandboxMode: true,
     credentials: {},
-    config: { defaultCashier: 'VendHub Auto' },
+    config: { defaultCashier: "VendHub Auto" },
   });
 
-  const { data: devices = [], isLoading: devicesLoading } = useQuery<FiscalDevice[]>({
-    queryKey: ['fiscal', 'devices'],
+  const { data: devices = [], isLoading: devicesLoading } = useQuery<
+    FiscalDevice[]
+  >({
+    queryKey: ["fiscal", "devices"],
     queryFn: fiscalApi.getDevices,
   });
 
   const deviceStatsQueries = useQuery<DeviceStatistics[]>({
-    queryKey: ['fiscal', 'device-stats', devices.map((d: FiscalDevice) => d.id)],
+    queryKey: [
+      "fiscal",
+      "device-stats",
+      devices.map((d: FiscalDevice) => d.id),
+    ],
     queryFn: async (): Promise<DeviceStatistics[]> => {
       if (devices.length === 0) return [];
       const stats = await Promise.all(
-        devices.map((d: FiscalDevice) => fiscalApi.getDeviceStatistics(d.id).catch(() => ({
-          deviceId: d.id,
-          deviceName: d.name,
-          status: d.status,
-          todayStats: { receiptsCount: 0, totalSales: 0, totalRefunds: 0 },
-          queueStats: { pending: 0, failed: 0 },
-        })))
+        devices.map((d: FiscalDevice) =>
+          fiscalApi.getDeviceStatistics(d.id).catch(() => ({
+            deviceId: d.id,
+            deviceName: d.name,
+            status: d.status,
+            todayStats: { receiptsCount: 0, totalSales: 0, totalRefunds: 0 },
+            queueStats: { pending: 0, failed: 0 },
+          })),
+        ),
       );
       return stats;
     },
@@ -280,77 +334,112 @@ export default function FiscalPage() {
 
   const deviceStats = deviceStatsQueries.data ?? [];
 
-  const { data: receiptsData, isLoading: receiptsLoading } = useQuery<FiscalReceiptsResponse>({
-    queryKey: ['fiscal', 'receipts'],
-    queryFn: () => fiscalApi.getReceipts({ limit: 50 }),
-  });
+  const { data: receiptsData, isLoading: receiptsLoading } =
+    useQuery<FiscalReceiptsResponse>({
+      queryKey: ["fiscal", "receipts"],
+      queryFn: () => fiscalApi.getReceipts({ limit: 50 }),
+    });
 
   const receipts = receiptsData?.receipts ?? [];
 
   const openShiftMutation = useMutation({
-    mutationFn: (deviceId: string) => fiscalApi.openShift(deviceId, { cashierName: 'VendHub Auto' }),
+    mutationFn: (deviceId: string) =>
+      fiscalApi.openShift(deviceId, { cashierName: "VendHub Auto" }),
     onSuccess: (data: OpenShiftResponse) => {
-      toast.success('Smena otkryta', { description: `Smena #${data.shiftNumber}` });
-      queryClient.invalidateQueries({ queryKey: ['fiscal'] });
+      toast.success("Smena otkryta", {
+        description: `Smena #${data.shiftNumber}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error('Oshibka otkrytiya smeny'),
+    onError: () => toast.error("Oshibka otkrytiya smeny"),
   });
 
   const closeShiftMutation = useMutation({
     mutationFn: (deviceId: string) => fiscalApi.closeShift(deviceId),
     onSuccess: (data: CloseShiftResponse) => {
-      toast.success('Smena zakryta', {
+      toast.success("Smena zakryta", {
         description: `Z-otchyot: ${data.zReportNumber} | Prodazhi: ${formatCurrency(data.totalSales)}`,
       });
-      queryClient.invalidateQueries({ queryKey: ['fiscal'] });
+      queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error('Oshibka zakrytiya smeny'),
+    onError: () => toast.error("Oshibka zakrytiya smeny"),
   });
 
   const xReportMutation = useMutation({
     mutationFn: (deviceId: string) => fiscalApi.getXReport(deviceId),
     onSuccess: (data: XReportResponse) => {
-      toast.success('X-otchyot sformirovan', {
+      toast.success("X-otchyot sformirovan", {
         description: `Prodazhi: ${formatCurrency(data.totalSales)} | Chekov: ${data.receiptsCount}`,
       });
     },
-    onError: () => toast.error('Oshibka formirovaniya X-otchyota'),
+    onError: () => toast.error("Oshibka formirovaniya X-otchyota"),
   });
 
   const createDeviceMutation = useMutation({
-    mutationFn: (data: CreateFiscalDeviceRequest) => fiscalApi.createDevice(data),
+    mutationFn: (data: CreateFiscalDeviceRequest) =>
+      fiscalApi.createDevice(data),
     onSuccess: () => {
-      toast.success('Ustrojstvo dobavleno');
+      toast.success("Ustrojstvo dobavleno");
       setShowAddDevice(false);
       setNewDevice({
-        provider: 'multikassa',
+        provider: "multikassa",
         sandboxMode: true,
         credentials: {},
-        config: { defaultCashier: 'VendHub Auto' },
+        config: { defaultCashier: "VendHub Auto" },
       });
-      queryClient.invalidateQueries({ queryKey: ['fiscal'] });
+      queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error('Oshibka dobavleniya ustrojstva'),
+    onError: () => toast.error("Oshibka dobavleniya ustrojstva"),
   });
 
-  const isActioning = openShiftMutation.isPending || closeShiftMutation.isPending || xReportMutation.isPending;
+  const isActioning =
+    openShiftMutation.isPending ||
+    closeShiftMutation.isPending ||
+    xReportMutation.isPending;
 
-  const { totalSalesToday, totalReceiptsToday, totalRefundsToday, pendingQueue } = useMemo(() => ({
-    totalSalesToday: deviceStats.reduce((sum, d) => sum + d.todayStats.totalSales, 0),
-    totalReceiptsToday: deviceStats.reduce((sum, d) => sum + d.todayStats.receiptsCount, 0),
-    totalRefundsToday: deviceStats.reduce((sum, d) => sum + d.todayStats.totalRefunds, 0),
-    pendingQueue: deviceStats.reduce((sum, d) => sum + d.queueStats.pending, 0),
-  }), [deviceStats]);
+  const {
+    totalSalesToday,
+    totalReceiptsToday,
+    totalRefundsToday,
+    pendingQueue,
+  } = useMemo(
+    () => ({
+      totalSalesToday: deviceStats.reduce(
+        (sum, d) => sum + d.todayStats.totalSales,
+        0,
+      ),
+      totalReceiptsToday: deviceStats.reduce(
+        (sum, d) => sum + d.todayStats.receiptsCount,
+        0,
+      ),
+      totalRefundsToday: deviceStats.reduce(
+        (sum, d) => sum + d.todayStats.totalRefunds,
+        0,
+      ),
+      pendingQueue: deviceStats.reduce(
+        (sum, d) => sum + d.queueStats.pending,
+        0,
+      ),
+    }),
+    [deviceStats],
+  );
 
-  const filteredReceipts = receipts.filter((r: FiscalReceipt) =>
-    !receiptFilter ||
-    r.fiscalNumber?.toLowerCase().includes(receiptFilter.toLowerCase()) ||
-    r.items.some((i: FiscalReceiptItem) => i.name.toLowerCase().includes(receiptFilter.toLowerCase()))
+  const filteredReceipts = receipts.filter(
+    (r: FiscalReceipt) =>
+      !receiptFilter ||
+      r.fiscalNumber?.toLowerCase().includes(receiptFilter.toLowerCase()) ||
+      r.items.some((i: FiscalReceiptItem) =>
+        i.name.toLowerCase().includes(receiptFilter.toLowerCase()),
+      ),
   );
 
   const handleSubmitDevice = () => {
-    if (!newDevice.name || !newDevice.credentials?.login || !newDevice.credentials?.password) {
-      toast.error('Zapolnite obyazatel\'nye polya');
+    if (
+      !newDevice.name ||
+      !newDevice.credentials?.login ||
+      !newDevice.credentials?.password
+    ) {
+      toast.error("Zapolnite obyazatel'nye polya");
       return;
     }
     createDeviceMutation.mutate(newDevice as CreateFiscalDeviceRequest);
@@ -361,10 +450,14 @@ export default function FiscalPage() {
       <div className="container mx-auto py-6 space-y-6">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2].map(i => <Skeleton key={i} className="h-64" />)}
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-64" />
+          ))}
         </div>
       </div>
     );
@@ -382,7 +475,9 @@ export default function FiscalPage() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['fiscal'] })}
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["fiscal"] })
+            }
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Obnovit'
@@ -399,8 +494,12 @@ export default function FiscalPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Prodazhi segodnya</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(totalSalesToday)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Prodazhi segodnya
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatCurrency(totalSalesToday)}
+                </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <CreditCard className="h-6 w-6 text-green-600" />
@@ -413,7 +512,9 @@ export default function FiscalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Chekov segodnya</p>
-                <p className="text-2xl font-bold text-blue-600">{totalReceiptsToday}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {totalReceiptsToday}
+                </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Receipt className="h-6 w-6 text-blue-600" />
@@ -426,7 +527,9 @@ export default function FiscalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Vozvraty</p>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(totalRefundsToday)}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {formatCurrency(totalRefundsToday)}
+                </p>
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <RefreshCw className="h-6 w-6 text-red-600" />
@@ -439,7 +542,9 @@ export default function FiscalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">V ocheredi</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingQueue}</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {pendingQueue}
+                </p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-full">
                 <Clock className="h-6 w-6 text-yellow-600" />
@@ -464,7 +569,7 @@ export default function FiscalPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {deviceStats.map(device => (
+            {deviceStats.map((device) => (
               <DeviceCard
                 key={device.deviceId}
                 device={device}
@@ -483,7 +588,9 @@ export default function FiscalPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Poslednie cheki</CardTitle>
-              <CardDescription>Istoriya fiskalizirovannykh chekov</CardDescription>
+              <CardDescription>
+                Istoriya fiskalizirovannykh chekov
+              </CardDescription>
             </div>
             <div className="flex gap-2">
               <div className="relative">
@@ -501,7 +608,9 @@ export default function FiscalPage() {
         <CardContent>
           {receiptsLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
             </div>
           ) : filteredReceipts.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
@@ -530,8 +639,10 @@ export default function FiscalPage() {
                 <Input
                   id="name"
                   placeholder="MultiKassa Terminal 1"
-                  value={newDevice.name ?? ''}
-                  onChange={(e) => setNewDevice(prev => ({ ...prev, name: e.target.value }))}
+                  value={newDevice.name ?? ""}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({ ...prev, name: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -539,11 +650,16 @@ export default function FiscalPage() {
                 <Input
                   id="login"
                   placeholder="Login ot MultiKassa"
-                  value={newDevice.credentials?.login ?? ''}
-                  onChange={(e) => setNewDevice(prev => ({
-                    ...prev,
-                    credentials: { ...prev.credentials, login: e.target.value },
-                  }))}
+                  value={newDevice.credentials?.login ?? ""}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({
+                      ...prev,
+                      credentials: {
+                        ...prev.credentials,
+                        login: e.target.value,
+                      },
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -552,11 +668,16 @@ export default function FiscalPage() {
                   id="password"
                   type="password"
                   placeholder="Parol'"
-                  value={newDevice.credentials?.password ?? ''}
-                  onChange={(e) => setNewDevice(prev => ({
-                    ...prev,
-                    credentials: { ...prev.credentials, password: e.target.value },
-                  }))}
+                  value={newDevice.credentials?.password ?? ""}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({
+                      ...prev,
+                      credentials: {
+                        ...prev.credentials,
+                        password: e.target.value,
+                      },
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -564,11 +685,16 @@ export default function FiscalPage() {
                 <Input
                   id="tin"
                   placeholder="123456789"
-                  value={newDevice.credentials?.companyTin ?? ''}
-                  onChange={(e) => setNewDevice(prev => ({
-                    ...prev,
-                    credentials: { ...prev.credentials, companyTin: e.target.value },
-                  }))}
+                  value={newDevice.credentials?.companyTin ?? ""}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({
+                      ...prev,
+                      credentials: {
+                        ...prev.credentials,
+                        companyTin: e.target.value,
+                      },
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -576,11 +702,16 @@ export default function FiscalPage() {
                 <Input
                   id="cashier"
                   placeholder="VendHub Auto"
-                  value={newDevice.config?.defaultCashier ?? ''}
-                  onChange={(e) => setNewDevice(prev => ({
-                    ...prev,
-                    config: { ...prev.config, defaultCashier: e.target.value },
-                  }))}
+                  value={newDevice.config?.defaultCashier ?? ""}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({
+                      ...prev,
+                      config: {
+                        ...prev.config,
+                        defaultCashier: e.target.value,
+                      },
+                    }))
+                  }
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -588,17 +719,30 @@ export default function FiscalPage() {
                   type="checkbox"
                   id="sandbox"
                   checked={newDevice.sandboxMode ?? true}
-                  onChange={(e) => setNewDevice(prev => ({ ...prev, sandboxMode: e.target.checked }))}
+                  onChange={(e) =>
+                    setNewDevice((prev) => ({
+                      ...prev,
+                      sandboxMode: e.target.checked,
+                    }))
+                  }
                   className="h-4 w-4"
                 />
                 <Label htmlFor="sandbox">Rezhim pesochnitsy (Sandbox)</Label>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowAddDevice(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddDevice(false)}
+                >
                   Otmena
                 </Button>
-                <Button onClick={handleSubmitDevice} disabled={createDeviceMutation.isPending}>
-                  {createDeviceMutation.isPending ? 'Dobavlenie...' : 'Dobavit\''}
+                <Button
+                  onClick={handleSubmitDevice}
+                  disabled={createDeviceMutation.isPending}
+                >
+                  {createDeviceMutation.isPending
+                    ? "Dobavlenie..."
+                    : "Dobavit'"}
                 </Button>
               </div>
             </CardContent>

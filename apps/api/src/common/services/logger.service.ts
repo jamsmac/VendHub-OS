@@ -8,19 +8,19 @@
  * used as the application-wide logger via app.useLogger().
  */
 
-import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as winston from 'winston';
+import { Injectable, LoggerService as NestLoggerService } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import * as winston from "winston";
 
 @Injectable()
 export class AppLoggerService implements NestLoggerService {
   private logger: winston.Logger;
 
   constructor(private configService: ConfigService) {
-    const isProduction = configService.get('NODE_ENV') === 'production';
+    const isProduction = configService.get("NODE_ENV") === "production";
 
     this.logger = winston.createLogger({
-      level: configService.get('LOG_LEVEL', 'info'),
+      level: configService.get("LOG_LEVEL", "info"),
       format: isProduction
         ? winston.format.combine(
             winston.format.timestamp(),
@@ -32,13 +32,13 @@ export class AppLoggerService implements NestLoggerService {
             winston.format.printf(({ timestamp, level, message, ...meta }) => {
               const metaStr = Object.keys(meta).length
                 ? JSON.stringify(meta)
-                : '';
+                : "";
               return `${timestamp} [${level}] ${message} ${metaStr}`;
             }),
           ),
       defaultMeta: {
-        service: 'vendhub-api',
-        version: configService.get('APP_VERSION', '1.0.0'),
+        service: "vendhub-api",
+        version: configService.get("APP_VERSION", "1.0.0"),
       },
       transports: [new winston.transports.Console()],
     });
@@ -77,21 +77,21 @@ export class AppLoggerService implements NestLoggerService {
     requestId?: string;
     ip?: string;
   }) {
-    this.logger.info('HTTP Request', { type: 'http_request', ...data });
+    this.logger.info("HTTP Request", { type: "http_request", ...data });
   }
 
   /**
    * Log a business domain event (e.g. machine restocked, payment processed).
    */
-  logBusinessEvent(event: string, data: Record<string, any>) {
-    this.logger.info(event, { type: 'business_event', ...data });
+  logBusinessEvent(event: string, data: Record<string, unknown>) {
+    this.logger.info(event, { type: "business_event", ...data });
   }
 
   /**
    * Log a security-related event (e.g. failed login, role escalation attempt).
    */
-  logSecurityEvent(event: string, data: Record<string, any>) {
-    this.logger.warn(event, { type: 'security_event', ...data });
+  logSecurityEvent(event: string, data: Record<string, unknown>) {
+    this.logger.warn(event, { type: "security_event", ...data });
   }
 
   /**
@@ -100,10 +100,10 @@ export class AppLoggerService implements NestLoggerService {
   logPerformance(
     operation: string,
     duration: number,
-    meta?: Record<string, any>,
+    meta?: Record<string, unknown>,
   ) {
-    this.logger.info('Performance', {
-      type: 'performance',
+    this.logger.info("Performance", {
+      type: "performance",
       operation,
       duration_ms: duration,
       ...meta,

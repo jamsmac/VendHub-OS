@@ -16,105 +16,108 @@ import {
   IsEmail,
   Min,
   Max,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum ComplaintCategory {
-  MACHINE_NOT_WORKING = 'machine_not_working',
-  MACHINE_ERROR = 'machine_error',
-  PAYMENT_FAILED = 'payment_failed',
-  CARD_NOT_ACCEPTED = 'card_not_accepted',
-  CASH_NOT_ACCEPTED = 'cash_not_accepted',
-  NO_CHANGE = 'no_change',
-  PRODUCT_NOT_DISPENSED = 'product_not_dispensed',
-  PRODUCT_STUCK = 'product_stuck',
-  WRONG_PRODUCT = 'wrong_product',
-  PRODUCT_EXPIRED = 'product_expired',
-  PRODUCT_DAMAGED = 'product_damaged',
-  PRODUCT_QUALITY = 'product_quality',
-  PRODUCT_OUT_OF_STOCK = 'product_out_of_stock',
-  REFUND_REQUEST = 'refund_request',
-  DOUBLE_CHARGE = 'double_charge',
-  CHARGE_WITHOUT_PRODUCT = 'charge_without_product',
-  MACHINE_DIRTY = 'machine_dirty',
-  HYGIENE_ISSUE = 'hygiene_issue',
-  SAFETY_CONCERN = 'safety_concern',
-  SUGGESTION = 'suggestion',
-  PRODUCT_REQUEST = 'product_request',
-  PRICE_FEEDBACK = 'price_feedback',
-  OTHER = 'other',
+  MACHINE_NOT_WORKING = "machine_not_working",
+  MACHINE_ERROR = "machine_error",
+  PAYMENT_FAILED = "payment_failed",
+  CARD_NOT_ACCEPTED = "card_not_accepted",
+  CASH_NOT_ACCEPTED = "cash_not_accepted",
+  NO_CHANGE = "no_change",
+  PRODUCT_NOT_DISPENSED = "product_not_dispensed",
+  PRODUCT_STUCK = "product_stuck",
+  WRONG_PRODUCT = "wrong_product",
+  PRODUCT_EXPIRED = "product_expired",
+  PRODUCT_DAMAGED = "product_damaged",
+  PRODUCT_QUALITY = "product_quality",
+  PRODUCT_OUT_OF_STOCK = "product_out_of_stock",
+  REFUND_REQUEST = "refund_request",
+  DOUBLE_CHARGE = "double_charge",
+  CHARGE_WITHOUT_PRODUCT = "charge_without_product",
+  MACHINE_DIRTY = "machine_dirty",
+  HYGIENE_ISSUE = "hygiene_issue",
+  SAFETY_CONCERN = "safety_concern",
+  SUGGESTION = "suggestion",
+  PRODUCT_REQUEST = "product_request",
+  PRICE_FEEDBACK = "price_feedback",
+  OTHER = "other",
 }
 
 export enum ComplaintStatus {
-  NEW = 'new',
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  ASSIGNED = 'assigned',
-  INVESTIGATING = 'investigating',
-  AWAITING_CUSTOMER = 'awaiting_customer',
-  AWAITING_PARTS = 'awaiting_parts',
-  RESOLVED = 'resolved',
-  CLOSED = 'closed',
-  REJECTED = 'rejected',
-  DUPLICATE = 'duplicate',
-  ESCALATED = 'escalated',
-  REOPENED = 'reopened',
+  NEW = "new",
+  PENDING = "pending",
+  IN_PROGRESS = "in_progress",
+  ASSIGNED = "assigned",
+  INVESTIGATING = "investigating",
+  AWAITING_CUSTOMER = "awaiting_customer",
+  AWAITING_PARTS = "awaiting_parts",
+  RESOLVED = "resolved",
+  CLOSED = "closed",
+  REJECTED = "rejected",
+  DUPLICATE = "duplicate",
+  ESCALATED = "escalated",
+  REOPENED = "reopened",
 }
 
 export enum ComplaintPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  CRITICAL = "critical",
 }
 
 export class CustomerInfoDto {
-  @ApiPropertyOptional({ example: 'Иван' })
+  @ApiPropertyOptional({ example: "Иван" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   name?: string;
 
-  @ApiPropertyOptional({ example: '+998901234567' })
+  @ApiPropertyOptional({ example: "+998901234567" })
   @IsOptional()
   @IsString()
   @MaxLength(20)
   phone?: string;
 
-  @ApiPropertyOptional({ example: 'customer@example.com' })
+  @ApiPropertyOptional({ example: "customer@example.com" })
   @IsOptional()
   @IsEmail()
   email?: string;
 
-  @ApiPropertyOptional({ example: '123456789' })
+  @ApiPropertyOptional({ example: "123456789" })
   @IsOptional()
   @IsString()
   telegramId?: string;
 }
 
 export class CreateComplaintDto {
-  @ApiPropertyOptional({ default: 'qr_code' })
+  @ApiPropertyOptional({ default: "qr_code" })
   @IsOptional()
   @IsString()
-  source?: string = 'qr_code';
+  source?: string = "qr_code";
 
   @ApiProperty({ enum: ComplaintCategory, default: ComplaintCategory.OTHER })
   @IsEnum(ComplaintCategory)
   @IsNotEmpty()
   category: ComplaintCategory;
 
-  @ApiPropertyOptional({ enum: ComplaintPriority, default: ComplaintPriority.MEDIUM })
+  @ApiPropertyOptional({
+    enum: ComplaintPriority,
+    default: ComplaintPriority.MEDIUM,
+  })
   @IsOptional()
   @IsEnum(ComplaintPriority)
   priority?: ComplaintPriority = ComplaintPriority.MEDIUM;
 
-  @ApiProperty({ example: 'Автомат не работает' })
+  @ApiProperty({ example: "Автомат не работает" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   subject: string;
 
-  @ApiProperty({ example: 'При попытке купить напиток автомат выдал ошибку' })
+  @ApiProperty({ example: "При попытке купить напиток автомат выдал ошибку" })
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -142,12 +145,12 @@ export class CreateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  productInfo?: Record<string, any>;
+  productInfo?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  transactionInfo?: Record<string, any>;
+  transactionInfo?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -161,6 +164,7 @@ export class CreateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attachments?: any[];
 
   @ApiProperty()
@@ -171,7 +175,7 @@ export class CreateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -225,6 +229,7 @@ export class UpdateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attachments?: any[];
 
   @ApiPropertyOptional()
@@ -236,11 +241,11 @@ export class UpdateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class ResolveComplaintDto {
-  @ApiProperty({ example: 'Проблема устранена, возврат оформлен' })
+  @ApiProperty({ example: "Проблема устранена, возврат оформлен" })
   @IsString()
   @IsNotEmpty()
   resolution: string;
@@ -258,7 +263,7 @@ export class RateComplaintDto {
   @Max(5)
   rating: number;
 
-  @ApiPropertyOptional({ example: 'Быстро решили проблему, спасибо!' })
+  @ApiPropertyOptional({ example: "Быстро решили проблему, спасибо!" })
   @IsOptional()
   @IsString()
   feedback?: string;

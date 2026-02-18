@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+import { Injectable, Logger } from "@nestjs/common";
+import { Server, Socket } from "socket.io";
 
 export interface WebSocketUser {
   id: string;
@@ -36,7 +36,9 @@ export class WebSocketService {
       rooms: new Set(),
     };
     this.connectedClients.set(client.id, user);
-    this.logger.log(`Client connected: ${client.id} (User: ${userData.userId})`);
+    this.logger.log(
+      `Client connected: ${client.id} (User: ${userData.userId})`,
+    );
   }
 
   removeClient(clientId: string) {
@@ -82,26 +84,31 @@ export class WebSocketService {
   // ============================================
 
   // Emit to all connected clients
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToAll(event: string, data: any) {
     this.server?.emit(event, data);
   }
 
   // Emit to specific room
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToRoom(room: string, event: string, data: any) {
     this.server?.to(room).emit(event, data);
   }
 
   // Emit to specific client
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToClient(clientId: string, event: string, data: any) {
     this.server?.to(clientId).emit(event, data);
   }
 
   // Emit to organization room
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToOrganization(organizationId: string, event: string, data: any) {
     this.emitToRoom(`org:${organizationId}`, event, data);
   }
 
   // Emit to user
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToUser(userId: string, event: string, data: any) {
     this.emitToRoom(`user:${userId}`, event, data);
   }
@@ -110,8 +117,12 @@ export class WebSocketService {
   // Machine Events
   // ============================================
 
-  emitMachineStatusChange(machineId: string, status: string, organizationId: string) {
-    const event = 'machine:status';
+  emitMachineStatusChange(
+    machineId: string,
+    status: string,
+    organizationId: string,
+  ) {
+    const event = "machine:status";
     const data = {
       machineId,
       status,
@@ -131,7 +142,7 @@ export class WebSocketService {
     quantity: number,
     organizationId: string,
   ) {
-    const event = 'machine:inventory';
+    const event = "machine:inventory";
     const data = {
       machineId,
       productId,
@@ -144,7 +155,7 @@ export class WebSocketService {
   }
 
   emitMachineError(machineId: string, error: string, organizationId: string) {
-    const event = 'machine:error';
+    const event = "machine:error";
     const data = {
       machineId,
       error,
@@ -159,8 +170,9 @@ export class WebSocketService {
   // Order Events
   // ============================================
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitOrderCreated(order: any) {
-    const event = 'order:created';
+    const event = "order:created";
     const data = {
       orderId: order.id,
       orderNumber: order.orderNumber,
@@ -184,8 +196,9 @@ export class WebSocketService {
     this.emitToRoom(`machine:${order.machineId}`, event, data);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitOrderStatusChange(order: any) {
-    const event = 'order:status';
+    const event = "order:status";
     const data = {
       orderId: order.id,
       orderNumber: order.orderNumber,
@@ -203,8 +216,9 @@ export class WebSocketService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitOrderDispensed(order: any, itemIndex: number) {
-    const event = 'order:dispensed';
+    const event = "order:dispensed";
     const data = {
       orderId: order.id,
       orderNumber: order.orderNumber,
@@ -222,8 +236,9 @@ export class WebSocketService {
   // Notification Events
   // ============================================
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitNotification(userId: string, notification: any) {
-    this.emitToUser(userId, 'notification', {
+    this.emitToUser(userId, "notification", {
       id: notification.id,
       type: notification.type,
       title: notification.title,
@@ -233,8 +248,13 @@ export class WebSocketService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitBroadcastNotification(organizationId: string, notification: any) {
-    this.emitToOrganization(organizationId, 'notification:broadcast', notification);
+    this.emitToOrganization(
+      organizationId,
+      "notification:broadcast",
+      notification,
+    );
   }
 
   // ============================================
@@ -242,8 +262,8 @@ export class WebSocketService {
   // ============================================
 
   emitPointsEarned(userId: string, points: number, reason: string) {
-    this.emitToUser(userId, 'loyalty:points', {
-      type: 'earned',
+    this.emitToUser(userId, "loyalty:points", {
+      type: "earned",
       points,
       reason,
       timestamp: new Date().toISOString(),
@@ -251,8 +271,8 @@ export class WebSocketService {
   }
 
   emitPointsRedeemed(userId: string, points: number, rewardName: string) {
-    this.emitToUser(userId, 'loyalty:points', {
-      type: 'redeemed',
+    this.emitToUser(userId, "loyalty:points", {
+      type: "redeemed",
       points,
       rewardName,
       timestamp: new Date().toISOString(),
@@ -260,8 +280,8 @@ export class WebSocketService {
   }
 
   emitTierUpgrade(userId: string, newTier: string, benefits: string[]) {
-    this.emitToUser(userId, 'loyalty:tier', {
-      type: 'upgrade',
+    this.emitToUser(userId, "loyalty:tier", {
+      type: "upgrade",
       tier: newTier,
       benefits,
       timestamp: new Date().toISOString(),
@@ -272,8 +292,13 @@ export class WebSocketService {
   // Quest Events
   // ============================================
 
-  emitQuestProgress(userId: string, questId: string, progress: number, target: number) {
-    this.emitToUser(userId, 'quest:progress', {
+  emitQuestProgress(
+    userId: string,
+    questId: string,
+    progress: number,
+    target: number,
+  ) {
+    this.emitToUser(userId, "quest:progress", {
       questId,
       progress,
       target,
@@ -283,7 +308,7 @@ export class WebSocketService {
   }
 
   emitQuestCompleted(userId: string, questId: string, reward: number) {
-    this.emitToUser(userId, 'quest:completed', {
+    this.emitToUser(userId, "quest:completed", {
       questId,
       reward,
       timestamp: new Date().toISOString(),

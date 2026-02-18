@@ -8,16 +8,17 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { UserRole } from '../decorators/roles.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { UserRole } from "../decorators/roles.decorator";
 
-export const SKIP_ORG_CHECK_KEY = 'skipOrgCheck';
+export const SKIP_ORG_CHECK_KEY = "skipOrgCheck";
 
 /**
  * Decorator to skip organization check (for cross-org operations)
  */
 export const SkipOrgCheck = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(SKIP_ORG_CHECK_KEY, true, descriptor.value);
@@ -78,9 +79,7 @@ export class OrganizationGuard implements CanActivate {
         }
       }
 
-      throw new ForbiddenException(
-        'Нет доступа к данной организации',
-      );
+      throw new ForbiddenException("Нет доступа к данной организации");
     }
 
     return true;
@@ -89,10 +88,11 @@ export class OrganizationGuard implements CanActivate {
   /**
    * Check if user has access to multiple organizations
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private hasMultiOrgAccess(user: any): boolean {
     // Owner and Admin of headquarters can access franchise orgs
     if (
-      user.organizationType === 'headquarters' &&
+      user.organizationType === "headquarters" &&
       [UserRole.OWNER, UserRole.ADMIN].includes(user.role)
     ) {
       return true;

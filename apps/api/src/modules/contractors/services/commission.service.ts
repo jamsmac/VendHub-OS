@@ -8,11 +8,11 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, Between } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron } from "@nestjs/schedule";
 import {
   Contract,
   ContractStatus,
@@ -20,9 +20,9 @@ import {
   CommissionCalculation,
   PaymentStatus,
   CommissionTier,
-} from '../entities/contract.entity';
-import { Transaction } from '../../transactions/entities/transaction.entity';
-import { QueryCommissionsDto } from '../dto/commission.dto';
+} from "../entities/contract.entity";
+import { Transaction } from "../../transactions/entities/transaction.entity";
+import { QueryCommissionsDto } from "../dto/commission.dto";
 
 @Injectable()
 export class CommissionService {
@@ -56,11 +56,11 @@ export class CommissionService {
     // Validate contract
     const contract = await this.contractRepo.findOne({
       where: { id: contractId, organizationId },
-      relations: ['contractor'],
+      relations: ["contractor"],
     });
 
     if (!contract) {
-      throw new NotFoundException('Contract not found');
+      throw new NotFoundException("Contract not found");
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
@@ -108,10 +108,10 @@ export class CommissionService {
 
     this.logger.log(
       `Commission calculated for contract ${contract.contractNumber}: ` +
-      `${commissionAmount} ${contract.currency} (revenue: ${totalRevenue}, txns: ${transactionCount})`,
+        `${commissionAmount} ${contract.currency} (revenue: ${totalRevenue}, txns: ${transactionCount})`,
     );
 
-    this.eventEmitter.emit('commission.calculated', {
+    this.eventEmitter.emit("commission.calculated", {
       commissionId: commission.id,
       contractId,
       organizationId,
@@ -138,32 +138,39 @@ export class CommissionService {
     limit: number;
     totalPages: number;
   }> {
-    const { contractId, paymentStatus, dateFrom, dateTo, page = 1, limit = 20 } = params;
+    const {
+      contractId,
+      paymentStatus,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 20,
+    } = params;
 
     const qb = this.commissionRepo
-      .createQueryBuilder('cc')
-      .leftJoinAndSelect('cc.contract', 'contract')
-      .leftJoinAndSelect('contract.contractor', 'contractor')
-      .where('cc.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("cc")
+      .leftJoinAndSelect("cc.contract", "contract")
+      .leftJoinAndSelect("contract.contractor", "contractor")
+      .where("cc.organizationId = :organizationId", { organizationId });
 
     if (contractId) {
-      qb.andWhere('cc.contractId = :contractId', { contractId });
+      qb.andWhere("cc.contractId = :contractId", { contractId });
     }
 
     if (paymentStatus) {
-      qb.andWhere('cc.paymentStatus = :paymentStatus', { paymentStatus });
+      qb.andWhere("cc.paymentStatus = :paymentStatus", { paymentStatus });
     }
 
     if (dateFrom) {
-      qb.andWhere('cc.periodStart >= :dateFrom', { dateFrom });
+      qb.andWhere("cc.periodStart >= :dateFrom", { dateFrom });
     }
 
     if (dateTo) {
-      qb.andWhere('cc.periodEnd <= :dateTo', { dateTo });
+      qb.andWhere("cc.periodEnd <= :dateTo", { dateTo });
     }
 
     const [items, total] = await qb
-      .orderBy('cc.periodEnd', 'DESC')
+      .orderBy("cc.periodEnd", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -192,19 +199,19 @@ export class CommissionService {
   ): Promise<CommissionCalculation> {
     const commission = await this.commissionRepo.findOne({
       where: { id, organizationId },
-      relations: ['contract'],
+      relations: ["contract"],
     });
 
     if (!commission) {
-      throw new NotFoundException('Commission calculation not found');
+      throw new NotFoundException("Commission calculation not found");
     }
 
     if (commission.paymentStatus === PaymentStatus.PAID) {
-      throw new BadRequestException('Commission is already marked as paid');
+      throw new BadRequestException("Commission is already marked as paid");
     }
 
     if (commission.paymentStatus === PaymentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot pay a cancelled commission');
+      throw new BadRequestException("Cannot pay a cancelled commission");
     }
 
     commission.paymentStatus = PaymentStatus.PAID;
@@ -216,9 +223,11 @@ export class CommissionService {
 
     await this.commissionRepo.save(commission);
 
-    this.logger.log(`Commission ${id} marked as paid (transaction: ${paymentTransactionId})`);
+    this.logger.log(
+      `Commission ${id} marked as paid (transaction: ${paymentTransactionId})`,
+    );
 
-    this.eventEmitter.emit('commission.paid', {
+    this.eventEmitter.emit("commission.paid", {
       commissionId: commission.id,
       contractId: commission.contractId,
       organizationId,
@@ -236,7 +245,7 @@ export class CommissionService {
   /**
    * Daily check for overdue commission payments (runs at 02:00 Asia/Tashkent)
    */
-  @Cron('0 2 * * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 2 * * *", { timeZone: "Asia/Tashkent" })
   async markAsOverdue(): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -246,14 +255,14 @@ export class CommissionService {
         paymentStatus: PaymentStatus.PENDING,
         paymentDueDate: LessThan(today),
       },
-      relations: ['contract'],
+      relations: ["contract"],
     });
 
     for (const commission of overdueCommissions) {
       commission.paymentStatus = PaymentStatus.OVERDUE;
       await this.commissionRepo.save(commission);
 
-      this.eventEmitter.emit('commission.overdue', {
+      this.eventEmitter.emit("commission.overdue", {
         commissionId: commission.id,
         contractId: commission.contractId,
         organizationId: commission.organizationId,
@@ -263,7 +272,9 @@ export class CommissionService {
     }
 
     if (overdueCommissions.length > 0) {
-      this.logger.log(`Marked ${overdueCommissions.length} commission(s) as overdue`);
+      this.logger.log(
+        `Marked ${overdueCommissions.length} commission(s) as overdue`,
+      );
     }
   }
 
@@ -282,13 +293,13 @@ export class CommissionService {
     periodEnd: string,
   ): Promise<{ totalRevenue: number; transactionCount: number }> {
     const result = await this.transactionRepo
-      .createQueryBuilder('t')
-      .select('COALESCE(SUM(t.totalAmount), 0)', 'totalRevenue')
-      .addSelect('COUNT(t.id)', 'transactionCount')
-      .where('t.organizationId = :organizationId', { organizationId })
-      .andWhere('t.contractId = :contractId', { contractId })
-      .andWhere('t.transactionDate >= :periodStart', { periodStart })
-      .andWhere('t.transactionDate <= :periodEnd', { periodEnd })
+      .createQueryBuilder("t")
+      .select("COALESCE(SUM(t.totalAmount), 0)", "totalRevenue")
+      .addSelect("COUNT(t.id)", "transactionCount")
+      .where("t.organizationId = :organizationId", { organizationId })
+      .andWhere("t.contractId = :contractId", { contractId })
+      .andWhere("t.transactionDate >= :periodStart", { periodStart })
+      .andWhere("t.transactionDate <= :periodEnd", { periodEnd })
       .andWhere("t.status = 'completed'")
       .getRawOne();
 
@@ -306,7 +317,7 @@ export class CommissionService {
     totalRevenue: number,
   ): {
     commissionAmount: number;
-    calculationDetails: CommissionCalculation['calculationDetails'];
+    calculationDetails: CommissionCalculation["calculationDetails"];
   } {
     switch (contract.commissionType) {
       case CommissionType.PERCENTAGE:
@@ -336,10 +347,11 @@ export class CommissionService {
     totalRevenue: number,
   ): {
     commissionAmount: number;
-    calculationDetails: CommissionCalculation['calculationDetails'];
+    calculationDetails: CommissionCalculation["calculationDetails"];
   } {
     const rate = Number(contract.commissionRate) || 0;
-    const commissionAmount = Math.round((totalRevenue * rate) / 100 * 100) / 100;
+    const commissionAmount =
+      Math.round(((totalRevenue * rate) / 100) * 100) / 100;
 
     return {
       commissionAmount,
@@ -352,11 +364,9 @@ export class CommissionService {
   /**
    * FIXED: fixedAmount
    */
-  private calculateFixed(
-    contract: Contract,
-  ): {
+  private calculateFixed(contract: Contract): {
     commissionAmount: number;
-    calculationDetails: CommissionCalculation['calculationDetails'];
+    calculationDetails: CommissionCalculation["calculationDetails"];
   } {
     const fixedAmount = Number(contract.commissionFixedAmount) || 0;
 
@@ -376,7 +386,7 @@ export class CommissionService {
     totalRevenue: number,
   ): {
     commissionAmount: number;
-    calculationDetails: CommissionCalculation['calculationDetails'];
+    calculationDetails: CommissionCalculation["calculationDetails"];
   } {
     const tiers: CommissionTier[] = contract.commissionTiers || [];
     if (tiers.length === 0) {
@@ -391,7 +401,12 @@ export class CommissionService {
 
     let remainingRevenue = totalRevenue;
     let commissionAmount = 0;
-    const tierBreakdown: { tier: number; amount: number; rate: number; commission: number }[] = [];
+    const tierBreakdown: {
+      tier: number;
+      amount: number;
+      rate: number;
+      commission: number;
+    }[] = [];
 
     for (let i = 0; i < sortedTiers.length; i++) {
       const tier = sortedTiers[i];
@@ -402,7 +417,8 @@ export class CommissionService {
 
       // Amount within this tier
       const amountInTier = Math.min(remainingRevenue, tierRange);
-      const tierCommission = Math.round((amountInTier * tier.rate) / 100 * 100) / 100;
+      const tierCommission =
+        Math.round(((amountInTier * tier.rate) / 100) * 100) / 100;
 
       commissionAmount += tierCommission;
       tierBreakdown.push({
@@ -429,12 +445,14 @@ export class CommissionService {
     totalRevenue: number,
   ): {
     commissionAmount: number;
-    calculationDetails: CommissionCalculation['calculationDetails'];
+    calculationDetails: CommissionCalculation["calculationDetails"];
   } {
     const hybridFixed = Number(contract.commissionHybridFixed) || 0;
     const hybridRate = Number(contract.commissionHybridRate) || 0;
-    const percentagePart = Math.round((totalRevenue * hybridRate) / 100 * 100) / 100;
-    const commissionAmount = Math.round((hybridFixed + percentagePart) * 100) / 100;
+    const percentagePart =
+      Math.round(((totalRevenue * hybridRate) / 100) * 100) / 100;
+    const commissionAmount =
+      Math.round((hybridFixed + percentagePart) * 100) / 100;
 
     return {
       commissionAmount,

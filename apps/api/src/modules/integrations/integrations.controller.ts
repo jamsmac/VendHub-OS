@@ -12,25 +12,34 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { IntegrationService } from './services/integration.service';
-import { AIParserService } from './services/ai-parser.service';
-import { IntegrationTesterService } from './services/integration-tester.service';
-import { PaymentExecutorService, CreatePaymentRequest } from './services/payment-executor.service';
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles, ICurrentUser } from "../../common/decorators";
+import { Request } from "express";
+import { IntegrationService } from "./services/integration.service";
+import { AIParserService } from "./services/ai-parser.service";
+import { IntegrationTesterService } from "./services/integration-tester.service";
+import {
+  PaymentExecutorService,
+  CreatePaymentRequest,
+} from "./services/payment-executor.service";
 import {
   IntegrationStatus,
   IntegrationCategory,
   PaymentIntegrationConfig,
   AIParseRequest,
-} from './types/integration.types';
-import { templates, getTemplate, searchTemplates } from './templates';
+} from "./types/integration.types";
+import { templates, getTemplate, searchTemplates } from "./templates";
 
-@ApiTags('Integrations')
-@Controller('integrations')
+@ApiTags("Integrations")
+@Controller("integrations")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class IntegrationsController {
@@ -46,28 +55,32 @@ export class IntegrationsController {
   // ============================================
 
   @Get()
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get all integrations for organization' })
-  @ApiQuery({ name: 'category', enum: IntegrationCategory, required: false })
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get all integrations for organization" })
+  @ApiQuery({ name: "category", enum: IntegrationCategory, required: false })
   async findAll(
-    @Req() req: any,
-    @Query('category') category?: IntegrationCategory,
+    @Req() req: Request & { user: ICurrentUser },
+    @Query("category") category?: IntegrationCategory,
   ) {
     return this.integrationService.findAll(req.user.organizationId, category);
   }
 
-  @Get(':id')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get integration by ID' })
-  async findOne(@Param('id') id: string, @Req() req: any) {
+  @Get(":id")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get integration by ID" })
+  async findOne(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
     return this.integrationService.findOne(id, req.user.organizationId);
   }
 
   @Post()
-  @Roles('admin')
-  @ApiOperation({ summary: 'Create new integration' })
+  @Roles("admin")
+  @ApiOperation({ summary: "Create new integration" })
   async create(
-    @Body() data: {
+    @Body()
+    data: {
       name: string;
       displayName: string;
       category: IntegrationCategory;
@@ -75,7 +88,7 @@ export class IntegrationsController {
       templateId?: string;
       documentationUrl?: string;
     },
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.create(
       req.user.organizationId,
@@ -84,18 +97,19 @@ export class IntegrationsController {
     );
   }
 
-  @Put(':id')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update integration' })
+  @Put(":id")
+  @Roles("admin")
+  @ApiOperation({ summary: "Update integration" })
   async update(
-    @Param('id') id: string,
-    @Body() data: Partial<{
+    @Param("id") id: string,
+    @Body()
+    data: Partial<{
       displayName: string;
       description: string;
       priority: number;
       sandboxMode: boolean;
     }>,
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.update(
       id,
@@ -105,13 +119,13 @@ export class IntegrationsController {
     );
   }
 
-  @Patch(':id/config')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update integration configuration' })
+  @Patch(":id/config")
+  @Roles("admin")
+  @ApiOperation({ summary: "Update integration configuration" })
   async updateConfig(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() config: Partial<PaymentIntegrationConfig>,
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.updateConfig(
       id,
@@ -121,16 +135,17 @@ export class IntegrationsController {
     );
   }
 
-  @Patch(':id/credentials')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update integration credentials' })
+  @Patch(":id/credentials")
+  @Roles("admin")
+  @ApiOperation({ summary: "Update integration credentials" })
   async updateCredentials(
-    @Param('id') id: string,
-    @Body() data: {
+    @Param("id") id: string,
+    @Body()
+    data: {
       credentials: Record<string, string>;
       isSandbox: boolean;
     },
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.updateCredentials(
       id,
@@ -141,13 +156,13 @@ export class IntegrationsController {
     );
   }
 
-  @Patch(':id/status')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update integration status' })
+  @Patch(":id/status")
+  @Roles("admin")
+  @ApiOperation({ summary: "Update integration status" })
   async updateStatus(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() data: { status: IntegrationStatus },
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.updateStatus(
       id,
@@ -157,11 +172,14 @@ export class IntegrationsController {
     );
   }
 
-  @Delete(':id')
-  @Roles('admin')
+  @Delete(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete integration' })
-  async delete(@Param('id') id: string, @Req() req: any) {
+  @ApiOperation({ summary: "Delete integration" })
+  async delete(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
     await this.integrationService.delete(id, req.user.organizationId);
   }
 
@@ -169,24 +187,24 @@ export class IntegrationsController {
   // Templates
   // ============================================
 
-  @Get('templates/all')
-  @ApiOperation({ summary: 'Get all available templates' })
-  @ApiQuery({ name: 'category', enum: IntegrationCategory, required: false })
-  @ApiQuery({ name: 'country', required: false })
-  @ApiQuery({ name: 'search', required: false })
+  @Get("templates/all")
+  @ApiOperation({ summary: "Get all available templates" })
+  @ApiQuery({ name: "category", enum: IntegrationCategory, required: false })
+  @ApiQuery({ name: "country", required: false })
+  @ApiQuery({ name: "search", required: false })
   async getTemplates(
-    @Query('category') category?: IntegrationCategory,
-    @Query('country') country?: string,
-    @Query('search') search?: string,
+    @Query("category") category?: IntegrationCategory,
+    @Query("country") country?: string,
+    @Query("search") search?: string,
   ) {
     let result = templates;
 
     if (category) {
-      result = result.filter(t => t.category === category);
+      result = result.filter((t) => t.category === category);
     }
 
     if (country) {
-      result = result.filter(t => t.country === country);
+      result = result.filter((t) => t.country === country);
     }
 
     if (search) {
@@ -202,12 +220,12 @@ export class IntegrationsController {
     }));
   }
 
-  @Get('templates/:id')
-  @ApiOperation({ summary: 'Get template details' })
-  async getTemplate(@Param('id') id: string) {
+  @Get("templates/:id")
+  @ApiOperation({ summary: "Get template details" })
+  async getTemplate(@Param("id") id: string) {
     const template = getTemplate(id);
     if (!template) {
-      return { error: 'Template not found' };
+      return { error: "Template not found" };
     }
     return template;
   }
@@ -216,22 +234,25 @@ export class IntegrationsController {
   // AI Configuration
   // ============================================
 
-  @Post('ai/parse')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Parse API documentation with AI' })
+  @Post("ai/parse")
+  @Roles("admin")
+  @ApiOperation({ summary: "Parse API documentation with AI" })
   async parseDocumentation(@Body() request: AIParseRequest) {
     return this.aiParserService.parseDocumentation(request);
   }
 
-  @Post(':id/ai/session')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Start AI configuration session' })
+  @Post(":id/ai/session")
+  @Roles("admin")
+  @ApiOperation({ summary: "Start AI configuration session" })
   async startAISession(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() data: { documentationUrl?: string },
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.aiParserService.startConfigSession(
       id,
       integration.config,
@@ -239,28 +260,34 @@ export class IntegrationsController {
     );
   }
 
-  @Post('ai/session/:sessionId/message')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Send message to AI configuration session' })
+  @Post("ai/session/:sessionId/message")
+  @Roles("admin")
+  @ApiOperation({ summary: "Send message to AI configuration session" })
   async sendAIMessage(
-    @Param('sessionId') sessionId: string,
+    @Param("sessionId") sessionId: string,
     @Body() data: { message: string },
   ) {
     return this.aiParserService.continueConversation(sessionId, data.message);
   }
 
-  @Get('ai/session/:sessionId')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get AI session state' })
-  async getAISession(@Param('sessionId') sessionId: string) {
+  @Get("ai/session/:sessionId")
+  @Roles("admin")
+  @ApiOperation({ summary: "Get AI session state" })
+  async getAISession(@Param("sessionId") sessionId: string) {
     return this.aiParserService.getSession(sessionId);
   }
 
-  @Post(':id/ai/suggestions')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get AI suggestions for integration' })
-  async getAISuggestions(@Param('id') id: string, @Req() req: any) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+  @Post(":id/ai/suggestions")
+  @Roles("admin")
+  @ApiOperation({ summary: "Get AI suggestions for integration" })
+  async getAISuggestions(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.aiParserService.getSuggestions(integration.config);
   }
 
@@ -268,27 +295,45 @@ export class IntegrationsController {
   // Testing
   // ============================================
 
-  @Post(':id/test')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Run test suite for integration' })
-  async runTests(@Param('id') id: string, @Req() req: any) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+  @Post(":id/test")
+  @Roles("admin")
+  @ApiOperation({ summary: "Run test suite for integration" })
+  async runTests(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.testerService.runTestSuite(integration);
   }
 
-  @Post(':id/test/connectivity')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Test connectivity' })
-  async testConnectivity(@Param('id') id: string, @Req() req: any) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+  @Post(":id/test/connectivity")
+  @Roles("admin")
+  @ApiOperation({ summary: "Test connectivity" })
+  async testConnectivity(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.testerService.testConnectivity(integration);
   }
 
-  @Post(':id/test/credentials')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Validate credentials' })
-  async validateCredentials(@Param('id') id: string, @Req() req: any) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+  @Post(":id/test/credentials")
+  @Roles("admin")
+  @ApiOperation({ summary: "Validate credentials" })
+  async validateCredentials(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.testerService.validateCredentials(integration);
   }
 
@@ -296,30 +341,33 @@ export class IntegrationsController {
   // Logs & Statistics
   // ============================================
 
-  @Get(':id/logs')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get integration logs' })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'offset', required: false })
-  @ApiQuery({ name: 'success', required: false })
+  @Get(":id/logs")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get integration logs" })
+  @ApiQuery({ name: "limit", required: false })
+  @ApiQuery({ name: "offset", required: false })
+  @ApiQuery({ name: "success", required: false })
   async getLogs(
-    @Param('id') id: string,
-    @Req() req: any,
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
-    @Query('success') success?: string,
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+    @Query("limit") limit?: number,
+    @Query("offset") offset?: number,
+    @Query("success") success?: string,
   ) {
     return this.integrationService.getLogs(id, req.user.organizationId, {
       limit: limit || 50,
       offset: offset || 0,
-      success: success === undefined ? undefined : success === 'true',
+      success: success === undefined ? undefined : success === "true",
     });
   }
 
-  @Get(':id/stats')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Get integration statistics' })
-  async getStatistics(@Param('id') id: string, @Req() req: any) {
+  @Get(":id/stats")
+  @Roles("admin", "manager")
+  @ApiOperation({ summary: "Get integration statistics" })
+  async getStatistics(
+    @Param("id") id: string,
+    @Req() req: Request & { user: ICurrentUser },
+  ) {
     return this.integrationService.getStatistics(id, req.user.organizationId);
   }
 
@@ -327,27 +375,33 @@ export class IntegrationsController {
   // Payment Operations (for internal use)
   // ============================================
 
-  @Post(':id/pay')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Create payment (sandbox testing)' })
+  @Post(":id/pay")
+  @Roles("admin")
+  @ApiOperation({ summary: "Create payment (sandbox testing)" })
   async createPayment(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() request: CreatePaymentRequest,
-    @Req() req: any,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.paymentExecutor.createPayment(integration, request);
   }
 
-  @Get(':id/pay/:paymentId')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Check payment status (sandbox testing)' })
+  @Get(":id/pay/:paymentId")
+  @Roles("admin")
+  @ApiOperation({ summary: "Check payment status (sandbox testing)" })
   async checkPaymentStatus(
-    @Param('id') id: string,
-    @Param('paymentId') paymentId: string,
-    @Req() req: any,
+    @Param("id") id: string,
+    @Param("paymentId") paymentId: string,
+    @Req() req: Request & { user: ICurrentUser },
   ) {
-    const integration = await this.integrationService.findOne(id, req.user.organizationId);
+    const integration = await this.integrationService.findOne(
+      id,
+      req.user.organizationId,
+    );
     return this.paymentExecutor.checkPaymentStatus(integration, paymentId);
   }
 }

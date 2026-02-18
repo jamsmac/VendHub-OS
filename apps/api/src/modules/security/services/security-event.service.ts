@@ -1,25 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThan } from 'typeorm';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
 import {
   SecurityEvent,
   SecurityEventType,
   SecuritySeverity,
-} from '../entities/security-event.entity';
-
-export interface LogSecurityEventDto {
-  eventType: SecurityEventType;
-  severity?: SecuritySeverity;
-  userId?: string;
-  organizationId?: string;
-  ipAddress?: string;
-  userAgent?: string;
-  resource?: string;
-  resourceId?: string;
-  description: string;
-  metadata?: Record<string, any>;
-  sessionId?: string;
-}
+} from "../entities/security-event.entity";
+import { LogSecurityEventDto } from "../dto/log-security-event.dto";
 
 @Injectable()
 export class SecurityEventService {
@@ -38,7 +25,10 @@ export class SecurityEventService {
 
     const saved = await this.securityEventRepository.save(event);
 
-    if (saved.severity === SecuritySeverity.HIGH || saved.severity === SecuritySeverity.CRITICAL) {
+    if (
+      saved.severity === SecuritySeverity.HIGH ||
+      saved.severity === SecuritySeverity.CRITICAL
+    ) {
       this.logger.warn(
         `Security event [${saved.severity}]: ${saved.eventType} - ${saved.description}`,
       );
@@ -52,34 +42,72 @@ export class SecurityEventService {
     userId?: string;
     eventType?: SecurityEventType;
     severity?: SecuritySeverity;
+    ipAddress?: string;
+    resource?: string;
+    resourceId?: string;
+    isResolved?: boolean;
     startDate?: Date;
     endDate?: Date;
     page?: number;
     limit?: number;
   }) {
-    const { page = 1, limit = 50, organizationId, userId, eventType, severity, startDate, endDate } = options;
+    const {
+      page = 1,
+      limit = 50,
+      organizationId,
+      userId,
+      eventType,
+      severity,
+      ipAddress,
+      resource,
+      resourceId,
+      isResolved,
+      startDate,
+      endDate,
+    } = options;
 
-    const query = this.securityEventRepository.createQueryBuilder('event');
+    const query = this.securityEventRepository.createQueryBuilder("event");
 
     if (organizationId) {
-      query.andWhere('event.organization_id = :organizationId', { organizationId });
+      query.andWhere("event.organizationId = :organizationId", {
+        organizationId,
+      });
     }
     if (userId) {
-      query.andWhere('event.user_id = :userId', { userId });
+      query.andWhere("event.userId = :userId", { userId });
     }
     if (eventType) {
-      query.andWhere('event.event_type = :eventType', { eventType });
+      query.andWhere("event.eventType = :eventType", { eventType });
     }
     if (severity) {
-      query.andWhere('event.severity = :severity', { severity });
+      query.andWhere("event.severity = :severity", { severity });
+    }
+    if (ipAddress) {
+      query.andWhere("event.ipAddress = :ipAddress", { ipAddress });
+    }
+    if (resource) {
+      query.andWhere("event.resource = :resource", { resource });
+    }
+    if (resourceId) {
+      query.andWhere("event.resourceId = :resourceId", { resourceId });
+    }
+    if (isResolved !== undefined) {
+      query.andWhere("event.isResolved = :isResolved", { isResolved });
     }
     if (startDate && endDate) {
-      query.andWhere('event.created_at BETWEEN :startDate AND :endDate', { startDate, endDate });
+      query.andWhere("event.created_at BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
+    } else if (startDate) {
+      query.andWhere("event.created_at >= :startDate", { startDate });
+    } else if (endDate) {
+      query.andWhere("event.created_at <= :endDate", { endDate });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('event.created_at', 'DESC');
+    query.orderBy("event.created_at", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -94,18 +122,25 @@ export class SecurityEventService {
     };
   }
 
-  async findByUser(userId: string, limit: number = 50): Promise<SecurityEvent[]> {
+  async findByUser(
+    userId: string,
+    limit: number = 50,
+  ): Promise<SecurityEvent[]> {
     return this.securityEventRepository.find({
       where: { userId },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
       take: limit,
     });
   }
 
-  async resolve(eventId: string, resolvedById: string, notes: string): Promise<SecurityEvent> {
+  async resolve(
+    eventId: string,
+    resolvedById: string,
+    notes: string,
+  ): Promise<SecurityEvent> {
     const event = await this.securityEventRepository.findOneBy({ id: eventId });
     if (!event) {
-      throw new Error('Security event not found');
+      throw new NotFoundException("Security event not found");
     }
 
     event.isResolved = true;
@@ -117,6 +152,7 @@ export class SecurityEventService {
   }
 
   async getUnresolvedCount(organizationId?: string): Promise<number> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { isResolved: false };
     if (organizationId) {
       where.organizationId = organizationId;
@@ -128,7 +164,7 @@ export class SecurityEventService {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - retentionDays);
 
-    const result = await this.securityEventRepository.delete({
+    const result = await this.securityEventRepository.softDelete({
       created_at: LessThan(cutoff),
       isResolved: true,
     });

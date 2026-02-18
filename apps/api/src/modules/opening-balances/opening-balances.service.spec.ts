@@ -1,13 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, ObjectLiteral } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { OpeningBalancesService } from './opening-balances.service';
-import { StockOpeningBalance } from './entities/stock-opening-balance.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { OpeningBalancesService } from "./opening-balances.service";
+import { StockOpeningBalance } from "./entities/stock-opening-balance.entity";
 
-type MockRepository<T extends ObjectLiteral> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-const createMockRepository = <T extends ObjectLiteral>(): MockRepository<T> => ({
+type MockRepository<T extends ObjectLiteral> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
+const createMockRepository = <
+  T extends ObjectLiteral,
+>(): MockRepository<T> => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
@@ -38,7 +42,7 @@ const createMockQueryBuilder = () => ({
   getRawOne: jest.fn(),
 });
 
-describe('OpeningBalancesService', () => {
+describe("OpeningBalancesService", () => {
   let service: OpeningBalancesService;
   let repository: MockRepository<StockOpeningBalance>;
   let eventEmitter: { emit: jest.Mock };
@@ -50,7 +54,10 @@ describe('OpeningBalancesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OpeningBalancesService,
-        { provide: getRepositoryToken(StockOpeningBalance), useValue: repository },
+        {
+          provide: getRepositoryToken(StockOpeningBalance),
+          useValue: repository,
+        },
         { provide: EventEmitter2, useValue: eventEmitter },
       ],
     }).compile();
@@ -58,7 +65,7 @@ describe('OpeningBalancesService', () => {
     service = module.get<OpeningBalancesService>(OpeningBalancesService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -66,59 +73,66 @@ describe('OpeningBalancesService', () => {
   // create
   // ==========================================================================
 
-  describe('create', () => {
+  describe("create", () => {
     const dto = {
-      productId: 'prod-1',
-      warehouseId: 'wh-1',
-      balanceDate: '2024-01-01',
+      productId: "prod-1",
+      warehouseId: "wh-1",
+      balanceDate: "2024-01-01",
       quantity: 100,
       unitCost: 15000,
-      unit: 'pcs',
+      unit: "pcs",
     };
 
-    it('should create an opening balance with calculated totalCost', async () => {
-      const created = { id: 'ob-1', ...dto, totalCost: 1500000 };
+    it("should create an opening balance with calculated totalCost", async () => {
+      const created = { id: "ob-1", ...dto, totalCost: 1500000 };
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      const result = await service.create('org-1', 'user-1', dto);
+      const result = await service.create("org-1", "user-1", dto);
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organizationId: 'org-1',
-          productId: 'prod-1',
+          organizationId: "org-1",
+          productId: "prod-1",
           quantity: 100,
           unitCost: 15000,
           totalCost: 1500000,
-          importSource: 'manual',
-          created_by_id: 'user-1',
+          importSource: "manual",
+          created_by_id: "user-1",
         }),
       );
-      expect(result.id).toBe('ob-1');
+      expect(result.id).toBe("ob-1");
     });
 
-    it('should use provided totalCost if supplied', async () => {
+    it("should use provided totalCost if supplied", async () => {
       const dtoWithTotal = { ...dto, totalCost: 999999 };
-      const created = { id: 'ob-2', ...dtoWithTotal };
+      const created = { id: "ob-2", ...dtoWithTotal };
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      await service.create('org-1', 'user-1', dtoWithTotal);
+      await service.create("org-1", "user-1", dtoWithTotal);
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ totalCost: 999999 }),
       );
     });
 
-    it('should default unit to pcs when not provided', async () => {
-      const dtoNoUnit = { productId: 'p-1', warehouseId: 'w-1', balanceDate: new Date(), quantity: 10, unitCost: 100 };
-      repository.create!.mockReturnValue({ id: 'ob-3' });
-      repository.save!.mockResolvedValue({ id: 'ob-3' });
+    it("should default unit to pcs when not provided", async () => {
+      const dtoNoUnit = {
+        productId: "p-1",
+        warehouseId: "w-1",
+        balanceDate: new Date(),
+        quantity: 10,
+        unitCost: 100,
+      };
+      repository.create!.mockReturnValue({ id: "ob-3" });
+      repository.save!.mockResolvedValue({ id: "ob-3" });
 
-      await service.create('org-1', 'user-1', dtoNoUnit as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.create("org-1", "user-1", dtoNoUnit as any);
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ unit: 'pcs' }),
+        expect.objectContaining({ unit: "pcs" }),
       );
     });
   });
@@ -127,36 +141,58 @@ describe('OpeningBalancesService', () => {
   // bulkCreate
   // ==========================================================================
 
-  describe('bulkCreate', () => {
-    it('should create multiple balances with shared import session ID', async () => {
+  describe("bulkCreate", () => {
+    it("should create multiple balances with shared import session ID", async () => {
       const dto = {
         balances: [
-          { productId: 'p-1', warehouseId: 'w-1', balanceDate: new Date(), quantity: 10, unitCost: 100 },
-          { productId: 'p-2', warehouseId: 'w-1', balanceDate: new Date(), quantity: 20, unitCost: 200 },
+          {
+            productId: "p-1",
+            warehouseId: "w-1",
+            balanceDate: new Date(),
+            quantity: 10,
+            unitCost: 100,
+          },
+          {
+            productId: "p-2",
+            warehouseId: "w-1",
+            balanceDate: new Date(),
+            quantity: 20,
+            unitCost: 200,
+          },
         ],
       };
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
-      const result = await service.bulkCreate('org-1', 'user-1', dto as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.bulkCreate("org-1", "user-1", dto as any);
 
       expect(result.created).toBe(2);
       expect(result.importSessionId).toBeDefined();
-      expect(typeof result.importSessionId).toBe('string');
+      expect(typeof result.importSessionId).toBe("string");
     });
 
-    it('should use import source from dto', async () => {
+    it("should use import source from dto", async () => {
       const dto = {
-        balances: [{ productId: 'p-1', warehouseId: 'w-1', balanceDate: new Date(), quantity: 5, unitCost: 50 }],
-        importSource: 'excel',
+        balances: [
+          {
+            productId: "p-1",
+            warehouseId: "w-1",
+            balanceDate: new Date(),
+            quantity: 5,
+            unitCost: 50,
+          },
+        ],
+        importSource: "excel",
       };
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
-      await service.bulkCreate('org-1', 'user-1', dto as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.bulkCreate("org-1", "user-1", dto as any);
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ importSource: 'excel' }),
+        expect.objectContaining({ importSource: "excel" }),
       );
     });
   });
@@ -165,14 +201,14 @@ describe('OpeningBalancesService', () => {
   // findAll
   // ==========================================================================
 
-  describe('findAll', () => {
-    it('should return paginated results', async () => {
+  describe("findAll", () => {
+    it("should return paginated results", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(50);
-      mockQb.getMany.mockResolvedValue([{ id: 'ob-1' }]);
+      mockQb.getMany.mockResolvedValue([{ id: "ob-1" }]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      const result = await service.findAll('org-1', { page: 2, limit: 10 });
+      const result = await service.findAll("org-1", { page: 2, limit: 10 });
 
       expect(result.total).toBe(50);
       expect(result.page).toBe(2);
@@ -181,26 +217,34 @@ describe('OpeningBalancesService', () => {
       expect(mockQb.take).toHaveBeenCalledWith(10);
     });
 
-    it('should filter by productId when provided', async () => {
+    it("should filter by productId when provided", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      await service.findAll('org-1', { productId: 'prod-1' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll("org-1", { productId: "prod-1" } as any);
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith('sob.productId = :productId', { productId: 'prod-1' });
+      expect(mockQb.andWhere).toHaveBeenCalledWith(
+        "sob.productId = :productId",
+        { productId: "prod-1" },
+      );
     });
 
-    it('should filter by isApplied when provided', async () => {
+    it("should filter by isApplied when provided", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getCount.mockResolvedValue(0);
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      await service.findAll('org-1', { isApplied: false } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await service.findAll("org-1", { isApplied: false } as any);
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith('sob.isApplied = :isApplied', { isApplied: false });
+      expect(mockQb.andWhere).toHaveBeenCalledWith(
+        "sob.isApplied = :isApplied",
+        { isApplied: false },
+      );
     });
   });
 
@@ -208,20 +252,22 @@ describe('OpeningBalancesService', () => {
   // findById
   // ==========================================================================
 
-  describe('findById', () => {
-    it('should return balance when found', async () => {
-      const balance = { id: 'ob-1', productId: 'p-1' };
+  describe("findById", () => {
+    it("should return balance when found", async () => {
+      const balance = { id: "ob-1", productId: "p-1" };
       repository.findOne!.mockResolvedValue(balance);
 
-      const result = await service.findById('ob-1');
+      const result = await service.findById("ob-1");
 
       expect(result).toEqual(balance);
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it("should throw NotFoundException when not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.findById('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.findById("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -229,10 +275,10 @@ describe('OpeningBalancesService', () => {
   // update
   // ==========================================================================
 
-  describe('update', () => {
-    it('should update an unapplied balance', async () => {
+  describe("update", () => {
+    it("should update an unapplied balance", async () => {
       const balance = {
-        id: 'ob-1',
+        id: "ob-1",
         isApplied: false,
         quantity: 100,
         unitCost: 15000,
@@ -241,24 +287,32 @@ describe('OpeningBalancesService', () => {
       repository.findOne!.mockResolvedValue(balance);
       repository.save!.mockImplementation((b) => Promise.resolve(b));
 
-      const result = await service.update('ob-1', { quantity: 200 });
+      const result = await service.update("ob-1", { quantity: 200 });
 
       expect(result.quantity).toBe(200);
     });
 
-    it('should throw BadRequestException when updating an applied balance', async () => {
-      const balance = { id: 'ob-1', isApplied: true };
+    it("should throw BadRequestException when updating an applied balance", async () => {
+      const balance = { id: "ob-1", isApplied: true };
       repository.findOne!.mockResolvedValue(balance);
 
-      await expect(service.update('ob-1', { quantity: 200 })).rejects.toThrow(BadRequestException);
+      await expect(service.update("ob-1", { quantity: 200 })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
-    it('should recalculate totalCost when quantity or unitCost changes', async () => {
-      const balance = { id: 'ob-1', isApplied: false, quantity: 10, unitCost: 100, totalCost: 1000 };
+    it("should recalculate totalCost when quantity or unitCost changes", async () => {
+      const balance = {
+        id: "ob-1",
+        isApplied: false,
+        quantity: 10,
+        unitCost: 100,
+        totalCost: 1000,
+      };
       repository.findOne!.mockResolvedValue(balance);
       repository.save!.mockImplementation((b) => Promise.resolve(b));
 
-      const result = await service.update('ob-1', { quantity: 20 });
+      const result = await service.update("ob-1", { quantity: 20 });
 
       // totalCost = 20 * 100 = 2000
       expect(result.totalCost).toBe(2000);
@@ -269,14 +323,14 @@ describe('OpeningBalancesService', () => {
   // apply
   // ==========================================================================
 
-  describe('apply', () => {
-    it('should apply an unapplied balance and emit event', async () => {
+  describe("apply", () => {
+    it("should apply an unapplied balance and emit event", async () => {
       const balance = {
-        id: 'ob-1',
+        id: "ob-1",
         isApplied: false,
-        organizationId: 'org-1',
-        productId: 'p-1',
-        warehouseId: 'w-1',
+        organizationId: "org-1",
+        productId: "p-1",
+        warehouseId: "w-1",
         quantity: 10,
         unitCost: 100,
         totalCost: 1000,
@@ -284,22 +338,24 @@ describe('OpeningBalancesService', () => {
       repository.findOne!.mockResolvedValue(balance);
       repository.save!.mockImplementation((b) => Promise.resolve(b));
 
-      const result = await service.apply('ob-1', 'user-1');
+      const result = await service.apply("ob-1", "user-1");
 
       expect(result.isApplied).toBe(true);
-      expect(result.appliedByUserId).toBe('user-1');
+      expect(result.appliedByUserId).toBe("user-1");
       expect(result.appliedAt).toBeInstanceOf(Date);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'opening-balance.applied',
-        expect.objectContaining({ id: 'ob-1', appliedByUserId: 'user-1' }),
+        "opening-balance.applied",
+        expect.objectContaining({ id: "ob-1", appliedByUserId: "user-1" }),
       );
     });
 
-    it('should throw BadRequestException when already applied', async () => {
-      const balance = { id: 'ob-1', isApplied: true };
+    it("should throw BadRequestException when already applied", async () => {
+      const balance = { id: "ob-1", isApplied: true };
       repository.findOne!.mockResolvedValue(balance);
 
-      await expect(service.apply('ob-1', 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.apply("ob-1", "user-1")).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -307,25 +363,49 @@ describe('OpeningBalancesService', () => {
   // applyAll
   // ==========================================================================
 
-  describe('applyAll', () => {
-    it('should apply all unapplied balances for a date', async () => {
+  describe("applyAll", () => {
+    it("should apply all unapplied balances for a date", async () => {
       const balances = [
-        { id: 'ob-1', isApplied: false, organizationId: 'org-1', productId: 'p-1', warehouseId: 'w-1', quantity: 10, unitCost: 100, totalCost: 1000 },
-        { id: 'ob-2', isApplied: false, organizationId: 'org-1', productId: 'p-2', warehouseId: 'w-1', quantity: 5, unitCost: 50, totalCost: 250 },
+        {
+          id: "ob-1",
+          isApplied: false,
+          organizationId: "org-1",
+          productId: "p-1",
+          warehouseId: "w-1",
+          quantity: 10,
+          unitCost: 100,
+          totalCost: 1000,
+        },
+        {
+          id: "ob-2",
+          isApplied: false,
+          organizationId: "org-1",
+          productId: "p-2",
+          warehouseId: "w-1",
+          quantity: 5,
+          unitCost: 50,
+          totalCost: 250,
+        },
       ];
       repository.find!.mockResolvedValue(balances);
       repository.save!.mockResolvedValue(balances);
 
-      const result = await service.applyAll('org-1', 'user-1', { balanceDate: '2024-01-01' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.applyAll("org-1", "user-1", {
+        balanceDate: "2024-01-01",
+      } as any);
 
       expect(result.applied).toBe(2);
       expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
     });
 
-    it('should return applied=0 when no balances found', async () => {
+    it("should return applied=0 when no balances found", async () => {
       repository.find!.mockResolvedValue([]);
 
-      const result = await service.applyAll('org-1', 'user-1', { balanceDate: '2024-01-01' } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await service.applyAll("org-1", "user-1", {
+        balanceDate: "2024-01-01",
+      } as any);
 
       expect(result.applied).toBe(0);
     });
@@ -335,28 +415,30 @@ describe('OpeningBalancesService', () => {
   // remove
   // ==========================================================================
 
-  describe('remove', () => {
-    it('should soft-delete an unapplied balance', async () => {
-      const balance = { id: 'ob-1', isApplied: false };
+  describe("remove", () => {
+    it("should soft-delete an unapplied balance", async () => {
+      const balance = { id: "ob-1", isApplied: false };
       repository.findOne!.mockResolvedValue(balance);
       repository.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.remove('ob-1');
+      await service.remove("ob-1");
 
-      expect(repository.softDelete).toHaveBeenCalledWith('ob-1');
+      expect(repository.softDelete).toHaveBeenCalledWith("ob-1");
     });
 
-    it('should throw BadRequestException when deleting an applied balance', async () => {
-      const balance = { id: 'ob-1', isApplied: true };
+    it("should throw BadRequestException when deleting an applied balance", async () => {
+      const balance = { id: "ob-1", isApplied: true };
       repository.findOne!.mockResolvedValue(balance);
 
-      await expect(service.remove('ob-1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove("ob-1")).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw NotFoundException when balance not found', async () => {
+    it("should throw NotFoundException when balance not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.remove("non-existent")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -364,18 +446,18 @@ describe('OpeningBalancesService', () => {
   // getStats
   // ==========================================================================
 
-  describe('getStats', () => {
-    it('should return parsed statistics', async () => {
+  describe("getStats", () => {
+    it("should return parsed statistics", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getRawOne.mockResolvedValue({
-        total: '100',
-        applied: '60',
-        pending: '40',
-        totalValue: '5000000.00',
+        total: "100",
+        applied: "60",
+        pending: "40",
+        totalValue: "5000000.00",
       });
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      const result = await service.getStats('org-1');
+      const result = await service.getStats("org-1");
 
       expect(result.total).toBe(100);
       expect(result.applied).toBe(60);
@@ -383,12 +465,12 @@ describe('OpeningBalancesService', () => {
       expect(result.totalValue).toBe(5000000);
     });
 
-    it('should return zeros when no data', async () => {
+    it("should return zeros when no data", async () => {
       const mockQb = createMockQueryBuilder();
       mockQb.getRawOne.mockResolvedValue(null);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      const result = await service.getStats('org-1');
+      const result = await service.getStats("org-1");
 
       expect(result.total).toBe(0);
       expect(result.applied).toBe(0);
