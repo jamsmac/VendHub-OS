@@ -121,7 +121,7 @@ export function ClientHomeScreen({ navigation }: Props) {
           <QuickActionButton
             icon="qr-code"
             label="QR Scan"
-            onPress={() => Alert.alert("QR Scanner", "Coming soon!")}
+            onPress={() => navigation.navigate("BarcodeScan")}
           />
           <QuickActionButton
             icon="heart"

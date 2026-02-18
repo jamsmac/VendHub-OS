@@ -48,8 +48,8 @@ export function HomeScreen() {
     queryFn: () => tasksApi.getMy().then((res) => res.data.data),
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const activeTasks =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myTasks?.filter((t: any) => ["assigned", "in_progress"].includes(t.status))
       .length || 0;
 
@@ -93,7 +93,7 @@ export function HomeScreen() {
     {
       title: "Сканировать QR",
       icon: "qr-code-outline",
-      onPress: () => {},
+      onPress: () => navigation.navigate("BarcodeScan"),
     },
     {
       title: "Уведомления",

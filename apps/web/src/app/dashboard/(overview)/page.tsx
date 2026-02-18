@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
@@ -78,87 +77,16 @@ interface DashboardData {
 }
 
 // ---------------------------------------------------------------------------
-// Mock chart data generators (used until real API endpoints exist)
+// Empty data defaults (shown when API has not returned data yet)
 // ---------------------------------------------------------------------------
 
-function generateRevenueTrend(): { date: string; revenue: number }[] {
-  const data: { date: string; revenue: number }[] = [];
-  const now = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    data.push({
-      date: d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }),
-      revenue: Math.round(1_000_000 + Math.random() * 4_000_000),
-    });
-  }
-  return data;
-}
-
-function generatePaymentMethods(): { name: string; value: number }[] {
-  return [
-    { name: "Payme", value: 42 },
-    { name: "Click", value: 28 },
-    { name: "Uzum", value: 15 },
-    { name: "Наличные", value: 10 },
-    { name: "Другое", value: 5 },
-  ];
-}
-
-function generateTopMachines(): { name: string; revenue: number }[] {
-  return [
-    { name: "КМ-001 Чиланзар", revenue: 4_850_000 },
-    { name: "КМ-005 Сергели", revenue: 3_720_000 },
-    { name: "КМ-012 М.Улугбек", revenue: 3_150_000 },
-    { name: "КМ-008 Юнусабад", revenue: 2_980_000 },
-    { name: "КМ-003 Яккасарай", revenue: 2_540_000 },
-  ];
-}
-
-function generateRecentTransactions(): DashboardData["recentTransactions"] {
-  return [
-    {
-      id: "1",
-      time: "10:32",
-      type: "Payme",
-      machineName: "КМ-001 Чиланзар",
-      amount: 35_000,
-      status: "completed",
-    },
-    {
-      id: "2",
-      time: "10:28",
-      type: "Click",
-      machineName: "КМ-005 Сергели",
-      amount: 28_000,
-      status: "completed",
-    },
-    {
-      id: "3",
-      time: "10:21",
-      type: "Наличные",
-      machineName: "КМ-012 М.Улугбек",
-      amount: 42_000,
-      status: "pending",
-    },
-    {
-      id: "4",
-      time: "10:15",
-      type: "Uzum",
-      machineName: "КМ-003 Яккасарай",
-      amount: 15_000,
-      status: "completed",
-    },
-    {
-      id: "5",
-      time: "10:09",
-      type: "Payme",
-      machineName: "КМ-008 Юнусабад",
-      amount: 56_000,
-      status: "completed",
-    },
-  ];
-}
+const EMPTY_DASHBOARD: DashboardData = {
+  revenue: { today: 0, yesterday: 0, changePercent: 0 },
+  transactions: { today: 0, yesterday: 0, changePercent: 0 },
+  machines: { total: 0, active: 0 },
+  tasks: { completedToday: 0 },
+  recentTransactions: [],
+};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -313,22 +241,18 @@ export default function DashboardOverviewPage() {
     select: (res) => res.data as DashboardData | undefined,
   });
 
-  // Chart data (memoised; will be replaced with real API data later)
-  const revenueTrend = useMemo(() => generateRevenueTrend(), []);
-  const paymentMethods = useMemo(() => generatePaymentMethods(), []);
-  const topMachines = useMemo(() => generateTopMachines(), []);
+  // Use API data or empty defaults (no fake mock data)
+  const dashboard = apiResponse ?? EMPTY_DASHBOARD;
 
-  // Merge API response with fallback mock values so the page always renders
-  const dashboard = useMemo<DashboardData>(() => {
-    if (apiResponse) return apiResponse;
-    return {
-      revenue: { today: 4_850_000, yesterday: 4_320_000, changePercent: 12.3 },
-      transactions: { today: 156, yesterday: 142, changePercent: 9.9 },
-      machines: { total: 45, active: 38 },
-      tasks: { completedToday: 14 },
-      recentTransactions: generateRecentTransactions(),
-    };
-  }, [apiResponse]);
+  // Chart data from API response (empty arrays when no data)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const apiData = (apiResponse as any) ?? {};
+  const revenueTrend: { date: string; revenue: number }[] =
+    apiData.revenueTrend ?? [];
+  const paymentMethods: { name: string; value: number }[] =
+    apiData.paymentMethods ?? [];
+  const topMachines: { name: string; revenue: number }[] =
+    apiData.topMachines ?? [];
 
   // -----------------------------------------------------------------------
   // Loading state
@@ -428,9 +352,12 @@ export default function DashboardOverviewPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(
-                (dashboard.machines.active / dashboard.machines.total) * 100,
-              )}
+              {dashboard.machines.total > 0
+                ? Math.round(
+                    (dashboard.machines.active / dashboard.machines.total) *
+                      100,
+                  )
+                : 0}
               % онлайн
             </p>
           </CardContent>
@@ -462,48 +389,54 @@ export default function DashboardOverviewPage() {
           <CardDescription>Ежедневный тренд выручки в UZS</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={revenueTrend}
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-            >
-              <defs>
-                <linearGradient
-                  id="revenueGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-                tickFormatter={formatShortUZS}
-                width={50}
-              />
-              <Tooltip content={<RevenueTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 5, strokeWidth: 0 }}
-                fill="url(#revenueGradient)"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {revenueTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={revenueTrend}
+                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              >
+                <defs>
+                  <linearGradient
+                    id="revenueGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                  tickFormatter={formatShortUZS}
+                  width={50}
+                />
+                <Tooltip content={<RevenueTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  fill="url(#revenueGradient)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              Нет данных за период
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -518,41 +451,47 @@ export default function DashboardOverviewPage() {
             <CardDescription>Распределение по методам оплаты</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={paymentMethods}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={4}
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, value }) => `${name} ${value}%`}
-                  labelLine={false}
-                >
-                  {paymentMethods.map((_entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={PIE_COLORS[index % PIE_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip content={<PieTooltip />} />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(value: string) => (
-                    <span className="text-xs text-muted-foreground">
-                      {value}
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {paymentMethods.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={paymentMethods}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={4}
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, value }) => `${name} ${value}%`}
+                    labelLine={false}
+                  >
+                    {paymentMethods.map((_entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={PIE_COLORS[index % PIE_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    iconSize={8}
+                    formatter={(value: string) => (
+                      <span className="text-xs text-muted-foreground">
+                        {value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                Нет данных
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -565,39 +504,45 @@ export default function DashboardOverviewPage() {
             <CardDescription>5 лучших за текущий месяц</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart
-                data={topMachines}
-                layout="vertical"
-                margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-muted"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                  tickFormatter={formatShortUZS}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 11 }}
-                  className="text-muted-foreground"
-                  width={110}
-                />
-                <Tooltip content={<BarTooltip />} />
-                <Bar
-                  dataKey="revenue"
-                  fill="#3b82f6"
-                  radius={[0, 4, 4, 0]}
-                  barSize={24}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {topMachines.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={topMachines}
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                    horizontal={false}
+                  />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                    tickFormatter={formatShortUZS}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 11 }}
+                    className="text-muted-foreground"
+                    width={110}
+                  />
+                  <Tooltip content={<BarTooltip />} />
+                  <Bar
+                    dataKey="revenue"
+                    fill="#3b82f6"
+                    radius={[0, 4, 4, 0]}
+                    barSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                Нет данных
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -622,26 +567,37 @@ export default function DashboardOverviewPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dashboard.recentTransactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-sm">{tx.time}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm">{tx.type}</TableCell>
-                  <TableCell className="text-sm font-medium">
-                    {tx.machineName}
-                  </TableCell>
-                  <TableCell className="text-sm text-right">
-                    {formatUZS(tx.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <StatusBadge status={tx.status} />
+              {dashboard.recentTransactions.length > 0 ? (
+                dashboard.recentTransactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-sm">{tx.time}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{tx.type}</TableCell>
+                    <TableCell className="text-sm font-medium">
+                      {tx.machineName}
+                    </TableCell>
+                    <TableCell className="text-sm text-right">
+                      {formatUZS(tx.amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StatusBadge status={tx.status} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-muted-foreground py-8"
+                  >
+                    Нет транзакций за сегодня
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

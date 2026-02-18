@@ -3,7 +3,7 @@
 # Prometheus + Grafana + Alertmanager + Loki
 # ==================================================
 
-version: '3.8'
+version: "3.8"
 
 services:
   # ============================================
@@ -14,14 +14,14 @@ services:
     container_name: vendhub-prometheus
     restart: unless-stopped
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--storage.tsdb.retention.size=10GB'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=10GB"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+      - "--web.enable-admin-api"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./alert-rules.yml:/etc/prometheus/rules/alert-rules.yml:ro
@@ -44,9 +44,9 @@ services:
     container_name: vendhub-alertmanager
     restart: unless-stopped
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=http://localhost:9093"
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
@@ -132,10 +132,10 @@ services:
     container_name: vendhub-node-exporter
     restart: unless-stopped
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -187,6 +187,7 @@ services:
     restart: unless-stopped
     environment:
       - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
       - "9121:9121"
     networks:
