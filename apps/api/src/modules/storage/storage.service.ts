@@ -12,17 +12,16 @@ import {
 import { ConfigService } from "@nestjs/config";
 // AWS SDK is optional - provide mock types if not installed
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 let S3Client: any,
   PutObjectCommand: any,
   GetObjectCommand: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   DeleteObjectCommand: any,
   ListObjectsV2Command: any,
   CopyObjectCommand: any,
   HeadObjectCommand: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let getSignedUrl: any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 try {
   const s3Module = require("@aws-sdk/client-s3");
@@ -166,6 +165,19 @@ export class StorageService {
   /**
    * Upload base64 encoded file
    */
+  // Dangerous MIME types that should never be uploaded
+  private readonly blockedMimeTypes = [
+    "application/x-executable",
+    "application/x-sharedlib",
+    "application/x-shellscript",
+    "application/x-msdos-program",
+    "application/x-msdownload",
+    "application/vnd.microsoft.portable-executable",
+    "text/html",
+    "application/javascript",
+    "text/javascript",
+  ];
+
   async uploadBase64(
     organizationId: string,
     folder: string,
@@ -180,6 +192,14 @@ export class StorageService {
     }
 
     const mimeType = matches[1];
+
+    // Block dangerous MIME types
+    if (this.blockedMimeTypes.includes(mimeType)) {
+      throw new BadRequestException(
+        `MIME type ${mimeType} is not allowed for upload`,
+      );
+    }
+
     const buffer = Buffer.from(matches[2], "base64");
 
     return this.uploadFile(organizationId, folder, fileName, buffer, mimeType);

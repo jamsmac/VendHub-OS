@@ -12,8 +12,10 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log to error reporting service in production
-    console.error("Global error:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Global error:", error);
+    }
+    // TODO: Send to Sentry in production via Sentry.captureException(error)
   }, [error]);
 
   return (

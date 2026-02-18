@@ -31,6 +31,7 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 
+import { BadRequestException } from "@nestjs/common";
 import {
   StorageService,
   UploadResult,
@@ -42,7 +43,7 @@ import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 
-import { UploadFileDto } from "./dto/upload-file.dto";
+import { UploadFileDto, FileCategory } from "./dto/upload-file.dto";
 import { UploadBase64Dto } from "./dto/upload-base64.dto";
 import { PresignedUploadDto } from "./dto/presigned-upload.dto";
 import { PresignedDownloadQueryDto } from "./dto/presigned-download-query.dto";
@@ -91,13 +92,25 @@ export class StorageController {
       throw new Error("No file provided");
     }
 
+    // Validate MIME type against category allowlist
+    const category = dto.category || FileCategory.ANY;
+    if (dto.category && dto.category !== FileCategory.ANY) {
+      const allowed = this.storageService.getAllowedMimeTypes(dto.category);
+      if (allowed.length > 0 && !allowed.includes(file.mimetype)) {
+        throw new BadRequestException(
+          `MIME type ${file.mimetype} not allowed for category ${dto.category}`,
+        );
+      }
+    }
+
     // Validate file size
-    const category = dto.category || "default";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!this.storageService.validateFileSize(file.size, category as any)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const maxSize = this.storageService.getMaxFileSize(category as any);
-      throw new Error(
+    const sizeCategory =
+      category === FileCategory.ANY
+        ? "default"
+        : (category as "image" | "document" | "spreadsheet" | "default");
+    if (!this.storageService.validateFileSize(file.size, sizeCategory)) {
+      const maxSize = this.storageService.getMaxFileSize(sizeCategory);
+      throw new BadRequestException(
         `File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`,
       );
     }
@@ -172,9 +185,11 @@ export class StorageController {
   ): Promise<StreamableFile> {
     const { buffer, contentType } = await this.storageService.getFile(key);
 
+    const rawName = key.split("/").pop() || "download";
+    const sanitizedName = rawName.replace(/[^a-zA-Z0-9._-]/g, "_");
     res.set({
       "Content-Type": contentType,
-      "Content-Disposition": `attachment; filename="${key.split("/").pop()}"`,
+      "Content-Disposition": `attachment; filename="${sanitizedName}"`,
     });
 
     return new StreamableFile(buffer);
