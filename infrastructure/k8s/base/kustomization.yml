@@ -19,6 +19,7 @@ resources:
   - site-deployment.yml
   - ingress.yml
   - network-policies.yml
+  - backup-cronjob.yml
 
 commonLabels:
   app.kubernetes.io/name: vendhub

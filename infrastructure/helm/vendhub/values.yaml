@@ -143,7 +143,7 @@ client:
 # ============================================
 bot:
   enabled: true
-  replicaCount: 1  # Single replica for webhook
+  replicaCount: 1 # Single replica for webhook
 
   image:
     repository: vendhub/bot
@@ -164,6 +164,30 @@ bot:
 
   env:
     WEBHOOK_PATH: /webhook
+
+# ============================================
+# Site (Landing Page) Configuration
+# ============================================
+site:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: vendhub/site
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3100
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 # ============================================
 # Ingress Configuration
@@ -246,7 +270,7 @@ redis:
         memory: 1Gi
 
   replica:
-    replicaCount: 0  # Disable replicas for simplicity
+    replicaCount: 0 # Disable replicas for simplicity
 
   metrics:
     enabled: true
@@ -258,7 +282,7 @@ redis:
 # ============================================
 secrets:
   # Database
-  databaseUrl: ""  # Will be constructed from postgresql values
+  databaseUrl: "" # Will be constructed from postgresql values
 
   # JWT
   jwtSecret: ""
@@ -300,7 +324,7 @@ monitoring:
 backup:
   enabled: false
 
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  schedule: "0 2 * * *" # Daily at 2 AM
 
   retention:
     days: 30
@@ -315,4 +339,4 @@ backup:
 # Ingress-nginx (subchart)
 # ============================================
 ingress-nginx:
-  enabled: false  # Usually already installed in cluster
+  enabled: false # Usually already installed in cluster

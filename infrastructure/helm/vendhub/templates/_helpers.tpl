@@ -101,6 +101,19 @@ app.kubernetes.io/component: bot
 {{- end }}
 
 {{/*
+Site labels
+*/}}
+{{- define "vendhub.site.labels" -}}
+{{ include "vendhub.labels" . }}
+app.kubernetes.io/component: site
+{{- end }}
+
+{{- define "vendhub.site.selectorLabels" -}}
+{{ include "vendhub.selectorLabels" . }}
+app.kubernetes.io/component: site
+{{- end }}
+
+{{/*
 Create the name of the service account
 */}}
 {{- define "vendhub.serviceAccountName" -}}

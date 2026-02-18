@@ -119,6 +119,11 @@ jobs:
         env:
           VITE_API_URL: http://localhost:4000
 
+      - name: Build Site (Landing Page)
+        run: pnpm --filter @vendhub/site build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -127,6 +132,7 @@ jobs:
             apps/api/dist
             apps/web/.next
             apps/client/dist
+            apps/site/.next
           retention-days: 7
 
   # ========================================
@@ -432,6 +438,26 @@ jobs:
           push: true
           tags: ${{ steps.meta-bot.outputs.tags }}
           labels: ${{ steps.meta-bot.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for Site
+        id: meta-site
+        uses: docker/metadata-action@v5
+        with:
+          images: vendhub/site
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+
+      - name: Build and push Site image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/site/Dockerfile
+          push: true
+          tags: ${{ steps.meta-site.outputs.tags }}
+          labels: ${{ steps.meta-site.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

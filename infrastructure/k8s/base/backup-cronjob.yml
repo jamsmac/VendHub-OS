@@ -1,0 +1,156 @@
+# ==================================================
+# VendHub PostgreSQL Backup CronJob
+# ==================================================
+# Runs daily at 02:00 UTC. Backs up to MinIO/S3.
+# Retains 30 daily + 12 weekly + 6 monthly backups.
+#
+# Manual trigger:
+#   kubectl create job --from=cronjob/postgres-backup manual-backup-$(date +%s) -n vendhub
+#
+# Restore:
+#   kubectl exec -it postgres-0 -n vendhub -- bash
+#   mc cp minio/vendhub-backups/daily/backup-YYYY-MM-DD.sql.gz /tmp/
+#   gunzip /tmp/backup-*.sql.gz
+#   psql -U $POSTGRES_USER -d $POSTGRES_DB < /tmp/backup-*.sql
+# ==================================================
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: vendhub
+  labels:
+    app: postgres-backup
+    tier: infrastructure
+spec:
+  schedule: "0 2 * * *" # Daily at 02:00 UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3600 # 1 hour max
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            fsGroup: 1001
+          restartPolicy: OnFailure
+
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+
+                  TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+                  DAY_OF_WEEK=$(date +%u)
+                  DAY_OF_MONTH=$(date +%d)
+                  BACKUP_FILE="vendhub-${TIMESTAMP}.sql.gz"
+
+                  echo "[$(date)] Starting PostgreSQL backup..."
+
+                  # Create backup with pg_dump
+                  PGPASSWORD="${DB_PASSWORD}" pg_dump \
+                    -h "${DB_HOST}" \
+                    -p "${DB_PORT}" \
+                    -U "${DB_USERNAME}" \
+                    -d "${DB_NAME}" \
+                    --format=custom \
+                    --compress=9 \
+                    --verbose \
+                    --file="/tmp/${BACKUP_FILE}"
+
+                  BACKUP_SIZE=$(du -h "/tmp/${BACKUP_FILE}" | cut -f1)
+                  echo "[$(date)] Backup created: ${BACKUP_FILE} (${BACKUP_SIZE})"
+
+                  # Install MinIO client
+                  wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
+                  chmod +x /usr/local/bin/mc
+
+                  # Configure MinIO client
+                  mc alias set minio \
+                    "http://${STORAGE_ENDPOINT}" \
+                    "${STORAGE_ACCESS_KEY}" \
+                    "${STORAGE_SECRET_KEY}" \
+                    --api S3v4
+
+                  # Ensure bucket exists
+                  mc mb --ignore-existing minio/vendhub-backups
+
+                  # Upload daily backup
+                  mc cp "/tmp/${BACKUP_FILE}" "minio/vendhub-backups/daily/${BACKUP_FILE}"
+                  echo "[$(date)] Uploaded to daily/"
+
+                  # Weekly backup (every Sunday)
+                  if [ "$DAY_OF_WEEK" = "7" ]; then
+                    mc cp "/tmp/${BACKUP_FILE}" "minio/vendhub-backups/weekly/${BACKUP_FILE}"
+                    echo "[$(date)] Uploaded to weekly/"
+                  fi
+
+                  # Monthly backup (1st of month)
+                  if [ "$DAY_OF_MONTH" = "01" ]; then
+                    mc cp "/tmp/${BACKUP_FILE}" "minio/vendhub-backups/monthly/${BACKUP_FILE}"
+                    echo "[$(date)] Uploaded to monthly/"
+                  fi
+
+                  # Cleanup old backups: 30 daily, 12 weekly, 6 monthly
+                  echo "[$(date)] Cleaning up old backups..."
+                  mc ls minio/vendhub-backups/daily/ | sort -r | tail -n +31 | awk '{print $NF}' | \
+                    xargs -I{} mc rm "minio/vendhub-backups/daily/{}" 2>/dev/null || true
+                  mc ls minio/vendhub-backups/weekly/ | sort -r | tail -n +13 | awk '{print $NF}' | \
+                    xargs -I{} mc rm "minio/vendhub-backups/weekly/{}" 2>/dev/null || true
+                  mc ls minio/vendhub-backups/monthly/ | sort -r | tail -n +7 | awk '{print $NF}' | \
+                    xargs -I{} mc rm "minio/vendhub-backups/monthly/{}" 2>/dev/null || true
+
+                  echo "[$(date)] Backup completed successfully!"
+
+              env:
+                - name: DB_HOST
+                  value: "postgres"
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_NAME
+                  value: "vendhub"
+                - name: DB_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+                - name: STORAGE_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: vendhub-config
+                      key: STORAGE_ENDPOINT
+                - name: STORAGE_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: vendhub-secrets
+                      key: STORAGE_ACCESS_KEY
+                - name: STORAGE_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: vendhub-secrets
+                      key: STORAGE_SECRET_KEY
+
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"

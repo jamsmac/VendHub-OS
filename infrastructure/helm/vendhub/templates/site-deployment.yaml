@@ -1,0 +1,87 @@
+{{- if .Values.site.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vendhub.fullname" . }}-site
+  labels:
+    {{- include "vendhub.site.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.site.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vendhub.site.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        {{- include "vendhub.site.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "vendhub.imagePullSecrets" . | nindent 6 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: site
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.site.image.repository }}:{{ .Values.site.image.tag }}"
+          imagePullPolicy: {{ .Values.site.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3100
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3100"
+          resources:
+            {{- toYaml .Values.site.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vendhub.fullname" . }}-site
+  labels:
+    {{- include "vendhub.site.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3100
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "vendhub.site.selectorLabels" . | nindent 4 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "vendhub.fullname" . }}-site
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "vendhub.site.selectorLabels" . | nindent 6 }}
+{{- end }}
