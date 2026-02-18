@@ -2,8 +2,8 @@
  * Global State Management with Zustand
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 // ============================================
 // Cart Store
@@ -12,7 +12,7 @@ import { persist } from 'zustand/middleware';
 export interface CartItem {
   id: string;
   productId: string;
-  name: string;
+  productName: string;
   price: number;
   quantity: number;
   imageUrl?: string;
@@ -32,7 +32,7 @@ interface CartState {
 
   // Actions
   setMachine: (machine: CartMachine) => void;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
+  addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -67,12 +67,15 @@ export const useCartStore = create<CartState>()(
             items: items.map((i) =>
               i.productId === item.productId
                 ? { ...i, quantity: i.quantity + 1 }
-                : i
+                : i,
             ),
           });
         } else {
           set({
-            items: [...items, { ...item, id: crypto.randomUUID(), quantity: 1 }],
+            items: [
+              ...items,
+              { ...item, id: crypto.randomUUID(), quantity: 1 },
+            ],
           });
         }
       },
@@ -88,7 +91,7 @@ export const useCartStore = create<CartState>()(
         }
         set({
           items: get().items.map((i) =>
-            i.id === itemId ? { ...i, quantity: Math.min(quantity, 10) } : i
+            i.id === itemId ? { ...i, quantity: Math.min(quantity, 10) } : i,
           ),
         });
       },
@@ -104,18 +107,18 @@ export const useCartStore = create<CartState>()(
       getSubtotal: () => {
         return get().items.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
       },
     }),
     {
-      name: 'vendhub-cart',
+      name: "vendhub-cart",
       partialize: (state) => ({
         items: state.items,
         machine: state.machine,
       }),
-    }
-  )
+    },
+  ),
 );
 
 // ============================================
@@ -165,13 +168,13 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: 'vendhub-user',
+      name: "vendhub-user",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );
 
 // ============================================
@@ -179,38 +182,40 @@ export const useUserStore = create<UserState>()(
 // ============================================
 
 interface UIState {
-  theme: 'light' | 'dark' | 'system';
-  language: 'ru' | 'uz' | 'en';
+  theme: "light" | "dark" | "system";
+  language: "ru" | "uz" | "en";
   notificationsEnabled: boolean;
 
   // Actions
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
-  setLanguage: (language: 'ru' | 'uz' | 'en') => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
+  setLanguage: (language: "ru" | "uz" | "en") => void;
   setNotifications: (enabled: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
-      theme: 'system',
-      language: 'ru',
+      theme: "system",
+      language: "ru",
       notificationsEnabled: true,
 
       setTheme: (theme) => {
         set({ theme });
         // Apply theme
-        if (theme === 'system') {
-          const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.documentElement.classList.toggle('dark', systemDark);
+        if (theme === "system") {
+          const systemDark = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+          ).matches;
+          document.documentElement.classList.toggle("dark", systemDark);
         } else {
-          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.classList.toggle("dark", theme === "dark");
         }
       },
 
       setLanguage: (language) => {
         set({ language });
         // Sync with i18next
-        import('../i18n').then((mod) => mod.default.changeLanguage(language));
+        import("../i18n").then((mod) => mod.default.changeLanguage(language));
       },
 
       setNotifications: (notificationsEnabled) => {
@@ -218,9 +223,9 @@ export const useUIStore = create<UIState>()(
       },
     }),
     {
-      name: 'vendhub-ui',
-    }
-  )
+      name: "vendhub-ui",
+    },
+  ),
 );
 
 // ============================================
@@ -236,7 +241,9 @@ interface GeolocationState {
   isLoading: boolean;
 
   // Actions
-  setPosition: (position: { latitude: number; longitude: number } | null) => void;
+  setPosition: (
+    position: { latitude: number; longitude: number } | null,
+  ) => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   requestLocation: () => void;
@@ -263,7 +270,7 @@ export const useGeolocationStore = create<GeolocationState>((set) => ({
     set({ isLoading: true, error: null });
 
     if (!navigator.geolocation) {
-      set({ error: 'Геолокация не поддерживается', isLoading: false });
+      set({ error: "Геолокация не поддерживается", isLoading: false });
       return;
     }
 
@@ -278,16 +285,16 @@ export const useGeolocationStore = create<GeolocationState>((set) => ({
         });
       },
       (err) => {
-        let errorMessage = 'Ошибка геолокации';
+        let errorMessage = "Ошибка геолокации";
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            errorMessage = 'Доступ к геолокации запрещён';
+            errorMessage = "Доступ к геолокации запрещён";
             break;
           case err.POSITION_UNAVAILABLE:
-            errorMessage = 'Местоположение недоступно';
+            errorMessage = "Местоположение недоступно";
             break;
           case err.TIMEOUT:
-            errorMessage = 'Время ожидания истекло';
+            errorMessage = "Время ожидания истекло";
             break;
         }
         set({ error: errorMessage, isLoading: false });
@@ -296,7 +303,7 @@ export const useGeolocationStore = create<GeolocationState>((set) => ({
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000,
-      }
+      },
     );
   },
 }));

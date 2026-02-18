@@ -31,6 +31,10 @@ import {
   Route,
   Gift,
   Map,
+  Wallet,
+  Cog,
+  Upload,
+  Scale,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
@@ -51,16 +55,18 @@ interface NavItem {
   roles?: UserRole[];
 }
 
+/** Role groups for concise assignment */
 const MANAGEMENT: UserRole[] = ["owner", "admin", "manager"];
 const OPERATIONS: UserRole[] = ["owner", "admin", "manager", "operator"];
 const FINANCE: UserRole[] = ["owner", "admin", "accountant"];
 const STOCK: UserRole[] = ["owner", "admin", "manager", "warehouse"];
 
 const navigation: NavItem[] = [
-  // Everyone sees the dashboard
+  // ── Dashboard ─────────────────────────────────────────────
+  // Visible to all authenticated roles (no roles filter)
   { name: "Дашборд", href: "/dashboard", icon: LayoutDashboard },
 
-  // Operations
+  // ── Operations ────────────────────────────────────────────
   {
     name: "Автоматы",
     href: "/dashboard/machines",
@@ -78,7 +84,7 @@ const navigation: NavItem[] = [
     name: "Заказы",
     href: "/dashboard/orders",
     icon: ShoppingCart,
-    roles: MANAGEMENT,
+    roles: [...MANAGEMENT, "accountant"],
   },
   {
     name: "Задачи",
@@ -105,6 +111,12 @@ const navigation: NavItem[] = [
     roles: OPERATIONS,
   },
   {
+    name: "Оборудование",
+    href: "/dashboard/equipment",
+    icon: Cog,
+    roles: OPERATIONS,
+  },
+  {
     name: "Заявки",
     href: "/dashboard/material-requests",
     icon: PackagePlus,
@@ -117,15 +129,33 @@ const navigation: NavItem[] = [
     roles: MANAGEMENT,
   },
 
-  // Finance
+  // ── Finance ───────────────────────────────────────────────
   {
     name: "Транзакции",
     href: "/dashboard/transactions",
     icon: CreditCard,
+    roles: [...MANAGEMENT, "accountant"],
+  },
+  {
+    name: "Платежи",
+    href: "/dashboard/payments",
+    icon: Wallet,
+    roles: FINANCE,
+  },
+  {
+    name: "Фискализация",
+    href: "/dashboard/fiscal",
+    icon: Receipt,
+    roles: FINANCE,
+  },
+  {
+    name: "Сверка",
+    href: "/dashboard/reconciliation",
+    icon: Scale,
     roles: FINANCE,
   },
 
-  // HR
+  // ── HR ────────────────────────────────────────────────────
   {
     name: "Сотрудники",
     href: "/dashboard/employees",
@@ -145,7 +175,7 @@ const navigation: NavItem[] = [
     roles: MANAGEMENT,
   },
 
-  // Admin
+  // ── Admin ─────────────────────────────────────────────────
   {
     name: "Пользователи",
     href: "/dashboard/users",
@@ -166,26 +196,26 @@ const navigation: NavItem[] = [
   },
   { name: "Бонусы", href: "/dashboard/loyalty", icon: Gift, roles: MANAGEMENT },
 
-  // Reporting
+  // ── Reporting ─────────────────────────────────────────────
   {
     name: "Отчёты",
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, "accountant"],
   },
-  {
-    name: "Фискализация",
-    href: "/dashboard/fiscal",
-    icon: Receipt,
-    roles: FINANCE,
-  },
 
-  // System
+  // ── System ────────────────────────────────────────────────
   {
     name: "Мастер-данные",
     href: "/dashboard/directories",
     icon: Database,
     roles: MANAGEMENT,
+  },
+  {
+    name: "Импорт",
+    href: "/dashboard/import",
+    icon: Upload,
+    roles: ["owner", "admin"],
   },
   {
     name: "Интеграции",
@@ -199,6 +229,8 @@ const navigation: NavItem[] = [
     icon: FileText,
     roles: ["owner", "admin"],
   },
+
+  // Notifications — visible to all authenticated roles
   { name: "Уведомления", href: "/dashboard/notifications", icon: Bell },
   {
     name: "Настройки",

@@ -80,7 +80,7 @@ export function DrinkDetailPage() {
     addToCart({
       id: crypto.randomUUID(),
       productId: product.id,
-      name: product.name,
+      productName: product.name,
       price: basePrice + volumeExtra + milkExtra,
     });
     toast.success("Добавлено в корзину");

@@ -202,7 +202,7 @@ export function CheckoutPage() {
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
-                      alt={item.name}
+                      alt={item.productName}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -211,7 +211,7 @@ export function CheckoutPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium line-clamp-1">
-                    {item.name}
+                    {item.productName}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {item.quantity} × {formatNumber(item.price)} UZS

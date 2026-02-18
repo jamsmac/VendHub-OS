@@ -36,7 +36,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor - handle errors and token refresh
+// Response interceptor - handle token refresh with mutex/queue pattern
+// Prevents race condition when multiple requests get 401 simultaneously
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (token: string) => void;
@@ -56,6 +57,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip refresh for non-401, SSR, or already-retried requests
     if (
       typeof window === "undefined" ||
       error.response?.status !== 401 ||
@@ -64,7 +66,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Queue concurrent 401s while refreshing (prevents race condition)
+    // Queue concurrent 401s while a refresh is already in progress
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
@@ -82,19 +84,30 @@ api.interceptors.response.use(
 
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) {
-        const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
-          refreshToken,
-        });
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        setTokens(accessToken, newRefreshToken);
-        processQueue(null, accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
+      if (!refreshToken) {
+        // No refresh token available — reject all queued requests and logout
+        processQueue(error, null);
+        clearTokens();
+        window.location.href = "/auth";
+        return Promise.reject(error);
       }
+
+      const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
+        refreshToken,
+      });
+
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      setTokens(accessToken, newRefreshToken);
+
+      // Resolve all queued requests with the new token
+      processQueue(null, accessToken);
+
+      // Retry the original request with the new token
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return api(originalRequest);
     } catch (refreshError) {
+      // Refresh failed — reject all queued requests and logout
       processQueue(refreshError, null);
       clearTokens();
       window.location.href = "/auth";
@@ -102,8 +115,6 @@ api.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-
-    return Promise.reject(error);
   },
 );
 

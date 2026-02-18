@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useUserStore } from "./store";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -11,7 +11,26 @@ export const api = axios.create({
   },
 });
 
-// Auth token interceptor
+// ============================================
+// Token helpers
+// ============================================
+
+function setTokens(accessToken: string, refreshToken: string) {
+  localStorage.setItem("vendhub-token", accessToken);
+  localStorage.setItem("vendhub-refresh-token", refreshToken);
+}
+
+function clearTokens() {
+  localStorage.removeItem("vendhub-token");
+  localStorage.removeItem("vendhub-refresh-token");
+}
+
+export { setTokens, clearTokens };
+
+// ============================================
+// Request interceptor — attach auth token
+// ============================================
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("vendhub-token");
   if (token) {
@@ -20,15 +39,83 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response error interceptor
+// ============================================
+// Response interceptor — token refresh on 401
+// ============================================
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown, token: string | null) => {
+  failedQueue.forEach((prom) => {
+    if (token) prom.resolve(token);
+    else prom.reject(error);
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiErrorResponse>) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("vendhub-token");
-      useUserStore.getState().logout();
+  async (error: AxiosError<ApiErrorResponse>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // Only attempt refresh on 401 responses, and never retry a request
+    // that already failed after a refresh attempt
+    if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // If a refresh is already in progress, queue this request and wait
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          },
+          reject,
+        });
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const refreshToken = localStorage.getItem("vendhub-refresh-token");
+      if (!refreshToken) {
+        // No refresh token stored — cannot refresh, force logout
+        throw new Error("No refresh token available");
+      }
+
+      // Use a plain axios call (not the `api` instance) to avoid
+      // triggering this interceptor recursively
+      const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
+        refreshToken,
+      });
+
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+        response.data;
+
+      setTokens(newAccessToken, newRefreshToken);
+      processQueue(null, newAccessToken);
+
+      // Retry the original request with the new token
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      clearTokens();
+      useUserStore.getState().logout();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   },
 );
 
@@ -233,9 +320,10 @@ export const complaintsApi = {
 export const authApi = {
   loginTelegram: (initData: string) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    api.post<{ accessToken: string; user: any }>("/auth/telegram", {
-      initData,
-    }),
+    api.post<{ accessToken: string; refreshToken: string; user: any }>(
+      "/auth/telegram",
+      { initData },
+    ),
 };
 
 // Achievements
