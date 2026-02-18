@@ -54,6 +54,15 @@ export class AchievementsController {
   // ============================================================================
 
   @Get("my")
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Get my achievements summary",
     description: `
@@ -75,6 +84,15 @@ export class AchievementsController {
   }
 
   @Get("my/all")
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Get all my achievements",
     description: "Получить все достижения с прогрессом",
@@ -87,6 +105,15 @@ export class AchievementsController {
   }
 
   @Post("my/:userAchievementId/claim")
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Claim achievement reward",
@@ -102,6 +129,15 @@ export class AchievementsController {
   }
 
   @Post("my/claim-all")
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Claim all available rewards",

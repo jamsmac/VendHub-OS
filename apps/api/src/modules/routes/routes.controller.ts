@@ -258,6 +258,7 @@ export class RoutesController {
   // ============================================================================
 
   @Get(":id/stops")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get all stops for a route (ordered by sequence)" })
   @ApiParam({
     name: "id",

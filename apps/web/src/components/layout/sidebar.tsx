@@ -38,15 +38,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
-
-type UserRole =
-  | "owner"
-  | "admin"
-  | "manager"
-  | "operator"
-  | "warehouse"
-  | "accountant"
-  | "viewer";
+import { UserRole } from "@vendhub/shared";
 
 interface NavItem {
   name: string;
@@ -56,10 +48,28 @@ interface NavItem {
 }
 
 /** Role groups for concise assignment */
-const MANAGEMENT: UserRole[] = ["owner", "admin", "manager"];
-const OPERATIONS: UserRole[] = ["owner", "admin", "manager", "operator"];
-const FINANCE: UserRole[] = ["owner", "admin", "accountant"];
-const STOCK: UserRole[] = ["owner", "admin", "manager", "warehouse"];
+const MANAGEMENT: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.ADMIN,
+  UserRole.MANAGER,
+];
+const OPERATIONS: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.ADMIN,
+  UserRole.MANAGER,
+  UserRole.OPERATOR,
+];
+const FINANCE: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.ADMIN,
+  UserRole.ACCOUNTANT,
+];
+const STOCK: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.ADMIN,
+  UserRole.MANAGER,
+  UserRole.WAREHOUSE,
+];
 
 const navigation: NavItem[] = [
   // ── Dashboard ─────────────────────────────────────────────
@@ -77,14 +87,14 @@ const navigation: NavItem[] = [
     name: "Товары",
     href: "/dashboard/products",
     icon: Package,
-    roles: [...OPERATIONS, "warehouse"],
+    roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
   { name: "Склад", href: "/dashboard/inventory", icon: Boxes, roles: STOCK },
   {
     name: "Заказы",
     href: "/dashboard/orders",
     icon: ShoppingCart,
-    roles: [...MANAGEMENT, "accountant"],
+    roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
   },
   {
     name: "Задачи",
@@ -120,7 +130,7 @@ const navigation: NavItem[] = [
     name: "Заявки",
     href: "/dashboard/material-requests",
     icon: PackagePlus,
-    roles: [...OPERATIONS, "warehouse"],
+    roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
   {
     name: "Жалобы",
@@ -134,7 +144,7 @@ const navigation: NavItem[] = [
     name: "Транзакции",
     href: "/dashboard/transactions",
     icon: CreditCard,
-    roles: [...MANAGEMENT, "accountant"],
+    roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
   },
   {
     name: "Платежи",
@@ -180,7 +190,7 @@ const navigation: NavItem[] = [
     name: "Пользователи",
     href: "/dashboard/users",
     icon: Users,
-    roles: ["owner", "admin"],
+    roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
     name: "Локации",
@@ -192,7 +202,7 @@ const navigation: NavItem[] = [
     name: "Карта",
     href: "/dashboard/map",
     icon: Map,
-    roles: [...OPERATIONS, "warehouse"],
+    roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
   { name: "Бонусы", href: "/dashboard/loyalty", icon: Gift, roles: MANAGEMENT },
 
@@ -201,7 +211,7 @@ const navigation: NavItem[] = [
     name: "Отчёты",
     href: "/dashboard/reports",
     icon: BarChart3,
-    roles: [...MANAGEMENT, "accountant"],
+    roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
   },
 
   // ── System ────────────────────────────────────────────────
@@ -215,19 +225,19 @@ const navigation: NavItem[] = [
     name: "Импорт",
     href: "/dashboard/import",
     icon: Upload,
-    roles: ["owner", "admin"],
+    roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
     name: "Интеграции",
     href: "/dashboard/integrations",
     icon: Plug,
-    roles: ["owner", "admin"],
+    roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
     name: "Аудит",
     href: "/dashboard/audit",
     icon: FileText,
-    roles: ["owner", "admin"],
+    roles: [UserRole.OWNER, UserRole.ADMIN],
   },
 
   // Notifications — visible to all authenticated roles
@@ -236,7 +246,7 @@ const navigation: NavItem[] = [
     name: "Настройки",
     href: "/dashboard/settings",
     icon: Settings,
-    roles: ["owner", "admin"],
+    roles: [UserRole.OWNER, UserRole.ADMIN],
   },
 ];
 

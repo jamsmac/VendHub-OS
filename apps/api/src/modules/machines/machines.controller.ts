@@ -56,7 +56,7 @@ export class MachinesController {
   // ============================================================================
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new machine" })
   @ApiResponse({ status: 201, description: "Machine created successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
@@ -76,6 +76,7 @@ export class MachinesController {
 
   @Get()
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
     UserRole.OPERATOR,
@@ -102,7 +103,15 @@ export class MachinesController {
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT, UserRole.VIEWER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get machine statistics by status" })
   @ApiResponse({ status: 200, description: "Machine statistics" })
   getStats(@CurrentUser() user: User) {
@@ -111,10 +120,12 @@ export class MachinesController {
 
   @Get("map")
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
     UserRole.OPERATOR,
     UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
     UserRole.VIEWER,
   )
   @ApiOperation({
@@ -130,6 +141,7 @@ export class MachinesController {
 
   @Get(":id")
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
     UserRole.OPERATOR,
@@ -157,7 +169,7 @@ export class MachinesController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update machine" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Machine updated" })
@@ -178,7 +190,7 @@ export class MachinesController {
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Update machine status" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Status updated" })
@@ -198,7 +210,7 @@ export class MachinesController {
   }
 
   @Patch(":id/telemetry")
-  @Roles(UserRole.OPERATOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Update machine telemetry (from machine IoT)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Telemetry updated" })
@@ -218,7 +230,7 @@ export class MachinesController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Delete machine (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Machine deleted" })
@@ -243,10 +255,12 @@ export class MachinesController {
 
   @Get(":id/slots")
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
     UserRole.OPERATOR,
     UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get all slots for a machine" })
@@ -267,7 +281,7 @@ export class MachinesController {
   }
 
   @Post(":id/slots")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new slot for a machine" })
   @ApiParam({
     name: "id",
@@ -291,7 +305,7 @@ export class MachinesController {
   }
 
   @Patch(":id/slots/:slotId")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update a machine slot" })
   @ApiParam({
     name: "id",
@@ -318,7 +332,7 @@ export class MachinesController {
   }
 
   @Post(":id/slots/:slotId/refill")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({
     summary: "Refill a machine slot with additional product quantity",
   })
@@ -352,7 +366,7 @@ export class MachinesController {
   // ============================================================================
 
   @Post(":id/move")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Move machine to a new location" })
   @ApiParam({
     name: "id",
@@ -375,7 +389,15 @@ export class MachinesController {
   }
 
   @Get(":id/location-history")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.VIEWER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get machine location history" })
   @ApiParam({
     name: "id",
@@ -398,7 +420,15 @@ export class MachinesController {
   // ============================================================================
 
   @Get(":id/components")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get all components installed on a machine" })
   @ApiParam({
     name: "id",
@@ -417,7 +447,7 @@ export class MachinesController {
   }
 
   @Post(":id/components")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Install a new component on a machine" })
   @ApiParam({
     name: "id",
@@ -437,7 +467,7 @@ export class MachinesController {
   }
 
   @Delete(":id/components/:componentId")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Remove a component from a machine" })
   @ApiParam({
     name: "id",
@@ -467,7 +497,15 @@ export class MachinesController {
   // ============================================================================
 
   @Get(":id/errors")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get machine error history" })
   @ApiParam({
     name: "id",
@@ -486,7 +524,7 @@ export class MachinesController {
   }
 
   @Post(":id/errors")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Log a new error for a machine" })
   @ApiParam({
     name: "id",
@@ -506,7 +544,7 @@ export class MachinesController {
   }
 
   @Patch(":id/errors/:errorId/resolve")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Resolve a machine error" })
   @ApiParam({
     name: "id",
@@ -538,7 +576,15 @@ export class MachinesController {
   // ============================================================================
 
   @Get(":id/maintenance")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get upcoming maintenance schedule for a machine" })
   @ApiParam({
     name: "id",
@@ -557,7 +603,7 @@ export class MachinesController {
   }
 
   @Post(":id/maintenance")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Schedule maintenance for a machine" })
   @ApiParam({
     name: "id",
@@ -580,7 +626,7 @@ export class MachinesController {
   }
 
   @Patch(":id/maintenance/:scheduleId/complete")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Complete a scheduled maintenance" })
   @ApiParam({
     name: "id",

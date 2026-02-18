@@ -3,7 +3,7 @@
  *
  * External data source configuration for directories.
  * Supports URL, API, FILE, and TEXT source types.
- * Table: directory_sources (created by migration, no BaseEntity).
+ * Table: directory_sources
  */
 
 import {

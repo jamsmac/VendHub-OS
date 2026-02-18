@@ -9,7 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
   ForbiddenException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -17,13 +17,13 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger';
-import { TripsService } from './trips.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User, UserRole } from '../users/entities/user.entity';
+} from "@nestjs/swagger";
+import { TripsService } from "./trips.service";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User, UserRole } from "../users/entities/user.entity";
 import {
   StartTripDto,
   EndTripDto,
@@ -38,11 +38,11 @@ import {
   PerformReconciliationDto,
   ListTripsQueryDto,
   TripAnalyticsQueryDto,
-} from './dto/create-trip.dto';
-import { TripTaskType } from './entities/trip.entity';
+} from "./dto/create-trip.dto";
+import { TripTaskType } from "./entities/trip.entity";
 
-@ApiTags('trips')
-@Controller('trips')
+@ApiTags("trips")
+@Controller("trips")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class TripsController {
@@ -52,11 +52,14 @@ export class TripsController {
   // TRIP LIFECYCLE
   // ============================================================================
 
-  @Post('start')
+  @Post("start")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Start a new trip' })
-  @ApiResponse({ status: 201, description: 'Trip started' })
-  @ApiResponse({ status: 409, description: 'Employee already has an active trip' })
+  @ApiOperation({ summary: "Start a new trip" })
+  @ApiResponse({ status: 201, description: "Trip started" })
+  @ApiResponse({
+    status: 409,
+    description: "Employee already has an active trip",
+  })
   startTrip(@Body() dto: StartTripDto, @CurrentUser() user: User) {
     return this.tripsService.startTrip({
       organizationId: user.organizationId,
@@ -70,14 +73,14 @@ export class TripsController {
     });
   }
 
-  @Post(':id/end')
+  @Post(":id/end")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'End an active trip' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Trip ended' })
-  @ApiResponse({ status: 400, description: 'Trip is not active' })
+  @ApiOperation({ summary: "End an active trip" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Trip ended" })
+  @ApiResponse({ status: 400, description: "Trip is not active" })
   async endTrip(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: EndTripDto,
     @CurrentUser() user: User,
   ) {
@@ -85,13 +88,13 @@ export class TripsController {
     return this.tripsService.endTrip(id, dto, user.id);
   }
 
-  @Post(':id/cancel')
+  @Post(":id/cancel")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Cancel an active trip' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Trip cancelled' })
+  @ApiOperation({ summary: "Cancel an active trip" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Trip cancelled" })
   async cancelTrip(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CancelTripDto,
     @CurrentUser() user: User,
   ) {
@@ -99,9 +102,10 @@ export class TripsController {
     return this.tripsService.cancelTrip(id, dto.reason, user.id);
   }
 
-  @Get('active')
-  @ApiOperation({ summary: 'Get current user active trip' })
-  @ApiResponse({ status: 200, description: 'Active trip or null' })
+  @Get("active")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get current user active trip" })
+  @ApiResponse({ status: 200, description: "Active trip or null" })
   getActiveTrip(@CurrentUser() user: User) {
     return this.tripsService.getActiveTrip(user.id);
   }
@@ -111,60 +115,68 @@ export class TripsController {
   // ============================================================================
 
   @Get()
-  @ApiOperation({ summary: 'List trips with filters and pagination' })
-  @ApiQuery({ name: 'employeeId', required: false, type: String })
-  @ApiQuery({ name: 'vehicleId', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, type: String })
-  @ApiQuery({ name: 'taskType', required: false, enum: TripTaskType })
-  @ApiQuery({ name: 'dateFrom', required: false, type: String })
-  @ApiQuery({ name: 'dateTo', required: false, type: String })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "List trips with filters and pagination" })
+  @ApiQuery({ name: "employeeId", required: false, type: String })
+  @ApiQuery({ name: "vehicleId", required: false, type: String })
+  @ApiQuery({ name: "status", required: false, type: String })
+  @ApiQuery({ name: "taskType", required: false, enum: TripTaskType })
+  @ApiQuery({ name: "dateFrom", required: false, type: String })
+  @ApiQuery({ name: "dateTo", required: false, type: String })
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
   listTrips(@CurrentUser() user: User, @Query() query: ListTripsQueryDto) {
     return this.tripsService.listTrips(user.organizationId, query);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get trip by ID with relations' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get trip by ID with relations" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getTripById(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     const trip = await this.tripsService.getTripById(id);
-    if (trip.organizationId !== user.organizationId && user.role !== UserRole.OWNER) {
+    if (
+      trip.organizationId !== user.organizationId &&
+      user.role !== UserRole.OWNER
+    ) {
       throw new ForbiddenException();
     }
     return trip;
   }
 
-  @Get(':id/route')
-  @ApiOperation({ summary: 'Get trip GPS route (valid points)' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id/route")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get trip GPS route (valid points)" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getTripRoute(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     await this.verifyTripAccess(id, user);
     return this.tripsService.getTripRoute(id);
   }
 
-  @Get(':id/stops')
-  @ApiOperation({ summary: 'Get trip stops' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id/stops")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get trip stops" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getTripStops(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     await this.verifyTripAccess(id, user);
     return this.tripsService.getTripStops(id);
   }
 
-  @Get(':id/anomalies')
-  @ApiOperation({ summary: 'Get trip anomalies' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id/anomalies")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get trip anomalies" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getTripAnomalies(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     await this.verifyTripAccess(id, user);
@@ -175,13 +187,13 @@ export class TripsController {
   // GPS TRACKING
   // ============================================================================
 
-  @Post(':id/points')
+  @Post(":id/points")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Add a GPS point to a trip' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 201, description: 'Point added' })
+  @ApiOperation({ summary: "Add a GPS point to a trip" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 201, description: "Point added" })
   async addPoint(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: AddPointDto,
     @CurrentUser() user: User,
   ) {
@@ -189,12 +201,12 @@ export class TripsController {
     return this.tripsService.addPoint(id, dto);
   }
 
-  @Post(':id/points/batch')
+  @Post(":id/points/batch")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Add batch of GPS points' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Add batch of GPS points" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async addPointsBatch(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: AddPointsBatchDto,
     @CurrentUser() user: User,
   ) {
@@ -202,12 +214,12 @@ export class TripsController {
     return this.tripsService.addPointsBatch(id, dto.points);
   }
 
-  @Patch(':id/live-location')
+  @Patch(":id/live-location")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Update Telegram Live Location status' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Update Telegram Live Location status" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async updateLiveLocation(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateLiveLocationDto,
     @CurrentUser() user: User,
   ) {
@@ -223,25 +235,26 @@ export class TripsController {
   // TASK LINKS
   // ============================================================================
 
-  @Get(':id/tasks')
-  @ApiOperation({ summary: 'Get tasks linked to a trip' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @Get(":id/tasks")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get tasks linked to a trip" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getTripTasks(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
     await this.verifyTripAccess(id, user);
     return this.tripsService.getTripTasks(id);
   }
 
-  @Post(':id/tasks')
+  @Post(":id/tasks")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Link a task to a trip' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 201, description: 'Task linked' })
-  @ApiResponse({ status: 409, description: 'Task already linked' })
+  @ApiOperation({ summary: "Link a task to a trip" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 201, description: "Task linked" })
+  @ApiResponse({ status: 409, description: "Task already linked" })
   async linkTask(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: LinkTaskDto,
     @CurrentUser() user: User,
   ) {
@@ -249,55 +262,68 @@ export class TripsController {
     return this.tripsService.linkTask(id, dto.taskId, user.id);
   }
 
-  @Post(':tripId/tasks/:taskId/complete')
+  @Post(":tripId/tasks/:taskId/complete")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Mark a linked task as completed' })
-  @ApiParam({ name: 'tripId', type: 'string', format: 'uuid' })
-  @ApiParam({ name: 'taskId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Mark a linked task as completed" })
+  @ApiParam({ name: "tripId", type: "string", format: "uuid" })
+  @ApiParam({ name: "taskId", type: "string", format: "uuid" })
   async completeLinkedTask(
-    @Param('tripId', ParseUUIDPipe) tripId: string,
-    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Param("tripId", ParseUUIDPipe) tripId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
     @Body() dto: CompleteLinkedTaskDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyTripAccess(tripId, user);
-    return this.tripsService.completeLinkedTask(tripId, taskId, dto.notes, user.id);
+    return this.tripsService.completeLinkedTask(
+      tripId,
+      taskId,
+      dto.notes,
+      user.id,
+    );
   }
 
   // ============================================================================
   // ANOMALIES
   // ============================================================================
 
-  @Get('anomalies/unresolved')
+  @Get("anomalies/unresolved")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'List unresolved anomalies' })
+  @ApiOperation({ summary: "List unresolved anomalies" })
   listUnresolvedAnomalies(
     @CurrentUser() user: User,
     @Query() query: ListAnomaliesQueryDto,
   ) {
-    return this.tripsService.listUnresolvedAnomalies(user.organizationId, query);
+    return this.tripsService.listUnresolvedAnomalies(
+      user.organizationId,
+      query,
+    );
   }
 
-  @Post('anomalies/:id/resolve')
+  @Post("anomalies/:id/resolve")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Resolve an anomaly' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: "Resolve an anomaly" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   resolveAnomaly(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ResolveAnomalyDto,
     @CurrentUser() user: User,
   ) {
-    return this.tripsService.resolveAnomaly(id, user.id, user.organizationId, dto.notes);
+    return this.tripsService.resolveAnomaly(
+      id,
+      user.id,
+      user.organizationId,
+      dto.notes,
+    );
   }
 
   // ============================================================================
   // RECONCILIATION
   // ============================================================================
 
-  @Post('reconciliation')
+  @Post("reconciliation")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: 'Perform mileage reconciliation' })
-  @ApiResponse({ status: 201, description: 'Reconciliation performed' })
+  @ApiOperation({ summary: "Perform mileage reconciliation" })
+  @ApiResponse({ status: 201, description: "Reconciliation performed" })
   performReconciliation(
     @Body() dto: PerformReconciliationDto,
     @CurrentUser() user: User,
@@ -311,14 +337,15 @@ export class TripsController {
     });
   }
 
-  @Get('reconciliation/:vehicleId/history')
-  @ApiOperation({ summary: 'Get reconciliation history for a vehicle' })
-  @ApiParam({ name: 'vehicleId', type: 'string', format: 'uuid' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @Get("reconciliation/:vehicleId/history")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get reconciliation history for a vehicle" })
+  @ApiParam({ name: "vehicleId", type: "string", format: "uuid" })
+  @ApiQuery({ name: "limit", required: false, type: Number })
   getReconciliationHistory(
     @CurrentUser() user: User,
-    @Param('vehicleId', ParseUUIDPipe) vehicleId: string,
-    @Query('limit') limit?: string,
+    @Param("vehicleId", ParseUUIDPipe) vehicleId: string,
+    @Query("limit") limit?: string,
   ) {
     return this.tripsService.getReconciliationHistory(
       vehicleId,
@@ -331,9 +358,9 @@ export class TripsController {
   // ANALYTICS
   // ============================================================================
 
-  @Get('analytics/employee')
+  @Get("analytics/employee")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Get employee trip statistics' })
+  @ApiOperation({ summary: "Get employee trip statistics" })
   getEmployeeStats(
     @CurrentUser() user: User,
     @Query() query: TripAnalyticsQueryDto,
@@ -346,9 +373,9 @@ export class TripsController {
     });
   }
 
-  @Get('analytics/machines')
+  @Get("analytics/machines")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Get machine visit statistics' })
+  @ApiOperation({ summary: "Get machine visit statistics" })
   getMachineVisitStats(
     @CurrentUser() user: User,
     @Query() query: TripAnalyticsQueryDto,
@@ -361,9 +388,9 @@ export class TripsController {
     });
   }
 
-  @Get('analytics/summary')
+  @Get("analytics/summary")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({ summary: 'Get overall trip summary' })
+  @ApiOperation({ summary: "Get overall trip summary" })
   getTripsSummary(
     @CurrentUser() user: User,
     @Query() query: TripAnalyticsQueryDto,
@@ -381,8 +408,11 @@ export class TripsController {
 
   private async verifyTripAccess(tripId: string, user: User): Promise<void> {
     const trip = await this.tripsService.getTripById(tripId);
-    if (trip.organizationId !== user.organizationId && user.role !== UserRole.OWNER) {
-      throw new ForbiddenException('Access denied to this trip');
+    if (
+      trip.organizationId !== user.organizationId &&
+      user.role !== UserRole.OWNER
+    ) {
+      throw new ForbiddenException("Access denied to this trip");
     }
   }
 }

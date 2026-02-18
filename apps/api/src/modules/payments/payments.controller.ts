@@ -51,6 +51,15 @@ export class PaymentsController {
 
   @Post("payme/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Payme payment checkout URL" })
@@ -74,6 +83,15 @@ export class PaymentsController {
 
   @Post("click/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Click payment checkout URL" })
@@ -97,6 +115,15 @@ export class PaymentsController {
 
   @Post("uzum/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Uzum Bank payment checkout URL" })
@@ -114,6 +141,15 @@ export class PaymentsController {
 
   @Post("qr/generate")
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Generate QR payment code for vending machine" })
   @ApiResponse({ status: 201, description: "QR code generated" })
@@ -200,7 +236,7 @@ export class PaymentsController {
 
   @Get("transactions/stats")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin", "owner", "manager")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiBearerAuth()
   @ApiOperation({
     summary:

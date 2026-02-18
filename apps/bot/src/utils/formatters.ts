@@ -1,27 +1,15 @@
 import { LoyaltyInfo, Machine, Order, Quest, CartItem } from "../types";
-
-// ============================================
-// Text Formatters
-// ============================================
+import { formatDistance } from "@vendhub/shared/utils";
+export { formatDistance };
 
 /**
- * Format currency amount
+ * Format currency amount for Telegram messages
  */
 export function formatCurrency(
   amount: number,
   currency: string = "UZS",
 ): string {
   return `${amount.toLocaleString("ru-RU")} ${currency}`;
-}
-
-/**
- * Format distance
- */
-export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)} м`;
-  }
-  return `${(meters / 1000).toFixed(1)} км`;
 }
 
 /**

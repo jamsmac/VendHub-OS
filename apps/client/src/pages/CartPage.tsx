@@ -19,6 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { promoCodesApi } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { formatNumber } from "@/lib/utils";
 
@@ -43,19 +44,32 @@ export function CartPage() {
   const discount = promoDiscount;
   const total = subtotal - discount;
 
-  const handleApplyPromo = () => {
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  const handleApplyPromo = async () => {
     if (!promoCode.trim()) {
       toast.error(t("enterPromoCode"));
       return;
     }
 
-    // Mock promo validation
-    if (promoCode.toUpperCase() === "COFFEE10") {
-      setPromoApplied(true);
-      setPromoDiscount(Math.round(subtotal * 0.1));
-      toast.success(t("promoApplied"));
-    } else {
+    setPromoLoading(true);
+    try {
+      const { data } = await promoCodesApi.validate(promoCode);
+      if (data.valid) {
+        setPromoApplied(true);
+        const discount =
+          data.type === "percent"
+            ? Math.round(subtotal * (data.value / 100))
+            : data.value;
+        setPromoDiscount(discount);
+        toast.success(t("promoApplied"));
+      } else {
+        toast.error(t("promoInvalid"));
+      }
+    } catch {
       toast.error(t("promoInvalid"));
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -227,14 +241,14 @@ export function CartPage() {
           </div>
           <button
             onClick={handleApplyPromo}
-            disabled={promoApplied}
+            disabled={promoApplied || promoLoading}
             className={`px-6 py-3 rounded-xl font-medium transition-colors ${
               promoApplied
                 ? "bg-green-500/10 text-green-500"
                 : "bg-primary text-white hover:bg-primary/90"
             }`}
           >
-            {promoApplied ? "✓" : t("apply")}
+            {promoApplied ? "✓" : promoLoading ? "..." : t("apply")}
           </button>
         </div>
         {promoApplied && (

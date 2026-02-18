@@ -188,6 +188,7 @@ export class IntegrationsController {
   // ============================================
 
   @Get("templates/all")
+  @Roles("admin", "manager")
   @ApiOperation({ summary: "Get all available templates" })
   @ApiQuery({ name: "category", enum: IntegrationCategory, required: false })
   @ApiQuery({ name: "country", required: false })
@@ -221,6 +222,7 @@ export class IntegrationsController {
   }
 
   @Get("templates/:id")
+  @Roles("admin", "manager")
   @ApiOperation({ summary: "Get template details" })
   async getTemplate(@Param("id") id: string) {
     const template = getTemplate(id);

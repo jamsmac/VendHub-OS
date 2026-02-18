@@ -4,30 +4,36 @@
  */
 
 export enum TransactionType {
-  SALE = 'sale',
-  REFUND = 'refund',
-  COLLECTION = 'collection',
-  ADJUSTMENT = 'adjustment',
+  SALE = "sale",
+  REFUND = "refund",
+  COLLECTION = "collection",
+  ADJUSTMENT = "adjustment",
 }
 
 export enum TransactionStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  REFUNDED = 'refunded',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  CANCELLED = "cancelled",
 }
 
 export enum PaymentMethod {
-  CASH = 'cash',
-  CARD = 'card',
-  PAYME = 'payme',
-  CLICK = 'click',
-  QR = 'qr',
-  UZCARD = 'uzcard',
-  HUMO = 'humo',
-  BONUS = 'bonus',
+  CASH = "cash",
+  CARD = "card",
+  PAYME = "payme",
+  CLICK = "click",
+  QR = "qr",
+  UZCARD = "uzcard",
+  HUMO = "humo",
+  VISA = "visa",
+  MASTERCARD = "mastercard",
+  NFC = "nfc",
+  UZUM = "uzum",
+  TELEGRAM = "telegram",
+  BONUS = "bonus",
+  MIXED = "mixed",
 }
 
 export interface ITransaction {
@@ -112,10 +118,13 @@ export interface ITransactionStats {
   totalAmount: number;
   totalVat: number;
   averageTransaction: number;
-  byPaymentMethod: Record<PaymentMethod, {
-    count: number;
-    amount: number;
-  }>;
+  byPaymentMethod: Record<
+    PaymentMethod,
+    {
+      count: number;
+      amount: number;
+    }
+  >;
   byHour: Array<{
     hour: number;
     count: number;
@@ -159,53 +168,65 @@ export interface ICollectionRecord {
 
 // Payment method labels
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  [PaymentMethod.CASH]: 'Наличные',
-  [PaymentMethod.CARD]: 'Банковская карта',
-  [PaymentMethod.PAYME]: 'Payme',
-  [PaymentMethod.CLICK]: 'Click',
-  [PaymentMethod.QR]: 'QR-код',
-  [PaymentMethod.UZCARD]: 'Uzcard',
-  [PaymentMethod.HUMO]: 'Humo',
-  [PaymentMethod.BONUS]: 'Бонусы',
+  [PaymentMethod.CASH]: "Наличные",
+  [PaymentMethod.CARD]: "Банковская карта",
+  [PaymentMethod.PAYME]: "Payme",
+  [PaymentMethod.CLICK]: "Click",
+  [PaymentMethod.QR]: "QR-код",
+  [PaymentMethod.UZCARD]: "Uzcard",
+  [PaymentMethod.HUMO]: "Humo",
+  [PaymentMethod.VISA]: "Visa",
+  [PaymentMethod.MASTERCARD]: "Mastercard",
+  [PaymentMethod.NFC]: "NFC",
+  [PaymentMethod.UZUM]: "Uzum",
+  [PaymentMethod.TELEGRAM]: "Telegram",
+  [PaymentMethod.BONUS]: "Бонусы",
+  [PaymentMethod.MIXED]: "Смешанный",
 };
 
 // Payment method icons
 export const PAYMENT_METHOD_ICONS: Record<PaymentMethod, string> = {
-  [PaymentMethod.CASH]: '💵',
-  [PaymentMethod.CARD]: '💳',
-  [PaymentMethod.PAYME]: '📱',
-  [PaymentMethod.CLICK]: '📱',
-  [PaymentMethod.QR]: '📲',
-  [PaymentMethod.UZCARD]: '💳',
-  [PaymentMethod.HUMO]: '💳',
-  [PaymentMethod.BONUS]: '⭐',
+  [PaymentMethod.CASH]: "💵",
+  [PaymentMethod.CARD]: "💳",
+  [PaymentMethod.PAYME]: "📱",
+  [PaymentMethod.CLICK]: "📱",
+  [PaymentMethod.QR]: "📲",
+  [PaymentMethod.UZCARD]: "💳",
+  [PaymentMethod.HUMO]: "💳",
+  [PaymentMethod.VISA]: "💳",
+  [PaymentMethod.MASTERCARD]: "💳",
+  [PaymentMethod.NFC]: "📳",
+  [PaymentMethod.UZUM]: "📱",
+  [PaymentMethod.TELEGRAM]: "✈️",
+  [PaymentMethod.BONUS]: "⭐",
+  [PaymentMethod.MIXED]: "🔀",
 };
 
 // Transaction status labels
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
-  [TransactionStatus.PENDING]: 'Ожидает',
-  [TransactionStatus.PROCESSING]: 'Обработка',
-  [TransactionStatus.COMPLETED]: 'Завершено',
-  [TransactionStatus.FAILED]: 'Ошибка',
-  [TransactionStatus.REFUNDED]: 'Возврат',
-  [TransactionStatus.CANCELLED]: 'Отменено',
+  [TransactionStatus.PENDING]: "Ожидает",
+  [TransactionStatus.PROCESSING]: "Обработка",
+  [TransactionStatus.COMPLETED]: "Завершено",
+  [TransactionStatus.FAILED]: "Ошибка",
+  [TransactionStatus.REFUNDED]: "Возврат",
+  [TransactionStatus.CANCELLED]: "Отменено",
 };
 
 // Transaction status colors
 export const TRANSACTION_STATUS_COLORS: Record<TransactionStatus, string> = {
-  [TransactionStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-  [TransactionStatus.PROCESSING]: 'bg-blue-100 text-blue-800',
-  [TransactionStatus.COMPLETED]: 'bg-green-100 text-green-800',
-  [TransactionStatus.FAILED]: 'bg-red-100 text-red-800',
-  [TransactionStatus.REFUNDED]: 'bg-purple-100 text-purple-800',
-  [TransactionStatus.CANCELLED]: 'bg-gray-100 text-gray-500',
+  [TransactionStatus.PENDING]: "bg-yellow-100 text-yellow-800",
+  [TransactionStatus.PROCESSING]: "bg-blue-100 text-blue-800",
+  [TransactionStatus.COMPLETED]: "bg-green-100 text-green-800",
+  [TransactionStatus.FAILED]: "bg-red-100 text-red-800",
+  [TransactionStatus.REFUNDED]: "bg-purple-100 text-purple-800",
+  [TransactionStatus.CANCELLED]: "bg-gray-100 text-gray-500",
 };
 
 // Currency codes
 export const CURRENCIES = {
-  UZS: 'UZS',
-  USD: 'USD',
-  RUB: 'RUB',
+  UZS: "UZS",
+  USD: "USD",
+  RUB: "RUB",
 } as const;
 
 // Default currency

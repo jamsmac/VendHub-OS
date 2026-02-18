@@ -2,7 +2,7 @@
  * DirectorySyncLog Entity
  *
  * Records each synchronization attempt for a directory source.
- * Table: directory_sync_logs (created by migration, no BaseEntity).
+ * Table: directory_sync_logs
  */
 
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";

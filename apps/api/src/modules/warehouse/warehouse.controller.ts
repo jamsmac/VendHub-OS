@@ -53,7 +53,7 @@ export class WarehouseController {
   // ============================================================================
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new warehouse" })
   @ApiResponse({ status: 201, description: "Warehouse created successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
@@ -67,14 +67,7 @@ export class WarehouseController {
   }
 
   @Get()
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.ACCOUNTANT,
-    UserRole.VIEWER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get all warehouses with pagination and filters" })
   @ApiResponse({ status: 200, description: "List of warehouses" })
   @ApiQuery({ name: "type", required: false, enum: WarehouseType })
@@ -100,14 +93,7 @@ export class WarehouseController {
   }
 
   @Get(":id")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.ACCOUNTANT,
-    UserRole.VIEWER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get warehouse by ID" })
   @ApiParam({
     name: "id",
@@ -131,7 +117,7 @@ export class WarehouseController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update warehouse" })
   @ApiParam({
     name: "id",
@@ -151,7 +137,7 @@ export class WarehouseController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Delete warehouse (soft delete)" })
   @ApiParam({
     name: "id",
@@ -174,14 +160,7 @@ export class WarehouseController {
   // ============================================================================
 
   @Get(":id/stock")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.ACCOUNTANT,
-    UserRole.VIEWER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({
     summary: "Get current inventory for a warehouse (aggregated by product)",
   })
@@ -206,13 +185,7 @@ export class WarehouseController {
   // ============================================================================
 
   @Get(":id/movements")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.ACCOUNTANT,
-    UserRole.VIEWER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get stock movements for a warehouse" })
   @ApiParam({
     name: "id",
@@ -248,13 +221,7 @@ export class WarehouseController {
   }
 
   @Post(":id/movements")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new stock movement for a warehouse" })
   @ApiParam({
     name: "id",
@@ -278,7 +245,7 @@ export class WarehouseController {
   }
 
   @Patch("movements/:movementId/complete")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Complete a pending stock movement" })
   @ApiParam({
     name: "movementId",
@@ -300,7 +267,7 @@ export class WarehouseController {
   }
 
   @Patch("movements/:movementId/cancel")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Cancel a pending stock movement" })
   @ApiParam({
     name: "movementId",
@@ -322,7 +289,7 @@ export class WarehouseController {
   }
 
   @Post(":id/transfer")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Transfer stock from this warehouse to another" })
   @ApiParam({
     name: "id",
@@ -367,6 +334,7 @@ export class WarehouseController {
   // ============================================================================
 
   @Get(":id/batches")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get inventory batches for a warehouse" })
   @ApiParam({
     name: "id",
@@ -399,7 +367,7 @@ export class WarehouseController {
   }
 
   @Post(":id/batches")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new inventory batch in a warehouse" })
   @ApiParam({
     name: "id",
@@ -424,13 +392,7 @@ export class WarehouseController {
   }
 
   @Post(":id/batches/deplete")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Deplete stock from batches using FIFO strategy" })
   @ApiParam({
     name: "id",

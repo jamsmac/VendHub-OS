@@ -58,6 +58,15 @@ export class NotificationsController {
   // ============================================================================
 
   @Get()
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Get my notifications" })
   @ApiQuery({
     name: "type",
@@ -82,6 +91,15 @@ export class NotificationsController {
   }
 
   @Get("unread-count")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Get unread notifications count" })
   async getUnreadCount(@CurrentUserId() userId: string) {
     const count = await this.notificationsService.getUnreadCount(userId);
@@ -89,6 +107,15 @@ export class NotificationsController {
   }
 
   @Post(":id/read")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Mark notification as read" })
   @HttpCode(HttpStatus.OK)
   async markAsRead(
@@ -99,6 +126,15 @@ export class NotificationsController {
   }
 
   @Post("read-all")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Mark all notifications as read" })
   @HttpCode(HttpStatus.OK)
   async markAllAsRead(@CurrentUserId() userId: string) {
@@ -107,6 +143,15 @@ export class NotificationsController {
   }
 
   @Delete(":id")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Delete notification" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
@@ -121,12 +166,30 @@ export class NotificationsController {
   // ============================================================================
 
   @Get("settings")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Get my notification settings" })
   async getSettings(@CurrentUserId() userId: string) {
     return this.notificationsService.getSettings(userId);
   }
 
   @Put("settings")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Update my notification settings" })
   async updateSettings(
     @CurrentUserId() userId: string,
@@ -317,6 +380,15 @@ export class NotificationsController {
   // ============================================================================
 
   @Post("push/subscribe")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Register a Web Push subscription" })
   @HttpCode(HttpStatus.CREATED)
   async subscribePush(
@@ -335,6 +407,15 @@ export class NotificationsController {
   }
 
   @Delete("push/unsubscribe")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Remove a Web Push subscription by endpoint" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribePush(@Body() dto: UnsubscribePushDto) {
@@ -346,6 +427,15 @@ export class NotificationsController {
   // ============================================================================
 
   @Post("fcm/register")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Register an FCM device token" })
   @HttpCode(HttpStatus.CREATED)
   async registerFcm(
@@ -364,6 +454,15 @@ export class NotificationsController {
   }
 
   @Delete("fcm/unregister")
+  @Roles(
+    "viewer",
+    "operator",
+    "warehouse",
+    "accountant",
+    "manager",
+    "admin",
+    "owner",
+  )
   @ApiOperation({ summary: "Remove an FCM device token" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unregisterFcm(@Body() dto: UnregisterFcmDto) {

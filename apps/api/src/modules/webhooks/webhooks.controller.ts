@@ -309,6 +309,9 @@ export class WebhooksController {
   // ========================================================================
 
   @Get("events/list")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("owner", "admin")
+  @ApiBearerAuth()
   @ApiOperation({ summary: "List available webhook events" })
   @ApiResponse({ status: 200, description: "Available webhook events" })
   listEvents() {

@@ -4,17 +4,47 @@
  */
 
 export enum OrganizationStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPENDED = 'suspended',
-  TRIAL = 'trial',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  SUSPENDED = "suspended",
+  TRIAL = "trial",
+}
+
+export enum CommissionType {
+  PERCENTAGE = "percentage",
+  FIXED = "fixed",
+  TIERED = "tiered",
+  HYBRID = "hybrid",
+}
+
+export enum ContractType {
+  FRANCHISE = "franchise",
+  PARTNERSHIP = "partnership",
+  LEASE = "lease",
+  SERVICE = "service",
+  RENT = "rent",
+  REVENUE_SHARE = "revenue_share",
+  HYBRID = "hybrid",
+  FREE = "free",
+  COMMISSION = "commission",
+}
+
+export enum ContractStatus {
+  DRAFT = "draft",
+  PENDING_APPROVAL = "pending_approval",
+  ACTIVE = "active",
+  SUSPENDED = "suspended",
+  EXPIRING_SOON = "expiring_soon",
+  EXPIRED = "expired",
+  TERMINATED = "terminated",
+  RENEWED = "renewed",
 }
 
 export enum SubscriptionPlan {
-  FREE = 'free',
-  STARTER = 'starter',
-  PROFESSIONAL = 'professional',
-  ENTERPRISE = 'enterprise',
+  FREE = "free",
+  STARTER = "starter",
+  PROFESSIONAL = "professional",
+  ENTERPRISE = "enterprise",
 }
 
 export interface IOrganization {

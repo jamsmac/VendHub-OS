@@ -2,22 +2,46 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>VendHub</title>
+    <meta name="description" content="VendHub - Vending Machine Platform" />
+
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#43302b" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self';" />
-    <meta name="description" content="VendHub - Найдите ближайший вендинговый автомат с кофе и снеками" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
     <!-- PWA Meta Tags -->
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#F59E0B" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="VendHub - Вендинговые автоматы" />
-    <meta property="og:description" content="Найдите ближайший автомат с напитками и снеками" />
-    <meta property="og:type" content="website" />
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VendHub" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <title>VendHub - Вендинговые автоматы</title>
+    <!-- Microsoft PWA Meta Tags -->
+    <meta name="msapplication-TileColor" content="#F59E0B" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self';" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="VendHub" />
+    <meta property="og:description" content="VendHub - Vending Machine Platform" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/pwa-512x512.png" />
+
+    <!-- Prevent dark mode flash -->
+    <script>
+      try {
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -55,6 +55,15 @@ export class LoyaltyController {
   // ============================================================================
 
   @Get("balance")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({
     summary: "Get loyalty balance and status",
     description: `
@@ -79,6 +88,15 @@ export class LoyaltyController {
   }
 
   @Get("history")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({
     summary: "Get points transaction history",
     description:
@@ -93,6 +111,15 @@ export class LoyaltyController {
   }
 
   @Get("levels")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({
     summary: "Get all loyalty levels info",
     description:
@@ -104,6 +131,15 @@ export class LoyaltyController {
   }
 
   @Post("spend")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Spend points on order",
@@ -136,6 +172,15 @@ export class LoyaltyController {
   }
 
   @Get("leaderboard")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({
     summary: "Get loyalty leaderboard",
     description: `

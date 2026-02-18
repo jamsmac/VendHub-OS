@@ -44,6 +44,15 @@ export class OrganizationsController {
   }
 
   @Get(":id")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get organization by ID" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   findOne(@Param("id", ParseUUIDPipe) id: string) {

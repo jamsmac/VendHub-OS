@@ -52,6 +52,7 @@ export class UsersController {
   }
 
   @Get(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get user by ID" })
   @ApiResponse({ status: 200, description: "User found" })
   @ApiResponse({ status: 404, description: "User not found" })

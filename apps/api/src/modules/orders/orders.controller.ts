@@ -44,6 +44,15 @@ export class OrdersController {
   // ============================================================================
 
   @Post()
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({ summary: "Create new order" })
   @ApiResponse({ status: 201, type: OrderDto })
   async create(
@@ -55,6 +64,15 @@ export class OrdersController {
   }
 
   @Get("my")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({ summary: "Get current user orders" })
   @ApiResponse({ status: 200, type: OrderListDto })
   async getMyOrders(
@@ -66,6 +84,15 @@ export class OrdersController {
   }
 
   @Get("my/:id")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiOperation({ summary: "Get current user order by ID" })
   @ApiParam({ name: "id", description: "Order ID" })
   @ApiResponse({ status: 200, type: OrderDto })
@@ -81,7 +108,7 @@ export class OrdersController {
   // ============================================================================
 
   @Get()
-  @Roles("operator", "manager", "admin", "owner")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiOperation({ summary: "Get all orders (admin)" })
   @ApiResponse({ status: 200, type: OrderListDto })
   async getList(
@@ -92,7 +119,7 @@ export class OrdersController {
   }
 
   @Get("stats")
-  @Roles("manager", "admin", "owner")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiOperation({ summary: "Get order statistics" })
   @ApiResponse({ status: 200, type: OrderStatsDto })
   async getStats(
@@ -108,7 +135,7 @@ export class OrdersController {
   }
 
   @Get("by-number/:orderNumber")
-  @Roles("operator", "manager", "admin", "owner")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiOperation({ summary: "Get order by number" })
   @ApiParam({ name: "orderNumber", description: "Order number" })
   @ApiResponse({ status: 200, type: OrderDto })
@@ -120,7 +147,7 @@ export class OrdersController {
   }
 
   @Get(":id")
-  @Roles("operator", "manager", "admin", "owner")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiOperation({ summary: "Get order by ID" })
   @ApiParam({ name: "id", description: "Order ID" })
   @ApiResponse({ status: 200, type: OrderDto })
@@ -226,7 +253,7 @@ export class OrdersController {
   }
 
   @Post(":id/cancel")
-  @Roles("operator", "manager", "admin", "owner")
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Cancel order" })
   @ApiParam({ name: "id", description: "Order ID" })

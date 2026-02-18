@@ -2,6 +2,7 @@ import { Telegraf } from "telegraf";
 import { BotContext } from "../types";
 import { config } from "../config";
 import { api } from "../utils/api";
+import { transitionStep, resetStep } from "../states";
 import { formatLoyaltyMessage, formatMachineInfo } from "../utils/formatters";
 import {
   mainMenuInline,
@@ -117,7 +118,7 @@ async function handleBackToMenu(ctx: BotContext) {
 async function handleFindMachines(ctx: BotContext) {
   await ctx.answerCbQuery();
   await ctx.reply("📍 Отправьте мне вашу геолокацию:", locationKeyboard);
-  ctx.session.step = "awaiting_location";
+  transitionStep(ctx, "awaiting_location");
 }
 
 async function handleMyPoints(ctx: BotContext) {
@@ -219,7 +220,7 @@ async function handleReportMachine(ctx: BotContext) {
     return;
   }
   ctx.session.data = { machineId };
-  ctx.session.step = "awaiting_complaint";
+  transitionStep(ctx, "awaiting_complaint");
 
   await ctx.reply(
     "📢 *Сообщить о проблеме*\n\n" + "Опишите проблему с автоматом:",
@@ -247,7 +248,7 @@ async function handleCheckout(ctx: BotContext) {
     return;
   }
 
-  ctx.session.step = "confirming_order";
+  transitionStep(ctx, "confirming_order");
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -297,7 +298,7 @@ async function handleConfirmOrder(ctx: BotContext) {
 
 async function handleCancelOrder(ctx: BotContext) {
   await ctx.answerCbQuery("Заказ отменён");
-  ctx.session.step = undefined;
+  resetStep(ctx);
 
   await ctx.editMessageText(
     "❌ Заказ отменён.\n\n📱 Главное меню:",
@@ -518,7 +519,7 @@ async function handleNotificationSettings(ctx: BotContext) {
 
 async function handlePhoneSettings(ctx: BotContext) {
   await ctx.answerCbQuery();
-  ctx.session.step = "awaiting_phone";
+  transitionStep(ctx, "awaiting_phone");
 
   await ctx.reply("📱 Отправьте ваш номер телефона:", {
     reply_markup: {
@@ -591,7 +592,7 @@ async function handleSendComplaint(ctx: BotContext) {
     await api.createComplaint(user.id, machineId || null, "other", message);
   }
 
-  ctx.session.step = undefined;
+  resetStep(ctx);
   ctx.session.data = undefined;
 
   await ctx.editMessageText(
@@ -606,7 +607,7 @@ async function handleSendComplaint(ctx: BotContext) {
 
 async function handleCancelComplaint(ctx: BotContext) {
   await ctx.answerCbQuery("Отменено");
-  ctx.session.step = undefined;
+  resetStep(ctx);
   ctx.session.data = undefined;
 
   await ctx.editMessageText("❌ Жалоба отменена.", mainMenuInline);
@@ -636,7 +637,7 @@ async function handleTripStartCb(ctx: BotContext) {
     return;
   }
 
-  ctx.session.step = "trip_selecting_vehicle";
+  transitionStep(ctx, "trip_selecting_vehicle");
   ctx.session.data = {};
 
   await ctx.editMessageText("🚗 *Выбор транспорта*\n\nВыберите ТС:", {
@@ -684,7 +685,7 @@ async function handleTripVehicleSelect(ctx: BotContext) {
   if (!vehicleId) return;
 
   ctx.session.data = { ...ctx.session.data, vehicleId };
-  ctx.session.step = "trip_selecting_route";
+  transitionStep(ctx, "trip_selecting_route");
 
   const routes = await api.getAvailableRoutes();
   if (routes.length === 0) {
@@ -701,7 +702,7 @@ async function handleTripVehicleSelect(ctx: BotContext) {
       return;
     }
 
-    ctx.session.step = "trip_active";
+    transitionStep(ctx, "trip_active");
     ctx.session.data = { tripId: trip.id };
 
     await ctx.editMessageText(
@@ -746,7 +747,7 @@ async function handleTripRouteSelect(ctx: BotContext) {
     return;
   }
 
-  ctx.session.step = "trip_active";
+  transitionStep(ctx, "trip_active");
   ctx.session.data = { tripId: trip.id };
 
   await ctx.editMessageText(
@@ -766,13 +767,13 @@ async function handleTripEndCb(ctx: BotContext) {
   const result = await api.endTrip(tripId);
   if (!result) {
     await ctx.editMessageText(
-      "❌ Oshibka zaversheniya poezdki.",
+      "❌ Ошибка завершения поездки.",
       backToMenuInline,
     );
     return;
   }
 
-  ctx.session.step = undefined;
+  resetStep(ctx);
   ctx.session.data = undefined;
 
   const duration =
@@ -785,11 +786,11 @@ async function handleTripEndCb(ctx: BotContext) {
       : 0;
 
   await ctx.editMessageText(
-    `✅ *Poezdka zavershena!*\n\n` +
-      `Marshrut: ${result.routeName || "Bez marshruta"}\n` +
-      `Dlitel\'nost\': ${duration} min\n` +
-      `Ostanovki: ${result.stopsCompleted}/${result.stopsTotal}\n` +
-      `Anomalij: ${result.anomaliesCount}`,
+    `✅ *Поездка завершена!*\n\n` +
+      `Маршрут: ${result.routeName || "Без маршрута"}\n` +
+      `Длительность: ${duration} мин\n` +
+      `Остановки: ${result.stopsCompleted}/${result.stopsTotal}\n` +
+      `Аномалий: ${result.anomaliesCount}`,
     { parse_mode: "Markdown", ...tripCompletedInline(tripId) },
   );
 }
@@ -802,7 +803,7 @@ async function handleTripStopsList(ctx: BotContext) {
   const stops = await api.getTripStops(tripId);
   if (stops.length === 0) {
     await ctx.editMessageText(
-      "ℹ️ V poezdke net ostanovok.",
+      "ℹ️ В поездке нет остановок.",
       activeTripInline(tripId),
     );
     return;
@@ -817,7 +818,7 @@ async function handleTripStopsList(ctx: BotContext) {
     .join("\n");
 
   await ctx.editMessageText(
-    `📍 *Ostanovki:*\n\n${stopsList}\n\nNazhmite na ostanovku dlya otmetki:`,
+    `📍 *Остановки:*\n\n${stopsList}\n\nНажмите на остановку для отметки:`,
     { parse_mode: "Markdown", ...tripStopsInline(tripId, stops) },
   );
 }
@@ -832,7 +833,7 @@ async function handleTripStatusCb(ctx: BotContext) {
 
   const activeTrip = await api.getActiveTrip(user.id);
   if (!activeTrip) {
-    await ctx.editMessageText("ℹ️ Poezdka ne najdena.", backToMenuInline);
+    await ctx.editMessageText("ℹ️ Поездка не найдена.", backToMenuInline);
     return;
   }
 
@@ -843,25 +844,25 @@ async function handleTripStatusCb(ctx: BotContext) {
     : 0;
 
   await ctx.editMessageText(
-    `🚗 *Status poezdki*\n\n` +
-      `Marshrut: ${activeTrip.routeName || "Bez marshruta"}\n` +
-      `TS: ${activeTrip.vehiclePlate || "N/A"}\n` +
-      `V puti: ${elapsed} min\n` +
-      `Ostanovki: ${activeTrip.stopsCompleted}/${activeTrip.stopsTotal}\n` +
-      `Anomalij: ${activeTrip.anomaliesCount}`,
+    `🚗 *Статус поездки*\n\n` +
+      `Маршрут: ${activeTrip.routeName || "Без маршрута"}\n` +
+      `ТС: ${activeTrip.vehiclePlate || "N/A"}\n` +
+      `В пути: ${elapsed} мин\n` +
+      `Остановки: ${activeTrip.stopsCompleted}/${activeTrip.stopsTotal}\n` +
+      `Аномалий: ${activeTrip.anomaliesCount}`,
     { parse_mode: "Markdown", ...activeTripInline(activeTrip.id) },
   );
 }
 
 async function handleTripCompleteStop(ctx: BotContext) {
-  await ctx.answerCbQuery("Otmecheno!");
+  await ctx.answerCbQuery("Отмечено!");
   const tripId = ctx.match?.[1];
   const stopId = ctx.match?.[2];
   if (!tripId || !stopId) return;
 
   const success = await api.completeStop(tripId, stopId);
   if (!success) {
-    await ctx.answerCbQuery("Oshibka otmetki ostanovki");
+    await ctx.answerCbQuery("Ошибка отметки остановки");
     return;
   }
 
@@ -878,7 +879,7 @@ async function handleTripCompleteStop(ctx: BotContext) {
   const completed = stops.filter((s) => s.status === "completed").length;
 
   await ctx.editMessageText(
-    `📍 *Ostanovki (${completed}/${stops.length}):*\n\n${stopsList}`,
+    `📍 *Остановки (${completed}/${stops.length}):*\n\n${stopsList}`,
     { parse_mode: "Markdown", ...tripStopsInline(tripId, stops) },
   );
 }

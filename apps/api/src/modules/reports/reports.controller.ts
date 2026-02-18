@@ -184,12 +184,14 @@ export class ReportsController {
 
   @Get("dashboards")
   @ApiOperation({ summary: "Get dashboards" })
+  @Roles("owner", "admin", "manager", "accountant")
   async getDashboards(@CurrentOrganizationId() orgId: string) {
     return this.reportsService.getDashboards(orgId);
   }
 
   @Get("dashboards/:id")
   @ApiOperation({ summary: "Get dashboard by ID" })
+  @Roles("owner", "admin", "manager", "accountant")
   async getDashboard(@Param("id", ParseUUIDPipe) id: string) {
     return this.reportsService.getDashboard(id);
   }
@@ -296,6 +298,7 @@ export class ReportsController {
   @Get("filters")
   @ApiOperation({ summary: "Get saved filters" })
   @ApiQuery({ name: "reportDefinitionId", required: false })
+  @Roles("owner", "admin", "manager", "accountant")
   async getSavedFilters(
     @CurrentUserId() userId: string,
     @Query("reportDefinitionId") reportDefinitionId?: string,
@@ -305,6 +308,7 @@ export class ReportsController {
 
   @Post("filters")
   @ApiOperation({ summary: "Save filter" })
+  @Roles("owner", "admin", "manager", "accountant")
   @HttpCode(HttpStatus.CREATED)
   async saveFilter(
     @Body()
@@ -329,6 +333,7 @@ export class ReportsController {
 
   @Delete("filters/:id")
   @ApiOperation({ summary: "Delete saved filter" })
+  @Roles("owner", "admin", "manager", "accountant")
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSavedFilter(@Param("id", ParseUUIDPipe) id: string) {
     await this.reportsService.deleteSavedFilter(id);

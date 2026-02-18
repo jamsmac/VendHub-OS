@@ -2,7 +2,7 @@
  * DirectoryEntryAudit Entity
  *
  * Audit trail for all changes to directory entries.
- * Table: directory_entry_audit (created by migration, no BaseEntity).
+ * Table: directory_entry_audit
  */
 
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";

@@ -1,4 +1,4 @@
-import { SessionStep } from "../types";
+import { SessionStep, BotContext } from "../types";
 import logger from "../utils/logger";
 
 // ============================================
@@ -187,11 +187,36 @@ export const STATE_NAMES = {
   TRIP_SELECTING_ROUTE: "trip_selecting_route" as const,
 };
 
+/**
+ * Validate and set session step (state transition).
+ * Returns true if transition succeeded, false if invalid.
+ */
+export function transitionStep(ctx: BotContext, newStep: SessionStep): boolean {
+  const sm = new StateMachine(ctx.session.step);
+  if (!sm.canTransition(newStep)) {
+    logger.warn(
+      `Invalid state transition: ${ctx.session.step || "idle"} → ${newStep || "idle"} (user: ${ctx.from?.id})`,
+    );
+    return false;
+  }
+  ctx.session.step = newStep;
+  return true;
+}
+
+/**
+ * Reset session step to idle (undefined).
+ */
+export function resetStep(ctx: BotContext): void {
+  ctx.session.step = undefined;
+}
+
 export default {
   StateMachine,
   states,
   isValidState,
   getStateTimeout,
   createStateMachine,
+  transitionStep,
+  resetStep,
   STATE_NAMES,
 };

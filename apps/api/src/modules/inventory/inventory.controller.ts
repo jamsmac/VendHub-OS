@@ -93,14 +93,14 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Get("warehouse")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get warehouse inventory" })
   getWarehouseInventory(@CurrentUser() user: ICurrentUser) {
     return this.inventoryService.getWarehouseInventory(user.organizationId);
   }
 
   @Get("operator")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get operator inventory" })
   @ApiQuery({ name: "operatorId", required: false })
   getOperatorInventory(
@@ -119,13 +119,7 @@ export class InventoryController {
   }
 
   @Get("machine")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.OPERATOR,
-    UserRole.WAREHOUSE,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get machine inventory" })
   @ApiQuery({ name: "machineId", required: true })
   getMachineInventory(
@@ -139,20 +133,14 @@ export class InventoryController {
   }
 
   @Get("low-stock")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get low stock alerts" })
   getLowStock(@CurrentUser() user: ICurrentUser) {
     return this.inventoryService.getWarehouseLowStock(user.organizationId);
   }
 
   @Post("transfer")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Transfer inventory between levels" })
   async transfer(
     @Body() data: TransferInventoryDto,
@@ -241,7 +229,7 @@ export class InventoryController {
   }
 
   @Get("movements")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get inventory movements" })
   @ApiQuery({ name: "productId", required: false })
   @ApiQuery({ name: "machineId", required: false })
@@ -264,7 +252,7 @@ export class InventoryController {
   // ==========================================================================
 
   @Get("reservations")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get inventory reservations" })
   @ApiResponse({ status: 200, description: "Returns list of reservations" })
   async getReservations(
@@ -278,7 +266,7 @@ export class InventoryController {
   }
 
   @Get("reservations/summary")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get reservations summary" })
   @ApiResponse({
     status: 200,
@@ -289,13 +277,7 @@ export class InventoryController {
   }
 
   @Get("reservations/task/:taskId")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get reservations for a task" })
   @ApiParam({ name: "taskId", type: String, description: "Task UUID" })
   @ApiResponse({
@@ -313,13 +295,7 @@ export class InventoryController {
   }
 
   @Get("reservations/:id")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Get reservation by ID" })
   @ApiParam({ name: "id", type: String, description: "Reservation UUID" })
   @ApiResponse({ status: 200, description: "Returns a single reservation" })
@@ -332,13 +308,7 @@ export class InventoryController {
   }
 
   @Post("reservations")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Create inventory reservation" })
   @ApiResponse({ status: 201, description: "Reservation created successfully" })
   @ApiResponse({
@@ -363,7 +333,7 @@ export class InventoryController {
   }
 
   @Post("reservations/:id/confirm")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Confirm reservation" })
   @ApiParam({ name: "id", type: String, description: "Reservation UUID" })
   @ApiResponse({ status: 200, description: "Reservation confirmed" })
@@ -381,13 +351,7 @@ export class InventoryController {
   }
 
   @Post("reservations/:id/fulfill")
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.WAREHOUSE,
-    UserRole.OPERATOR,
-    UserRole.OWNER,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Fulfill reservation" })
   @ApiParam({ name: "id", type: String, description: "Reservation UUID" })
   @ApiResponse({
@@ -410,7 +374,7 @@ export class InventoryController {
   }
 
   @Post("reservations/:id/cancel")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
   @ApiOperation({ summary: "Cancel reservation" })
   @ApiParam({ name: "id", type: String, description: "Reservation UUID" })
   @ApiResponse({

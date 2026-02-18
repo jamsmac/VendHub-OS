@@ -55,7 +55,7 @@ export class ProductsController {
   // ===========================================================================
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new product" })
   create(@Body() data: CreateProductDto, @CurrentUser() user: ICurrentUser) {
     return this.productsService.create({
@@ -65,6 +65,15 @@ export class ProductsController {
   }
 
   @Get()
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get all products" })
   @ApiQuery({ name: "type", required: false })
   @ApiQuery({ name: "category", required: false })
@@ -89,6 +98,15 @@ export class ProductsController {
   }
 
   @Get(":id")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get product by ID" })
   @ApiParam({ name: "id", type: String })
   findOne(
@@ -99,6 +117,15 @@ export class ProductsController {
   }
 
   @Get("barcode/:barcode")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get product by barcode" })
   @ApiParam({ name: "barcode", type: String })
   findByBarcode(
@@ -109,7 +136,7 @@ export class ProductsController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update product" })
   @ApiParam({ name: "id", type: String })
   update(
@@ -123,7 +150,7 @@ export class ProductsController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete product" })
   @ApiParam({ name: "id", type: String })
   remove(@Param("id", ParseUUIDPipe) id: string) {
@@ -135,7 +162,7 @@ export class ProductsController {
   // ===========================================================================
 
   @Post(":id/recipes")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create recipe for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   createRecipe(
@@ -152,6 +179,15 @@ export class ProductsController {
   }
 
   @Get(":id/recipes")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get all recipes for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   getRecipes(
@@ -165,7 +201,7 @@ export class ProductsController {
   }
 
   @Patch(":id/recipes/:recipeId")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
@@ -184,7 +220,7 @@ export class ProductsController {
   }
 
   @Delete(":id/recipes/:recipeId")
-  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
@@ -201,7 +237,7 @@ export class ProductsController {
   // ===========================================================================
 
   @Post(":id/recipes/:recipeId/ingredients")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Add ingredient to a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
@@ -224,7 +260,7 @@ export class ProductsController {
   }
 
   @Delete(":id/recipes/:recipeId/ingredients/:ingredientId")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Remove ingredient from a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
@@ -251,7 +287,7 @@ export class ProductsController {
   // ===========================================================================
 
   @Post(":id/batches")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create an ingredient batch for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   createBatch(
@@ -268,7 +304,15 @@ export class ProductsController {
   }
 
   @Get(":id/batches")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.OWNER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get available batches for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   getAvailableBatches(
@@ -286,7 +330,15 @@ export class ProductsController {
   // ===========================================================================
 
   @Get(":id/price-history")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT, UserRole.OWNER)
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get price change history for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   getPriceHistory(
@@ -297,7 +349,7 @@ export class ProductsController {
   }
 
   @Post(":id/update-price")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update product price and create history record" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   updatePrice(
@@ -327,11 +379,13 @@ export class SuppliersController {
 
   @Get()
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
+    UserRole.OPERATOR,
     UserRole.WAREHOUSE,
     UserRole.ACCOUNTANT,
-    UserRole.OWNER,
+    UserRole.VIEWER,
   )
   @ApiOperation({ summary: "List all suppliers for the organization" })
   @ApiQuery({ name: "page", required: false, type: Number })
@@ -349,7 +403,7 @@ export class SuppliersController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new supplier" })
   createSupplier(
     @Body() dto: CreateSupplierDto,
@@ -364,11 +418,13 @@ export class SuppliersController {
 
   @Get(":id")
   @Roles(
+    UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
+    UserRole.OPERATOR,
     UserRole.WAREHOUSE,
     UserRole.ACCOUNTANT,
-    UserRole.OWNER,
+    UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get supplier by ID" })
   @ApiParam({ name: "id", type: String })
@@ -380,7 +436,7 @@ export class SuppliersController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Update supplier" })
   @ApiParam({ name: "id", type: String })
   update(

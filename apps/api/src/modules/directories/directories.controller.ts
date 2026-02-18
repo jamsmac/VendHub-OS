@@ -105,6 +105,14 @@ export class DirectoriesController {
   }
 
   @Get("by-slug/:slug")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get directory by slug" })
   @ApiParam({ name: "slug", description: "Directory slug", example: "units" })
   @ApiResponse({ status: 200, description: "Directory with fields" })
@@ -114,6 +122,14 @@ export class DirectoriesController {
   }
 
   @Get(":id")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get directory by ID with field definitions" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Directory with fields" })
@@ -230,6 +246,14 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get(":id/entries")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "List entries for a directory (paginated)" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Paginated list of entries" })
@@ -246,6 +270,14 @@ export class DirectoriesController {
   }
 
   @Get(":id/entries/search")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Search entries within a directory" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Matching entries" })
@@ -302,6 +334,14 @@ export class DirectoriesController {
   }
 
   @Get(":id/entries/:entryId")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get a single entry by ID" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiParam({ name: "entryId", description: "Entry UUID" })
@@ -363,6 +403,7 @@ export class DirectoriesController {
   }
 
   @Get(":id/entries/:entryId/audit")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get audit logs for a specific entry" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiParam({ name: "entryId", description: "Entry UUID" })
@@ -411,6 +452,7 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get(":id/sources")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "List external sources for a directory" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Paginated list of sources" })
@@ -444,6 +486,7 @@ export class DirectoriesController {
   }
 
   @Get(":id/sources/:sourceId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get a single source by ID" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiParam({ name: "sourceId", description: "Source UUID" })
@@ -529,6 +572,7 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get(":id/sync-logs")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "List sync logs for a directory" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Paginated sync logs" })
@@ -549,6 +593,7 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get(":id/audit")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "List audit logs for a directory" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Paginated audit logs" })
@@ -569,6 +614,14 @@ export class DirectoriesController {
   // ===========================================================================
 
   @Get(":id/tree")
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get hierarchy tree for a hierarchical directory" })
   @ApiParam({ name: "id", description: "Directory UUID" })
   @ApiResponse({ status: 200, description: "Nested tree of entries" })

@@ -60,6 +60,7 @@ export class ComplaintsController {
   @Post()
   @ApiOperation({ summary: "Create new complaint" })
   @ApiResponse({ status: 201, description: "Complaint created" })
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateComplaintDto,

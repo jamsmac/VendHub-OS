@@ -2,6 +2,7 @@ import { Telegraf } from "telegraf";
 import { BotContext } from "../types";
 import { config } from "../config";
 import { api } from "../utils/api";
+import { transitionStep, resetStep } from "../states";
 import {
   formatWelcomeMessage,
   formatHelpMessage,
@@ -156,7 +157,7 @@ async function handleFind(ctx: BotContext) {
     "📍 Отправьте мне вашу геолокацию, чтобы найти ближайшие автоматы:",
     locationKeyboard,
   );
-  ctx.session.step = "awaiting_location";
+  transitionStep(ctx, "awaiting_location");
 }
 
 /**
@@ -342,7 +343,7 @@ async function handleCart(ctx: BotContext) {
  * /cancel command handler
  */
 async function handleCancel(ctx: BotContext) {
-  ctx.session.step = undefined;
+  resetStep(ctx);
   ctx.session.data = undefined;
 
   await ctx.reply("❌ Действие отменено.", removeKeyboard);
@@ -424,7 +425,7 @@ async function handleTripStart(ctx: BotContext) {
     return;
   }
 
-  ctx.session.step = "trip_selecting_vehicle";
+  transitionStep(ctx, "trip_selecting_vehicle");
   ctx.session.data = {};
 
   await ctx.reply("🚗 *Выбор транспорта*\n\nВыберите транспортное средство:", {
@@ -439,23 +440,23 @@ async function handleTripStart(ctx: BotContext) {
 async function handleTripEnd(ctx: BotContext) {
   const user = await api.getUserByTelegramId(ctx.from!.id);
   if (!user) {
-    await ctx.reply("Pozhalujsta, zaregistrirujtes' komandoj /start");
+    await ctx.reply("Пожалуйста, зарегистрируйтесь командой /start");
     return;
   }
 
   const activeTrip = await api.getActiveTrip(user.id);
   if (!activeTrip) {
-    await ctx.reply("ℹ️ U vas net aktivnoj poezdki.");
+    await ctx.reply("ℹ️ У вас нет активной поездки.");
     return;
   }
 
   const result = await api.endTrip(activeTrip.id);
   if (!result) {
-    await ctx.reply("❌ Oshibka zaversheniya poezdki. Poprobujte snova.");
+    await ctx.reply("❌ Ошибка завершения поездки. Попробуйте снова.");
     return;
   }
 
-  ctx.session.step = undefined;
+  resetStep(ctx);
   ctx.session.data = undefined;
 
   const duration =
@@ -468,11 +469,11 @@ async function handleTripEnd(ctx: BotContext) {
       : 0;
 
   await ctx.reply(
-    `✅ *Poezdka zavershena!*\n\n` +
-      `Marshrut: ${result.routeName || "Bez marshruta"}\n` +
-      `Dlitel\'nost\': ${duration} min\n` +
-      `Ostanovki: ${result.stopsCompleted}/${result.stopsTotal}\n` +
-      `Anomalij: ${result.anomaliesCount}`,
+    `✅ *Поездка завершена!*\n\n` +
+      `Маршрут: ${result.routeName || "Без маршрута"}\n` +
+      `Длительность: ${duration} мин\n` +
+      `Остановки: ${result.stopsCompleted}/${result.stopsTotal}\n` +
+      `Аномалий: ${result.anomaliesCount}`,
     { parse_mode: "Markdown" },
   );
 }
@@ -483,14 +484,14 @@ async function handleTripEnd(ctx: BotContext) {
 async function handleTripStatus(ctx: BotContext) {
   const user = await api.getUserByTelegramId(ctx.from!.id);
   if (!user) {
-    await ctx.reply("Pozhalujsta, zaregistrirujtes' komandoj /start");
+    await ctx.reply("Пожалуйста, зарегистрируйтесь командой /start");
     return;
   }
 
   const activeTrip = await api.getActiveTrip(user.id);
   if (!activeTrip) {
     await ctx.reply(
-      "ℹ️ U vas net aktivnoj poezdki.\n\nIspol'zujte /trip_start dlya nachala.",
+      "ℹ️ У вас нет активной поездки.\n\nИспользуйте /trip_start для начала.",
     );
     return;
   }
@@ -502,7 +503,7 @@ async function handleTripStatus(ctx: BotContext) {
   let stopsText = "";
   if (stops.length > 0) {
     stopsText =
-      "\n\n📍 *Ostanovki:*\n" +
+      "\n\n📍 *Остановки:*\n" +
       stops
         .map((s) => {
           const icon =
@@ -523,12 +524,12 @@ async function handleTripStatus(ctx: BotContext) {
     : 0;
 
   await ctx.reply(
-    `🚗 *Status poezdki*\n\n` +
-      `Marshrut: ${activeTrip.routeName || "Bez marshruta"}\n` +
-      `TS: ${activeTrip.vehiclePlate || "N/A"}\n` +
-      `V puti: ${elapsed} min\n` +
-      `Vypolneno: ${completedStops.length}/${stops.length} ostanovok\n` +
-      `Anomalij: ${activeTrip.anomaliesCount}` +
+    `🚗 *Статус поездки*\n\n` +
+      `Маршрут: ${activeTrip.routeName || "Без маршрута"}\n` +
+      `ТС: ${activeTrip.vehiclePlate || "N/A"}\n` +
+      `В пути: ${elapsed} мин\n` +
+      `Выполнено: ${completedStops.length}/${stops.length} остановок\n` +
+      `Аномалий: ${activeTrip.anomaliesCount}` +
       stopsText,
     { parse_mode: "Markdown", ...activeTripInline(activeTrip.id) },
   );

@@ -68,6 +68,7 @@ export class TransactionsController {
   // ============================================================================
 
   @Post()
+  @Roles("owner", "admin", "manager", "operator")
   @ApiOperation({ summary: "Create new transaction" })
   @HttpCode(HttpStatus.CREATED)
   async create(
@@ -87,6 +88,7 @@ export class TransactionsController {
   }
 
   @Post(":id/payment")
+  @Roles("owner", "admin", "manager", "operator")
   @ApiOperation({ summary: "Process payment for transaction" })
   @HttpCode(HttpStatus.OK)
   async processPayment(
@@ -100,6 +102,7 @@ export class TransactionsController {
   }
 
   @Post(":id/dispense")
+  @Roles("owner", "admin", "manager", "operator")
   @ApiOperation({ summary: "Record dispense result" })
   @HttpCode(HttpStatus.OK)
   async recordDispense(
@@ -113,6 +116,7 @@ export class TransactionsController {
   }
 
   @Post(":id/cancel")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Cancel transaction" })
   @HttpCode(HttpStatus.OK)
   async cancel(
@@ -342,12 +346,14 @@ export class TransactionsController {
   // ============================================================================
 
   @Get(":id")
+  @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Get transaction by ID" })
   async findById(@Param("id", ParseUUIDPipe) id: string) {
     return this.transactionsService.findById(id);
   }
 
   @Get("number/:number")
+  @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Get transaction by number" })
   async findByNumber(@Param("number") number: string) {
     return this.transactionsService.findByNumber(number);

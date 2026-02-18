@@ -25,8 +25,10 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { User } from "../users/entities/user.entity";
+import { User, UserRole } from "../users/entities/user.entity";
 import { FavoritesService } from "./favorites.service";
 import { FavoriteType } from "./entities/favorite.entity";
 import {
@@ -47,7 +49,16 @@ import {
 @ApiTags("Favorites")
 @ApiBearerAuth()
 @Controller("favorites")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  UserRole.VIEWER,
+  UserRole.OPERATOR,
+  UserRole.WAREHOUSE,
+  UserRole.ACCOUNTANT,
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+  UserRole.OWNER,
+)
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 

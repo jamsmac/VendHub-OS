@@ -50,6 +50,7 @@ export class TasksController {
   // ============================================================================
 
   @Get("kanban")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get kanban board - tasks grouped by status" })
   @ApiQuery({
     name: "assigneeId",
@@ -91,6 +92,7 @@ export class TasksController {
   }
 
   @Get("my")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get my assigned tasks" })
   @ApiResponse({
     status: 200,
@@ -117,6 +119,7 @@ export class TasksController {
   }
 
   @Get()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get all tasks" })
   @ApiQuery({
     name: "status",
@@ -169,6 +172,7 @@ export class TasksController {
   }
 
   @Get(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get task by ID" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task details" })
@@ -217,6 +221,7 @@ export class TasksController {
   }
 
   @Post(":id/start")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Start task execution" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task started successfully" })
@@ -230,6 +235,7 @@ export class TasksController {
   }
 
   @Post(":id/postpone")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Postpone task with reason" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task postponed successfully" })
@@ -269,6 +275,7 @@ export class TasksController {
   }
 
   @Post(":id/photo-before")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Upload photo before task execution" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Photo uploaded successfully" })
@@ -289,6 +296,7 @@ export class TasksController {
   }
 
   @Post(":id/photo-after")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Upload photo after task execution and complete" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({
@@ -320,6 +328,7 @@ export class TasksController {
   }
 
   @Post(":id/complete")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Complete task" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task completed successfully" })
@@ -338,6 +347,7 @@ export class TasksController {
   // ============================================================================
 
   @Get(":id/items")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get task items" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "List of task items" })
@@ -393,6 +403,7 @@ export class TasksController {
   // ============================================================================
 
   @Get(":id/comments")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get task comments" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "List of task comments" })
@@ -402,6 +413,7 @@ export class TasksController {
   }
 
   @Post(":id/comments")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Add comment to task" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 201, description: "Comment added successfully" })
@@ -419,6 +431,7 @@ export class TasksController {
   // ============================================================================
 
   @Get(":id/components")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get task components" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "List of task components" })
@@ -445,6 +458,7 @@ export class TasksController {
   // ============================================================================
 
   @Get(":id/photos")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get task photos" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "List of task photos" })
@@ -454,6 +468,7 @@ export class TasksController {
   }
 
   @Post(":id/photos")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Add photo to task" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 201, description: "Photo added successfully" })

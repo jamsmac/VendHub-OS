@@ -12,9 +12,11 @@ import {
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
+import { Roles } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { Public } from "../auth/decorators/public.decorator";
-import { User } from "../users/entities/user.entity";
+import { User, UserRole } from "../users/entities/user.entity";
 import { GeoService } from "./geo.service";
 import {
   CoordinatesDto,
@@ -109,7 +111,16 @@ export class GeoController {
 
   @Get("nearby-machines")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Find nearby machines",
     description: "Найти ближайшие автоматы",
@@ -152,7 +163,16 @@ export class GeoController {
 
   @Get("machines-in-bounds")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Get machines in map bounds",
     description: "Получить автоматы в видимой области карты",
@@ -192,7 +212,16 @@ export class GeoController {
 
   @Get("directions")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Get directions",
     description: "Получить маршрут до точки",
@@ -223,7 +252,16 @@ export class GeoController {
 
   @Get("static-map")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Get static map URL",
     description: "Получить URL статичной карты",
@@ -252,7 +290,16 @@ export class GeoController {
 
   @Post("distance")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    UserRole.VIEWER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  )
   @ApiOperation({
     summary: "Calculate distance",
     description: "Рассчитать расстояние между двумя точками",
