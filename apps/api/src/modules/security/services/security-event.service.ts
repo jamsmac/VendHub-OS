@@ -38,7 +38,7 @@ export class SecurityEventService {
   }
 
   async findAll(options: {
-    organizationId?: string;
+    organizationId: string;
     userId?: string;
     eventType?: SecurityEventType;
     severity?: SecuritySeverity;
@@ -68,11 +68,11 @@ export class SecurityEventService {
 
     const query = this.securityEventRepository.createQueryBuilder("event");
 
-    if (organizationId) {
-      query.andWhere("event.organizationId = :organizationId", {
-        organizationId,
-      });
-    }
+    // Multi-tenant isolation: always filter by organization
+    query.andWhere("event.organizationId = :organizationId", {
+      organizationId,
+    });
+
     if (userId) {
       query.andWhere("event.userId = :userId", { userId });
     }

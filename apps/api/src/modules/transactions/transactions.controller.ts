@@ -13,11 +13,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-  Headers,
-  UnauthorizedException,
   Logger,
-  RawBodyRequest,
-  Req,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -27,9 +23,6 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from "@nestjs/swagger";
-import { Request } from "express";
-import { ConfigService } from "@nestjs/config";
-import * as crypto from "crypto";
 import {
   TransactionsService,
   CreateTransactionDto,
@@ -42,7 +35,6 @@ import {
   PaymentMethod,
   CommissionStatus,
 } from "./entities/transaction.entity";
-import { Public } from "../../common/decorators/public.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentOrganizationId,
@@ -63,130 +55,13 @@ import {
   QueryCommissionsDto,
 } from "./dto/daily-summary-query.dto";
 
-// ============================================================================
-// Payment Callback DTOs
-// ============================================================================
-
-interface PaymeCallbackDto {
-  id: number;
-  method: string;
-  params: {
-    id: string;
-    amount?: number;
-    time?: number;
-    account?: {
-      order_id?: string;
-    };
-  };
-}
-
-interface ClickCallbackDto {
-  click_trans_id: string;
-  merchant_trans_id: string;
-  amount: number;
-  action: number;
-  error: number;
-  error_note?: string;
-  sign_time: string;
-  sign_string: string;
-}
-
-interface UzumCallbackDto {
-  transactionId: string;
-  status: "PAID" | "CANCELLED" | "FAILED";
-  amount: number;
-  timestamp: string;
-  signature: string;
-}
-
 @ApiTags("Transactions")
 @ApiBearerAuth()
 @Controller("transactions")
 export class TransactionsController {
   private readonly logger = new Logger(TransactionsController.name);
 
-  constructor(
-    private readonly transactionsService: TransactionsService,
-    private readonly configService: ConfigService,
-  ) {}
-
-  // ============================================================================
-  // Webhook Signature Verification
-  // ============================================================================
-
-  /**
-   * Verify Payme webhook signature
-   * Payme uses Basic Auth with merchant_id:key
-   */
-  private verifyPaymeSignature(authHeader: string): boolean {
-    const merchantId = this.configService.get<string>("PAYME_MERCHANT_ID");
-    const secretKey = this.configService.get<string>("PAYME_SECRET_KEY");
-
-    if (!merchantId || !secretKey) {
-      this.logger.error("Payme credentials not configured");
-      return false;
-    }
-
-    const expectedAuth = Buffer.from(`${merchantId}:${secretKey}`).toString(
-      "base64",
-    );
-    const providedAuth = authHeader?.replace("Basic ", "");
-
-    return providedAuth === expectedAuth;
-  }
-
-  /**
-   * Verify Click webhook signature
-   * Click uses MD5 hash: click_trans_id + service_id + secret_key + merchant_trans_id + amount + action + sign_time
-   */
-  private verifyClickSignature(body: ClickCallbackDto): boolean {
-    const secretKey = this.configService.get<string>("CLICK_SECRET_KEY");
-    const serviceId = this.configService.get<string>("CLICK_SERVICE_ID");
-
-    if (!secretKey || !serviceId) {
-      this.logger.error("Click credentials not configured");
-      return false;
-    }
-
-    const signString = `${body.click_trans_id}${serviceId}${secretKey}${body.merchant_trans_id}${body.amount}${body.action}${body.sign_time}`;
-    const expectedSign = crypto
-      .createHash("md5")
-      .update(signString)
-      .digest("hex");
-
-    return body.sign_string === expectedSign;
-  }
-
-  /**
-   * Verify Uzum webhook signature
-   * Uzum uses HMAC-SHA256
-   */
-  private verifyUzumSignature(
-    body: UzumCallbackDto,
-    _rawBody: string,
-  ): boolean {
-    const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
-
-    if (!secretKey) {
-      this.logger.error("Uzum credentials not configured");
-      return false;
-    }
-
-    // Uzum signature: HMAC-SHA256 of body without signature field
-    const dataToSign = JSON.stringify({
-      transactionId: body.transactionId,
-      status: body.status,
-      amount: body.amount,
-      timestamp: body.timestamp,
-    });
-
-    const expectedSignature = crypto
-      .createHmac("sha256", secretKey)
-      .update(dataToSign)
-      .digest("hex");
-
-    return body.signature === expectedSignature;
-  }
+  constructor(private readonly transactionsService: TransactionsService) {}
 
   // ============================================================================
   // Transaction Lifecycle (called by machines)
@@ -245,117 +120,6 @@ export class TransactionsController {
     @Body("reason") reason: string,
   ) {
     return this.transactionsService.cancel(id, reason);
-  }
-
-  // ============================================================================
-  // Payment Provider Callbacks
-  // ============================================================================
-
-  @Post("callback/payme")
-  @Public()
-  @ApiOperation({ summary: "Payme payment callback" })
-  @ApiResponse({ status: 200, description: "Callback processed" })
-  @ApiResponse({ status: 401, description: "Invalid signature" })
-  @HttpCode(HttpStatus.OK)
-  async paymeCallback(
-    @Body() body: PaymeCallbackDto,
-    @Headers("authorization") authHeader: string,
-  ) {
-    // SECURITY: Verify Payme signature
-    if (!this.verifyPaymeSignature(authHeader)) {
-      this.logger.warn("Invalid Payme webhook signature", {
-        method: body.method,
-        transactionId: body.params?.id,
-      });
-      throw new UnauthorizedException("Invalid webhook signature");
-    }
-
-    const { method, params } = body;
-    this.logger.log(`Payme callback: ${method}`, { transactionId: params?.id });
-
-    if (method === "PerformTransaction") {
-      await this.transactionsService.confirmPayment(
-        params.id,
-        "payme",
-        true,
-        body as unknown as Record<string, unknown>,
-      );
-    } else if (method === "CancelTransaction") {
-      await this.transactionsService.confirmPayment(
-        params.id,
-        "payme",
-        false,
-        body as unknown as Record<string, unknown>,
-      );
-    }
-
-    return { result: { allow: true } };
-  }
-
-  @Post("callback/click")
-  @Public()
-  @ApiOperation({ summary: "Click payment callback" })
-  @ApiResponse({ status: 200, description: "Callback processed" })
-  @ApiResponse({ status: 401, description: "Invalid signature" })
-  @HttpCode(HttpStatus.OK)
-  async clickCallback(@Body() body: ClickCallbackDto) {
-    // SECURITY: Verify Click signature
-    if (!this.verifyClickSignature(body)) {
-      this.logger.warn("Invalid Click webhook signature", {
-        clickTransId: body.click_trans_id,
-        merchantTransId: body.merchant_trans_id,
-      });
-      throw new UnauthorizedException("Invalid webhook signature");
-    }
-
-    const { click_trans_id, merchant_trans_id, error } = body;
-    this.logger.log(`Click callback: action=${body.action}`, {
-      clickTransId: click_trans_id,
-      merchantTransId: merchant_trans_id,
-      error,
-    });
-
-    await this.transactionsService.confirmPayment(
-      merchant_trans_id,
-      "click",
-      error === 0,
-      body as unknown as Record<string, unknown>,
-    );
-
-    return { error: 0, error_note: "Success" };
-  }
-
-  @Post("callback/uzum")
-  @Public()
-  @ApiOperation({ summary: "Uzum payment callback" })
-  @ApiResponse({ status: 200, description: "Callback processed" })
-  @ApiResponse({ status: 401, description: "Invalid signature" })
-  @HttpCode(HttpStatus.OK)
-  async uzumCallback(
-    @Body() body: UzumCallbackDto,
-    @Req() req: RawBodyRequest<Request>,
-  ) {
-    // SECURITY: Verify Uzum signature
-    const rawBody = req.rawBody?.toString() || JSON.stringify(body);
-    if (!this.verifyUzumSignature(body, rawBody)) {
-      this.logger.warn("Invalid Uzum webhook signature", {
-        transactionId: body.transactionId,
-        status: body.status,
-      });
-      throw new UnauthorizedException("Invalid webhook signature");
-    }
-
-    const { transactionId, status } = body;
-    this.logger.log(`Uzum callback: status=${status}`, { transactionId });
-
-    await this.transactionsService.confirmPayment(
-      transactionId,
-      "uzum",
-      status === "PAID",
-      body as unknown as Record<string, unknown>,
-    );
-
-    return { success: true };
   }
 
   // ============================================================================

@@ -209,7 +209,7 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockEvent]);
 
-      const result = await service.findAll({});
+      const result = await service.findAll({ organizationId: orgId });
 
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
