@@ -33,6 +33,7 @@ spec:
         - admin.vendhub.uz
         - app.vendhub.uz
         - bot.vendhub.uz
+        - vendhub.uz
       secretName: vendhub-tls
 
   rules:
@@ -71,6 +72,18 @@ spec:
                 name: vendhub-client
                 port:
                   number: 80
+
+    # Landing Page / Site
+    - host: vendhub.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vendhub-site
+                port:
+                  number: 3100
 
     # Telegram Bot Webhook
     - host: bot.vendhub.uz

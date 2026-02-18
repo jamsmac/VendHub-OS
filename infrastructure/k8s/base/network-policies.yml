@@ -1,0 +1,239 @@
+# ==================================================
+# VendHub Network Policies
+# ==================================================
+# Restricts pod-to-pod communication to only what's needed.
+# Requires a CNI plugin that supports NetworkPolicy (Calico, Cilium, etc.)
+# ==================================================
+
+# --------------------------------------------------
+# Default: deny all ingress in vendhub namespace
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: vendhub
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+
+---
+# --------------------------------------------------
+# API: allow ingress from nginx-ingress, web, client, bot
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: vendhub-api
+  policyTypes:
+    - Ingress
+  ingress:
+    # From ingress controller (external traffic via nginx)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 4000
+          protocol: TCP
+    # From web admin panel
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendhub-web
+      ports:
+        - port: 4000
+          protocol: TCP
+    # From client mini app (via ingress, not direct)
+    # From bot service
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendhub-bot
+      ports:
+        - port: 4000
+          protocol: TCP
+    # From Prometheus (metrics scraping)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 4000
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# Web: allow ingress from nginx-ingress only
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: vendhub-web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 3000
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# Client: allow ingress from nginx-ingress only
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-client-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: vendhub-client
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 80
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# Site: allow ingress from nginx-ingress only
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-site-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: vendhub-site
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 3100
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# Bot: allow ingress from nginx-ingress (webhook endpoint)
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bot-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: vendhub-bot
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 3001
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# PostgreSQL: allow ingress from API and bot only
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    # Only API can access the database
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendhub-api
+      ports:
+        - port: 5432
+          protocol: TCP
+    # Prometheus pg_exporter
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 9187
+          protocol: TCP
+
+---
+# --------------------------------------------------
+# Redis: allow ingress from API and bot only
+# --------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-ingress
+  namespace: vendhub
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    # API needs Redis for cache, sessions, queues
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendhub-api
+      ports:
+        - port: 6379
+          protocol: TCP
+    # Bot needs Redis for rate limiting
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendhub-bot
+      ports:
+        - port: 6379
+          protocol: TCP
+    # Prometheus redis_exporter
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 9121
+          protocol: TCP

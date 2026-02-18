@@ -1,19 +1,19 @@
 # ==================================================
-# VendHub Client (Mini App) Deployment
+# VendHub Site (Landing Page) Deployment
 # ==================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vendhub-client
+  name: vendhub-site
   namespace: vendhub
   labels:
-    app: vendhub-client
+    app: vendhub-site
     tier: frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: vendhub-client
+      app: vendhub-site
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -22,60 +22,59 @@ spec:
   template:
     metadata:
       labels:
-        app: vendhub-client
+        app: vendhub-site
         tier: frontend
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 101 # nginx user UID in Alpine-based images
-        fsGroup: 101
+        runAsUser: 1001
+        fsGroup: 1001
+
       containers:
-        - name: client
-          image: vendhub/client:latest
+        - name: site
+          image: vendhub/site:latest
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 3100
               protocol: TCP
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-          volumeMounts:
-            - name: nginx-cache
-              mountPath: /var/cache/nginx
-            - name: nginx-run
-              mountPath: /var/run
+
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3100"
 
           resources:
             requests:
-              cpu: "25m"
-              memory: "64Mi"
+              cpu: "50m"
+              memory: "128Mi"
             limits:
-              cpu: "200m"
-              memory: "256Mi"
+              cpu: "500m"
+              memory: "512Mi"
+
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
 
           livenessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
 
           readinessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
-
-      volumes:
-        - name: nginx-cache
-          emptyDir: {}
-        - name: nginx-run
-          emptyDir: {}
+            timeoutSeconds: 3
 
       affinity:
         podAntiAffinity:
@@ -84,38 +83,38 @@ spec:
               podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app: vendhub-client
+                    app: vendhub-site
                 topologyKey: kubernetes.io/hostname
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: vendhub-client
+  name: vendhub-site
   namespace: vendhub
   labels:
-    app: vendhub-client
+    app: vendhub-site
 spec:
   type: ClusterIP
   ports:
-    - port: 80
+    - port: 3100
       targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: vendhub-client
+    app: vendhub-site
 
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: vendhub-client
+  name: vendhub-site
   namespace: vendhub
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: vendhub-client
+    name: vendhub-site
   minReplicas: 2
   maxReplicas: 5
   metrics:
@@ -130,10 +129,10 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: vendhub-client
+  name: vendhub-site
   namespace: vendhub
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app: vendhub-client
+      app: vendhub-site

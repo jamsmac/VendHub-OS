@@ -16,7 +16,9 @@ resources:
   - web-deployment.yml
   - client-deployment.yml
   - bot-deployment.yml
+  - site-deployment.yml
   - ingress.yml
+  - network-policies.yml
 
 commonLabels:
   app.kubernetes.io/name: vendhub

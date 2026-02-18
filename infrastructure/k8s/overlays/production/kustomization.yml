@@ -39,6 +39,14 @@ patches:
       kind: Deployment
       name: vendhub-client
 
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: vendhub-site
+
   # Production resource limits
   - patch: |-
       - op: replace
@@ -116,4 +124,6 @@ images:
   - name: vendhub/client
     newTag: stable
   - name: vendhub/bot
+    newTag: stable
+  - name: vendhub/site
     newTag: stable

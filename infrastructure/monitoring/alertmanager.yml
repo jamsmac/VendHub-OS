@@ -1,17 +1,26 @@
 # ==================================================
 # VendHub Alertmanager Configuration
 # ==================================================
+# USAGE: This file uses envsubst placeholders.
+# Process before deploying:
+#   envsubst < alertmanager.yml > /etc/alertmanager/alertmanager.yml
+#
+# Required env vars:
+#   SMTP_USERNAME, SMTP_PASSWORD, SLACK_WEBHOOK_URL,
+#   TELEGRAM_BOT_TOKEN, TELEGRAM_ALERTS_CHAT_ID,
+#   TELEGRAM_CRITICAL_CHAT_ID, TELEGRAM_BUSINESS_CHAT_ID
+# ==================================================
 
 global:
   # Global SMTP settings
-  smtp_smarthost: 'smtp.gmail.com:587'
-  smtp_from: 'alerts@vendhub.uz'
-  smtp_auth_username: '${SMTP_USERNAME}'
-  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_smarthost: "smtp.gmail.com:587"
+  smtp_from: "alerts@vendhub.uz"
+  smtp_auth_username: "$SMTP_USERNAME"
+  smtp_auth_password: "$SMTP_PASSWORD"
   smtp_require_tls: true
 
   # Slack settings
-  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  slack_api_url: "$SLACK_WEBHOOK_URL"
 
   # Default resolve timeout
   resolve_timeout: 5m
@@ -19,10 +28,10 @@ global:
 # Route tree
 route:
   # Default receiver
-  receiver: 'default-receiver'
+  receiver: "default-receiver"
 
   # Group alerts by these labels
-  group_by: ['alertname', 'severity', 'instance']
+  group_by: ["alertname", "severity", "instance"]
 
   # How long to wait before sending initial notification
   group_wait: 30s
@@ -38,7 +47,7 @@ route:
     # Critical alerts - send immediately to all channels
     - match:
         severity: critical
-      receiver: 'critical-receiver'
+      receiver: "critical-receiver"
       group_wait: 10s
       repeat_interval: 1h
       continue: true
@@ -46,36 +55,36 @@ route:
     # Warning alerts
     - match:
         severity: warning
-      receiver: 'warning-receiver'
+      receiver: "warning-receiver"
       repeat_interval: 4h
 
     # Business alerts
     - match_re:
-        alertname: 'NoOrders.*|MachineOffline|LowInventory'
-      receiver: 'business-receiver'
+        alertname: "NoOrders.*|MachineOffline|LowInventory"
+      receiver: "business-receiver"
       repeat_interval: 2h
 
 # Inhibition rules - prevent alerts based on other alerts
 inhibit_rules:
   # If critical, suppress warning for same alertname
   - source_match:
-      severity: 'critical'
+      severity: "critical"
     target_match:
-      severity: 'warning'
-    equal: ['alertname', 'instance']
+      severity: "warning"
+    equal: ["alertname", "instance"]
 
 # Receivers
 receivers:
   # Default receiver
-  - name: 'default-receiver'
+  - name: "default-receiver"
     email_configs:
-      - to: 'devops@vendhub.uz'
+      - to: "devops@vendhub.uz"
         send_resolved: true
     telegram_configs:
-      - api_url: 'https://api.telegram.org'
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
-        chat_id: ${TELEGRAM_ALERTS_CHAT_ID}
-        parse_mode: 'HTML'
+      - api_url: "https://api.telegram.org"
+        bot_token: "$TELEGRAM_BOT_TOKEN"
+        chat_id: $TELEGRAM_ALERTS_CHAT_ID
+        parse_mode: "HTML"
         message: |
           {{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} <b>{{ .Status | toUpper }}</b>
 
@@ -87,17 +96,17 @@ receivers:
           {{ end }}
 
   # Critical receiver - all channels
-  - name: 'critical-receiver'
+  - name: "critical-receiver"
     email_configs:
-      - to: 'devops@vendhub.uz,cto@vendhub.uz'
+      - to: "devops@vendhub.uz,cto@vendhub.uz"
         send_resolved: true
         headers:
-          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+          Subject: "🚨 CRITICAL: {{ .GroupLabels.alertname }}"
     telegram_configs:
-      - api_url: 'https://api.telegram.org'
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
-        chat_id: ${TELEGRAM_CRITICAL_CHAT_ID}
-        parse_mode: 'HTML'
+      - api_url: "https://api.telegram.org"
+        bot_token: "$TELEGRAM_BOT_TOKEN"
+        chat_id: $TELEGRAM_CRITICAL_CHAT_ID
+        parse_mode: "HTML"
         message: |
           🚨🚨🚨 <b>CRITICAL ALERT</b> 🚨🚨🚨
 
@@ -111,19 +120,19 @@ receivers:
 
           <b>Status:</b> {{ .Status | toUpper }}
     slack_configs:
-      - channel: '#alerts-critical'
+      - channel: "#alerts-critical"
         send_resolved: true
         title: '{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        text: "{{ range .Alerts }}{{ .Annotations.description }}{{ end }}"
         color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
 
   # Warning receiver
-  - name: 'warning-receiver'
+  - name: "warning-receiver"
     telegram_configs:
-      - api_url: 'https://api.telegram.org'
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
-        chat_id: ${TELEGRAM_ALERTS_CHAT_ID}
-        parse_mode: 'HTML'
+      - api_url: "https://api.telegram.org"
+        bot_token: "$TELEGRAM_BOT_TOKEN"
+        chat_id: $TELEGRAM_ALERTS_CHAT_ID
+        parse_mode: "HTML"
         message: |
           ⚠️ <b>WARNING</b>
 
@@ -132,16 +141,16 @@ receivers:
           <b>Summary:</b> {{ .Annotations.summary }}
           {{ end }}
     slack_configs:
-      - channel: '#alerts-warning'
+      - channel: "#alerts-warning"
         send_resolved: true
 
   # Business alerts receiver
-  - name: 'business-receiver'
+  - name: "business-receiver"
     telegram_configs:
-      - api_url: 'https://api.telegram.org'
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
-        chat_id: ${TELEGRAM_BUSINESS_CHAT_ID}
-        parse_mode: 'HTML'
+      - api_url: "https://api.telegram.org"
+        bot_token: "$TELEGRAM_BOT_TOKEN"
+        chat_id: $TELEGRAM_BUSINESS_CHAT_ID
+        parse_mode: "HTML"
         message: |
           📊 <b>Business Alert</b>
 
@@ -153,4 +162,4 @@ receivers:
 
 # Templates
 templates:
-  - '/etc/alertmanager/templates/*.tmpl'
+  - "/etc/alertmanager/templates/*.tmpl"
