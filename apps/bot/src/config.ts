@@ -27,13 +27,18 @@ export function validateConfig(): void {
       "BOT_API_TOKEN is required — generate a JWT for the bot service account",
     );
   }
-  // In production, ensure no localhost URLs
+  // In production, ensure no localhost URLs and HTTPS webhooks
   if (process.env.NODE_ENV === "production") {
     if (config.apiUrl.includes("localhost")) {
       throw new Error("API_URL must not point to localhost in production");
     }
     if (config.redisUrl.includes("localhost")) {
       throw new Error("REDIS_URL must not point to localhost in production");
+    }
+    if (config.webhookDomain && !config.webhookDomain.startsWith("https://")) {
+      throw new Error(
+        "WEBHOOK_DOMAIN must use HTTPS in production (Telegram requirement)",
+      );
     }
   }
 }

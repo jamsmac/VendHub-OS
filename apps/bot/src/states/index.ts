@@ -1,4 +1,5 @@
-import { SessionStep } from '../types';
+import { SessionStep } from "../types";
+import logger from "../utils/logger";
 
 // ============================================
 // State Machine Definition
@@ -14,48 +15,48 @@ export interface StateDefinition {
 
 export const states: Record<NonNullable<SessionStep>, StateDefinition> = {
   awaiting_location: {
-    name: 'awaiting_location',
-    allowedTransitions: [undefined, 'awaiting_complaint'],
+    name: "awaiting_location",
+    allowedTransitions: [undefined, "awaiting_complaint"],
     timeout: 300000, // 5 minutes
   },
   awaiting_phone: {
-    name: 'awaiting_phone',
+    name: "awaiting_phone",
     allowedTransitions: [undefined],
     timeout: 300000,
   },
   awaiting_feedback: {
-    name: 'awaiting_feedback',
+    name: "awaiting_feedback",
     allowedTransitions: [undefined],
     timeout: 600000, // 10 minutes
   },
   awaiting_complaint: {
-    name: 'awaiting_complaint',
-    allowedTransitions: [undefined, 'awaiting_location'],
+    name: "awaiting_complaint",
+    allowedTransitions: [undefined, "awaiting_location"],
     timeout: 600000,
   },
   awaiting_product_quantity: {
-    name: 'awaiting_product_quantity',
-    allowedTransitions: [undefined, 'confirming_order'],
+    name: "awaiting_product_quantity",
+    allowedTransitions: [undefined, "confirming_order"],
     timeout: 300000,
   },
   confirming_order: {
-    name: 'confirming_order',
-    allowedTransitions: [undefined, 'awaiting_product_quantity'],
+    name: "confirming_order",
+    allowedTransitions: [undefined, "awaiting_product_quantity"],
     timeout: 600000,
   },
   trip_active: {
-    name: 'trip_active',
+    name: "trip_active",
     allowedTransitions: [undefined],
     timeout: 28800000, // 8 hours
   },
   trip_selecting_vehicle: {
-    name: 'trip_selecting_vehicle',
-    allowedTransitions: [undefined, 'trip_selecting_route', 'trip_active'],
+    name: "trip_selecting_vehicle",
+    allowedTransitions: [undefined, "trip_selecting_route", "trip_active"],
     timeout: 300000, // 5 minutes
   },
   trip_selecting_route: {
-    name: 'trip_selecting_route',
-    allowedTransitions: [undefined, 'trip_selecting_vehicle', 'trip_active'],
+    name: "trip_selecting_route",
+    allowedTransitions: [undefined, "trip_selecting_vehicle", "trip_active"],
     timeout: 300000, // 5 minutes
   },
 };
@@ -97,7 +98,9 @@ export class StateMachine {
    */
   transition(newState: SessionStep): boolean {
     if (!this.canTransition(newState)) {
-      console.warn(`Invalid transition from ${this.currentState} to ${newState}`);
+      logger.warn(
+        `Invalid transition from ${this.currentState} to ${newState}`,
+      );
       return false;
     }
 
@@ -148,7 +151,7 @@ export class StateMachine {
  */
 export function isValidState(
   currentStep: SessionStep,
-  expectedStep: SessionStep
+  expectedStep: SessionStep,
 ): boolean {
   return currentStep === expectedStep;
 }
@@ -173,15 +176,15 @@ export function createStateMachine(sessionStep?: SessionStep): StateMachine {
 // ============================================
 
 export const STATE_NAMES = {
-  AWAITING_LOCATION: 'awaiting_location' as const,
-  AWAITING_PHONE: 'awaiting_phone' as const,
-  AWAITING_FEEDBACK: 'awaiting_feedback' as const,
-  AWAITING_COMPLAINT: 'awaiting_complaint' as const,
-  AWAITING_PRODUCT_QUANTITY: 'awaiting_product_quantity' as const,
-  CONFIRMING_ORDER: 'confirming_order' as const,
-  TRIP_ACTIVE: 'trip_active' as const,
-  TRIP_SELECTING_VEHICLE: 'trip_selecting_vehicle' as const,
-  TRIP_SELECTING_ROUTE: 'trip_selecting_route' as const,
+  AWAITING_LOCATION: "awaiting_location" as const,
+  AWAITING_PHONE: "awaiting_phone" as const,
+  AWAITING_FEEDBACK: "awaiting_feedback" as const,
+  AWAITING_COMPLAINT: "awaiting_complaint" as const,
+  AWAITING_PRODUCT_QUANTITY: "awaiting_product_quantity" as const,
+  CONFIRMING_ORDER: "confirming_order" as const,
+  TRIP_ACTIVE: "trip_active" as const,
+  TRIP_SELECTING_VEHICLE: "trip_selecting_vehicle" as const,
+  TRIP_SELECTING_ROUTE: "trip_selecting_route" as const,
 };
 
 export default {

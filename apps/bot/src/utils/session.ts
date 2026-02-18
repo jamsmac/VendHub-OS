@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import { config } from "../config";
 import { SessionData } from "../types";
+import logger from "./logger";
 
 // ============================================
 // Redis Connection
@@ -15,11 +16,11 @@ export const redis = new Redis(config.redisUrl, {
 });
 
 redis.on("connect", () => {
-  console.log("✅ Redis connected");
+  logger.info("Redis connected");
 });
 
 redis.on("error", (error) => {
-  console.error("❌ Redis error:", error);
+  logger.error("Redis error:", error);
 });
 
 // ============================================
@@ -42,7 +43,7 @@ export const sessionStore = {
       session.lastActivity = Date.now();
       return session;
     } catch (error) {
-      console.error("Session get error:", error);
+      logger.error("Session get error:", error);
       return undefined;
     }
   },
@@ -60,7 +61,7 @@ export const sessionStore = {
         SESSION_TTL,
       );
     } catch (error) {
-      console.error("Session set error:", error);
+      logger.error("Session set error:", error);
     }
   },
 
@@ -71,7 +72,7 @@ export const sessionStore = {
     try {
       await redis.del(`${SESSION_PREFIX}${key}`);
     } catch (error) {
-      console.error("Session delete error:", error);
+      logger.error("Session delete error:", error);
     }
   },
 
@@ -188,7 +189,7 @@ export const cache = {
         ttl,
       );
     } catch (error) {
-      console.error("Cache set error:", error);
+      logger.error("Cache set error:", error);
     }
   },
 

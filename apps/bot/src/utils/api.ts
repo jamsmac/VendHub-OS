@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { config } from "../config";
+import logger from "./logger";
 import {
   User,
   Machine,
@@ -38,7 +39,7 @@ class ApiClient {
         return reqConfig;
       },
       (error) => {
-        console.error("API Request Error:", error);
+        logger.error("API Request Error:", error);
         return Promise.reject(error);
       },
     );
@@ -47,7 +48,7 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error(
+        logger.error(
           "API Response Error:",
           error.response?.data || error.message,
         );
@@ -86,7 +87,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      console.error("Error registering user:", error);
+      logger.error("Error registering user:", error);
       return null;
     }
   }
@@ -98,7 +99,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      console.error("Error updating user phone:", error);
+      logger.error("Error updating user phone:", error);
       return null;
     }
   }
@@ -233,7 +234,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      console.error("Error creating order:", error);
+      logger.error("Error creating order:", error);
       return null;
     }
   }
@@ -289,7 +290,7 @@ class ApiClient {
       });
       return true;
     } catch (error) {
-      console.error("Error creating complaint:", error);
+      logger.error("Error creating complaint:", error);
       return false;
     }
   }
@@ -333,7 +334,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      console.error("Error starting trip:", error);
+      logger.error("Error starting trip:", error);
       return null;
     }
   }
@@ -343,7 +344,7 @@ class ApiClient {
       const response = await this.client.post<Trip>(`/trips/${tripId}/end`);
       return response.data;
     } catch (error) {
-      console.error("Error ending trip:", error);
+      logger.error("Error ending trip:", error);
       return null;
     }
   }
@@ -518,7 +519,7 @@ class ApiClient {
       });
       return true;
     } catch (error) {
-      console.error("Error submitting feedback:", error);
+      logger.error("Error submitting feedback:", error);
       return false;
     }
   }

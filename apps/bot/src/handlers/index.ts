@@ -1,8 +1,9 @@
-import { Telegraf } from 'telegraf';
-import { BotContext } from '../types';
-import { registerCommands } from './commands';
-import { registerCallbacks } from './callbacks';
-import { registerMessageHandlers } from './messages';
+import { Telegraf } from "telegraf";
+import { BotContext } from "../types";
+import { registerCommands } from "./commands";
+import { registerCallbacks } from "./callbacks";
+import { registerMessageHandlers } from "./messages";
+import logger from "../utils/logger";
 
 /**
  * Register all handlers for the bot
@@ -17,9 +18,9 @@ export function registerAllHandlers(bot: Telegraf<BotContext>) {
   // Register message handlers (text, location, contact, photo)
   registerMessageHandlers(bot);
 
-  console.log('✅ All handlers registered');
+  logger.info("All handlers registered");
 }
 
-export { registerCommands } from './commands';
-export { registerCallbacks } from './callbacks';
-export { registerMessageHandlers } from './messages';
+export { registerCommands } from "./commands";
+export { registerCallbacks } from "./callbacks";
+export { registerMessageHandlers } from "./messages";

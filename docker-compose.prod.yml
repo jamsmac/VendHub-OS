@@ -44,6 +44,8 @@ services:
       - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
       - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
       - SENTRY_DSN=${SENTRY_DSN}
+      - DB_MIGRATIONS_RUN=true
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.vendhub.uz,https://app.vendhub.uz,https://vendhub.uz}
     ports:
       - "4000:4000"
     depends_on:

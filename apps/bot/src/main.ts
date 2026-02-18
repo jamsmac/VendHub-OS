@@ -3,6 +3,7 @@ import { config, validateConfig } from "./config";
 import { BotContext } from "./types";
 import { redis, createSessionMiddleware, rateLimiter } from "./utils/session";
 import { registerAllHandlers } from "./handlers";
+import logger from "./utils/logger";
 
 // ============================================
 // Bot Initialization
@@ -19,7 +20,7 @@ bot.use(async (ctx, next) => {
   if (ctx.from) {
     const isLimited = await rateLimiter.isLimited(ctx.from.id);
     if (isLimited) {
-      console.log(`Rate limited user: ${ctx.from.id}`);
+      logger.warn(`Rate limited user: ${ctx.from.id}`);
       return;
     }
   }
@@ -36,7 +37,7 @@ bot.use(async (ctx, next) => {
   const duration = Date.now() - start;
 
   if (ctx.updateType) {
-    console.log(
+    logger.debug(
       `[${ctx.updateType}] ${ctx.from?.username || ctx.from?.id} - ${duration}ms`,
     );
   }
@@ -53,7 +54,7 @@ registerAllHandlers(bot);
 // ============================================
 
 bot.catch((err, ctx) => {
-  console.error(`❌ Error for ${ctx.updateType}:`, err);
+  logger.error(`Error for ${ctx.updateType}:`, err);
 
   // Try to send error message to user
   ctx.reply("❌ Произошла ошибка. Попробуйте позже.").catch(() => {
@@ -66,24 +67,24 @@ bot.catch((err, ctx) => {
 // ============================================
 
 async function main() {
-  console.log("🤖 Starting VendHub Telegram Bot...");
-  console.log(`📦 Version: 2.0.0 (Modular)`);
+  logger.info("Starting VendHub Telegram Bot...");
+  logger.info("Version: 2.0.0 (Modular)");
 
   // Validate configuration
   try {
     validateConfig();
-    console.log("✅ Configuration validated");
+    logger.info("Configuration validated");
   } catch (error) {
-    console.error("❌ Configuration error:", error);
+    logger.error("Configuration error:", error);
     process.exit(1);
   }
 
   // Check Redis connection
   try {
     await redis.ping();
-    console.log("✅ Redis connected");
+    logger.info("Redis connected");
   } catch (error) {
-    console.error("❌ Redis connection failed:", error);
+    logger.error("Redis connection failed:", error);
     process.exit(1);
   }
 
@@ -119,7 +120,7 @@ async function main() {
     ],
     { scope: { type: "all_group_chats" } },
   );
-  console.log("✅ Bot commands set");
+  logger.info("Bot commands set");
 
   // Launch bot
   if (config.webhookDomain) {
@@ -127,7 +128,7 @@ async function main() {
     const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
 
     await bot.telegram.setWebhook(webhookUrl);
-    console.log(`🌐 Webhook set: ${webhookUrl}`);
+    logger.info(`Webhook set: ${webhookUrl}`);
 
     await bot.launch({
       webhook: {
@@ -137,23 +138,16 @@ async function main() {
       },
     });
 
-    console.log(`🚀 Bot started in webhook mode on port ${config.port}`);
+    logger.info(`Bot started in webhook mode on port ${config.port}`);
   } else {
     // Long polling mode for development
     await bot.launch();
-    console.log("🔄 Bot started in polling mode");
+    logger.info("Bot started in polling mode");
   }
 
-  console.log("");
-  console.log("╔════════════════════════════════════════╗");
-  console.log("║     🤖 VendHub Bot is running!         ║");
-  console.log("║                                        ║");
-  console.log(
-    `║     Mode: ${config.webhookDomain ? "Webhook" : "Polling"}                      ║`,
+  logger.info(
+    `VendHub Bot is running | Mode: ${config.webhookDomain ? "Webhook" : "Polling"} | API: ${config.apiUrl}`,
   );
-  console.log(`║     API: ${config.apiUrl}      ║`);
-  console.log("╚════════════════════════════════════════╝");
-  console.log("");
 }
 
 // ============================================
@@ -161,16 +155,16 @@ async function main() {
 // ============================================
 
 function shutdown(signal: string) {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
+  logger.info(`${signal} received. Shutting down gracefully...`);
 
   bot.stop(signal);
 
   try {
     redis.disconnect();
-    console.log("✅ Redis disconnected");
+    logger.info("Redis disconnected");
     process.exit(0);
   } catch (err: unknown) {
-    console.error("Error disconnecting Redis:", err);
+    logger.error("Error disconnecting Redis:", err);
     process.exit(1);
   }
 }
@@ -180,12 +174,12 @@ process.once("SIGTERM", () => shutdown("SIGTERM"));
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
+  logger.error("Uncaught Exception:", error);
   shutdown("UNCAUGHT_EXCEPTION");
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
 });
 
 // ============================================
@@ -193,6 +187,6 @@ process.on("unhandledRejection", (reason, promise) => {
 // ============================================
 
 main().catch((error) => {
-  console.error("Fatal error:", error);
+  logger.error("Fatal error:", error);
   process.exit(1);
 });
