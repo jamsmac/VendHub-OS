@@ -91,8 +91,11 @@ export class NotificationsController {
   @Post(":id/read")
   @ApiOperation({ summary: "Mark notification as read" })
   @HttpCode(HttpStatus.OK)
-  async markAsRead(@Param("id", ParseUUIDPipe) id: string) {
-    return this.notificationsService.markAsRead(id);
+  async markAsRead(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.notificationsService.markAsRead(id, userId);
   }
 
   @Post("read-all")
@@ -106,8 +109,11 @@ export class NotificationsController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete notification" })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param("id", ParseUUIDPipe) id: string) {
-    await this.notificationsService.delete(id);
+  async delete(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUserId() userId: string,
+  ) {
+    await this.notificationsService.delete(id, userId);
   }
 
   // ============================================================================

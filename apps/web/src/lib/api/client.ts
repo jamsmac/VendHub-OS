@@ -8,7 +8,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
   AxiosResponse,
-} from 'axios';
+} from "axios";
 
 // ============================================
 // Types
@@ -25,10 +25,10 @@ export class ApiError extends Error {
   constructor(
     public statusCode: number,
     message: string,
-    public details?: Record<string, unknown>
+    public details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
@@ -36,9 +36,10 @@ export class ApiError extends Error {
 // Configuration
 // ============================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const TOKEN_KEY = 'vendhub_access_token';
-const REFRESH_TOKEN_KEY = 'vendhub_refresh_token';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+const TOKEN_KEY = "vendhub_access_token";
+const REFRESH_TOKEN_KEY = "vendhub_refresh_token";
 
 // ============================================
 // Token Management
@@ -46,17 +47,17 @@ const REFRESH_TOKEN_KEY = 'vendhub_refresh_token';
 
 export const tokenManager = {
   getAccessToken(): string | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     return localStorage.getItem(TOKEN_KEY);
   },
 
   getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   },
 
   setTokens(accessToken: string, refreshToken?: string): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     localStorage.setItem(TOKEN_KEY, accessToken);
     if (refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -64,7 +65,7 @@ export const tokenManager = {
   },
 
   clearTokens(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
@@ -82,7 +83,7 @@ const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     timeout: 30000, // 30 seconds
   });
@@ -98,7 +99,7 @@ const createApiClient = (): AxiosInstance => {
     },
     (error: AxiosError) => {
       return Promise.reject(error);
-    }
+    },
   );
 
   // Response interceptor - handle errors and token refresh
@@ -120,7 +121,8 @@ const createApiClient = (): AxiosInstance => {
               refreshToken,
             });
 
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
+            const { accessToken, refreshToken: newRefreshToken } =
+              response.data;
             tokenManager.setTokens(accessToken, newRefreshToken);
 
             // Retry original request with new token
@@ -131,16 +133,16 @@ const createApiClient = (): AxiosInstance => {
           } catch (refreshError) {
             // Refresh failed - clear tokens and redirect to login
             tokenManager.clearTokens();
-            if (typeof window !== 'undefined') {
-              window.location.href = '/login';
+            if (typeof window !== "undefined") {
+              window.location.href = "/auth";
             }
             return Promise.reject(refreshError);
           }
         } else {
           // No refresh token - redirect to login
           tokenManager.clearTokens();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+          if (typeof window !== "undefined") {
+            window.location.href = "/auth";
           }
         }
       }
@@ -148,12 +150,12 @@ const createApiClient = (): AxiosInstance => {
       // Transform error to ApiError
       const apiError = new ApiError(
         error.response?.status || 500,
-        error.response?.data?.message || error.message || 'Unknown error',
-        error.response?.data?.details
+        error.response?.data?.message || error.message || "Unknown error",
+        error.response?.data?.details,
       );
 
       return Promise.reject(apiError);
-    }
+    },
   );
 
   return client;
@@ -176,7 +178,7 @@ export function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
+    if (value !== undefined && value !== null && value !== "") {
       if (Array.isArray(value)) {
         value.forEach((item) => searchParams.append(key, String(item)));
       } else if (value instanceof Date) {
@@ -188,7 +190,7 @@ export function buildQueryString(params: Record<string, unknown>): string {
   });
 
   const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
+  return queryString ? `?${queryString}` : "";
 }
 
 /**
@@ -196,15 +198,15 @@ export function buildQueryString(params: Record<string, unknown>): string {
  */
 export async function downloadFile(
   url: string,
-  filename: string
+  filename: string,
 ): Promise<void> {
   const response = await apiClient.get(url, {
-    responseType: 'blob',
+    responseType: "blob",
   });
 
   const blob = new Blob([response.data]);
   const downloadUrl = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = downloadUrl;
   link.download = filename;
   document.body.appendChild(link);
@@ -219,8 +221,8 @@ export async function downloadFile(
 export async function uploadFile(
   url: string,
   file: File,
-  fieldName = 'file',
-  additionalData?: Record<string, string>
+  fieldName = "file",
+  additionalData?: Record<string, string>,
 ): Promise<AxiosResponse> {
   const formData = new FormData();
   formData.append(fieldName, file);
@@ -233,7 +235,7 @@ export async function uploadFile(
 
   return apiClient.post(url, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 }

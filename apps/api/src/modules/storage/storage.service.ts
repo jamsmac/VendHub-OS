@@ -97,14 +97,28 @@ export class StorageService {
 
   constructor(private readonly configService: ConfigService) {
     this.region = this.configService.get("AWS_REGION", "us-east-1");
-    this.bucket = this.configService.get("AWS_S3_BUCKET", "vendhub-storage");
+    this.bucket = this.configService.get(
+      "STORAGE_BUCKET",
+      this.configService.get("AWS_S3_BUCKET", "vendhub-storage"),
+    );
     this.cdnDomain = this.configService.get("AWS_CLOUDFRONT_DOMAIN");
 
+    const endpoint = this.configService.get("STORAGE_ENDPOINT");
     this.s3Client = new S3Client({
       region: this.region,
+      ...(endpoint && {
+        endpoint: endpoint.startsWith("http") ? endpoint : `http://${endpoint}`,
+        forcePathStyle: true,
+      }),
       credentials: {
-        accessKeyId: this.configService.get("AWS_ACCESS_KEY_ID", ""),
-        secretAccessKey: this.configService.get("AWS_SECRET_ACCESS_KEY", ""),
+        accessKeyId: this.configService.get(
+          "STORAGE_ACCESS_KEY",
+          this.configService.get("AWS_ACCESS_KEY_ID", ""),
+        ),
+        secretAccessKey: this.configService.get(
+          "STORAGE_SECRET_KEY",
+          this.configService.get("AWS_SECRET_ACCESS_KEY", ""),
+        ),
       },
     });
   }

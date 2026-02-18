@@ -7,3 +7,7 @@ docs
 .env*
 !.env.example
 coverage
+node_modules
+**/node_modules
+.turbo
+**/dist

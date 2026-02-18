@@ -64,7 +64,7 @@ export class StorageController {
   // ========================================================================
 
   @Post("upload")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Upload file directly" })
@@ -125,7 +125,7 @@ export class StorageController {
   }
 
   @Post("upload/base64")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Upload base64 encoded file" })
   @ApiResponse({
     status: 201,
@@ -148,7 +148,7 @@ export class StorageController {
   }
 
   @Post("presigned-url")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get presigned URL for client-side upload" })
   @ApiResponse({ status: 201, description: "Presigned upload URL generated" })
   @ApiResponse({
@@ -174,7 +174,7 @@ export class StorageController {
   // ========================================================================
 
   @Get("download/:key(*)")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Download file" })
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "File stream returned" })
@@ -196,7 +196,7 @@ export class StorageController {
   }
 
   @Get("presigned-download/:key(*)")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get presigned download URL" })
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "Presigned download URL generated" })
@@ -238,7 +238,7 @@ export class StorageController {
   }
 
   @Get("files/metadata/:key(*)")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get file metadata" })
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "File metadata returned" })
@@ -248,7 +248,7 @@ export class StorageController {
   }
 
   @Get("files/exists/:key(*)")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Check if file exists" })
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "File existence check result" })
@@ -310,7 +310,7 @@ export class StorageController {
   // ========================================================================
 
   @Get("config")
-  @Roles("operator", "technician", "manager", "admin", "owner")
+  @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get storage configuration" })
   @ApiResponse({ status: 200, description: "Storage configuration returned" })
   async getConfig(): Promise<{

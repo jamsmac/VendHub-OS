@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In, IsNull, LessThan, MoreThan } from "typeorm";
@@ -244,8 +245,11 @@ export class NotificationsService {
     };
   }
 
-  async markAsRead(id: string): Promise<Notification> {
+  async markAsRead(id: string, userId?: string): Promise<Notification> {
     const notification = await this.findById(id);
+    if (userId && notification.userId !== userId) {
+      throw new ForbiddenException("Нет доступа к этому уведомлению");
+    }
     notification.readAt = new Date();
     notification.status = NotificationStatus.READ;
     return this.notificationRepo.save(notification);
@@ -269,7 +273,13 @@ export class NotificationsService {
     });
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId?: string): Promise<void> {
+    if (userId) {
+      const notification = await this.findById(id);
+      if (notification.userId !== userId) {
+        throw new ForbiddenException("Нет доступа к этому уведомлению");
+      }
+    }
     await this.notificationRepo.softDelete(id);
   }
 

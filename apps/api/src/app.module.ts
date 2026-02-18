@@ -141,9 +141,10 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         // Optional services
         SENTRY_DSN: Joi.string().uri().optional(),
         TELEGRAM_BOT_TOKEN: Joi.string().optional(),
-        MINIO_ENDPOINT: Joi.string().optional(),
-        MINIO_ACCESS_KEY: Joi.string().optional(),
-        MINIO_SECRET_KEY: Joi.string().optional(),
+        STORAGE_ENDPOINT: Joi.string().optional(),
+        STORAGE_ACCESS_KEY: Joi.string().optional(),
+        STORAGE_SECRET_KEY: Joi.string().optional(),
+        STORAGE_BUCKET: Joi.string().optional(),
       }),
       validationOptions: {
         allowUnknown: true,

@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -115,22 +116,22 @@ export function ClientHomeScreen({ navigation }: Props) {
           <QuickActionButton
             icon="map"
             label="Map"
-            onPress={() => navigation.navigate("Map")}
+            onPress={() => navigation.navigate("MapTab")}
           />
           <QuickActionButton
             icon="qr-code"
             label="QR Scan"
-            onPress={() => navigation.navigate("QRScanner")}
+            onPress={() => Alert.alert("QR Scanner", "Coming soon!")}
           />
           <QuickActionButton
             icon="heart"
             label="Favorites"
-            onPress={() => navigation.navigate("Favorites")}
+            onPress={() => navigation.navigate("FavoritesTab")}
           />
           <QuickActionButton
             icon="help-circle"
             label="Help"
-            onPress={() => navigation.navigate("Help")}
+            onPress={() => Alert.alert("Help", "Coming soon!")}
           />
         </View>
       </View>
@@ -166,7 +167,9 @@ export function ClientHomeScreen({ navigation }: Props) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Orders</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Orders")}>
+          <TouchableOpacity
+            onPress={() => Alert.alert("Orders", "Coming soon!")}
+          >
             <Text style={styles.viewAll}>View All</Text>
           </TouchableOpacity>
         </View>

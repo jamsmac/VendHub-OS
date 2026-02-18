@@ -444,8 +444,6 @@ export default function LoyaltyDashboardPage() {
                         key={idx}
                         className="flex items-center justify-between py-2 border-b last:border-0"
                       >
-                        // eslint-disable-next-line
-                        @typescript-eslint/no-explicit-any
                         <span className="text-sm">
                           {item.firstName} {item.lastNameInitial}.
                         </span>
@@ -463,7 +461,6 @@ export default function LoyaltyDashboardPage() {
         {/* Right Column - Leaderboard + Quick Links */}
         <div className="space-y-6">
           {/* Leaderboard */}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">

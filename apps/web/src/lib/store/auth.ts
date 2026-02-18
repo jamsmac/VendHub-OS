@@ -51,8 +51,8 @@ export const useAuthStore = create<AuthState>()(
             return { requiresTwoFactor: true };
           }
 
-          localStorage.setItem("accessToken", data.accessToken);
-          localStorage.setItem("refreshToken", data.refreshToken);
+          localStorage.setItem("vendhub_access_token", data.accessToken);
+          localStorage.setItem("vendhub_refresh_token", data.refreshToken);
 
           set({
             user: data.user,
@@ -69,8 +69,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("vendhub_access_token");
+        localStorage.removeItem("vendhub_refresh_token");
         set({
           user: null,
           isAuthenticated: false,
@@ -79,7 +79,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("vendhub_access_token");
         if (!token) {
           set({ isAuthenticated: false, user: null });
           return;

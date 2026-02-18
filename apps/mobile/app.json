@@ -77,12 +77,6 @@
           "color": "#4F46E5",
           "sounds": ["./assets/notification.wav"]
         }
-      ],
-      [
-        "expo-barcode-scanner",
-        {
-          "cameraPermission": "Камера для сканирования штрих-кодов"
-        }
       ]
     ],
     "experiments": {

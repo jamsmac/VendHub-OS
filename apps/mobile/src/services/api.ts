@@ -9,8 +9,8 @@ import * as SecureStore from "expo-secure-store";
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || "http://localhost:4000";
 
-const TOKEN_KEY = "vendhub-access-token";
-const REFRESH_TOKEN_KEY = "vendhub-refresh-token";
+const TOKEN_KEY = "vendhub_access_token";
+const REFRESH_TOKEN_KEY = "vendhub_refresh_token";
 
 export const api = axios.create({
   baseURL: `${API_URL}/api/v1`,

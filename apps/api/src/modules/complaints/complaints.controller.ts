@@ -188,6 +188,7 @@ export class ComplaintsController {
   @Get("number/:number")
   @ApiOperation({ summary: "Get complaint by number" })
   @ApiParam({ name: "number", type: String })
+  @Roles("owner", "admin", "manager", "operator")
   async findByNumber(@Param("number") number: string) {
     return this.complaintsService.findByNumber(number);
   }
@@ -263,6 +264,7 @@ export class ComplaintsController {
   @Get(":id/comments")
   @ApiOperation({ summary: "Get complaint comments" })
   @ApiQuery({ name: "includeInternal", required: false, type: Boolean })
+  @Roles("owner", "admin", "manager", "operator")
   async getComments(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("includeInternal") includeInternal?: boolean,
@@ -280,6 +282,7 @@ export class ComplaintsController {
 
   @Post(":id/comments")
   @ApiOperation({ summary: "Add comment to complaint" })
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.CREATED)
   async addComment(
     @Param("id", ParseUUIDPipe) id: string,
@@ -392,6 +395,7 @@ export class ComplaintsController {
 
   @Get("templates")
   @ApiOperation({ summary: "Get complaint templates" })
+  @Roles("owner", "admin", "manager")
   async getTemplates(@CurrentOrganizationId() orgId: string) {
     return this.complaintsService.getTemplates(orgId);
   }
