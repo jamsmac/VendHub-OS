@@ -62,17 +62,20 @@ export class ImportAuditLog extends BaseEntity {
 
   @ApiPropertyOptional({ description: "Record state before the operation" })
   @Column({ type: "jsonb", nullable: true })
-  before_state: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  before_state: Record<string, any> | null;
 
   @ApiPropertyOptional({ description: "Record state after the operation" })
   @Column({ type: "jsonb", nullable: true })
-  after_state: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  after_state: Record<string, any> | null;
 
   @ApiPropertyOptional({
     description: "Individual field changes ({field: {old, new}})",
   })
   @Column({ type: "jsonb", nullable: true })
-  field_changes: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  field_changes: Record<string, any> | null;
 
   @ApiPropertyOptional({ description: "Source file row number" })
   @Column({ type: "integer", nullable: true })

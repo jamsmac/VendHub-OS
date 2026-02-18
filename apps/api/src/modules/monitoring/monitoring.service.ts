@@ -301,7 +301,8 @@ export class MonitoringService {
   /**
    * Get health check metrics as JSON
    */
-  getHealthMetrics(): Record<string, unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getHealthMetrics(): Record<string, any> {
     const memUsage = process.memoryUsage();
     const uptimeSeconds = (Date.now() - this.startTime) / 1000;
 

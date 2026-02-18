@@ -63,7 +63,8 @@ export interface ImportOptions {
 
 export interface ParsedRow {
   rowNumber: number;
-  data: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
   errors: { field: string; message: string }[];
   warnings: { field: string; message: string }[];
 }
@@ -236,7 +237,8 @@ export class ImportService {
   async parseCSV(
     buffer: Buffer,
     options?: { delimiter?: string; encoding?: string; headerRow?: number },
-  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
     const csvString = buffer.toString(
       (options?.encoding as BufferEncoding) || "utf-8",
     );
@@ -250,7 +252,8 @@ export class ImportService {
         complete: (results) => {
           resolve({
             headers: results.meta.fields || [],
-            rows: results.data as Record<string, unknown>[],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            rows: results.data as Record<string, any>[],
           });
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -267,7 +270,8 @@ export class ImportService {
   async parseExcel(
     buffer: Buffer,
     options?: { sheetName?: string; headerRow?: number; startRow?: number },
-  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
     try {
       const workbook = XLSX.read(buffer, { type: "buffer" });
 
@@ -278,7 +282,8 @@ export class ImportService {
         throw new BadRequestException(`Sheet "${sheetName}" not found`);
       }
 
-      const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
         header: 1,
         defval: "",
       });
@@ -289,12 +294,14 @@ export class ImportService {
       const headers = (rawData[headerRowIndex] as string[]).map((h) =>
         String(h).trim(),
       );
-      const rows: Record<string, unknown>[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rows: Record<string, any>[] = [];
 
       for (let i = startRowIndex; i < rawData.length; i++) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rowData = rawData[i] as any[];
-        const row: Record<string, unknown> = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const row: Record<string, any> = {};
 
         headers.forEach((header, idx) => {
           row[header] = rowData[idx] ?? "";
@@ -318,7 +325,8 @@ export class ImportService {
    */
   async parseJSON(
     buffer: Buffer,
-  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
     try {
       const data = JSON.parse(buffer.toString("utf-8"));
       const rows = Array.isArray(data) ? data : [data];
@@ -342,13 +350,14 @@ export class ImportService {
   async validateImportData(
     organizationId: string,
     jobId: string,
-    rows: Record<string, unknown>[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rows: Record<string, any>[],
     importType: ImportType,
     mapping?: Record<string, string>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{
     validRows: ParsedRow[];
     invalidRows: ParsedRow[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     warnings: any[];
   }> {
     const job = await this.getImportJob(organizationId, jobId);
@@ -416,7 +425,8 @@ export class ImportService {
    * Get validator for import type
    */
   private getValidator(importType: ImportType): (
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     orgId: string,
     row: number,
   ) => Promise<{
@@ -447,7 +457,8 @@ export class ImportService {
   // ========================================================================
 
   private async validateProduct(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -486,7 +497,8 @@ export class ImportService {
   }
 
   private async validateMachine(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -511,7 +523,8 @@ export class ImportService {
   }
 
   private async validateUser(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -533,7 +546,8 @@ export class ImportService {
   }
 
   private async validateEmployee(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -562,7 +576,8 @@ export class ImportService {
   }
 
   private async validateTransaction(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -587,7 +602,8 @@ export class ImportService {
   }
 
   private async validateSale(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -616,7 +632,8 @@ export class ImportService {
   }
 
   private async validateInventory(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -641,7 +658,8 @@ export class ImportService {
   }
 
   private async validateCustomer(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -663,7 +681,8 @@ export class ImportService {
   }
 
   private async validatePrice(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -695,7 +714,8 @@ export class ImportService {
   }
 
   private async validateCategory(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -713,7 +733,8 @@ export class ImportService {
   }
 
   private async validateLocation(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -734,7 +755,8 @@ export class ImportService {
   }
 
   private async validateContractor(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -762,7 +784,8 @@ export class ImportService {
   }
 
   private async validateGeneric(
-    _data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _data: Record<string, any>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -777,10 +800,13 @@ export class ImportService {
   // ========================================================================
 
   private applyMapping(
-    data: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: Record<string, any>,
     mapping: Record<string, string>,
-  ): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Record<string, any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: Record<string, any> = {};
 
     for (const [sourceField, targetField] of Object.entries(mapping)) {
       if (data[sourceField] !== undefined) {
@@ -893,7 +919,8 @@ export class ImportService {
     }
 
     // Parse file to extract headers and sample data
-    let parsed: { headers: string[]; rows: Record<string, unknown>[] };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let parsed: { headers: string[]; rows: Record<string, any>[] };
 
     if (fileType === "csv") {
       parsed = await this.parseCSV(file.buffer);
@@ -1204,7 +1231,8 @@ export class ImportService {
     });
 
     // Get the data rows from file_metadata
-    const allRows: Record<string, unknown>[] =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allRows: Record<string, any>[] =
       session.file_metadata?.sampleData || [];
     const columnMapping = session.column_mapping || {};
     const totalRows = session.file_metadata?.rows || allRows.length;
@@ -1224,7 +1252,8 @@ export class ImportService {
       const row = allRows[i];
 
       // Map source columns to target fields
-      const mappedRow: Record<string, unknown> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mappedRow: Record<string, any> = {};
       for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
         if (row[sourceCol] !== undefined) {
           mappedRow[targetField] = row[sourceCol];
@@ -1315,7 +1344,8 @@ export class ImportService {
     rule: ValidationRule,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
-    row: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    row: Record<string, any>,
     rowNumber: number,
   ): { valid: boolean; message: string } {
     const def = rule.rule_definition;
@@ -1674,7 +1704,8 @@ export class ImportService {
 
     const startTime = Date.now();
     const columnMapping = session.column_mapping || {};
-    const allRows: Record<string, unknown>[] =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allRows: Record<string, any>[] =
       session.file_metadata?.sampleData || [];
 
     let successful = 0;
@@ -1706,7 +1737,8 @@ export class ImportService {
         const row = allRows[i];
 
         // Map source columns to target fields
-        const mappedRow: Record<string, unknown> = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mappedRow: Record<string, any> = {};
         for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
           if (row[sourceCol] !== undefined) {
             mappedRow[targetField] = row[sourceCol];

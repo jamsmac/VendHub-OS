@@ -184,7 +184,7 @@ describe("AuditService", () => {
     snapshotRepo = module.get(getRepositoryToken(AuditSnapshot));
     retentionPolicyRepo = module.get(getRepositoryToken(AuditRetentionPolicy));
     alertRepo = module.get(getRepositoryToken(AuditAlert));
-    alertHistoryRepo = module.get(getRepositoryToken(AuditAlertHistory));
+    _alertHistoryRepo = module.get(getRepositoryToken(AuditAlertHistory));
     sessionRepo = module.get(getRepositoryToken(AuditSession));
     reportRepo = module.get(getRepositoryToken(AuditReport));
   });

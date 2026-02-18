@@ -499,7 +499,7 @@ export function LoyaltyPage() {
 
 /** Streak visual component */
 function StreakCard() {
-  const { _t } = useTranslation();
+  useTranslation();
   const { data: streak } = useQuery({
     queryKey: ["streak"],
     queryFn: async () => {
@@ -561,9 +561,12 @@ function DailyQuestsPreview() {
       const res = await api.get("/quests");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (res.data as any[])
-        .filter((q: any) => q.period === "daily")
-        .slice(0, 3);
+      return (
+        (res.data as any[])
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .filter((q: any) => q.period === "daily")
+          .slice(0, 3)
+      );
     },
   });
 
@@ -692,10 +695,12 @@ function AchievementsPreview() {
     queryKey: ["achievements-preview"],
     queryFn: async () => {
       const res = await api.get("/achievements/my");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return res.data as {
         total: number;
+
         unlocked: number;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         achievements: any[];
       };
     },

@@ -548,7 +548,8 @@ export interface InternalEarnPointsDto {
   referenceType?: string;
   description?: string;
   descriptionUz?: string;
-  metadata?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata?: Record<string, any>;
 }
 
 /**

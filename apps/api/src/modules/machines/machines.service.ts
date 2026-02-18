@@ -197,7 +197,8 @@ export class MachinesService {
     return this.machineRepository.count({ where: { organizationId } });
   }
 
-  async getStatsByOrganization(organizationId: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStatsByOrganization(organizationId: string): Promise<any> {
     const stats = await this.machineRepository
       .createQueryBuilder("machine")
       .select("machine.status", "status")
@@ -375,7 +376,8 @@ export class MachinesService {
       updateData.address = dto.address;
     }
 
-    await this.machineRepository.update(machineId, updateData);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.machineRepository.update(machineId, updateData as any);
 
     return savedHistory;
   }

@@ -21,7 +21,8 @@ interface AuthState {
     email: string,
     password: string,
     twoFactorCode?: string,
-  ) => Promise<unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => Promise<any>;
   logout: () => void;
   checkAuth: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;

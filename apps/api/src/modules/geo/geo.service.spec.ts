@@ -187,9 +187,9 @@ describe("GeoService", () => {
     }).compile();
 
     service = module.get<GeoService>(GeoService);
-    machineRepo = module.get(getRepositoryToken(Machine));
+    _machineRepo = module.get(getRepositoryToken(Machine));
     httpService = module.get(HttpService);
-    configService = module.get(ConfigService);
+    _configService = module.get(ConfigService);
   });
 
   it("should be defined", () => {

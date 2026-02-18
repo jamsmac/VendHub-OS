@@ -38,7 +38,8 @@ export interface GenerateReportDto {
   type?: ReportType;
   name?: string;
   format: ReportFormat;
-  parameters?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parameters?: Record<string, any>;
   dateFrom?: Date;
   dateTo?: Date;
   delivery?: {
@@ -59,7 +60,8 @@ export interface CreateScheduledReportDto {
     dayOfMonth?: number;
     timezone?: string;
   };
-  parameters: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parameters: Record<string, any>;
   format: ReportFormat;
   deliveryMethod: "email" | "telegram" | "webhook";
   deliveryConfig: {
@@ -281,7 +283,8 @@ export class ReportsService {
     }
   }
 
-  private async generateSalesSummary(dto: GenerateReportDto): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async generateSalesSummary(dto: GenerateReportDto): Promise<any> {
     const qb = this.transactionRepo
       .createQueryBuilder("t")
       .where("t.organizationId = :orgId", { orgId: dto.organizationId });
@@ -328,7 +331,8 @@ export class ReportsService {
 
   private async generateMachinePerformance(
     dto: GenerateReportDto,
-  ): Promise<unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
       select: [
@@ -388,7 +392,8 @@ export class ReportsService {
 
   private async generateInventoryLevels(
     dto: GenerateReportDto,
-  ): Promise<unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
       select: [
@@ -457,9 +462,9 @@ export class ReportsService {
     return { filePath, fileSize, checksum };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async deliverReport(
     report: GeneratedReport,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delivery: any,
   ): Promise<void> {
     this.logger.log(`Delivering report ${report.id} via ${delivery.method}`);
@@ -911,7 +916,8 @@ export class ReportsService {
     organizationId: string,
     reportDefinitionId: string,
     name: string,
-    filters: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filters: Record<string, any>,
     isDefault: boolean = false,
   ): Promise<SavedReportFilter> {
     if (isDefault) {

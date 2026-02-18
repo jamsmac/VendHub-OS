@@ -431,9 +431,11 @@ export interface IntegrationTestCase {
   description: string;
   endpoint: string;
   method: HttpMethod;
-  requestData: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  requestData: Record<string, any>;
   expectedStatus: number;
-  expectedResponse?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  expectedResponse?: Record<string, any>;
   assertions: TestAssertion[];
 }
 

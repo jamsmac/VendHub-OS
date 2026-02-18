@@ -210,10 +210,10 @@ describe("AuthService", () => {
     sessionRepository = module.get(getRepositoryToken(UserSession));
     twoFactorRepository = module.get(getRepositoryToken(TwoFactorAuth));
     loginAttemptRepository = module.get(getRepositoryToken(LoginAttempt));
-    passwordResetRepository = module.get(
+    _passwordResetRepository = module.get(
       getRepositoryToken(PasswordResetToken),
     );
-    jwtService = module.get(JwtService);
+    _jwtService = module.get(JwtService);
     tokenBlacklistService = module.get(TokenBlacklistService);
     passwordPolicyService = module.get(PasswordPolicyService);
   });
@@ -315,10 +315,10 @@ describe("AuthService", () => {
     });
 
     it("should throw UnauthorizedException for wrong password", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         loginAttempts: 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       bcrypt.compare.mockResolvedValue(false);
       userRepository.save.mockResolvedValue(mockUser);

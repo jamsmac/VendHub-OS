@@ -223,10 +223,10 @@ describe("ClientService", () => {
     walletRepo = module.get(getRepositoryToken(ClientWallet));
     walletLedgerRepo = module.get(getRepositoryToken(ClientWalletLedger));
     loyaltyAccountRepo = module.get(getRepositoryToken(ClientLoyaltyAccount));
-    loyaltyLedgerRepo = module.get(getRepositoryToken(ClientLoyaltyLedger));
+    _loyaltyLedgerRepo = module.get(getRepositoryToken(ClientLoyaltyLedger));
     orderRepo = module.get(getRepositoryToken(ClientOrder));
-    paymentRepo = module.get(getRepositoryToken(ClientPayment));
-    productRepo = module.get(getRepositoryToken(Product));
+    _paymentRepo = module.get(getRepositoryToken(ClientPayment));
+    _productRepo = module.get(getRepositoryToken(Product));
   });
 
   it("should be defined", () => {

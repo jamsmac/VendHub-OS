@@ -37,7 +37,7 @@ const MILK_OPTIONS = [
 ];
 
 export function DrinkDetailPage() {
-  const { _machineId, productId } = useParams<{
+  const { productId } = useParams<{
     machineId: string;
     productId: string;
   }>();
@@ -78,11 +78,10 @@ export function DrinkDetailPage() {
   const handleAddToCart = () => {
     if (!product) return;
     addToCart({
+      id: crypto.randomUUID(),
       productId: product.id,
-      productName: product.name,
-      quantity,
-      unitPrice: basePrice + volumeExtra + milkExtra,
-      customization: { sugar, volume, milk },
+      name: product.name,
+      price: basePrice + volumeExtra + milkExtra,
     });
     toast.success("Добавлено в корзину");
     navigate(-1);

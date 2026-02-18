@@ -631,7 +631,8 @@ export class QuestsService {
    */
   private matchesConditions(
     quest: Quest,
-    metadata: Record<string, unknown> | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: Record<string, any> | undefined,
   ): boolean {
     if (!quest.metadata) return true;
     if (!metadata) return true;

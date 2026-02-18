@@ -65,7 +65,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/react": "~18.2.45"
+      "@types/react": "~18.2.45",
+      "is-fullwidth-code-point": "3.0.0"
     }
   }
 }

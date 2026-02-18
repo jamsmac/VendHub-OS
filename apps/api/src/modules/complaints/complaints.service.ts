@@ -92,7 +92,8 @@ export interface CreateRefundDto {
   currency?: string;
   method: RefundMethod;
   reason: string;
-  bankDetails?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bankDetails?: Record<string, any>;
   requestedById?: string;
 }
 

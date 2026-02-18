@@ -241,7 +241,8 @@ export class VendHubReportGeneratorService {
       paymentType: this.mapPaymentType(t.paymentMethod || t.type),
       paymentStatus: t.status === "completed" ? "Оплачено" : "Другое",
       brewStatus:
-        ((t.metadata as Record<string, unknown>)?.brewStatus as string) ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.metadata as Record<string, any>)?.brewStatus as string) ||
         "Доставлен",
       machineId: t.machineId,
       machineCode: (t.machine as { serialNumber?: string })?.serialNumber || "",
@@ -249,17 +250,21 @@ export class VendHubReportGeneratorService {
         (t.machine as { location?: { address?: string } })?.location?.address ||
         "",
       productId:
-        ((t.metadata as Record<string, unknown>)?.productId as string) || "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.metadata as Record<string, any>)?.productId as string) || "",
       productName:
-        ((t.metadata as Record<string, unknown>)?.productName as string) || "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.metadata as Record<string, any>)?.productName as string) || "",
       productCategory:
-        ((t.metadata as Record<string, unknown>)?.productCategory as string) ||
-        "",
-      ingredients: (t.metadata as Record<string, unknown>)?.ingredients as
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.metadata as Record<string, any>)?.productCategory as string) || "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ingredients: (t.metadata as Record<string, any>)?.ingredients as
         | string[]
         | undefined,
       costOfGoods:
-        ((t.metadata as Record<string, unknown>)?.costOfGoods as number) || 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.metadata as Record<string, any>)?.costOfGoods as number) || 0,
     })) as TransactionData[];
   }
 
@@ -714,10 +719,10 @@ export class VendHubReportGeneratorService {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildPaymentTypeDetail(
     transactions: TransactionData[],
     paymentType: PaymentResourceType,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): any {
     const filtered = transactions.filter((t) => t.paymentType === paymentType);
 
@@ -953,7 +958,8 @@ export class VendHubReportGeneratorService {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildDailyReport(transactions: TransactionData[]): any[] {
-    const dailyData = new Map<string, unknown>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dailyData = new Map<string, any>();
 
     for (const t of transactions) {
       const dateKey = this.getDateKey(t.createdAt);

@@ -133,10 +133,10 @@ describe("TasksService", () => {
 
     service = module.get<TasksService>(TasksService);
     taskRepository = module.get(getRepositoryToken(Task));
-    taskItemRepository = module.get(getRepositoryToken(TaskItem));
+    _taskItemRepository = module.get(getRepositoryToken(TaskItem));
     taskCommentRepository = module.get(getRepositoryToken(TaskComment));
-    taskComponentRepository = module.get(getRepositoryToken(TaskComponent));
-    taskPhotoRepository = module.get(getRepositoryToken(TaskPhoto));
+    _taskComponentRepository = module.get(getRepositoryToken(TaskComponent));
+    _taskPhotoRepository = module.get(getRepositoryToken(TaskPhoto));
   });
 
   it("should be defined", () => {

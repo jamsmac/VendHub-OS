@@ -76,7 +76,8 @@ export class ValidationRule extends BaseEntity {
 
   @ApiProperty({ description: "Rule definition (depends on rule_type)" })
   @Column({ type: "jsonb" })
-  rule_definition: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rule_definition: Record<string, any>;
 
   @ApiProperty({
     enum: ValidationSeverity,

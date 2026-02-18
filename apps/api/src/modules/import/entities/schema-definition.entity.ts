@@ -91,7 +91,8 @@ export class SchemaDefinition extends BaseEntity {
 
   @ApiPropertyOptional({ description: "Table relationships" })
   @Column({ type: "jsonb", nullable: true })
-  relationships: Record<string, unknown>[] | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  relationships: Record<string, any>[] | null;
 
   @ApiProperty({ description: "Required field names" })
   @Column({ type: "jsonb" })

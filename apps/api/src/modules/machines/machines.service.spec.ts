@@ -148,11 +148,11 @@ describe("MachinesService", () => {
     service = module.get<MachinesService>(MachinesService);
     machineRepository = module.get(getRepositoryToken(Machine));
     slotRepository = module.get(getRepositoryToken(MachineSlot));
-    locationHistoryRepository = module.get(
+    _locationHistoryRepository = module.get(
       getRepositoryToken(MachineLocationHistory),
     );
-    componentRepository = module.get(getRepositoryToken(MachineComponent));
-    errorLogRepository = module.get(getRepositoryToken(MachineErrorLog));
+    _componentRepository = module.get(getRepositoryToken(MachineComponent));
+    _errorLogRepository = module.get(getRepositoryToken(MachineErrorLog));
     maintenanceRepository = module.get(
       getRepositoryToken(MachineMaintenanceSchedule),
     );
@@ -245,10 +245,11 @@ describe("MachinesService", () => {
   describe("update", () => {
     it("should update machine when found", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       machineRepository.save.mockResolvedValue({
         ...mockMachine,
         name: "VM-002",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.update("machine-uuid-1", { name: "VM-002" });
@@ -352,9 +353,9 @@ describe("MachinesService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       machineRepository.update.mockResolvedValue(undefined as any);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.refillSlot("slot-uuid-1", {
         quantity: 5,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result.currentQuantity).toBe(15);

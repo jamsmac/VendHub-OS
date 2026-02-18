@@ -149,15 +149,15 @@ describe("ProductsService", () => {
     service = module.get<ProductsService>(ProductsService);
     productRepository = module.get(getRepositoryToken(Product));
     recipeRepository = module.get(getRepositoryToken(Recipe));
-    recipeIngredientRepository = module.get(
+    _recipeIngredientRepository = module.get(
       getRepositoryToken(RecipeIngredient),
     );
-    recipeSnapshotRepository = module.get(getRepositoryToken(RecipeSnapshot));
+    _recipeSnapshotRepository = module.get(getRepositoryToken(RecipeSnapshot));
     ingredientBatchRepository = module.get(getRepositoryToken(IngredientBatch));
     priceHistoryRepository = module.get(
       getRepositoryToken(ProductPriceHistory),
     );
-    supplierRepository = module.get(getRepositoryToken(Supplier));
+    _supplierRepository = module.get(getRepositoryToken(Supplier));
   });
 
   it("should be defined", () => {
@@ -350,19 +350,21 @@ describe("ProductsService", () => {
   describe("depleteFromBatch", () => {
     it("should deplete from oldest batch first (FIFO)", async () => {
       const batches = [
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {
           id: "batch-1",
           remainingQuantity: 5,
           reservedQuantity: 0,
           status: IngredientBatchStatus.IN_STOCK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         {
           id: "batch-2",
           remainingQuantity: 10,
           reservedQuantity: 0,
+
           status: IngredientBatchStatus.IN_STOCK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ];
       ingredientBatchRepository.find.mockResolvedValue(batches);

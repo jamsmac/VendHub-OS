@@ -74,6 +74,7 @@ export interface Order {
   totalAmount: number;
   paymentStatus: string;
   paymentMethod?: string;
+  machineId?: string;
   items: OrderItem[];
   createdAt: string;
 }

@@ -163,8 +163,8 @@ describe("TransactionsService", () => {
     transactionRepo = module.get(getRepositoryToken(Transaction));
     itemRepo = module.get(getRepositoryToken(TransactionItem));
     collectionRecordRepo = module.get(getRepositoryToken(CollectionRecord));
-    dailySummaryRepo = module.get(getRepositoryToken(TransactionDailySummary));
-    commissionRepo = module.get(getRepositoryToken(Commission));
+    _dailySummaryRepo = module.get(getRepositoryToken(TransactionDailySummary));
+    _commissionRepo = module.get(getRepositoryToken(Commission));
     eventEmitter = module.get(EventEmitter2);
   });
 

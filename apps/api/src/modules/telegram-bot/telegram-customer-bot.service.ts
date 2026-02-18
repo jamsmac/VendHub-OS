@@ -33,7 +33,8 @@ interface CustomerContext extends Context {
 
 interface CustomerSession {
   state: CustomerSessionState;
-  data: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
 }
 
 enum CustomerSessionState {
@@ -630,9 +631,9 @@ export class TelegramCustomerBotService
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const savedComplaint = (await this.complaintRepository.save(
         complaint,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       )) as any;
       const ticketNumber = Array.isArray(savedComplaint)
         ? savedComplaint[0]?.ticketNumber
@@ -919,9 +920,9 @@ export class TelegramCustomerBotService
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const savedRefund = (await this.complaintRepository.save(
         complaint,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       )) as any;
       const refundTicketNumber = Array.isArray(savedRefund)
         ? savedRefund[0]?.ticketNumber

@@ -234,11 +234,7 @@ export default function PaymentsPage() {
     limit: PAGE_SIZE,
   };
 
-  const {
-    data: response,
-    isLoading,
-    _isError,
-  } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ["payment-transactions", queryParams],
     queryFn: () =>
       paymentsApi

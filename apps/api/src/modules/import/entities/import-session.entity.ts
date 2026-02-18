@@ -133,7 +133,8 @@ export class ImportSession extends BaseEntity {
     description: "File metadata (rows, columns, headers, sampleData)",
   })
   @Column({ type: "jsonb", nullable: true })
-  file_metadata: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  file_metadata: Record<string, any> | null;
 
   // ========================================================================
   // CLASSIFICATION
@@ -144,7 +145,8 @@ export class ImportSession extends BaseEntity {
       "Classification result (detected_domain, confidence, column_mapping, unmapped_columns)",
   })
   @Column({ type: "jsonb", nullable: true })
-  classification_result: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  classification_result: Record<string, any> | null;
 
   @ApiPropertyOptional({
     description: "Classification confidence score (0-100)",
@@ -175,7 +177,8 @@ export class ImportSession extends BaseEntity {
       "Validation report (total_rows, valid_rows, invalid_rows, warnings, errors[])",
   })
   @Column({ type: "jsonb", nullable: true })
-  validation_report: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  validation_report: Record<string, any> | null;
 
   // ========================================================================
   // ACTION PLAN
@@ -186,7 +189,8 @@ export class ImportSession extends BaseEntity {
       "Action plan (inserts, updates, skips, merges, estimated_changes)",
   })
   @Column({ type: "jsonb", nullable: true })
-  action_plan: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action_plan: Record<string, any> | null;
 
   // ========================================================================
   // APPROVAL
@@ -221,7 +225,8 @@ export class ImportSession extends BaseEntity {
       "Execution result (total, successful, failed, skipped, duration_ms)",
   })
   @Column({ type: "jsonb", nullable: true })
-  execution_result: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  execution_result: Record<string, any> | null;
 
   // ========================================================================
   // USER TRACKING

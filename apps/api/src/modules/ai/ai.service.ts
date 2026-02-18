@@ -456,7 +456,8 @@ Return JSON:
   // PRIVATE METHODS - LLM CALLS
   // ========================================================================
 
-  private async callTextLLM(prompt: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async callTextLLM(prompt: string): Promise<any> {
     if (this.preferredProvider === "openai" && this.openaiApiKey) {
       return this.callOpenAI(prompt);
     } else if (this.anthropicApiKey) {
@@ -468,7 +469,8 @@ Return JSON:
     }
   }
 
-  private async callOpenAI(prompt: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async callOpenAI(prompt: string): Promise<any> {
     try {
       const response = await firstValueFrom(
         this.httpService.post(
@@ -508,7 +510,8 @@ Return JSON:
     }
   }
 
-  private async callAnthropic(prompt: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async callAnthropic(prompt: string): Promise<any> {
     try {
       const response = await firstValueFrom(
         this.httpService.post(

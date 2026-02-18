@@ -475,7 +475,8 @@ class ApiClient {
     }
   }
 
-  async getStaffDayStats(userId: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getStaffDayStats(userId: string): Promise<any> {
     try {
       const response = await this.client.get("/reports/my-stats", {
         params: { userId },

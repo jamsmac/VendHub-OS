@@ -141,11 +141,11 @@ export class ImportJob extends BaseEntity {
 
   @ApiPropertyOptional({ description: "Error details (row-level errors)" })
   @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorDetails?: {
     row: number;
     field?: string;
     message: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value?: any;
   }[];
 
@@ -250,7 +250,8 @@ export class ImportTemplate extends BaseEntity {
   // Default values
   @ApiPropertyOptional({ description: "Default values for missing fields" })
   @Column({ type: "jsonb", nullable: true })
-  defaultValues?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultValues?: Record<string, any>;
 
   // Transformations
   @ApiPropertyOptional({ description: "Value transformations" })

@@ -249,13 +249,13 @@ describe("EmployeesService", () => {
 
     service = module.get<EmployeesService>(EmployeesService);
     employeeRepo = module.get(getRepositoryToken(Employee));
-    documentRepo = module.get(getRepositoryToken(EmployeeDocument));
+    _documentRepo = module.get(getRepositoryToken(EmployeeDocument));
     departmentRepo = module.get(getRepositoryToken(Department));
-    positionRepo = module.get(getRepositoryToken(Position));
+    _positionRepo = module.get(getRepositoryToken(Position));
     attendanceRepo = module.get(getRepositoryToken(Attendance));
-    leaveRequestRepo = module.get(getRepositoryToken(LeaveRequest));
-    payrollRepo = module.get(getRepositoryToken(Payroll));
-    reviewRepo = module.get(getRepositoryToken(PerformanceReview));
+    _leaveRequestRepo = module.get(getRepositoryToken(LeaveRequest));
+    _payrollRepo = module.get(getRepositoryToken(Payroll));
+    _reviewRepo = module.get(getRepositoryToken(PerformanceReview));
     eventEmitter = module.get(EventEmitter2) as jest.Mocked<EventEmitter2>;
   });
 
@@ -300,10 +300,10 @@ describe("EmployeesService", () => {
 
   describe("getEmployees", () => {
     it("should return paginated employees", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getEmployees(ORG_ID, {
         page: 1,
         limit: 20,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toHaveProperty("items");
@@ -312,9 +312,9 @@ describe("EmployeesService", () => {
     });
 
     it("should filter by role", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.getEmployees(ORG_ID, {
         role: EmployeeRole.OPERATOR,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockEmployeeQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -367,9 +367,9 @@ describe("EmployeesService", () => {
       employeeRepo.findOne.mockResolvedValue({ ...mockEmployee } as any);
       employeeRepo.save.mockImplementation(async (emp) => emp as Employee);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateEmployee("emp-uuid-1", ORG_ID, {
         phone: "+998901111111",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toBeDefined();
@@ -400,10 +400,11 @@ describe("EmployeesService", () => {
       employeeRepo.save.mockImplementation(async (emp) => emp as Employee);
 
       const dto = { terminationDate: "2024-06-30", reason: "Contract ended" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await service.terminateEmployee(
         "emp-uuid-1",
         ORG_ID,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dto as any,
       );
 
@@ -422,9 +423,9 @@ describe("EmployeesService", () => {
       } as any);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.terminateEmployee("emp-uuid-1", ORG_ID, {
           terminationDate: "2024-06-30",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -463,10 +464,10 @@ describe("EmployeesService", () => {
 
   describe("getDepartments", () => {
     it("should return paginated departments", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getDepartments(ORG_ID, {
         page: 1,
         limit: 20,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toHaveProperty("items");
@@ -497,10 +498,11 @@ describe("EmployeesService", () => {
 
     it("should throw BadRequestException when already checked in", async () => {
       employeeRepo.findOne.mockResolvedValue(mockEmployee);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       attendanceRepo.findOne.mockResolvedValue({
         ...mockAttendance,
         checkIn: new Date(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(

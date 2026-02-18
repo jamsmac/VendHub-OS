@@ -28,6 +28,7 @@ import {
   DEFAULT_ACHIEVEMENTS,
 } from "./constants/achievement.constants";
 import { LoyaltyService } from "../loyalty/loyalty.service";
+import { PointsSource } from "../loyalty/constants/loyalty.constants";
 
 @Injectable()
 export class AchievementsService {
@@ -316,9 +317,9 @@ export class AchievementsService {
     // Award points via loyalty
     const result = await this.loyaltyService.earnPoints({
       userId,
-      organizationId: ua.achievement.organization_id,
+      organizationId: ua.achievement.organization_id!,
       amount: pointsToAward,
-      source: "achievement",
+      source: PointsSource.ACHIEVEMENT,
       referenceId: ua.achievement.id,
       referenceType: "achievement",
       description: `За достижение: ${ua.achievement.name}`,
@@ -363,7 +364,8 @@ export class AchievementsService {
     userId: string,
     conditionType: AchievementConditionType,
     value: number,
-    metadata?: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata?: Record<string, any>,
   ): Promise<UserAchievement[]> {
     // Find all matching achievements
     const achievements = await this.achievementRepo.find({

@@ -189,8 +189,8 @@ describe("ComplaintsService", () => {
     commentRepo = module.get(getRepositoryToken(ComplaintComment));
     actionRepo = module.get(getRepositoryToken(ComplaintAction));
     refundRepo = module.get(getRepositoryToken(ComplaintRefund));
-    templateRepo = module.get(getRepositoryToken(ComplaintTemplate));
-    qrCodeRepo = module.get(getRepositoryToken(ComplaintQrCode));
+    _templateRepo = module.get(getRepositoryToken(ComplaintTemplate));
+    _qrCodeRepo = module.get(getRepositoryToken(ComplaintQrCode));
     automationRepo = module.get(getRepositoryToken(ComplaintAutomationRule));
     eventEmitter = module.get(EventEmitter2) as jest.Mocked<EventEmitter2>;
   });
@@ -441,10 +441,10 @@ describe("ComplaintsService", () => {
 
   describe("addComment", () => {
     it("should add a comment and increment comment count", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       complaintRepo.findOne.mockResolvedValue({
         ...mockComplaint,
         commentCount: 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -524,10 +524,10 @@ describe("ComplaintsService", () => {
     });
 
     it("should throw BadRequestException when refund is not pending", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       refundRepo.findOne.mockResolvedValue({
         ...mockRefund,
         status: RefundStatus.COMPLETED,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
@@ -582,9 +582,9 @@ describe("ComplaintsService", () => {
 
   describe("submitFeedback", () => {
     it("should submit satisfaction rating for resolved complaint", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
 
@@ -607,9 +607,9 @@ describe("ComplaintsService", () => {
     });
 
     it("should throw BadRequestException for invalid rating", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(service.submitFeedback("cmp-uuid-2", 6)).rejects.toThrow(

@@ -972,7 +972,8 @@ export class ComplaintAutomationRule extends BaseEntity {
       | "add_tag"
       | "send_notification"
       | "auto_reply";
-    params: Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    params: Record<string, any>;
   }[];
 
   // Порядок выполнения

@@ -64,7 +64,7 @@ describe("StorageService", () => {
     }).compile();
 
     service = module.get<StorageService>(StorageService);
-    configService = module.get<ConfigService>(ConfigService);
+    _configService = module.get<ConfigService>(ConfigService);
   });
 
   it("should be defined", () => {

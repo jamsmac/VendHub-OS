@@ -76,10 +76,20 @@ const TYPE_LABELS: Record<
   free_product: { label: "Бесплатный товар", format: (v) => `${v} шт.` },
 };
 
-const EMPTY_FORM = {
+const EMPTY_FORM: {
+  code: string;
+  description: string;
+  type: PromoCode["type"];
+  value: number;
+  minOrderAmount: number;
+  maxUses: number;
+  maxUsesPerUser: number;
+  startsAt: string;
+  expiresAt: string;
+} = {
   code: "",
   description: "",
-  type: "bonus_points" as const,
+  type: "bonus_points",
   value: 100,
   minOrderAmount: 0,
   maxUses: 0,
@@ -440,9 +450,10 @@ export default function PromoCodesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Тип</Label>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {}
                 <Select
                   value={form.type}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onValueChange={(v: any) => setForm({ ...form, type: v })}
                 >
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any

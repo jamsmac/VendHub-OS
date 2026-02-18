@@ -197,9 +197,9 @@ describe("InventoryService", () => {
     warehouseRepo = module.get(getRepositoryToken(WarehouseInventory));
     operatorRepo = module.get(getRepositoryToken(OperatorInventory));
     machineRepo = module.get(getRepositoryToken(MachineInventory));
-    movementRepo = module.get(getRepositoryToken(InventoryMovement));
-    reservationRepo = module.get(getRepositoryToken(InventoryReservation));
-    mockDataSource = module.get(DataSource);
+    _movementRepo = module.get(getRepositoryToken(InventoryMovement));
+    _reservationRepo = module.get(getRepositoryToken(InventoryReservation));
+    _mockDataSource = module.get(DataSource);
   });
 
   afterEach(() => {
