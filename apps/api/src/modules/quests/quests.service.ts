@@ -430,7 +430,7 @@ export class QuestsService {
     });
 
     // ORDER_TIME
-    const hour = new Date().getHours();
+    const hour = new Date().getUTCHours();
     await this.updateProgress({
       userId,
       organizationId: payload.organizationId,

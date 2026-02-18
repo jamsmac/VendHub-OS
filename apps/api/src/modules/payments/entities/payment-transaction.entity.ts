@@ -41,6 +41,7 @@ export enum PaymentTransactionStatus {
 })
 @Index(["order_id"])
 @Index(["machine_id"])
+@Index(["client_user_id"])
 export class PaymentTransaction extends BaseEntity {
   @Column({ type: "uuid" })
   organization_id: string;
