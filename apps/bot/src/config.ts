@@ -27,6 +27,15 @@ export function validateConfig(): void {
       "BOT_API_TOKEN is required — generate a JWT for the bot service account",
     );
   }
+  // In production, ensure no localhost URLs
+  if (process.env.NODE_ENV === "production") {
+    if (config.apiUrl.includes("localhost")) {
+      throw new Error("API_URL must not point to localhost in production");
+    }
+    if (config.redisUrl.includes("localhost")) {
+      throw new Error("REDIS_URL must not point to localhost in production");
+    }
+  }
 }
 
 export default config;

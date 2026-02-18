@@ -41,6 +41,14 @@ patches:
       kind: Deployment
       name: vendhub-client
 
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: vendhub-site
+
   # Reduce resource limits for staging
   - patch: |-
       - op: replace
@@ -72,6 +80,7 @@ configMapGenerator:
       - API_URL=https://api-staging.vendhub.uz
       - WEB_URL=https://admin-staging.vendhub.uz
       - CLIENT_URL=https://app-staging.vendhub.uz
+      - SITE_URL=https://staging.vendhub.uz
       - ENABLE_SWAGGER=true
 
 # Override Ingress hosts

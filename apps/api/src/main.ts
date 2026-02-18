@@ -112,12 +112,11 @@ async function bootstrap() {
   // CORS CONFIGURATION
   // ============================================
 
-  const corsOrigins = configService.get(
-    "CORS_ORIGINS",
-    "http://localhost:3000",
-  );
+  const corsOrigins = configService.get<string>("CORS_ORIGINS", "");
   app.enableCors({
-    origin: corsOrigins.split(",").map((origin: string) => origin.trim()),
+    origin: corsOrigins
+      ? corsOrigins.split(",").map((origin: string) => origin.trim())
+      : [],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -343,18 +342,21 @@ All endpoints require JWT Bearer authentication except public endpoints.
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  const logger = new Logger("UnhandledRejection");
+  logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
   Sentry.captureException(reason);
 });
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
+  const logger = new Logger("UncaughtException");
+  logger.error(`Uncaught Exception: ${error.message}`, error.stack);
   Sentry.captureException(error);
   process.exit(1);
 });
 
 bootstrap().catch((error) => {
-  console.error("Failed to start application:", error);
+  const logger = new Logger("Bootstrap");
+  logger.error(`Failed to start application: ${error.message}`, error.stack);
   process.exit(1);
 });

@@ -7,13 +7,13 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
-} from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { WebSocketService } from '../websocket.service';
-import { TokenBlacklistService } from '../../auth/services/token-blacklist.service';
-import { BaseGateway, AuthenticatedPayload } from './base.gateway';
+} from "@nestjs/websockets";
+import { Logger } from "@nestjs/common";
+import { Server, Socket } from "socket.io";
+import { JwtService } from "@nestjs/jwt";
+import { WebSocketService } from "../websocket.service";
+import { TokenBlacklistService } from "../../auth/services/token-blacklist.service";
+import { BaseGateway, AuthenticatedPayload } from "./base.gateway";
 
 interface SubscribeMachinePayload {
   machineId: string;
@@ -24,14 +24,14 @@ interface SubscribeMachinesPayload {
 }
 
 @WebSocketGateway({
-  namespace: '/machines',
+  namespace: "/machines",
   cors: {
-    origin: (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173')
-      .split(',')
-      .map((s: string) => s.trim()),
+    origin: process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",").map((s: string) => s.trim())
+      : [],
     credentials: true,
   },
-  transports: ['websocket', 'polling'],
+  transports: ["websocket", "polling"],
 })
 export class MachineEventsGateway
   extends BaseGateway
@@ -52,10 +52,13 @@ export class MachineEventsGateway
 
   afterInit(server: Server) {
     this.wsService.setServer(server);
-    this.logger.log('Machine Events Gateway initialized');
+    this.logger.log("Machine Events Gateway initialized");
   }
 
-  protected onAuthenticated(client: Socket, payload: AuthenticatedPayload): void {
+  protected onAuthenticated(
+    client: Socket,
+    payload: AuthenticatedPayload,
+  ): void {
     // Auto-join organization room
     if (payload.organizationId) {
       this.wsService.joinRoom(client, `org:${payload.organizationId}`);
@@ -66,7 +69,7 @@ export class MachineEventsGateway
   // Subscribe to Machine Updates
   // ============================================
 
-  @SubscribeMessage('subscribe:machine')
+  @SubscribeMessage("subscribe:machine")
   handleSubscribeMachine(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SubscribeMachinePayload,
@@ -75,20 +78,22 @@ export class MachineEventsGateway
     const user = this.wsService.getClient(client.id);
 
     if (!machineId) {
-      return { success: false, error: 'Machine ID is required' };
+      return { success: false, error: "Machine ID is required" };
     }
 
     if (!user?.organizationId) {
-      return { success: false, error: 'Authentication required' };
+      return { success: false, error: "Authentication required" };
     }
 
     this.wsService.joinRoom(client, `machine:${machineId}`);
-    this.logger.debug(`Client ${client.id} subscribed to machine: ${machineId}`);
+    this.logger.debug(
+      `Client ${client.id} subscribed to machine: ${machineId}`,
+    );
 
     return { success: true, machineId };
   }
 
-  @SubscribeMessage('unsubscribe:machine')
+  @SubscribeMessage("unsubscribe:machine")
   handleUnsubscribeMachine(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SubscribeMachinePayload,
@@ -96,16 +101,18 @@ export class MachineEventsGateway
     const { machineId } = payload;
 
     if (!machineId) {
-      return { success: false, error: 'Machine ID is required' };
+      return { success: false, error: "Machine ID is required" };
     }
 
     this.wsService.leaveRoom(client, `machine:${machineId}`);
-    this.logger.debug(`Client ${client.id} unsubscribed from machine: ${machineId}`);
+    this.logger.debug(
+      `Client ${client.id} unsubscribed from machine: ${machineId}`,
+    );
 
     return { success: true, machineId };
   }
 
-  @SubscribeMessage('subscribe:machines')
+  @SubscribeMessage("subscribe:machines")
   handleSubscribeMachines(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SubscribeMachinesPayload,
@@ -114,11 +121,11 @@ export class MachineEventsGateway
     const user = this.wsService.getClient(client.id);
 
     if (!machineIds || !Array.isArray(machineIds)) {
-      return { success: false, error: 'Machine IDs array is required' };
+      return { success: false, error: "Machine IDs array is required" };
     }
 
     if (!user?.organizationId) {
-      return { success: false, error: 'Authentication required' };
+      return { success: false, error: "Authentication required" };
     }
 
     machineIds.forEach((machineId) => {
@@ -136,10 +143,11 @@ export class MachineEventsGateway
   // Machine Heartbeat (for physical machines)
   // ============================================
 
-  @SubscribeMessage('machine:heartbeat')
+  @SubscribeMessage("machine:heartbeat")
   handleMachineHeartbeat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: {
+    @MessageBody()
+    payload: {
       machineId: string;
       status: string;
       metrics?: {
@@ -152,13 +160,13 @@ export class MachineEventsGateway
     const user = this.wsService.getClient(client.id);
 
     if (!user?.userId) {
-      return { success: false, error: 'Authentication required' };
+      return { success: false, error: "Authentication required" };
     }
 
     const { machineId, status, metrics } = payload;
 
     // Emit heartbeat to all subscribers
-    this.server.to(`machine:${machineId}`).emit('machine:heartbeat', {
+    this.server.to(`machine:${machineId}`).emit("machine:heartbeat", {
       machineId,
       status,
       metrics,

@@ -20,7 +20,28 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 # ==================================================
-# Stage 2: Builder
+# Stage 2: Development (for docker-compose dev mode)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/site/node_modules ./apps/site/node_modules
+
+COPY apps/site ./apps/site
+COPY packages ./packages
+COPY tsconfig.base.json ./
+
+ENV NODE_ENV=development
+ENV PORT=3100
+
+EXPOSE 3100
+
+CMD ["pnpm", "--filter", "@vendhub/site", "dev", "-p", "3100"]
+
+# ==================================================
+# Stage 3: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -47,7 +68,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm --filter @vendhub/site build
 
 # ==================================================
-# Stage 3: Production Runner
+# Stage 4: Production Runner
 FROM node:20-alpine AS production
 WORKDIR /app
 

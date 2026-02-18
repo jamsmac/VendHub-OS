@@ -1,4 +1,14 @@
 /** @type {import('next').NextConfig} */
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const apiHost = (() => {
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    return apiUrl;
+  }
+})();
+const wsHost = apiHost.replace(/^http/, "ws");
+
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@vendhub/shared"],
@@ -12,10 +22,14 @@ const nextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
-      {
-        protocol: "https",
-        hostname: "api.vendhub.uz",
-      },
+      ...(apiHost !== "http://localhost:4000"
+        ? [
+            {
+              protocol: new URL(apiHost).protocol.replace(":", ""),
+              hostname: new URL(apiHost).hostname,
+            },
+          ]
+        : []),
     ],
     unoptimized: process.env.NODE_ENV === "development",
   },
@@ -57,9 +71,9 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://api.vendhub.uz",
+              `img-src 'self' data: blob: ${apiHost}`,
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.vendhub.uz wss://api.vendhub.uz",
+              `connect-src 'self' ${apiHost} ${wsHost}`,
               "frame-ancestors 'none'",
             ].join("; "),
           },
