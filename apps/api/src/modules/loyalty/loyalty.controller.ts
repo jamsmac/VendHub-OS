@@ -24,6 +24,7 @@ import {
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
+import { Public } from "../auth/decorators/public.decorator";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User, UserRole } from "../users/entities/user.entity";
 import { LoyaltyService } from "./loyalty.service";
@@ -248,6 +249,7 @@ export class LoyaltyController {
   // ============================================================================
 
   @Get("levels/info")
+  @Public()
   @ApiOperation({
     summary: "Get loyalty levels information (public)",
     description: "Публичная информация о программе лояльности и уровнях.",

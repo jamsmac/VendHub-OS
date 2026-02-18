@@ -494,9 +494,9 @@ jobs:
           script: |
             cd /opt/vendhub
             git pull origin main
-            docker compose pull
-            docker compose up -d
-            docker compose exec api pnpm migration:run
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml exec api pnpm migration:run
             echo "Deployment completed at $(date)"
 
       - name: Notify Telegram

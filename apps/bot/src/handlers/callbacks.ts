@@ -58,6 +58,7 @@ export function registerCallbacks(bot: Telegraf<BotContext>) {
   bot.action(/^pay_payme_(.+)$/, handlePayPayme);
   bot.action(/^pay_click_(.+)$/, handlePayClick);
   bot.action(/^pay_points_(.+)$/, handlePayPoints);
+  bot.action("confirm_points_payment", handleConfirmPointsPayment);
 
   // Rating callbacks
   bot.action(/^rate_order_(.+)$/, handleRateOrder);
@@ -385,6 +386,42 @@ async function handlePayPoints(ctx: BotContext) {
       },
     },
   );
+}
+
+async function handleConfirmPointsPayment(ctx: BotContext) {
+  await ctx.answerCbQuery();
+
+  const user = await api.getUserByTelegramId(ctx.from!.id);
+  if (!user) {
+    await ctx.answerCbQuery("Пользователь не найден", { show_alert: true });
+    return;
+  }
+
+  const cart = ctx.session.cart || [];
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  try {
+    const success = await api.redeemPoints(user.id, total);
+    if (success) {
+      ctx.session.cart = [];
+      await ctx.editMessageText(
+        "✅ *Оплата баллами успешна!*\n\n" +
+          `Списано: ${total.toLocaleString()} баллов\n\n` +
+          "Спасибо за покупку! 🎉",
+        { parse_mode: "Markdown" },
+      );
+    } else {
+      await ctx.editMessageText(
+        "❌ Не удалось списать баллы. Попробуйте позже.",
+        { parse_mode: "Markdown" },
+      );
+    }
+  } catch {
+    await ctx.editMessageText(
+      "❌ Произошла ошибка при оплате. Попробуйте позже.",
+      { parse_mode: "Markdown" },
+    );
+  }
 }
 
 // ============================================
@@ -864,9 +901,9 @@ async function handleStaffTasksActive(ctx: BotContext) {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const list = tasks
     .slice(0, 10)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((t: any, i: number) => {
       const typeLabels: Record<string, string> = {
         refill: "📦",
@@ -899,10 +936,10 @@ async function handleStaffTasksCompleted(ctx: BotContext) {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const list = tasks
     .slice(0, 10)
     .map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (t: any, i: number) =>
         `${i + 1}. ✅ ${t.machine?.name || ""} — ${t.taskType}`,
     )
@@ -988,9 +1025,9 @@ async function handleStaffAlertsCritical(ctx: BotContext) {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const list = critical
     .slice(0, 10)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((a: any, i: number) => `${i + 1}. 🔴 ${a.title || a.message}`)
     .join("\n");
 
@@ -1048,9 +1085,9 @@ async function handleAchievementsAll(ctx: BotContext) {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const list = data.achievements
     .slice(0, 10)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((a: any) => {
       const icon = a.unlocked ? "🏆" : "🔒";
       return `${icon} ${a.name}`;
