@@ -182,13 +182,22 @@ jobs:
       - name: Run migrations
         run: pnpm --filter api migration:run
         env:
-          DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_test
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub_dev
+          DB_NAME: vendhub_test
 
       - name: Run integration tests
         run: pnpm --filter api test -- --forceExit --passWithNoTests
         env:
-          DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_test
-          REDIS_URL: redis://localhost:6379
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub_dev
+          DB_NAME: vendhub_test
+          REDIS_HOST: localhost
+          REDIS_PORT: "6379"
           JWT_SECRET: test-jwt-secret-key-for-ci
           CI: true
 
@@ -248,20 +257,33 @@ jobs:
       - name: Run migrations
         run: pnpm --filter api migration:run
         env:
-          DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_e2e
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub_dev
+          DB_NAME: vendhub_e2e
 
       - name: Seed test data
         run: pnpm --filter api db:seed
         env:
-          DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_e2e
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub_dev
+          DB_NAME: vendhub_e2e
 
       - name: Start API server
         run: pnpm --filter api start:prod &
         env:
-          DATABASE_URL: postgresql://vendhub:vendhub_dev@localhost:5432/vendhub_e2e
-          REDIS_URL: redis://localhost:6379
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub_dev
+          DB_NAME: vendhub_e2e
+          REDIS_HOST: localhost
+          REDIS_PORT: "6379"
           JWT_SECRET: test-jwt-secret-key-for-ci
-          PORT: 4000
+          PORT: "4000"
 
       - name: Wait for API to be ready
         run: |

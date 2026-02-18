@@ -16,7 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { BarCodeScanner, BarCodeScannerResult } from "expo-barcode-scanner";
+import { Camera } from "expo-camera";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -41,15 +41,17 @@ export function BarcodeScanScreen() {
 
   useEffect(() => {
     (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
   }, []);
 
   const handleBarCodeScanned = async ({
-    _type,
     data,
-  }: BarCodeScannerResult) => {
+  }: {
+    type: string;
+    data: string;
+  }) => {
     if (scanned || isLoading) return;
     setScanned(true);
     setIsLoading(true);
@@ -132,14 +134,12 @@ export function BarcodeScanScreen() {
 
   return (
     <View style={styles.container}>
-      <BarCodeScanner
+      <Camera
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
-        barCodeTypes={[
-          BarCodeScanner.Constants.BarCodeType.qr,
-          BarCodeScanner.Constants.BarCodeType.code128,
-          BarCodeScanner.Constants.BarCodeType.ean13,
-        ]}
+        barCodeScannerSettings={{
+          barCodeTypes: ["qr", "code128", "ean13"],
+        }}
       />
 
       {/* Overlay */}

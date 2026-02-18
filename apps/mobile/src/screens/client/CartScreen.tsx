@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -86,8 +86,6 @@ export function CartScreen({ navigation }: Props) {
       navigation.replace("OrderSuccess");
     },
   });
-
-  const useRef = React.useRef;
 
   const getSwipeAnimation = (itemId: string) => {
     if (!swipeAnimations.current[itemId]) {

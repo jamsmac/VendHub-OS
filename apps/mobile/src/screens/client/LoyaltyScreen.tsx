@@ -12,8 +12,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   FlatList,
-  LinearGradient,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -107,7 +107,8 @@ export function LoyaltyScreen() {
   }, [refetchLoyalty]);
 
   const tierConfig = loyaltyData?.tier
-    ? TIER_CONFIG[loyaltyData.tier]
+    ? TIER_CONFIG[loyaltyData.tier as keyof typeof TIER_CONFIG] ||
+      TIER_CONFIG.bronze
     : TIER_CONFIG.bronze;
   const mockData = loyaltyData || {
     points: 2450,

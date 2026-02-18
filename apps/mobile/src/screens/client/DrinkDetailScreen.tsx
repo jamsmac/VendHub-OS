@@ -56,7 +56,7 @@ const VOLUME_PRICES = {
 };
 
 const MILK_TYPES = ["Regular", "Oat", "Coconut", "None"];
-const SUGAR_LEVELS = [0, 25, 50, 100];
+const SUGAR_LEVELS: (0 | 25 | 50 | 100)[] = [0, 25, 50, 100];
 
 export function DrinkDetailScreen({ navigation }: Props) {
   const route = useRoute();
