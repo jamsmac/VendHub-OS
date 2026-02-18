@@ -224,10 +224,51 @@ export class AIParserService {
   // Documentation Fetching
   // ============================================
 
+  /**
+   * Validate URL to prevent SSRF attacks (block private/internal IPs)
+   */
+  private validateUrl(url: string): void {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error("Invalid URL format");
+    }
+
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("Only http/https URLs are allowed");
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Block localhost and loopback
+    const blocked = ["localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"];
+    if (blocked.includes(hostname)) {
+      throw new Error("Access to internal addresses is not allowed");
+    }
+
+    // Block private IP ranges (10.x, 172.16-31.x, 192.168.x)
+    const ipMatch = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+    if (ipMatch) {
+      const [, a, b] = ipMatch.map(Number);
+      if (
+        a === 10 ||
+        (a === 172 && b >= 16 && b <= 31) ||
+        (a === 192 && b === 168) ||
+        (a === 169 && b === 254) // link-local
+      ) {
+        throw new Error("Access to private network addresses is not allowed");
+      }
+    }
+  }
+
   private async fetchDocumentation(url: string): Promise<string> {
+    this.validateUrl(url);
+
     try {
       const response = await axios.get(url, {
         timeout: 30000,
+        maxRedirects: 3,
         headers: {
           "User-Agent": "VendHub Integration Parser/1.0",
         },
@@ -270,7 +311,7 @@ export class AIParserService {
     const $ = cheerio.load(html);
 
     // Remove scripts, styles, and other non-content elements
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     (
       $(
         "script, style, nav, footer, header, aside, .sidebar, .navigation",
@@ -278,7 +319,6 @@ export class AIParserService {
     ).remove();
 
     // Extract main content
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mainContent = (
       $(
         "main, article, .content, .documentation, .docs, #content, #docs",
@@ -286,6 +326,7 @@ export class AIParserService {
     )
       .first()
       .text();
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     if (mainContent?.trim()) {
       return mainContent.replace(/\s+/g, " ").trim();

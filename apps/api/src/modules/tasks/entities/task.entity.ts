@@ -104,6 +104,7 @@ export const VALID_TASK_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 @Index(["organizationId", "typeCode", "status"])
 @Index(["machineId"])
 @Index(["assignedToUserId"])
+@Index(["assignedToUserId", "status"])
 @Index(["createdByUserId"])
 @Index(["dueDate"])
 @Index(["pendingPhotos"])

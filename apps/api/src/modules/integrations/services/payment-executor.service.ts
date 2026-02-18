@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as crypto from "crypto";
 import { Integration } from "../entities/integration.entity";
 import { IntegrationService } from "./integration.service";
@@ -112,7 +112,7 @@ export class PaymentExecutorService {
       });
 
       // Execute request
-      const response = await axios(axiosConfig);
+      const response = await this.executeWithRetry(axiosConfig);
 
       // Log success
       await this.logRequest(
@@ -169,7 +169,7 @@ export class PaymentExecutorService {
       );
 
       // Execute request
-      const response = await axios(axiosConfig);
+      const response = await this.executeWithRetry(axiosConfig);
 
       // Log success
       await this.logRequest(
@@ -222,7 +222,7 @@ export class PaymentExecutorService {
         { payment_id: paymentId, id: paymentId },
       );
 
-      const response = await axios(axiosConfig);
+      const response = await this.executeWithRetry(axiosConfig);
       await this.logRequest(
         integration,
         endpoint,
@@ -276,7 +276,7 @@ export class PaymentExecutorService {
         { payment_id: request.paymentId, id: request.paymentId },
       );
 
-      const response = await axios(axiosConfig);
+      const response = await this.executeWithRetry(axiosConfig);
       await this.logRequest(
         integration,
         endpoint,
@@ -300,6 +300,46 @@ export class PaymentExecutorService {
       );
       throw this.handleError(error, config);
     }
+  }
+
+  // ============================================
+  // Retry Logic
+  // ============================================
+
+  /**
+   * Execute HTTP request with exponential backoff retry.
+   * Retries on network errors and 5xx responses (up to 3 attempts).
+   */
+  private async executeWithRetry(
+    config: AxiosRequestConfig,
+    maxRetries: number = 2,
+  ): Promise<AxiosResponse> {
+    let lastError: AxiosError | Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await axios(config);
+      } catch (error) {
+        lastError = error as AxiosError;
+        const axiosErr = error as AxiosError;
+        const status = axiosErr.response?.status;
+
+        // Only retry on network errors or 5xx server errors
+        const isRetryable = !status || (status >= 500 && status < 600);
+
+        if (!isRetryable || attempt === maxRetries) {
+          throw error;
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+        this.logger.warn(
+          `Payment API request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms: ${axiosErr.message}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
   }
 
   // ============================================
