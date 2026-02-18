@@ -536,10 +536,10 @@ export class ScheduledReport extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   definitionId: string;
 
-  @ManyToOne(() => ReportDefinition, { onDelete: "CASCADE" })
+  @ManyToOne(() => ReportDefinition, { onDelete: "SET NULL" })
   @JoinColumn({ name: "definition_id" })
   definition: ReportDefinition;
 
@@ -824,11 +824,11 @@ export class DashboardWidget extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   dashboardId: string;
 
   @ManyToOne(() => Dashboard, (dashboard) => dashboard.widgets, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "dashboard_id" })
   dashboard: Dashboard;
@@ -933,10 +933,10 @@ export class SavedReportFilter extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   definitionId: string;
 
-  @ManyToOne(() => ReportDefinition, { onDelete: "CASCADE" })
+  @ManyToOne(() => ReportDefinition, { onDelete: "SET NULL" })
   @JoinColumn({ name: "definition_id" })
   definition: ReportDefinition;
 
@@ -994,10 +994,10 @@ export class ReportSubscription extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   scheduledReportId: string;
 
-  @ManyToOne(() => ScheduledReport, { onDelete: "CASCADE" })
+  @ManyToOne(() => ScheduledReport, { onDelete: "SET NULL" })
   @JoinColumn({ name: "scheduled_report_id" })
   scheduledReport: ScheduledReport;
 

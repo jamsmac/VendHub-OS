@@ -624,7 +624,7 @@ async function handleTripStartCb(ctx: BotContext) {
 
   const activeTrip = await api.getActiveTrip(user.id);
   if (activeTrip) {
-    await ctx.editMessageText("⚠️ U vas uzhe est' aktivnaya poezdka.", {
+    await ctx.editMessageText("⚠️ У вас уже есть активная поездка.", {
       ...activeTripInline(activeTrip.id),
     });
     return;
@@ -632,14 +632,14 @@ async function handleTripStartCb(ctx: BotContext) {
 
   const vehicles = await api.getAvailableVehicles();
   if (vehicles.length === 0) {
-    await ctx.editMessageText("❌ Net dostupnykh TS.", backToMenuInline);
+    await ctx.editMessageText("❌ Нет доступных ТС.", backToMenuInline);
     return;
   }
 
   ctx.session.step = "trip_selecting_vehicle";
   ctx.session.data = {};
 
-  await ctx.editMessageText("🚗 *Vybor transporta*\n\nVyberite TS:", {
+  await ctx.editMessageText("🚗 *Выбор транспорта*\n\nВыберите ТС:", {
     parse_mode: "Markdown",
     ...vehicleSelectInline(vehicles),
   });
@@ -653,7 +653,7 @@ async function handleTripHistory(ctx: BotContext) {
 
   const trips = await api.getUserTrips(user.id, 5);
   if (trips.length === 0) {
-    await ctx.editMessageText("ℹ️ U vas poka net poezdok.", backToMenuInline);
+    await ctx.editMessageText("ℹ️ У вас пока нет поездок.", backToMenuInline);
     return;
   }
 
@@ -668,11 +668,11 @@ async function handleTripHistory(ctx: BotContext) {
           : t.status === "in_progress"
             ? "🚗"
             : "❌";
-      return `${i + 1}. ${statusIcon} ${t.routeName || "Bez marshruta"} — ${date}`;
+      return `${i + 1}. ${statusIcon} ${t.routeName || "Без маршрута"} — ${date}`;
     })
     .join("\n");
 
-  await ctx.editMessageText(`📋 *Poslednie poezdki:*\n\n${tripsList}`, {
+  await ctx.editMessageText(`📋 *Последние поездки:*\n\n${tripsList}`, {
     parse_mode: "Markdown",
     ...backToMenuInline,
   });
@@ -695,7 +695,7 @@ async function handleTripVehicleSelect(ctx: BotContext) {
     const trip = await api.startTrip(user.id, vehicleId);
     if (!trip) {
       await ctx.editMessageText(
-        "❌ Oshibka sozdaniya poezdki.",
+        "❌ Ошибка создания поездки.",
         backToMenuInline,
       );
       return;
@@ -705,16 +705,16 @@ async function handleTripVehicleSelect(ctx: BotContext) {
     ctx.session.data = { tripId: trip.id };
 
     await ctx.editMessageText(
-      "✅ *Poezdka nachata!*\n\n" +
-        `TS: ${trip.vehiclePlate || "N/A"}\n` +
-        "Otpravlyajte geolokatsiu dlya otslezhivaniya.",
+      "✅ *Поездка начата!*\n\n" +
+        `ТС: ${trip.vehiclePlate || "N/A"}\n` +
+        "Отправляйте геолокацию для отслеживания.",
       { parse_mode: "Markdown", ...activeTripInline(trip.id) },
     );
     return;
   }
 
   await ctx.editMessageText(
-    "📍 *Vybor marshruta*\n\nVyberite marshrut ili nachnite bez marshruta:",
+    "📍 *Выбор маршрута*\n\nВыберите маршрут или начните без маршрута:",
     { parse_mode: "Markdown", ...routeSelectInline(routes) },
   );
 }
@@ -726,7 +726,7 @@ async function handleTripRouteSelect(ctx: BotContext) {
 
   if (!vehicleId) {
     await ctx.editMessageText(
-      "❌ Oshibka: transport ne vybran.",
+      "❌ Ошибка: транспорт не выбран.",
       backToMenuInline,
     );
     return;
@@ -742,10 +742,7 @@ async function handleTripRouteSelect(ctx: BotContext) {
   );
 
   if (!trip) {
-    await ctx.editMessageText(
-      "❌ Oshibka sozdaniya poezdki.",
-      backToMenuInline,
-    );
+    await ctx.editMessageText("❌ Ошибка создания поездки.", backToMenuInline);
     return;
   }
 
@@ -753,10 +750,10 @@ async function handleTripRouteSelect(ctx: BotContext) {
   ctx.session.data = { tripId: trip.id };
 
   await ctx.editMessageText(
-    "✅ *Poezdka nachata!*\n\n" +
-      `Marshrut: ${trip.routeName || "Bez marshruta"}\n` +
-      `TS: ${trip.vehiclePlate || "N/A"}\n\n` +
-      "📍 Otpravlyajte geolokatsiu dlya otslezhivaniya.",
+    "✅ *Поездка начата!*\n\n" +
+      `Маршрут: ${trip.routeName || "Без маршрута"}\n` +
+      `ТС: ${trip.vehiclePlate || "N/A"}\n\n` +
+      "📍 Отправляйте геолокацию для отслеживания.",
     { parse_mode: "Markdown", ...activeTripInline(trip.id) },
   );
 }

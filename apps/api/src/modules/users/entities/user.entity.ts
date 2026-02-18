@@ -310,10 +310,10 @@ export class User extends BaseEntity {
 @Index(["refreshTokenHint"])
 @Index(["expiresAt"])
 export class UserSession extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.sessions, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.sessions, { onDelete: "SET NULL" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
@@ -370,10 +370,12 @@ export class UserSession extends BaseEntity {
 @Entity("two_factor_auth")
 @Index(["userId"], { unique: true })
 export class TwoFactorAuth extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.twoFactorAuths, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.twoFactorAuths, {
+    onDelete: "SET NULL",
+  })
   @JoinColumn({ name: "user_id" })
   user: User;
 

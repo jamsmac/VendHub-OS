@@ -45,7 +45,7 @@ export class TelegramMessageLog extends BaseEntity {
   @Column({ type: "uuid" })
   telegram_user_id: string;
 
-  @ManyToOne(() => TelegramUser, { onDelete: "CASCADE" })
+  @ManyToOne(() => TelegramUser, { onDelete: "SET NULL" })
   @JoinColumn({ name: "telegram_user_id" })
   telegram_user: TelegramUser;
 

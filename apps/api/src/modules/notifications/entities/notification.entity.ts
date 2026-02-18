@@ -840,7 +840,7 @@ export class NotificationQueue extends BaseEntity {
   @Column({ type: "uuid" })
   notificationId: string;
 
-  @ManyToOne(() => Notification, { onDelete: "CASCADE" })
+  @ManyToOne(() => Notification, { onDelete: "SET NULL" })
   @JoinColumn({ name: "notification_id" })
   notification: Notification;
 

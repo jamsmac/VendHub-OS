@@ -54,6 +54,9 @@ spec:
             - name: http
               containerPort: 3001
               protocol: TCP
+            - name: health
+              containerPort: 3002
+              protocol: TCP
 
           envFrom:
             - configMapRef:
@@ -85,7 +88,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: http
+              port: health
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 3
@@ -93,7 +96,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: http
+              port: health
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5

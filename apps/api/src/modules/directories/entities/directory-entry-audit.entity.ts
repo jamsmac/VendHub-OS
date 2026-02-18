@@ -72,7 +72,7 @@ export class DirectoryEntryAudit extends BaseEntity {
   userAgent: string | null;
 
   // Relations
-  @ManyToOne(() => DirectoryEntry, { onDelete: "CASCADE" })
+  @ManyToOne(() => DirectoryEntry, { onDelete: "SET NULL" })
   @JoinColumn({ name: "entry_id" })
   entry: DirectoryEntry;
 }

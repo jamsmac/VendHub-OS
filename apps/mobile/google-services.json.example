@@ -1,0 +1,32 @@
+{
+  "_comment": "PLACEHOLDER - Replace with your real google-services.json from Firebase Console",
+  "_instructions": [
+    "1. Go to https://console.firebase.google.com",
+    "2. Select your project (or create one)",
+    "3. Add an Android app with package name: uz.vendhub.staff",
+    "4. Download google-services.json",
+    "5. Copy it to apps/mobile/google-services.json",
+    "6. For iOS: download GoogleService-Info.plist and place in apps/mobile/ios/"
+  ],
+  "project_info": {
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:YOUR_PROJECT_NUMBER:android:YOUR_APP_HASH",
+        "android_client_info": {
+          "package_name": "uz.vendhub.staff"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "YOUR_API_KEY"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}

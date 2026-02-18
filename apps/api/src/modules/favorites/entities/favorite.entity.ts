@@ -30,7 +30,7 @@ export class Favorite extends BaseEntity {
   @Index()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, { onDelete: "SET NULL" })
   @JoinColumn({ name: "user_id" })
   user: User;
 

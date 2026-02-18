@@ -383,7 +383,7 @@ export class MaintenancePart extends BaseEntity {
   maintenanceRequestId: string;
 
   @ManyToOne(() => MaintenanceRequest, (req) => req.parts, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "maintenance_request_id" })
   maintenanceRequest: MaintenanceRequest;
@@ -455,7 +455,7 @@ export class MaintenanceWorkLog extends BaseEntity {
   maintenanceRequestId: string;
 
   @ManyToOne(() => MaintenanceRequest, (req) => req.workLogs, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "maintenance_request_id" })
   maintenanceRequest: MaintenanceRequest;

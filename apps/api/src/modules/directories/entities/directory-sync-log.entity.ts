@@ -79,12 +79,12 @@ export class DirectorySyncLog extends BaseEntity {
   triggeredBy: string | null;
 
   // Relations
-  @ManyToOne(() => Directory, { onDelete: "CASCADE" })
+  @ManyToOne(() => Directory, { onDelete: "SET NULL" })
   @JoinColumn({ name: "directory_id" })
   directory: Directory;
 
   @ManyToOne(() => DirectorySource, (source) => source.syncLogs, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "source_id" })
   source: DirectorySource;

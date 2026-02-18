@@ -21,7 +21,7 @@ export class UserAchievement extends BaseEntity {
   @Index()
   user_id: string;
 
-  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, { onDelete: "SET NULL" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
@@ -33,7 +33,7 @@ export class UserAchievement extends BaseEntity {
   achievement_id: string;
 
   @ManyToOne(() => Achievement, (a) => a.user_achievements, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "achievement_id" })
   achievement: Achievement;

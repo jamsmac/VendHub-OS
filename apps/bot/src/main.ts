@@ -1,3 +1,4 @@
+import * as http from "http";
 import { Telegraf } from "telegraf";
 import { config, validateConfig } from "./config";
 import { BotContext } from "./types";
@@ -122,6 +123,39 @@ async function main() {
   );
   logger.info("Bot commands set");
 
+  // Health check HTTP server (for Docker/K8s probes)
+  const healthPort = config.webhookDomain ? config.port + 1 : config.port;
+  const healthServer = http.createServer(async (req, res) => {
+    if (req.url === "/health" && req.method === "GET") {
+      try {
+        await redis.ping();
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            status: "healthy",
+            uptime: process.uptime(),
+            mode: config.webhookDomain ? "webhook" : "polling",
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      } catch {
+        res.writeHead(503, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ status: "unhealthy", error: "Redis down" }));
+      }
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+
+  // In webhook mode, health runs on port+1 (bot uses the main port for webhook)
+  // In polling mode, health runs on the configured port (no HTTP server for bot)
+  if (!config.webhookDomain) {
+    healthServer.listen(healthPort, () => {
+      logger.info(`Health endpoint ready on port ${healthPort}`);
+    });
+  }
+
   // Launch bot
   if (config.webhookDomain) {
     // Webhook mode for production
@@ -142,6 +176,11 @@ async function main() {
     });
 
     logger.info(`Bot started in webhook mode on port ${config.port}`);
+
+    // Health server on port+1 since bot uses the main port
+    healthServer.listen(healthPort, () => {
+      logger.info(`Health endpoint ready on port ${healthPort}`);
+    });
   } else {
     // Long polling mode for development
     await bot.launch();

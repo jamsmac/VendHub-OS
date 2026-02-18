@@ -112,7 +112,7 @@ export class DirectorySource extends BaseEntity {
   sourceVersion: string | null;
 
   // Relations
-  @ManyToOne(() => Directory, { onDelete: "CASCADE" })
+  @ManyToOne(() => Directory, { onDelete: "SET NULL" })
   @JoinColumn({ name: "directory_id" })
   directory: Directory;
 

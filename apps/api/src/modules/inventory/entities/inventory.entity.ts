@@ -765,7 +765,7 @@ export class InventoryCountItem extends BaseEntity {
   @Column({ type: "uuid" })
   countId: string;
 
-  @ManyToOne(() => InventoryCount, { onDelete: "CASCADE" })
+  @ManyToOne(() => InventoryCount, { onDelete: "SET NULL" })
   @JoinColumn({ name: "count_id" })
   count: InventoryCount;
 

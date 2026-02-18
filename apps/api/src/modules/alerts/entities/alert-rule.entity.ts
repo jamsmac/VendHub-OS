@@ -159,7 +159,7 @@ export class AlertHistory extends BaseEntity {
   @Column({ type: "uuid" })
   ruleId: string;
 
-  @ManyToOne(() => AlertRule, { onDelete: "CASCADE" })
+  @ManyToOne(() => AlertRule, { onDelete: "SET NULL" })
   @JoinColumn({ name: "rule_id" })
   rule: AlertRule;
 

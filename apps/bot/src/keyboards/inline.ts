@@ -316,9 +316,9 @@ export const backToMenuInline = Markup.inlineKeyboard([
  * Trip menu inline keyboard
  */
 export const tripMenuInline = Markup.inlineKeyboard([
-  [Markup.button.callback("🚀 Nachat' poezdku", "trip_start")],
-  [Markup.button.callback("📋 Moi poezdki", "trip_history")],
-  [Markup.button.callback("🔙 Nazad", "back_to_menu")],
+  [Markup.button.callback("🚀 Начать поездку", "trip_start")],
+  [Markup.button.callback("📋 Мои поездки", "trip_history")],
+  [Markup.button.callback("🔙 Назад", "back_to_menu")],
 ]);
 
 /**
@@ -326,9 +326,9 @@ export const tripMenuInline = Markup.inlineKeyboard([
  */
 export function activeTripInline(tripId: string) {
   return Markup.inlineKeyboard([
-    [Markup.button.callback("📍 Ostanovki", `trip_stops_${tripId}`)],
-    [Markup.button.callback("🏁 Zavershit' poezdku", `trip_end_${tripId}`)],
-    [Markup.button.callback("🔙 Nazad", "back_to_menu")],
+    [Markup.button.callback("📍 Остановки", `trip_stops_${tripId}`)],
+    [Markup.button.callback("🏁 Завершить поездку", `trip_end_${tripId}`)],
+    [Markup.button.callback("🔙 Назад", "back_to_menu")],
   ]);
 }
 
@@ -345,7 +345,7 @@ export function vehicleSelectInline(vehicles: Vehicle[]) {
           `trip_vehicle_${v.id}`,
         ),
       ]),
-    [Markup.button.callback("❌ Otmena", "back_to_menu")],
+    [Markup.button.callback("❌ Отмена", "back_to_menu")],
   ]);
 }
 
@@ -358,12 +358,12 @@ export function routeSelectInline(routes: RouteInfo[]) {
       .slice(0, 8)
       .map((r) => [
         Markup.button.callback(
-          `📍 ${r.name} (${r.stopsCount} ost.)`,
+          `📍 ${r.name} (${r.stopsCount} ост.)`,
           `trip_route_${r.id}`,
         ),
       ]),
-    [Markup.button.callback("⏭ Bez marshruta", "trip_route_none")],
-    [Markup.button.callback("❌ Otmena", "back_to_menu")],
+    [Markup.button.callback("⏭ Без маршрута", "trip_route_none")],
+    [Markup.button.callback("❌ Отмена", "back_to_menu")],
   ]);
 }
 
@@ -384,7 +384,7 @@ export function tripStopsInline(tripId: string, stops: TripStop[]) {
           ),
         ];
       }),
-    [Markup.button.callback("🔙 K poezdke", `trip_status_${tripId}`)],
+    [Markup.button.callback("🔙 К поездке", `trip_status_${tripId}`)],
   ]);
 }
 
@@ -395,11 +395,11 @@ export function tripCompletedInline(tripId: string) {
   return Markup.inlineKeyboard([
     [
       Markup.button.webApp(
-        "📊 Detali poezdki",
+        "📊 Детали поездки",
         `${config.miniAppUrl}/trips/${tripId}`,
       ),
     ],
-    [Markup.button.callback("🔙 Menyu", "back_to_menu")],
+    [Markup.button.callback("🔙 Меню", "back_to_menu")],
   ]);
 }
 

@@ -361,7 +361,7 @@ async function handleCancel(ctx: BotContext) {
 async function handleTrip(ctx: BotContext) {
   const user = await api.getUserByTelegramId(ctx.from!.id);
   if (!user) {
-    await ctx.reply("Pozhalujsta, zaregistrirujtes' komandoj /start");
+    await ctx.reply("Пожалуйста, зарегистрируйтесь командой /start");
     return;
   }
 
@@ -370,27 +370,27 @@ async function handleTrip(ctx: BotContext) {
   if (activeTrip) {
     const stopsInfo =
       activeTrip.stopsTotal > 0
-        ? `\nOstanovki: ${activeTrip.stopsCompleted}/${activeTrip.stopsTotal}`
+        ? `\nОстановки: ${activeTrip.stopsCompleted}/${activeTrip.stopsTotal}`
         : "";
     const anomalies =
       activeTrip.anomaliesCount > 0
-        ? `\nAnomalij: ${activeTrip.anomaliesCount}`
+        ? `\nАномалий: ${activeTrip.anomaliesCount}`
         : "";
 
     await ctx.reply(
-      `🚗 *Aktivnaya poezdka*\n\n` +
-        `Status: V puti\n` +
-        `Marshrut: ${activeTrip.routeName || "Bez marshruta"}\n` +
-        `TS: ${activeTrip.vehiclePlate || "N/A"}` +
+      `🚗 *Активная поездка*\n\n` +
+        `Статус: В пути\n` +
+        `Маршрут: ${activeTrip.routeName || "Без маршрута"}\n` +
+        `ТС: ${activeTrip.vehiclePlate || "N/A"}` +
         stopsInfo +
         anomalies +
-        `\nNachalo: ${activeTrip.startedAt ? new Date(activeTrip.startedAt).toLocaleString("ru-RU") : "N/A"}`,
+        `\nНачало: ${activeTrip.startedAt ? new Date(activeTrip.startedAt).toLocaleString("ru-RU") : "N/A"}`,
       { parse_mode: "Markdown", ...activeTripInline(activeTrip.id) },
     );
     return;
   }
 
-  await ctx.reply("🚗 *Upravlenie poezdkami*\n\n" + "Vyberte dejstvie:", {
+  await ctx.reply("🚗 *Управление поездками*\n\nВыберите действие:", {
     parse_mode: "Markdown",
     ...tripMenuInline,
   });
@@ -402,7 +402,7 @@ async function handleTrip(ctx: BotContext) {
 async function handleTripStart(ctx: BotContext) {
   const user = await api.getUserByTelegramId(ctx.from!.id);
   if (!user) {
-    await ctx.reply("Pozhalujsta, zaregistrirujtes' komandoj /start");
+    await ctx.reply("Пожалуйста, зарегистрируйтесь командой /start");
     return;
   }
 
@@ -410,8 +410,8 @@ async function handleTripStart(ctx: BotContext) {
   const activeTrip = await api.getActiveTrip(user.id);
   if (activeTrip) {
     await ctx.reply(
-      "⚠️ U vas uzhe est' aktivnaya poezdka.\n" +
-        "Zavershite yeyo komandoj /trip_end",
+      "⚠️ У вас уже есть активная поездка.\n" +
+        "Завершите её командой /trip_end",
       activeTripInline(activeTrip.id),
     );
     return;
@@ -420,14 +420,14 @@ async function handleTripStart(ctx: BotContext) {
   // Get available vehicles
   const vehicles = await api.getAvailableVehicles();
   if (vehicles.length === 0) {
-    await ctx.reply("❌ Net dostupnykh transportnykh sredstv.");
+    await ctx.reply("❌ Нет доступных транспортных средств.");
     return;
   }
 
   ctx.session.step = "trip_selecting_vehicle";
   ctx.session.data = {};
 
-  await ctx.reply("🚗 *Vybor transporta*\n\nVyberite transportnoe sredstvo:", {
+  await ctx.reply("🚗 *Выбор транспорта*\n\nВыберите транспортное средство:", {
     parse_mode: "Markdown",
     ...vehicleSelectInline(vehicles),
   });
@@ -666,10 +666,9 @@ async function handleAchievements(ctx: BotContext) {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const list = data.achievements
     .slice(0, 8)
-    .map((a: any) => {
+    .map((a: { unlocked: boolean; name: string; description: string }) => {
       const icon = a.unlocked ? "🏆" : "🔒";
       return `${icon} *${a.name}*\n   ${a.description}`;
     })
@@ -720,15 +719,24 @@ async function handleStaffTasks(ctx: BotContext) {
     low: "⚪",
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tasksList = tasks
     .slice(0, 10)
-    .map((t: any, i: number) => {
-      const type = taskTypeLabels[t.taskType] || t.taskType;
-      const priority = priorityIcons[t.priority] || "⚪";
-      const machine = t.machine?.name || t.machineName || "";
-      return `${i + 1}. ${priority} ${type}\n   📍 ${machine}`;
-    })
+    .map(
+      (
+        t: {
+          taskType: string;
+          priority: string;
+          machine?: { name: string };
+          machineName?: string;
+        },
+        i: number,
+      ) => {
+        const type = taskTypeLabels[t.taskType] || t.taskType;
+        const priority = priorityIcons[t.priority] || "⚪";
+        const machine = t.machine?.name || t.machineName || "";
+        return `${i + 1}. ${priority} ${type}\n   📍 ${machine}`;
+      },
+    )
     .join("\n\n");
 
   await ctx.reply(`📋 *Мои задачи* (${tasks.length})\n\n${tasksList}`, {
@@ -850,19 +858,28 @@ async function handleStaffAlerts(ctx: BotContext) {
     info: "🔵",
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const alertsList = alerts
     .slice(0, 10)
-    .map((a: any, _i: number) => {
-      const icon = alertIcons[a.severity] || "🔔";
-      const time = a.createdAt
-        ? new Date(a.createdAt).toLocaleTimeString("ru-RU", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "";
-      return `${icon} ${a.title || a.message}\n   ${time}`;
-    })
+    .map(
+      (
+        a: {
+          severity: string;
+          createdAt?: string;
+          title?: string;
+          message?: string;
+        },
+        _i: number,
+      ) => {
+        const icon = alertIcons[a.severity] || "🔔";
+        const time = a.createdAt
+          ? new Date(a.createdAt).toLocaleTimeString("ru-RU", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "";
+        return `${icon} ${a.title || a.message}\n   ${time}`;
+      },
+    )
     .join("\n\n");
 
   await ctx.reply(`🔔 *Уведомления* (${alerts.length})\n\n${alertsList}`, {

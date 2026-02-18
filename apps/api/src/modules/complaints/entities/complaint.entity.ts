@@ -604,7 +604,7 @@ export class ComplaintComment extends BaseEntity {
   complaintId: string;
 
   @ManyToOne(() => Complaint, (complaint) => complaint.comments, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "complaint_id" })
   complaint: Complaint;
@@ -662,7 +662,7 @@ export class ComplaintAction extends BaseEntity {
   complaintId: string;
 
   @ManyToOne(() => Complaint, (complaint) => complaint.actions, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "complaint_id" })
   complaint: Complaint;
@@ -715,7 +715,7 @@ export class ComplaintRefund extends BaseEntity {
   complaintId: string;
 
   @ManyToOne(() => Complaint, (complaint) => complaint.refunds, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "complaint_id" })
   complaint: Complaint;

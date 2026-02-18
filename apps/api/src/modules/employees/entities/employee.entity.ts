@@ -174,10 +174,10 @@ export class Employee extends BaseEntity {
 @Entity("employee_documents")
 @Index(["employeeId", "documentType"])
 export class EmployeeDocument extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   employeeId: string;
 
-  @ManyToOne(() => Employee, { onDelete: "CASCADE" })
+  @ManyToOne(() => Employee, { onDelete: "SET NULL" })
   @JoinColumn({ name: "employee_id" })
   employee: Employee;
 

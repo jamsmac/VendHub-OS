@@ -5,17 +5,25 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
-import { Trip, TripStatus, TripTaskType } from './entities/trip.entity';
-import { TripPoint } from './entities/trip-point.entity';
-import { TripStop } from './entities/trip-stop.entity';
-import { TripAnomaly, AnomalyType, AnomalySeverity, AnomalyDetails } from './entities/trip-anomaly.entity';
-import { TripTaskLink, TripTaskLinkStatus } from './entities/trip-task-link.entity';
-import { TripReconciliation } from './entities/trip-reconciliation.entity';
-import { Vehicle } from '../vehicles/entities/vehicle.entity';
-import { TRIP_SETTINGS } from './constants/trip-settings';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, IsNull } from "typeorm";
+import { Trip, TripStatus, TripTaskType } from "./entities/trip.entity";
+import { TripPoint } from "./entities/trip-point.entity";
+import { TripStop } from "./entities/trip-stop.entity";
+import {
+  TripAnomaly,
+  AnomalyType,
+  AnomalySeverity,
+  AnomalyDetails,
+} from "./entities/trip-anomaly.entity";
+import {
+  TripTaskLink,
+  TripTaskLinkStatus,
+} from "./entities/trip-task-link.entity";
+import { TripReconciliation } from "./entities/trip-reconciliation.entity";
+import { Vehicle } from "../vehicles/entities/vehicle.entity";
+import { TRIP_SETTINGS } from "./constants/trip-settings";
 
 @Injectable()
 export class TripsService {
@@ -61,7 +69,9 @@ export class TripsService {
     // Check for existing active trip
     const activeTrip = await this.getActiveTrip(input.employeeId);
     if (activeTrip) {
-      throw new ConflictException('Employee already has an active trip. End it before starting a new one.');
+      throw new ConflictException(
+        "Employee already has an active trip. End it before starting a new one.",
+      );
     }
 
     // Validate vehicle belongs to org
@@ -70,7 +80,9 @@ export class TripsService {
         where: { id: input.vehicleId, organizationId: input.organizationId },
       });
       if (!vehicle) {
-        throw new BadRequestException('Vehicle not found or does not belong to this organization');
+        throw new BadRequestException(
+          "Vehicle not found or does not belong to this organization",
+        );
       }
     }
 
@@ -110,24 +122,24 @@ export class TripsService {
     userId?: string,
   ): Promise<Trip> {
     const trip = await this.getTripById(tripId);
-    if (!trip) throw new NotFoundException('Trip not found');
+    if (!trip) throw new NotFoundException("Trip not found");
 
     if (trip.status !== TripStatus.ACTIVE) {
-      throw new BadRequestException('Trip is not active');
+      throw new BadRequestException("Trip is not active");
     }
 
     // Get last valid point for end coordinates
     const lastPoint = await this.pointRepository.findOne({
       where: { tripId, isFiltered: false },
-      order: { recordedAt: 'DESC' },
+      order: { recordedAt: "DESC" },
     });
 
     // Calculate total distance
     const distanceResult = await this.pointRepository
-      .createQueryBuilder('p')
-      .select('SUM(p.distanceFromPrevMeters)', 'total')
-      .where('p.tripId = :tripId', { tripId })
-      .andWhere('p.isFiltered = false')
+      .createQueryBuilder("p")
+      .select("SUM(p.distanceFromPrevMeters)", "total")
+      .where("p.tripId = :tripId", { tripId })
+      .andWhere("p.isFiltered = false")
       .getRawOne();
 
     const totalDistance = Math.round(Number(distanceResult?.total) || 0);
@@ -200,12 +212,16 @@ export class TripsService {
     return this.getTripById(tripId);
   }
 
-  async cancelTrip(tripId: string, reason?: string, userId?: string): Promise<Trip> {
+  async cancelTrip(
+    tripId: string,
+    reason?: string,
+    userId?: string,
+  ): Promise<Trip> {
     const trip = await this.getTripById(tripId);
-    if (!trip) throw new NotFoundException('Trip not found');
+    if (!trip) throw new NotFoundException("Trip not found");
 
     if (trip.status !== TripStatus.ACTIVE) {
-      throw new BadRequestException('Only active trips can be cancelled');
+      throw new BadRequestException("Only active trips can be cancelled");
     }
 
     trip.status = TripStatus.CANCELLED;
@@ -213,7 +229,9 @@ export class TripsService {
     trip.liveLocationActive = false;
     trip.updated_by_id = userId ?? null;
     if (reason) {
-      trip.notes = trip.notes ? `${trip.notes}\n[Cancelled: ${reason}]` : `[Cancelled: ${reason}]`;
+      trip.notes = trip.notes
+        ? `${trip.notes}\n[Cancelled: ${reason}]`
+        : `[Cancelled: ${reason}]`;
     }
 
     return this.tripRepository.save(trip);
@@ -222,14 +240,14 @@ export class TripsService {
   async getActiveTrip(employeeId: string): Promise<Trip | null> {
     return this.tripRepository.findOne({
       where: { employeeId, status: TripStatus.ACTIVE },
-      relations: ['vehicle', 'taskLinks'],
+      relations: ["vehicle", "taskLinks"],
     });
   }
 
   async getTripById(id: string): Promise<Trip> {
     const trip = await this.tripRepository.findOne({
       where: { id },
-      relations: ['vehicle', 'taskLinks', 'stops', 'anomalies'],
+      relations: ["vehicle", "taskLinks", "stops", "anomalies"],
     });
     if (!trip) throw new NotFoundException(`Trip ${id} not found`);
     return trip;
@@ -248,22 +266,31 @@ export class TripsService {
       limit?: number;
     },
   ) {
-    const { employeeId, vehicleId, status, taskType, dateFrom, dateTo, page = 1, limit = 20 } =
-      filters || {};
+    const {
+      employeeId,
+      vehicleId,
+      status,
+      taskType,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 20,
+    } = filters || {};
 
-    const query = this.tripRepository.createQueryBuilder('trip');
-    query.where('trip.organizationId = :organizationId', { organizationId });
-    query.leftJoinAndSelect('trip.vehicle', 'vehicle');
+    const query = this.tripRepository.createQueryBuilder("trip");
+    query.where("trip.organizationId = :organizationId", { organizationId });
+    query.leftJoinAndSelect("trip.vehicle", "vehicle");
 
-    if (employeeId) query.andWhere('trip.employeeId = :employeeId', { employeeId });
-    if (vehicleId) query.andWhere('trip.vehicleId = :vehicleId', { vehicleId });
-    if (status) query.andWhere('trip.status = :status', { status });
-    if (taskType) query.andWhere('trip.taskType = :taskType', { taskType });
-    if (dateFrom) query.andWhere('trip.startedAt >= :dateFrom', { dateFrom });
-    if (dateTo) query.andWhere('trip.startedAt <= :dateTo', { dateTo });
+    if (employeeId)
+      query.andWhere("trip.employeeId = :employeeId", { employeeId });
+    if (vehicleId) query.andWhere("trip.vehicleId = :vehicleId", { vehicleId });
+    if (status) query.andWhere("trip.status = :status", { status });
+    if (taskType) query.andWhere("trip.taskType = :taskType", { taskType });
+    if (dateFrom) query.andWhere("trip.startedAt >= :dateFrom", { dateFrom });
+    if (dateTo) query.andWhere("trip.startedAt <= :dateTo", { dateTo });
 
     const total = await query.getCount();
-    query.orderBy('trip.startedAt', 'DESC');
+    query.orderBy("trip.startedAt", "DESC");
     query.skip((page - 1) * limit).take(limit);
 
     const data = await query.getMany();
@@ -291,22 +318,25 @@ export class TripsService {
     const trip = await this.tripRepository.findOne({ where: { id: tripId } });
     if (!trip) throw new NotFoundException(`Trip ${tripId} not found`);
     if (trip.status !== TripStatus.ACTIVE) {
-      throw new BadRequestException('Cannot add points to a non-active trip');
+      throw new BadRequestException("Cannot add points to a non-active trip");
     }
 
     let isFiltered = false;
     let filterReason: string | null = null;
 
     // Check GPS accuracy
-    if (input.accuracy && input.accuracy > TRIP_SETTINGS.MIN_GPS_ACCURACY_METERS) {
+    if (
+      input.accuracy &&
+      input.accuracy > TRIP_SETTINGS.MIN_GPS_ACCURACY_METERS
+    ) {
       isFiltered = true;
-      filterReason = 'LOW_ACCURACY';
+      filterReason = "LOW_ACCURACY";
     }
 
     // Get previous valid point
     const prevPoint = await this.pointRepository.findOne({
       where: { tripId, isFiltered: false },
-      order: { recordedAt: 'DESC' },
+      order: { recordedAt: "DESC" },
     });
 
     let distanceFromPrev = 0;
@@ -321,14 +351,18 @@ export class TripsService {
 
       // GPS jump detection
       if (distanceFromPrev > 1000) {
-        const recordedAt = input.recordedAt ? new Date(input.recordedAt) : new Date();
+        const recordedAt = input.recordedAt
+          ? new Date(input.recordedAt)
+          : new Date();
         const timeDiff =
-          (recordedAt.getTime() - new Date(prevPoint.recordedAt).getTime()) / 1000;
-        const speedKmh = timeDiff > 0 ? (distanceFromPrev / timeDiff) * 3.6 : 999;
+          (recordedAt.getTime() - new Date(prevPoint.recordedAt).getTime()) /
+          1000;
+        const speedKmh =
+          timeDiff > 0 ? (distanceFromPrev / timeDiff) * 3.6 : 999;
 
         if (speedKmh > TRIP_SETTINGS.MAX_SPEED_KMH * 1.5) {
           isFiltered = true;
-          filterReason = 'GPS_JUMP';
+          filterReason = "GPS_JUMP";
 
           await this.createAnomaly(tripId, trip.organizationId, {
             type: AnomalyType.GPS_JUMP,
@@ -390,7 +424,7 @@ export class TripsService {
         totalPoints: () => '"total_points" + 1',
         lastLocationUpdate: new Date(),
       })
-      .where('id = :tripId', { tripId })
+      .where("id = :tripId", { tripId })
       .execute();
 
     // If this is the first point, set start coordinates
@@ -403,7 +437,12 @@ export class TripsService {
 
     // Check for stops
     if (!isFiltered) {
-      await this.checkForStop(tripId, trip.organizationId, input.latitude, input.longitude);
+      await this.checkForStop(
+        tripId,
+        trip.organizationId,
+        input.latitude,
+        input.longitude,
+      );
     }
 
     return { id: savedPoint.id, isFiltered, filterReason };
@@ -448,14 +487,14 @@ export class TripsService {
   async getTripRoute(tripId: string): Promise<TripPoint[]> {
     return this.pointRepository.find({
       where: { tripId, isFiltered: false },
-      order: { recordedAt: 'ASC' },
+      order: { recordedAt: "ASC" },
     });
   }
 
   async getTripStops(tripId: string): Promise<TripStop[]> {
     return this.stopRepository.find({
       where: { tripId },
-      order: { startedAt: 'ASC' },
+      order: { startedAt: "ASC" },
     });
   }
 
@@ -463,7 +502,12 @@ export class TripsService {
   // STOP DETECTION
   // ============================================================================
 
-  private async checkForStop(tripId: string, organizationId: string, lat: number, lng: number): Promise<void> {
+  private async checkForStop(
+    tripId: string,
+    organizationId: string,
+    lat: number,
+    lng: number,
+  ): Promise<void> {
     const thresholdTime = new Date(
       Date.now() - TRIP_SETTINGS.STOP_MIN_DURATION_SECONDS * 1000,
     );
@@ -473,7 +517,7 @@ export class TripsService {
         tripId,
         isFiltered: false,
       },
-      order: { recordedAt: 'DESC' },
+      order: { recordedAt: "DESC" },
       take: 50,
     });
 
@@ -514,7 +558,11 @@ export class TripsService {
     const centerLng = Number(firstPoint.longitude);
 
     // Find nearest machine within this organization
-    const nearestMachine = await this.findNearestMachine(centerLat, centerLng, organizationId);
+    const nearestMachine = await this.findNearestMachine(
+      centerLat,
+      centerLng,
+      organizationId,
+    );
 
     const stop = this.stopRepository.create({
       tripId,
@@ -535,7 +583,7 @@ export class TripsService {
       .createQueryBuilder()
       .update(Trip)
       .set({ totalStops: () => '"total_stops" + 1' })
-      .where('id = :tripId', { tripId })
+      .where("id = :tripId", { tripId })
       .execute();
 
     // Verify tasks at this machine
@@ -552,7 +600,8 @@ export class TripsService {
     if (openStop) {
       openStop.endedAt = new Date();
       openStop.durationSeconds = Math.round(
-        (openStop.endedAt.getTime() - new Date(openStop.startedAt).getTime()) / 1000,
+        (openStop.endedAt.getTime() - new Date(openStop.startedAt).getTime()) /
+          1000,
       );
       await this.stopRepository.save(openStop);
     }
@@ -575,26 +624,34 @@ export class TripsService {
   } | null> {
     // Bounding box for performance (~2km search radius)
     const latDelta = 2 / 111.32;
-    const lngDelta = 2 / (111.32 * Math.cos(lat * Math.PI / 180));
+    const lngDelta = 2 / (111.32 * Math.cos((lat * Math.PI) / 180));
 
     // Query machines within bounding box, filtered by organization
-    const machines = await this.tripRepository.manager.query(`
-      SELECT id, machine_number, name, address, latitude, longitude
-      FROM machines
-      WHERE organization_id = $1
-        AND status = 'active'
-        AND latitude IS NOT NULL
-        AND longitude IS NOT NULL
-        AND deleted_at IS NULL
-        AND latitude BETWEEN $2 AND $3
-        AND longitude BETWEEN $4 AND $5
-    `, [
-      organizationId,
-      lat - latDelta,
-      lat + latDelta,
-      lng - lngDelta,
-      lng + lngDelta,
-    ]);
+    const machines = await this.tripRepository.manager
+      .createQueryBuilder()
+      .select([
+        "id",
+        "machine_number",
+        "name",
+        "address",
+        "latitude",
+        "longitude",
+      ])
+      .from("machines", "m")
+      .where("m.organization_id = :organizationId", { organizationId })
+      .andWhere("m.status = :status", { status: "active" })
+      .andWhere("m.latitude IS NOT NULL")
+      .andWhere("m.longitude IS NOT NULL")
+      .andWhere("m.deleted_at IS NULL")
+      .andWhere("m.latitude BETWEEN :latMin AND :latMax", {
+        latMin: lat - latDelta,
+        latMax: lat + latDelta,
+      })
+      .andWhere("m.longitude BETWEEN :lngMin AND :lngMax", {
+        lngMin: lng - lngDelta,
+        lngMax: lng + lngDelta,
+      })
+      .getRawMany();
 
     let nearest: {
       machineId: string;
@@ -615,8 +672,8 @@ export class TripsService {
       if (!nearest || dist < nearest.distance) {
         nearest = {
           machineId: machine.id,
-          machineName: machine.name || machine.machine_number || '',
-          machineAddress: machine.address || '',
+          machineName: machine.name || machine.machine_number || "",
+          machineAddress: machine.address || "",
           distance: Math.round(dist),
           isWithinRadius: dist <= TRIP_SETTINGS.GEOFENCE_RADIUS_METERS,
         };
@@ -626,7 +683,10 @@ export class TripsService {
     return nearest;
   }
 
-  private async verifyTaskAtMachine(tripId: string, machineId: string): Promise<void> {
+  private async verifyTaskAtMachine(
+    tripId: string,
+    machineId: string,
+  ): Promise<void> {
     // Find tasks linked to this trip that are for this machine
     const taskLinks = await this.taskLinkRepository.find({
       where: { tripId, status: TripTaskLinkStatus.PENDING },
@@ -634,12 +694,16 @@ export class TripsService {
 
     for (const link of taskLinks) {
       // Check if the task is for this machine
-      const task = await this.tripRepository.manager.query(
-        `SELECT id, machine_id FROM tasks WHERE id = $1 AND deleted_at IS NULL`,
-        [link.taskId],
-      );
+      const task = await this.tripRepository.manager
+        .createQueryBuilder()
+        .select(["id", "machine_id"])
+        .from("tasks", "t")
+        .where("t.id = :taskId", { taskId: link.taskId })
+        .andWhere("t.machine_id = :machineId", { machineId })
+        .andWhere("t.deleted_at IS NULL")
+        .getRawOne();
 
-      if (task.length > 0 && task[0].machine_id === machineId) {
+      if (task) {
         link.status = TripTaskLinkStatus.IN_PROGRESS;
         link.verifiedByGps = true;
         link.verifiedAt = new Date();
@@ -653,12 +717,16 @@ export class TripsService {
   // TASK LINKS
   // ============================================================================
 
-  async linkTask(tripId: string, taskId: string, userId?: string): Promise<TripTaskLink> {
+  async linkTask(
+    tripId: string,
+    taskId: string,
+    userId?: string,
+  ): Promise<TripTaskLink> {
     const existing = await this.taskLinkRepository.findOne({
       where: { tripId, taskId },
     });
     if (existing) {
-      throw new ConflictException('Task is already linked to this trip');
+      throw new ConflictException("Task is already linked to this trip");
     }
 
     const link = this.taskLinkRepository.create({
@@ -680,7 +748,7 @@ export class TripsService {
     const link = await this.taskLinkRepository.findOne({
       where: { tripId, taskId },
     });
-    if (!link) throw new NotFoundException('Task link not found');
+    if (!link) throw new NotFoundException("Task link not found");
 
     link.status = TripTaskLinkStatus.COMPLETED;
     link.completedAt = new Date();
@@ -693,7 +761,7 @@ export class TripsService {
   async getTripTasks(tripId: string): Promise<TripTaskLink[]> {
     return this.taskLinkRepository.find({
       where: { tripId },
-      order: { created_at: 'ASC' },
+      order: { created_at: "ASC" },
     });
   }
 
@@ -729,7 +797,7 @@ export class TripsService {
       .createQueryBuilder()
       .update(Trip)
       .set({ totalAnomalies: () => '"total_anomalies" + 1' })
-      .where('id = :tripId', { tripId })
+      .where("id = :tripId", { tripId })
       .execute();
 
     return saved;
@@ -738,7 +806,7 @@ export class TripsService {
   async getTripAnomalies(tripId: string): Promise<TripAnomaly[]> {
     return this.anomalyRepository.find({
       where: { tripId },
-      order: { detectedAt: 'DESC' },
+      order: { detectedAt: "DESC" },
     });
   }
 
@@ -751,12 +819,14 @@ export class TripsService {
     const anomaly = await this.anomalyRepository.findOne({
       where: { id: anomalyId },
     });
-    if (!anomaly) throw new NotFoundException('Anomaly not found');
+    if (!anomaly) throw new NotFoundException("Anomaly not found");
 
     // Verify org access through trip
-    const trip = await this.tripRepository.findOne({ where: { id: anomaly.tripId } });
+    const trip = await this.tripRepository.findOne({
+      where: { id: anomaly.tripId },
+    });
     if (trip && trip.organizationId !== organizationId) {
-      throw new ForbiddenException('Access denied to this anomaly');
+      throw new ForbiddenException("Access denied to this anomaly");
     }
 
     anomaly.resolved = true;
@@ -778,22 +848,26 @@ export class TripsService {
     },
   ): Promise<TripAnomaly[]> {
     const query = this.anomalyRepository
-      .createQueryBuilder('anomaly')
-      .leftJoinAndSelect('anomaly.trip', 'trip')
-      .where('trip.organizationId = :organizationId', { organizationId })
-      .andWhere('anomaly.resolved = false');
+      .createQueryBuilder("anomaly")
+      .leftJoinAndSelect("anomaly.trip", "trip")
+      .where("trip.organizationId = :organizationId", { organizationId })
+      .andWhere("anomaly.resolved = false");
 
     if (filters?.employeeId) {
-      query.andWhere('trip.employeeId = :employeeId', { employeeId: filters.employeeId });
+      query.andWhere("trip.employeeId = :employeeId", {
+        employeeId: filters.employeeId,
+      });
     }
     if (filters?.severity) {
-      query.andWhere('anomaly.severity = :severity', { severity: filters.severity });
+      query.andWhere("anomaly.severity = :severity", {
+        severity: filters.severity,
+      });
     }
     if (filters?.type) {
-      query.andWhere('anomaly.type = :type', { type: filters.type });
+      query.andWhere("anomaly.type = :type", { type: filters.type });
     }
 
-    query.orderBy('anomaly.detectedAt', 'DESC');
+    query.orderBy("anomaly.detectedAt", "DESC");
     query.take(filters?.limit ?? 50);
 
     return query.getMany();
@@ -813,7 +887,10 @@ export class TripsService {
     const vehicle = await this.vehicleRepository.findOne({
       where: { id: input.vehicleId, organizationId: input.organizationId },
     });
-    if (!vehicle) throw new NotFoundException('Vehicle not found or does not belong to this organization');
+    if (!vehicle)
+      throw new NotFoundException(
+        "Vehicle not found or does not belong to this organization",
+      );
 
     const expectedOdometer = vehicle.currentOdometer;
     const differenceKm = Math.abs(input.actualOdometer - expectedOdometer);
@@ -851,7 +928,7 @@ export class TripsService {
   ): Promise<TripReconciliation[]> {
     return this.reconciliationRepository.find({
       where: { vehicleId, organizationId },
-      order: { performedAt: 'DESC' },
+      order: { performedAt: "DESC" },
       take: limit,
     });
   }
@@ -867,29 +944,43 @@ export class TripsService {
     dateTo: string;
   }) {
     const result = await this.tripRepository
-      .createQueryBuilder('trip')
-      .select('COUNT(*)', 'totalTrips')
-      .addSelect('SUM("trip"."calculated_distance_meters")', 'totalDistanceMeters')
-      .addSelect('SUM("trip"."visited_machines_count")', 'totalMachinesVisited')
-      .addSelect('SUM("trip"."total_stops")', 'totalStops')
-      .addSelect('SUM("trip"."total_anomalies")', 'totalAnomalies')
-      .addSelect('AVG(EXTRACT(EPOCH FROM ("trip"."ended_at" - "trip"."started_at")))', 'avgDurationSeconds')
-      .where('trip.organizationId = :organizationId', { organizationId: input.organizationId })
-      .andWhere('trip.employeeId = :employeeId', { employeeId: input.employeeId })
-      .andWhere('trip.startedAt >= :dateFrom', { dateFrom: input.dateFrom })
-      .andWhere('trip.startedAt <= :dateTo', { dateTo: input.dateTo })
-      .andWhere('trip.status IN (:...statuses)', {
+      .createQueryBuilder("trip")
+      .select("COUNT(*)", "totalTrips")
+      .addSelect(
+        'SUM("trip"."calculated_distance_meters")',
+        "totalDistanceMeters",
+      )
+      .addSelect('SUM("trip"."visited_machines_count")', "totalMachinesVisited")
+      .addSelect('SUM("trip"."total_stops")', "totalStops")
+      .addSelect('SUM("trip"."total_anomalies")', "totalAnomalies")
+      .addSelect(
+        'AVG(EXTRACT(EPOCH FROM ("trip"."ended_at" - "trip"."started_at")))',
+        "avgDurationSeconds",
+      )
+      .where("trip.organizationId = :organizationId", {
+        organizationId: input.organizationId,
+      })
+      .andWhere("trip.employeeId = :employeeId", {
+        employeeId: input.employeeId,
+      })
+      .andWhere("trip.startedAt >= :dateFrom", { dateFrom: input.dateFrom })
+      .andWhere("trip.startedAt <= :dateTo", { dateTo: input.dateTo })
+      .andWhere("trip.status IN (:...statuses)", {
         statuses: [TripStatus.COMPLETED, TripStatus.AUTO_CLOSED],
       })
       .getRawOne();
 
     return {
       totalTrips: parseInt(result.totalTrips) || 0,
-      totalDistanceKm: Math.round((Number(result.totalDistanceMeters) || 0) / 1000),
+      totalDistanceKm: Math.round(
+        (Number(result.totalDistanceMeters) || 0) / 1000,
+      ),
       totalMachinesVisited: parseInt(result.totalMachinesVisited) || 0,
       totalStops: parseInt(result.totalStops) || 0,
       totalAnomalies: parseInt(result.totalAnomalies) || 0,
-      avgDurationMinutes: Math.round((Number(result.avgDurationSeconds) || 0) / 60),
+      avgDurationMinutes: Math.round(
+        (Number(result.avgDurationSeconds) || 0) / 60,
+      ),
     };
   }
 
@@ -900,22 +991,26 @@ export class TripsService {
     dateTo: string;
   }) {
     const query = this.stopRepository
-      .createQueryBuilder('stop')
-      .leftJoin('stop.trip', 'trip')
-      .select('stop.machineId', 'machineId')
-      .addSelect('stop.machineName', 'machineName')
-      .addSelect('COUNT(*)', 'visitCount')
-      .addSelect('SUM("stop"."duration_seconds")', 'totalDurationSeconds')
-      .where('trip.organizationId = :organizationId', { organizationId: input.organizationId })
-      .andWhere('stop.machineId IS NOT NULL')
-      .andWhere('stop.startedAt >= :dateFrom', { dateFrom: input.dateFrom })
-      .andWhere('stop.startedAt <= :dateTo', { dateTo: input.dateTo })
-      .groupBy('stop.machineId')
-      .addGroupBy('stop.machineName')
-      .orderBy('COUNT(*)', 'DESC');
+      .createQueryBuilder("stop")
+      .leftJoin("stop.trip", "trip")
+      .select("stop.machineId", "machineId")
+      .addSelect("stop.machineName", "machineName")
+      .addSelect("COUNT(*)", "visitCount")
+      .addSelect('SUM("stop"."duration_seconds")', "totalDurationSeconds")
+      .where("trip.organizationId = :organizationId", {
+        organizationId: input.organizationId,
+      })
+      .andWhere("stop.machineId IS NOT NULL")
+      .andWhere("stop.startedAt >= :dateFrom", { dateFrom: input.dateFrom })
+      .andWhere("stop.startedAt <= :dateTo", { dateTo: input.dateTo })
+      .groupBy("stop.machineId")
+      .addGroupBy("stop.machineName")
+      .orderBy("COUNT(*)", "DESC");
 
     if (input.machineId) {
-      query.andWhere('stop.machineId = :machineId', { machineId: input.machineId });
+      query.andWhere("stop.machineId = :machineId", {
+        machineId: input.machineId,
+      });
     }
 
     return query.getRawMany();
@@ -927,28 +1022,33 @@ export class TripsService {
     dateTo: string;
   }) {
     const result = await this.tripRepository
-      .createQueryBuilder('trip')
-      .select('COUNT(*)', 'totalTrips')
+      .createQueryBuilder("trip")
+      .select("COUNT(*)", "totalTrips")
       .addSelect(
         `COUNT(*) FILTER (WHERE trip.status = 'completed')`,
-        'completedTrips',
+        "completedTrips",
       )
       .addSelect(
         `COUNT(*) FILTER (WHERE trip.status = 'auto_closed')`,
-        'autoClosedTrips',
+        "autoClosedTrips",
       )
       .addSelect(
         `COUNT(*) FILTER (WHERE trip.status = 'cancelled')`,
-        'cancelledTrips',
+        "cancelledTrips",
       )
-      .addSelect('SUM("trip"."calculated_distance_meters")', 'totalDistanceMeters')
-      .addSelect('SUM("trip"."visited_machines_count")', 'totalMachinesVisited')
-      .addSelect('SUM("trip"."total_anomalies")', 'totalAnomalies')
-      .addSelect('COUNT(DISTINCT "trip"."employee_id")', 'uniqueEmployees')
-      .addSelect('COUNT(DISTINCT "trip"."vehicle_id")', 'uniqueVehicles')
-      .where('trip.organizationId = :organizationId', { organizationId: input.organizationId })
-      .andWhere('trip.startedAt >= :dateFrom', { dateFrom: input.dateFrom })
-      .andWhere('trip.startedAt <= :dateTo', { dateTo: input.dateTo })
+      .addSelect(
+        'SUM("trip"."calculated_distance_meters")',
+        "totalDistanceMeters",
+      )
+      .addSelect('SUM("trip"."visited_machines_count")', "totalMachinesVisited")
+      .addSelect('SUM("trip"."total_anomalies")', "totalAnomalies")
+      .addSelect('COUNT(DISTINCT "trip"."employee_id")', "uniqueEmployees")
+      .addSelect('COUNT(DISTINCT "trip"."vehicle_id")', "uniqueVehicles")
+      .where("trip.organizationId = :organizationId", {
+        organizationId: input.organizationId,
+      })
+      .andWhere("trip.startedAt >= :dateFrom", { dateFrom: input.dateFrom })
+      .andWhere("trip.startedAt <= :dateTo", { dateTo: input.dateTo })
       .getRawOne();
 
     return {
@@ -956,7 +1056,9 @@ export class TripsService {
       completedTrips: parseInt(result.completedTrips) || 0,
       autoClosedTrips: parseInt(result.autoClosedTrips) || 0,
       cancelledTrips: parseInt(result.cancelledTrips) || 0,
-      totalDistanceKm: Math.round((Number(result.totalDistanceMeters) || 0) / 1000),
+      totalDistanceKm: Math.round(
+        (Number(result.totalDistanceMeters) || 0) / 1000,
+      ),
       totalMachinesVisited: parseInt(result.totalMachinesVisited) || 0,
       totalAnomalies: parseInt(result.totalAnomalies) || 0,
       uniqueEmployees: parseInt(result.uniqueEmployees) || 0,

@@ -23,7 +23,7 @@ export class UserQuest extends BaseEntity {
   @Index()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, { onDelete: "SET NULL" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
@@ -34,7 +34,7 @@ export class UserQuest extends BaseEntity {
   @Index()
   questId: string;
 
-  @ManyToOne(() => Quest, (q) => q.userQuests, { onDelete: "CASCADE" })
+  @ManyToOne(() => Quest, (q) => q.userQuests, { onDelete: "SET NULL" })
   @JoinColumn({ name: "quest_id" })
   quest: Quest;
 

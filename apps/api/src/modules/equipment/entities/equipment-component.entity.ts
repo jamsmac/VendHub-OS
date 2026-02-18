@@ -295,7 +295,7 @@ export class ComponentMaintenance extends BaseEntity {
   @Column({ type: "uuid" })
   componentId: string;
 
-  @ManyToOne(() => EquipmentComponent, { onDelete: "CASCADE" })
+  @ManyToOne(() => EquipmentComponent, { onDelete: "SET NULL" })
   @JoinColumn({ name: "component_id" })
   component: EquipmentComponent;
 
@@ -362,7 +362,7 @@ export class ComponentMovement extends BaseEntity {
   @Column({ type: "uuid" })
   componentId: string;
 
-  @ManyToOne(() => EquipmentComponent, { onDelete: "CASCADE" })
+  @ManyToOne(() => EquipmentComponent, { onDelete: "SET NULL" })
   @JoinColumn({ name: "component_id" })
   component: EquipmentComponent;
 

@@ -48,6 +48,10 @@ docker-data/
 uploads/
 !uploads/.gitkeep
 
+# Mobile (Firebase credentials - never commit real files)
+apps/mobile/google-services.json
+apps/mobile/ios/GoogleService-Info.plist
+
 # Misc
 *.pem
 *.key

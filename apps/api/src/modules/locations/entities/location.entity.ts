@@ -672,7 +672,7 @@ export class LocationZone extends BaseEntity {
   locationId: string;
 
   @ManyToOne(() => Location, (location) => location.zones, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "location_id" })
   location: Location;
@@ -773,7 +773,7 @@ export class LocationContract extends BaseEntity {
   locationId: string;
 
   @ManyToOne(() => Location, (location) => location.contracts, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "location_id" })
   location: Location;
@@ -988,7 +988,7 @@ export class LocationContractPayment extends BaseEntity {
   @Column()
   contractId: string;
 
-  @ManyToOne(() => LocationContract, { onDelete: "CASCADE" })
+  @ManyToOne(() => LocationContract, { onDelete: "SET NULL" })
   @JoinColumn({ name: "contract_id" })
   contract: LocationContract;
 
@@ -1078,7 +1078,7 @@ export class LocationEvent extends BaseEntity {
   locationId: string;
 
   @ManyToOne(() => Location, (location) => location.events, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "location_id" })
   location: Location;
@@ -1135,7 +1135,7 @@ export class LocationNote extends BaseEntity {
   locationId: string;
 
   @ManyToOne(() => Location, (location) => location.notes, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "location_id" })
   location: Location;
@@ -1195,7 +1195,7 @@ export class LocationVisit extends BaseEntity {
   @Column()
   locationId: string;
 
-  @ManyToOne(() => Location, { onDelete: "CASCADE" })
+  @ManyToOne(() => Location, { onDelete: "SET NULL" })
   @JoinColumn({ name: "location_id" })
   location: Location;
 

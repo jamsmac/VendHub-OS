@@ -204,7 +204,11 @@ jobs:
           DB_NAME: vendhub_test
           REDIS_HOST: localhost
           REDIS_PORT: "6379"
-          JWT_SECRET: test-jwt-secret-key-for-ci
+          REDIS_PASSWORD: ""
+          JWT_SECRET: test-jwt-secret-key-for-ci-minimum-32-chars
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci-minimum-32
+          COOKIE_SECRET: test-cookie-secret-for-ci
+          NODE_ENV: test
           CI: true
 
   # ========================================
@@ -257,6 +261,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
@@ -291,7 +300,11 @@ jobs:
           DB_NAME: vendhub_e2e
           REDIS_HOST: localhost
           REDIS_PORT: "6379"
-          JWT_SECRET: test-jwt-secret-key-for-ci
+          REDIS_PASSWORD: ""
+          JWT_SECRET: test-jwt-secret-key-for-ci-minimum-32-chars
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci-minimum-32
+          COOKIE_SECRET: test-cookie-secret-for-ci
+          NODE_ENV: test
           PORT: "4000"
 
       - name: Wait for API to be ready

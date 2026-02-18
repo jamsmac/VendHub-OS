@@ -47,7 +47,7 @@ export class Contract extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   contractorId: string;
 
   @Column({ length: 50 })
@@ -116,7 +116,7 @@ export class Contract extends BaseEntity {
   contractFileId: string;
 
   // Relations
-  @ManyToOne(() => Contractor, (c) => c.contracts, { onDelete: "CASCADE" })
+  @ManyToOne(() => Contractor, (c) => c.contracts, { onDelete: "SET NULL" })
   @JoinColumn({ name: "contractor_id" })
   contractor: Contractor;
 
@@ -150,7 +150,7 @@ export class CommissionCalculation extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;
 
-  @Column({ type: "uuid" })
+  @Column({ type: "uuid", nullable: true })
   contractId: string;
 
   @Column({ type: "date" })
@@ -213,7 +213,7 @@ export class CommissionCalculation extends BaseEntity {
 
   // Relations
   @ManyToOne(() => Contract, (c) => c.commissionCalculations, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "contract_id" })
   contract: Contract;

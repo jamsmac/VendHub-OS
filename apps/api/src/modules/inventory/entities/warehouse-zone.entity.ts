@@ -226,7 +226,7 @@ export class WarehouseBin extends BaseEntity {
   @Column({ type: "uuid" })
   zoneId: string;
 
-  @ManyToOne(() => WarehouseZone, (zone) => zone.bins, { onDelete: "CASCADE" })
+  @ManyToOne(() => WarehouseZone, (zone) => zone.bins, { onDelete: "SET NULL" })
   @JoinColumn({ name: "zone_id" })
   zone: WarehouseZone;
 
@@ -338,7 +338,7 @@ export class BinContentHistory extends BaseEntity {
   @Column({ type: "uuid" })
   binId: string;
 
-  @ManyToOne(() => WarehouseBin, { onDelete: "CASCADE" })
+  @ManyToOne(() => WarehouseBin, { onDelete: "SET NULL" })
   @JoinColumn({ name: "bin_id" })
   bin: WarehouseBin;
 

@@ -296,7 +296,7 @@ export class DirectoryField extends BaseEntity {
 
   // Relations
   @ManyToOne(() => Directory, (directory) => directory.fields, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "directory_id" })
   directory: Directory;
@@ -424,7 +424,7 @@ export class DirectoryEntry extends BaseEntity {
 
   // Relations
   @ManyToOne(() => Directory, (directory) => directory.entries, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "directory_id" })
   directory: Directory;

@@ -606,7 +606,7 @@ export class AuditAlertHistory extends BaseEntity {
   @Index()
   alertId: string;
 
-  @ManyToOne(() => AuditAlert, { onDelete: "CASCADE" })
+  @ManyToOne(() => AuditAlert, { onDelete: "SET NULL" })
   @JoinColumn({ name: "alert_id" })
   alert: AuditAlert;
 

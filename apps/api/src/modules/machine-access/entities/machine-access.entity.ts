@@ -131,7 +131,7 @@ export class AccessTemplateRow extends BaseEntity {
   // ===== Relations =====
 
   @ManyToOne(() => AccessTemplate, (template) => template.rows, {
-    onDelete: "CASCADE",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "template_id" })
   template: AccessTemplate;

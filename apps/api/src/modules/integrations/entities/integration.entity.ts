@@ -147,7 +147,7 @@ export class IntegrationLog extends BaseEntity {
   @Column({ type: "uuid" })
   integrationId: string;
 
-  @ManyToOne(() => Integration, { onDelete: "CASCADE" })
+  @ManyToOne(() => Integration, { onDelete: "SET NULL" })
   @JoinColumn({ name: "integration_id" })
   integration: Integration;
 
@@ -201,7 +201,7 @@ export class IntegrationWebhook extends BaseEntity {
   @Column({ type: "uuid" })
   integrationId: string;
 
-  @ManyToOne(() => Integration, { onDelete: "CASCADE" })
+  @ManyToOne(() => Integration, { onDelete: "SET NULL" })
   @JoinColumn({ name: "integration_id" })
   integration: Integration;
 
