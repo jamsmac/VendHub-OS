@@ -152,6 +152,9 @@ importers:
       ioredis:
         specifier: ^5.4.1
         version: 5.9.2
+      joi:
+        specifier: ^18.0.2
+        version: 18.0.2
       nanoid:
         specifier: ^5.0.0
         version: 5.1.6
@@ -2768,16 +2771,54 @@ packages:
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
+  "@hapi/address@5.1.1":
+    resolution:
+      {
+        integrity: sha512-A+po2d/dVoY7cYajycYI43ZbYMXukuopIsqCjh5QzsBCipDtdofHntljDlpccMjIfTy6UOkg+5KPriwYch2bXA==,
+      }
+    engines: { node: ">=14.0.0" }
+
+  "@hapi/formula@3.0.2":
+    resolution:
+      {
+        integrity: sha512-hY5YPNXzw1He7s0iqkRQi+uMGh383CGdyyIGYtB+W5N3KHPXoqychklvHhKCC9M3Xtv0OCs/IHw+r4dcHtBYWw==,
+      }
+
+  "@hapi/hoek@11.0.7":
+    resolution:
+      {
+        integrity: sha512-HV5undWkKzcB4RZUusqOpcgxOaq6VOAH7zhhIr2g3G8NF/MlFO75SjOr2NfuSx0Mh40+1FqCkagKLJRykUWoFQ==,
+      }
+
   "@hapi/hoek@9.3.0":
     resolution:
       {
         integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==,
       }
 
+  "@hapi/pinpoint@2.0.1":
+    resolution:
+      {
+        integrity: sha512-EKQmr16tM8s16vTT3cA5L0kZZcTMU5DUOZTuvpnY738m+jyP3JIUj+Mm1xc1rsLkGBQ/gVnfKYPwOmPg1tUR4Q==,
+      }
+
+  "@hapi/tlds@1.1.6":
+    resolution:
+      {
+        integrity: sha512-xdi7A/4NZokvV0ewovme3aUO5kQhW9pQ2YD1hRqZGhhSi5rBv4usHYidVocXSi9eihYsznZxLtAiEYYUL6VBGw==,
+      }
+    engines: { node: ">=14.0.0" }
+
   "@hapi/topo@5.1.0":
     resolution:
       {
         integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==,
+      }
+
+  "@hapi/topo@6.0.2":
+    resolution:
+      {
+        integrity: sha512-KR3rD5inZbGMrHmgPxsJ9dbi6zEK+C3ZwUwTa+eMwWLz7oijWUTWD2pMSNNYJAU6Qq+65NkxXjqHr/7LM2Xkqg==,
       }
 
   "@hookform/resolvers@3.10.0":
@@ -5954,6 +5995,12 @@ packages:
     resolution:
       {
         integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==,
+      }
+
+  "@standard-schema/spec@1.1.0":
+    resolution:
+      {
+        integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==,
       }
 
   "@surma/rollup-plugin-off-main-thread@2.2.3":
@@ -11478,6 +11525,13 @@ packages:
       {
         integrity: sha512-otDA4ldcIx+ZXsKHWmp0YizCweVRZG96J10b0FevjfuncLO1oX59THoAmHkNubYJ+9gWsYsp5k8v4ib6oDv1fA==,
       }
+
+  joi@18.0.2:
+    resolution:
+      {
+        integrity: sha512-RuCOQMIt78LWnktPoeBL0GErkNaJPTBGcYuyaBvUOQSpcpcLfWrHPPihYdOGbV5pam9VTWbeoF7TsGiHugcjGA==,
+      }
+    engines: { node: ">= 20" }
 
   join-component@1.1.0:
     resolution:
@@ -18569,11 +18623,27 @@ snapshots:
     dependencies:
       graphql: 15.8.0
 
+  "@hapi/address@5.1.1":
+    dependencies:
+      "@hapi/hoek": 11.0.7
+
+  "@hapi/formula@3.0.2": {}
+
+  "@hapi/hoek@11.0.7": {}
+
   "@hapi/hoek@9.3.0": {}
+
+  "@hapi/pinpoint@2.0.1": {}
+
+  "@hapi/tlds@1.1.6": {}
 
   "@hapi/topo@5.1.0":
     dependencies:
       "@hapi/hoek": 9.3.0
+
+  "@hapi/topo@6.0.2":
+    dependencies:
+      "@hapi/hoek": 11.0.7
 
   "@hookform/resolvers@3.10.0(react-hook-form@7.71.1(react@19.2.3))":
     dependencies:
@@ -21011,6 +21081,8 @@ snapshots:
       - supports-color
 
   "@sqltools/formatter@1.2.5": {}
+
+  "@standard-schema/spec@1.1.0": {}
 
   "@surma/rollup-plugin-off-main-thread@2.2.3":
     dependencies:
@@ -24878,6 +24950,16 @@ snapshots:
       "@sideway/address": 4.1.5
       "@sideway/formula": 3.0.1
       "@sideway/pinpoint": 2.0.0
+
+  joi@18.0.2:
+    dependencies:
+      "@hapi/address": 5.1.1
+      "@hapi/formula": 3.0.2
+      "@hapi/hoek": 11.0.7
+      "@hapi/pinpoint": 2.0.1
+      "@hapi/tlds": 1.1.6
+      "@hapi/topo": 6.0.2
+      "@standard-schema/spec": 1.1.0
 
   join-component@1.1.0: {}
 

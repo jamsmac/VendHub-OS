@@ -10,6 +10,7 @@
 
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import * as Joi from "joi";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
@@ -108,6 +109,46 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
       isGlobal: true,
       envFilePath: [".env.local", ".env"],
       cache: true,
+      validationSchema: Joi.object({
+        // Server
+        NODE_ENV: Joi.string()
+          .valid("development", "production", "test")
+          .default("development"),
+        PORT: Joi.number().default(4000),
+
+        // Database (required in production)
+        DB_HOST: Joi.string().default("localhost"),
+        DB_PORT: Joi.number().default(5432),
+        DB_USER: Joi.string().default("vendhub"),
+        DB_PASSWORD: Joi.string().allow("").default(""),
+        DB_NAME: Joi.string().default("vendhub"),
+        DB_SSL: Joi.string().valid("true", "false").optional(),
+        DB_SYNCHRONIZE: Joi.string().valid("true", "false").optional(),
+        DB_LOGGING: Joi.string().valid("true", "false").optional(),
+        DB_POOL_SIZE: Joi.number().default(10),
+
+        // Redis
+        REDIS_HOST: Joi.string().default("localhost"),
+        REDIS_PORT: Joi.number().default(6379),
+        REDIS_PASSWORD: Joi.string().allow("").optional(),
+
+        // JWT (required)
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRES_IN: Joi.string().default("1d"),
+        JWT_REFRESH_SECRET: Joi.string().optional(),
+        JWT_REFRESH_EXPIRES_IN: Joi.string().default("7d"),
+
+        // Optional services
+        SENTRY_DSN: Joi.string().uri().optional(),
+        TELEGRAM_BOT_TOKEN: Joi.string().optional(),
+        MINIO_ENDPOINT: Joi.string().optional(),
+        MINIO_ACCESS_KEY: Joi.string().optional(),
+        MINIO_SECRET_KEY: Joi.string().optional(),
+      }),
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
     }),
 
     // ============================================

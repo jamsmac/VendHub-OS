@@ -33,39 +33,193 @@ import {
   Map,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
+import { useMemo } from "react";
 
-const navigation = [
+type UserRole =
+  | "owner"
+  | "admin"
+  | "manager"
+  | "operator"
+  | "warehouse"
+  | "accountant"
+  | "viewer";
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles?: UserRole[];
+}
+
+const MANAGEMENT: UserRole[] = ["owner", "admin", "manager"];
+const OPERATIONS: UserRole[] = ["owner", "admin", "manager", "operator"];
+const FINANCE: UserRole[] = ["owner", "admin", "accountant"];
+const STOCK: UserRole[] = ["owner", "admin", "manager", "warehouse"];
+
+const navigation: NavItem[] = [
+  // Everyone sees the dashboard
   { name: "Дашборд", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Автоматы", href: "/dashboard/machines", icon: Coffee },
-  { name: "Товары", href: "/dashboard/products", icon: Package },
-  { name: "Склад", href: "/dashboard/inventory", icon: Boxes },
-  { name: "Заказы", href: "/dashboard/orders", icon: ShoppingCart },
-  { name: "Задачи", href: "/dashboard/tasks", icon: ClipboardList },
-  { name: "Рейсы", href: "/dashboard/trips", icon: Navigation },
-  { name: "Маршруты", href: "/dashboard/routes", icon: Route },
-  { name: "Техобслуживание", href: "/dashboard/maintenance", icon: Wrench },
-  { name: "Заявки", href: "/dashboard/material-requests", icon: PackagePlus },
-  { name: "Жалобы", href: "/dashboard/complaints", icon: MessageSquare },
-  { name: "Транзакции", href: "/dashboard/transactions", icon: CreditCard },
-  { name: "Сотрудники", href: "/dashboard/employees", icon: UserCog },
-  { name: "Подрядчики", href: "/dashboard/contractors", icon: Building2 },
-  { name: "Табель", href: "/dashboard/work-logs", icon: Clock },
-  { name: "Пользователи", href: "/dashboard/users", icon: Users },
-  { name: "Локации", href: "/dashboard/locations", icon: MapPin },
-  { name: "Карта", href: "/dashboard/map", icon: Map },
-  { name: "Бонусы", href: "/dashboard/loyalty", icon: Gift },
-  { name: "Отчёты", href: "/dashboard/reports", icon: BarChart3 },
-  { name: "Фискализация", href: "/dashboard/fiscal", icon: Receipt },
-  { name: "Мастер-данные", href: "/dashboard/directories", icon: Database },
-  { name: "Интеграции", href: "/dashboard/integrations", icon: Plug },
-  { name: "Аудит", href: "/dashboard/audit", icon: FileText },
+
+  // Operations
+  {
+    name: "Автоматы",
+    href: "/dashboard/machines",
+    icon: Coffee,
+    roles: OPERATIONS,
+  },
+  {
+    name: "Товары",
+    href: "/dashboard/products",
+    icon: Package,
+    roles: [...OPERATIONS, "warehouse"],
+  },
+  { name: "Склад", href: "/dashboard/inventory", icon: Boxes, roles: STOCK },
+  {
+    name: "Заказы",
+    href: "/dashboard/orders",
+    icon: ShoppingCart,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Задачи",
+    href: "/dashboard/tasks",
+    icon: ClipboardList,
+    roles: OPERATIONS,
+  },
+  {
+    name: "Рейсы",
+    href: "/dashboard/trips",
+    icon: Navigation,
+    roles: OPERATIONS,
+  },
+  {
+    name: "Маршруты",
+    href: "/dashboard/routes",
+    icon: Route,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Техобслуживание",
+    href: "/dashboard/maintenance",
+    icon: Wrench,
+    roles: OPERATIONS,
+  },
+  {
+    name: "Заявки",
+    href: "/dashboard/material-requests",
+    icon: PackagePlus,
+    roles: [...OPERATIONS, "warehouse"],
+  },
+  {
+    name: "Жалобы",
+    href: "/dashboard/complaints",
+    icon: MessageSquare,
+    roles: MANAGEMENT,
+  },
+
+  // Finance
+  {
+    name: "Транзакции",
+    href: "/dashboard/transactions",
+    icon: CreditCard,
+    roles: FINANCE,
+  },
+
+  // HR
+  {
+    name: "Сотрудники",
+    href: "/dashboard/employees",
+    icon: UserCog,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Подрядчики",
+    href: "/dashboard/contractors",
+    icon: Building2,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Табель",
+    href: "/dashboard/work-logs",
+    icon: Clock,
+    roles: MANAGEMENT,
+  },
+
+  // Admin
+  {
+    name: "Пользователи",
+    href: "/dashboard/users",
+    icon: Users,
+    roles: ["owner", "admin"],
+  },
+  {
+    name: "Локации",
+    href: "/dashboard/locations",
+    icon: MapPin,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Карта",
+    href: "/dashboard/map",
+    icon: Map,
+    roles: [...OPERATIONS, "warehouse"],
+  },
+  { name: "Бонусы", href: "/dashboard/loyalty", icon: Gift, roles: MANAGEMENT },
+
+  // Reporting
+  {
+    name: "Отчёты",
+    href: "/dashboard/reports",
+    icon: BarChart3,
+    roles: [...MANAGEMENT, "accountant"],
+  },
+  {
+    name: "Фискализация",
+    href: "/dashboard/fiscal",
+    icon: Receipt,
+    roles: FINANCE,
+  },
+
+  // System
+  {
+    name: "Мастер-данные",
+    href: "/dashboard/directories",
+    icon: Database,
+    roles: MANAGEMENT,
+  },
+  {
+    name: "Интеграции",
+    href: "/dashboard/integrations",
+    icon: Plug,
+    roles: ["owner", "admin"],
+  },
+  {
+    name: "Аудит",
+    href: "/dashboard/audit",
+    icon: FileText,
+    roles: ["owner", "admin"],
+  },
   { name: "Уведомления", href: "/dashboard/notifications", icon: Bell },
-  { name: "Настройки", href: "/dashboard/settings", icon: Settings },
+  {
+    name: "Настройки",
+    href: "/dashboard/settings",
+    icon: Settings,
+    roles: ["owner", "admin"],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
+
+  const visibleNavigation = useMemo(() => {
+    const role = user?.role as UserRole | undefined;
+    if (!role) return navigation;
+
+    return navigation.filter(
+      (item) => !item.roles || item.roles.includes(role),
+    );
+  }, [user?.role]);
 
   return (
     <div className="flex h-full w-64 flex-col bg-card border-r">
@@ -79,7 +233,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-        {navigation.map((item) => {
+        {visibleNavigation.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -100,8 +254,16 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="border-t p-3">
+      {/* User info + Logout */}
+      <div className="border-t p-3 space-y-2">
+        {user && (
+          <div className="px-3 py-1">
+            <p className="text-sm font-medium truncate">
+              {user.firstName} {user.lastName}
+            </p>
+            <p className="text-xs text-muted-foreground">{user.role}</p>
+          </div>
+        )}
         <button
           onClick={() => logout()}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
