@@ -546,12 +546,14 @@ export class SeedInitialData1704240000000 implements MigrationInterface {
     `);
 
     console.log("✅ Seed data migration completed successfully");
-    console.log("");
-    console.log("📋 Default admin credentials:");
-    console.log("   Email: admin@vendhub.uz");
-    console.log("   Phone: +998901234567");
-    console.log("   Password: Admin123!");
-    console.log("");
+    if (process.env.NODE_ENV !== "production") {
+      console.log("");
+      console.log("📋 Default admin credentials:");
+      console.log("   Email: admin@vendhub.uz");
+      console.log("   Phone: +998901234567");
+      console.log("   Password: Admin123!");
+      console.log("");
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

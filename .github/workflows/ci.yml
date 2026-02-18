@@ -279,7 +279,10 @@ jobs:
           DB_NAME: vendhub_e2e
 
       - name: Start API server
-        run: pnpm --filter api start:prod &
+        run: |
+          nohup pnpm --filter api start:prod > /tmp/api.log 2>&1 &
+          echo $! > /tmp/api.pid
+          echo "API server started with PID $(cat /tmp/api.pid)"
         env:
           DB_HOST: localhost
           DB_PORT: "5432"
@@ -293,7 +296,15 @@ jobs:
 
       - name: Wait for API to be ready
         run: |
-          timeout 60 bash -c 'until curl -s http://localhost:4000/health > /dev/null; do sleep 2; done'
+          timeout 60 bash -c 'until curl -s http://localhost:4000/health > /dev/null 2>&1; do
+            if ! kill -0 $(cat /tmp/api.pid) 2>/dev/null; then
+              echo "API process died! Logs:"
+              cat /tmp/api.log
+              exit 1
+            fi
+            sleep 2
+          done'
+          echo "API is healthy"
 
       - name: Run E2E tests
         run: pnpm test:e2e

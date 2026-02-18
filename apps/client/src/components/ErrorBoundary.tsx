@@ -23,7 +23,6 @@ export class ErrorBoundary extends Component<Props, State> {
     if (import.meta.env.DEV) {
       console.error("ErrorBoundary caught:", error, errorInfo);
     }
-    // TODO: Send to Sentry in production
   }
 
   handleReset = () => {
