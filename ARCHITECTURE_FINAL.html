@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VendHub OS — Финальная Архитектура</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #22222e;
+    --border: #2a2a3a;
+    --text: #e8e8f0;
+    --text2: #9898aa;
+    --text3: #68687a;
+    --amber: #f59e0b;
+    --amber-dim: #b47508;
+    --amber-glow: rgba(245, 158, 11, 0.15);
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --blue: #3b82f6;
+    --blue-dim: #2563eb;
+    --purple: #a855f7;
+    --purple-dim: #9333ea;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+    --orange: #f97316;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  }
+  .header h1 {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--amber), #fbbf24, var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+  }
+  .header p {
+    color: var(--text2);
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  .badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .badge.amber { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-glow); }
+  .badge.green { color: var(--green); border-color: var(--green-dim); background: rgba(34,197,94,0.1); }
+  .badge.blue { color: var(--blue); border-color: var(--blue-dim); background: rgba(59,130,246,0.1); }
+
+  /* Container */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 24px;
+    padding-left: 4px;
+  }
+  .section-title span { color: var(--amber); }
+
+  /* ========== HIGH-LEVEL ARCHITECTURE ========== */
+  .arch-overview {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .arch-layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-layer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .arch-layer.clients::before { background: linear-gradient(90deg, var(--amber), var(--orange), var(--pink)); }
+  .arch-layer.gateway::before { background: linear-gradient(90deg, var(--cyan), var(--blue)); }
+  .arch-layer.backend::before { background: linear-gradient(90deg, var(--green), #10b981, var(--cyan)); }
+  .arch-layer.data::before { background: linear-gradient(90deg, var(--purple), var(--blue), var(--pink)); }
+  .arch-layer.infra::before { background: linear-gradient(90deg, var(--text3), #555, var(--text3)); }
+
+  .layer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .layer-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .layer-icon.amber { background: var(--amber-glow); }
+  .layer-icon.cyan { background: rgba(6,182,212,0.15); }
+  .layer-icon.green { background: rgba(34,197,94,0.1); }
+  .layer-icon.purple { background: rgba(168,85,247,0.1); }
+  .layer-icon.gray { background: rgba(100,100,120,0.15); }
+
+  .layer-name {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .layer-desc {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .layer-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .layer-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    transition: all 0.2s;
+  }
+  .layer-item:hover {
+    border-color: var(--amber-dim);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .item-tech {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .item-detail {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .new-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--green);
+    color: #000;
+  }
+  .updated-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--amber);
+    color: #000;
+  }
+
+  /* ========== MODULES GRID ========== */
+  .modules-section {
+    margin-bottom: 60px;
+  }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+  .module-card:hover {
+    border-color: var(--amber-dim);
+    background: var(--surface2);
+  }
+  .module-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .module-dot.green { background: var(--green); }
+  .module-dot.amber { background: var(--amber); }
+  .module-dot.new { background: var(--blue); box-shadow: 0 0 8px rgba(59,130,246,0.5); }
+  .module-name { font-weight: 500; }
+
+  /* ========== DATA FLOW ========== */
+  .flow-section {
+    margin-bottom: 60px;
+  }
+  .flow-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    overflow-x: auto;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .flow-box {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+    border: 1px solid;
+  }
+  .flow-box.client { background: rgba(245,158,11,0.1); border-color: var(--amber-dim); color: var(--amber); }
+  .flow-box.api { background: rgba(34,197,94,0.1); border-color: var(--green-dim); color: var(--green); }
+  .flow-box.service { background: rgba(59,130,246,0.1); border-color: var(--blue-dim); color: var(--blue); }
+  .flow-box.data { background: rgba(168,85,247,0.1); border-color: var(--purple-dim); color: var(--purple); }
+  .flow-box.external { background: rgba(236,72,153,0.1); border-color: #db2777; color: var(--pink); }
+  .flow-arrow {
+    color: var(--text3);
+    font-size: 18px;
+  }
+  .flow-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text3);
+    margin: -8px 0 16px;
+  }
+  .flow-divider {
+    width: 100%;
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 12px 0;
+  }
+
+  /* ========== STATS ========== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 60px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--amber), #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* ========== LOYALTY FLOW ========== */
+  .loyalty-flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 60px;
+  }
+  .tier-row {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .tier-card {
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid;
+    position: relative;
+  }
+  .tier-card.bronze { border-color: #cd7f32; background: rgba(205,127,50,0.08); }
+  .tier-card.silver { border-color: #c0c0c0; background: rgba(192,192,192,0.08); }
+  .tier-card.gold { border-color: #ffd700; background: rgba(255,215,0,0.08); }
+  .tier-card.platinum { border-color: #e5e4e2; background: rgba(229,228,226,0.08); }
+  .tier-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.bronze .tier-name { color: #cd7f32; }
+  .tier-card.silver .tier-name { color: #c0c0c0; }
+  .tier-card.gold .tier-name { color: #ffd700; }
+  .tier-card.platinum .tier-name { color: #e5e4e2; }
+  .tier-detail { font-size: 11px; color: var(--text2); line-height: 1.6; }
+  .tier-arrow { color: var(--text3); font-size: 24px; display: flex; align-items: center; }
+
+  .mechanics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .mechanic-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .mechanic-icon { font-size: 24px; margin-bottom: 8px; }
+  .mechanic-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .mechanic-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+  /* ========== FILE TREE ========== */
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 32px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin-bottom: 60px;
+    white-space: pre;
+    color: var(--text2);
+  }
+  .file-tree .dir { color: var(--amber); font-weight: 600; }
+  .file-tree .file { color: var(--text2); }
+  .file-tree .new { color: var(--green); }
+  .file-tree .comment { color: var(--text3); font-style: italic; }
+
+  /* ========== TECH STACK TABLE ========== */
+  .tech-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 60px;
+  }
+  .tech-table th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    border-bottom: 2px solid var(--border);
+  }
+  .tech-table td {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tech-table tr:hover td { background: var(--surface); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .header h1 { font-size: 28px; }
+    .layer-items { grid-template-columns: 1fr; }
+    .modules-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .tier-row { flex-direction: column; align-items: center; }
+    .tier-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <h1>VendHub OS</h1>
+  <p>Финальная архитектура после доработки до 100% Production Ready</p>
+  <div class="badge-row">
+    <span class="badge amber">Turborepo Monorepo</span>
+    <span class="badge green">62 API модуля</span>
+    <span class="badge blue">5 + 1 Приложений</span>
+  </div>
+</div>
+
+<!-- ==================== STATS ==================== -->
+<div class="container">
+  <div class="section-title"><span>01</span> — Ключевые метрики после доработки</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">62</div>
+      <div class="stat-label">API модуля</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">97</div>
+      <div class="stat-label">Entity (таблиц)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">~2000</div>
+      <div class="stat-label">Unit-тестов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">6</div>
+      <div class="stat-label">Приложений</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">20</div>
+      <div class="stat-label">PWA страниц</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">26</div>
+      <div class="stat-label">Mobile экранов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">40+</div>
+      <div class="stat-label">Admin routes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Языка (ru/uz/en)</div>
+    </div>
+  </div>
+
+  <!-- ==================== HIGH-LEVEL ARCHITECTURE ==================== -->
+  <div class="section-title"><span>02</span> — Слои архитектуры</div>
+  <div class="arch-overview">
+
+    <!-- CLIENTS LAYER -->
+    <div class="arch-layer clients">
+      <div class="layer-header">
+        <div class="layer-icon amber">🖥️</div>
+        <div>
+          <div class="layer-name">Клиентский слой</div>
+          <div class="layer-desc">Все точки взаимодействия с пользователем</div>
+        </div>
+      </div>
+      <div class="layer-items">
+        <div class="layer-item">
+          <div class="item-name">Web Admin <span class="updated-badge">UPD</span></div>
+          <div class="item-tech">Next.js 16.1 · React 19 · App Router</div>
+          <div class="item-detail">40+ dashboard routes. Bonus Dashboard, MachineDetail, Settings — новые.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Client PWA <span class="updated-badge">UPD</span></div>
+          <div class="item-tech">Vite 5.4 · React 19 · PWA</div>
+          <div class="item-detail">20 страниц. Achievements, Leaderboard, Streaks — новые бонусные экраны.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Landing Site <span class="new-badge">NEW</span></div>
+          <div class="item-tech">В apps/client · SSR-ready</div>
+          <div class="item-detail">7 секций: Hero, Products, Map, Bonus, Partnership, Contacts. SEO + i18n.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Mobile App <span class="updated-badge">UPD</span></div>
+          <div class="item-tech">React Native · Expo 52</div>
+          <div class="item-detail">26 экранов. Staff (15) + Client (11). Dual-mode navigation, push уведомления.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Telegram Bot <span class="updated-badge">UPD</span></div>
+          <div class="item-tech">Telegraf 4.16</div>
+          <div class="item-detail">15+ команд. /balance, /quests, /leaderboard, /checkin. WebApp Mini App.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Shared Package</div>
+          <div class="item-tech">TypeScript · tsup</div>
+          <div class="item-detail">30+ файлов. Types, constants, utils. Общие между всеми apps.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API GATEWAY LAYER -->
+    <div class="arch-layer gateway">
+      <div class="layer-header">
+        <div class="layer-icon cyan">🔀</div>
+        <div>
+          <div class="layer-name">API Gateway & Security</div>
+          <div class="layer-desc">Единая точка входа, аутентификация, защита</div>
+        </div>
+      </div>
+      <div class="layer-items">
+        <div class="layer-item">
+          <div class="item-name">Nginx Reverse Proxy</div>
+          <div class="item-tech">SSL · Rate Limiting · CORS</div>
+          <div class="item-detail">Терминация SSL, rate limit per IP, CORS whitelist, gzip compression.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">JWT + TOTP Auth</div>
+          <div class="item-tech">Passport · otplib</div>
+          <div class="item-detail">Access + Refresh tokens, 2FA через TOTP, Telegram OAuth.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">RBAC Guards</div>
+          <div class="item-tech">7 ролей · Organization scope</div>
+          <div class="item-detail">JwtAuthGuard → RolesGuard → OrganizationGuard → ThrottlerGuard. Pipeline.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Anti-fraud <span class="new-badge">NEW</span></div>
+          <div class="item-tech">Redis rate limiting</div>
+          <div class="item-detail">50 earn/час, 10K pts/день, velocity checks, device fingerprint, anomaly detection.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKEND LAYER -->
+    <div class="arch-layer backend">
+      <div class="layer-header">
+        <div class="layer-icon green">⚙️</div>
+        <div>
+          <div class="layer-name">Backend Services</div>
+          <div class="layer-desc">62 NestJS модуля — бизнес-логика</div>
+        </div>
+      </div>
+      <div class="layer-items">
+        <div class="layer-item">
+          <div class="item-name">Core Business</div>
+          <div class="item-tech">35 модулей</div>
+          <div class="item-detail">Machines, Products, Inventory, Tasks, Orders, Transactions, Locations, Users, Organizations, etc.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Loyalty System <span class="updated-badge">UPD</span></div>
+          <div class="item-tech">7 модулей</div>
+          <div class="item-detail">Loyalty (tiers, points) + Quests + Referrals + PromoСodes + Achievements + Streaks + Leaderboard.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Payments</div>
+          <div class="item-tech">3 модуля</div>
+          <div class="item-detail">Payme, Click, Uzum Bank, HUMO, UZCARD. Telegram Stars. Multikassa (фискализация).</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Real-time</div>
+          <div class="item-tech">Socket.IO + Redis adapter</div>
+          <div class="item-detail">Телеметрия автоматов, live карта, уведомления, dashboard updates.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Background Jobs</div>
+          <div class="item-tech">BullMQ 5 + Redis</div>
+          <div class="item-detail">Reports generation, email/SMS sending, streak resets, leaderboard recalc, data import.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Analytics & Reports</div>
+          <div class="item-tech">4 модуля</div>
+          <div class="item-detail">Reports, Reconciliation, AI Import, Monitoring. Scheduled reports, export CSV/PDF.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA LAYER -->
+    <div class="arch-layer data">
+      <div class="layer-header">
+        <div class="layer-icon purple">💾</div>
+        <div>
+          <div class="layer-name">Data Layer</div>
+          <div class="layer-desc">Хранение, кэширование, очереди</div>
+        </div>
+      </div>
+      <div class="layer-items">
+        <div class="layer-item">
+          <div class="item-name">PostgreSQL 16</div>
+          <div class="item-tech">TypeORM 0.3.20 · 97 таблиц</div>
+          <div class="item-detail">UUID PK, soft delete, audit fields, snake_case. Миграции через TypeORM CLI.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Redis 7</div>
+          <div class="item-tech">ioredis · Cache + Queue + Pub/Sub</div>
+          <div class="item-detail">Session cache, leaderboard sorted sets, rate limiting, BullMQ queues, Socket.IO adapter.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">MinIO / S3</div>
+          <div class="item-tech">Object Storage</div>
+          <div class="item-detail">Фото автоматов, аватары, отчёты PDF, импортные файлы. Pre-signed URLs.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">BullMQ Queues</div>
+          <div class="item-tech">5 очередей</div>
+          <div class="item-detail">email, sms, reports, import, notifications. Retry, backoff, dead letter queue.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFRASTRUCTURE LAYER -->
+    <div class="arch-layer infra">
+      <div class="layer-header">
+        <div class="layer-icon gray">🏗️</div>
+        <div>
+          <div class="layer-name">Infrastructure</div>
+          <div class="layer-desc">Контейнеризация, оркестрация, мониторинг</div>
+        </div>
+      </div>
+      <div class="layer-items">
+        <div class="layer-item">
+          <div class="item-name">Docker</div>
+          <div class="item-tech">Multi-stage builds</div>
+          <div class="item-detail">Non-root (UID 1001), health checks, .dockerignore, production-optimized images.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Kubernetes</div>
+          <div class="item-tech">Helm charts</div>
+          <div class="item-detail">HPA (2-10 pods), resource limits, probes, PDB, network policies, security context.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">CI/CD</div>
+          <div class="item-tech">GitHub Actions</div>
+          <div class="item-detail">Lint → Test → Build → Audit → Docker → Deploy. Semantic versioning, canary releases.</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Monitoring</div>
+          <div class="item-tech">Prometheus · Grafana · Loki</div>
+          <div class="item-detail">Metrics, dashboards, log aggregation, alerting (Telegram/PagerDuty).</div>
+        </div>
+        <div class="layer-item">
+          <div class="item-name">Terraform</div>
+          <div class="item-tech">IaC · 3 environments</div>
+          <div class="item-detail">Dev / Staging / Production. Managed PostgreSQL, Redis, S3, DNS, SSL certificates.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== API MODULES ==================== -->
+  <div class="modules-section">
+    <div class="section-title"><span>03</span> — Все 62 API модуля</div>
+    <div class="modules-grid">
+      <!-- Core -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">auth</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">users</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">organizations</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">rbac</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">machines</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">products</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">inventory</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">tasks</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">orders</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">transactions</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">locations</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">references</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">directories</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">employees</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">equipment</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">maintenance</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">warehouse</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">vehicles</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">routes</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">trips</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">work-logs</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">contractors</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">complaints</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">incidents</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">material-requests</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">opening-balances</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">operator-ratings</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">machine-access</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">favorites</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">purchase-history</span></div>
+      <!-- Loyalty -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">loyalty</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">quests</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">referrals</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">promo-codes</span></div>
+      <div class="module-card"><div class="module-dot new"></div><span class="module-name">achievements ✦</span></div>
+      <div class="module-card"><div class="module-dot new"></div><span class="module-name">streaks ✦</span></div>
+      <!-- Payments -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">payments</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">telegram-payments</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">billing</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">reconciliation</span></div>
+      <!-- Reports & Analytics -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">reports</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">recommendations</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">sales-import</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">import</span></div>
+      <!-- Communication -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">notifications</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">alerts</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">telegram-bot</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">webhooks</span></div>
+      <!-- System -->
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">audit</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">security</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">health</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">monitoring</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">storage</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">settings</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">geo</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">ai</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">client</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">integrations</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">fiscal</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">websocket</span></div>
+      <div class="module-card"><div class="module-dot green"></div><span class="module-name">bull-board</span></div>
+    </div>
+    <p style="margin-top:12px; font-size:12px; color:var(--text3);">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle;"></span> Существующий
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px rgba(59,130,246,0.5);margin:0 4px 0 16px;vertical-align:middle;"></span> Новый (✦)
+    </p>
+  </div>
+
+  <!-- ==================== LOYALTY SYSTEM ==================== -->
+  <div class="section-title"><span>04</span> — Бонусная система (7 механик)</div>
+  <div class="loyalty-flow">
+    <div class="tier-row">
+      <div class="tier-card bronze">
+        <div class="tier-name">🥉 Бронза</div>
+        <div class="tier-detail">0 баллов<br>×1.0 множитель<br>0% кэшбэк</div>
+      </div>
+      <div class="tier-arrow">→</div>
+      <div class="tier-card silver">
+        <div class="tier-name">🥈 Серебро</div>
+        <div class="tier-detail">1,000 баллов<br>×1.5 множитель<br>3% кэшбэк</div>
+      </div>
+      <div class="tier-arrow">→</div>
+      <div class="tier-card gold">
+        <div class="tier-name">🥇 Золото</div>
+        <div class="tier-detail">5,000 баллов<br>×2.0 множитель<br>5% кэшбэк</div>
+      </div>
+      <div class="tier-arrow">→</div>
+      <div class="tier-card platinum">
+        <div class="tier-name">💎 Платина</div>
+        <div class="tier-detail">15,000 баллов<br>×3.0 множитель<br>10% кэшбэк</div>
+      </div>
+    </div>
+
+    <div class="mechanics-grid">
+      <div class="mechanic-card">
+        <div class="mechanic-icon">⭐</div>
+        <div class="mechanic-name">Баллы</div>
+        <div class="mechanic-desc">1 балл = 1 UZS. Earn при покупке, spend при оплате. Expiry 365 дней.</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">🎯</div>
+        <div class="mechanic-name">Квесты</div>
+        <div class="mechanic-desc">Daily / Weekly / Monthly. Купи 3 напитка, потрать 50K, пригласи друга.</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">🏆</div>
+        <div class="mechanic-name">Достижения <span class="new-badge">NEW</span></div>
+        <div class="mechanic-desc">15+ badges. First Purchase, Coffee Lover, Social Butterfly. Rarity: common→legendary.</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">🔥</div>
+        <div class="mechanic-name">Серии <span class="new-badge">NEW</span></div>
+        <div class="mechanic-desc">Ежедневный check-in. 7d=100pts, 14d=300, 30d=1000. Freeze tokens (3/мес).</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">👥</div>
+        <div class="mechanic-name">Рефералы</div>
+        <div class="mechanic-desc">Пригласи друга — оба получат бонус. Код + QR + deep link.</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">🎫</div>
+        <div class="mechanic-name">Промо-коды</div>
+        <div class="mechanic-desc">% или fixed скидка. Лимит использований, срок действия, привязка к кампании.</div>
+      </div>
+      <div class="mechanic-card">
+        <div class="mechanic-icon">📊</div>
+        <div class="mechanic-name">Лидерборд <span class="new-badge">NEW</span></div>
+        <div class="mechanic-desc">Weekly / Monthly / All-time. Redis sorted sets. Top-100. Анонимизация.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DATA FLOW ==================== -->
+  <div class="flow-section">
+    <div class="section-title"><span>05</span> — Поток данных (Purchase → Loyalty)</div>
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-box client">📱 Клиент PWA</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box client">🤖 Telegram Bot</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box client">📲 Mobile App</div>
+      </div>
+      <div class="flow-label">JWT Bearer Token</div>
+      <hr class="flow-divider">
+
+      <div class="flow-row">
+        <div class="flow-box api">🔐 Auth Guard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box api">👤 RBAC Guard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box api">🏢 Org Guard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box api">⏱ Throttle</div>
+      </div>
+      <div class="flow-label">Guard Pipeline (NestJS)</div>
+      <hr class="flow-divider">
+
+      <div class="flow-row">
+        <div class="flow-box service">Orders Service</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box service">Payments Service</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box service">Loyalty Service</div>
+      </div>
+      <div class="flow-label">Бизнес-логика</div>
+
+      <div class="flow-row">
+        <div class="flow-box service">Loyalty → earn()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box service">Quests → check()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box service">Achievements → unlock()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box service">Leaderboard → add()</div>
+      </div>
+      <div class="flow-label">Loyalty Chain (Event-driven)</div>
+      <hr class="flow-divider">
+
+      <div class="flow-row">
+        <div class="flow-box data">PostgreSQL</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-box data">Redis Cache</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-box data">BullMQ</div>
+      </div>
+      <div class="flow-label">Data Layer</div>
+      <hr class="flow-divider">
+
+      <div class="flow-row">
+        <div class="flow-box external">Payme API</div>
+        <div class="flow-box external">Click API</div>
+        <div class="flow-box external">Uzum API</div>
+        <div class="flow-box external">Multikassa</div>
+        <div class="flow-box external">Eskiz SMS</div>
+      </div>
+      <div class="flow-label">Внешние интеграции (Узбекистан)</div>
+    </div>
+  </div>
+
+  <!-- ==================== FILE TREE ==================== -->
+  <div class="section-title"><span>06</span> — Структура файлов (после доработки)</div>
+  <div class="file-tree"><span class="dir">vendhub-unified/</span>
+├── <span class="dir">apps/</span>
+│   ├── <span class="dir">api/</span>                          <span class="comment"># NestJS Backend — 62 модуля</span>
+│   │   └── <span class="dir">src/</span>
+│   │       ├── <span class="dir">common/</span>               <span class="comment"># BaseEntity, Guards, Interceptors, Pipes</span>
+│   │       ├── <span class="dir">database/</span>             <span class="comment"># TypeORM config, migrations (52+)</span>
+│   │       ├── <span class="dir">modules/</span>
+│   │       │   ├── <span class="dir">auth/</span>             <span class="comment"># JWT + TOTP + Telegram OAuth</span>
+│   │       │   ├── <span class="dir">users/</span>            <span class="comment"># User CRUD + profile</span>
+│   │       │   ├── <span class="dir">organizations/</span>    <span class="comment"># Multi-tenant org management</span>
+│   │       │   ├── <span class="dir">machines/</span>         <span class="comment"># Vending machine CRUD + telemetry</span>
+│   │       │   ├── <span class="dir">products/</span>         <span class="comment"># Product catalog + pricing</span>
+│   │       │   ├── <span class="dir">inventory/</span>        <span class="comment"># 3-level inventory (warehouse→route→machine)</span>
+│   │       │   ├── <span class="dir">tasks/</span>            <span class="comment"># Kanban tasks + assignments</span>
+│   │       │   ├── <span class="dir">orders/</span>           <span class="comment"># Customer orders</span>
+│   │       │   ├── <span class="dir">loyalty/</span>          <span class="comment"># Tiers, points, leaderboard</span>
+│   │       │   ├── <span class="dir">quests/</span>           <span class="comment"># Daily/weekly/monthly quests</span>
+│   │       │   ├── <span class="dir">referrals/</span>        <span class="comment"># Referral codes + rewards</span>
+│   │       │   ├── <span class="dir">promo-codes/</span>      <span class="comment"># Discount codes</span>
+│   │       │   ├── <span class="new">achievements/</span>     <span class="comment"># ✦ NEW — Badges + unlock logic</span>
+│   │       │   ├── <span class="new">streaks/</span>          <span class="comment"># ✦ NEW — Daily check-in + freeze</span>
+│   │       │   ├── <span class="dir">payments/</span>         <span class="comment"># Payme, Click, Uzum, HUMO, UZCARD</span>
+│   │       │   ├── <span class="dir">reports/</span>          <span class="comment"># Report generation + scheduling</span>
+│   │       │   ├── <span class="dir">websocket/</span>        <span class="comment"># Socket.IO gateway</span>
+│   │       │   └── ... <span class="comment">(47 more modules)</span>
+│   │       └── app.module.ts             <span class="comment"># All 62 modules registered</span>
+│   │
+│   ├── <span class="dir">web/</span>                          <span class="comment"># Next.js Admin Panel — 40+ routes</span>
+│   │   └── <span class="dir">src/app/dashboard/</span>
+│   │       ├── <span class="dir">(overview)/</span>           <span class="comment"># Main dashboard KPIs</span>
+│   │       ├── <span class="dir">machines/</span>             <span class="comment"># List + [id] detail ← UPD</span>
+│   │       ├── <span class="new">loyalty/</span>              <span class="comment"># ✦ NEW — Bonus Dashboard (7 sub-pages)</span>
+│   │       ├── <span class="dir">tasks/</span> <span class="dir">inventory/</span> <span class="dir">products/</span> <span class="dir">users/</span> ...
+│   │       └── <span class="dir">settings/</span>             <span class="comment"># Full settings ← UPD</span>
+│   │
+│   ├── <span class="dir">client/</span>                       <span class="comment"># Vite React PWA — 20 страниц</span>
+│   │   └── <span class="dir">src/</span>
+│   │       ├── <span class="dir">pages/</span>
+│   │       │   ├── HomePage, LoyaltyPage, QuestsPage, ReferralsPage ...
+│   │       │   ├── <span class="new">AchievementsPage.tsx</span>    <span class="comment"># ✦ NEW</span>
+│   │       │   ├── <span class="new">LeaderboardPage.tsx</span>     <span class="comment"># ✦ NEW</span>
+│   │       │   ├── <span class="new">StreaksPage.tsx</span>          <span class="comment"># ✦ NEW</span>
+│   │       │   └── <span class="dir">landing/</span>                <span class="comment"># ✦ NEW — 7-секций лендинг</span>
+│   │       ├── <span class="dir">components/</span>
+│   │       ├── <span class="dir">hooks/</span>
+│   │       └── <span class="dir">lib/</span>
+│   │
+│   ├── <span class="dir">mobile/</span>                       <span class="comment"># React Native Expo — 26 экранов</span>
+│   │   └── <span class="dir">src/</span>
+│   │       ├── <span class="dir">screens/</span>
+│   │       │   ├── <span class="dir">auth/</span>  <span class="dir">tasks/</span>  <span class="dir">machines/</span>  <span class="dir">inventory/</span>  <span class="comment"># Staff (15)</span>
+│   │       │   └── <span class="new">client/</span>               <span class="comment"># ✦ NEW — 11 клиентских экранов</span>
+│   │       ├── <span class="dir">navigation/</span>
+│   │       │   ├── MainNavigator.tsx       <span class="comment"># Staff</span>
+│   │       │   ├── <span class="new">ClientNavigator.tsx</span>  <span class="comment"># ✦ NEW — Client</span>
+│   │       │   └── RootNavigator.tsx       <span class="comment"># Dual-mode switch</span>
+│   │       └── <span class="dir">services/</span>               <span class="comment"># + Push notifications</span>
+│   │
+│   └── <span class="dir">bot/</span>                          <span class="comment"># Telegraf — 15+ команд</span>
+│       └── <span class="dir">src/handlers/</span>
+│           ├── commands.ts               <span class="comment"># /balance /quests /leaderboard ← UPD</span>
+│           └── callbacks.ts              <span class="comment"># Inline keyboard handlers</span>
+│
+├── <span class="dir">packages/</span>
+│   └── <span class="dir">shared/</span>                       <span class="comment"># 30+ files — types, constants, utils</span>
+│       └── <span class="dir">src/types/</span>
+│           ├── <span class="new">achievement.types.ts</span>   <span class="comment"># ✦ NEW</span>
+│           ├── <span class="new">streak.types.ts</span>        <span class="comment"># ✦ NEW</span>
+│           ├── <span class="new">leaderboard.types.ts</span>   <span class="comment"># ✦ NEW</span>
+│           └── ... <span class="comment">(17 existing type files)</span>
+│
+├── <span class="dir">infrastructure/</span>
+│   ├── <span class="dir">k8s/</span>                          <span class="comment"># K8s manifests + HPA + PDB</span>
+│   ├── <span class="dir">helm/</span>                         <span class="comment"># Helm charts</span>
+│   ├── <span class="dir">terraform/</span>                    <span class="comment"># IaC for 3 environments</span>
+│   ├── <span class="dir">monitoring/</span>                   <span class="comment"># Prometheus + Grafana + Loki</span>
+│   └── <span class="dir">nginx/</span>                        <span class="comment"># SSL, rate limiting, CORS</span>
+│
+├── docker-compose.yml
+├── turbo.json
+├── pnpm-workspace.yaml
+├── EXECUTION_PROMPT.md                   <span class="comment"># Мастер-промт исполнения</span>
+└── PRODUCTION_READINESS_PLAN_v2.docx     <span class="comment"># План доработки</span></div>
+
+  <!-- ==================== TECH STACK ==================== -->
+  <div class="section-title"><span>07</span> — Технологический стек</div>
+  <table class="tech-table">
+    <thead>
+      <tr><th>Слой</th><th>Технология</th><th>Версия</th><th>Назначение</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Backend</td><td>NestJS</td><td>11.1</td><td>REST API framework, модульная архитектура</td></tr>
+      <tr><td>ORM</td><td>TypeORM</td><td>0.3.20</td><td>Entities, migrations, query builder</td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td><td>16</td><td>97 таблиц, UUID PK, soft delete, audit</td></tr>
+      <tr><td>Cache</td><td>Redis 7 + ioredis</td><td>7.x</td><td>Кэш, leaderboard, rate limiting, sessions</td></tr>
+      <tr><td>Queue</td><td>BullMQ</td><td>5.x</td><td>Background jobs: email, SMS, reports, import</td></tr>
+      <tr><td>Real-time</td><td>Socket.IO</td><td>4.7</td><td>Телеметрия, live карта, уведомления</td></tr>
+      <tr><td>Admin</td><td>Next.js</td><td>16.1</td><td>40+ routes, App Router, SSR</td></tr>
+      <tr><td>Client PWA</td><td>Vite + React</td><td>5.4 / 19</td><td>20 страниц, offline PWA, i18n</td></tr>
+      <tr><td>Mobile</td><td>Expo + React Native</td><td>52</td><td>26 экранов, dual-mode, push notifications</td></tr>
+      <tr><td>Bot</td><td>Telegraf</td><td>4.16</td><td>15+ команд, inline keyboards, WebApp</td></tr>
+      <tr><td>State</td><td>Zustand</td><td>5</td><td>Лёгкий state management</td></tr>
+      <tr><td>Forms</td><td>React Hook Form + Zod</td><td>7.61</td><td>Типобезопасные формы с валидацией</td></tr>
+      <tr><td>UI</td><td>shadcn/ui + Radix + Tailwind</td><td>3.4</td><td>Design system "Warm Brew"</td></tr>
+      <tr><td>Tables</td><td>@tanstack/react-table</td><td>8</td><td>Сортировка, фильтрация, пагинация</td></tr>
+      <tr><td>Charts</td><td>Recharts</td><td>2.15</td><td>KPI dashboards, analytics</td></tr>
+      <tr><td>Monorepo</td><td>Turborepo + pnpm</td><td>2.5 / 9.15</td><td>Build orchestration, workspace management</td></tr>
+      <tr><td>Testing</td><td>Jest + Playwright</td><td>29 / 1.48</td><td>Unit + E2E, ~2000 тестов</td></tr>
+      <tr><td>Infra</td><td>Docker + K8s + Terraform</td><td>—</td><td>Контейнеризация, оркестрация, IaC</td></tr>
+      <tr><td>Monitoring</td><td>Prometheus + Grafana + Loki</td><td>—</td><td>Metrics, dashboards, logs, alerts</td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  VendHub OS · Финальная архитектура · Февраль 2026<br>
+  62 API модуля · 6 приложений · 3 языка · 8 платёжных систем · Узбекистан 🇺🇿
+</div>
+
+</body>
+</html>
