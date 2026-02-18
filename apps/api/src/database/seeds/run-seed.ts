@@ -80,7 +80,7 @@ async function runSeed() {
     // ========================================================================
     log.info("Seeding users...");
 
-    const passwordHash = await bcrypt.hash("Demo123!", 10);
+    const passwordHash = await bcrypt.hash("Demo123!", 12);
     const adminId = uuidv4();
     const managerId = uuidv4();
     const operatorId = uuidv4();

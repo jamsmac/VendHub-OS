@@ -6,15 +6,15 @@
  * Revert: npm run migration:revert
  */
 
-import { MigrationInterface, QueryRunner } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import { MigrationInterface, QueryRunner } from "typeorm";
+import * as bcrypt from "bcrypt";
 
 export class SeedInitialData1704240000000 implements MigrationInterface {
-  name = 'SeedInitialData1704240000000';
+  name = "SeedInitialData1704240000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Hash password
-    const passwordHash = await bcrypt.hash('Admin123!', 10);
+    const passwordHash = await bcrypt.hash("Admin123!", 12);
 
     // ========================================================================
     // CREATE DEFAULT ORGANIZATION (HQ)
@@ -545,25 +545,35 @@ export class SeedInitialData1704240000000 implements MigrationInterface {
       )
     `);
 
-    console.log('✅ Seed data migration completed successfully');
-    console.log('');
-    console.log('📋 Default admin credentials:');
-    console.log('   Email: admin@vendhub.uz');
-    console.log('   Phone: +998901234567');
-    console.log('   Password: Admin123!');
-    console.log('');
+    console.log("✅ Seed data migration completed successfully");
+    console.log("");
+    console.log("📋 Default admin credentials:");
+    console.log("   Email: admin@vendhub.uz");
+    console.log("   Phone: +998901234567");
+    console.log("   Password: Admin123!");
+    console.log("");
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Delete in reverse order of dependencies
     await queryRunner.query(`DELETE FROM "tasks" WHERE "id" LIKE 'f0000000%'`);
-    await queryRunner.query(`DELETE FROM "machine_planograms" WHERE "machine_id" LIKE 'd0000000%'`);
-    await queryRunner.query(`DELETE FROM "products" WHERE "id" LIKE 'e0000000%'`);
-    await queryRunner.query(`DELETE FROM "machines" WHERE "id" LIKE 'd0000000%'`);
-    await queryRunner.query(`DELETE FROM "locations" WHERE "id" LIKE 'c0000000%'`);
+    await queryRunner.query(
+      `DELETE FROM "machine_planograms" WHERE "machine_id" LIKE 'd0000000%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "products" WHERE "id" LIKE 'e0000000%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "machines" WHERE "id" LIKE 'd0000000%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "locations" WHERE "id" LIKE 'c0000000%'`,
+    );
     await queryRunner.query(`DELETE FROM "users" WHERE "id" LIKE 'b0000000%'`);
-    await queryRunner.query(`DELETE FROM "organizations" WHERE "id" LIKE 'a0000000%'`);
+    await queryRunner.query(
+      `DELETE FROM "organizations" WHERE "id" LIKE 'a0000000%'`,
+    );
 
-    console.log('✅ Seed data migration reverted successfully');
+    console.log("✅ Seed data migration reverted successfully");
   }
 }

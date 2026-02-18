@@ -44,7 +44,7 @@ export async function seedDemoData(dataSource: DataSource) {
     // 2. ADMIN USER
     // ===========================================
     const adminId = uuid();
-    const hashedPassword = await bcrypt.hash("demo123456", 10);
+    const hashedPassword = await bcrypt.hash("demo123456", 12);
     await queryRunner.query(
       `
       INSERT INTO users (id, email, phone, password, "firstName", "lastName", role, status, "organizationId", "createdAt", "updatedAt")

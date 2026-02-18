@@ -88,7 +88,7 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 30
-            timeoutSeconds: 10
+            timeoutSeconds: 3
 
           readinessProbe:
             httpGet:
@@ -96,6 +96,7 @@ spec:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
 
 ---
 apiVersion: v1
