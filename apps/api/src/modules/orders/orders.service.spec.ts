@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -159,7 +160,6 @@ describe("OrdersService", () => {
           useValue: {
             findOne: jest.fn(),
             find: jest.fn(),
-            findByIds: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
             count: jest.fn(),
@@ -181,7 +181,6 @@ describe("OrdersService", () => {
           useValue: {
             findOne: jest.fn(),
             find: jest.fn(),
-            findByIds: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
           },
@@ -233,19 +232,18 @@ describe("OrdersService", () => {
     };
 
     it("should create an order with items and calculate totals", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
       orderRepo.count.mockResolvedValue(0);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-new",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -271,19 +269,18 @@ describe("OrdersService", () => {
     });
 
     it("should create an order with multiple items from different products", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1, mockProduct2]);
+      productRepo.find.mockResolvedValue([mockProduct1, mockProduct2]);
       orderRepo.count.mockResolvedValue(5);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-multi",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -305,13 +302,12 @@ describe("OrdersService", () => {
 
       expect(result.subtotalAmount).toBe(75000); // 15000 + 60000
       expect(result.totalAmount).toBe(75000);
-      const year = new Date().getFullYear();
-      expect(result.orderNumber).toBe(`ORD-${year}-00006`); // count(5) + 1
+      expect(result.orderNumber).toMatch(/^ORD-\d{4}-\d{9}$/); // timestamp-based format
     });
 
     it("should throw BadRequestException when some products not found", async () => {
       // Return only 1 product when 2 are requested
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
 
       const dto = {
         items: [
@@ -321,30 +317,27 @@ describe("OrdersService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.createOrder("user-uuid-1", orgId, dto as any),
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should apply valid promo code discount", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
       orderRepo.count.mockResolvedValue(0);
       promoCodesService.validate.mockResolvedValue({
         valid: true,
         discountAmount: 5000,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-promo",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -365,24 +358,22 @@ describe("OrdersService", () => {
     });
 
     it("should ignore rejected promo code and proceed without discount", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
       orderRepo.count.mockResolvedValue(0);
       promoCodesService.validate.mockResolvedValue({
         valid: false,
         reason: "Expired",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-nopromo",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -399,20 +390,19 @@ describe("OrdersService", () => {
     });
 
     it("should apply bonus points when user has sufficient balance", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
       orderRepo.count.mockResolvedValue(0);
       userRepo.findOne.mockResolvedValue(mockUser); // pointsBalance = 5000
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-bonus",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -429,27 +419,25 @@ describe("OrdersService", () => {
     });
 
     it("should generate correct order number based on existing count", async () => {
-      productRepo.findByIds.mockResolvedValue([mockProduct1]);
+      productRepo.find.mockResolvedValue([mockProduct1]);
       orderRepo.count.mockResolvedValue(42);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       itemRepo.create.mockImplementation((data) => data as any);
       orderRepo.create.mockImplementation(
         (data) =>
           ({
             id: "order-uuid-num",
             ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
 
       const result = await service.createOrder("user-uuid-1", orgId, createDto);
 
-      const year = new Date().getFullYear();
-      expect(result.orderNumber).toBe(`ORD-${year}-00043`);
+      expect(result.orderNumber).toMatch(/^ORD-\d{4}-\d{9}$/); // timestamp-based, no race condition
     });
   });
 
@@ -459,10 +447,9 @@ describe("OrdersService", () => {
 
   describe("updateStatus", () => {
     it("should transition from PENDING to CONFIRMED", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingOrder = { ...mockOrder, status: OrderStatus.PENDING } as any;
       orderRepo.findOne.mockResolvedValue(pendingOrder);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -482,13 +469,12 @@ describe("OrdersService", () => {
     });
 
     it("should transition from CONFIRMED to PREPARING", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const confirmedOrder = {
         ...mockOrder,
         status: OrderStatus.CONFIRMED,
       } as any;
       orderRepo.findOne.mockResolvedValue(confirmedOrder);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -501,13 +487,12 @@ describe("OrdersService", () => {
     });
 
     it("should transition from PREPARING to READY", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const preparingOrder = {
         ...mockOrder,
         status: OrderStatus.PREPARING,
       } as any;
       orderRepo.findOne.mockResolvedValue(preparingOrder);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -524,10 +509,9 @@ describe("OrdersService", () => {
         ...mockOrder,
         status: OrderStatus.READY,
         paymentStatus: PaymentStatus.PAID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       orderRepo.findOne.mockResolvedValue(readyOrder);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -548,10 +532,9 @@ describe("OrdersService", () => {
     });
 
     it("should transition from PENDING to CANCELLED with reason", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingOrder = { ...mockOrder, status: OrderStatus.PENDING } as any;
       orderRepo.findOne.mockResolvedValue(pendingOrder);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((order) =>
         Promise.resolve(order as any),
       );
@@ -566,7 +549,6 @@ describe("OrdersService", () => {
     });
 
     it("should throw BadRequestException on invalid transition (PENDING -> COMPLETED)", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingOrder = { ...mockOrder, status: OrderStatus.PENDING } as any;
       orderRepo.findOne.mockResolvedValue(pendingOrder);
 
@@ -578,7 +560,6 @@ describe("OrdersService", () => {
     });
 
     it("should throw BadRequestException on invalid transition (CANCELLED -> PENDING)", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cancelledOrder = {
         ...mockOrder,
         status: OrderStatus.CANCELLED,
@@ -609,10 +590,9 @@ describe("OrdersService", () => {
 
   describe("updatePaymentStatus", () => {
     it("should update payment status to PAID and set paidAt timestamp", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const order = { ...mockOrder } as any;
       orderRepo.findOne.mockResolvedValue(order);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
       const result = await service.updatePaymentStatus("order-uuid-1", orgId, {
@@ -632,10 +612,9 @@ describe("OrdersService", () => {
     });
 
     it("should update payment status to FAILED without setting paidAt", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const order = { ...mockOrder } as any;
       orderRepo.findOne.mockResolvedValue(order);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
       const result = await service.updatePaymentStatus("order-uuid-1", orgId, {
@@ -648,10 +627,9 @@ describe("OrdersService", () => {
     });
 
     it("should also update paymentMethod when provided", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const order = { ...mockOrder, paymentMethod: PaymentMethod.CASH } as any;
       orderRepo.findOne.mockResolvedValue(order);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
       const result = await service.updatePaymentStatus("order-uuid-1", orgId, {

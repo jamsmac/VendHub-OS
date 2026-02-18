@@ -10,7 +10,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Order,
@@ -78,7 +78,9 @@ export class OrdersService {
   ): Promise<OrderDto> {
     // Get products
     const productIds = dto.items.map((item) => item.productId);
-    const products = await this.productRepo.findByIds(productIds);
+    const products = await this.productRepo.find({
+      where: { id: In(productIds) },
+    });
 
     if (products.length !== productIds.length) {
       throw new BadRequestException("Some products not found");
@@ -142,7 +144,7 @@ export class OrdersService {
     const totalAmount = subtotal - discountAmount - bonusAmount;
 
     // Generate order number
-    const orderNumber = await this.generateOrderNumber(organizationId);
+    const orderNumber = this.generateOrderNumber(organizationId);
 
     // Create order
     const order = this.orderRepo.create({
@@ -516,10 +518,14 @@ export class OrdersService {
     return order;
   }
 
-  private async generateOrderNumber(organizationId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const count = await this.orderRepo.count({ where: { organizationId } });
-    return `ORD-${year}-${String(count + 1).padStart(5, "0")}`;
+  private generateOrderNumber(_organizationId: string): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const timestamp = now.getTime().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
+    return `ORD-${year}-${timestamp}${random}`;
   }
 
   private mapToDto(order: Order): OrderDto {

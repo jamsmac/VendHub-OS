@@ -11,7 +11,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, DataSource } from "typeorm";
+import { Repository, DataSource, In } from "typeorm";
 
 import { ClientUser } from "./entities/client-user.entity";
 import { ClientWallet } from "./entities/client-wallet.entity";
@@ -453,7 +453,9 @@ export class ClientService {
 
     // Fetch product details for pricing
     const productIds = dto.items.map((item) => item.productId);
-    const products = await this.productRepo.findByIds(productIds);
+    const products = await this.productRepo.find({
+      where: { id: In(productIds) },
+    });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     const orderItems = dto.items.map((item) => {

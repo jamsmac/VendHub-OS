@@ -10,7 +10,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, LessThan, MoreThan } from "typeorm";
+import { Repository, Between, In, LessThan, MoreThan } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Cron } from "@nestjs/schedule";
 import { PointsTransaction } from "./entities/points-transaction.entity";
@@ -755,7 +755,9 @@ export class LoyaltyService {
       .getRawMany();
 
     const userIds = results.map((r) => r.userId);
-    const users = userIds.length ? await this.userRepo.findByIds(userIds) : [];
+    const users = userIds.length
+      ? await this.userRepo.find({ where: { id: In(userIds) } })
+      : [];
 
     const userMap = new Map(users.map((u) => [u.id, u]));
 

@@ -208,7 +208,7 @@ describe("ClientService", () => {
           provide: getRepositoryToken(Product),
           useValue: {
             findOne: jest.fn(),
-            findByIds: jest.fn(),
+            find: jest.fn(),
           },
         },
         {
