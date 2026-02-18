@@ -30,6 +30,7 @@
     "db:reset": "npm run schema:drop && npm run migration:run && npm run db:seed"
   },
   "dependencies": {
+    "@vendhub/shared": "workspace:*",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/bullmq": "^11.0.0",
     "@nestjs/cache-manager": "^3.0.0",

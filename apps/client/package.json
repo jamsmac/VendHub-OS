@@ -14,6 +14,7 @@
     "test": "echo \"No tests configured yet\" && exit 0"
   },
   "dependencies": {
+    "@vendhub/shared": "workspace:*",
     "@googlemaps/react-wrapper": "^1.1.42",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-dialog": "^1.1.0",
