@@ -38,6 +38,9 @@ COPY tsconfig.base.json ./
 ENV NODE_ENV=production
 RUN pnpm --filter @vendhub/bot build
 
+# Prune to production dependencies only
+RUN pnpm --filter @vendhub/bot deploy --prod /app/pruned
+
 # ==================================================
 # Stage 3: Production Runner
 FROM node:20-alpine AS production
@@ -50,13 +53,18 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Install production essentials
 RUN apk add --no-cache dumb-init
 
-# Copy built application
+# Copy pruned production dependencies and built application
+COPY --from=builder --chown=botuser:nodejs /app/pruned/node_modules ./node_modules
 COPY --from=builder --chown=botuser:nodejs /app/apps/bot/dist ./dist
 COPY --from=builder --chown=botuser:nodejs /app/apps/bot/package.json ./
-COPY --from=builder --chown=botuser:nodejs /app/node_modules ./node_modules
 
 # Environment
 ENV NODE_ENV=production
+ENV PORT=3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD node -e "try{require('http').get('http://localhost:3001/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))}catch(e){process.exit(1)}"
 
 # Switch to non-root user
 USER botuser

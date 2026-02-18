@@ -311,8 +311,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:-minioadmin}
-      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:-minioadmin}
+      - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required}
+      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required}
     volumes:
       - minio-data:/data
     # MinIO API port accessible only via Docker network; console disabled in production

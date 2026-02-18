@@ -48,10 +48,9 @@ export const dataSourceOptions: DataSourceOptions = {
     connectionTimeoutMillis: 10000,
   },
 
-  // SSL (enabled by default in production, opt-out with DB_SSL=false)
+  // SSL (always enabled in production, opt-in in development with DB_SSL=true)
   ssl:
-    process.env.DB_SSL === "true" ||
-    (process.env.NODE_ENV === "production" && process.env.DB_SSL !== "false")
+    process.env.NODE_ENV === "production" || process.env.DB_SSL === "true"
       ? {
           rejectUnauthorized:
             process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false",

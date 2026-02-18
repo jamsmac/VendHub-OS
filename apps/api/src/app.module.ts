@@ -186,9 +186,8 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
           1000,
         ),
         ssl:
-          configService.get("DB_SSL") === "true" ||
-          (configService.get("NODE_ENV") === "production" &&
-            configService.get("DB_SSL") !== "false")
+          configService.get("NODE_ENV") === "production" ||
+          configService.get("DB_SSL") === "true"
             ? {
                 rejectUnauthorized:
                   configService.get("DB_SSL_REJECT_UNAUTHORIZED") !== "false",
