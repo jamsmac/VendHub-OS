@@ -454,9 +454,8 @@ variable "grafana_host" {
 }
 
 variable "grafana_password" {
-  description = "Grafana admin password"
+  description = "Grafana admin password (must be set explicitly, no default)"
   type        = string
-  default     = "admin"
   sensitive   = true
 }
 

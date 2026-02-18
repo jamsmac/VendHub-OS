@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import * as crypto from "crypto";
 
 export enum WebhookEvent {
@@ -12,6 +12,7 @@ export enum WebhookEvent {
 
 @Injectable()
 export class WebhooksService {
+  private readonly logger = new Logger(WebhooksService.name);
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAYS = [1000, 5000, 30000]; // ms
 
@@ -84,7 +85,10 @@ export class WebhooksService {
         }, delay);
       }
       // Log error but don't throw
-      console.error(`Webhook failed after ${attempt + 1} attempts:`, error);
+      this.logger.error(
+        `Webhook failed after ${attempt + 1} attempts: ${error.message}`,
+        error.stack,
+      );
     }
   }
 

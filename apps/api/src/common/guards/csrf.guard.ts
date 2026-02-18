@@ -4,10 +4,10 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
-import { IS_PUBLIC_KEY } from '../../modules/auth/decorators/public.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { ConfigService } from "@nestjs/config";
+import { IS_PUBLIC_KEY } from "../../modules/auth/decorators/public.decorator";
 
 /**
  * CSRF Protection Guard
@@ -28,23 +28,22 @@ export class CsrfGuard implements CanActivate {
   private readonly logger = new Logger(CsrfGuard.name);
   private readonly allowedOrigins: Set<string>;
   private readonly webhookPaths = [
-    '/api/v1/payments/payme/callback',
-    '/api/v1/payments/click/callback',
-    '/api/v1/payments/uzum/callback',
-    '/api/v1/webhooks/',
-    '/api/v1/telegram-bot/webhook',
-    '/api/v1/telegram-payments/webhook',
+    "/api/v1/payments/payme/callback",
+    "/api/v1/payments/click/callback",
+    "/api/v1/payments/uzum/callback",
+    "/api/v1/webhooks/",
+    "/api/v1/telegram-bot/webhook",
+    "/api/v1/telegram-payments/webhook",
   ];
 
   constructor(
     private readonly reflector: Reflector,
     private readonly configService: ConfigService,
   ) {
-    const origins = this.configService
-      .get('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173')
-      .split(',')
-      .map((s: string) => s.trim());
-    this.allowedOrigins = new Set(origins);
+    const originsStr = this.configService.get<string>("CORS_ORIGINS", "");
+    this.allowedOrigins = new Set(
+      originsStr ? originsStr.split(",").map((s: string) => s.trim()) : [],
+    );
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -52,7 +51,7 @@ export class CsrfGuard implements CanActivate {
 
     // Safe methods don't need CSRF protection
     const method = request.method?.toUpperCase();
-    if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    if (["GET", "HEAD", "OPTIONS"].includes(method)) {
       return true;
     }
 
@@ -67,12 +66,12 @@ export class CsrfGuard implements CanActivate {
 
     // Skip for Bearer token auth (not sent automatically by browsers)
     const authHeader = request.headers?.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith("Bearer ")) {
       return true;
     }
 
     // Skip for API key auth
-    if (request.headers?.['x-api-key']) {
+    if (request.headers?.["x-api-key"]) {
       return true;
     }
 
@@ -91,7 +90,7 @@ export class CsrfGuard implements CanActivate {
         return true;
       }
       this.logger.warn(`CSRF: rejected origin ${origin} for ${method} ${path}`);
-      throw new ForbiddenException('Invalid origin');
+      throw new ForbiddenException("Invalid origin");
     }
 
     // Fall back to Referer header check
@@ -104,12 +103,14 @@ export class CsrfGuard implements CanActivate {
       } catch {
         // Invalid referer URL
       }
-      this.logger.warn(`CSRF: rejected referer ${referer} for ${method} ${path}`);
-      throw new ForbiddenException('Invalid referer');
+      this.logger.warn(
+        `CSRF: rejected referer ${referer} for ${method} ${path}`,
+      );
+      throw new ForbiddenException("Invalid referer");
     }
 
     // No Origin or Referer header on a state-changing cookie-auth request
     this.logger.warn(`CSRF: missing origin/referer for ${method} ${path}`);
-    throw new ForbiddenException('Origin verification failed');
+    throw new ForbiddenException("Origin verification failed");
   }
 }
