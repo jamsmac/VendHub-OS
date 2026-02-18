@@ -180,7 +180,8 @@ export default function IntegrationsPage() {
       setTemplates(response.data.data || response.data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Failed to load templates:", err);
+      // Template loading is non-critical; silently ignore
+      void err;
     }
   }, []);
 

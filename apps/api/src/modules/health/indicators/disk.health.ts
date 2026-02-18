@@ -5,10 +5,10 @@ import {
   HealthCheckError,
 } from "@nestjs/terminus";
 import * as fs from "fs";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 interface DiskHealthOptions {
   thresholdPercent: number;
@@ -68,31 +68,32 @@ export class DiskHealthIndicator extends HealthIndicator {
     available: number;
     usedPercent: number;
   }> {
+    // Prefer Node.js native fs.statfs (safe, no shell execution)
     try {
-      // Try using df command (Unix/Linux)
-      const { stdout } = await execAsync(`df -B1 "${path}" | tail -1`);
-      const parts = stdout.split(/\s+/);
+      const stats = await fs.promises.statfs(path);
 
-      const total = parseInt(parts[1], 10);
-      const used = parseInt(parts[2], 10);
-      const available = parseInt(parts[3], 10);
+      const total = stats.blocks * stats.bsize;
+      const available = stats.bavail * stats.bsize;
+      const used = total - available;
       const usedPercent = (used / total) * 100;
 
       return { total, used, available, usedPercent };
     } catch {
-      // Fallback: use Node.js fs.statfs (Node 18+)
+      // Fallback: use df command (Unix/Linux) with execFile to avoid shell injection
       try {
-        const stats = await fs.promises.statfs(path);
+        const { stdout } = await execFileAsync("df", ["-B1", path]);
+        const lines = stdout.trim().split("\n");
+        const parts = lines[lines.length - 1].split(/\s+/);
 
-        const total = stats.blocks * stats.bsize;
-        const available = stats.bavail * stats.bsize;
-        const used = total - available;
+        const total = parseInt(parts[1], 10);
+        const used = parseInt(parts[2], 10);
+        const available = parseInt(parts[3], 10);
         const usedPercent = (used / total) * 100;
 
         return { total, used, available, usedPercent };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (statError: any) {
-        throw new Error(`Cannot determine disk usage: ${statError.message}`);
+      } catch (dfError: any) {
+        throw new Error(`Cannot determine disk usage: ${dfError.message}`);
       }
     }
   }

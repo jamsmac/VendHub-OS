@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Request } from "express";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -184,6 +185,7 @@ export class FiscalController {
 
   @Post("receipts")
   @Roles("admin", "manager")
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 receipts/min per user
   @ApiOperation({ summary: "Create fiscal receipt" })
   async createReceipt(
     @Body() dto: CreateFiscalReceiptDto,

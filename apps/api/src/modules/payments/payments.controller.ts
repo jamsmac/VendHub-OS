@@ -21,6 +21,7 @@ import {
   ApiResponse,
   ApiParam,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import {
   PaymentsService,
   PaymeWebhookData,
@@ -51,6 +52,7 @@ export class PaymentsController {
   @Post("payme/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Payme payment checkout URL" })
   @ApiResponse({ status: 201, description: "Payme checkout URL generated" })
   @ApiResponse({
@@ -73,6 +75,7 @@ export class PaymentsController {
   @Post("click/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Click payment checkout URL" })
   @ApiResponse({ status: 201, description: "Click checkout URL generated" })
   @ApiResponse({
@@ -95,6 +98,7 @@ export class PaymentsController {
   @Post("uzum/create")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment creations/min per user
   @ApiOperation({ summary: "Create Uzum Bank payment checkout URL" })
   @ApiResponse({ status: 201, description: "Uzum checkout URL generated" })
   @ApiResponse({
@@ -160,6 +164,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("admin", "owner", "manager")
   @ApiBearerAuth()
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 refunds/min per user
   @ApiOperation({
     summary: "Initiate a refund for a completed payment transaction",
   })

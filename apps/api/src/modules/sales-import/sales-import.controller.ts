@@ -23,6 +23,7 @@ import {
   CreateSalesImportDto,
   QuerySalesImportsDto,
 } from "./dto/create-sales-import.dto";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import {
@@ -41,6 +42,7 @@ export class SalesImportController {
 
   @Post()
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 imports/min per user
   @ApiOperation({ summary: "Create a new sales import record" })
   @ApiResponse({
     status: 201,
