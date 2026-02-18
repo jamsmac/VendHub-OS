@@ -90,6 +90,9 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: configService.get("NODE_ENV") === "production",
       crossOriginEmbedderPolicy: false,
+      referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+      hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+      frameguard: { action: "deny" },
     }),
   );
 

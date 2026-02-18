@@ -201,6 +201,7 @@ export interface BotConfig {
   miniAppUrl: string;
   webhookDomain: string;
   webhookPath: string;
+  webhookSecret: string;
   port: number;
   supportUsername: string;
   supportEmail: string;

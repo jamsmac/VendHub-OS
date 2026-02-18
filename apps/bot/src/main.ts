@@ -127,7 +127,9 @@ async function main() {
     // Webhook mode for production
     const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
 
-    await bot.telegram.setWebhook(webhookUrl);
+    await bot.telegram.setWebhook(webhookUrl, {
+      secret_token: config.webhookSecret || undefined,
+    });
     logger.info(`Webhook set: ${webhookUrl}`);
 
     await bot.launch({
@@ -135,6 +137,7 @@ async function main() {
         domain: config.webhookDomain,
         path: config.webhookPath,
         port: config.port,
+        secretToken: config.webhookSecret || undefined,
       },
     });
 

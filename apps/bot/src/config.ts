@@ -11,6 +11,7 @@ export const config: BotConfig = {
   miniAppUrl: process.env.MINI_APP_URL || "https://app.vendhub.uz",
   webhookDomain: process.env.WEBHOOK_DOMAIN || "",
   webhookPath: process.env.WEBHOOK_PATH || "/webhook",
+  webhookSecret: process.env.WEBHOOK_SECRET || "",
   port: parseInt(process.env.PORT || "3001", 10),
   supportUsername: process.env.SUPPORT_USERNAME || "vendhub_support",
   supportEmail: process.env.SUPPORT_EMAIL || "support@vendhub.uz",
@@ -38,6 +39,11 @@ export function validateConfig(): void {
     if (config.webhookDomain && !config.webhookDomain.startsWith("https://")) {
       throw new Error(
         "WEBHOOK_DOMAIN must use HTTPS in production (Telegram requirement)",
+      );
+    }
+    if (config.webhookDomain && !config.webhookSecret) {
+      throw new Error(
+        "WEBHOOK_SECRET is required in production to validate incoming webhook requests",
       );
     }
   }
