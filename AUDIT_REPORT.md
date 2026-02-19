@@ -872,17 +872,17 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### Неделя 6+: P2 — Улучшения
 
-| #   | Задача                                              | Часы | Статус                                         |
-| --- | --------------------------------------------------- | ---- | ---------------------------------------------- |
-| 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody)              |
-| 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)                |
-| 30  | Split 9 giant files (>1000 lines)                   | 16   | ✅ Done (1dd60a1, 75cb039, fc88d5a)            |
-| 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                                        |
-| 32  | Add E2E tests (Playwright)                          | 20   | ✅ Already done (15 Playwright + 9 NestJS e2e) |
-| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                        |
-| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                              |
-| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                              |
-| 36  | i18n remaining sub-pages (~19 nested)               | 10   | ✅ Done (all nested pages localized)           |
+| #   | Задача                                              | Часы | Статус                                            |
+| --- | --------------------------------------------------- | ---- | ------------------------------------------------- |
+| 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody)                 |
+| 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)                   |
+| 30  | Split 9 giant files (>1000 lines)                   | 16   | ✅ Done (1dd60a1, 75cb039, fc88d5a)               |
+| 31  | Add 10 missing Web Admin pages                      | 40   | ✅ Done (a84abfc) — 10 pages, 9170 LOC, 3 locales |
+| 32  | Add E2E tests (Playwright)                          | 20   | ✅ Already done (15 Playwright + 9 NestJS e2e)    |
+| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                           |
+| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                                 |
+| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                                 |
+| 36  | i18n remaining sub-pages (~19 nested)               | 10   | ✅ Done (all nested pages localized)              |
 
 ### Общая оценка трудозатрат
 
