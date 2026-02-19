@@ -1,7 +1,8 @@
 /**
  * Directories Service for VendHub OS
  *
- * CRUD operations for directories, fields, entries, sources, sync logs, and audit.
+ * Thin orchestrator facade for directories, fields, entries, sources, sync, and audit.
+ * Delegates to sub-services for entry, source, and audit operations.
  * Implements EAV (Entity-Attribute-Value) pattern for flexible reference data.
  * All queries filter by organizationId for multi-tenancy.
  */
@@ -19,17 +20,9 @@ import {
   DirectoryField,
   DirectoryEntry,
   DirectoryScope,
-  EntryStatus,
-  EntryOrigin,
 } from "./entities/directory.entity";
-import {
-  DirectorySource,
-  SyncStatus,
-} from "./entities/directory-source.entity";
-import {
-  DirectorySyncLog,
-  SyncLogStatus,
-} from "./entities/directory-sync-log.entity";
+import { DirectorySource } from "./entities/directory-source.entity";
+import { DirectorySyncLog } from "./entities/directory-sync-log.entity";
 import {
   DirectoryEntryAudit,
   DirectoryAuditAction,
@@ -55,6 +48,9 @@ import {
   MoveEntryDto,
   InlineCreateEntryDto,
 } from "./dto/directory-hierarchy.dto";
+import { DirectoryEntryService } from "./services/directory-entry.service";
+import { DirectorySourceService } from "./services/directory-source.service";
+import { DirectoryAuditService } from "./services/directory-audit.service";
 
 // ============================================================================
 // INTERFACES
@@ -91,17 +87,9 @@ export class DirectoriesService {
     @InjectRepository(DirectoryField)
     private readonly fieldRepository: Repository<DirectoryField>,
 
-    @InjectRepository(DirectoryEntry)
-    private readonly entryRepository: Repository<DirectoryEntry>,
-
-    @InjectRepository(DirectorySource)
-    private readonly sourceRepository: Repository<DirectorySource>,
-
-    @InjectRepository(DirectorySyncLog)
-    private readonly syncLogRepository: Repository<DirectorySyncLog>,
-
-    @InjectRepository(DirectoryEntryAudit)
-    private readonly auditRepository: Repository<DirectoryEntryAudit>,
+    private readonly entryService: DirectoryEntryService,
+    private readonly sourceService: DirectorySourceService,
+    private readonly auditService: DirectoryAuditService,
   ) {}
 
   // ==========================================================================
@@ -392,12 +380,11 @@ export class DirectoriesService {
   }
 
   // ==========================================================================
-  // ENTRY CRUD
+  // ENTRY CRUD (delegated to DirectoryEntryService)
   // ==========================================================================
 
   /**
    * Create a directory entry.
-   * For ORGANIZATION-scoped directories, entries inherit the organization.
    */
   async createEntry(
     directoryId: string,
@@ -406,50 +393,12 @@ export class DirectoriesService {
     userId?: string,
   ): Promise<DirectoryEntry> {
     const directory = await this.findOne(directoryId, organizationId);
-
-    // Validate parentId for hierarchical directories
-    if (dto.parentId) {
-      if (!directory.isHierarchical) {
-        throw new BadRequestException(
-          "Cannot set parentId on a non-hierarchical directory",
-        );
-      }
-
-      const parent = await this.entryRepository.findOne({
-        where: { id: dto.parentId, directoryId },
-      });
-      if (!parent) {
-        throw new NotFoundException(
-          `Parent entry with ID ${dto.parentId} not found in this directory`,
-        );
-      }
-    }
-
-    const entry = this.entryRepository.create({
-      ...dto,
-      directoryId,
+    return this.entryService.createEntry(
+      directory,
+      dto,
       organizationId,
-      normalizedName: dto.name.toLowerCase().trim(),
-      created_by_id: userId ?? null,
-    });
-
-    const saved = await this.entryRepository.save(entry);
-
-    // Record audit
-    await this.createAuditEntry(
-      saved.id,
-      DirectoryAuditAction.CREATE,
-      userId ?? null,
-      null,
-      {
-        name: saved.name,
-        code: saved.code,
-        status: saved.status,
-        data: saved.data,
-      },
+      userId,
     );
-
-    return saved;
   }
 
   /**
@@ -462,76 +411,11 @@ export class DirectoriesService {
   ): Promise<PaginatedResult<DirectoryEntry>> {
     // Verify directory access
     await this.findOne(directoryId, organizationId);
-
-    const {
-      page = 1,
-      limit: rawLimit = 50,
-      status,
-      origin,
-      parentId,
-      search,
-      tag,
-    } = filters || {};
-    const limit = Math.min(rawLimit, 200);
-
-    const query = this.entryRepository
-      .createQueryBuilder("e")
-      .where("e.directoryId = :directoryId", { directoryId })
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("e.organizationId IS NULL").orWhere(
-            "e.organizationId = :organizationId",
-            { organizationId },
-          );
-        }),
-      );
-
-    if (status) {
-      query.andWhere("e.status = :status", { status });
-    }
-
-    if (origin) {
-      query.andWhere("e.origin = :origin", { origin });
-    }
-
-    if (parentId) {
-      query.andWhere("e.parentId = :parentId", { parentId });
-    } else if (filters?.parentId === undefined) {
-      // Do not filter by parentId if not specified -- return all entries
-    }
-
-    if (search) {
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where("e.name ILIKE :search", { search: `%${search}%` })
-            .orWhere("e.code ILIKE :search", { search: `%${search}%` })
-            .orWhere("e.normalizedName ILIKE :search", {
-              search: `%${search}%`,
-            });
-        }),
-      );
-    }
-
-    if (tag) {
-      query.andWhere(":tag = ANY(e.tags)", { tag });
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("e.sortOrder", "ASC");
-    query.addOrderBy("e.name", "ASC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.entryService.findAllEntries(
+      directoryId,
+      organizationId,
+      filters,
+    );
   }
 
   /**
@@ -543,22 +427,7 @@ export class DirectoriesService {
     organizationId: string,
   ): Promise<DirectoryEntry> {
     await this.findOne(directoryId, organizationId);
-
-    const entry = await this.entryRepository.findOne({
-      where: { id: entryId, directoryId },
-      relations: ["parent", "children"],
-    });
-
-    if (!entry) {
-      throw new NotFoundException(`Entry with ID ${entryId} not found`);
-    }
-
-    // Verify org access
-    if (entry.organizationId && entry.organizationId !== organizationId) {
-      throw new NotFoundException(`Entry with ID ${entryId} not found`);
-    }
-
-    return entry;
+    return this.entryService.findOneEntry(directoryId, entryId, organizationId);
   }
 
   /**
@@ -571,69 +440,14 @@ export class DirectoriesService {
     organizationId: string,
     userId?: string,
   ): Promise<DirectoryEntry> {
-    const entry = await this.findOneEntry(directoryId, entryId, organizationId);
     const directory = await this.findOne(directoryId, organizationId);
-
-    // Capture old values for audit
-    const oldValues: Record<string, unknown> = {};
-    const newValues: Record<string, unknown> = {};
-    for (const key of Object.keys(dto)) {
-      if ((dto as Record<string, unknown>)[key] !== undefined) {
-        oldValues[key] = (entry as unknown as Record<string, unknown>)[key];
-        newValues[key] = (dto as Record<string, unknown>)[key];
-      }
-    }
-
-    // Validate parentId for hierarchical directories
-    if (dto.parentId !== undefined) {
-      if (!directory.isHierarchical) {
-        throw new BadRequestException(
-          "Cannot set parentId on a non-hierarchical directory",
-        );
-      }
-
-      if (dto.parentId) {
-        if (dto.parentId === entryId) {
-          throw new BadRequestException("Entry cannot be its own parent");
-        }
-
-        const parent = await this.entryRepository.findOne({
-          where: { id: dto.parentId, directoryId },
-        });
-        if (!parent) {
-          throw new NotFoundException(
-            `Parent entry with ID ${dto.parentId} not found in this directory`,
-          );
-        }
-      }
-    }
-
-    // Increment version on update
-    const newVersion = entry.version + 1;
-
-    Object.assign(entry, {
-      ...dto,
-      version: newVersion,
-      updated_by_id: userId ?? null,
-    });
-
-    // Update normalizedName if name changed
-    if (dto.name) {
-      entry.normalizedName = dto.name.toLowerCase().trim();
-    }
-
-    const saved = await this.entryRepository.save(entry);
-
-    // Record audit
-    await this.createAuditEntry(
+    return this.entryService.updateEntry(
+      directory,
       entryId,
-      DirectoryAuditAction.UPDATE,
-      userId ?? null,
-      oldValues,
-      newValues,
+      dto,
+      organizationId,
+      userId,
     );
-
-    return saved;
   }
 
   /**
@@ -645,25 +459,17 @@ export class DirectoriesService {
     organizationId: string,
     userId?: string,
   ): Promise<void> {
-    const entry = await this.findOneEntry(directoryId, entryId, organizationId);
-
-    await this.entryRepository.softDelete(entryId);
-
-    // Record audit
-    await this.createAuditEntry(
+    await this.findOne(directoryId, organizationId);
+    return this.entryService.removeEntry(
+      directoryId,
       entryId,
-      DirectoryAuditAction.ARCHIVE,
-      userId ?? null,
-      {
-        name: entry.name,
-        status: entry.status,
-      },
-      null,
+      organizationId,
+      userId,
     );
   }
 
   // ==========================================================================
-  // SEARCH
+  // SEARCH (delegated to DirectoryEntryService)
   // ==========================================================================
 
   /**
@@ -677,40 +483,16 @@ export class DirectoriesService {
   ): Promise<DirectoryEntry[]> {
     // Verify directory access
     await this.findOne(directoryId, organizationId);
-
-    const clampedLimit = Math.min(limit, 200);
-
-    const query = this.entryRepository
-      .createQueryBuilder("e")
-      .where("e.directoryId = :directoryId", { directoryId })
-      .andWhere("e.status = :status", { status: EntryStatus.ACTIVE })
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("e.organizationId IS NULL").orWhere(
-            "e.organizationId = :organizationId",
-            { organizationId },
-          );
-        }),
-      )
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("e.name ILIKE :search", { search: `%${q}%` })
-            .orWhere("e.normalizedName ILIKE :search", { search: `%${q}%` })
-            .orWhere("e.code ILIKE :codeSearch", { codeSearch: `${q}%` })
-            .orWhere("CAST(e.data AS text) ILIKE :search", {
-              search: `%${q}%`,
-            });
-        }),
-      )
-      .orderBy("e.sortOrder", "ASC")
-      .addOrderBy("e.name", "ASC")
-      .take(clampedLimit);
-
-    return query.getMany();
+    return this.entryService.searchEntries(
+      directoryId,
+      q,
+      organizationId,
+      limit,
+    );
   }
 
   // ==========================================================================
-  // SOURCE CRUD
+  // SOURCE CRUD (delegated to DirectorySourceService)
   // ==========================================================================
 
   /**
@@ -722,13 +504,7 @@ export class DirectoriesService {
     organizationId: string,
   ): Promise<DirectorySource> {
     await this.findOne(directoryId, organizationId);
-
-    const source = this.sourceRepository.create({
-      ...dto,
-      directoryId,
-    });
-
-    return this.sourceRepository.save(source);
+    return this.sourceService.createSource(directoryId, dto);
   }
 
   /**
@@ -740,33 +516,7 @@ export class DirectoriesService {
     filters?: QueryDirectorySourcesDto,
   ): Promise<PaginatedResult<DirectorySource>> {
     await this.findOne(directoryId, organizationId);
-
-    const { page = 1, limit: rawLimit = 50, isActive } = filters || {};
-    const limit = Math.min(rawLimit, 200);
-
-    const query = this.sourceRepository
-      .createQueryBuilder("s")
-      .where("s.directoryId = :directoryId", { directoryId });
-
-    if (isActive !== undefined) {
-      query.andWhere("s.isActive = :isActive", { isActive });
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("s.name", "ASC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.sourceService.findAllSources(directoryId, filters);
   }
 
   /**
@@ -778,16 +528,7 @@ export class DirectoriesService {
     organizationId: string,
   ): Promise<DirectorySource> {
     await this.findOne(directoryId, organizationId);
-
-    const source = await this.sourceRepository.findOne({
-      where: { id: sourceId, directoryId },
-    });
-
-    if (!source) {
-      throw new NotFoundException(`Source with ID ${sourceId} not found`);
-    }
-
-    return source;
+    return this.sourceService.findOneSource(directoryId, sourceId);
   }
 
   /**
@@ -799,15 +540,8 @@ export class DirectoriesService {
     dto: UpdateDirectorySourceDto,
     organizationId: string,
   ): Promise<DirectorySource> {
-    const source = await this.findOneSource(
-      directoryId,
-      sourceId,
-      organizationId,
-    );
-
-    Object.assign(source, dto);
-
-    return this.sourceRepository.save(source);
+    await this.findOne(directoryId, organizationId);
+    return this.sourceService.updateSource(directoryId, sourceId, dto);
   }
 
   /**
@@ -818,21 +552,16 @@ export class DirectoriesService {
     sourceId: string,
     organizationId: string,
   ): Promise<void> {
-    const source = await this.findOneSource(
-      directoryId,
-      sourceId,
-      organizationId,
-    );
-    await this.sourceRepository.softRemove(source);
+    await this.findOne(directoryId, organizationId);
+    return this.sourceService.removeSource(directoryId, sourceId);
   }
 
   // ==========================================================================
-  // SYNC
+  // SYNC (delegated to DirectorySourceService)
   // ==========================================================================
 
   /**
    * Trigger a sync from an external source.
-   * Creates a STARTED log, fetches data, upserts entries, updates log on completion.
    */
   async triggerSync(
     directoryId: string,
@@ -841,170 +570,14 @@ export class DirectoriesService {
     userId?: string,
     sourceVersion?: string,
   ): Promise<DirectorySyncLog> {
-    const source = await this.findOneSource(
+    await this.findOne(directoryId, organizationId);
+    return this.sourceService.triggerSync(
       directoryId,
       sourceId,
       organizationId,
+      userId,
+      sourceVersion,
     );
-
-    if (!source.isActive) {
-      throw new BadRequestException("Cannot sync from an inactive source");
-    }
-
-    // Create STARTED log
-    const syncLog = this.syncLogRepository.create({
-      directoryId,
-      sourceId,
-      status: SyncLogStatus.STARTED,
-      triggeredBy: userId ?? null,
-    });
-    const savedLog = await this.syncLogRepository.save(syncLog);
-
-    try {
-      // Fetch data from source
-      const records = await this.fetchSourceData(source);
-
-      let createdCount = 0;
-      let updatedCount = 0;
-      let errorCount = 0;
-      const errors: Record<string, unknown>[] = [];
-
-      for (const record of records) {
-        try {
-          const mappedData = this.mapSourceRecord(record, source.columnMapping);
-          const entryName = (mappedData.name as string) || "";
-          const entryCode = (mappedData.code as string) || null;
-          const externalKey = source.uniqueKeyField
-            ? (record[source.uniqueKeyField] as string)
-            : null;
-
-          // Try to find existing entry by externalKey
-          let existingEntry: DirectoryEntry | null = null;
-          if (externalKey) {
-            existingEntry = await this.entryRepository.findOne({
-              where: { directoryId, externalKey },
-            });
-          }
-
-          if (existingEntry) {
-            // Update
-            const oldData = { ...existingEntry.data };
-            Object.assign(existingEntry, {
-              name: entryName || existingEntry.name,
-              normalizedName: (entryName || existingEntry.name)
-                .toLowerCase()
-                .trim(),
-              code: entryCode ?? existingEntry.code,
-              data: {
-                ...existingEntry.data,
-                ...(mappedData.data as Record<string, unknown>),
-              },
-              origin: EntryOrigin.OFFICIAL,
-              originSource: source.name,
-              originDate: new Date(),
-              version: existingEntry.version + 1,
-            });
-            await this.entryRepository.save(existingEntry);
-            await this.createAuditEntry(
-              existingEntry.id,
-              DirectoryAuditAction.SYNC,
-              userId ?? null,
-              oldData,
-              existingEntry.data,
-            );
-            updatedCount++;
-          } else {
-            // Create
-            const newEntry = this.entryRepository.create({
-              directoryId,
-              name: entryName,
-              normalizedName: entryName.toLowerCase().trim(),
-              code: entryCode,
-              externalKey,
-              data: (mappedData.data as Record<string, unknown>) || {},
-              origin: EntryOrigin.OFFICIAL,
-              originSource: source.name,
-              originDate: new Date(),
-              status: EntryStatus.ACTIVE,
-              organizationId,
-            });
-            const savedEntry = await this.entryRepository.save(newEntry);
-            await this.createAuditEntry(
-              savedEntry.id,
-              DirectoryAuditAction.SYNC,
-              userId ?? null,
-              null,
-              {
-                name: savedEntry.name,
-                code: savedEntry.code,
-              },
-            );
-            createdCount++;
-          }
-        } catch (err) {
-          errorCount++;
-          errors.push({
-            record,
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-      }
-
-      // Update sync log
-      const finalStatus =
-        errorCount > 0
-          ? createdCount + updatedCount > 0
-            ? SyncLogStatus.PARTIAL
-            : SyncLogStatus.FAILED
-          : SyncLogStatus.SUCCESS;
-
-      savedLog.status = finalStatus;
-      savedLog.finishedAt = new Date();
-      savedLog.totalRecords = records.length;
-      savedLog.createdCount = createdCount;
-      savedLog.updatedCount = updatedCount;
-      savedLog.errorCount = errorCount;
-      savedLog.errors = errors.length > 0 ? errors : null;
-      await this.syncLogRepository.save(savedLog);
-
-      // Update source status
-      source.lastSyncAt = new Date();
-      source.lastSyncStatus =
-        finalStatus === SyncLogStatus.SUCCESS
-          ? SyncStatus.SUCCESS
-          : finalStatus === SyncLogStatus.PARTIAL
-            ? SyncStatus.PARTIAL
-            : SyncStatus.FAILED;
-      source.lastSyncError =
-        errors.length > 0 ? (errors[0].error as string) : null;
-      source.consecutiveFailures =
-        finalStatus === SyncLogStatus.FAILED
-          ? source.consecutiveFailures + 1
-          : 0;
-      if (sourceVersion) {
-        source.sourceVersion = sourceVersion;
-      }
-      await this.sourceRepository.save(source);
-
-      return savedLog;
-    } catch (err) {
-      // Update sync log on failure
-      savedLog.status = SyncLogStatus.FAILED;
-      savedLog.finishedAt = new Date();
-      savedLog.errors = [
-        { error: err instanceof Error ? err.message : String(err) },
-      ];
-      await this.syncLogRepository.save(savedLog);
-
-      // Update source
-      source.lastSyncAt = new Date();
-      source.lastSyncStatus = SyncStatus.FAILED;
-      source.lastSyncError = err instanceof Error ? err.message : String(err);
-      source.consecutiveFailures += 1;
-      await this.sourceRepository.save(source);
-
-      return savedLog;
-    }
   }
 
   /**
@@ -1016,38 +589,11 @@ export class DirectoriesService {
     filters?: QuerySyncLogsDto,
   ): Promise<PaginatedResult<DirectorySyncLog>> {
     await this.findOne(directoryId, organizationId);
-
-    const { page = 1, limit: rawLimit = 50, sourceId } = filters || {};
-    const limit = Math.min(rawLimit, 200);
-
-    const query = this.syncLogRepository
-      .createQueryBuilder("sl")
-      .where("sl.directoryId = :directoryId", { directoryId })
-      .leftJoinAndSelect("sl.source", "source");
-
-    if (sourceId) {
-      query.andWhere("sl.sourceId = :sourceId", { sourceId });
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("sl.startedAt", "DESC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.sourceService.findSyncLogs(directoryId, filters);
   }
 
   // ==========================================================================
-  // AUDIT
+  // AUDIT (delegated to DirectoryAuditService)
   // ==========================================================================
 
   /**
@@ -1061,16 +607,14 @@ export class DirectoriesService {
     newValues: Record<string, unknown> | null,
     changeReason?: string,
   ): Promise<DirectoryEntryAudit> {
-    const audit = this.auditRepository.create({
+    return this.auditService.createAuditEntry(
       entryId,
       action,
       changedBy,
       oldValues,
       newValues,
-      changeReason: changeReason ?? null,
-    });
-
-    return this.auditRepository.save(audit);
+      changeReason,
+    );
   }
 
   /**
@@ -1082,47 +626,11 @@ export class DirectoriesService {
     filters?: QueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     await this.findOne(directoryId, organizationId);
-
-    const { page = 1, limit: rawLimit = 50, entryId, action } = filters || {};
-    const limit = Math.min(rawLimit, 200);
-
-    const query = this.auditRepository
-      .createQueryBuilder("a")
-      .innerJoin("directory_entries", "e", "e.id = a.entry_id")
-      .where("e.directory_id = :directoryId", { directoryId })
-      .andWhere("e.deleted_at IS NULL")
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("e.organization_id IS NULL").orWhere(
-            "e.organization_id = :organizationId",
-            { organizationId },
-          );
-        }),
-      );
-
-    if (entryId) {
-      query.andWhere("a.entryId = :entryId", { entryId });
-    }
-
-    if (action) {
-      query.andWhere("a.action = :action", { action });
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("a.changedAt", "DESC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.auditService.findAuditLogs(
+      directoryId,
+      organizationId,
+      filters,
+    );
   }
 
   /**
@@ -1135,37 +643,11 @@ export class DirectoriesService {
     filters?: QueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     await this.findOneEntry(directoryId, entryId, organizationId);
-
-    const { page = 1, limit: rawLimit = 50, action } = filters || {};
-    const limit = Math.min(rawLimit, 200);
-
-    const query = this.auditRepository
-      .createQueryBuilder("a")
-      .where("a.entryId = :entryId", { entryId });
-
-    if (action) {
-      query.andWhere("a.action = :action", { action });
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("a.changedAt", "DESC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.auditService.findEntryAuditLogs(entryId, filters);
   }
 
   // ==========================================================================
-  // HIERARCHY
+  // HIERARCHY (delegated to DirectoryEntryService)
   // ==========================================================================
 
   /**
@@ -1176,52 +658,7 @@ export class DirectoriesService {
     organizationId: string,
   ): Promise<HierarchyNode[]> {
     const directory = await this.findOne(directoryId, organizationId);
-
-    if (!directory.isHierarchical) {
-      throw new BadRequestException("Directory is not hierarchical");
-    }
-
-    const entries = await this.entryRepository
-      .createQueryBuilder("e")
-      .where("e.directoryId = :directoryId", { directoryId })
-      .andWhere("e.status = :status", { status: EntryStatus.ACTIVE })
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("e.organizationId IS NULL").orWhere(
-            "e.organizationId = :organizationId",
-            { organizationId },
-          );
-        }),
-      )
-      .orderBy("e.sortOrder", "ASC")
-      .addOrderBy("e.name", "ASC")
-      .getMany();
-
-    // Build map
-    const nodeMap = new Map<string, HierarchyNode>();
-    for (const entry of entries) {
-      nodeMap.set(entry.id, {
-        id: entry.id,
-        name: entry.name,
-        code: entry.code,
-        parentId: entry.parentId,
-        sortOrder: entry.sortOrder,
-        data: entry.data,
-        children: [],
-      });
-    }
-
-    // Build tree
-    const roots: HierarchyNode[] = [];
-    for (const node of nodeMap.values()) {
-      if (node.parentId && nodeMap.has(node.parentId)) {
-        nodeMap.get(node.parentId)!.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    }
-
-    return roots;
+    return this.entryService.getHierarchyTree(directory, organizationId);
   }
 
   /**
@@ -1235,69 +672,17 @@ export class DirectoriesService {
     userId?: string,
   ): Promise<DirectoryEntry> {
     const directory = await this.findOne(directoryId, organizationId);
-
-    if (!directory.isHierarchical) {
-      throw new BadRequestException("Directory is not hierarchical");
-    }
-
-    const entry = await this.findOneEntry(directoryId, entryId, organizationId);
-    const oldParentId = entry.parentId;
-
-    if (dto.newParentId) {
-      // Cannot be its own parent
-      if (dto.newParentId === entryId) {
-        throw new BadRequestException("Entry cannot be its own parent");
-      }
-
-      // Verify new parent exists
-      const newParent = await this.entryRepository.findOne({
-        where: { id: dto.newParentId, directoryId },
-      });
-      if (!newParent) {
-        throw new NotFoundException(
-          `Parent entry with ID ${dto.newParentId} not found in this directory`,
-        );
-      }
-
-      // Cycle detection: walk up from newParentId and ensure entryId is not an ancestor
-      let current: DirectoryEntry | null = newParent;
-      while (current && current.parentId) {
-        if (current.parentId === entryId) {
-          throw new BadRequestException(
-            "Moving this entry would create a cycle in the hierarchy",
-          );
-        }
-        current = await this.entryRepository.findOne({
-          where: { id: current.parentId, directoryId },
-        });
-      }
-    }
-
-    entry.parentId = dto.newParentId ?? null;
-    entry.version += 1;
-    entry.updated_by_id = userId ?? null;
-    const saved = await this.entryRepository.save(entry);
-
-    // Record audit
-    await this.createAuditEntry(
+    return this.entryService.moveEntry(
+      directory,
       entryId,
-      DirectoryAuditAction.UPDATE,
-      userId ?? null,
-      { parentId: oldParentId },
-      { parentId: dto.newParentId ?? null },
-      "Entry moved in hierarchy",
+      dto,
+      organizationId,
+      userId,
     );
-
-    return saved;
   }
-
-  // ==========================================================================
-  // INLINE CREATE
-  // ==========================================================================
 
   /**
    * Minimal create for DirectorySelect popup.
-   * Creates an entry with just name (and optionally code, parentId, data).
    */
   async inlineCreateEntry(
     directoryId: string,
@@ -1306,185 +691,11 @@ export class DirectoriesService {
     userId?: string,
   ): Promise<DirectoryEntry> {
     const directory = await this.findOne(directoryId, organizationId);
-
-    // Check if inline create is allowed
-    if (
-      directory.settings &&
-      directory.settings.allow_inline_create === false
-    ) {
-      throw new BadRequestException(
-        "Inline create is not allowed for this directory",
-      );
-    }
-
-    // Validate parentId if provided
-    if (dto.parentId) {
-      if (!directory.isHierarchical) {
-        throw new BadRequestException(
-          "Cannot set parentId on a non-hierarchical directory",
-        );
-      }
-
-      const parent = await this.entryRepository.findOne({
-        where: { id: dto.parentId, directoryId },
-      });
-      if (!parent) {
-        throw new NotFoundException(
-          `Parent entry with ID ${dto.parentId} not found`,
-        );
-      }
-    }
-
-    const entry = this.entryRepository.create({
-      directoryId,
-      name: dto.name,
-      normalizedName: dto.name.toLowerCase().trim(),
-      code: dto.code ?? null,
-      parentId: dto.parentId ?? null,
-      data: dto.data ?? {},
-      origin: EntryOrigin.LOCAL,
-      status: directory.settings?.approval_required
-        ? EntryStatus.PENDING_APPROVAL
-        : EntryStatus.ACTIVE,
+    return this.entryService.inlineCreateEntry(
+      directory,
+      dto,
       organizationId,
-      created_by_id: userId ?? null,
-    });
-
-    const saved = await this.entryRepository.save(entry);
-
-    // Record audit
-    await this.createAuditEntry(
-      saved.id,
-      DirectoryAuditAction.CREATE,
-      userId ?? null,
-      null,
-      {
-        name: saved.name,
-        code: saved.code,
-        origin: "inline_create",
-      },
+      userId,
     );
-
-    return saved;
-  }
-
-  // ==========================================================================
-  // PRIVATE HELPERS
-  // ==========================================================================
-
-  /**
-   * Fetch data from an external source. Currently supports URL/API sources.
-   * Returns array of raw records.
-   */
-  private async fetchSourceData(
-    source: DirectorySource,
-  ): Promise<Record<string, unknown>[]> {
-    if (!source.url) {
-      return [];
-    }
-
-    try {
-      const headers: Record<string, string> = {};
-      if (source.requestConfig && typeof source.requestConfig === "object") {
-        const rc = source.requestConfig as Record<string, unknown>;
-        if (rc.headers && typeof rc.headers === "object") {
-          Object.assign(headers, rc.headers);
-        }
-      }
-
-      if (source.authConfig && typeof source.authConfig === "object") {
-        const ac = source.authConfig as Record<string, unknown>;
-        if (ac.type === "bearer" && ac.token) {
-          headers["Authorization"] = `Bearer ${ac.token}`;
-        } else if (ac.type === "basic" && ac.username && ac.password) {
-          const credentials = Buffer.from(
-            `${ac.username}:${ac.password}`,
-          ).toString("base64");
-          headers["Authorization"] = `Basic ${credentials}`;
-        }
-      }
-
-      // Validate URL protocol (prevent SSRF with file://, ftp://, etc.)
-      const parsedUrl = new URL(source.url);
-      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-        throw new Error(`Unsupported URL protocol: ${parsedUrl.protocol}`);
-      }
-
-      // Timeout after 30 seconds
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30_000);
-
-      let data: unknown;
-      try {
-        const response = await fetch(source.url, {
-          method:
-            ((source.requestConfig as Record<string, unknown>)
-              ?.method as string) || "GET",
-          headers,
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        data = await response.json();
-      } finally {
-        clearTimeout(timeout);
-      }
-
-      // Handle response: if it's an array, return directly; if object with data key, extract
-      if (Array.isArray(data)) {
-        return data;
-      }
-      if (data && typeof data === "object") {
-        const obj = data as Record<string, unknown>;
-        if (Array.isArray(obj.data))
-          return obj.data as Record<string, unknown>[];
-        if (Array.isArray(obj.items))
-          return obj.items as Record<string, unknown>[];
-        if (Array.isArray(obj.results))
-          return obj.results as Record<string, unknown>[];
-      }
-
-      return [];
-    } catch (err) {
-      throw new Error(
-        `Failed to fetch source data: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-  }
-
-  /**
-   * Map a raw source record using the column mapping configuration.
-   */
-  private mapSourceRecord(
-    record: Record<string, unknown>,
-    columnMapping: Record<string, unknown> | null,
-  ): { name: string; code: string | null; data: Record<string, unknown> } {
-    if (!columnMapping) {
-      return {
-        name: (record.name as string) || "",
-        code: (record.code as string) || null,
-        data: record,
-      };
-    }
-
-    const result: Record<string, unknown> = {};
-    let name = "";
-    let code: string | null = null;
-
-    for (const [targetField, sourceField] of Object.entries(columnMapping)) {
-      const value = record[sourceField as string];
-      if (targetField === "name") {
-        name = (value as string) || "";
-      } else if (targetField === "code") {
-        code = (value as string) || null;
-      } else {
-        result[targetField] = value;
-      }
-    }
-
-    return { name, code, data: result };
   }
 }

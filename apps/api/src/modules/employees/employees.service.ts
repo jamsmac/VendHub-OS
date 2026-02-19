@@ -1,5 +1,7 @@
 /**
- * Employees Service
+ * Employees Service (Orchestrator)
+ * Thin facade that delegates to domain-specific sub-services.
+ * The controller only talks to this service — sub-services are internal.
  */
 
 import {
@@ -10,11 +12,10 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { Repository, MoreThanOrEqual } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Employee,
-  EmployeeDocument,
   EmployeeRole,
   EmployeeStatus,
 } from "./entities/employee.entity";
@@ -27,19 +28,6 @@ import {
   EmployeeListDto,
   EmployeeStatsDto,
 } from "./dto/employee.dto";
-import { Department } from "./entities/department.entity";
-import { Position } from "./entities/position.entity";
-import { Attendance, AttendanceStatus } from "./entities/attendance.entity";
-import {
-  LeaveRequest,
-  LeaveType,
-  LeaveStatus,
-} from "./entities/leave-request.entity";
-import { Payroll, PayrollStatus } from "./entities/payroll.entity";
-import {
-  PerformanceReview,
-  ReviewStatus,
-} from "./entities/performance-review.entity";
 import {
   CreateDepartmentDto,
   UpdateDepartmentDto,
@@ -47,6 +35,7 @@ import {
   DepartmentDto,
   DepartmentListDto,
 } from "./dto/department.dto";
+import { Position } from "./entities/position.entity";
 import {
   CheckInDto,
   CheckOutDto,
@@ -76,6 +65,12 @@ import {
   PerformanceReviewDto,
   PerformanceReviewListDto,
 } from "./dto/performance-review.dto";
+import { DepartmentService } from "./services/department.service";
+import { PositionService } from "./services/position.service";
+import { AttendanceService } from "./services/attendance.service";
+import { LeaveService } from "./services/leave.service";
+import { PayrollService } from "./services/payroll.service";
+import { PerformanceReviewService } from "./services/performance-review.service";
 
 @Injectable()
 export class EmployeesService {
@@ -84,35 +79,26 @@ export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepo: Repository<Employee>,
-    @InjectRepository(EmployeeDocument)
-    private readonly documentRepo: Repository<EmployeeDocument>,
-    @InjectRepository(Department)
-    private readonly departmentRepo: Repository<Department>,
-    @InjectRepository(Position)
-    private readonly positionRepo: Repository<Position>,
-    @InjectRepository(Attendance)
-    private readonly attendanceRepo: Repository<Attendance>,
-    @InjectRepository(LeaveRequest)
-    private readonly leaveRequestRepo: Repository<LeaveRequest>,
-    @InjectRepository(Payroll)
-    private readonly payrollRepo: Repository<Payroll>,
-    @InjectRepository(PerformanceReview)
-    private readonly reviewRepo: Repository<PerformanceReview>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly departmentService: DepartmentService,
+    private readonly positionService: PositionService,
+    private readonly attendanceService: AttendanceService,
+    private readonly leaveService: LeaveService,
+    private readonly payrollService: PayrollService,
+    private readonly performanceReviewService: PerformanceReviewService,
   ) {}
 
   // ============================================================================
-  // CREATE & UPDATE
+  // EMPLOYEE CRUD & QUERIES
   // ============================================================================
 
   /**
-   * Создать сотрудника
+   * Create employee
    */
   async createEmployee(
     organizationId: string,
     dto: CreateEmployeeDto,
   ): Promise<EmployeeDto> {
-    // Generate employee number
     const employeeNumber = await this.generateEmployeeNumber(organizationId);
 
     const employee = this.employeeRepo.create({
@@ -137,7 +123,7 @@ export class EmployeesService {
   }
 
   /**
-   * Обновить сотрудника
+   * Update employee
    */
   async updateEmployee(
     employeeId: string,
@@ -158,7 +144,7 @@ export class EmployeesService {
   }
 
   /**
-   * Уволить сотрудника
+   * Terminate employee
    */
   async terminateEmployee(
     employeeId: string,
@@ -187,7 +173,7 @@ export class EmployeesService {
   }
 
   /**
-   * Связать сотрудника с User
+   * Link employee to User
    */
   async linkToUser(
     employeeId: string,
@@ -196,7 +182,6 @@ export class EmployeesService {
   ): Promise<EmployeeDto> {
     const employee = await this.findEmployee(employeeId, organizationId);
 
-    // Check if user is already linked to another employee
     const existing = await this.employeeRepo.findOne({
       where: { userId, organizationId },
     });
@@ -212,7 +197,7 @@ export class EmployeesService {
   }
 
   /**
-   * Отвязать сотрудника от User
+   * Unlink employee from User
    */
   async unlinkFromUser(
     employeeId: string,
@@ -227,7 +212,7 @@ export class EmployeesService {
   }
 
   /**
-   * Мягкое удаление сотрудника
+   * Soft delete employee
    */
   async deleteEmployee(
     employeeId: string,
@@ -243,12 +228,8 @@ export class EmployeesService {
     });
   }
 
-  // ============================================================================
-  // QUERIES
-  // ============================================================================
-
   /**
-   * Получить сотрудника по ID
+   * Get employee by ID
    */
   async getEmployee(
     employeeId: string,
@@ -259,7 +240,7 @@ export class EmployeesService {
   }
 
   /**
-   * Получить список сотрудников
+   * Get employees list
    */
   async getEmployees(
     organizationId: string,
@@ -303,7 +284,7 @@ export class EmployeesService {
   }
 
   /**
-   * Получить сотрудников по роли (paginated)
+   * Get employees by role (paginated)
    */
   async getEmployeesByRole(
     organizationId: string,
@@ -327,7 +308,7 @@ export class EmployeesService {
   }
 
   /**
-   * Получить активных сотрудников (paginated)
+   * Get active employees (paginated)
    */
   async getActiveEmployees(
     organizationId: string,
@@ -346,7 +327,7 @@ export class EmployeesService {
   }
 
   /**
-   * Найти сотрудника по Telegram ID
+   * Find employee by Telegram ID
    */
   async getEmployeeByTelegram(
     organizationId: string,
@@ -360,14 +341,12 @@ export class EmployeesService {
   }
 
   /**
-   * Получить статистику.
-   * Optimized: uses SQL aggregation instead of fetching all employees into memory.
+   * Get statistics
    */
   async getStats(organizationId: string): Promise<EmployeeStatsDto> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Status counts via SQL aggregation
     const statusCounts = await this.employeeRepo
       .createQueryBuilder("e")
       .select("e.status", "status")
@@ -376,7 +355,6 @@ export class EmployeesService {
       .groupBy("e.status")
       .getRawMany();
 
-    // Role counts (active only)
     const roleCounts = await this.employeeRepo
       .createQueryBuilder("e")
       .select("e.employeeRole", "role")
@@ -386,7 +364,6 @@ export class EmployeesService {
       .groupBy("e.employeeRole")
       .getRawMany();
 
-    // Hired and terminated this month
     const hiredThisMonth = await this.employeeRepo.count({
       where: {
         organizationId,
@@ -400,7 +377,6 @@ export class EmployeesService {
       .andWhere("e.terminationDate >= :startOfMonth", { startOfMonth })
       .getCount();
 
-    // Build stats
     const stats: EmployeeStatsDto = {
       totalEmployees: 0,
       activeCount: 0,
@@ -412,7 +388,6 @@ export class EmployeesService {
       terminatedThisMonth,
     };
 
-    // Initialize role counts
     for (const role of Object.values(EmployeeRole)) {
       stats.byRole[role] = 0;
     }
@@ -444,177 +419,56 @@ export class EmployeesService {
   }
 
   // ============================================================================
-  // DEPARTMENT CRUD
+  // DEPARTMENT CRUD (delegated)
   // ============================================================================
 
-  /**
-   * Create a department
-   */
   async createDepartment(
     organizationId: string,
     dto: CreateDepartmentDto,
   ): Promise<DepartmentDto> {
-    // Check code uniqueness within organization
-    const existing = await this.departmentRepo.findOne({
-      where: { code: dto.code, organizationId },
-    });
-    if (existing) {
-      throw new ConflictException(
-        `Department code "${dto.code}" already exists`,
-      );
-    }
-
-    // Validate parent department if provided
-    if (dto.parentDepartmentId) {
-      const parent = await this.departmentRepo.findOne({
-        where: { id: dto.parentDepartmentId, organizationId },
-      });
-      if (!parent) {
-        throw new NotFoundException("Parent department not found");
-      }
-    }
-
-    const department = this.departmentRepo.create({
-      organizationId,
-      name: dto.name,
-      code: dto.code,
-      description: dto.description || null,
-      managerId: dto.managerId || null,
-      parentDepartmentId: dto.parentDepartmentId || null,
-      isActive: dto.isActive !== undefined ? dto.isActive : true,
-    });
-
-    await this.departmentRepo.save(department);
-
-    this.logger.log(`Department ${dto.code} created`);
-
-    return this.mapDepartmentToDto(department);
+    return this.departmentService.createDepartment(organizationId, dto);
   }
 
-  /**
-   * Update a department
-   */
   async updateDepartment(
     departmentId: string,
     organizationId: string,
     dto: UpdateDepartmentDto,
   ): Promise<DepartmentDto> {
-    const department = await this.departmentRepo.findOne({
-      where: { id: departmentId, organizationId },
-    });
-    if (!department) {
-      throw new NotFoundException("Department not found");
-    }
-
-    // Check code uniqueness if code is being changed
-    if (dto.code && dto.code !== department.code) {
-      const existing = await this.departmentRepo.findOne({
-        where: { code: dto.code, organizationId },
-      });
-      if (existing) {
-        throw new ConflictException(
-          `Department code "${dto.code}" already exists`,
-        );
-      }
-    }
-
-    // Prevent circular parent reference
-    if (dto.parentDepartmentId === departmentId) {
-      throw new BadRequestException("Department cannot be its own parent");
-    }
-
-    Object.assign(department, dto);
-    await this.departmentRepo.save(department);
-
-    return this.mapDepartmentToDto(department);
+    return this.departmentService.updateDepartment(
+      departmentId,
+      organizationId,
+      dto,
+    );
   }
 
-  /**
-   * Get departments with hierarchy support
-   */
   async getDepartments(
     organizationId: string,
     query: QueryDepartmentsDto,
   ): Promise<DepartmentListDto> {
-    const { page = 1, limit = 20, search, parentId, isActive } = query;
-
-    const qb = this.departmentRepo
-      .createQueryBuilder("d")
-      .where("d.organizationId = :organizationId", { organizationId });
-
-    if (search) {
-      qb.andWhere("(d.name ILIKE :search OR d.code ILIKE :search)", {
-        search: `%${search}%`,
-      });
-    }
-
-    if (parentId) {
-      qb.andWhere("d.parentDepartmentId = :parentId", { parentId });
-    }
-
-    if (isActive !== undefined) {
-      qb.andWhere("d.isActive = :isActive", { isActive });
-    }
-
-    const [items, total] = await qb
-      .leftJoinAndSelect("d.subDepartments", "sub")
-      .orderBy("d.sortOrder", "ASC")
-      .addOrderBy("d.name", "ASC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items: items.map((d) => this.mapDepartmentToDto(d)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.departmentService.getDepartments(organizationId, query);
   }
 
-  /**
-   * Get a single department by ID
-   */
   async getDepartment(
     departmentId: string,
     organizationId: string,
   ): Promise<DepartmentDto> {
-    const department = await this.departmentRepo.findOne({
-      where: { id: departmentId, organizationId },
-      relations: ["subDepartments"],
-    });
-    if (!department) {
-      throw new NotFoundException("Department not found");
-    }
-    return this.mapDepartmentToDto(department);
+    return this.departmentService.getDepartment(departmentId, organizationId);
   }
 
-  /**
-   * Soft delete a department
-   */
   async deleteDepartment(
     departmentId: string,
     organizationId: string,
   ): Promise<void> {
-    const department = await this.departmentRepo.findOne({
-      where: { id: departmentId, organizationId },
-    });
-    if (!department) {
-      throw new NotFoundException("Department not found");
-    }
-
-    await this.departmentRepo.softRemove(department);
-    this.logger.log(`Department ${department.code} deleted`);
+    return this.departmentService.deleteDepartment(
+      departmentId,
+      organizationId,
+    );
   }
 
   // ============================================================================
-  // POSITION CRUD
+  // POSITION CRUD (delegated)
   // ============================================================================
 
-  /**
-   * Create a position
-   */
   async createPosition(
     organizationId: string,
     dto: {
@@ -628,36 +482,9 @@ export class EmployeesService {
       isActive?: boolean;
     },
   ): Promise<Position> {
-    // Check code uniqueness
-    const existing = await this.positionRepo.findOne({
-      where: { code: dto.code, organizationId },
-    });
-    if (existing) {
-      throw new ConflictException(`Position code "${dto.code}" already exists`);
-    }
-
-    const position = this.positionRepo.create({
-      organizationId,
-      title: dto.title,
-      code: dto.code,
-      description: dto.description || null,
-      departmentId: dto.departmentId || null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      level: dto.level as any,
-      minSalary: dto.minSalary || null,
-      maxSalary: dto.maxSalary || null,
-      isActive: dto.isActive !== undefined ? dto.isActive : true,
-    });
-
-    await this.positionRepo.save(position);
-    this.logger.log(`Position ${dto.code} created`);
-
-    return position;
+    return this.positionService.createPosition(organizationId, dto);
   }
 
-  /**
-   * Update a position
-   */
   async updatePosition(
     positionId: string,
     organizationId: string,
@@ -672,33 +499,9 @@ export class EmployeesService {
       isActive?: boolean;
     },
   ): Promise<Position> {
-    const position = await this.positionRepo.findOne({
-      where: { id: positionId, organizationId },
-    });
-    if (!position) {
-      throw new NotFoundException("Position not found");
-    }
-
-    if (dto.code && dto.code !== position.code) {
-      const existing = await this.positionRepo.findOne({
-        where: { code: dto.code, organizationId },
-      });
-      if (existing) {
-        throw new ConflictException(
-          `Position code "${dto.code}" already exists`,
-        );
-      }
-    }
-
-    Object.assign(position, dto);
-    await this.positionRepo.save(position);
-
-    return position;
+    return this.positionService.updatePosition(positionId, organizationId, dto);
   }
 
-  /**
-   * Get positions list
-   */
   async getPositions(
     organizationId: string,
     query: {
@@ -715,953 +518,210 @@ export class EmployeesService {
     limit: number;
     totalPages: number;
   }> {
-    const { page = 1, limit = 20, search, departmentId, isActive } = query;
-
-    const qb = this.positionRepo
-      .createQueryBuilder("p")
-      .where("p.organizationId = :organizationId", { organizationId });
-
-    if (search) {
-      qb.andWhere("(p.title ILIKE :search OR p.code ILIKE :search)", {
-        search: `%${search}%`,
-      });
-    }
-
-    if (departmentId) {
-      qb.andWhere("p.departmentId = :departmentId", { departmentId });
-    }
-
-    if (isActive !== undefined) {
-      qb.andWhere("p.isActive = :isActive", { isActive });
-    }
-
-    const [items, total] = await qb
-      .orderBy("p.title", "ASC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.positionService.getPositions(organizationId, query);
   }
 
-  /**
-   * Get a single position by ID
-   */
   async getPosition(
     positionId: string,
     organizationId: string,
   ): Promise<Position> {
-    const position = await this.positionRepo.findOne({
-      where: { id: positionId, organizationId },
-    });
-    if (!position) {
-      throw new NotFoundException("Position not found");
-    }
-    return position;
+    return this.positionService.getPosition(positionId, organizationId);
   }
 
   // ============================================================================
-  // ATTENDANCE
+  // ATTENDANCE (delegated)
   // ============================================================================
 
-  /**
-   * Employee check-in
-   */
   async checkIn(
     organizationId: string,
     dto: CheckInDto,
   ): Promise<AttendanceDto> {
-    // Verify employee exists
-    await this.findEmployee(dto.employeeId, organizationId);
-
-    const today = new Date();
-    const dateStr = today.toISOString().split("T")[0];
-
-    // Check if already checked in today
-    const existing = await this.attendanceRepo.findOne({
-      where: {
-        employeeId: dto.employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any,
-        organizationId,
-      },
-    });
-
-    if (existing && existing.checkIn) {
-      throw new BadRequestException("Employee already checked in today");
-    }
-
-    const attendance =
-      existing ||
-      this.attendanceRepo.create({
-        organizationId,
-        employeeId: dto.employeeId,
-        date: new Date(dateStr),
-        status: AttendanceStatus.PRESENT,
-      });
-
-    attendance.checkIn = new Date();
-    attendance.note = dto.note || null;
-    attendance.checkInLocation = dto.location || null;
-
-    // Determine if late (after 09:00)
-    const checkInHour = new Date().getHours();
-    if (checkInHour >= 10) {
-      attendance.status = AttendanceStatus.LATE;
-    }
-
-    await this.attendanceRepo.save(attendance);
-
-    this.logger.log(`Employee ${dto.employeeId} checked in`);
-
-    return this.mapAttendanceToDto(attendance);
+    return this.attendanceService.checkIn(organizationId, dto);
   }
 
-  /**
-   * Employee check-out
-   */
   async checkOut(
     organizationId: string,
     dto: CheckOutDto,
   ): Promise<AttendanceDto> {
-    await this.findEmployee(dto.employeeId, organizationId);
-
-    const today = new Date();
-    const dateStr = today.toISOString().split("T")[0];
-
-    const attendance = await this.attendanceRepo.findOne({
-      where: {
-        employeeId: dto.employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any,
-        organizationId,
-      },
-    });
-
-    if (!attendance) {
-      throw new BadRequestException("No check-in record found for today");
-    }
-
-    if (attendance.checkOut) {
-      throw new BadRequestException("Employee already checked out today");
-    }
-
-    attendance.checkOut = new Date();
-    attendance.checkOutLocation = dto.location || null;
-
-    if (dto.note) {
-      attendance.note = attendance.note
-        ? `${attendance.note}\n${dto.note}`
-        : dto.note;
-    }
-
-    // Calculate total hours
-    if (attendance.checkIn) {
-      const diffMs =
-        attendance.checkOut.getTime() - attendance.checkIn.getTime();
-      const totalHours = diffMs / (1000 * 60 * 60);
-      attendance.totalHours = Math.round(totalHours * 100) / 100;
-
-      // Calculate overtime (more than 8 hours)
-      if (totalHours > 8) {
-        attendance.overtimeHours = Math.round((totalHours - 8) * 100) / 100;
-      }
-    }
-
-    await this.attendanceRepo.save(attendance);
-
-    this.logger.log(`Employee ${dto.employeeId} checked out`);
-
-    return this.mapAttendanceToDto(attendance);
+    return this.attendanceService.checkOut(organizationId, dto);
   }
 
-  /**
-   * Get attendance records (paginated)
-   */
   async getAttendance(
     organizationId: string,
     query: QueryAttendanceDto,
   ): Promise<AttendanceListDto> {
-    const {
-      page = 1,
-      limit = 20,
-      employeeId,
-      dateFrom,
-      dateTo,
-      status,
-    } = query;
-
-    const qb = this.attendanceRepo
-      .createQueryBuilder("a")
-      .where("a.organizationId = :organizationId", { organizationId });
-
-    if (employeeId) {
-      qb.andWhere("a.employeeId = :employeeId", { employeeId });
-    }
-
-    if (dateFrom) {
-      qb.andWhere("a.date >= :dateFrom", { dateFrom });
-    }
-
-    if (dateTo) {
-      qb.andWhere("a.date <= :dateTo", { dateTo });
-    }
-
-    if (status) {
-      qb.andWhere("a.status = :status", { status });
-    }
-
-    const [items, total] = await qb
-      .orderBy("a.date", "DESC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items: items.map((a) => this.mapAttendanceToDto(a)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.attendanceService.getAttendance(organizationId, query);
   }
 
-  /**
-   * Get daily attendance report
-   */
   async getDailyReport(
     organizationId: string,
     dateStr?: string,
   ): Promise<DailyAttendanceReportDto> {
-    const date = dateStr || new Date().toISOString().split("T")[0];
-
-    const records = await this.attendanceRepo.find({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { organizationId, date: new Date(date) as any },
-    });
-
-    const totalEmployees = await this.employeeRepo.count({
-      where: { organizationId, status: EmployeeStatus.ACTIVE },
-    });
-
-    let presentCount = 0;
-    let absentCount = 0;
-    let lateCount = 0;
-    let onLeaveCount = 0;
-
-    for (const record of records) {
-      switch (record.status) {
-        case AttendanceStatus.PRESENT:
-          presentCount++;
-          break;
-        case AttendanceStatus.ABSENT:
-          absentCount++;
-          break;
-        case AttendanceStatus.LATE:
-          lateCount++;
-          break;
-        case AttendanceStatus.ON_LEAVE:
-          onLeaveCount++;
-          break;
-      }
-    }
-
-    // Employees with no record are considered absent
-    absentCount = totalEmployees - presentCount - lateCount - onLeaveCount;
-    if (absentCount < 0) absentCount = 0;
-
-    return {
-      date,
-      totalEmployees,
-      presentCount,
-      absentCount,
-      lateCount,
-      onLeaveCount,
-      records: records.map((r) => this.mapAttendanceToDto(r)),
-    };
+    return this.attendanceService.getDailyReport(organizationId, dateStr);
   }
 
-  /**
-   * Get monthly attendance report
-   */
   async getMonthlyReport(
     organizationId: string,
     employeeId: string,
     year: number,
     month: number,
   ): Promise<AttendanceDto[]> {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-
-    const records = await this.attendanceRepo.find({
-      where: {
-        organizationId,
-        employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: Between(startDate, endDate) as any,
-      },
-      order: { date: "ASC" },
-    });
-
-    return records.map((r) => this.mapAttendanceToDto(r));
+    return this.attendanceService.getMonthlyReport(
+      organizationId,
+      employeeId,
+      year,
+      month,
+    );
   }
 
   // ============================================================================
-  // LEAVE REQUESTS
+  // LEAVE REQUESTS (delegated)
   // ============================================================================
 
-  /**
-   * Create a leave request
-   */
   async createLeaveRequest(
     organizationId: string,
     dto: CreateLeaveRequestDto,
   ): Promise<LeaveRequestDto> {
-    await this.findEmployee(dto.employeeId, organizationId);
-
-    const startDate = new Date(dto.startDate);
-    const endDate = new Date(dto.endDate);
-
-    if (endDate < startDate) {
-      throw new BadRequestException("End date must be after start date");
-    }
-
-    // Calculate total days (simple calculation, excludes weekends)
-    const diffMs = endDate.getTime() - startDate.getTime();
-    const totalDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1;
-
-    // Check for overlapping leave requests
-    const overlapping = await this.leaveRequestRepo
-      .createQueryBuilder("lr")
-      .where("lr.employeeId = :employeeId", { employeeId: dto.employeeId })
-      .andWhere("lr.organizationId = :organizationId", { organizationId })
-      .andWhere("lr.status IN (:...statuses)", {
-        statuses: [LeaveStatus.PENDING, LeaveStatus.APPROVED],
-      })
-      .andWhere("(lr.startDate <= :endDate AND lr.endDate >= :startDate)", {
-        startDate: dto.startDate,
-        endDate: dto.endDate,
-      })
-      .getCount();
-
-    if (overlapping > 0) {
-      throw new ConflictException(
-        "Leave request overlaps with an existing request",
-      );
-    }
-
-    const leaveRequest = this.leaveRequestRepo.create({
-      organizationId,
-      employeeId: dto.employeeId,
-      leaveType: dto.leaveType,
-      startDate,
-      endDate,
-      totalDays,
-      reason: dto.reason || null,
-      status: LeaveStatus.PENDING,
-    });
-
-    await this.leaveRequestRepo.save(leaveRequest);
-
-    this.logger.log(`Leave request created for employee ${dto.employeeId}`);
-
-    this.eventEmitter.emit("leave.requested", {
-      leaveRequestId: leaveRequest.id,
-      employeeId: dto.employeeId,
-      organizationId,
-    });
-
-    return this.mapLeaveRequestToDto(leaveRequest);
+    return this.leaveService.createLeaveRequest(organizationId, dto);
   }
 
-  /**
-   * Approve a leave request
-   */
   async approveLeave(
     leaveId: string,
     organizationId: string,
     approvedById: string,
   ): Promise<LeaveRequestDto> {
-    const leaveRequest = await this.leaveRequestRepo.findOne({
-      where: { id: leaveId, organizationId },
-    });
-    if (!leaveRequest) {
-      throw new NotFoundException("Leave request not found");
-    }
-
-    if (leaveRequest.status !== LeaveStatus.PENDING) {
-      throw new BadRequestException("Leave request is not in pending status");
-    }
-
-    leaveRequest.status = LeaveStatus.APPROVED;
-    leaveRequest.approvedById = approvedById;
-    leaveRequest.approvedAt = new Date();
-
-    await this.leaveRequestRepo.save(leaveRequest);
-
-    this.eventEmitter.emit("leave.approved", {
-      leaveRequestId: leaveRequest.id,
-      employeeId: leaveRequest.employeeId,
+    return this.leaveService.approveLeave(
+      leaveId,
       organizationId,
-    });
-
-    return this.mapLeaveRequestToDto(leaveRequest);
+      approvedById,
+    );
   }
 
-  /**
-   * Reject a leave request
-   */
   async rejectLeave(
     leaveId: string,
     organizationId: string,
     approvedById: string,
     dto: RejectLeaveDto,
   ): Promise<LeaveRequestDto> {
-    const leaveRequest = await this.leaveRequestRepo.findOne({
-      where: { id: leaveId, organizationId },
-    });
-    if (!leaveRequest) {
-      throw new NotFoundException("Leave request not found");
-    }
-
-    if (leaveRequest.status !== LeaveStatus.PENDING) {
-      throw new BadRequestException("Leave request is not in pending status");
-    }
-
-    leaveRequest.status = LeaveStatus.REJECTED;
-    leaveRequest.approvedById = approvedById;
-    leaveRequest.approvedAt = new Date();
-    leaveRequest.rejectionReason = dto.reason;
-
-    await this.leaveRequestRepo.save(leaveRequest);
-
-    this.eventEmitter.emit("leave.rejected", {
-      leaveRequestId: leaveRequest.id,
-      employeeId: leaveRequest.employeeId,
+    return this.leaveService.rejectLeave(
+      leaveId,
       organizationId,
-    });
-
-    return this.mapLeaveRequestToDto(leaveRequest);
+      approvedById,
+      dto,
+    );
   }
 
-  /**
-   * Cancel a leave request (by employee)
-   */
   async cancelLeave(
     leaveId: string,
     organizationId: string,
   ): Promise<LeaveRequestDto> {
-    const leaveRequest = await this.leaveRequestRepo.findOne({
-      where: { id: leaveId, organizationId },
-    });
-    if (!leaveRequest) {
-      throw new NotFoundException("Leave request not found");
-    }
-
-    if (
-      ![LeaveStatus.PENDING, LeaveStatus.APPROVED].includes(leaveRequest.status)
-    ) {
-      throw new BadRequestException("Leave request cannot be cancelled");
-    }
-
-    leaveRequest.status = LeaveStatus.CANCELLED;
-    await this.leaveRequestRepo.save(leaveRequest);
-
-    return this.mapLeaveRequestToDto(leaveRequest);
+    return this.leaveService.cancelLeave(leaveId, organizationId);
   }
 
-  /**
-   * Get leave requests (paginated)
-   */
   async getLeaveRequests(
     organizationId: string,
     query: QueryLeaveRequestsDto,
   ): Promise<LeaveRequestListDto> {
-    const {
-      page = 1,
-      limit = 20,
-      employeeId,
-      status,
-      leaveType,
-      dateFrom,
-      dateTo,
-    } = query;
-
-    const qb = this.leaveRequestRepo
-      .createQueryBuilder("lr")
-      .where("lr.organizationId = :organizationId", { organizationId });
-
-    if (employeeId) {
-      qb.andWhere("lr.employeeId = :employeeId", { employeeId });
-    }
-
-    if (status) {
-      qb.andWhere("lr.status = :status", { status });
-    }
-
-    if (leaveType) {
-      qb.andWhere("lr.leaveType = :leaveType", { leaveType });
-    }
-
-    if (dateFrom) {
-      qb.andWhere("lr.startDate >= :dateFrom", { dateFrom });
-    }
-
-    if (dateTo) {
-      qb.andWhere("lr.endDate <= :dateTo", { dateTo });
-    }
-
-    const [items, total] = await qb
-      .orderBy("lr.created_at", "DESC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items: items.map((lr) => this.mapLeaveRequestToDto(lr)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.leaveService.getLeaveRequests(organizationId, query);
   }
 
-  /**
-   * Get leave balance for an employee
-   */
   async getLeaveBalance(
     organizationId: string,
     employeeId: string,
     year?: number,
   ): Promise<LeaveBalanceDto> {
-    const currentYear = year || new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-
-    const approvedLeaves = await this.leaveRequestRepo.find({
-      where: {
-        organizationId,
-        employeeId,
-        status: LeaveStatus.APPROVED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        startDate: MoreThanOrEqual(startOfYear) as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        endDate: LessThanOrEqual(endOfYear) as any,
-      },
-    });
-
-    // Default allocations (can be made configurable)
-    const annualTotal = 24; // 24 days annual leave (Uzbekistan standard)
-    const sickTotal = 10; // 10 days sick leave
-
-    let annualUsed = 0;
-    let sickUsed = 0;
-
-    for (const leave of approvedLeaves) {
-      if (leave.leaveType === LeaveType.ANNUAL) {
-        annualUsed += Number(leave.totalDays);
-      } else if (leave.leaveType === LeaveType.SICK) {
-        sickUsed += Number(leave.totalDays);
-      }
-    }
-
-    return {
-      employeeId,
-      annualTotal,
-      annualUsed,
-      annualRemaining: annualTotal - annualUsed,
-      sickTotal,
-      sickUsed,
-      sickRemaining: sickTotal - sickUsed,
-      year: currentYear,
-    };
+    return this.leaveService.getLeaveBalance(organizationId, employeeId, year);
   }
 
   // ============================================================================
-  // PAYROLL
+  // PAYROLL (delegated)
   // ============================================================================
 
-  /**
-   * Calculate payroll for an employee
-   */
   async calculatePayroll(
     organizationId: string,
     dto: CalculatePayrollDto,
-    _userId: string,
+    userId: string,
   ): Promise<PayrollDto> {
-    const employee = await this.findEmployee(dto.employeeId, organizationId);
-
-    const periodStart = new Date(dto.periodStart);
-    const periodEnd = new Date(dto.periodEnd);
-
-    // Check for existing payroll for this period
-    const existing = await this.payrollRepo.findOne({
-      where: {
-        employeeId: dto.employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        periodStart: periodStart as any,
-        organizationId,
-      },
-    });
-
-    if (existing && existing.status !== PayrollStatus.DRAFT) {
-      throw new ConflictException("Payroll already calculated for this period");
-    }
-
-    // Get attendance data for the period
-    const attendances = await this.attendanceRepo.find({
-      where: {
-        employeeId: dto.employeeId,
-        organizationId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: Between(periodStart, periodEnd) as any,
-      },
-    });
-
-    // Calculate working days in period (Mon-Sat in Uzbekistan)
-    let workingDays = 0;
-    const current = new Date(periodStart);
-    while (current <= periodEnd) {
-      const dayOfWeek = current.getDay();
-      if (dayOfWeek !== 0) {
-        // Sunday is off
-        workingDays++;
-      }
-      current.setDate(current.getDate() + 1);
-    }
-
-    // Calculate worked days from attendance
-    const workedDays = attendances.filter((a) =>
-      [AttendanceStatus.PRESENT, AttendanceStatus.LATE].includes(a.status),
-    ).length;
-
-    // Calculate overtime hours
-    const totalOvertimeHours = attendances.reduce((sum, a) => {
-      return sum + (a.overtimeHours ? Number(a.overtimeHours) : 0);
-    }, 0);
-
-    // Calculate salary components
-    const baseSalary = employee.salary ? Number(employee.salary) : 0;
-    const dailyRate = workingDays > 0 ? baseSalary / workingDays : 0;
-    const actualBaseSalary = Math.round(dailyRate * workedDays * 100) / 100;
-    const overtimePay =
-      Math.round(totalOvertimeHours * (dailyRate / 8) * 1.5 * 100) / 100;
-    const bonuses = 0;
-    const deductions = 0;
-
-    // Uzbekistan income tax (12%)
-    const grossSalary = actualBaseSalary + overtimePay + bonuses;
-    const taxAmount = Math.round(grossSalary * 0.12 * 100) / 100;
-    const netSalary =
-      Math.round((grossSalary - deductions - taxAmount) * 100) / 100;
-
-    const payroll =
-      existing ||
-      this.payrollRepo.create({
-        organizationId,
-        employeeId: dto.employeeId,
-        periodStart,
-        periodEnd,
-      });
-
-    payroll.baseSalary = actualBaseSalary;
-    payroll.overtimePay = overtimePay;
-    payroll.bonuses = bonuses;
-    payroll.deductions = deductions;
-    payroll.taxAmount = taxAmount;
-    payroll.netSalary = netSalary;
-    payroll.currency = "UZS";
-    payroll.status = PayrollStatus.CALCULATED;
-    payroll.calculatedAt = new Date();
-    payroll.workingDays = workingDays;
-    payroll.workedDays = workedDays;
-    payroll.overtimeHours = totalOvertimeHours;
-    payroll.details = {
-      dailyRate,
-      grossSalary,
-      taxRate: 0.12,
-      overtimeRate: 1.5,
-    };
-
-    await this.payrollRepo.save(payroll);
-
-    this.logger.log(`Payroll calculated for employee ${dto.employeeId}`);
-
-    return this.mapPayrollToDto(payroll);
+    return this.payrollService.calculatePayroll(organizationId, dto, userId);
   }
 
-  /**
-   * Approve payroll
-   */
   async approvePayroll(
     payrollId: string,
     organizationId: string,
     approvedById: string,
   ): Promise<PayrollDto> {
-    const payroll = await this.payrollRepo.findOne({
-      where: { id: payrollId, organizationId },
-    });
-    if (!payroll) {
-      throw new NotFoundException("Payroll record not found");
-    }
-
-    if (payroll.status !== PayrollStatus.CALCULATED) {
-      throw new BadRequestException(
-        "Payroll must be in calculated status to approve",
-      );
-    }
-
-    payroll.status = PayrollStatus.APPROVED;
-    payroll.approvedById = approvedById;
-    payroll.approvedAt = new Date();
-
-    await this.payrollRepo.save(payroll);
-
-    return this.mapPayrollToDto(payroll);
+    return this.payrollService.approvePayroll(
+      payrollId,
+      organizationId,
+      approvedById,
+    );
   }
 
-  /**
-   * Mark payroll as paid
-   */
   async payPayroll(
     payrollId: string,
     organizationId: string,
     paymentReference?: string,
   ): Promise<PayrollDto> {
-    const payroll = await this.payrollRepo.findOne({
-      where: { id: payrollId, organizationId },
-    });
-    if (!payroll) {
-      throw new NotFoundException("Payroll record not found");
-    }
-
-    if (payroll.status !== PayrollStatus.APPROVED) {
-      throw new BadRequestException("Payroll must be approved before payment");
-    }
-
-    payroll.status = PayrollStatus.PAID;
-    payroll.paidAt = new Date();
-    payroll.paymentReference = paymentReference || null;
-
-    await this.payrollRepo.save(payroll);
-
-    this.eventEmitter.emit("payroll.paid", {
-      payrollId: payroll.id,
-      employeeId: payroll.employeeId,
+    return this.payrollService.payPayroll(
+      payrollId,
       organizationId,
-      amount: payroll.netSalary,
-    });
-
-    return this.mapPayrollToDto(payroll);
+      paymentReference,
+    );
   }
 
-  /**
-   * Get payrolls (paginated)
-   */
   async getPayrolls(
     organizationId: string,
     query: QueryPayrollDto,
   ): Promise<PayrollListDto> {
-    const {
-      page = 1,
-      limit = 20,
-      employeeId,
-      status,
-      periodStart,
-      periodEnd,
-    } = query;
-
-    const qb = this.payrollRepo
-      .createQueryBuilder("p")
-      .where("p.organizationId = :organizationId", { organizationId });
-
-    if (employeeId) {
-      qb.andWhere("p.employeeId = :employeeId", { employeeId });
-    }
-
-    if (status) {
-      qb.andWhere("p.status = :status", { status });
-    }
-
-    if (periodStart) {
-      qb.andWhere("p.periodStart >= :periodStart", { periodStart });
-    }
-
-    if (periodEnd) {
-      qb.andWhere("p.periodEnd <= :periodEnd", { periodEnd });
-    }
-
-    const [items, total] = await qb
-      .orderBy("p.periodStart", "DESC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items: items.map((p) => this.mapPayrollToDto(p)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.payrollService.getPayrolls(organizationId, query);
   }
 
-  /**
-   * Get a single payroll record
-   */
   async getPayroll(
     payrollId: string,
     organizationId: string,
   ): Promise<PayrollDto> {
-    const payroll = await this.payrollRepo.findOne({
-      where: { id: payrollId, organizationId },
-    });
-    if (!payroll) {
-      throw new NotFoundException("Payroll record not found");
-    }
-    return this.mapPayrollToDto(payroll);
+    return this.payrollService.getPayroll(payrollId, organizationId);
   }
 
   // ============================================================================
-  // PERFORMANCE REVIEWS
+  // PERFORMANCE REVIEWS (delegated)
   // ============================================================================
 
-  /**
-   * Create a performance review
-   */
   async createReview(
     organizationId: string,
     dto: CreateReviewDto,
   ): Promise<PerformanceReviewDto> {
-    await this.findEmployee(dto.employeeId, organizationId);
-
-    const review = this.reviewRepo.create({
-      organizationId,
-      employeeId: dto.employeeId,
-      reviewerId: dto.reviewerId,
-      reviewPeriod: dto.reviewPeriod,
-      periodStart: new Date(dto.periodStart),
-      periodEnd: new Date(dto.periodEnd),
-      status: ReviewStatus.SCHEDULED,
-    });
-
-    await this.reviewRepo.save(review);
-
-    this.logger.log(
-      `Performance review created for employee ${dto.employeeId}`,
-    );
-
-    return this.mapReviewToDto(review);
+    return this.performanceReviewService.createReview(organizationId, dto);
   }
 
-  /**
-   * Submit a review with ratings
-   */
   async submitReview(
     reviewId: string,
     organizationId: string,
     dto: SubmitReviewDto,
   ): Promise<PerformanceReviewDto> {
-    const review = await this.reviewRepo.findOne({
-      where: { id: reviewId, organizationId },
-    });
-    if (!review) {
-      throw new NotFoundException("Performance review not found");
-    }
-
-    if (review.status === ReviewStatus.COMPLETED) {
-      throw new BadRequestException("Review is already completed");
-    }
-
-    if (review.status === ReviewStatus.CANCELLED) {
-      throw new BadRequestException("Review has been cancelled");
-    }
-
-    review.overallRating = dto.overallRating;
-    review.ratings = dto.ratings;
-    review.strengths = dto.strengths || null;
-    review.areasForImprovement = dto.areasForImprovement || null;
-    review.goals = dto.goals || null;
-    review.reviewerComments = dto.reviewerComments || null;
-    review.status = ReviewStatus.COMPLETED;
-    review.completedAt = new Date();
-
-    await this.reviewRepo.save(review);
-
-    this.eventEmitter.emit("review.completed", {
-      reviewId: review.id,
-      employeeId: review.employeeId,
+    return this.performanceReviewService.submitReview(
+      reviewId,
       organizationId,
-      overallRating: review.overallRating,
-    });
-
-    return this.mapReviewToDto(review);
+      dto,
+    );
   }
 
-  /**
-   * Get reviews (paginated)
-   */
   async getReviews(
     organizationId: string,
     query: QueryReviewsDto,
   ): Promise<PerformanceReviewListDto> {
-    const { page = 1, limit = 20, employeeId, status, reviewPeriod } = query;
-
-    const qb = this.reviewRepo
-      .createQueryBuilder("r")
-      .where("r.organizationId = :organizationId", { organizationId });
-
-    if (employeeId) {
-      qb.andWhere("r.employeeId = :employeeId", { employeeId });
-    }
-
-    if (status) {
-      qb.andWhere("r.status = :status", { status });
-    }
-
-    if (reviewPeriod) {
-      qb.andWhere("r.reviewPeriod = :reviewPeriod", { reviewPeriod });
-    }
-
-    const [items, total] = await qb
-      .orderBy("r.periodEnd", "DESC")
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      items: items.map((r) => this.mapReviewToDto(r)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.performanceReviewService.getReviews(organizationId, query);
   }
 
-  /**
-   * Get a single review
-   */
   async getReview(
     reviewId: string,
     organizationId: string,
   ): Promise<PerformanceReviewDto> {
-    const review = await this.reviewRepo.findOne({
-      where: { id: reviewId, organizationId },
-    });
-    if (!review) {
-      throw new NotFoundException("Performance review not found");
-    }
-    return this.mapReviewToDto(review);
+    return this.performanceReviewService.getReview(reviewId, organizationId);
   }
 
   // ============================================================================
-  // HELPERS
+  // PRIVATE HELPERS
   // ============================================================================
 
   private async findEmployee(
@@ -1718,118 +778,6 @@ export class EmployeesService {
       notes: employee.notes,
       createdAt: employee.created_at,
       updatedAt: employee.updated_at,
-    };
-  }
-
-  private mapDepartmentToDto(department: Department): DepartmentDto {
-    return {
-      id: department.id,
-      organizationId: department.organizationId,
-      name: department.name,
-      code: department.code,
-      description: department.description,
-      managerId: department.managerId,
-      parentDepartmentId: department.parentDepartmentId,
-      isActive: department.isActive,
-      sortOrder: department.sortOrder,
-      subDepartments: department.subDepartments
-        ? department.subDepartments.map((d) => this.mapDepartmentToDto(d))
-        : undefined,
-      createdAt: department.created_at,
-      updatedAt: department.updated_at,
-    };
-  }
-
-  private mapAttendanceToDto(attendance: Attendance): AttendanceDto {
-    return {
-      id: attendance.id,
-      organizationId: attendance.organizationId,
-      employeeId: attendance.employeeId,
-      date: attendance.date,
-      checkIn: attendance.checkIn,
-      checkOut: attendance.checkOut,
-      totalHours: attendance.totalHours ? Number(attendance.totalHours) : null,
-      overtimeHours: attendance.overtimeHours
-        ? Number(attendance.overtimeHours)
-        : null,
-      status: attendance.status,
-      note: attendance.note,
-      checkInLocation: attendance.checkInLocation,
-      checkOutLocation: attendance.checkOutLocation,
-      createdAt: attendance.created_at,
-      updatedAt: attendance.updated_at,
-    };
-  }
-
-  private mapLeaveRequestToDto(leaveRequest: LeaveRequest): LeaveRequestDto {
-    return {
-      id: leaveRequest.id,
-      organizationId: leaveRequest.organizationId,
-      employeeId: leaveRequest.employeeId,
-      leaveType: leaveRequest.leaveType,
-      startDate: leaveRequest.startDate,
-      endDate: leaveRequest.endDate,
-      totalDays: Number(leaveRequest.totalDays),
-      reason: leaveRequest.reason,
-      status: leaveRequest.status,
-      approvedById: leaveRequest.approvedById,
-      approvedAt: leaveRequest.approvedAt,
-      rejectionReason: leaveRequest.rejectionReason,
-      createdAt: leaveRequest.created_at,
-      updatedAt: leaveRequest.updated_at,
-    };
-  }
-
-  private mapPayrollToDto(payroll: Payroll): PayrollDto {
-    return {
-      id: payroll.id,
-      organizationId: payroll.organizationId,
-      employeeId: payroll.employeeId,
-      periodStart: payroll.periodStart,
-      periodEnd: payroll.periodEnd,
-      baseSalary: Number(payroll.baseSalary),
-      overtimePay: Number(payroll.overtimePay),
-      bonuses: Number(payroll.bonuses),
-      deductions: Number(payroll.deductions),
-      taxAmount: Number(payroll.taxAmount),
-      netSalary: Number(payroll.netSalary),
-      currency: payroll.currency,
-      status: payroll.status,
-      calculatedAt: payroll.calculatedAt,
-      approvedById: payroll.approvedById,
-      approvedAt: payroll.approvedAt,
-      paidAt: payroll.paidAt,
-      paymentReference: payroll.paymentReference,
-      workingDays: payroll.workingDays,
-      workedDays: payroll.workedDays,
-      overtimeHours: Number(payroll.overtimeHours),
-      details: payroll.details,
-      note: payroll.note,
-      createdAt: payroll.created_at,
-      updatedAt: payroll.updated_at,
-    };
-  }
-
-  private mapReviewToDto(review: PerformanceReview): PerformanceReviewDto {
-    return {
-      id: review.id,
-      organizationId: review.organizationId,
-      employeeId: review.employeeId,
-      reviewerId: review.reviewerId,
-      reviewPeriod: review.reviewPeriod,
-      periodStart: review.periodStart,
-      periodEnd: review.periodEnd,
-      status: review.status,
-      overallRating: review.overallRating ? Number(review.overallRating) : null,
-      ratings: review.ratings,
-      strengths: review.strengths,
-      areasForImprovement: review.areasForImprovement,
-      goals: review.goals,
-      employeeComments: review.employeeComments,
-      reviewerComments: review.reviewerComments,
-      completedAt: review.completedAt,
-      createdAt: review.created_at,
-      updatedAt: review.updated_at,
     };
   }
 }
