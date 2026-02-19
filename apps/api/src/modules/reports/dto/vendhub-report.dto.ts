@@ -281,6 +281,26 @@ export interface ProductPaymentTypeDto {
 }
 
 /**
+ * Краткий месячный итог по типу платежа (для листов Наличные_месяцы, QR_месяцы)
+ */
+export interface PaymentTypeMonthSummaryDto {
+  monthName: string;
+  total: { count: number; amount: number };
+}
+
+/**
+ * Доля QR по автомату
+ */
+export interface QRShareByMachineDto {
+  machineId: string;
+  address?: string;
+  totalOrders: number;
+  cashOrders: number;
+  qrOrders: number;
+  qrSharePercent: number;
+}
+
+/**
  * Детальный отчет по месяцу (Нал_/QR_)
  */
 export interface MonthlyDetailedDto {
@@ -516,6 +536,37 @@ export interface PurchaseRecordDto {
 // ============================================================================
 
 /**
+ * Детализация VIP/Кредит заказа
+ */
+export interface VipCreditDetailDto {
+  date: string;
+  machineCode: string;
+  machineAddress?: string;
+  productName: string;
+  amount: number;
+  status: string;
+}
+
+/**
+ * Ежедневный отчет по типам платежей (по датам)
+ */
+export interface DailyPaymentTypeDto {
+  date: string;
+  cash?: { count: number; amount: number };
+  qr?: { count: number; amount: number };
+  vip?: { count: number; amount: number };
+  total?: { count: number; amount: number };
+}
+
+/**
+ * Средний чек (сводка)
+ */
+export interface AverageCheckDto {
+  byMonth: { month: string; averageCheck: number }[];
+  byProduct: { product: string; averageCheck: number }[];
+}
+
+/**
  * Полный отчет VendHub (Structure A)
  */
 export interface VendHubReportStructureA {
@@ -527,17 +578,17 @@ export interface VendHubReportStructureA {
 
   // Наличные детализация
   cashSummary: {
-    months: MonthlyDetailedDto[];
+    months: PaymentTypeMonthSummaryDto[];
     products: ProductPaymentTypeDto[];
     machines: MachinePaymentTypeDto[];
   };
 
   // QR детализация
   qrSummary: {
-    months: MonthlyDetailedDto[];
+    months: PaymentTypeMonthSummaryDto[];
     products: ProductPaymentTypeDto[];
     machines: MachinePaymentTypeDto[];
-    qrShare: MachinePaymentTypeDto[]; // Доля QR по автоматам
+    qrShare: QRShareByMachineDto[]; // Доля QR по автоматам
     payme: QRPaymentDetailDto[];
     click: QRPaymentDetailDto[];
   };
@@ -545,23 +596,19 @@ export interface VendHubReportStructureA {
   // VIP и Кредит
   vipSummary: {
     total: PaymentTypeSummaryDto;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details: any[];
+    details: VipCreditDetailDto[];
     products: ProductPaymentTypeDto[];
   };
   creditSummary: {
     total: PaymentTypeSummaryDto;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details: any[];
+    details: VipCreditDetailDto[];
   };
 
   // Служебные
   qrReconciliation: QRReconciliationDto[];
   crossAnalysis: CrossAnalysisDto;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dailyReport: any[]; // Ежедневно по датам (223 строки)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  averageCheck: any;
+  dailyReport: DailyPaymentTypeDto[]; // Ежедневно по датам (223 строки)
+  averageCheck: AverageCheckDto;
 }
 
 /**
@@ -629,8 +676,7 @@ export interface VendHubFullReportDto {
         | "qr_discrepancy";
       severity: "info" | "warning" | "critical";
       message: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data?: any;
+      data?: Record<string, unknown>;
     }[];
   };
 }

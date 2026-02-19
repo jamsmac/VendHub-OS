@@ -15,6 +15,17 @@ import {
   TimeOffStatus,
   TimeOffType,
 } from "./entities/work-log.entity";
+import {
+  CreateWorkLogDto,
+  UpdateWorkLogDto,
+  ClockInDto,
+  ClockOutDto,
+  WorkLogQueryDto,
+  CreateTimeOffRequestDto,
+  TimeOffQueryDto,
+  ApproveTimeOffDto,
+  ApproveTimesheetDto,
+} from "./dto/work-log.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -116,8 +127,7 @@ describe("WorkLogsService", () => {
     workLogRepo = createMockRepository<WorkLog>();
     timeOffRepo = createMockRepository<TimeOffRequest>();
     timesheetRepo = createMockRepository<Timesheet>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    eventEmitter = { emit: jest.fn() } as any;
+    eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -157,8 +167,10 @@ describe("WorkLogsService", () => {
       workLogRepo.create!.mockReturnValue(created);
       workLogRepo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createWorkLog(orgId, dto as any);
+      const result = await service.createWorkLog(
+        orgId,
+        dto as CreateWorkLogDto,
+      );
 
       expect(workLogRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -184,14 +196,12 @@ describe("WorkLogsService", () => {
     it("should return paginated work logs", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockWorkLog], 1]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      workLogRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      workLogRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllWorkLogs(orgId, {
         page: 1,
         limit: 20,
-      } as any);
+      } as WorkLogQueryDto);
 
       expect(result).toEqual({
         data: [mockWorkLog],
@@ -205,8 +215,7 @@ describe("WorkLogsService", () => {
     it("should apply all optional filters", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[], 0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      workLogRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      workLogRepo.createQueryBuilder!.mockReturnValue(qb);
 
       await service.findAllWorkLogs(orgId, {
         employeeId: "emp-1",
@@ -219,8 +228,7 @@ describe("WorkLogsService", () => {
         machineId: "machine-1",
         page: 2,
         limit: 10,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as WorkLogQueryDto);
 
       // 7 optional filters + the mandatory org + deletedAt filter
       expect(qb.andWhere).toHaveBeenCalledTimes(8);
@@ -259,10 +267,9 @@ describe("WorkLogsService", () => {
       workLogRepo.findOne!.mockResolvedValue(draft);
       workLogRepo.save!.mockResolvedValue({ ...draft, description: "Updated" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateWorkLog(orgId, workLogId, {
         description: "Updated",
-      } as any);
+      } as UpdateWorkLogDto);
 
       expect(draft.calculateWorkedMinutes).toHaveBeenCalled();
       expect(draft.calculatePayAmount).toHaveBeenCalled();
@@ -274,10 +281,9 @@ describe("WorkLogsService", () => {
       workLogRepo.findOne!.mockResolvedValue(rejected);
       workLogRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateWorkLog(orgId, workLogId, {
         description: "Fixed",
-      } as any);
+      } as UpdateWorkLogDto);
 
       expect(result.status).toBe(WorkLogStatus.DRAFT);
     });
@@ -288,9 +294,8 @@ describe("WorkLogsService", () => {
         status: WorkLogStatus.APPROVED,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.updateWorkLog(orgId, workLogId, {} as any),
+        service.updateWorkLog(orgId, workLogId, {} as UpdateWorkLogDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -335,11 +340,10 @@ describe("WorkLogsService", () => {
       workLogRepo.create!.mockReturnValue(created);
       workLogRepo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.clockIn(orgId, employeeId, {
         latitude: 41.3,
         longitude: 69.2,
-      } as any);
+      } as ClockInDto);
 
       expect(workLogRepo.create).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith("worklog.clockedin", {
@@ -351,9 +355,8 @@ describe("WorkLogsService", () => {
     it("should throw BadRequestException when already clocked in", async () => {
       workLogRepo.findOne!.mockResolvedValue({ ...mockWorkLog, clockOut: "" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.clockIn(orgId, employeeId, {} as any),
+        service.clockIn(orgId, employeeId, {} as ClockInDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -374,8 +377,7 @@ describe("WorkLogsService", () => {
         longitude: 69.2,
         description: "Done",
         breakMinutes: 30,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as ClockOutDto);
 
       expect(result.clockOut).toBeTruthy();
       expect(result.checkOutLatitude).toBe(41.3);
@@ -389,9 +391,10 @@ describe("WorkLogsService", () => {
     it("should throw NotFoundException when work log not found", async () => {
       workLogRepo.findOne!.mockResolvedValue(null);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.clockOut(orgId, employeeId, { workLogId: "bad" } as any),
+        service.clockOut(orgId, employeeId, {
+          workLogId: "bad",
+        } as ClockOutDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -401,9 +404,8 @@ describe("WorkLogsService", () => {
         clockOut: "17:00",
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.clockOut(orgId, employeeId, { workLogId } as any),
+        service.clockOut(orgId, employeeId, { workLogId } as ClockOutDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -552,8 +554,8 @@ describe("WorkLogsService", () => {
     it("should create a time off request with calculated total days", async () => {
       const dto = {
         timeOffType: TimeOffType.VACATION,
-        startDate: "2025-02-01",
-        endDate: "2025-02-05",
+        startDate: new Date("2025-02-01"),
+        endDate: new Date("2025-02-05"),
         halfDayStart: false,
         halfDayEnd: false,
         reason: "Family trip",
@@ -566,8 +568,11 @@ describe("WorkLogsService", () => {
       });
       timeOffRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createTimeOffRequest(orgId, employeeId, dto as any);
+      await service.createTimeOffRequest(
+        orgId,
+        employeeId,
+        dto as CreateTimeOffRequestDto,
+      );
 
       expect(timeOffRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -587,14 +592,12 @@ describe("WorkLogsService", () => {
     it("should return paginated time off requests", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockTimeOff], 1]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timeOffRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      timeOffRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllTimeOffRequests(orgId, {
         page: 1,
         limit: 20,
-      } as any);
+      } as TimeOffQueryDto);
 
       expect(result).toEqual({ data: [mockTimeOff], total: 1 });
     });
@@ -608,12 +611,11 @@ describe("WorkLogsService", () => {
       });
       timeOffRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.approveTimeOff(
         orgId,
         timeOffId,
         userId,
-        {} as any,
+        {} as ApproveTimeOffDto,
       );
 
       expect(result.status).toBe(TimeOffStatus.APPROVED);
@@ -623,9 +625,8 @@ describe("WorkLogsService", () => {
     it("should throw NotFoundException when request not found", async () => {
       timeOffRepo.findOne!.mockResolvedValue(null);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.approveTimeOff(orgId, "bad", userId, {} as any),
+        service.approveTimeOff(orgId, "bad", userId, {} as ApproveTimeOffDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -635,9 +636,13 @@ describe("WorkLogsService", () => {
         status: TimeOffStatus.APPROVED,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.approveTimeOff(orgId, timeOffId, userId, {} as any),
+        service.approveTimeOff(
+          orgId,
+          timeOffId,
+          userId,
+          {} as ApproveTimeOffDto,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -732,12 +737,11 @@ describe("WorkLogsService", () => {
       });
       timesheetRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.approveTimesheet(
         orgId,
         timesheetId,
         userId,
-        {} as any,
+        {} as ApproveTimesheetDto,
       );
 
       expect(result.status).toBe("approved");
@@ -759,8 +763,7 @@ describe("WorkLogsService", () => {
         userId,
         {
           deductions: 50000,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        } as ApproveTimesheetDto,
       );
 
       expect(result.deductions).toBe(50000);
@@ -818,8 +821,7 @@ describe("WorkLogsService", () => {
           status: WorkLogStatus.APPROVED,
         },
       ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      workLogRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      workLogRepo.createQueryBuilder!.mockReturnValue(qb);
 
       const result = await service.getWorkLogStats(
         orgId,
@@ -837,8 +839,7 @@ describe("WorkLogsService", () => {
     it("should return zero averages when no data", async () => {
       const qb = createMockQueryBuilder();
       qb.getMany.mockResolvedValue([]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      workLogRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      workLogRepo.createQueryBuilder!.mockReturnValue(qb);
 
       const result = await service.getWorkLogStats(orgId);
 

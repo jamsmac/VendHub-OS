@@ -12,6 +12,17 @@ import {
   MaterialRequestStatus,
   RequestPriority,
 } from "./entities/material-request.entity";
+import {
+  CreateMaterialRequestDto,
+  UpdateMaterialRequestDto,
+  ApproveRequestDto,
+  RejectRequestDto,
+  RecordPaymentDto,
+  ConfirmDeliveryDto,
+  CancelRequestDto,
+  MaterialRequestFilterDto,
+} from "./dto/material-request.dto";
+import { User } from "../users/entities/user.entity";
 
 // ============================================================================
 // MOCK HELPERS
@@ -86,32 +97,22 @@ describe("MaterialRequestsService", () => {
     organizationId: ORG_ID,
     requestNumber: "MR-2025-00001",
     requesterId: USER_ID,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    requester: { firstName: "Test", lastName: "User" } as any,
+    requester: { firstName: "Test", lastName: "User" } as unknown as User,
     status: MaterialRequestStatus.DRAFT,
     priority: RequestPriority.NORMAL,
     supplierId: "supplier-uuid-1",
     notes: "Monthly order",
     totalAmount: 500000,
     paidAmount: 0,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    approvedBy: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    approver: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    approvedAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rejectionReason: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    submittedAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sentAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    deliveredAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    completedAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cancelledAt: null as any,
+    approvedBy: null as unknown as string,
+    approver: null as unknown as User,
+    approvedAt: null as unknown as Date,
+    rejectionReason: null as unknown as string,
+    submittedAt: null as unknown as Date,
+    sentAt: null as unknown as Date,
+    deliveredAt: null as unknown as Date,
+    completedAt: null as unknown as Date,
+    cancelledAt: null as unknown as Date,
     items: [mockItem as MaterialRequestItem],
     created_at: new Date(),
     updated_at: new Date(),
@@ -167,8 +168,7 @@ describe("MaterialRequestsService", () => {
     mockQb = createMockQueryBuilder();
     requestRepo.createQueryBuilder!.mockReturnValue(mockQb);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    eventEmitter = { emit: jest.fn() } as any;
+    eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -220,8 +220,11 @@ describe("MaterialRequestsService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createRequest(USER_ID, ORG_ID, dto as any);
+      const result = await service.createRequest(
+        USER_ID,
+        ORG_ID,
+        dto as CreateMaterialRequestDto,
+      );
 
       expect(requestRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -251,8 +254,11 @@ describe("MaterialRequestsService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createRequest(USER_ID, ORG_ID, dto as any);
+      await service.createRequest(
+        USER_ID,
+        ORG_ID,
+        dto as CreateMaterialRequestDto,
+      );
 
       expect(requestRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -282,8 +288,11 @@ describe("MaterialRequestsService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createRequest(USER_ID, ORG_ID, dto as any);
+      const result = await service.createRequest(
+        USER_ID,
+        ORG_ID,
+        dto as CreateMaterialRequestDto,
+      );
 
       // 10*1000 + 5*2000 = 20000
       expect(result.totalAmount).toBe(20000);
@@ -306,12 +315,11 @@ describe("MaterialRequestsService", () => {
       });
 
       const dto = { notes: "Updated notes" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateRequest(
         "req-uuid-1",
         USER_ID,
         ORG_ID,
-        dto as any,
+        dto as UpdateMaterialRequestDto,
       );
 
       expect(result).toBeDefined();
@@ -321,10 +329,9 @@ describe("MaterialRequestsService", () => {
       requestRepo.findOne!.mockResolvedValue({ ...mockNewRequest });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateRequest("req-uuid-2", USER_ID, ORG_ID, {
           notes: "X",
-        } as any),
+        } as UpdateMaterialRequestDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -397,10 +404,9 @@ describe("MaterialRequestsService", () => {
       historyRepo.create!.mockReturnValue({});
       historyRepo.save!.mockResolvedValue({});
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.approveRequest("req-uuid-2", APPROVER_ID, ORG_ID, {
         comment: "Approved",
-      } as any);
+      } as ApproveRequestDto);
 
       expect(historyRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -426,8 +432,7 @@ describe("MaterialRequestsService", () => {
         "req-uuid-2",
         USER_ID,
         ORG_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { reason: "Budget exceeded" } as any,
+        { reason: "Budget exceeded" } as RejectRequestDto,
       );
 
       expect(result.status).toBe(MaterialRequestStatus.REJECTED);
@@ -485,8 +490,7 @@ describe("MaterialRequestsService", () => {
         "req-uuid-4",
         USER_ID,
         ORG_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { amount: 500000 } as any,
+        { amount: 500000 } as RecordPaymentDto,
       );
 
       expect(result.status).toBe(MaterialRequestStatus.PAID);
@@ -507,8 +511,7 @@ describe("MaterialRequestsService", () => {
         "req-uuid-4",
         USER_ID,
         ORG_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { amount: 200000 } as any,
+        { amount: 200000 } as RecordPaymentDto,
       );
 
       expect(result.status).toBe(MaterialRequestStatus.PARTIALLY_PAID);
@@ -519,10 +522,9 @@ describe("MaterialRequestsService", () => {
       requestRepo.findOne!.mockResolvedValue({ ...mockRequest });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.recordPayment("req-uuid-1", USER_ID, ORG_ID, {
           amount: 100000,
-        } as any),
+        } as RecordPaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -544,12 +546,11 @@ describe("MaterialRequestsService", () => {
         notes: "Some items damaged",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.confirmDelivery(
         "req-uuid-5",
         USER_ID,
         ORG_ID,
-        dto as any,
+        dto as ConfirmDeliveryDto,
       );
 
       expect(result.status).toBe(MaterialRequestStatus.DELIVERED);
@@ -571,8 +572,7 @@ describe("MaterialRequestsService", () => {
         "req-uuid-1",
         USER_ID,
         ORG_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { reason: "No longer needed" } as any,
+        { reason: "No longer needed" } as CancelRequestDto,
       );
 
       expect(result.status).toBe(MaterialRequestStatus.CANCELLED);
@@ -586,10 +586,9 @@ describe("MaterialRequestsService", () => {
       });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.cancelRequest("req-uuid-1", USER_ID, ORG_ID, {
           reason: "X",
-        } as any),
+        } as CancelRequestDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -627,8 +626,10 @@ describe("MaterialRequestsService", () => {
     it("should return paginated requests", async () => {
       mockQb.getManyAndCount.mockResolvedValue([[mockRequest], 1]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.getRequests(ORG_ID, {} as any);
+      const result = await service.getRequests(
+        ORG_ID,
+        {} as MaterialRequestFilterDto,
+      );
 
       expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
@@ -638,10 +639,9 @@ describe("MaterialRequestsService", () => {
     it("should apply status filter", async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.getRequests(ORG_ID, {
         status: MaterialRequestStatus.NEW,
-      } as any);
+      } as MaterialRequestFilterDto);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith("r.status = :status", {
         status: MaterialRequestStatus.NEW,
@@ -651,8 +651,9 @@ describe("MaterialRequestsService", () => {
     it("should apply search filter", async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.getRequests(ORG_ID, { search: "MR-2025" } as any);
+      await service.getRequests(ORG_ID, {
+        search: "MR-2025",
+      } as MaterialRequestFilterDto);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "(r.requestNumber ILIKE :search OR r.notes ILIKE :search)",

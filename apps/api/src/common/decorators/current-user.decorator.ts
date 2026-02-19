@@ -20,11 +20,10 @@ export interface ICurrentUser {
 }
 
 export const CurrentUser = createParamDecorator(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (
     data: keyof ICurrentUser | undefined,
     ctx: ExecutionContext,
-  ): ICurrentUser | any => {
+  ): ICurrentUser | ICurrentUser[keyof ICurrentUser] | null => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user as ICurrentUser;
 

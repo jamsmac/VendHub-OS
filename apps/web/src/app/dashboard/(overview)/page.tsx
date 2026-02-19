@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   TrendingUp,
   ArrowUpRight,
@@ -116,8 +117,13 @@ function formatShortUZS(amount: number): string {
 // Custom Recharts Tooltip
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function RevenueTooltip({ active, payload, label }: any) {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; name?: string }>;
+  label?: string;
+}
+
+function RevenueTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background p-3 shadow-sm">
@@ -127,8 +133,7 @@ function RevenueTooltip({ active, payload, label }: any) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function PieTooltip({ active, payload }: any) {
+function PieTooltip({ active, payload }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background p-3 shadow-sm">
@@ -138,8 +143,7 @@ function PieTooltip({ active, payload }: any) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function BarTooltip({ active, payload, label }: any) {
+function BarTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background p-3 shadow-sm">
@@ -186,13 +190,7 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
 // Change indicator component
 // ---------------------------------------------------------------------------
 
-function ChangeIndicator({
-  value,
-  suffix = "vs вчера",
-}: {
-  value: number;
-  suffix?: string;
-}) {
+function ChangeIndicator({ value, suffix }: { value: number; suffix: string }) {
   const isPositive = value >= 0;
   return (
     <div className="flex items-center text-xs">
@@ -216,14 +214,20 @@ function ChangeIndicator({
 // Status badge for transactions
 // ---------------------------------------------------------------------------
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({
+  status,
+  labels,
+}: {
+  status: string;
+  labels: Record<string, string>;
+}) {
   switch (status) {
     case "completed":
-      return <Badge variant="success">Выполнен</Badge>;
+      return <Badge variant="success">{labels.completed}</Badge>;
     case "pending":
-      return <Badge variant="warning">Ожидает</Badge>;
+      return <Badge variant="warning">{labels.pending}</Badge>;
     case "failed":
-      return <Badge variant="destructive">Ошибка</Badge>;
+      return <Badge variant="destructive">{labels.failed}</Badge>;
     default:
       return <Badge>{status}</Badge>;
   }
@@ -234,6 +238,8 @@ function StatusBadge({ status }: { status: string }) {
 // ---------------------------------------------------------------------------
 
 export default function DashboardOverviewPage() {
+  const t = useTranslations("dashboard");
+
   // Fetch real dashboard data from API
   const { data: apiResponse, isLoading } = useQuery({
     queryKey: ["dashboard"],
@@ -245,14 +251,13 @@ export default function DashboardOverviewPage() {
   const dashboard = apiResponse ?? EMPTY_DASHBOARD;
 
   // Chart data from API response (empty arrays when no data)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const apiData = (apiResponse as any) ?? {};
+  const apiData = (apiResponse ?? {}) as Record<string, unknown>;
   const revenueTrend: { date: string; revenue: number }[] =
-    apiData.revenueTrend ?? [];
+    (apiData.revenueTrend as { date: string; revenue: number }[]) ?? [];
   const paymentMethods: { name: string; value: number }[] =
-    apiData.paymentMethods ?? [];
+    (apiData.paymentMethods as { name: string; value: number }[]) ?? [];
   const topMachines: { name: string; revenue: number }[] =
-    apiData.topMachines ?? [];
+    (apiData.topMachines as { name: string; revenue: number }[]) ?? [];
 
   // -----------------------------------------------------------------------
   // Loading state
@@ -260,34 +265,31 @@ export default function DashboardOverviewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Header skeleton */}
         <div>
           <Skeleton className="h-7 w-36 mb-2" />
           <Skeleton className="h-4 w-72" />
         </div>
-
-        {/* KPI row */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KPICardSkeleton />
           <KPICardSkeleton />
           <KPICardSkeleton />
           <KPICardSkeleton />
         </div>
-
-        {/* Chart row 1 */}
         <ChartSkeleton height={300} />
-
-        {/* Chart row 2 */}
         <div className="grid gap-4 md:grid-cols-2">
           <ChartSkeleton height={250} />
           <ChartSkeleton height={250} />
         </div>
-
-        {/* Table skeleton */}
         <ChartSkeleton height={200} />
       </div>
     );
   }
+
+  const statusLabels = {
+    completed: t("completed"),
+    pending: t("pending"),
+    failed: t("failed"),
+  };
 
   // -----------------------------------------------------------------------
   // Rendered dashboard
@@ -296,21 +298,17 @@ export default function DashboardOverviewPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold">Обзор</h1>
-        <p className="text-muted-foreground">
-          Добро пожаловать в VendHub! Вот сводка по вашему бизнесу.
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("welcome")}</p>
       </div>
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Row 1 -- KPI Cards                                                */}
-      {/* ----------------------------------------------------------------- */}
+      {/* Row 1 -- KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Revenue today */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Выручка сегодня
+              {t("revenueToday")}
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -318,21 +316,29 @@ export default function DashboardOverviewPage() {
             <div className="text-2xl font-bold">
               {formatUZS(dashboard.revenue.today)}
             </div>
-            <ChangeIndicator value={dashboard.revenue.changePercent} />
+            <ChangeIndicator
+              value={dashboard.revenue.changePercent}
+              suffix={t("vsYesterday")}
+            />
           </CardContent>
         </Card>
 
         {/* Transactions today */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Транзакции</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("transactionsToday")}
+            </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {dashboard.transactions.today}
             </div>
-            <ChangeIndicator value={dashboard.transactions.changePercent} />
+            <ChangeIndicator
+              value={dashboard.transactions.changePercent}
+              suffix={t("vsYesterday")}
+            />
           </CardContent>
         </Card>
 
@@ -340,7 +346,7 @@ export default function DashboardOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Активные автоматы
+              {t("activeMachines")}
             </CardTitle>
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -358,7 +364,7 @@ export default function DashboardOverviewPage() {
                       100,
                   )
                 : 0}
-              % онлайн
+              % {t("online")}
             </p>
           </CardContent>
         </Card>
@@ -367,7 +373,7 @@ export default function DashboardOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Задачи выполнены
+              {t("tasksCompleted")}
             </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -375,18 +381,16 @@ export default function DashboardOverviewPage() {
             <div className="text-2xl font-bold">
               {dashboard.tasks.completedToday}
             </div>
-            <p className="text-xs text-muted-foreground">за сегодня</p>
+            <p className="text-xs text-muted-foreground">{t("today")}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Row 2 -- Revenue Trend (30 days)                                  */}
-      {/* ----------------------------------------------------------------- */}
+      {/* Row 2 -- Revenue Trend (30 days) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Выручка за 30 дней</CardTitle>
-          <CardDescription>Ежедневный тренд выручки в UZS</CardDescription>
+          <CardTitle className="text-base">{t("revenue30Days")}</CardTitle>
+          <CardDescription>{t("revenueTrend")}</CardDescription>
         </CardHeader>
         <CardContent>
           {revenueTrend.length > 0 ? (
@@ -434,21 +438,19 @@ export default function DashboardOverviewPage() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-              Нет данных за период
+              {t("noDataPeriod")}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Row 3 -- Pie (payment methods) + Horizontal Bar (top machines)    */}
-      {/* ----------------------------------------------------------------- */}
+      {/* Row 3 -- Pie (payment methods) + Horizontal Bar (top machines) */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Payment methods pie chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Способы оплаты</CardTitle>
-            <CardDescription>Распределение по методам оплаты</CardDescription>
+            <CardTitle className="text-base">{t("paymentMethods")}</CardTitle>
+            <CardDescription>{t("paymentDistribution")}</CardDescription>
           </CardHeader>
           <CardContent>
             {paymentMethods.length > 0 ? (
@@ -489,7 +491,7 @@ export default function DashboardOverviewPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                Нет данных
+                {t("noDataPeriod")}
               </div>
             )}
           </CardContent>
@@ -498,10 +500,8 @@ export default function DashboardOverviewPage() {
         {/* Top machines horizontal bar */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              Топ автоматов по выручке
-            </CardTitle>
-            <CardDescription>5 лучших за текущий месяц</CardDescription>
+            <CardTitle className="text-base">{t("topMachines")}</CardTitle>
+            <CardDescription>{t("top5Month")}</CardDescription>
           </CardHeader>
           <CardContent>
             {topMachines.length > 0 ? (
@@ -540,30 +540,28 @@ export default function DashboardOverviewPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                Нет данных
+                {t("noDataPeriod")}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Row 4 -- Recent Activity Table                                    */}
-      {/* ----------------------------------------------------------------- */}
+      {/* Row 4 -- Recent Activity Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Последние транзакции</CardTitle>
-          <CardDescription>5 последних операций за сегодня</CardDescription>
+          <CardTitle className="text-base">{t("recentTransactions")}</CardTitle>
+          <CardDescription>{t("last5Today")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Время</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead>Автомат</TableHead>
-                <TableHead className="text-right">Сумма</TableHead>
-                <TableHead className="text-right">Статус</TableHead>
+                <TableHead>{t("time")}</TableHead>
+                <TableHead>{t("type")}</TableHead>
+                <TableHead>{t("machine")}</TableHead>
+                <TableHead className="text-right">{t("amount")}</TableHead>
+                <TableHead className="text-right">{t("status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -584,7 +582,7 @@ export default function DashboardOverviewPage() {
                       {formatUZS(tx.amount)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <StatusBadge status={tx.status} />
+                      <StatusBadge status={tx.status} labels={statusLabels} />
                     </TableCell>
                   </TableRow>
                 ))
@@ -594,7 +592,7 @@ export default function DashboardOverviewPage() {
                     colSpan={5}
                     className="text-center text-muted-foreground py-8"
                   >
-                    Нет транзакций за сегодня
+                    {t("noTransactionsToday")}
                   </TableCell>
                 </TableRow>
               )}

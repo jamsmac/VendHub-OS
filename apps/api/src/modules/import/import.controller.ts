@@ -65,6 +65,19 @@ import {
 
 // DTOs - keeping for API documentation/future use
 
+interface UploadImportBody {
+  importType: ImportType;
+  templateId?: string;
+  skipDuplicates?: string;
+  updateExisting?: string;
+  dryRun?: string;
+  delimiter?: string;
+}
+
+interface ImportRowData {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 class _CreateImportDto {
   importType: ImportType;
   source: ImportSource;
@@ -86,8 +99,7 @@ class CreateTemplateDto {
   source: ImportSource;
   columnMappings: Record<string, string>;
   defaultValues?: Record<string, unknown>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  options?: any;
+  options?: Record<string, unknown>;
 }
 
 @ApiTags("Import")
@@ -123,12 +135,10 @@ export class ImportController {
     @CurrentOrganizationId() organizationId: string,
     @CurrentUser() user: ICurrentUser,
     @UploadedFile() file: Express.Multer.File,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() body: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @Body() body: UploadImportBody,
   ): Promise<{
     job: ImportJob;
-    preview: { headers: string[]; sampleRows: any[] };
+    preview: { headers: string[]; sampleRows: ImportRowData[] };
   }> {
     if (!file) {
       throw new Error("No file provided");
@@ -154,8 +164,7 @@ export class ImportController {
     }
 
     // Parse file for preview
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let parsed: { headers: string[]; rows: any[] };
+    let parsed: { headers: string[]; rows: ImportRowData[] };
 
     if (source === ImportSource.CSV) {
       parsed = await this.importService.parseCSV(file.buffer, {
@@ -199,8 +208,7 @@ export class ImportController {
   async validateImport(
     @CurrentOrganizationId() organizationId: string,
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() body: { rows: any[]; mapping?: Record<string, string> },
+    @Body() body: { rows: ImportRowData[]; mapping?: Record<string, string> },
   ) {
     const job = await this.importService.getImportJob(organizationId, id);
 
@@ -236,8 +244,7 @@ export class ImportController {
     @CurrentOrganizationId() organizationId: string,
     @CurrentUser() user: ICurrentUser,
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() _body: { rows: any[]; mapping?: Record<string, string> },
+    @Body() _body: { rows: ImportRowData[]; mapping?: Record<string, string> },
   ) {
     // This would trigger the actual import process
     // For a full implementation, this would be a background job
@@ -569,8 +576,13 @@ export class ImportController {
   @ApiOperation({ summary: "Get sample import file structure" })
   @ApiParam({ name: "importType", enum: ImportType })
   async getSampleStructure(@Param("importType") importType: ImportType) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const samples: Record<ImportType, { columns: string[]; sampleRow: any }> = {
+    const samples: Record<
+      ImportType,
+      {
+        columns: string[];
+        sampleRow: Record<string, string | number | boolean>;
+      }
+    > = {
       [ImportType.PRODUCTS]: {
         columns: [
           "name",

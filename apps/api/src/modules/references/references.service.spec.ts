@@ -9,7 +9,27 @@ import { GoodsClassifier } from "./entities/goods-classifier.entity";
 import { IkpuCode } from "./entities/ikpu-code.entity";
 import { VatRate } from "./entities/vat-rate.entity";
 import { PackageType } from "./entities/package-type.entity";
-import { PaymentProvider } from "./entities/payment-provider.entity";
+import {
+  PaymentProvider,
+  PaymentProviderType,
+} from "./entities/payment-provider.entity";
+import { QueryGoodsClassifiersDto } from "./dto/query-goods-classifiers.dto";
+import { QueryIkpuCodesDto } from "./dto/query-ikpu-codes.dto";
+import { QueryReferencesDto } from "./dto/query-references.dto";
+import {
+  CreateGoodsClassifierDto,
+  UpdateGoodsClassifierDto,
+} from "./dto/create-goods-classifier.dto";
+import {
+  CreateIkpuCodeDto,
+  UpdateIkpuCodeDto,
+} from "./dto/create-ikpu-code.dto";
+import { CreateVatRateDto, UpdateVatRateDto } from "./dto/create-vat-rate.dto";
+import { CreatePackageTypeDto } from "./dto/create-package-type.dto";
+import {
+  CreatePaymentProviderDto,
+  UpdatePaymentProviderDto,
+} from "./dto/create-payment-provider.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -56,16 +76,14 @@ describe("ReferencesService", () => {
     code: "10710001001000000",
     name_ru: "Шоколад",
     is_active: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as Partial<GoodsClassifier>;
 
   const mockIkpu: Partial<IkpuCode> = {
     id: "ikpu-uuid-1",
     code: "10710001001000001",
     name_ru: "Шоколад молочный",
     is_active: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as Partial<IkpuCode>;
 
   const mockVatRate: Partial<VatRate> = {
     id: "vat-uuid-1",
@@ -73,25 +91,22 @@ describe("ReferencesService", () => {
     rate: 12,
     is_active: true,
     is_default: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as Partial<VatRate>;
 
   const mockPackageType: Partial<PackageType> = {
     id: "pt-uuid-1",
     code: "BOX",
     name_ru: "Коробка",
     is_active: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as Partial<PackageType>;
 
   const mockPaymentProvider: Partial<PaymentProvider> = {
     id: "pp-uuid-1",
     code: "payme",
     name: "Payme",
-    type: "online",
+    type: PaymentProviderType.CARD,
     is_active: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as Partial<PaymentProvider>;
 
   beforeEach(async () => {
     goodsClassifierRepo = createMockRepository<GoodsClassifier>();
@@ -135,14 +150,12 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockClassifier]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      goodsClassifierRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      goodsClassifierRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllGoodsClassifiers({
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryGoodsClassifiersDto);
 
       expect(result.data).toEqual([mockClassifier]);
       expect(result.total).toBe(1);
@@ -153,15 +166,13 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      goodsClassifierRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      goodsClassifierRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAllGoodsClassifiers({
         search: "chocolate",
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryGoodsClassifiersDto);
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         expect.stringContaining("gc.code ILIKE :search"),
@@ -198,8 +209,7 @@ describe("ReferencesService", () => {
       const result = await service.createGoodsClassifier({
         code: "10710001001000000",
         name_ru: "Шоколад",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as CreateGoodsClassifierDto);
 
       expect(result).toEqual(mockClassifier);
     });
@@ -208,8 +218,9 @@ describe("ReferencesService", () => {
       goodsClassifierRepo.findOne!.mockResolvedValue(mockClassifier);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.createGoodsClassifier({ code: "10710001001000000" } as any),
+        service.createGoodsClassifier({
+          code: "10710001001000000",
+        } as CreateGoodsClassifierDto),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -219,10 +230,9 @@ describe("ReferencesService", () => {
       goodsClassifierRepo.findOne!.mockResolvedValue({ ...mockClassifier });
       goodsClassifierRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateGoodsClassifier("gc-uuid-1", {
         name_ru: "Updated",
-      } as any);
+      } as UpdateGoodsClassifierDto);
 
       expect(result.name_ru).toBe("Updated");
     });
@@ -230,9 +240,8 @@ describe("ReferencesService", () => {
     it("should throw NotFoundException when not found", async () => {
       goodsClassifierRepo.findOne!.mockResolvedValue(null);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.updateGoodsClassifier("bad", {} as any),
+        service.updateGoodsClassifier("bad", {} as UpdateGoodsClassifierDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -246,14 +255,12 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockIkpu]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ikpuCodeRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      ikpuCodeRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllIkpuCodes({
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryIkpuCodesDto);
 
       expect(result.data).toEqual([mockIkpu]);
       expect(result.total).toBe(1);
@@ -282,18 +289,18 @@ describe("ReferencesService", () => {
       ikpuCodeRepo.create!.mockReturnValue(mockIkpu);
       ikpuCodeRepo.save!.mockResolvedValue(mockIkpu);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createIkpuCode({
         code: "10710001001000001",
-      } as any);
+      } as CreateIkpuCodeDto);
       expect(result).toEqual(mockIkpu);
     });
 
     it("should throw ConflictException on duplicate", async () => {
       ikpuCodeRepo.findOne!.mockResolvedValue(mockIkpu);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.createIkpuCode({ code: "10710001001000001" } as any),
+        service.createIkpuCode({
+          code: "10710001001000001",
+        } as CreateIkpuCodeDto),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -303,19 +310,17 @@ describe("ReferencesService", () => {
       ikpuCodeRepo.findOne!.mockResolvedValue({ ...mockIkpu });
       ikpuCodeRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateIkpuCode("ikpu-uuid-1", {
         name_ru: "New name",
-      } as any);
+      } as UpdateIkpuCodeDto);
       expect(result.name_ru).toBe("New name");
     });
 
     it("should throw NotFoundException when not found", async () => {
       ikpuCodeRepo.findOne!.mockResolvedValue(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await expect(service.updateIkpuCode("bad", {} as any)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateIkpuCode("bad", {} as UpdateIkpuCodeDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -328,14 +333,12 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockVatRate]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vatRateRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      vatRateRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllVatRates({
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryReferencesDto);
       expect(result.data).toEqual([mockVatRate]);
     });
   });
@@ -360,11 +363,10 @@ describe("ReferencesService", () => {
       vatRateRepo.create!.mockReturnValue(mockVatRate);
       vatRateRepo.save!.mockResolvedValue(mockVatRate);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createVatRate({
         code: "VAT12",
         rate: 12,
-      } as any);
+      } as CreateVatRateDto);
 
       expect(result).toEqual(mockVatRate);
       expect(cacheManager.del).toHaveBeenCalledWith("ref:default_vat_rate");
@@ -372,9 +374,8 @@ describe("ReferencesService", () => {
 
     it("should throw ConflictException on duplicate", async () => {
       vatRateRepo.findOne!.mockResolvedValue(mockVatRate);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.createVatRate({ code: "VAT12" } as any),
+        service.createVatRate({ code: "VAT12" } as CreateVatRateDto),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -384,8 +385,9 @@ describe("ReferencesService", () => {
       vatRateRepo.findOne!.mockResolvedValue({ ...mockVatRate });
       vatRateRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.updateVatRate("vat-uuid-1", { rate: 15 } as any);
+      await service.updateVatRate("vat-uuid-1", {
+        rate: 15,
+      } as UpdateVatRateDto);
 
       expect(cacheManager.del).toHaveBeenCalledWith("ref:default_vat_rate");
     });
@@ -434,14 +436,12 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockPackageType]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      packageTypeRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      packageTypeRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllPackageTypes({
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryReferencesDto);
       expect(result.data).toEqual([mockPackageType]);
     });
   });
@@ -468,19 +468,17 @@ describe("ReferencesService", () => {
       packageTypeRepo.create!.mockReturnValue(mockPackageType);
       packageTypeRepo.save!.mockResolvedValue(mockPackageType);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createPackageType({
         code: "BOX",
         name_ru: "Коробка",
-      } as any);
+      } as CreatePackageTypeDto);
       expect(result).toEqual(mockPackageType);
     });
 
     it("should throw ConflictException on duplicate", async () => {
       packageTypeRepo.findOne!.mockResolvedValue(mockPackageType);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.createPackageType({ code: "BOX" } as any),
+        service.createPackageType({ code: "BOX" } as CreatePackageTypeDto),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -494,14 +492,12 @@ describe("ReferencesService", () => {
       const qb = createMockQueryBuilder();
       qb.getCount.mockResolvedValue(1);
       qb.getMany.mockResolvedValue([mockPaymentProvider]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentProviderRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentProviderRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllPaymentProviders({
         page: 1,
         limit: 50,
-      } as any);
+      } as QueryReferencesDto);
       expect(result.data).toEqual([mockPaymentProvider]);
     });
   });
@@ -528,18 +524,18 @@ describe("ReferencesService", () => {
       paymentProviderRepo.create!.mockReturnValue(mockPaymentProvider);
       paymentProviderRepo.save!.mockResolvedValue(mockPaymentProvider);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createPaymentProvider({
         code: "payme",
-      } as any);
+      } as CreatePaymentProviderDto);
       expect(result).toEqual(mockPaymentProvider);
     });
 
     it("should throw ConflictException on duplicate", async () => {
       paymentProviderRepo.findOne!.mockResolvedValue(mockPaymentProvider);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.createPaymentProvider({ code: "payme" } as any),
+        service.createPaymentProvider({
+          code: "payme",
+        } as CreatePaymentProviderDto),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -551,18 +547,16 @@ describe("ReferencesService", () => {
       });
       paymentProviderRepo.save!.mockImplementation(async (entity) => entity);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updatePaymentProvider("pp-uuid-1", {
         name: "Payme Updated",
-      } as any);
+      } as UpdatePaymentProviderDto);
       expect(result.name).toBe("Payme Updated");
     });
 
     it("should throw NotFoundException when not found", async () => {
       paymentProviderRepo.findOne!.mockResolvedValue(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.updatePaymentProvider("bad", {} as any),
+        service.updatePaymentProvider("bad", {} as UpdatePaymentProviderDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

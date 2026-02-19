@@ -505,10 +505,9 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createPaymentTypeDetailSheets(
     workbook: ExcelJS.Workbook,
-    data: any,
+    data: VendHubReportStructureA["cashSummary"],
     prefix: string,
   ): void {
     // Summary sheet
@@ -535,8 +534,10 @@ export class VendHubExcelExportService {
     this.autoFitColumns(monthlySheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private createQRDetailSheets(workbook: ExcelJS.Workbook, data: any): void {
+  private createQRDetailSheets(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["qrSummary"],
+  ): void {
     // QR Summary
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.QR_SUMMARY);
     sheet.getCell("A1").value = "Сводка QR-платежей";
@@ -569,8 +570,10 @@ export class VendHubExcelExportService {
     this.autoFitColumns(shareSheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private createVIPSheets(workbook: ExcelJS.Workbook, data: any): void {
+  private createVIPSheets(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["vipSummary"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.VIP_SUMMARY);
     sheet.getCell("A1").value = "VIP заказы";
     sheet.getCell("A3").value =
@@ -594,8 +597,10 @@ export class VendHubExcelExportService {
     this.autoFitColumns(detailSheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private createCreditSheets(workbook: ExcelJS.Workbook, data: any): void {
+  private createCreditSheets(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["creditSummary"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.CREDIT_SUMMARY);
     sheet.getCell("A1").value = "Кредитные платежи";
     sheet.getCell("A3").value =
@@ -720,10 +725,9 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createDailyReportSheet(
     workbook: ExcelJS.Workbook,
-    data: any[],
+    data: VendHubReportStructureA["dailyReport"],
   ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.DAILY);
 
@@ -763,8 +767,10 @@ export class VendHubExcelExportService {
     this.autoFitColumns(sheet);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private createAverageCheckSheet(workbook: ExcelJS.Workbook, data: any): void {
+  private createAverageCheckSheet(
+    workbook: ExcelJS.Workbook,
+    data: VendHubReportStructureA["averageCheck"],
+  ): void {
     const sheet = workbook.addWorksheet(STRUCTURE_A_SHEETS.AVERAGE_CHECK);
 
     sheet.getCell("A1").value = "СРЕДНИЙ ЧЕК";

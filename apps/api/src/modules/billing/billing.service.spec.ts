@@ -10,6 +10,12 @@ import {
   InvoiceStatus,
   BillingPaymentStatus,
 } from "./entities/billing.entity";
+import {
+  CreateInvoiceDto,
+  QueryInvoicesDto,
+  UpdateInvoiceDto,
+} from "./dto/create-invoice.dto";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
@@ -165,8 +171,11 @@ describe("BillingService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createInvoice(ORG_ID, USER_ID, dto as any);
+      const result = await service.createInvoice(
+        ORG_ID,
+        USER_ID,
+        dto as CreateInvoiceDto,
+      );
 
       expect(result).toEqual(mockInvoice);
       expect(invoiceRepo.create).toHaveBeenCalledWith(
@@ -180,8 +189,7 @@ describe("BillingService", () => {
 
     it("should calculate subtotal and tax from line items", async () => {
       invoiceRepo.count.mockResolvedValue(0);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceRepo.create.mockImplementation((data) => data as any);
+      invoiceRepo.create.mockImplementation((data) => data as Invoice);
       invoiceRepo.save.mockImplementation(async (data) => data as Invoice);
 
       const dto = {
@@ -190,8 +198,7 @@ describe("BillingService", () => {
         lineItems: [{ description: "Item", amount: 100000, taxRate: 12 }],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createInvoice(ORG_ID, USER_ID, dto as any);
+      await service.createInvoice(ORG_ID, USER_ID, dto as CreateInvoiceDto);
 
       expect(invoiceRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -209,11 +216,10 @@ describe("BillingService", () => {
 
   describe("findAllInvoices", () => {
     it("should return paginated invoices", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllInvoices(ORG_ID, {
         page: 1,
         limit: 20,
-      } as any);
+      } as QueryInvoicesDto);
 
       expect(result).toHaveProperty("items");
       expect(result).toHaveProperty("total", 1);
@@ -222,12 +228,11 @@ describe("BillingService", () => {
     });
 
     it("should filter by status", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAllInvoices(ORG_ID, {
         status: InvoiceStatus.SENT,
         page: 1,
         limit: 20,
-      } as any);
+      } as QueryInvoicesDto);
 
       expect(mockInvoiceQueryBuilder.andWhere).toHaveBeenCalledWith(
         "i.status = :status",
@@ -268,14 +273,12 @@ describe("BillingService", () => {
 
   describe("updateInvoice", () => {
     it("should update a DRAFT invoice", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as any);
+      invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateInvoice("inv-uuid-1", USER_ID, {
         notes: "Updated",
-      } as any);
+      } as UpdateInvoiceDto);
 
       expect(result.notes).toBe("Updated");
     });
@@ -284,8 +287,9 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue(mockSentInvoice);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.updateInvoice("inv-uuid-2", USER_ID, { notes: "Test" } as any),
+        service.updateInvoice("inv-uuid-2", USER_ID, {
+          notes: "Test",
+        } as UpdateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -296,8 +300,7 @@ describe("BillingService", () => {
 
   describe("sendInvoice", () => {
     it("should transition DRAFT invoice to SENT", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as any);
+      invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
       const result = await service.sendInvoice("inv-uuid-1", USER_ID);
@@ -320,8 +323,7 @@ describe("BillingService", () => {
 
   describe("cancelInvoice", () => {
     it("should cancel a sent invoice", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceRepo.findOne.mockResolvedValue({ ...mockSentInvoice } as any);
+      invoiceRepo.findOne.mockResolvedValue({ ...mockSentInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
       const result = await service.cancelInvoice("inv-uuid-2", USER_ID);
@@ -341,8 +343,7 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue({
         ...mockInvoice,
         status: InvoiceStatus.CANCELLED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Invoice);
 
       await expect(
         service.cancelInvoice("inv-uuid-1", USER_ID),
@@ -356,30 +357,26 @@ describe("BillingService", () => {
 
   describe("recordPayment", () => {
     it("should record payment and update invoice", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       invoiceRepo.findOne.mockResolvedValue({
         ...mockSentInvoice,
         totalAmount: 112000,
         paidAmount: 0,
-      } as any);
+      } as unknown as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
       paymentRepo.count.mockResolvedValue(0);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.create.mockReturnValue(mockPayment as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.save.mockResolvedValue(mockPayment as any);
+      paymentRepo.create.mockReturnValue(mockPayment);
+      paymentRepo.save.mockResolvedValue(mockPayment);
 
       const dto = {
         amount: 50000,
         paymentMethod: "bank_transfer",
         paymentDate: "2024-02-01",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.recordPayment(
         "inv-uuid-2",
         ORG_ID,
         USER_ID,
-        dto as any,
+        dto as CreatePaymentDto,
       );
 
       expect(result).toEqual(mockPayment);
@@ -389,10 +386,9 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.recordPayment("inv-uuid-1", ORG_ID, USER_ID, {
           amount: 50000,
-        } as any),
+        } as CreatePaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -401,16 +397,14 @@ describe("BillingService", () => {
         ...mockSentInvoice,
         totalAmount: 112000,
         paidAmount: 110000,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Invoice);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.recordPayment("inv-uuid-2", ORG_ID, USER_ID, {
           amount: 50000,
           paymentMethod: "cash",
           paymentDate: "2024-01-01",
-        } as any),
+        } as CreatePaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -422,8 +416,9 @@ describe("BillingService", () => {
   describe("removeInvoice", () => {
     it("should soft delete a DRAFT invoice", async () => {
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceRepo.softDelete.mockResolvedValue(undefined as any);
+      invoiceRepo.softDelete.mockResolvedValue(
+        undefined as unknown as ReturnType<Repository<Invoice>["softDelete"]>,
+      );
 
       await service.removeInvoice("inv-uuid-1");
 
@@ -454,20 +449,18 @@ describe("BillingService", () => {
   describe("getInvoiceStats", () => {
     it("should return aggregated invoice statistics", async () => {
       invoiceRepo.find.mockResolvedValue([
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {
           ...mockInvoice,
           status: InvoiceStatus.PAID,
           totalAmount: 100000,
           paidAmount: 100000,
-        } as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as unknown as Invoice,
         {
           ...mockSentInvoice,
           status: InvoiceStatus.OVERDUE,
           totalAmount: 50000,
           paidAmount: 0,
-        } as any,
+        } as unknown as Invoice,
       ]);
 
       const result = await service.getInvoiceStats(ORG_ID);

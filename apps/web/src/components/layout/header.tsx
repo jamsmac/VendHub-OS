@@ -2,6 +2,7 @@
 
 import { Bell, Moon, Sun, Search } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,13 +15,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+interface User {
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  role?: string;
+}
+
 interface HeaderProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any;
+  user: User | null;
 }
 
 export function Header({ user }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const t = useTranslations("common");
+  const tAuth = useTranslations("auth");
+  const tSettings = useTranslations("settings");
 
   const getInitials = (firstName?: string, lastName?: string) => {
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
@@ -31,10 +41,7 @@ export function Header({ user }: HeaderProps) {
       {/* Search */}
       <div className="relative w-96">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Поиск автоматов, товаров, задач..."
-          className="pl-10"
-        />
+        <Input placeholder={t("search")} className="pl-10" />
       </div>
 
       {/* Actions */}
@@ -47,7 +54,7 @@ export function Header({ user }: HeaderProps) {
         >
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Переключить тему</span>
+          <span className="sr-only">{tSettings("theme")}</span>
         </Button>
 
         {/* Notifications */}
@@ -77,14 +84,14 @@ export function Header({ user }: HeaderProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
+            <DropdownMenuLabel>{tAuth("login")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Профиль</DropdownMenuItem>
-            <DropdownMenuItem>Настройки</DropdownMenuItem>
-            <DropdownMenuItem>Безопасность</DropdownMenuItem>
+            <DropdownMenuItem>{tSettings("general")}</DropdownMenuItem>
+            <DropdownMenuItem>{tSettings("settings")}</DropdownMenuItem>
+            <DropdownMenuItem>{tSettings("security")}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
-              Выйти
+              {tAuth("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

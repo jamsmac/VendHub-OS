@@ -238,7 +238,7 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ userId });
+      await service.findAll({ organizationId: orgId, userId });
 
       expect(qb.andWhere).toHaveBeenCalledWith("event.userId = :userId", {
         userId,
@@ -251,7 +251,10 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ eventType: SecurityEventType.LOGIN_FAILED });
+      await service.findAll({
+        organizationId: "org-1",
+        eventType: SecurityEventType.LOGIN_FAILED,
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith("event.eventType = :eventType", {
         eventType: SecurityEventType.LOGIN_FAILED,
@@ -264,7 +267,10 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ severity: SecuritySeverity.CRITICAL });
+      await service.findAll({
+        organizationId: "org-1",
+        severity: SecuritySeverity.CRITICAL,
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith("event.severity = :severity", {
         severity: SecuritySeverity.CRITICAL,
@@ -279,7 +285,7 @@ describe("SecurityEventService", () => {
 
       const startDate = new Date("2025-01-01");
       const endDate = new Date("2025-12-31");
-      await service.findAll({ startDate, endDate });
+      await service.findAll({ organizationId: "org-1", startDate, endDate });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "event.created_at BETWEEN :startDate AND :endDate",
@@ -293,7 +299,10 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ ipAddress: "192.168.1.1" });
+      await service.findAll({
+        organizationId: "org-1",
+        ipAddress: "192.168.1.1",
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith("event.ipAddress = :ipAddress", {
         ipAddress: "192.168.1.1",
@@ -306,7 +315,7 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(0);
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ isResolved: false });
+      await service.findAll({ organizationId: "org-1", isResolved: false });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "event.isResolved = :isResolved",
@@ -320,7 +329,11 @@ describe("SecurityEventService", () => {
       qb.getCount.mockResolvedValue(100);
       qb.getMany.mockResolvedValue([]);
 
-      const result = await service.findAll({ page: 3, limit: 10 });
+      const result = await service.findAll({
+        organizationId: "org-1",
+        page: 3,
+        limit: 10,
+      });
 
       expect(qb.skip).toHaveBeenCalledWith(20);
       expect(qb.take).toHaveBeenCalledWith(10);

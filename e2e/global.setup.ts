@@ -1,23 +1,25 @@
-import { test as setup, expect, request } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+import { test as setup, expect, request } from "@playwright/test";
+import fs from "fs";
+import path from "path";
 
-const ADMIN_AUTH_FILE = 'playwright/.auth/admin.json';
-const USER_AUTH_FILE = 'playwright/.auth/user.json';
+const ADMIN_AUTH_FILE = "playwright/.auth/admin.json";
+const USER_AUTH_FILE = "playwright/.auth/user.json";
+
+const API_PREFIX = "/api/v1";
 
 /**
  * Global setup - authenticate admin and user before tests
  */
-setup('authenticate admin', async () => {
+setup("authenticate admin", async () => {
   const apiContext = await request.newContext({
-    baseURL: process.env.API_URL || 'http://localhost:4000',
+    baseURL: process.env.API_URL || "http://localhost:4000",
   });
 
   // Login as admin
-  const adminResponse = await apiContext.post('/auth/login', {
+  const adminResponse = await apiContext.post(`${API_PREFIX}/auth/login`, {
     data: {
-      email: 'admin@vendhub.uz',
-      password: 'demo123456',
+      email: "admin@vendhub.uz",
+      password: "demo123456",
     },
   });
 
@@ -31,46 +33,42 @@ setup('authenticate admin', async () => {
   }
 
   // Save admin auth state
+  // Web app uses vendhub_access_token / vendhub_refresh_token keys
   await fs.promises.writeFile(
     ADMIN_AUTH_FILE,
     JSON.stringify({
       cookies: [],
       origins: [
         {
-          origin: process.env.WEB_URL || 'http://localhost:3000',
+          origin: process.env.WEB_URL || "http://localhost:3000",
           localStorage: [
             {
-              name: 'accessToken',
+              name: "vendhub_access_token",
               value: adminData.accessToken,
             },
             {
-              name: 'refreshToken',
+              name: "vendhub_refresh_token",
               value: adminData.refreshToken,
-            },
-            {
-              name: 'user',
-              value: JSON.stringify(adminData.user),
             },
           ],
         },
       ],
-    })
+    }),
   );
 
   await apiContext.dispose();
 });
 
-setup('authenticate user', async () => {
+setup("authenticate user", async () => {
   const apiContext = await request.newContext({
-    baseURL: process.env.API_URL || 'http://localhost:4000',
+    baseURL: process.env.API_URL || "http://localhost:4000",
   });
 
   // For Mini App, we may use Telegram auth or a test user
-  // Here we create a test customer or use existing one
-  const userResponse = await apiContext.post('/auth/login', {
+  const userResponse = await apiContext.post(`${API_PREFIX}/auth/login`, {
     data: {
-      email: 'customer@vendhub.uz',
-      password: 'customer123',
+      email: "customer@vendhub.uz",
+      password: "customer123",
     },
   });
 
@@ -90,20 +88,20 @@ setup('authenticate user', async () => {
         cookies: [],
         origins: [
           {
-            origin: process.env.CLIENT_URL || 'http://localhost:5173',
+            origin: process.env.CLIENT_URL || "http://localhost:5173",
             localStorage: [
               {
-                name: 'accessToken',
+                name: "vendhub_access_token",
                 value: userData.accessToken,
               },
               {
-                name: 'user',
-                value: JSON.stringify(userData.user),
+                name: "vendhub_refresh_token",
+                value: userData.refreshToken,
               },
             ],
           },
         ],
-      })
+      }),
     );
   } else {
     // Create empty auth file for anonymous session
@@ -117,7 +115,7 @@ setup('authenticate user', async () => {
       JSON.stringify({
         cookies: [],
         origins: [],
-      })
+      }),
     );
   }
 

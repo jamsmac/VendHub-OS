@@ -15,6 +15,8 @@ import {
   PaymentTransactionStatus,
 } from "./entities/payment-transaction.entity";
 import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
+import { InitiateRefundDto } from "./dto/refund.dto";
+import { QueryTransactionsDto } from "./dto/refund.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 
@@ -134,14 +136,12 @@ describe("PaymentsService", () => {
         if (key === "PAYME_CHECKOUT_URL") return "https://checkout.paycom.uz";
         return undefined;
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       transactionRepo.create.mockReturnValue({
         ...mockPendingTransaction,
-      } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as PaymentTransaction);
       transactionRepo.save.mockResolvedValue({
         ...mockPendingTransaction,
-      } as any);
+      } as PaymentTransaction);
 
       const result = await service.createPaymeTransaction(
         50000,
@@ -168,10 +168,8 @@ describe("PaymentsService", () => {
         if (key === "PAYME_MERCHANT_ID") return "merchant-123";
         return "https://checkout.paycom.uz";
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transactionRepo.create.mockReturnValue(mockPendingTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transactionRepo.save.mockResolvedValue(mockPendingTransaction as any);
+      transactionRepo.create.mockReturnValue(mockPendingTransaction);
+      transactionRepo.save.mockResolvedValue(mockPendingTransaction);
 
       await service.createPaymeTransaction(50000, "order-001", ORG_ID);
 
@@ -218,8 +216,7 @@ describe("PaymentsService", () => {
       const result = await service.handlePaymeWebhook(data, validAuth);
 
       expect(result).toHaveProperty("error");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((result.error as any).code).toBe(-32601);
+      expect((result.error as Record<string, unknown>).code).toBe(-32601);
     });
   });
 
@@ -237,10 +234,8 @@ describe("PaymentsService", () => {
         if (key === "CLICK_RETURN_URL") return "";
         return undefined;
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transactionRepo.create.mockReturnValue(mockPendingTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transactionRepo.save.mockResolvedValue(mockPendingTransaction as any);
+      transactionRepo.create.mockReturnValue(mockPendingTransaction);
+      transactionRepo.save.mockResolvedValue(mockPendingTransaction);
 
       const result = await service.createClickTransaction(
         30000,
@@ -270,10 +265,8 @@ describe("PaymentsService", () => {
     it("should create a refund for a completed transaction", async () => {
       transactionRepo.findOne.mockResolvedValue(mockTransaction);
       refundRepo.find.mockResolvedValue([]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      refundRepo.create.mockReturnValue(mockRefund as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      refundRepo.save.mockResolvedValue(mockRefund as any);
+      refundRepo.create.mockReturnValue(mockRefund);
+      refundRepo.save.mockResolvedValue(mockRefund);
 
       const dto = {
         paymentTransactionId: "tx-uuid-1",
@@ -281,9 +274,8 @@ describe("PaymentsService", () => {
         reason: "customer_request",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.initiateRefund(
-        dto as any,
+        dto as InitiateRefundDto,
         ORG_ID,
         "user-uuid-1",
       );
@@ -296,9 +288,8 @@ describe("PaymentsService", () => {
       transactionRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.initiateRefund(
-          { paymentTransactionId: "non-existent" } as any,
+          { paymentTransactionId: "non-existent" } as InitiateRefundDto,
           ORG_ID,
           "user-uuid-1",
         ),
@@ -309,13 +300,11 @@ describe("PaymentsService", () => {
       transactionRepo.findOne.mockResolvedValue({
         ...mockTransaction,
         status: PaymentTransactionStatus.PENDING,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as PaymentTransaction);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.initiateRefund(
-          { paymentTransactionId: "tx-uuid-1" } as any,
+          { paymentTransactionId: "tx-uuid-1" } as InitiateRefundDto,
           ORG_ID,
           "user-uuid-1",
         ),
@@ -324,15 +313,20 @@ describe("PaymentsService", () => {
 
     it("should throw BadRequestException when refund exceeds remaining amount", async () => {
       transactionRepo.findOne.mockResolvedValue(mockTransaction);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       refundRepo.find.mockResolvedValue([
-        { ...mockRefund, amount: 50000, status: RefundStatus.COMPLETED } as any,
+        {
+          ...mockRefund,
+          amount: 50000,
+          status: RefundStatus.COMPLETED,
+        } as unknown as PaymentRefund,
       ]);
 
       await expect(
         service.initiateRefund(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          { paymentTransactionId: "tx-uuid-1", amount: 10000 } as any,
+          {
+            paymentTransactionId: "tx-uuid-1",
+            amount: 10000,
+          } as InitiateRefundDto,
           ORG_ID,
           "user-uuid-1",
         ),
@@ -346,9 +340,8 @@ describe("PaymentsService", () => {
 
   describe("getTransactions", () => {
     it("should return paginated transactions for organization", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getTransactions(
-        { page: 1, limit: 20 } as any,
+        { page: 1, limit: 20 } as QueryTransactionsDto,
         ORG_ID,
       );
 

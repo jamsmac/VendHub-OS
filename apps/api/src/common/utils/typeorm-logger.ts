@@ -22,10 +22,9 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
    * Logs a query and its parameters.
    * Only logs if the query exceeds the slow-query threshold.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logQuery(
     _query: string,
-    _parameters?: any[],
+    _parameters?: unknown[],
     _queryRunner?: QueryRunner,
   ): void {
     // Standard queries are not logged to avoid noise.
@@ -39,8 +38,7 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
   logQueryError(
     error: string | Error,
     query: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parameters?: any[],
+    parameters?: unknown[],
     _queryRunner?: QueryRunner,
   ): void {
     const errorMessage = error instanceof Error ? error.message : error;
@@ -62,8 +60,7 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
   logQuerySlow(
     time: number,
     query: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parameters?: any[],
+    parameters?: unknown[],
     _queryRunner?: QueryRunner,
   ): void {
     if (time >= this.slowQueryThresholdMs) {
@@ -97,8 +94,7 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
    */
   log(
     level: "log" | "info" | "warn",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    message: any,
+    message: unknown,
     _queryRunner?: QueryRunner,
   ): void {
     switch (level) {
@@ -116,8 +112,7 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
    * Formats query parameters for logging.
    * Truncates large parameter arrays to avoid log spam.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private formatParameters(parameters?: any[]): string {
+  private formatParameters(parameters?: unknown[]): string {
     if (!parameters || parameters.length === 0) {
       return "[]";
     }

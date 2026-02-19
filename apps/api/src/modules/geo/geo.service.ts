@@ -61,6 +61,46 @@ export interface PlaceAutocompleteResult {
 }
 
 // ============================================================================
+// GOOGLE MAPS API RESPONSE TYPES
+// ============================================================================
+
+interface GoogleGeocodingResult {
+  formatted_address: string;
+  geometry: {
+    location: { lat: number; lng: number };
+  };
+  place_id: string;
+  address_components: GoogleAddressComponent[];
+}
+
+interface GoogleAddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
+}
+
+interface GoogleDirectionsStep {
+  html_instructions: string;
+  distance: { value: number };
+  duration: { value: number };
+}
+
+interface GoogleDistanceMatrixElement {
+  status: string;
+  distance: { value: number };
+  duration: { value: number };
+}
+
+interface GooglePlacePrediction {
+  place_id: string;
+  description: string;
+  structured_formatting?: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
+// ============================================================================
 // SERVICE
 // ============================================================================
 
@@ -116,9 +156,9 @@ export class GeoService {
 
       const result = response.data.results[0];
       return this.parseGeocodingResult(result);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Geocoding failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Geocoding failed: ${message}`);
       return null;
     }
   }
@@ -147,9 +187,9 @@ export class GeoService {
       }
 
       return this.parseGeocodingResult(response.data.results[0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Reverse geocoding failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Reverse geocoding failed: ${message}`);
       return null;
     }
   }
@@ -301,16 +341,15 @@ export class GeoService {
         distance: leg.distance.value,
         duration: leg.duration.value,
         polyline: route.overview_polyline.points,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        steps: leg.steps.map((step: any) => ({
+        steps: leg.steps.map((step: GoogleDirectionsStep) => ({
           instruction: step.html_instructions.replace(/<[^>]*>/g, ""),
           distance: step.distance.value,
           duration: step.duration.value,
         })),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Directions failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Directions failed: ${message}`);
       return null;
     }
   }
@@ -348,14 +387,13 @@ export class GeoService {
       }
 
       const elements = response.data.rows[0]?.elements || [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return elements.map((el: any) => ({
+      return elements.map((el: GoogleDistanceMatrixElement) => ({
         distance: el.status === "OK" ? el.distance.value : -1,
         duration: el.status === "OK" ? el.duration.value : -1,
       }));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Distance matrix failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Distance matrix failed: ${message}`);
       return null;
     }
   }
@@ -392,16 +430,15 @@ export class GeoService {
         return [];
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return response.data.predictions.map((p: any) => ({
+      return response.data.predictions.map((p: GooglePlacePrediction) => ({
         placeId: p.place_id,
         description: p.description,
         mainText: p.structured_formatting?.main_text || p.description,
         secondaryText: p.structured_formatting?.secondary_text || "",
       }));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Autocomplete failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Autocomplete failed: ${message}`);
       return [];
     }
   }
@@ -438,9 +475,9 @@ export class GeoService {
         placeId,
         components: this.parseAddressComponents(result.address_components),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Place details failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Place details failed: ${message}`);
       return null;
     }
   }
@@ -544,8 +581,7 @@ export class GeoService {
   // HELPERS
   // ============================================================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private parseGeocodingResult(result: any): GeocodingResult {
+  private parseGeocodingResult(result: GoogleGeocodingResult): GeocodingResult {
     return {
       formattedAddress: result.formatted_address,
       latitude: result.geometry.location.lat,
@@ -555,9 +591,8 @@ export class GeoService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseAddressComponents(
-    components: any[],
+    components: GoogleAddressComponent[],
   ): GeocodingResult["components"] {
     const result: GeocodingResult["components"] = {};
 

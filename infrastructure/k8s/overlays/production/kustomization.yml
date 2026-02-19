@@ -1,6 +1,11 @@
 # ==================================================
 # Kustomize Production Overlay
 # ==================================================
+# NOTE: For secrets, use Sealed Secrets instead of base/secrets.yml.
+# See infrastructure/k8s/sealed-secrets/README.md for setup.
+# Run seal-secrets.sh to generate sealed-secrets.yml, then:
+#   kubectl apply -f ../../sealed-secrets/sealed-secrets.yml
+# ==================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   Coffee,
@@ -39,9 +40,11 @@ import {
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
 import { UserRole } from "@vendhub/shared";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 interface NavItem {
-  name: string;
+  nameKey: string;
+  fallback: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   roles?: UserRole[];
@@ -73,67 +76,87 @@ const STOCK: UserRole[] = [
 
 const navigation: NavItem[] = [
   // ── Dashboard ─────────────────────────────────────────────
-  // Visible to all authenticated roles (no roles filter)
-  { name: "Дашборд", href: "/dashboard", icon: LayoutDashboard },
+  {
+    nameKey: "dashboard",
+    fallback: "Дашборд",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
 
   // ── Operations ────────────────────────────────────────────
   {
-    name: "Автоматы",
+    nameKey: "machines",
+    fallback: "Автоматы",
     href: "/dashboard/machines",
     icon: Coffee,
     roles: OPERATIONS,
   },
   {
-    name: "Товары",
+    nameKey: "products",
+    fallback: "Товары",
     href: "/dashboard/products",
     icon: Package,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
-  { name: "Склад", href: "/dashboard/inventory", icon: Boxes, roles: STOCK },
   {
-    name: "Заказы",
+    nameKey: "inventory",
+    fallback: "Склад",
+    href: "/dashboard/inventory",
+    icon: Boxes,
+    roles: STOCK,
+  },
+  {
+    nameKey: "orders",
+    fallback: "Заказы",
     href: "/dashboard/orders",
     icon: ShoppingCart,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
   },
   {
-    name: "Задачи",
+    nameKey: "tasks",
+    fallback: "Задачи",
     href: "/dashboard/tasks",
     icon: ClipboardList,
     roles: OPERATIONS,
   },
   {
-    name: "Рейсы",
+    nameKey: "trips",
+    fallback: "Рейсы",
     href: "/dashboard/trips",
     icon: Navigation,
     roles: OPERATIONS,
   },
   {
-    name: "Маршруты",
+    nameKey: "routes",
+    fallback: "Маршруты",
     href: "/dashboard/routes",
     icon: Route,
     roles: MANAGEMENT,
   },
   {
-    name: "Техобслуживание",
+    nameKey: "maintenance",
+    fallback: "Техобслуживание",
     href: "/dashboard/maintenance",
     icon: Wrench,
     roles: OPERATIONS,
   },
   {
-    name: "Оборудование",
+    nameKey: "equipment",
+    fallback: "Оборудование",
     href: "/dashboard/equipment",
     icon: Cog,
     roles: OPERATIONS,
   },
   {
-    name: "Заявки",
+    nameKey: "materialRequests",
+    fallback: "Заявки",
     href: "/dashboard/material-requests",
     icon: PackagePlus,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
   {
-    name: "Жалобы",
+    nameKey: "complaints",
+    fallback: "Жалобы",
     href: "/dashboard/complaints",
     icon: MessageSquare,
     roles: MANAGEMENT,
@@ -141,25 +164,29 @@ const navigation: NavItem[] = [
 
   // ── Finance ───────────────────────────────────────────────
   {
-    name: "Транзакции",
+    nameKey: "transactions",
+    fallback: "Транзакции",
     href: "/dashboard/transactions",
     icon: CreditCard,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
   },
   {
-    name: "Платежи",
+    nameKey: "payments",
+    fallback: "Платежи",
     href: "/dashboard/payments",
     icon: Wallet,
     roles: FINANCE,
   },
   {
-    name: "Фискализация",
+    nameKey: "fiscal",
+    fallback: "Фискализация",
     href: "/dashboard/fiscal",
     icon: Receipt,
     roles: FINANCE,
   },
   {
-    name: "Сверка",
+    nameKey: "reconciliation",
+    fallback: "Сверка",
     href: "/dashboard/reconciliation",
     icon: Scale,
     roles: FINANCE,
@@ -167,19 +194,22 @@ const navigation: NavItem[] = [
 
   // ── HR ────────────────────────────────────────────────────
   {
-    name: "Сотрудники",
+    nameKey: "employees",
+    fallback: "Сотрудники",
     href: "/dashboard/employees",
     icon: UserCog,
     roles: MANAGEMENT,
   },
   {
-    name: "Подрядчики",
+    nameKey: "contractors",
+    fallback: "Подрядчики",
     href: "/dashboard/contractors",
     icon: Building2,
     roles: MANAGEMENT,
   },
   {
-    name: "Табель",
+    nameKey: "workLogs",
+    fallback: "Табель",
     href: "/dashboard/work-logs",
     icon: Clock,
     roles: MANAGEMENT,
@@ -187,28 +217,38 @@ const navigation: NavItem[] = [
 
   // ── Admin ─────────────────────────────────────────────────
   {
-    name: "Пользователи",
+    nameKey: "users",
+    fallback: "Пользователи",
     href: "/dashboard/users",
     icon: Users,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
-    name: "Локации",
+    nameKey: "locations",
+    fallback: "Локации",
     href: "/dashboard/locations",
     icon: MapPin,
     roles: MANAGEMENT,
   },
   {
-    name: "Карта",
+    nameKey: "map",
+    fallback: "Карта",
     href: "/dashboard/map",
     icon: Map,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
   },
-  { name: "Бонусы", href: "/dashboard/loyalty", icon: Gift, roles: MANAGEMENT },
+  {
+    nameKey: "loyalty",
+    fallback: "Бонусы",
+    href: "/dashboard/loyalty",
+    icon: Gift,
+    roles: MANAGEMENT,
+  },
 
   // ── Reporting ─────────────────────────────────────────────
   {
-    name: "Отчёты",
+    nameKey: "reports",
+    fallback: "Отчёты",
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
@@ -216,34 +256,44 @@ const navigation: NavItem[] = [
 
   // ── System ────────────────────────────────────────────────
   {
-    name: "Мастер-данные",
+    nameKey: "directories",
+    fallback: "Мастер-данные",
     href: "/dashboard/directories",
     icon: Database,
     roles: MANAGEMENT,
   },
   {
-    name: "Импорт",
+    nameKey: "importData",
+    fallback: "Импорт",
     href: "/dashboard/import",
     icon: Upload,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
-    name: "Интеграции",
+    nameKey: "integrations",
+    fallback: "Интеграции",
     href: "/dashboard/integrations",
     icon: Plug,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
-    name: "Аудит",
+    nameKey: "audit",
+    fallback: "Аудит",
     href: "/dashboard/audit",
     icon: FileText,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
 
   // Notifications — visible to all authenticated roles
-  { name: "Уведомления", href: "/dashboard/notifications", icon: Bell },
   {
-    name: "Настройки",
+    nameKey: "notifications",
+    fallback: "Уведомления",
+    href: "/dashboard/notifications",
+    icon: Bell,
+  },
+  {
+    nameKey: "settings",
+    fallback: "Настройки",
     href: "/dashboard/settings",
     icon: Settings,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -253,6 +303,8 @@ const navigation: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+  const t = useTranslations("nav");
+  const tAuth = useTranslations("auth");
 
   const visibleNavigation = useMemo(() => {
     const role = user?.role as UserRole | undefined;
@@ -280,7 +332,7 @@ export function Sidebar() {
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
-              key={item.name}
+              key={item.nameKey}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -290,13 +342,13 @@ export function Sidebar() {
               )}
             >
               <item.icon className="h-4 w-4" />
-              {item.name}
+              {t.has(item.nameKey) ? t(item.nameKey) : item.fallback}
             </Link>
           );
         })}
       </nav>
 
-      {/* User info + Logout */}
+      {/* User info + Locale + Logout */}
       <div className="border-t p-3 space-y-2">
         {user && (
           <div className="px-3 py-1">
@@ -306,12 +358,15 @@ export function Sidebar() {
             <p className="text-xs text-muted-foreground">{user.role}</p>
           </div>
         )}
+        <div className="px-3 py-1">
+          <LocaleSwitcher />
+        </div>
         <button
           onClick={() => logout()}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="h-4 w-4" />
-          Выйти
+          {tAuth("logout")}
         </button>
       </div>
     </div>
