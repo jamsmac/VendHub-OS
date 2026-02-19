@@ -337,13 +337,11 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** Добавить `'achievement'` в enum `PointsSource`, добавить null check
 - **Оценка:** 1 час
 
-### P1-010: ⚠️ OPEN — Web Admin — pervasive `any` typing в API клиенте
+### P1-010: ✅ FIXED — Web Admin — pervasive `any` typing в API клиенте
 
-- **Где:** `apps/web/src/lib/api.ts:62-648`
-- **Что:** Почти все API методы используют `data: any` для request body и возвращают нетипизированный `AxiosResponse`
-- **Почему:** Обесценивает TypeScript; невозможен compile-time контроль
-- **Как исправить:** Типизировать через shared types из packages/shared
-- **Оценка:** 16 часов
+- **Где:** `apps/web/src/lib/api.ts`
+- **Что было:** ~120 параметров с `any` типом и 219 eslint-disable комментариев
+- **Исправлено:** Введены 2 type alias: `QueryParams` (Record с string|number|boolean|string[]|null|undefined) для GET params и `RequestBody` (object — принимает любые интерфейсы, отклоняет примитивы) для POST/PUT/PATCH тел. Удалены все 219 eslint-disable-next-line комментариев. Файл уменьшился на 210 строк (1071→861). 0 TS ошибок
 
 ### P1-011: ✅ FIXED — Web Admin — нет RBAC фильтрации в sidebar
 
@@ -859,7 +857,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 22  | Bot: реализовать order flow               | 8         | ✅ Done |
 | 23  | Bot: fix trip transliteration → кириллица | 2         | ✅ Done |
 | 24  | Web: fix token refresh race condition     | 3         | ✅ Done |
-| 25  | Web: типизировать API client              | 2 (start) | ⚠️ Open |
+| 25  | Web: типизировать API client              | 2 (start) | ✅ Done |
 
 ### ~~Неделя 4-5: P1 i18n~~ ✅ НАЧАТО (5/50 страниц)
 
@@ -870,17 +868,17 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### Неделя 6+: P2 — Улучшения
 
-| #   | Задача                                              | Часы | Статус            |
-| --- | --------------------------------------------------- | ---- | ----------------- |
-| 28  | Web: типизировать весь API client (packages/shared) | 14   | ⚠️ Open           |
-| 29  | Resolve 4 circular dependencies                     | 8    | ⚠️ Open           |
-| 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open           |
-| 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open           |
-| 32  | Add E2E tests (Playwright)                          | 20   | ⚠️ Open           |
-| 33  | Standardize entity property naming                  | 8    | ⚠️ Open           |
-| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385) |
-| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385) |
-| 36  | i18n remaining ~45 web admin pages                  | 30   | ⚠️ Open           |
+| #   | Задача                                              | Часы | Статус                            |
+| --- | --------------------------------------------------- | ---- | --------------------------------- |
+| 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody) |
+| 29  | Resolve 4 circular dependencies                     | 8    | ⚠️ Open                           |
+| 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open                           |
+| 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                           |
+| 32  | Add E2E tests (Playwright)                          | 20   | ⚠️ Open                           |
+| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                           |
+| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                 |
+| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                 |
+| 36  | i18n remaining ~45 web admin pages                  | 30   | ⚠️ Open                           |
 
 ### Общая оценка трудозатрат
 
@@ -953,7 +951,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | #    | Проблема                                        | Файл                | Severity              |
 | ---- | ----------------------------------------------- | ------------------- | --------------------- |
 | F-01 | Middleware auth сломан (cookie vs localStorage) | middleware.ts:26-28 | ~~CRITICAL~~ ✅ FIXED |
-| F-02 | API client — pervasive `any` typing             | api.ts:62-648       | HIGH ⚠️               |
+| F-02 | ~~API client — pervasive `any` typing~~         | api.ts              | ~~HIGH~~ ✅ FIXED     |
 | F-03 | Token refresh race condition                    | api.ts:30-53        | ~~HIGH~~ ✅ FIXED     |
 | F-04 | Нет RBAC фильтрации sidebar                     | sidebar.tsx:37-64   | ~~HIGH~~ ✅ FIXED     |
 | F-05 | Dashboard main page — hardcoded empty data      | page.tsx:107-128    | MEDIUM ⚠️             |
