@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { InventoryService } from './inventory.service';
-import { InventoryController } from './inventory.controller';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { InventoryService } from "./inventory.service";
+import { InventoryController } from "./inventory.controller";
+import { InventoryTransferService } from "./services/inventory-transfer.service";
+import { InventoryReservationService } from "./services/inventory-reservation.service";
+import { InventoryAdjustmentService } from "./services/inventory-adjustment.service";
 
 // Import all inventory entities
 import {
@@ -13,7 +16,7 @@ import {
   InventoryAdjustment,
   InventoryCount,
   InventoryCountItem,
-} from './entities/inventory.entity';
+} from "./entities/inventory.entity";
 
 @Module({
   imports: [
@@ -36,7 +39,12 @@ import {
     ]),
   ],
   controllers: [InventoryController],
-  providers: [InventoryService],
+  providers: [
+    InventoryService,
+    InventoryTransferService,
+    InventoryReservationService,
+    InventoryAdjustmentService,
+  ],
   exports: [InventoryService],
 })
 export class InventoryModule {}

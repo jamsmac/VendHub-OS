@@ -1,18 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository, DataSource } from "typeorm";
+import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { InventoryService } from "./inventory.service";
+import { InventoryTransferService } from "./services/inventory-transfer.service";
+import { InventoryReservationService } from "./services/inventory-reservation.service";
+import { InventoryAdjustmentService } from "./services/inventory-adjustment.service";
 import {
   WarehouseInventory,
   OperatorInventory,
   MachineInventory,
   InventoryMovement,
-  InventoryReservation,
-  InventoryAdjustment,
-  InventoryCount,
-  InventoryCountItem,
   MovementType,
 } from "./entities/inventory.entity";
 
@@ -22,8 +21,7 @@ describe("InventoryService", () => {
   let operatorRepo: jest.Mocked<Repository<OperatorInventory>>;
   let machineRepo: jest.Mocked<Repository<MachineInventory>>;
   let _movementRepo: jest.Mocked<Repository<InventoryMovement>>;
-  let _reservationRepo: jest.Mocked<Repository<InventoryReservation>>;
-  let _mockDataSource: jest.Mocked<DataSource>;
+  let transferService: jest.Mocked<InventoryTransferService>;
 
   const orgId = "org-uuid-1";
 
@@ -78,17 +76,6 @@ describe("InventoryService", () => {
     created_at: new Date(),
   } as unknown as InventoryMovement;
 
-  // Mock the transaction manager
-  const mockManager = {
-    findOne: jest.fn(),
-    create: jest.fn().mockImplementation((_entity, data) => data),
-    save: jest
-      .fn()
-      .mockImplementation((_entity, data) =>
-        Promise.resolve({ id: "new-uuid", ...data }),
-      ),
-  };
-
   const mockQueryBuilder = {
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
@@ -106,6 +93,38 @@ describe("InventoryService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InventoryService,
+        {
+          provide: InventoryTransferService,
+          useValue: {
+            warehouseStockIn: jest.fn(),
+            transferWarehouseToOperator: jest.fn(),
+            transferOperatorToWarehouse: jest.fn(),
+            transferOperatorToMachine: jest.fn(),
+            transferMachineToOperator: jest.fn(),
+            recordSale: jest.fn(),
+          },
+        },
+        {
+          provide: InventoryReservationService,
+          useValue: {
+            createReservation: jest.fn(),
+            fulfillReservation: jest.fn(),
+            cancelReservation: jest.fn(),
+            confirmReservation: jest.fn(),
+            getReservationsByTask: jest.fn(),
+            getActiveReservations: jest.fn(),
+            getReservationById: jest.fn(),
+            getReservations: jest.fn(),
+            getReservationsSummary: jest.fn(),
+            expireOldReservations: jest.fn(),
+          },
+        },
+        {
+          provide: InventoryAdjustmentService,
+          useValue: {
+            createAdjustment: jest.fn(),
+          },
+        },
         {
           provide: getRepositoryToken(WarehouseInventory),
           useValue: {
@@ -148,48 +167,6 @@ describe("InventoryService", () => {
             createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
           },
         },
-        {
-          provide: getRepositoryToken(InventoryReservation),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(InventoryAdjustment),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(InventoryCount),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(InventoryCountItem),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: DataSource,
-          useValue: {
-            transaction: jest.fn().mockImplementation((cb) => cb(mockManager)),
-          },
-        },
       ],
     }).compile();
 
@@ -198,8 +175,7 @@ describe("InventoryService", () => {
     operatorRepo = module.get(getRepositoryToken(OperatorInventory));
     machineRepo = module.get(getRepositoryToken(MachineInventory));
     _movementRepo = module.get(getRepositoryToken(InventoryMovement));
-    _reservationRepo = module.get(getRepositoryToken(InventoryReservation));
-    _mockDataSource = module.get(DataSource);
+    transferService = module.get(InventoryTransferService);
   });
 
   afterEach(() => {
@@ -312,38 +288,43 @@ describe("InventoryService", () => {
   });
 
   // ============================================================================
-  // TRANSFERS
+  // TRANSFERS (delegated to InventoryTransferService)
   // ============================================================================
 
   describe("transferWarehouseToOperator", () => {
-    it("should transfer stock from warehouse to operator", async () => {
-      mockManager.findOne
-        .mockResolvedValueOnce({
-          ...mockWarehouse,
-          currentQuantity: 100,
-          reservedQuantity: 0,
-          availableQuantity: 100,
-        })
-        .mockResolvedValueOnce(null); // No existing operator inventory
+    it("should delegate to transfer service", async () => {
+      const mockResult = {
+        warehouse: mockWarehouse as unknown as WarehouseInventory,
+        operator: mockOperator as unknown as OperatorInventory,
+        movement: mockMovement,
+      };
+      transferService.transferWarehouseToOperator.mockResolvedValue(mockResult);
+
+      const dto = {
+        organizationId: orgId,
+        operatorId: "operator-uuid-1",
+        productId: "product-uuid-1",
+        quantity: 20,
+      };
 
       const result = await service.transferWarehouseToOperator(
-        {
-          organizationId: orgId,
-          operatorId: "operator-uuid-1",
-          productId: "product-uuid-1",
-          quantity: 20,
-        },
+        dto,
         "user-uuid-1",
       );
 
       expect(result).toHaveProperty("warehouse");
       expect(result).toHaveProperty("operator");
       expect(result).toHaveProperty("movement");
-      expect(mockManager.save).toHaveBeenCalled();
+      expect(transferService.transferWarehouseToOperator).toHaveBeenCalledWith(
+        dto,
+        "user-uuid-1",
+      );
     });
 
-    it("should throw NotFoundException when product not in warehouse", async () => {
-      mockManager.findOne.mockResolvedValueOnce(null);
+    it("should propagate NotFoundException from transfer service", async () => {
+      transferService.transferWarehouseToOperator.mockRejectedValue(
+        new NotFoundException(`Product missing-product not found in warehouse`),
+      );
 
       await expect(
         service.transferWarehouseToOperator(
@@ -358,13 +339,10 @@ describe("InventoryService", () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it("should throw BadRequestException for insufficient stock", async () => {
-      mockManager.findOne.mockResolvedValueOnce({
-        ...mockWarehouse,
-        currentQuantity: 5,
-        reservedQuantity: 0,
-        availableQuantity: 5,
-      });
+    it("should propagate BadRequestException for insufficient stock", async () => {
+      transferService.transferWarehouseToOperator.mockRejectedValue(
+        new BadRequestException("Insufficient warehouse stock."),
+      );
 
       await expect(
         service.transferWarehouseToOperator(
@@ -381,8 +359,12 @@ describe("InventoryService", () => {
   });
 
   describe("transferOperatorToWarehouse", () => {
-    it("should throw NotFoundException when product not found with operator", async () => {
-      mockManager.findOne.mockResolvedValueOnce(null);
+    it("should propagate NotFoundException from transfer service", async () => {
+      transferService.transferOperatorToWarehouse.mockRejectedValue(
+        new NotFoundException(
+          `Product missing-product not found with operator operator-uuid-1`,
+        ),
+      );
 
       await expect(
         service.transferOperatorToWarehouse(
@@ -399,11 +381,10 @@ describe("InventoryService", () => {
   });
 
   describe("transferOperatorToMachine", () => {
-    it("should throw BadRequestException for insufficient operator stock", async () => {
-      mockManager.findOne.mockResolvedValueOnce({
-        ...mockOperator,
-        currentQuantity: 3,
-      });
+    it("should propagate BadRequestException for insufficient operator stock", async () => {
+      transferService.transferOperatorToMachine.mockRejectedValue(
+        new BadRequestException("Insufficient operator stock."),
+      );
 
       await expect(
         service.transferOperatorToMachine(
@@ -421,8 +402,12 @@ describe("InventoryService", () => {
   });
 
   describe("transferMachineToOperator", () => {
-    it("should throw NotFoundException when product not in machine", async () => {
-      mockManager.findOne.mockResolvedValueOnce(null);
+    it("should propagate NotFoundException from transfer service", async () => {
+      transferService.transferMachineToOperator.mockRejectedValue(
+        new NotFoundException(
+          `Product missing-product not found in machine machine-uuid-1`,
+        ),
+      );
 
       await expect(
         service.transferMachineToOperator(
