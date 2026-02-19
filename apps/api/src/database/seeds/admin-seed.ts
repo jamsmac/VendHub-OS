@@ -6,6 +6,7 @@
  */
 
 import { DataSource } from "typeorm";
+import { Logger } from "@nestjs/common";
 import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
@@ -14,13 +15,15 @@ import { randomUUID } from "crypto";
 config({ path: ".env.local" });
 config({ path: ".env" });
 
+const logger = new Logger("AdminSeed");
+
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@vendhub.uz";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const ADMIN_NAME = process.env.ADMIN_NAME || "System Admin";
 const ADMIN_PHONE = process.env.ADMIN_PHONE || "+998901234567";
 
 async function seedAdmin() {
-  console.log("🌱 Starting admin seed...");
+  logger.log("Starting admin seed...");
 
   const dataSource = new DataSource({
     type: "postgres",
@@ -36,7 +39,7 @@ async function seedAdmin() {
 
   try {
     await dataSource.initialize();
-    console.log("✅ Database connection established");
+    logger.log("Database connection established");
 
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -50,7 +53,7 @@ async function seedAdmin() {
       );
 
       if (existingAdmin.length > 0) {
-        console.log(`⚠️ Admin user ${ADMIN_EMAIL} already exists`);
+        logger.warn(`Admin user ${ADMIN_EMAIL} already exists`);
         await queryRunner.rollbackTransaction();
         return;
       }
@@ -83,10 +86,10 @@ async function seedAdmin() {
             }),
           ],
         );
-        console.log("✅ Created default organization: VendHub HQ");
+        logger.log("Created default organization: VendHub HQ");
       } else {
         organizationId = existingOrg[0].id;
-        console.log("⚠️ Organization already exists, using existing");
+        logger.warn("Organization already exists, using existing");
       }
 
       // Hash password
@@ -117,30 +120,26 @@ async function seedAdmin() {
 
       await queryRunner.commitTransaction();
 
-      console.log("");
-      console.log("═══════════════════════════════════════════════════");
-      console.log("✅ Admin user created successfully!");
-      console.log("═══════════════════════════════════════════════════");
-      console.log("");
-      console.log("  📧 Email:    ", ADMIN_EMAIL);
-      console.log("  🔑 Password: ", ADMIN_PASSWORD);
-      console.log("  👤 Name:     ", ADMIN_NAME);
-      console.log("  📱 Phone:    ", ADMIN_PHONE);
-      console.log("  🏢 Org:       VendHub HQ");
-      console.log("  🔒 Role:      owner");
-      console.log("");
-      console.log("⚠️  Please change the password after first login!");
-      console.log("═══════════════════════════════════════════════════");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+      logger.log("═══════════════════════════════════════════════════");
+      logger.log("Admin user created successfully!");
+      logger.log("═══════════════════════════════════════════════════");
+      logger.log(`  Email:     ${ADMIN_EMAIL}`);
+      logger.log(`  Password:  ${ADMIN_PASSWORD}`);
+      logger.log(`  Name:      ${ADMIN_NAME}`);
+      logger.log(`  Phone:     ${ADMIN_PHONE}`);
+      logger.log(`  Org:       VendHub HQ`);
+      logger.log(`  Role:      owner`);
+      logger.warn("Please change the password after first login!");
+      logger.log("═══════════════════════════════════════════════════");
+    } catch (error: unknown) {
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
       await queryRunner.release();
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error("❌ Error seeding admin:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.error(`Error seeding admin: ${message}`);
     process.exit(1);
   } finally {
     await dataSource.destroy();
@@ -150,10 +149,10 @@ async function seedAdmin() {
 // Run seed
 seedAdmin()
   .then(() => {
-    console.log("🎉 Admin seed completed!");
+    logger.log("Admin seed completed!");
     process.exit(0);
   })
-  .catch((error) => {
-    console.error("❌ Admin seed failed:", error);
+  .catch((error: Error) => {
+    logger.error(`Admin seed failed: ${error.message}`);
     process.exit(1);
   });

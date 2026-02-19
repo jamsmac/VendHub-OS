@@ -2,17 +2,19 @@
  * Custom TypeORM Logger
  *
  * Logs slow queries (exceeding configurable threshold) and query errors.
- * Uses NestJS-compatible console output with timestamps.
+ * Uses NestJS Logger for structured, consistent logging.
  *
  * Usage:
  *   In TypeORM config: logger: new CustomTypeOrmLogger(1000)
  *   The threshold parameter is in milliseconds (default 1000ms).
  */
 
+import { Logger } from "@nestjs/common";
 import { Logger as TypeOrmLogger, QueryRunner } from "typeorm";
 
 export class CustomTypeOrmLogger implements TypeOrmLogger {
   private readonly slowQueryThresholdMs: number;
+  private readonly logger = new Logger("TypeORM");
 
   constructor(slowQueryThresholdMs = 1000) {
     this.slowQueryThresholdMs = slowQueryThresholdMs;
@@ -44,12 +46,11 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
     const errorMessage = error instanceof Error ? error.message : error;
     const params = this.formatParameters(parameters);
 
-    console.error(
-      `[TypeORM] QUERY ERROR\n` +
+    this.logger.error(
+      `QUERY ERROR\n` +
         `  Error: ${errorMessage}\n` +
         `  Query: ${this.truncateQuery(query)}\n` +
-        `  Parameters: ${params}\n` +
-        `  Time: ${new Date().toISOString()}`,
+        `  Parameters: ${params}`,
     );
   }
 
@@ -66,11 +67,10 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
     if (time >= this.slowQueryThresholdMs) {
       const params = this.formatParameters(parameters);
 
-      console.warn(
-        `[TypeORM] SLOW QUERY (${time}ms, threshold: ${this.slowQueryThresholdMs}ms)\n` +
+      this.logger.warn(
+        `SLOW QUERY (${time}ms, threshold: ${this.slowQueryThresholdMs}ms)\n` +
           `  Query: ${this.truncateQuery(query)}\n` +
-          `  Parameters: ${params}\n` +
-          `  Time: ${new Date().toISOString()}`,
+          `  Parameters: ${params}`,
       );
     }
   }
@@ -79,14 +79,14 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
    * Logs schema build operations.
    */
   logSchemaBuild(message: string, _queryRunner?: QueryRunner): void {
-    console.log(`[TypeORM] Schema: ${message}`);
+    this.logger.log(`Schema: ${message}`);
   }
 
   /**
    * Logs migration operations.
    */
   logMigration(message: string, _queryRunner?: QueryRunner): void {
-    console.log(`[TypeORM] Migration: ${message}`);
+    this.logger.log(`Migration: ${message}`);
   }
 
   /**
@@ -100,10 +100,10 @@ export class CustomTypeOrmLogger implements TypeOrmLogger {
     switch (level) {
       case "log":
       case "info":
-        console.log(`[TypeORM] ${message}`);
+        this.logger.log(`${message}`);
         break;
       case "warn":
-        console.warn(`[TypeORM] ${message}`);
+        this.logger.warn(`${message}`);
         break;
     }
   }

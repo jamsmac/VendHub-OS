@@ -249,26 +249,15 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ---
 
-## 4. Серьёзные проблемы (P1) — ~~ИСПРАВИТЬ ДО РЕЛИЗА~~ 10/17 ИСПРАВЛЕНЫ
+## 4. Серьёзные проблемы (P1) — ~~ИСПРАВИТЬ ДО РЕЛИЗА~~ 12/17 ИСПРАВЛЕНЫ
 
-### P1-001: ⚠️ OPEN — 13 DTO без class-validator декораторов
+### P1-001: ✅ FALSE POSITIVE — 13 DTO без class-validator декораторов
 
-- **Где:**
-  - `organizations/dto/update-organization-contract.dto.ts`
-  - `organizations/dto/update-organization.dto.ts`
-  - `organizations/dto/organization-response.dto.ts`
-  - `rbac/dto/update-role.dto.ts`
-  - `rbac/dto/update-permission.dto.ts`
-  - `payments/dto/payment-response.dto.ts`
-  - `fiscal/dto/update-fiscal-device.dto.ts`
-  - `transactions/dto/transaction-response.dto.ts`
-  - `machines/dto/machine-response.dto.ts`
-  - `locations/dto/update-location.dto.ts`
-  - `users/dto/user-response.dto.ts`
-  - `users/dto/update-user.dto.ts`
-  - `webhooks/dto/update-webhook.dto.ts`
-- **Почему:** Без валидации входные данные могут содержать SQL injection, XSS, или невалидные значения
-- **Оценка:** 8 часов
+- **Где:** 13 файлов (см. ниже)
+- **Результат проверки:** Все 13 DTO корректно реализованы:
+  - **8 Update DTOs** используют `PartialType(CreateDto)` — валидаторы автоматически наследуются от Create DTO через NestJS/Swagger
+  - **5 Response DTOs** — output-only классы с `@ApiProperty/@Expose`, валидаторы не нужны (данные из БД, не от пользователя)
+- **Статус:** Исправление не требуется, false positive в исходном аудите
 
 ### P1-002: ✅ FIXED — Missing shadcn/ui components (Web)
 
@@ -293,13 +282,13 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Прогресс:** next-intl интегрирован, 5 ядерных страниц локализованы (auth, machines, products, users, transactions) — ~180 ключей в 3 локалях (ru, en, uz). Остаётся ~45 страниц
 - **Оценка:** ~~40 часов~~ ~30 часов (осталось ~45 страниц)
 
-### P1-004: ⚠️ OPEN — 78 console.log в production коде API
+### P1-004: ✅ FIXED — 78 console.log в production коде API
 
-- **Где:** `apps/api/src/` (разбросаны по модулям)
-- **Что:** `console.log/warn/error/debug` вместо NestJS Logger
-- **Почему:** В production нет структурированного логирования, невозможен мониторинг
-- **Как исправить:** Заменить на `this.logger.log()`, `this.logger.error()` и т.д.
-- **Оценка:** 4 часа
+- **Где:** `apps/api/src/` — typeorm-logger.ts, 3 seed-скрипта
+- **Что было:** `console.log/warn/error` вместо NestJS Logger
+- **Результат проверки:** 0 console.log в бизнес-логике (modules/). Все 73 вызова были в seeds (48), typeorm-logger (6), миграциях (19)
+- **Исправлено:** 54 замены console→Logger в 4 файлах (typeorm-logger.ts, run-seed.ts, admin-seed.ts, demo-data.seed.ts). Также убраны `catch (error: any)` → `catch (error: unknown)`
+- **Оставлено:** 19 в миграциях (TypeORM CLI context, стандартная практика)
 
 ### P1-005: ✅ FIXED — Hard delete в нескольких сервисах
 
@@ -730,20 +719,20 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | #    | Находка                                              | Файл                                | Severity              |
 | ---- | ---------------------------------------------------- | ----------------------------------- | --------------------- |
 | S-04 | synchronize=true возможен в production (CLI config)  | typeorm.config.ts:34                | ~~HIGH~~ ✅ FIXED     |
-| S-05 | 13 DTO без валидации — возможен injection            | см. P1-001                          | HIGH ⚠️               |
+| S-05 | 13 DTO без валидации — возможен injection            | см. P1-001                          | ~~HIGH~~ ✅ FALSE POS |
 | S-06 | 100+ CASCADE deletes — потеря данных при удалении    | Множество entity                    | ~~HIGH~~ ✅ Partially |
 | S-07 | Дублирующие payment callbacks — двойная обработка    | payments + transactions controllers | ~~HIGH~~ ✅ FIXED     |
 | S-08 | Entity path mismatch — миграции могут быть неполными | typeorm.config.ts vs app.module.ts  | ~~HIGH~~ ✅ FIXED     |
 
 ### Средний риск
 
-| #    | Находка                                                                     | Файл                         | Severity |
-| ---- | --------------------------------------------------------------------------- | ---------------------------- | -------- |
-| S-09 | 27 @Public() endpoints — review needed                                      | Множество контроллеров       | MEDIUM   |
-| S-10 | 78 console.log — возможна утечка данных в логах                             | apps/api/src/                | MEDIUM   |
-| S-11 | 221 createQueryBuilder usage — potential SQL injection if not parameterized | apps/api/src/                | MEDIUM   |
-| S-12 | Promo code validation без auth                                              | promo-codes.controller.ts:99 | MEDIUM   |
-| S-13 | Geo endpoints публичны (Google Maps API cost)                               | geo.controller.ts:51,65,88   | MEDIUM   |
+| #    | Находка                                                                     | Файл                         | Severity            |
+| ---- | --------------------------------------------------------------------------- | ---------------------------- | ------------------- |
+| S-09 | 27 @Public() endpoints — review needed                                      | Множество контроллеров       | MEDIUM              |
+| S-10 | ~~78 console.log — возможна утечка данных в логах~~                         | apps/api/src/                | ~~MEDIUM~~ ✅ FIXED |
+| S-11 | 221 createQueryBuilder usage — potential SQL injection if not parameterized | apps/api/src/                | MEDIUM              |
+| S-12 | Promo code validation без auth                                              | promo-codes.controller.ts:99 | MEDIUM              |
+| S-13 | Geo endpoints публичны (Google Maps API cost)                               | geo.controller.ts:51,65,88   | MEDIUM              |
 
 ### Низкий риск
 
@@ -846,15 +835,15 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### ~~Неделя 2: P1 — Backend & Build Fixes~~ ✅ ЧАСТИЧНО (5/7 задач)
 
-| #   | Задача                                    | Часы | Статус  |
-| --- | ----------------------------------------- | ---- | ------- |
-| 12  | Add class-validator to 13 DTOs            | 8    | ⚠️ Open |
-| 13  | Install missing shadcn/ui components      | 0.5  | ✅ Done |
-| 14  | Replace console.log → NestJS Logger       | 4    | ⚠️ Open |
-| 15  | Fix hard delete → softDelete (7 services) | 4    | ✅ Done |
-| 16  | Fix achievements TS errors                | 1    | ✅ Done |
-| 17  | Fix Client PWA TS errors                  | 1.5  | ✅ Done |
-| 18  | Add tests for bull-board, health          | 3    | ⚠️ Open |
+| #   | Задача                                    | Часы | Статус            |
+| --- | ----------------------------------------- | ---- | ----------------- |
+| 12  | Add class-validator to 13 DTOs            | 0    | ✅ False positive |
+| 13  | Install missing shadcn/ui components      | 0.5  | ✅ Done           |
+| 14  | Replace console.log → NestJS Logger       | 4    | ✅ Done           |
+| 15  | Fix hard delete → softDelete (7 services) | 4    | ✅ Done           |
+| 16  | Fix achievements TS errors                | 1    | ✅ Done           |
+| 17  | Fix Client PWA TS errors                  | 1.5  | ✅ Done           |
+| 18  | Add tests for bull-board, health          | 3    | ⚠️ Open           |
 
 ### ~~Неделя 3: P1 — Frontend Auth & UX~~ ✅ ЧАСТИЧНО (4/7 задач)
 
@@ -924,7 +913,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 ### Безопасность
 
 1. **Audit @Public() endpoints** — проверить что каждый действительно должен быть публичным
-2. **Input validation** — добавить на все 13 DTO
+2. ~~**Input validation** — добавить на все 13 DTO~~ ✅ False positive (все DTO корректны)
 3. **OWASP headers** — проверить Helmet.js конфигурацию
 
 ---

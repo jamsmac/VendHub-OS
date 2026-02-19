@@ -6,50 +6,36 @@
  */
 
 import { DataSource } from "typeorm";
+import { Logger } from "@nestjs/common";
 import { dataSourceOptions } from "../typeorm.config";
 import * as bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { seedReferences } from "./references.seed";
 
-// Colors for console output
-const colors = {
-  reset: "\x1b[0m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-  red: "\x1b[31m",
-};
-
-const log = {
-  info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) =>
-    console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-};
+const logger = new Logger("Seed");
 
 async function runSeed() {
-  log.info("Starting database seeding...");
+  logger.log("Starting database seeding...");
 
   const dataSource = new DataSource(dataSourceOptions);
 
   try {
     await dataSource.initialize();
-    log.success("Database connection established");
+    logger.log("Database connection established");
 
     // ========================================================================
     // 0. SEED REFERENCE DATA
     // ========================================================================
-    log.info(
+    logger.log(
       "Seeding reference data (VAT rates, package types, payment providers, MXIK codes, IKPU codes)...",
     );
     await seedReferences(dataSource);
-    log.success("Reference data seeded");
+    logger.log("Reference data seeded");
 
     // ========================================================================
     // 1. SEED ORGANIZATIONS
     // ========================================================================
-    log.info("Seeding organizations...");
+    logger.log("Seeding organizations...");
 
     const orgId = uuidv4();
     const demoOrgId = uuidv4();
@@ -73,12 +59,12 @@ async function runSeed() {
       [orgId, demoOrgId],
     );
 
-    log.success("Organizations seeded");
+    logger.log("Organizations seeded");
 
     // ========================================================================
     // 2. SEED USERS
     // ========================================================================
-    log.info("Seeding users...");
+    logger.log("Seeding users...");
 
     const passwordHash = await bcrypt.hash("Demo123!", 12);
     const adminId = uuidv4();
@@ -100,12 +86,12 @@ async function runSeed() {
       [adminId, managerId, operatorId, passwordHash, orgId],
     );
 
-    log.success("Users seeded");
+    logger.log("Users seeded");
 
     // ========================================================================
     // 3. SEED LOCATIONS
     // ========================================================================
-    log.info("Seeding locations...");
+    logger.log("Seeding locations...");
 
     const locations = [
       {
@@ -169,12 +155,12 @@ async function runSeed() {
       );
     }
 
-    log.success("Locations seeded");
+    logger.log("Locations seeded");
 
     // ========================================================================
     // 4. SEED PRODUCTS
     // ========================================================================
-    log.info("Seeding products...");
+    logger.log("Seeding products...");
 
     const products = [
       // Напитки
@@ -302,12 +288,12 @@ async function runSeed() {
       );
     }
 
-    log.success("Products seeded");
+    logger.log("Products seeded");
 
     // ========================================================================
     // 5. SEED MACHINES
     // ========================================================================
-    log.info("Seeding machines...");
+    logger.log("Seeding machines...");
 
     const machines = [
       {
@@ -367,12 +353,12 @@ async function runSeed() {
       );
     }
 
-    log.success("Machines seeded");
+    logger.log("Machines seeded");
 
     // ========================================================================
     // 6. SEED NOTIFICATION TEMPLATES
     // ========================================================================
-    log.info("Seeding notification templates...");
+    logger.log("Seeding notification templates...");
 
     const templates = [
       {
@@ -444,12 +430,12 @@ async function runSeed() {
       );
     }
 
-    log.success("Notification templates seeded");
+    logger.log("Notification templates seeded");
 
     // ========================================================================
     // 7. SEED REPORT DEFINITIONS
     // ========================================================================
-    log.info("Seeding report definitions...");
+    logger.log("Seeding report definitions...");
 
     const reports = [
       {
@@ -492,28 +478,27 @@ async function runSeed() {
       );
     }
 
-    log.success("Report definitions seeded");
+    logger.log("Report definitions seeded");
 
     // ========================================================================
     // SUMMARY
     // ========================================================================
-    console.log("");
-    log.success("═══════════════════════════════════════════════════════════");
-    log.success("Database seeding completed successfully!");
-    log.success("═══════════════════════════════════════════════════════════");
-    console.log("");
-    log.info("Demo credentials:");
-    console.log("  Email: admin@vendhub.uz");
-    console.log("  Phone: +998901234567");
-    console.log("  Password: Demo123!");
-    console.log("");
+    logger.log("═══════════════════════════════════════════════════════════");
+    logger.log("Database seeding completed successfully!");
+    logger.log("═══════════════════════════════════════════════════════════");
+    logger.log("Demo credentials:");
+    logger.log("  Email: admin@vendhub.uz");
+    logger.log("  Phone: +998901234567");
+    logger.log("  Password: Demo123!");
 
     await dataSource.destroy();
     process.exit(0);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    log.error(`Seeding failed: ${error.message}`);
-    console.error(error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.error(`Seeding failed: ${message}`);
+    if (error instanceof Error && error.stack) {
+      logger.error(error.stack);
+    }
     await dataSource.destroy();
     process.exit(1);
   }

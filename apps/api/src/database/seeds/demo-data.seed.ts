@@ -5,11 +5,14 @@
  */
 
 import { DataSource } from "typeorm";
+import { Logger } from "@nestjs/common";
 import { v4 as uuid } from "uuid";
 import * as bcrypt from "bcrypt";
 
+const logger = new Logger("DemoSeed");
+
 export async function seedDemoData(dataSource: DataSource) {
-  console.log("🌱 Seeding demo data...");
+  logger.log("Seeding demo data...");
 
   const queryRunner = dataSource.createQueryRunner();
   await queryRunner.connect();
@@ -38,7 +41,7 @@ export async function seedDemoData(dataSource: DataSource) {
         }),
       ],
     );
-    console.log("✅ Organization created");
+    logger.log("Organization created");
 
     // ===========================================
     // 2. ADMIN USER
@@ -63,7 +66,7 @@ export async function seedDemoData(dataSource: DataSource) {
         orgId,
       ],
     );
-    console.log("✅ Admin user created (admin@vendhub.uz / demo123456)");
+    logger.log("Admin user created (admin@vendhub.uz / demo123456)");
 
     // ===========================================
     // 3. SAMPLE EMPLOYEES
@@ -112,7 +115,7 @@ export async function seedDemoData(dataSource: DataSource) {
         ],
       );
     }
-    console.log("✅ Employees created");
+    logger.log("Employees created");
 
     // ===========================================
     // 4. SAMPLE LOCATIONS
@@ -163,7 +166,7 @@ export async function seedDemoData(dataSource: DataSource) {
         [locId, loc.name, loc.address, loc.lat, loc.lng, orgId],
       );
     }
-    console.log("✅ Locations created");
+    logger.log("Locations created");
 
     // ===========================================
     // 5. SAMPLE PRODUCTS
@@ -209,7 +212,7 @@ export async function seedDemoData(dataSource: DataSource) {
         [prodId, prod.name, prod.category, prod.price, prod.sku, orgId],
       );
     }
-    console.log("✅ Products created");
+    logger.log("Products created");
 
     // ===========================================
     // 6. SAMPLE MACHINES
@@ -251,7 +254,7 @@ export async function seedDemoData(dataSource: DataSource) {
         ],
       );
     }
-    console.log("✅ Machines created");
+    logger.log("Machines created");
 
     // ===========================================
     // 7. SAMPLE LOYALTY TIERS
@@ -311,7 +314,7 @@ export async function seedDemoData(dataSource: DataSource) {
         ],
       );
     }
-    console.log("✅ Loyalty tiers created");
+    logger.log("Loyalty tiers created");
 
     // ===========================================
     // 8. SAMPLE QUESTS
@@ -372,7 +375,7 @@ export async function seedDemoData(dataSource: DataSource) {
         ],
       );
     }
-    console.log("✅ Quests created");
+    logger.log("Quests created");
 
     // ===========================================
     // 9. SAMPLE CONTRACTORS
@@ -401,17 +404,16 @@ export async function seedDemoData(dataSource: DataSource) {
         ],
       );
     }
-    console.log("✅ Contractors created");
+    logger.log("Contractors created");
 
     await queryRunner.commitTransaction();
-    console.log("\n✅ Demo data seeding completed!");
-    console.log("📧 Login: admin@vendhub.uz");
-    console.log("🔑 Password: demo123456");
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+    logger.log("Demo data seeding completed!");
+    logger.log("Login: admin@vendhub.uz");
+    logger.log("Password: demo123456");
+  } catch (error: unknown) {
     await queryRunner.rollbackTransaction();
-    console.error("❌ Error seeding demo data:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.error(`Error seeding demo data: ${message}`);
     throw error;
   } finally {
     await queryRunner.release();
@@ -437,7 +439,7 @@ if (require.main === module) {
     .then(() => dataSource.destroy())
     .then(() => process.exit(0))
     .catch((err: Error) => {
-      console.error(err);
+      logger.error(err.message);
       process.exit(1);
     });
 }
