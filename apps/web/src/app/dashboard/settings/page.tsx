@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Save,
   Bell,
@@ -66,31 +67,37 @@ interface Integration {
   status: "active" | "inactive";
 }
 
-const tabs = [
-  { id: "general", label: "Основные", icon: Building },
-  { id: "notifications", label: "Уведомления", icon: Bell },
-  { id: "security", label: "Безопасность", icon: Shield },
-  { id: "payments", label: "Платежи", icon: CreditCard },
-  { id: "appearance", label: "Внешний вид", icon: Palette },
-  { id: "integrations", label: "Интеграции", icon: Globe },
+type TabIcon = React.ComponentType<{ className?: string }>;
+
+interface TabItem {
+  id: string;
+  labelKey: string;
+  icon: TabIcon;
+}
+
+const tabItems: TabItem[] = [
+  { id: "general", labelKey: "tabGeneral", icon: Building },
+  { id: "notifications", labelKey: "tabNotifications", icon: Bell },
+  { id: "security", labelKey: "tabSecurity", icon: Shield },
+  { id: "payments", labelKey: "tabPayments", icon: CreditCard },
+  { id: "appearance", labelKey: "tabAppearance", icon: Palette },
+  { id: "integrations", labelKey: "tabIntegrations", icon: Globe },
 ];
 
-const notificationItems = [
-  {
-    id: "email_orders",
-    label: "Email-уведомления о новых заказах",
-    icon: Mail,
-  },
-  {
-    id: "sms_alerts",
-    label: "SMS-оповещения о критических событиях",
-    icon: Smartphone,
-  },
-  { id: "telegram_bot", label: "Уведомления через Telegram-бот", icon: Bell },
-  { id: "low_stock", label: "Предупреждения о низком запасе", icon: Bell },
-  { id: "maintenance", label: "Напоминания об обслуживании", icon: Bell },
-  { id: "daily_report", label: "Ежедневный отчёт о продажах", icon: Mail },
-] as const;
+interface NotificationItem {
+  id: string;
+  labelKey: string;
+  icon: TabIcon;
+}
+
+const notificationItemDefs: NotificationItem[] = [
+  { id: "email_orders", labelKey: "notifEmailOrders", icon: Mail },
+  { id: "sms_alerts", labelKey: "notifSmsAlerts", icon: Smartphone },
+  { id: "telegram_bot", labelKey: "notifTelegramBot", icon: Bell },
+  { id: "low_stock", labelKey: "notifLowStock", icon: Bell },
+  { id: "maintenance", labelKey: "notifMaintenance", icon: Bell },
+  { id: "daily_report", labelKey: "notifDailyReport", icon: Mail },
+];
 
 function SettingsSkeleton() {
   return (
@@ -113,6 +120,7 @@ function SettingsSkeleton() {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("general");
 
@@ -174,9 +182,9 @@ export default function SettingsPage() {
         { name: "Payme", status: "connected" },
         { name: "Click", status: "connected" },
         { name: "Uzum Bank", status: "not_connected" },
-        { name: "Наличные", status: "connected" },
+        { name: t("cash"), status: "connected" },
       ],
-    [settings],
+    [settings, t],
   );
 
   const integrations: Integration[] = useMemo(
@@ -184,22 +192,26 @@ export default function SettingsPage() {
       settings?.integrations || [
         {
           name: "Telegram Bot",
-          description: "Уведомления для клиентов и сотрудников",
+          description: t("integrationTelegramDesc"),
           status: "active",
         },
         {
           name: "Google Maps",
-          description: "Карты и геолокация",
+          description: t("integrationGoogleMapsDesc"),
           status: "active",
         },
         {
           name: "OFD Soliq",
-          description: "Фискализация чеков",
+          description: t("integrationOfdDesc"),
           status: "inactive",
         },
-        { name: "Sentry", description: "Мониторинг ошибок", status: "active" },
+        {
+          name: "Sentry",
+          description: t("integrationSentryDesc"),
+          status: "active",
+        },
       ],
-    [settings],
+    [settings, t],
   );
 
   // ─── Mutations ────────────────────────────────────────────
@@ -215,10 +227,10 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-      toast.success("Настройки сохранены");
+      toast.success(t("saveSuccess"));
     },
     onError: () => {
-      toast.error("Не удалось сохранить настройки");
+      toast.error(t("saveError"));
     },
   });
 
@@ -228,10 +240,10 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-      toast.success("Статус 2FA обновлён");
+      toast.success(t("twoFactorSuccess"));
     },
     onError: () => {
-      toast.error("Не удалось изменить настройки 2FA");
+      toast.error(t("twoFactorError"));
     },
   });
 
@@ -241,16 +253,16 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
+        <p className="text-lg font-medium">{t("loadErrorTitle")}</p>
         <p className="text-muted-foreground mb-4">
-          Не удалось загрузить настройки
+          {t("loadErrorDescription")}
         </p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["settings"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -260,17 +272,15 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Настройки</h1>
-        <p className="text-muted-foreground">
-          Управление настройками организации
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}
         <div className="lg:w-64 flex-shrink-0">
           <nav className="space-y-1">
-            {tabs.map((tab) => {
+            {tabItems.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
@@ -283,7 +293,7 @@ export default function SettingsPage() {
                   }`}
                 >
                   <Icon className="h-5 w-5" />
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               );
             })}
@@ -301,13 +311,13 @@ export default function SettingsPage() {
                   {activeTab === "general" && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-semibold">
-                        Настройки организации
+                        {t("organizationSettings")}
                       </h2>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
-                            Название организации
+                            {t("orgName")}
                           </label>
                           <Input
                             value={generalForm.name}
@@ -322,7 +332,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
-                            Контактный email
+                            {t("contactEmail")}
                           </label>
                           <Input
                             type="email"
@@ -337,7 +347,9 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Телефон</label>
+                          <label className="text-sm font-medium">
+                            {t("phone")}
+                          </label>
                           <Input
                             type="tel"
                             value={generalForm.phone}
@@ -352,7 +364,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
-                            Часовой пояс
+                            {t("timezone")}
                           </label>
                           <Select
                             value={generalForm.timezone}
@@ -374,7 +386,9 @@ export default function SettingsPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Валюта</label>
+                          <label className="text-sm font-medium">
+                            {t("currency")}
+                          </label>
                           <Select
                             value={generalForm.currency}
                             onValueChange={(v) =>
@@ -386,16 +400,18 @@ export default function SettingsPage() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="UZS">
-                                UZS - Узбекский сум
+                                {t("currencyUzs")}
                               </SelectItem>
                               <SelectItem value="USD">
-                                USD - Доллар США
+                                {t("currencyUsd")}
                               </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Язык</label>
+                          <label className="text-sm font-medium">
+                            {t("language")}
+                          </label>
                           <Select
                             value={generalForm.language}
                             onValueChange={(v) =>
@@ -406,16 +422,18 @@ export default function SettingsPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ru">Русский</SelectItem>
-                              <SelectItem value="uz">Узбекский</SelectItem>
-                              <SelectItem value="en">Английский</SelectItem>
+                              <SelectItem value="ru">{t("langRu")}</SelectItem>
+                              <SelectItem value="uz">{t("langUz")}</SelectItem>
+                              <SelectItem value="en">{t("langEn")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Адрес</label>
+                        <label className="text-sm font-medium">
+                          {t("address")}
+                        </label>
                         <Textarea
                           value={generalForm.address}
                           onChange={(e) =>
@@ -425,7 +443,7 @@ export default function SettingsPage() {
                             })
                           }
                           rows={3}
-                          placeholder="Ташкент, Юнусабадский район"
+                          placeholder={t("addressPlaceholder")}
                         />
                       </div>
                     </div>
@@ -434,13 +452,14 @@ export default function SettingsPage() {
                   {activeTab === "notifications" && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-semibold">
-                        Настройки уведомлений
+                        {t("notificationsSettings")}
                       </h2>
 
                       <div className="space-y-4">
-                        {notificationItems.map((item) => {
+                        {notificationItemDefs.map((item) => {
                           const Icon = item.icon;
                           const key = item.id as keyof NotificationPreferences;
+                          const label = t(item.labelKey);
                           return (
                             <div
                               key={item.id}
@@ -449,7 +468,7 @@ export default function SettingsPage() {
                               <div className="flex items-center gap-3">
                                 <Icon className="h-5 w-5 text-muted-foreground" />
                                 <span className="text-sm font-medium">
-                                  {item.label}
+                                  {label}
                                 </span>
                               </div>
                               <button
@@ -462,7 +481,7 @@ export default function SettingsPage() {
                                 className={`relative w-10 h-5 rounded-full transition-colors ${
                                   notifPrefs[key] ? "bg-green-500" : "bg-input"
                                 }`}
-                                aria-label={`Переключить ${item.label}`}
+                                aria-label={t("toggleLabel", { label })}
                               >
                                 <span
                                   className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
@@ -481,16 +500,16 @@ export default function SettingsPage() {
 
                   {activeTab === "security" && (
                     <div className="space-y-6">
-                      <h2 className="text-lg font-semibold">Безопасность</h2>
+                      <h2 className="text-lg font-semibold">{t("security")}</h2>
 
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                           <div>
                             <p className="text-sm font-medium">
-                              Двухфакторная аутентификация
+                              {t("twoFactorAuth")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Дополнительный уровень защиты
+                              {t("twoFactorDescription")}
                             </p>
                           </div>
                           <Button
@@ -500,20 +519,20 @@ export default function SettingsPage() {
                             disabled={toggleTwoFactorMutation.isPending}
                           >
                             {toggleTwoFactorMutation.isPending
-                              ? "Обновление..."
+                              ? t("twoFactorUpdating")
                               : settings?.security?.two_factor_enabled
-                                ? "Отключить 2FA"
-                                : "Включить 2FA"}
+                                ? t("disable2fa")
+                                : t("enable2fa")}
                           </Button>
                         </div>
 
                         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                           <div>
                             <p className="text-sm font-medium">
-                              Тайм-аут сессии
+                              {t("sessionTimeout")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Автовыход при бездействии
+                              {t("sessionTimeoutDescription")}
                             </p>
                           </div>
                           <Select
@@ -524,31 +543,39 @@ export default function SettingsPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="30">30 минут</SelectItem>
-                              <SelectItem value="60">1 час</SelectItem>
-                              <SelectItem value="240">4 часа</SelectItem>
-                              <SelectItem value="480">8 часов</SelectItem>
+                              <SelectItem value="30">
+                                {t("timeout30min")}
+                              </SelectItem>
+                              <SelectItem value="60">
+                                {t("timeout1hour")}
+                              </SelectItem>
+                              <SelectItem value="240">
+                                {t("timeout4hours")}
+                              </SelectItem>
+                              <SelectItem value="480">
+                                {t("timeout8hours")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                           <div>
-                            <p className="text-sm font-medium">API-ключи</p>
+                            <p className="text-sm font-medium">
+                              {t("apiKeys")}
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                              Управление ключами доступа к API
+                              {t("apiKeysDescription")}
                             </p>
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                              toast.success(
-                                "Управление ключами будет доступно в следующей версии",
-                              )
+                              toast.success(t("apiKeysComingSoon"))
                             }
                           >
-                            Управление
+                            {t("manage")}
                           </Button>
                         </div>
                       </div>
@@ -558,7 +585,7 @@ export default function SettingsPage() {
                   {activeTab === "payments" && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-semibold">
-                        Настройки платежей
+                        {t("paymentsSettings")}
                       </h2>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -575,8 +602,8 @@ export default function SettingsPage() {
                                   className={`text-xs ${provider.status === "connected" ? "text-green-600" : "text-muted-foreground"}`}
                                 >
                                   {provider.status === "connected"
-                                    ? "Подключён"
-                                    : "Не подключён"}
+                                    ? t("connected")
+                                    : t("notConnected")}
                                 </p>
                               </div>
                             </div>
@@ -589,13 +616,15 @@ export default function SettingsPage() {
                               size="sm"
                               onClick={() =>
                                 toast.success(
-                                  `Настройка ${provider.name} будет доступна в следующей версии`,
+                                  t("providerComingSoon", {
+                                    name: provider.name,
+                                  }),
                                 )
                               }
                             >
                               {provider.status === "connected"
-                                ? "Настроить"
-                                : "Подключить"}
+                                ? t("configure")
+                                : t("connect")}
                             </Button>
                           </div>
                         ))}
@@ -605,29 +634,35 @@ export default function SettingsPage() {
 
                   {activeTab === "appearance" && (
                     <div className="space-y-6">
-                      <h2 className="text-lg font-semibold">Внешний вид</h2>
+                      <h2 className="text-lg font-semibold">
+                        {t("appearance")}
+                      </h2>
 
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium mb-2">
-                            Тема
+                            {t("theme")}
                           </label>
                           <div className="flex gap-3">
                             {[
-                              { id: "light", label: "Светлая" },
-                              { id: "dark", label: "Тёмная" },
-                              { id: "system", label: "Системная" },
-                            ].map((t) => (
+                              { id: "light", labelKey: "themeLight" },
+                              { id: "dark", labelKey: "themeDark" },
+                              { id: "system", labelKey: "themeSystem" },
+                            ].map((themeOption) => (
                               <Button
-                                key={t.id}
-                                variant={theme === t.id ? "default" : "outline"}
+                                key={themeOption.id}
+                                variant={
+                                  theme === themeOption.id
+                                    ? "default"
+                                    : "outline"
+                                }
                                 size="sm"
-                                onClick={() => setTheme(t.id)}
+                                onClick={() => setTheme(themeOption.id)}
                               >
-                                {theme === t.id && (
+                                {theme === themeOption.id && (
                                   <Check className="h-4 w-4 mr-1" />
                                 )}
-                                {t.label}
+                                {t(themeOption.labelKey)}
                               </Button>
                             ))}
                           </div>
@@ -635,7 +670,7 @@ export default function SettingsPage() {
 
                         <div>
                           <label className="block text-sm font-medium mb-2">
-                            Основной цвет
+                            {t("primaryColor")}
                           </label>
                           <div className="flex gap-2">
                             {[
@@ -654,7 +689,7 @@ export default function SettingsPage() {
                                     : "border-transparent"
                                 }`}
                                 style={{ backgroundColor: color }}
-                                aria-label={`Цвет ${color}`}
+                                aria-label={t("colorLabel", { color })}
                               />
                             ))}
                           </div>
@@ -665,7 +700,9 @@ export default function SettingsPage() {
 
                   {activeTab === "integrations" && (
                     <div className="space-y-6">
-                      <h2 className="text-lg font-semibold">Интеграции</h2>
+                      <h2 className="text-lg font-semibold">
+                        {t("integrationsTitle")}
+                      </h2>
 
                       <div className="space-y-4">
                         {integrations.map((integration) => (
@@ -687,8 +724,8 @@ export default function SettingsPage() {
                               }
                             >
                               {integration.status === "active"
-                                ? "Активна"
-                                : "Неактивна"}
+                                ? t("integrationActive")
+                                : t("integrationInactive")}
                             </Badge>
                           </div>
                         ))}
@@ -704,8 +741,8 @@ export default function SettingsPage() {
                     >
                       <Save className="h-4 w-4 mr-2" />
                       {saveSettingsMutation.isPending
-                        ? "Сохранение..."
-                        : "Сохранить настройки"}
+                        ? t("saving")
+                        : t("saveSettings")}
                     </Button>
                   </div>
                 </>

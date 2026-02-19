@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   MessageSquare,
   Search,
@@ -63,53 +64,57 @@ interface Complaint {
   slaDeadline?: string;
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
+const statusStyles: Record<string, { color: string; bgColor: string }> = {
   pending: {
-    label: "Ожидает",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
   assigned: {
-    label: "Назначена",
     color: "text-blue-600",
     bgColor: "bg-blue-100",
   },
   in_progress: {
-    label: "В работе",
     color: "text-yellow-600",
     bgColor: "bg-yellow-100",
   },
   resolved: {
-    label: "Решена",
     color: "text-green-600",
     bgColor: "bg-green-100",
   },
   closed: {
-    label: "Закрыта",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
   rejected: {
-    label: "Отклонена",
     color: "text-red-600",
     bgColor: "bg-red-100",
   },
 };
 
-const typeConfig: Record<string, { label: string; icon: string }> = {
-  product_not_dispensed: { label: "Не выдан товар", icon: "💰" },
-  product_defective: { label: "Неисправный товар", icon: "⚠️" },
-  product_not_available: { label: "Нет товара", icon: "❌" },
-  payment_issue: { label: "Проблема с оплатой", icon: "💳" },
-  machine_malfunction: { label: "Неисправность", icon: "🔧" },
-  machine_dirty: { label: "Грязный аппарат", icon: "🧹" },
-  other: { label: "Другое", icon: "💬" },
+const statusKeys: Record<string, string> = {
+  pending: "statusPending",
+  assigned: "statusAssigned",
+  in_progress: "statusInProgress",
+  resolved: "statusResolved",
+  closed: "statusClosed",
+  rejected: "statusRejected",
+};
+
+const typeKeys: Record<string, { tKey: string; icon: string }> = {
+  product_not_dispensed: {
+    tKey: "typeProductNotDispensed",
+    icon: "\uD83D\uDCB0",
+  },
+  product_defective: { tKey: "typeProductDefective", icon: "\u26A0\uFE0F" },
+  product_not_available: { tKey: "typeProductNotAvailable", icon: "\u274C" },
+  payment_issue: { tKey: "typePaymentIssue", icon: "\uD83D\uDCB3" },
+  machine_malfunction: { tKey: "typeMachineMalfunction", icon: "\uD83D\uDD27" },
+  machine_dirty: { tKey: "typeMachineDirty", icon: "\uD83E\uDDF9" },
+  other: { tKey: "typeOther", icon: "\uD83D\uDCAC" },
 };
 
 export default function ComplaintsPage() {
+  const t = useTranslations("complaints");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -159,16 +164,14 @@ export default function ComplaintsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить жалобы
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["complaints"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -179,17 +182,15 @@ export default function ComplaintsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Жалобы</h1>
-          <p className="text-muted-foreground">
-            Управление обращениями клиентов
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/complaints/qr-codes">
-            <Button variant="outline">QR-коды</Button>
+            <Button variant="outline">{t("qrCodes")}</Button>
           </Link>
           <Link href="/dashboard/complaints/settings">
-            <Button variant="outline">SLA настройки</Button>
+            <Button variant="outline">{t("slaSettings")}</Button>
           </Link>
         </div>
       </div>
@@ -200,7 +201,9 @@ export default function ComplaintsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Всего</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotal")}
+                </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <MessageSquare className="h-8 w-8 text-muted-foreground" />
@@ -211,7 +214,9 @@ export default function ComplaintsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Ожидают</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsPending")}
+                </p>
                 <p className="text-2xl font-bold text-muted-foreground">
                   {stats.pending}
                 </p>
@@ -224,7 +229,9 @@ export default function ComplaintsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">В работе</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsInProgress")}
+                </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {stats.inProgress}
                 </p>
@@ -237,7 +244,9 @@ export default function ComplaintsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Просрочено SLA</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsOverdue")}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {stats.overdue}
                 </p>
@@ -253,7 +262,7 @@ export default function ComplaintsPage() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по номеру или телефону..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -263,16 +272,18 @@ export default function ComplaintsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {statusFilter ? statusConfig[statusFilter]?.label : "Все статусы"}
+              {statusFilter && statusKeys[statusFilter]
+                ? t(statusKeys[statusFilter])
+                : t("allStatuses")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter(null)}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusConfig).map(([key, config]) => (
+            {Object.entries(statusKeys).map(([key, tKey]) => (
               <DropdownMenuItem key={key} onClick={() => setStatusFilter(key)}>
-                {config.label}
+                {t(tKey)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -301,21 +312,25 @@ export default function ComplaintsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Жалобы не найдены</p>
-            <p className="text-muted-foreground">
-              Когда клиенты оставят жалобы, они появятся здесь
-            </p>
+            <p className="text-lg font-medium">{t("notFound")}</p>
+            <p className="text-muted-foreground">{t("notFoundHint")}</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {complaints?.map((complaint: Complaint) => {
-            const status =
-              statusConfig[complaint.status] || statusConfig.pending;
-            const type = typeConfig[complaint.complaintType] || {
-              label: complaint.complaintType,
-              icon: "📋",
+            const style =
+              statusStyles[complaint.status] || statusStyles.pending;
+            const statusLabel = statusKeys[complaint.status]
+              ? t(statusKeys[complaint.status])
+              : complaint.status;
+            const typeInfo = typeKeys[complaint.complaintType] || {
+              tKey: "",
+              icon: "\uD83D\uDCCB",
             };
+            const typeLabel = typeInfo.tKey
+              ? t(typeInfo.tKey)
+              : complaint.complaintType;
             const isOverdue =
               complaint.slaDeadline &&
               new Date(complaint.slaDeadline) < new Date() &&
@@ -329,26 +344,26 @@ export default function ComplaintsPage() {
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="text-2xl">{type.icon}</div>
+                      <div className="text-2xl">{typeInfo.icon}</div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium">
-                            #{complaint.complaintNumber} - {type.label}
+                            #{complaint.complaintNumber} - {typeLabel}
                           </h3>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+                            className={`text-xs px-2 py-0.5 rounded-full ${style.bgColor} ${style.color}`}
                           >
-                            {status.label}
+                            {statusLabel}
                           </span>
                           {isOverdue && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                              Просрочено SLA
+                              {t("slaOverdue")}
                             </span>
                           )}
                           {complaint.refund && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 flex items-center gap-1">
                               <DollarSign className="h-3 w-3" />
-                              Возврат
+                              {t("refund")}
                             </span>
                           )}
                         </div>
@@ -388,7 +403,7 @@ export default function ComplaintsPage() {
                       <Link href={`/dashboard/complaints/${complaint.id}`}>
                         <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4 mr-1" />
-                          Открыть
+                          {t("open")}
                         </Button>
                       </Link>
                       <DropdownMenu>
@@ -396,7 +411,7 @@ export default function ComplaintsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            aria-label="Действия"
+                            aria-label={t("actionsLabel")}
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
@@ -404,23 +419,23 @@ export default function ComplaintsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
                             <User className="h-4 w-4 mr-2" />
-                            Назначить
+                            {t("assign")}
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <MessageCircle className="h-4 w-4 mr-2" />
-                            Комментарий
+                            {t("comment")}
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <DollarSign className="h-4 w-4 mr-2" />
-                            Создать возврат
+                            {t("createRefund")}
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-green-600">
                             <CheckCircle className="h-4 w-4 mr-2" />
-                            Решить
+                            {t("resolve")}
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600">
                             <XCircle className="h-4 w-4 mr-2" />
-                            Отклонить
+                            {t("reject")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

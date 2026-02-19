@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   Route,
@@ -44,22 +45,16 @@ interface RouteItem {
   createdAt: string;
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
+const statusStyles: Record<string, { color: string; bgColor: string }> = {
   draft: {
-    label: "Черновик",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
   active: {
-    label: "Активен",
     color: "text-green-600",
     bgColor: "bg-green-100",
   },
   inactive: {
-    label: "Неактивен",
     color: "text-red-600",
     bgColor: "bg-red-100",
   },
@@ -101,6 +96,7 @@ function RouteCardSkeleton() {
 }
 
 export default function RoutesPage() {
+  const t = useTranslations("routes");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -109,6 +105,8 @@ export default function RoutesPage() {
     action: () => void;
   } | null>(null);
   const queryClient = useQueryClient();
+
+  const statusKeys = ["draft", "active", "inactive"] as const;
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -131,10 +129,10 @@ export default function RoutesPage() {
     mutationFn: routesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
-      toast.success("Маршрут удалён");
+      toast.success(t("deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить маршрут");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -142,10 +140,10 @@ export default function RoutesPage() {
     mutationFn: routesApi.optimize,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
-      toast.success("Маршрут оптимизирован");
+      toast.success(t("optimized"));
     },
     onError: () => {
-      toast.error("Не удалось оптимизировать маршрут");
+      toast.error(t("optimizeFailed"));
     },
   });
 
@@ -178,16 +176,14 @@ export default function RoutesPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить список маршрутов
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["routes"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -198,15 +194,13 @@ export default function RoutesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Маршруты</h1>
-          <p className="text-muted-foreground">
-            Управление маршрутами обслуживания
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link href="/dashboard/routes/builder">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Создать маршрут
+            {t("createRoute")}
           </Button>
         </Link>
       </div>
@@ -221,7 +215,9 @@ export default function RoutesPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Всего</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("statsTotal")}
+                    </p>
                     <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
                   <Route className="h-8 w-8 text-muted-foreground" />
@@ -232,7 +228,9 @@ export default function RoutesPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Активных</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("statsActive")}
+                    </p>
                     <p className="text-2xl font-bold text-green-600">
                       {stats.active}
                     </p>
@@ -245,7 +243,9 @@ export default function RoutesPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Остановок</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("statsStops")}
+                    </p>
                     <p className="text-2xl font-bold text-blue-600">
                       {stats.totalStops}
                     </p>
@@ -259,7 +259,7 @@ export default function RoutesPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Ср. остановок
+                      {t("statsAvgStops")}
                     </p>
                     <p className="text-2xl font-bold text-purple-600">
                       {stats.avgStops}
@@ -278,27 +278,27 @@ export default function RoutesPage() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
-            aria-label="Поиск маршрутов"
+            aria-label={t("searchAriaLabel")}
           />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {statusFilter ? statusConfig[statusFilter]?.label : "Все статусы"}
+              {statusFilter ? t(`status_${statusFilter}`) : t("allStatuses")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter(null)}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusConfig).map(([key, config]) => (
+            {statusKeys.map((key) => (
               <DropdownMenuItem key={key} onClick={() => setStatusFilter(key)}>
-                {config.label}
+                {t(`status_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -316,14 +316,12 @@ export default function RoutesPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Route className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Маршруты не найдены</p>
-            <p className="text-muted-foreground mb-4">
-              Создайте первый маршрут
-            </p>
+            <p className="text-lg font-medium">{t("notFound")}</p>
+            <p className="text-muted-foreground mb-4">{t("addFirst")}</p>
             <Link href="/dashboard/routes/builder">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Создать маршрут
+                {t("createRoute")}
               </Button>
             </Link>
           </CardContent>
@@ -331,7 +329,7 @@ export default function RoutesPage() {
       ) : (
         <div className="space-y-4">
           {routeList.map((route: RouteItem) => {
-            const status = statusConfig[route.status] || statusConfig.draft;
+            const style = statusStyles[route.status] || statusStyles.draft;
             const stopsCount = route.stopsCount || route.stops?.length || 0;
 
             return (
@@ -349,9 +347,9 @@ export default function RoutesPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium">{route.name}</h3>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+                            className={`text-xs px-2 py-0.5 rounded-full ${style.bgColor} ${style.color}`}
                           >
-                            {status.label}
+                            {t(`status_${route.status}`)}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
@@ -362,12 +360,14 @@ export default function RoutesPage() {
                           )}
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {stopsCount} остановок
+                            {t("stopsCount", { count: stopsCount })}
                           </span>
                           {route.totalDistanceKm != null && (
                             <span className="flex items-center gap-1">
                               <Ruler className="h-3 w-3" />
-                              {route.totalDistanceKm.toFixed(1)} км
+                              {t("distanceKm", {
+                                distance: route.totalDistanceKm.toFixed(1),
+                              })}
                             </span>
                           )}
                         </div>
@@ -380,7 +380,7 @@ export default function RoutesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            aria-label="Действия"
+                            aria-label={t("actionsLabel")}
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
@@ -389,7 +389,7 @@ export default function RoutesPage() {
                           <Link href={`/dashboard/routes/${route.id}`}>
                             <DropdownMenuItem>
                               <Eye className="h-4 w-4 mr-2" />
-                              Просмотр
+                              {t("actionView")}
                             </DropdownMenuItem>
                           </Link>
                           <DropdownMenuItem
@@ -397,7 +397,7 @@ export default function RoutesPage() {
                             onClick={() => optimizeMutation.mutate(route.id)}
                           >
                             <Zap className="h-4 w-4 mr-2" />
-                            Оптимизировать
+                            {t("actionOptimize")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={async () => {
@@ -405,33 +405,33 @@ export default function RoutesPage() {
                                 const res = await routesApi.getById(route.id);
                                 const orig = res.data;
                                 await routesApi.create({
-                                  name: `${orig.name} (копия)`,
+                                  name: t("copySuffix", { name: orig.name }),
                                   description: orig.description,
                                 });
                                 queryClient.invalidateQueries({
                                   queryKey: ["routes"],
                                 });
-                                toast.success("Маршрут дублирован");
+                                toast.success(t("duplicated"));
                               } catch {
-                                toast.error("Не удалось дублировать маршрут");
+                                toast.error(t("duplicateFailed"));
                               }
                             }}
                           >
                             <Copy className="h-4 w-4 mr-2" />
-                            Дублировать
+                            {t("actionDuplicate")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             disabled={deleteMutation.isPending}
                             onClick={() =>
                               setConfirmState({
-                                title: "Удалить маршрут?",
+                                title: t("deleteConfirm"),
                                 action: () => deleteMutation.mutate(route.id),
                               })
                             }
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Удалить
+                            {t("actionDelete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
