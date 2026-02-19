@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Bell,
   BellDot,
@@ -140,15 +141,6 @@ interface TypeChannelPreferences {
 
 // ─── Constants / Mappings ─────────────────────────────────────
 
-const typeLabels: Record<string, string> = {
-  system: "Системное",
-  task: "Задача",
-  inventory: "Инвентарь",
-  payment: "Платёж",
-  alert: "Тревога",
-  maintenance: "Обслуживание",
-};
-
 const typeIcons: Record<string, React.ReactNode> = {
   system: <Bell className="w-4 h-4" />,
   task: <ClipboardList className="w-4 h-4" />,
@@ -167,14 +159,6 @@ const typeColors: Record<string, string> = {
   maintenance: "bg-amber-500/10 text-amber-500",
 };
 
-const channelLabels: Record<string, string> = {
-  push: "Push",
-  email: "Email",
-  sms: "SMS",
-  telegram: "Telegram",
-  in_app: "In-App",
-};
-
 const channelColors: Record<string, string> = {
   push: "bg-blue-500/10 text-blue-600",
   email: "bg-green-500/10 text-green-600",
@@ -183,23 +167,10 @@ const channelColors: Record<string, string> = {
   in_app: "bg-muted text-muted-foreground",
 };
 
-const priorityLabels: Record<string, string> = {
-  high: "Высокий",
-  medium: "Средний",
-  low: "Низкий",
-};
-
 const priorityColors: Record<string, string> = {
   high: "bg-red-500/10 text-red-500",
   medium: "bg-amber-500/10 text-amber-500",
   low: "bg-green-500/10 text-green-500",
-};
-
-const campaignStatusLabels: Record<string, string> = {
-  draft: "Черновик",
-  scheduled: "Запланировано",
-  sent: "Отправлено",
-  cancelled: "Отменено",
 };
 
 const campaignStatusColors: Record<string, string> = {
@@ -209,36 +180,48 @@ const campaignStatusColors: Record<string, string> = {
   cancelled: "bg-red-500/10 text-red-500",
 };
 
-const eventOptions = [
-  { value: "machine.offline", label: "Автомат оффлайн" },
-  { value: "machine.error", label: "Ошибка автомата" },
-  { value: "inventory.low", label: "Низкий запас" },
-  { value: "inventory.empty", label: "Закончился товар" },
-  { value: "task.created", label: "Задача создана" },
-  { value: "task.assigned", label: "Задача назначена" },
-  { value: "task.completed", label: "Задача завершена" },
-  { value: "task.overdue", label: "Задача просрочена" },
-  { value: "payment.received", label: "Платёж получен" },
-  { value: "payment.failed", label: "Ошибка платежа" },
-  { value: "maintenance.due", label: "Плановое обслуживание" },
-  { value: "alert.critical", label: "Критическая тревога" },
-];
+const typeKeys = [
+  "system",
+  "task",
+  "inventory",
+  "payment",
+  "alert",
+  "maintenance",
+] as const;
 
-const recipientOptions = [
-  { value: "all_admins", label: "Все администраторы" },
-  { value: "all_managers", label: "Все менеджеры" },
-  { value: "all_operators", label: "Все операторы" },
-  { value: "machine_owner", label: "Владелец автомата" },
-  { value: "assigned_operator", label: "Назначенный оператор" },
-  { value: "warehouse_staff", label: "Склад" },
-  { value: "accountants", label: "Бухгалтерия" },
-];
+const eventKeys = [
+  "machine.offline",
+  "machine.error",
+  "inventory.low",
+  "inventory.empty",
+  "task.created",
+  "task.assigned",
+  "task.completed",
+  "task.overdue",
+  "payment.received",
+  "payment.failed",
+  "maintenance.due",
+  "alert.critical",
+] as const;
+
+const recipientKeys = [
+  "all_admins",
+  "all_managers",
+  "all_operators",
+  "machine_owner",
+  "assigned_operator",
+  "warehouse_staff",
+  "accountants",
+] as const;
+
+const channelKeys = ["push", "email", "sms", "telegram", "in_app"] as const;
 
 // ─── Main Page Component ──────────────────────────────────────
 
 export default function NotificationsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("notifications");
 
   // --- All Tab State ---
   const [search, setSearch] = useState("");
@@ -317,8 +300,10 @@ export default function NotificationsPage() {
     },
   });
 
-  const notifications: Notification[] =
-    notificationsRes?.data || notificationsRes || [];
+  const notifications: Notification[] = useMemo(
+    () => notificationsRes?.data || notificationsRes || [],
+    [notificationsRes],
+  );
 
   const { data: unreadCountRes } = useQuery({
     queryKey: ["notifications", "unread-count"],
@@ -388,10 +373,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success("Уведомление отмечено как прочитанное");
+      toast.success(t("toast_marked_read"));
     },
     onError: () => {
-      toast.error("Не удалось отметить как прочитанное");
+      toast.error(t("toast_marked_read_error"));
     },
   });
 
@@ -401,10 +386,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success("Все уведомления отмечены как прочитанные");
+      toast.success(t("toast_all_marked_read"));
     },
     onError: () => {
-      toast.error("Не удалось отметить все как прочитанные");
+      toast.error(t("toast_all_marked_read_error"));
     },
   });
 
@@ -414,10 +399,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success("Уведомление удалено");
+      toast.success(t("toast_notification_deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить уведомление");
+      toast.error(t("toast_notification_delete_error"));
     },
   });
 
@@ -435,10 +420,14 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["notification-templates"] });
       setIsTemplateDialogOpen(false);
       setEditingTemplate(null);
-      toast.success(editingTemplate ? "Шаблон обновлён" : "Шаблон создан");
+      toast.success(
+        editingTemplate
+          ? t("toast_template_updated")
+          : t("toast_template_created"),
+      );
     },
     onError: () => {
-      toast.error("Ошибка сохранения шаблона");
+      toast.error(t("toast_template_save_error"));
     },
   });
 
@@ -448,10 +437,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-templates"] });
-      toast.success("Шаблон удалён");
+      toast.success(t("toast_template_deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить шаблон");
+      toast.error(t("toast_template_delete_error"));
     },
   });
 
@@ -466,10 +455,12 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
       setIsRuleDialogOpen(false);
       setEditingRule(null);
-      toast.success(editingRule ? "Правило обновлено" : "Правило создано");
+      toast.success(
+        editingRule ? t("toast_rule_updated") : t("toast_rule_created"),
+      );
     },
     onError: () => {
-      toast.error("Ошибка сохранения правила");
+      toast.error(t("toast_rule_save_error"));
     },
   });
 
@@ -485,10 +476,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
-      toast.success("Статус правила обновлён");
+      toast.success(t("toast_rule_status_updated"));
     },
     onError: () => {
-      toast.error("Ошибка обновления статуса");
+      toast.error(t("toast_rule_status_error"));
     },
   });
 
@@ -498,10 +489,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
-      toast.success("Правило удалено");
+      toast.success(t("toast_rule_deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить правило");
+      toast.error(t("toast_rule_delete_error"));
     },
   });
 
@@ -520,11 +511,13 @@ export default function NotificationsPage() {
       setIsCampaignDialogOpen(false);
       setEditingCampaign(null);
       toast.success(
-        editingCampaign ? "Кампания обновлена" : "Кампания создана",
+        editingCampaign
+          ? t("toast_campaign_updated")
+          : t("toast_campaign_created"),
       );
     },
     onError: () => {
-      toast.error("Ошибка сохранения кампании");
+      toast.error(t("toast_campaign_save_error"));
     },
   });
 
@@ -534,10 +527,10 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-campaigns"] });
-      toast.success("Кампания удалена");
+      toast.success(t("toast_campaign_deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить кампанию");
+      toast.error(t("toast_campaign_delete_error"));
     },
   });
 
@@ -549,10 +542,10 @@ export default function NotificationsPage() {
       await api.post("/notifications/settings", data);
     },
     onSuccess: () => {
-      toast.success("Настройки сохранены");
+      toast.success(t("toast_settings_saved"));
     },
     onError: () => {
-      toast.error("Ошибка сохранения настроек");
+      toast.error(t("toast_settings_save_error"));
     },
   });
 
@@ -572,16 +565,16 @@ export default function NotificationsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
+        <p className="text-lg font-medium">{t("error_loading_title")}</p>
         <p className="text-muted-foreground mb-4">
-          Не удалось загрузить уведомления
+          {t("error_loading_subtitle")}
         </p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["notifications"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -594,16 +587,14 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              Центр уведомлений
+              {t("page_title")}
               {stats.unread > 0 && (
                 <Badge className="bg-red-500 text-white hover:bg-red-600">
                   {stats.unread}
                 </Badge>
               )}
             </h1>
-            <p className="text-muted-foreground">
-              Управление уведомлениями и каналами доставки
-            </p>
+            <p className="text-muted-foreground">{t("page_subtitle")}</p>
           </div>
         </div>
         <Button
@@ -612,18 +603,18 @@ export default function NotificationsPage() {
           disabled={markAllReadMutation.isPending || stats.unread === 0}
         >
           <CheckCheck className="w-4 h-4 mr-2" />
-          Прочитать все
+          {t("mark_all_read")}
         </Button>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="all">Все</TabsTrigger>
-          <TabsTrigger value="templates">Шаблоны</TabsTrigger>
-          <TabsTrigger value="rules">Правила</TabsTrigger>
-          <TabsTrigger value="campaigns">Кампании</TabsTrigger>
-          <TabsTrigger value="settings">Настройки</TabsTrigger>
+          <TabsTrigger value="all">{t("tab_all")}</TabsTrigger>
+          <TabsTrigger value="templates">{t("tab_templates")}</TabsTrigger>
+          <TabsTrigger value="rules">{t("tab_rules")}</TabsTrigger>
+          <TabsTrigger value="campaigns">{t("tab_campaigns")}</TabsTrigger>
+          <TabsTrigger value="settings">{t("tab_settings")}</TabsTrigger>
         </TabsList>
 
         {/* ═══════════ TAB 1: ALL NOTIFICATIONS ═══════════ */}
@@ -638,7 +629,7 @@ export default function NotificationsPage() {
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
                   <p className="text-sm text-muted-foreground">
-                    Всего уведомлений
+                    {t("stat_total")}
                   </p>
                 </div>
               </div>
@@ -652,7 +643,9 @@ export default function NotificationsPage() {
                   <p className="text-2xl font-bold text-blue-600">
                     {stats.unread}
                   </p>
-                  <p className="text-sm text-muted-foreground">Непрочитанных</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("stat_unread")}
+                  </p>
                 </div>
               </div>
             </div>
@@ -666,7 +659,7 @@ export default function NotificationsPage() {
                     {stats.sentToday}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Отправлено сегодня
+                    {t("stat_sent_today")}
                   </p>
                 </div>
               </div>
@@ -681,7 +674,7 @@ export default function NotificationsPage() {
                     {stats.errors}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Ошибки доставки
+                    {t("stat_delivery_errors")}
                   </p>
                 </div>
               </div>
@@ -693,7 +686,7 @@ export default function NotificationsPage() {
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск уведомлений..."
+                placeholder={t("search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -701,50 +694,51 @@ export default function NotificationsPage() {
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="Все типы" />
+                <SelectValue placeholder={t("filter_all_types")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все типы</SelectItem>
-                <SelectItem value="system">Системное</SelectItem>
-                <SelectItem value="task">Задача</SelectItem>
-                <SelectItem value="inventory">Инвентарь</SelectItem>
-                <SelectItem value="payment">Платёж</SelectItem>
-                <SelectItem value="alert">Тревога</SelectItem>
-                <SelectItem value="maintenance">Обслуживание</SelectItem>
+                <SelectItem value="all">{t("filter_all_types")}</SelectItem>
+                {typeKeys.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`type_${key}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={channelFilter} onValueChange={setChannelFilter}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Все каналы" />
+                <SelectValue placeholder={t("filter_all_channels")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все каналы</SelectItem>
-                <SelectItem value="push">Push</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="sms">SMS</SelectItem>
-                <SelectItem value="telegram">Telegram</SelectItem>
-                <SelectItem value="in_app">In-App</SelectItem>
+                <SelectItem value="all">{t("filter_all_channels")}</SelectItem>
+                {channelKeys.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`channel_${key}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Все" />
+                <SelectValue placeholder={t("filter_all_priorities")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все приоритеты</SelectItem>
-                <SelectItem value="high">Высокий</SelectItem>
-                <SelectItem value="medium">Средний</SelectItem>
-                <SelectItem value="low">Низкий</SelectItem>
+                <SelectItem value="all">
+                  {t("filter_all_priorities")}
+                </SelectItem>
+                <SelectItem value="high">{t("priority_high")}</SelectItem>
+                <SelectItem value="medium">{t("priority_medium")}</SelectItem>
+                <SelectItem value="low">{t("priority_low")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Все" />
+                <SelectValue placeholder={t("filter_all_statuses")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все статусы</SelectItem>
-                <SelectItem value="read">Прочитано</SelectItem>
-                <SelectItem value="unread">Непрочитано</SelectItem>
+                <SelectItem value="all">{t("filter_all_statuses")}</SelectItem>
+                <SelectItem value="read">{t("status_read")}</SelectItem>
+                <SelectItem value="unread">{t("status_unread")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -754,11 +748,13 @@ export default function NotificationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[300px]">Уведомление</TableHead>
-                  <TableHead>Каналы</TableHead>
-                  <TableHead>Приоритет</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Дата</TableHead>
+                  <TableHead className="min-w-[300px]">
+                    {t("th_notification")}
+                  </TableHead>
+                  <TableHead>{t("th_channels")}</TableHead>
+                  <TableHead>{t("th_priority")}</TableHead>
+                  <TableHead>{t("th_status")}</TableHead>
+                  <TableHead>{t("th_date")}</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -807,7 +803,7 @@ export default function NotificationsPage() {
                               variant="outline"
                               className={`text-xs ${channelColors[ch] || ""}`}
                             >
-                              {channelLabels[ch] || ch}
+                              {t(`channel_${ch}`)}
                             </Badge>
                           ))}
                         </div>
@@ -816,7 +812,7 @@ export default function NotificationsPage() {
                         <Badge
                           className={priorityColors[notification.priority]}
                         >
-                          {priorityLabels[notification.priority]}
+                          {t(`priority_${notification.priority}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -826,8 +822,8 @@ export default function NotificationsPage() {
                           />
                           <span className="text-sm">
                             {notification.status === "unread"
-                              ? "Непрочитано"
-                              : "Прочитано"}
+                              ? t("status_unread")
+                              : t("status_read")}
                           </span>
                         </div>
                       </TableCell>
@@ -845,7 +841,7 @@ export default function NotificationsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Действия"
+                              aria-label={t("actions")}
                             >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
@@ -859,7 +855,7 @@ export default function NotificationsPage() {
                                 }}
                               >
                                 <Eye className="w-4 h-4 mr-2" />
-                                Прочитать
+                                {t("action_mark_read")}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem
@@ -872,7 +868,7 @@ export default function NotificationsPage() {
                               }}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Удалить
+                              {t("action_delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -884,7 +880,7 @@ export default function NotificationsPage() {
                     <TableCell colSpan={6} className="text-center py-12">
                       <BellOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                       <p className="text-muted-foreground">
-                        Уведомления не найдены
+                        {t("empty_notifications")}
                       </p>
                     </TableCell>
                   </TableRow>
@@ -898,9 +894,9 @@ export default function NotificationsPage() {
         <TabsContent value="templates" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Шаблоны уведомлений</h2>
+              <h2 className="text-lg font-semibold">{t("templates_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Настройте шаблоны для автоматических уведомлений
+                {t("templates_subtitle")}
               </p>
             </div>
             <Button
@@ -910,7 +906,7 @@ export default function NotificationsPage() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Создать шаблон
+              {t("create_template")}
             </Button>
           </div>
 
@@ -918,11 +914,11 @@ export default function NotificationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Название</TableHead>
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Каналы</TableHead>
-                  <TableHead>Переменные</TableHead>
-                  <TableHead>Статус</TableHead>
+                  <TableHead>{t("th_name")}</TableHead>
+                  <TableHead>{t("th_type")}</TableHead>
+                  <TableHead>{t("th_channels")}</TableHead>
+                  <TableHead>{t("th_variables")}</TableHead>
+                  <TableHead>{t("th_status")}</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -936,35 +932,35 @@ export default function NotificationsPage() {
                     </TableRow>
                   ))
                 ) : templates.length > 0 ? (
-                  templates.map((template) => (
-                    <TableRow key={template.id}>
+                  templates.map((tpl) => (
+                    <TableRow key={tpl.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{template.name}</span>
+                          <span className="font-medium">{tpl.name}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={typeColors[template.type]}>
-                          {typeLabels[template.type]}
+                        <Badge className={typeColors[tpl.type]}>
+                          {t(`type_${tpl.type}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {template.channels.map((ch) => (
+                          {tpl.channels.map((ch) => (
                             <Badge
                               key={ch}
                               variant="outline"
                               className={`text-xs ${channelColors[ch]}`}
                             >
-                              {channelLabels[ch]}
+                              {t(`channel_${ch}`)}
                             </Badge>
                           ))}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {template.variables.map((v) => (
+                          {tpl.variables.map((v) => (
                             <code
                               key={v}
                               className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono"
@@ -977,12 +973,12 @@ export default function NotificationsPage() {
                       <TableCell>
                         <Badge
                           className={
-                            template.is_active
+                            tpl.is_active
                               ? "bg-green-500/10 text-green-500"
                               : "bg-muted text-muted-foreground"
                           }
                         >
-                          {template.is_active ? "Активный" : "Неактивный"}
+                          {tpl.is_active ? t("active") : t("inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -991,7 +987,7 @@ export default function NotificationsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Действия"
+                              aria-label={t("actions")}
                             >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
@@ -999,21 +995,21 @@ export default function NotificationsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => {
-                                setEditingTemplate(template);
+                                setEditingTemplate(tpl);
                                 setIsTemplateDialogOpen(true);
                               }}
                             >
                               <Edit className="w-4 h-4 mr-2" />
-                              Редактировать
+                              {t("action_edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() =>
-                                deleteTemplateMutation.mutate(template.id)
+                                deleteTemplateMutation.mutate(tpl.id)
                               }
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Удалить
+                              {t("action_delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1025,10 +1021,10 @@ export default function NotificationsPage() {
                     <TableCell colSpan={6} className="text-center py-12">
                       <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                       <p className="text-muted-foreground">
-                        Шаблоны не найдены
+                        {t("empty_templates")}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Создайте первый шаблон для автоматических уведомлений
+                        {t("empty_templates_hint")}
                       </p>
                     </TableCell>
                   </TableRow>
@@ -1042,9 +1038,9 @@ export default function NotificationsPage() {
         <TabsContent value="rules" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Правила уведомлений</h2>
+              <h2 className="text-lg font-semibold">{t("rules_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Автоматическая отправка уведомлений по событиям
+                {t("rules_subtitle")}
               </p>
             </div>
             <Button
@@ -1054,7 +1050,7 @@ export default function NotificationsPage() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Создать правило
+              {t("create_rule")}
             </Button>
           </div>
 
@@ -1062,11 +1058,11 @@ export default function NotificationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Правило</TableHead>
-                  <TableHead>Событие</TableHead>
-                  <TableHead>Получатели</TableHead>
-                  <TableHead>Каналы</TableHead>
-                  <TableHead>Статус</TableHead>
+                  <TableHead>{t("th_rule")}</TableHead>
+                  <TableHead>{t("th_event")}</TableHead>
+                  <TableHead>{t("th_recipients")}</TableHead>
+                  <TableHead>{t("th_channels")}</TableHead>
+                  <TableHead>{t("th_status")}</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -1104,7 +1100,7 @@ export default function NotificationsPage() {
                               variant="outline"
                               className={`text-xs ${channelColors[ch]}`}
                             >
-                              {channelLabels[ch]}
+                              {t(`channel_${ch}`)}
                             </Badge>
                           ))}
                         </div>
@@ -1136,7 +1132,7 @@ export default function NotificationsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Действия"
+                              aria-label={t("actions")}
                             >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
@@ -1149,14 +1145,14 @@ export default function NotificationsPage() {
                               }}
                             >
                               <Edit className="w-4 h-4 mr-2" />
-                              Редактировать
+                              {t("action_edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => deleteRuleMutation.mutate(rule.id)}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Удалить
+                              {t("action_delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1168,10 +1164,10 @@ export default function NotificationsPage() {
                     <TableCell colSpan={6} className="text-center py-12">
                       <Zap className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                       <p className="text-muted-foreground">
-                        Правила не найдены
+                        {t("empty_rules")}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Настройте автоматическую отправку уведомлений
+                        {t("empty_rules_hint")}
                       </p>
                     </TableCell>
                   </TableRow>
@@ -1185,9 +1181,9 @@ export default function NotificationsPage() {
         <TabsContent value="campaigns" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Кампании</h2>
+              <h2 className="text-lg font-semibold">{t("campaigns_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Массовая рассылка уведомлений по аудиториям
+                {t("campaigns_subtitle")}
               </p>
             </div>
             <Button
@@ -1197,7 +1193,7 @@ export default function NotificationsPage() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Создать кампанию
+              {t("create_campaign")}
             </Button>
           </div>
 
@@ -1205,12 +1201,12 @@ export default function NotificationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Кампания</TableHead>
-                  <TableHead>Аудитория</TableHead>
-                  <TableHead>Каналы</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Отправлено / Доставлено / Ошибки</TableHead>
-                  <TableHead>Дата</TableHead>
+                  <TableHead>{t("th_campaign")}</TableHead>
+                  <TableHead>{t("th_audience")}</TableHead>
+                  <TableHead>{t("th_channels")}</TableHead>
+                  <TableHead>{t("th_status")}</TableHead>
+                  <TableHead>{t("th_sent_delivered_errors")}</TableHead>
+                  <TableHead>{t("th_date")}</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -1246,7 +1242,7 @@ export default function NotificationsPage() {
                               variant="outline"
                               className={`text-xs ${channelColors[ch]}`}
                             >
-                              {channelLabels[ch]}
+                              {t(`channel_${ch}`)}
                             </Badge>
                           ))}
                         </div>
@@ -1255,7 +1251,7 @@ export default function NotificationsPage() {
                         <Badge
                           className={campaignStatusColors[campaign.status]}
                         >
-                          {campaignStatusLabels[campaign.status]}
+                          {t(`campaign_status_${campaign.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -1284,7 +1280,7 @@ export default function NotificationsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Действия"
+                              aria-label={t("actions")}
                             >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
@@ -1297,7 +1293,7 @@ export default function NotificationsPage() {
                               }}
                             >
                               <Edit className="w-4 h-4 mr-2" />
-                              Редактировать
+                              {t("action_edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
@@ -1306,7 +1302,7 @@ export default function NotificationsPage() {
                               }
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Удалить
+                              {t("action_delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1318,10 +1314,10 @@ export default function NotificationsPage() {
                     <TableCell colSpan={7} className="text-center py-12">
                       <Megaphone className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                       <p className="text-muted-foreground">
-                        Кампании не найдены
+                        {t("empty_campaigns")}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Создайте кампанию для массовой рассылки
+                        {t("empty_campaigns_hint")}
                       </p>
                     </TableCell>
                   </TableRow>
@@ -1334,9 +1330,11 @@ export default function NotificationsPage() {
         {/* ═══════════ TAB 5: SETTINGS ═══════════ */}
         <TabsContent value="settings" className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold">Настройки каналов</h2>
+            <h2 className="text-lg font-semibold">
+              {t("settings_channels_title")}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Управление каналами доставки уведомлений
+              {t("settings_channels_subtitle")}
             </p>
           </div>
 
@@ -1351,9 +1349,9 @@ export default function NotificationsPage() {
                       <Bell className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="font-medium">Push-уведомления</p>
+                      <p className="font-medium">{t("channel_push_title")}</p>
                       <p className="text-xs text-muted-foreground">
-                        Уведомления в браузере
+                        {t("channel_push_desc")}
                       </p>
                     </div>
                   </div>
@@ -1383,12 +1381,10 @@ export default function NotificationsPage() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      toast.success(
-                        "Подписка на push-уведомления активирована",
-                      );
+                      toast.success(t("toast_push_subscribed"));
                     }}
                   >
-                    Подписаться
+                    {t("subscribe")}
                   </Button>
                 )}
               </CardContent>
@@ -1519,17 +1515,17 @@ export default function NotificationsPage() {
                     <div>
                       <p className="font-medium">In-App</p>
                       <p className="text-xs text-muted-foreground">
-                        Всегда включено
+                        {t("always_enabled")}
                       </p>
                     </div>
                   </div>
                   <Badge className="bg-green-500/10 text-green-500">
-                    Активно
+                    {t("active")}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Звук уведомлений
+                    {t("notification_sound")}
                   </span>
                   <button
                     onClick={() =>
@@ -1557,9 +1553,11 @@ export default function NotificationsPage() {
 
           {/* Per-Type Channel Preferences */}
           <div>
-            <h2 className="text-lg font-semibold mb-2">Настройки по типам</h2>
+            <h2 className="text-lg font-semibold mb-2">
+              {t("settings_type_title")}
+            </h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Выберите каналы доставки для каждого типа уведомлений
+              {t("settings_type_subtitle")}
             </p>
           </div>
 
@@ -1567,7 +1565,7 @@ export default function NotificationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Тип уведомления</TableHead>
+                  <TableHead>{t("th_notification_type")}</TableHead>
                   <TableHead className="text-center">Push</TableHead>
                   <TableHead className="text-center">Email</TableHead>
                   <TableHead className="text-center">SMS</TableHead>
@@ -1584,7 +1582,7 @@ export default function NotificationsPage() {
                         >
                           {typeIcons[type]}
                         </span>
-                        <span className="font-medium">{typeLabels[type]}</span>
+                        <span className="font-medium">{t(`type_${type}`)}</span>
                       </div>
                     </TableCell>
                     {(["push", "email", "sms", "telegram"] as const).map(
@@ -1644,8 +1642,8 @@ export default function NotificationsPage() {
             >
               <Save className="w-4 h-4 mr-2" />
               {saveSettingsMutation.isPending
-                ? "Сохранение..."
-                : "Сохранить настройки"}
+                ? t("saving")
+                : t("save_settings")}
             </Button>
           </div>
         </TabsContent>
@@ -1677,21 +1675,27 @@ export default function NotificationsPage() {
               </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Тип:</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("detail_type")}:
+                  </span>{" "}
                   <Badge className={typeColors[selectedNotification.type]}>
-                    {typeLabels[selectedNotification.type]}
+                    {t(`type_${selectedNotification.type}`)}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Приоритет:</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("detail_priority")}:
+                  </span>{" "}
                   <Badge
                     className={priorityColors[selectedNotification.priority]}
                   >
-                    {priorityLabels[selectedNotification.priority]}
+                    {t(`priority_${selectedNotification.priority}`)}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Каналы:</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("detail_channels")}:
+                  </span>{" "}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedNotification.channels.map((ch) => (
                       <Badge
@@ -1699,13 +1703,15 @@ export default function NotificationsPage() {
                         variant="outline"
                         className={`text-xs ${channelColors[ch]}`}
                       >
-                        {channelLabels[ch]}
+                        {t(`channel_${ch}`)}
                       </Badge>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Дата:</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("detail_date")}:
+                  </span>{" "}
                   <span>
                     {new Date(selectedNotification.created_at).toLocaleString(
                       "ru-RU",
@@ -1731,7 +1737,7 @@ export default function NotificationsPage() {
                     }}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Перейти к объекту
+                    {t("go_to_entity")}
                   </Button>
                 )}
               <div className="flex justify-end gap-2 pt-2">
@@ -1748,7 +1754,7 @@ export default function NotificationsPage() {
                     }}
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    Отметить прочитанным
+                    {t("mark_as_read")}
                   </Button>
                 )}
                 <Button
@@ -1756,7 +1762,7 @@ export default function NotificationsPage() {
                   size="sm"
                   onClick={() => setIsDetailOpen(false)}
                 >
-                  Закрыть
+                  {t("close")}
                 </Button>
               </div>
             </div>
@@ -1772,7 +1778,9 @@ export default function NotificationsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? "Редактировать шаблон" : "Новый шаблон"}
+              {editingTemplate
+                ? t("dialog_edit_template")
+                : t("dialog_new_template")}
             </DialogTitle>
           </DialogHeader>
           <TemplateForm
@@ -1788,7 +1796,7 @@ export default function NotificationsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingRule ? "Редактировать правило" : "Новое правило"}
+              {editingRule ? t("dialog_edit_rule") : t("dialog_new_rule")}
             </DialogTitle>
           </DialogHeader>
           <RuleForm
@@ -1807,7 +1815,9 @@ export default function NotificationsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingCampaign ? "Редактировать кампанию" : "Новая кампания"}
+              {editingCampaign
+                ? t("dialog_edit_campaign")
+                : t("dialog_new_campaign")}
             </DialogTitle>
           </DialogHeader>
           <CampaignForm
@@ -1832,6 +1842,7 @@ function TemplateForm({
   onSubmit: (data: Partial<NotificationTemplate>) => void;
   isPending: boolean;
 }) {
+  const t = useTranslations("notifications");
   const [formData, setFormData] = useState({
     name: template?.name || "",
     type: template?.type || "system",
@@ -1867,17 +1878,17 @@ function TemplateForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Название шаблона</label>
+        <label className="text-sm font-medium">{t("form_template_name")}</label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Например: Уведомление о низком запасе"
+          placeholder={t("form_template_name_placeholder")}
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Тип</label>
+          <label className="text-sm font-medium">{t("form_type")}</label>
           <Select
             value={formData.type}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1887,16 +1898,18 @@ function TemplateForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(typeLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {typeKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`type_${key}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Каналы доставки</label>
+          <label className="text-sm font-medium">
+            {t("form_delivery_channels")}
+          </label>
           <div className="flex flex-wrap gap-2 mt-1.5">
             {(["push", "email", "sms", "telegram"] as const).map((ch) => (
               <button
@@ -1909,40 +1922,39 @@ function TemplateForm({
                     : "bg-background border-input hover:bg-muted"
                 }`}
               >
-                {channelLabels[ch]}
+                {t(`channel_${ch}`)}
               </button>
             ))}
           </div>
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Тема</label>
+        <label className="text-sm font-medium">{t("form_subject")}</label>
         <Input
           value={formData.subject}
           onChange={(e) =>
             setFormData({ ...formData, subject: e.target.value })
           }
-          placeholder="Тема уведомления"
+          placeholder={t("form_subject_placeholder")}
           required
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Текст сообщения</label>
+        <label className="text-sm font-medium">{t("form_message_body")}</label>
         <Textarea
           value={formData.body}
           onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-          placeholder="Текст уведомления. Используйте переменные: {{user_name}}, {{machine_name}} и т.д."
+          placeholder={t("form_message_body_placeholder")}
           rows={4}
           required
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Доступные переменные: {"{{user_name}}"}, {"{{machine_name}}"},{" "}
-          {"{{product_name}}"}, {"{{quantity}}"}, {"{{date}}"}
+          {t("form_available_variables")}
         </p>
       </div>
       <div>
         <label className="text-sm font-medium">
-          Переменные (через запятую)
+          {t("form_variables_comma")}
         </label>
         <Input
           value={formData.variables}
@@ -1969,10 +1981,14 @@ function TemplateForm({
               }`}
             />
           </button>
-          <span>{formData.is_active ? "Активный" : "Неактивный"}</span>
+          <span>{formData.is_active ? t("active") : t("inactive")}</span>
         </label>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Сохранение..." : template ? "Обновить" : "Создать"}
+          {isPending
+            ? t("saving")
+            : template
+              ? t("btn_update")
+              : t("btn_create")}
         </Button>
       </div>
     </form>
@@ -1990,6 +2006,7 @@ function RuleForm({
   onSubmit: (data: Partial<NotificationRule>) => void;
   isPending: boolean;
 }) {
+  const t = useTranslations("notifications");
   const [formData, setFormData] = useState({
     name: rule?.name || "",
     event: rule?.event || "",
@@ -2018,46 +2035,48 @@ function RuleForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Название правила</label>
+        <label className="text-sm font-medium">{t("form_rule_name")}</label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Например: Тревога при оффлайн автомате"
+          placeholder={t("form_rule_name_placeholder")}
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Событие-триггер</label>
+          <label className="text-sm font-medium">
+            {t("form_trigger_event")}
+          </label>
           <Select
             value={formData.event}
             onValueChange={(v) => setFormData({ ...formData, event: v })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите событие" />
+              <SelectValue placeholder={t("form_select_event")} />
             </SelectTrigger>
             <SelectContent>
-              {eventOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {eventKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`event_${key.replace(".", "_")}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Получатели</label>
+          <label className="text-sm font-medium">{t("form_recipients")}</label>
           <Select
             value={formData.recipients}
             onValueChange={(v) => setFormData({ ...formData, recipients: v })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите получателей" />
+              <SelectValue placeholder={t("form_select_recipients")} />
             </SelectTrigger>
             <SelectContent>
-              {recipientOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {recipientKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`recipient_${key}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -2065,20 +2084,22 @@ function RuleForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Условия (опционально)</label>
+        <label className="text-sm font-medium">{t("form_conditions")}</label>
         <Input
           value={formData.conditions}
           onChange={(e) =>
             setFormData({ ...formData, conditions: e.target.value })
           }
-          placeholder='Например: priority == "high" AND region == "tashkent"'
+          placeholder={t("form_conditions_placeholder")}
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Дополнительные условия фильтрации событий
+          {t("form_conditions_hint")}
         </p>
       </div>
       <div>
-        <label className="text-sm font-medium">Каналы доставки</label>
+        <label className="text-sm font-medium">
+          {t("form_delivery_channels")}
+        </label>
         <div className="flex flex-wrap gap-2 mt-1.5">
           {(["push", "email", "sms", "telegram"] as const).map((ch) => (
             <button
@@ -2091,7 +2112,7 @@ function RuleForm({
                   : "bg-background border-input hover:bg-muted"
               }`}
             >
-              {channelLabels[ch]}
+              {t(`channel_${ch}`)}
             </button>
           ))}
         </div>
@@ -2113,10 +2134,10 @@ function RuleForm({
               }`}
             />
           </button>
-          <span>{formData.is_active ? "Активно" : "Неактивно"}</span>
+          <span>{formData.is_active ? t("active") : t("inactive")}</span>
         </label>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Сохранение..." : rule ? "Обновить" : "Создать"}
+          {isPending ? t("saving") : rule ? t("btn_update") : t("btn_create")}
         </Button>
       </div>
     </form>
@@ -2134,6 +2155,7 @@ function CampaignForm({
   onSubmit: (data: Partial<NotificationCampaign>) => void;
   isPending: boolean;
 }) {
+  const t = useTranslations("notifications");
   const [formData, setFormData] = useState({
     name: campaign?.name || "",
     message: campaign?.message || "",
@@ -2161,29 +2183,31 @@ function CampaignForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Название кампании</label>
+        <label className="text-sm font-medium">{t("form_campaign_name")}</label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Например: Обновление графика работы"
+          placeholder={t("form_campaign_name_placeholder")}
           required
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Сообщение</label>
+        <label className="text-sm font-medium">{t("form_message")}</label>
         <Textarea
           value={formData.message}
           onChange={(e) =>
             setFormData({ ...formData, message: e.target.value })
           }
-          placeholder="Текст сообщения для рассылки..."
+          placeholder={t("form_campaign_message_placeholder")}
           rows={4}
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Целевая аудитория</label>
+          <label className="text-sm font-medium">
+            {t("form_target_audience")}
+          </label>
           <Select
             value={formData.audience_filter}
             onValueChange={(v) =>
@@ -2194,18 +2218,24 @@ function CampaignForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Все пользователи</SelectItem>
-              <SelectItem value="admins">Администраторы</SelectItem>
-              <SelectItem value="managers">Менеджеры</SelectItem>
-              <SelectItem value="operators">Операторы</SelectItem>
-              <SelectItem value="warehouse">Кладовщики</SelectItem>
-              <SelectItem value="accountants">Бухгалтерия</SelectItem>
+              <SelectItem value="all">{t("audience_all")}</SelectItem>
+              <SelectItem value="admins">{t("audience_admins")}</SelectItem>
+              <SelectItem value="managers">{t("audience_managers")}</SelectItem>
+              <SelectItem value="operators">
+                {t("audience_operators")}
+              </SelectItem>
+              <SelectItem value="warehouse">
+                {t("audience_warehouse")}
+              </SelectItem>
+              <SelectItem value="accountants">
+                {t("audience_accountants")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
           <label className="text-sm font-medium">
-            Запланировать (опционально)
+            {t("form_schedule_optional")}
           </label>
           <Input
             type="datetime-local"
@@ -2217,7 +2247,9 @@ function CampaignForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Каналы доставки</label>
+        <label className="text-sm font-medium">
+          {t("form_delivery_channels")}
+        </label>
         <div className="flex flex-wrap gap-2 mt-1.5">
           {(["push", "email", "sms", "telegram"] as const).map((ch) => (
             <button
@@ -2230,14 +2262,18 @@ function CampaignForm({
                   : "bg-background border-input hover:bg-muted"
               }`}
             >
-              {channelLabels[ch]}
+              {t(`channel_${ch}`)}
             </button>
           ))}
         </div>
       </div>
       <div className="flex justify-end gap-3 pt-2">
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Сохранение..." : campaign ? "Обновить" : "Создать"}
+          {isPending
+            ? t("saving")
+            : campaign
+              ? t("btn_update")
+              : t("btn_create")}
         </Button>
       </div>
     </form>

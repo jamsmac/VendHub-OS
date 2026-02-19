@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Upload,
   FileSpreadsheet,
@@ -162,158 +163,192 @@ type ImportStatus =
   | "COMPLETED_WITH_ERRORS"
   | "FAILED";
 
-// --- Config Maps ---
+// --- Config Maps (style only, labels via t()) ---
 
-const statusConfig: Record<
+const statusStyleConfig: Record<
   ImportStatus,
-  { label: string; color: string; bgColor: string }
+  { labelKey: string; color: string; bgColor: string }
 > = {
   CREATED: {
-    label: "Создана",
+    labelKey: "status_CREATED",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
   UPLOADING: {
-    label: "Загрузка",
+    labelKey: "status_UPLOADING",
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
   UPLOADED: {
-    label: "Загружена",
+    labelKey: "status_UPLOADED",
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
   CLASSIFYING: {
-    label: "Классификация",
+    labelKey: "status_CLASSIFYING",
     color: "text-indigo-700",
     bgColor: "bg-indigo-100",
   },
   CLASSIFIED: {
-    label: "Классифицирована",
+    labelKey: "status_CLASSIFIED",
     color: "text-indigo-700",
     bgColor: "bg-indigo-100",
   },
-  MAPPING: { label: "Маппинг", color: "text-cyan-700", bgColor: "bg-cyan-100" },
+  MAPPING: {
+    labelKey: "status_MAPPING",
+    color: "text-cyan-700",
+    bgColor: "bg-cyan-100",
+  },
   MAPPED: {
-    label: "Маппинг завершён",
+    labelKey: "status_MAPPED",
     color: "text-cyan-700",
     bgColor: "bg-cyan-100",
   },
   VALIDATING: {
-    label: "Валидация",
+    labelKey: "status_VALIDATING",
     color: "text-amber-700",
     bgColor: "bg-amber-100",
   },
   VALIDATED: {
-    label: "Проверена",
+    labelKey: "status_VALIDATED",
     color: "text-amber-700",
     bgColor: "bg-amber-100",
   },
   AWAITING_APPROVAL: {
-    label: "Ожидает одобрения",
+    labelKey: "status_AWAITING_APPROVAL",
     color: "text-orange-700",
     bgColor: "bg-orange-100",
   },
   APPROVED: {
-    label: "Одобрена",
+    labelKey: "status_APPROVED",
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
   REJECTED: {
-    label: "Отклонена",
+    labelKey: "status_REJECTED",
     color: "text-red-700",
     bgColor: "bg-red-100",
   },
   EXECUTING: {
-    label: "Выполняется",
+    labelKey: "status_EXECUTING",
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
   COMPLETED: {
-    label: "Завершена",
+    labelKey: "status_COMPLETED",
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
   COMPLETED_WITH_ERRORS: {
-    label: "Завершена с ошибками",
+    labelKey: "status_COMPLETED_WITH_ERRORS",
     color: "text-yellow-700",
     bgColor: "bg-yellow-100",
   },
-  FAILED: { label: "Ошибка", color: "text-red-700", bgColor: "bg-red-100" },
+  FAILED: {
+    labelKey: "status_FAILED",
+    color: "text-red-700",
+    bgColor: "bg-red-100",
+  },
 };
 
-const domainConfig: Record<
+const domainStyleConfig: Record<
   ImportDomain,
-  { label: string; color: string; bgColor: string }
+  { labelKey: string; color: string; bgColor: string }
 > = {
   PRODUCTS: {
-    label: "Продукты",
+    labelKey: "domain_PRODUCTS",
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
   MACHINES: {
-    label: "Автоматы",
+    labelKey: "domain_MACHINES",
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
   USERS: {
-    label: "Пользователи",
+    labelKey: "domain_USERS",
     color: "text-purple-700",
     bgColor: "bg-purple-100",
   },
   EMPLOYEES: {
-    label: "Сотрудники",
+    labelKey: "domain_EMPLOYEES",
     color: "text-indigo-700",
     bgColor: "bg-indigo-100",
   },
   TRANSACTIONS: {
-    label: "Транзакции",
+    labelKey: "domain_TRANSACTIONS",
     color: "text-orange-700",
     bgColor: "bg-orange-100",
   },
   SALES: {
-    label: "Продажи",
+    labelKey: "domain_SALES",
     color: "text-emerald-700",
     bgColor: "bg-emerald-100",
   },
   INVENTORY: {
-    label: "Инвентарь",
+    labelKey: "domain_INVENTORY",
     color: "text-teal-700",
     bgColor: "bg-teal-100",
   },
   CUSTOMERS: {
-    label: "Клиенты",
+    labelKey: "domain_CUSTOMERS",
     color: "text-pink-700",
     bgColor: "bg-pink-100",
   },
-  PRICES: { label: "Цены", color: "text-amber-700", bgColor: "bg-amber-100" },
+  PRICES: {
+    labelKey: "domain_PRICES",
+    color: "text-amber-700",
+    bgColor: "bg-amber-100",
+  },
   CATEGORIES: {
-    label: "Категории",
+    labelKey: "domain_CATEGORIES",
     color: "text-cyan-700",
     bgColor: "bg-cyan-100",
   },
-  LOCATIONS: { label: "Локации", color: "text-sky-700", bgColor: "bg-sky-100" },
+  LOCATIONS: {
+    labelKey: "domain_LOCATIONS",
+    color: "text-sky-700",
+    bgColor: "bg-sky-100",
+  },
   CONTRACTORS: {
-    label: "Контрагенты",
+    labelKey: "domain_CONTRACTORS",
     color: "text-slate-700",
     bgColor: "bg-slate-100",
   },
 };
 
-const domainOptions = [
-  { value: "ALL", label: "Все домены" },
-  ...Object.entries(domainConfig).map(([key, cfg]) => ({
-    value: key,
-    label: cfg.label,
-  })),
+const DOMAIN_KEYS: ImportDomain[] = [
+  "PRODUCTS",
+  "MACHINES",
+  "USERS",
+  "EMPLOYEES",
+  "TRANSACTIONS",
+  "SALES",
+  "INVENTORY",
+  "CUSTOMERS",
+  "PRICES",
+  "CATEGORIES",
+  "LOCATIONS",
+  "CONTRACTORS",
 ];
 
-const statusFilterOptions = [
-  { value: "ALL", label: "Все статусы" },
-  ...Object.entries(statusConfig).map(([key, cfg]) => ({
-    value: key,
-    label: cfg.label,
-  })),
+const STATUS_KEYS: ImportStatus[] = [
+  "CREATED",
+  "UPLOADING",
+  "UPLOADED",
+  "CLASSIFYING",
+  "CLASSIFIED",
+  "MAPPING",
+  "MAPPED",
+  "VALIDATING",
+  "VALIDATED",
+  "AWAITING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+  "EXECUTING",
+  "COMPLETED",
+  "COMPLETED_WITH_ERRORS",
+  "FAILED",
 ];
 
 const ACCEPTED_FORMATS = ".csv,.xls,.xlsx,.json";
@@ -328,16 +363,20 @@ type WizardStep =
   | "validation"
   | "approve";
 
-const wizardSteps: {
+const wizardStepDefs: {
   id: WizardStep;
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
 }[] = [
-  { id: "upload", label: "Загрузка", icon: FileUp },
-  { id: "classification", label: "Классификация", icon: ClipboardList },
-  { id: "mapping", label: "Маппинг колонок", icon: Columns },
-  { id: "validation", label: "Валидация", icon: ShieldCheck },
-  { id: "approve", label: "Одобрение", icon: Play },
+  { id: "upload", labelKey: "step_upload", icon: FileUp },
+  {
+    id: "classification",
+    labelKey: "step_classification",
+    icon: ClipboardList,
+  },
+  { id: "mapping", labelKey: "step_mapping", icon: Columns },
+  { id: "validation", labelKey: "step_validation", icon: ShieldCheck },
+  { id: "approve", labelKey: "step_approve", icon: Play },
 ];
 
 function formatFileSize(bytes: number): string {
@@ -347,6 +386,8 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function ImportPage() {
+  const t = useTranslations("import");
+
   // --- List state ---
   const [domainFilter, setDomainFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -376,6 +417,24 @@ export default function ImportPage() {
   const [rejectReason, setRejectReason] = useState("");
 
   const queryClient = useQueryClient();
+
+  // --- Derived options ---
+
+  const domainOptions = [
+    { value: "ALL", label: t("allDomains") },
+    ...DOMAIN_KEYS.map((key) => ({
+      value: key,
+      label: t(domainStyleConfig[key].labelKey),
+    })),
+  ];
+
+  const statusFilterOptions = [
+    { value: "ALL", label: t("allStatuses") },
+    ...STATUS_KEYS.map((key) => ({
+      value: key,
+      label: t(statusStyleConfig[key].labelKey),
+    })),
+  ];
 
   // --- Queries ---
 
@@ -440,47 +499,47 @@ export default function ImportPage() {
     onSuccess: (res) => {
       const session = res.data as ImportSession;
       setWizardSessionId(session.id);
-      toast.success("Файл загружен успешно");
+      toast.success(t("toastFileUploaded"));
       setWizardStep("classification");
     },
     onError: () => {
-      toast.error("Ошибка при загрузке файла");
+      toast.error(t("toastFileUploadError"));
     },
   });
 
   const classifyMutation = useMutation({
     mutationFn: (id: string) => importApi.classifySession(id),
     onSuccess: () => {
-      toast.success("Классификация завершена");
+      toast.success(t("toastClassificationDone"));
       refetchWizardSession();
       setWizardStep("mapping");
     },
     onError: () => {
-      toast.error("Ошибка классификации");
+      toast.error(t("toastClassificationError"));
     },
   });
 
   const validateMutation = useMutation({
     mutationFn: (id: string) => importApi.validateSession(id),
     onSuccess: () => {
-      toast.success("Валидация завершена");
+      toast.success(t("toastValidationDone"));
       refetchWizardSession();
       setWizardStep("validation");
     },
     onError: () => {
-      toast.error("Ошибка валидации");
+      toast.error(t("toastValidationError"));
     },
   });
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => importApi.approveSession(id),
     onSuccess: () => {
-      toast.success("Импорт одобрен и запущен");
+      toast.success(t("toastImportApproved"));
       queryClient.invalidateQueries({ queryKey: ["import-sessions"] });
       resetWizard();
     },
     onError: () => {
-      toast.error("Ошибка при одобрении импорта");
+      toast.error(t("toastImportApproveError"));
     },
   });
 
@@ -488,14 +547,14 @@ export default function ImportPage() {
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       importApi.rejectSession(id, { reason }),
     onSuccess: () => {
-      toast.success("Импорт отклонён");
+      toast.success(t("toastImportRejected"));
       queryClient.invalidateQueries({ queryKey: ["import-sessions"] });
       setRejectOpen(false);
       setRejectReason("");
       resetWizard();
     },
     onError: () => {
-      toast.error("Ошибка при отклонении");
+      toast.error(t("toastImportRejectError"));
     },
   });
 
@@ -570,7 +629,15 @@ export default function ImportPage() {
   };
 
   const getStepIndex = (step: WizardStep) =>
-    wizardSteps.findIndex((s) => s.id === step);
+    wizardStepDefs.findIndex((s) => s.id === step);
+
+  // --- Helper: get translated status/domain labels ---
+
+  const getStatusLabel = (status: ImportStatus) =>
+    t(statusStyleConfig[status]?.labelKey ?? "status_CREATED");
+
+  const getDomainLabel = (domain: ImportDomain) =>
+    t(domainStyleConfig[domain]?.labelKey ?? "domain_PRODUCTS");
 
   // --- Render Wizard Step Content ---
 
@@ -602,11 +669,9 @@ export default function ImportPage() {
                 }}
               />
               <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-1">
-                Перетащите файл сюда или нажмите для выбора
-              </p>
+              <p className="text-lg font-medium mb-1">{t("dropzoneTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Поддерживаемые форматы: CSV, XLS, XLSX, JSON
+                {t("dropzoneFormats")}
               </p>
             </div>
 
@@ -641,11 +706,11 @@ export default function ImportPage() {
                 {uploadMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Загрузка...
+                    {t("uploading")}
                   </>
                 ) : (
                   <>
-                    Загрузить
+                    {t("upload")}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
@@ -663,12 +728,14 @@ export default function ImportPage() {
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Файл</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("file")}
+                        </p>
                         <p className="font-medium">{wizardSession.file_name}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Строк в файле
+                          {t("rowsInFile")}
                         </p>
                         <p className="font-medium">
                           {wizardSession.total_rows}
@@ -676,16 +743,15 @@ export default function ImportPage() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Определённый домен
+                          {t("detectedDomain")}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           {wizardSession.detected_domain ? (
                             <>
                               <Badge
-                                className={`${domainConfig[wizardSession.detected_domain]?.bgColor} ${domainConfig[wizardSession.detected_domain]?.color} border-0`}
+                                className={`${domainStyleConfig[wizardSession.detected_domain]?.bgColor} ${domainStyleConfig[wizardSession.detected_domain]?.color} border-0`}
                               >
-                                {domainConfig[wizardSession.detected_domain]
-                                  ?.label || wizardSession.detected_domain}
+                                {getDomainLabel(wizardSession.detected_domain)}
                               </Badge>
                               {wizardSession.classification_confidence !=
                                 null && (
@@ -701,27 +767,27 @@ export default function ImportPage() {
                             </>
                           ) : (
                             <span className="text-muted-foreground">
-                              Не определён
+                              {t("notDetected")}
                             </span>
                           )}
                         </div>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Переопределить домен
+                          {t("overrideDomain")}
                         </p>
                         <Select
                           value={domainOverride}
                           onValueChange={setDomainOverride}
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Авто" />
+                            <SelectValue placeholder={t("auto")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="AUTO">Авто</SelectItem>
-                            {Object.entries(domainConfig).map(([key, cfg]) => (
+                            <SelectItem value="AUTO">{t("auto")}</SelectItem>
+                            {DOMAIN_KEYS.map((key) => (
                               <SelectItem key={key} value={key}>
-                                {cfg.label}
+                                {getDomainLabel(key)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -737,7 +803,7 @@ export default function ImportPage() {
                     onClick={() => setWizardStep("upload")}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Назад
+                    {t("back")}
                   </Button>
                   <div className="flex gap-2">
                     <Button
@@ -748,7 +814,7 @@ export default function ImportPage() {
                       <RefreshCw
                         className={`h-4 w-4 mr-2 ${classifyMutation.isPending ? "animate-spin" : ""}`}
                       />
-                      Переклассифицировать
+                      {t("reclassify")}
                     </Button>
                     <Button
                       onClick={() => {
@@ -760,7 +826,7 @@ export default function ImportPage() {
                       }}
                       disabled={classifyMutation.isPending}
                     >
-                      Далее
+                      {t("next")}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
@@ -770,7 +836,7 @@ export default function ImportPage() {
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 mx-auto animate-spin text-muted-foreground" />
                 <p className="mt-2 text-muted-foreground">
-                  Загрузка данных сессии...
+                  {t("loadingSessionData")}
                 </p>
               </div>
             )}
@@ -788,9 +854,9 @@ export default function ImportPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Колонка в файле</TableHead>
-                          <TableHead>Определённое поле</TableHead>
-                          <TableHead>Переопределить</TableHead>
+                          <TableHead>{t("columnInFile")}</TableHead>
+                          <TableHead>{t("detectedField")}</TableHead>
+                          <TableHead>{t("override")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -823,7 +889,7 @@ export default function ImportPage() {
                             </TableCell>
                             <TableCell>
                               <Input
-                                placeholder="Оставить как есть"
+                                placeholder={t("keepAsIs")}
                                 value={
                                   columnOverrides[mapping.source_column] || ""
                                 }
@@ -846,11 +912,11 @@ export default function ImportPage() {
                 <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Автоопределён</span>
+                    <span>{t("autoDetected")}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    <span>Требует проверки</span>
+                    <span>{t("needsReview")}</span>
                   </div>
                 </div>
               </>
@@ -859,7 +925,7 @@ export default function ImportPage() {
                 <CardContent className="flex flex-col items-center justify-center py-8">
                   <Columns className="h-10 w-10 text-muted-foreground mb-3" />
                   <p className="text-muted-foreground">
-                    Маппинг колонок будет доступен после классификации
+                    {t("mappingAfterClassification")}
                   </p>
                 </CardContent>
               </Card>
@@ -871,7 +937,7 @@ export default function ImportPage() {
                 onClick={() => setWizardStep("classification")}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Назад
+                {t("back")}
               </Button>
               <Button
                 onClick={() => {
@@ -884,11 +950,11 @@ export default function ImportPage() {
                 {validateMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Валидация...
+                    {t("validating")}
                   </>
                 ) : (
                   <>
-                    Запустить валидацию
+                    {t("runValidation")}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
@@ -910,7 +976,7 @@ export default function ImportPage() {
                         <XCircle className="h-5 w-5 text-red-500" />
                         <div>
                           <p className="text-sm text-muted-foreground">
-                            Ошибки
+                            {t("errors")}
                           </p>
                           <p className="text-xl font-bold text-red-600">
                             {wizardSession.errors_count}
@@ -925,7 +991,7 @@ export default function ImportPage() {
                         <AlertTriangle className="h-5 w-5 text-amber-500" />
                         <div>
                           <p className="text-sm text-muted-foreground">
-                            Предупреждения
+                            {t("warnings")}
                           </p>
                           <p className="text-xl font-bold text-amber-600">
                             {wizardSession.warnings_count}
@@ -940,7 +1006,7 @@ export default function ImportPage() {
                         <Info className="h-5 w-5 text-blue-500" />
                         <div>
                           <p className="text-sm text-muted-foreground">
-                            Проверено строк
+                            {t("rowsChecked")}
                           </p>
                           <p className="text-xl font-bold text-blue-600">
                             {wizardSession.total_rows}
@@ -958,17 +1024,17 @@ export default function ImportPage() {
                       <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2">
                           <XCircle className="h-4 w-4 text-red-500" />
-                          Ошибки валидации
+                          {t("validationErrors")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-20">Строка</TableHead>
-                              <TableHead>Поле</TableHead>
-                              <TableHead>Сообщение</TableHead>
-                              <TableHead>Значение</TableHead>
+                              <TableHead className="w-20">{t("row")}</TableHead>
+                              <TableHead>{t("field")}</TableHead>
+                              <TableHead>{t("message")}</TableHead>
+                              <TableHead>{t("value")}</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -994,8 +1060,10 @@ export default function ImportPage() {
                         </Table>
                         {wizardSession.validation_errors.length > 50 && (
                           <p className="text-sm text-muted-foreground p-4 text-center">
-                            Показано 50 из{" "}
-                            {wizardSession.validation_errors.length} ошибок
+                            {t("showingErrorsOf", {
+                              shown: 50,
+                              total: wizardSession.validation_errors.length,
+                            })}
                           </p>
                         )}
                       </CardContent>
@@ -1009,17 +1077,17 @@ export default function ImportPage() {
                       <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 text-amber-500" />
-                          Предупреждения
+                          {t("warnings")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-20">Строка</TableHead>
-                              <TableHead>Поле</TableHead>
-                              <TableHead>Сообщение</TableHead>
-                              <TableHead>Значение</TableHead>
+                              <TableHead className="w-20">{t("row")}</TableHead>
+                              <TableHead>{t("field")}</TableHead>
+                              <TableHead>{t("message")}</TableHead>
+                              <TableHead>{t("value")}</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1045,9 +1113,10 @@ export default function ImportPage() {
                         </Table>
                         {wizardSession.validation_warnings.length > 30 && (
                           <p className="text-sm text-muted-foreground p-4 text-center">
-                            Показано 30 из{" "}
-                            {wizardSession.validation_warnings.length}{" "}
-                            предупреждений
+                            {t("showingWarningsOf", {
+                              shown: 30,
+                              total: wizardSession.validation_warnings.length,
+                            })}
                           </p>
                         )}
                       </CardContent>
@@ -1060,10 +1129,10 @@ export default function ImportPage() {
                       <CardContent className="flex flex-col items-center justify-center py-8">
                         <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
                         <p className="font-medium text-green-700">
-                          Валидация пройдена успешно
+                          {t("validationPassed")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Ошибок и предупреждений не найдено
+                          {t("noErrorsOrWarnings")}
                         </p>
                       </CardContent>
                     </Card>
@@ -1075,10 +1144,10 @@ export default function ImportPage() {
                     onClick={() => setWizardStep("mapping")}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Назад
+                    {t("back")}
                   </Button>
                   <Button onClick={() => setWizardStep("approve")}>
-                    Далее
+                    {t("next")}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
@@ -1098,43 +1167,49 @@ export default function ImportPage() {
               <>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Сводка импорта</CardTitle>
+                    <CardTitle className="text-base">
+                      {t("importSummary")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Файл</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("file")}
+                        </p>
                         <p className="font-medium">{wizardSession.file_name}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Домен</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("domain")}
+                        </p>
                         <Badge
-                          className={`${domainConfig[wizardSession.domain]?.bgColor || "bg-muted"} ${domainConfig[wizardSession.domain]?.color || "text-muted-foreground"} border-0`}
+                          className={`${domainStyleConfig[wizardSession.domain]?.bgColor || "bg-muted"} ${domainStyleConfig[wizardSession.domain]?.color || "text-muted-foreground"} border-0`}
                         >
-                          {domainConfig[wizardSession.domain]?.label ||
-                            wizardSession.domain}
+                          {getDomainLabel(wizardSession.domain)}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Всего строк
+                          {t("totalRows")}
                         </p>
                         <p className="font-medium">
                           {wizardSession.total_rows}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Статус</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("status")}
+                        </p>
                         <Badge
-                          className={`${statusConfig[wizardSession.status]?.bgColor} ${statusConfig[wizardSession.status]?.color} border-0`}
+                          className={`${statusStyleConfig[wizardSession.status]?.bgColor} ${statusStyleConfig[wizardSession.status]?.color} border-0`}
                         >
-                          {statusConfig[wizardSession.status]?.label ||
-                            wizardSession.status}
+                          {getStatusLabel(wizardSession.status)}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Вставок (INSERT)
+                          {t("insertsCount")}
                         </p>
                         <p className="text-lg font-bold text-green-600">
                           {wizardSession.inserts_count ?? "-"}
@@ -1142,14 +1217,16 @@ export default function ImportPage() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Обновлений (UPDATE)
+                          {t("updatesCount")}
                         </p>
                         <p className="text-lg font-bold text-blue-600">
                           {wizardSession.updates_count ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Ошибки</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("errors")}
+                        </p>
                         <p
                           className={`font-medium ${wizardSession.errors_count > 0 ? "text-red-600" : "text-green-600"}`}
                         >
@@ -1158,7 +1235,7 @@ export default function ImportPage() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Предупреждения
+                          {t("warnings")}
                         </p>
                         <p
                           className={`font-medium ${wizardSession.warnings_count > 0 ? "text-amber-600" : "text-green-600"}`}
@@ -1174,8 +1251,7 @@ export default function ImportPage() {
                   <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                     <p className="text-sm text-red-700">
-                      Обнаружены ошибки. Рекомендуется исправить файл и
-                      загрузить повторно.
+                      {t("errorsFoundWarning")}
                     </p>
                   </div>
                 )}
@@ -1186,7 +1262,7 @@ export default function ImportPage() {
                     onClick={() => setWizardStep("validation")}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Назад
+                    {t("back")}
                   </Button>
                   <div className="flex gap-2">
                     <Button
@@ -1194,7 +1270,7 @@ export default function ImportPage() {
                       onClick={() => setRejectOpen(true)}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Отклонить
+                      {t("reject")}
                     </Button>
                     <Button
                       onClick={handleApprove}
@@ -1203,12 +1279,12 @@ export default function ImportPage() {
                       {approveMutation.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Выполняется...
+                          {t("executing")}
                         </>
                       ) : (
                         <>
                           <CheckCircle className="h-4 w-4 mr-2" />
-                          Утвердить и выполнить
+                          {t("approveAndExecute")}
                         </>
                       )}
                     </Button>
@@ -1233,14 +1309,12 @@ export default function ImportPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Импорт данных</h1>
-          <p className="text-muted-foreground">
-            Загрузка и обработка данных из внешних файлов
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={() => setWizardOpen(true)}>
           <Upload className="h-4 w-4 mr-2" />
-          Новый импорт
+          {t("newImport")}
         </Button>
       </div>
 
@@ -1254,7 +1328,7 @@ export default function ImportPage() {
           }}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Домен" />
+            <SelectValue placeholder={t("domain")} />
           </SelectTrigger>
           <SelectContent>
             {domainOptions.map((opt) => (
@@ -1272,7 +1346,7 @@ export default function ImportPage() {
           }}
         >
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Статус" />
+            <SelectValue placeholder={t("status")} />
           </SelectTrigger>
           <SelectContent>
             {statusFilterOptions.map((opt) => (
@@ -1295,13 +1369,11 @@ export default function ImportPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileSpreadsheet className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Сессии импорта не найдены</p>
-            <p className="text-muted-foreground mb-4">
-              Начните с загрузки файла для импорта
-            </p>
+            <p className="text-lg font-medium">{t("noSessionsFound")}</p>
+            <p className="text-muted-foreground mb-4">{t("startWithUpload")}</p>
             <Button onClick={() => setWizardOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
-              Новый импорт
+              {t("newImport")}
             </Button>
           </CardContent>
         </Card>
@@ -1312,20 +1384,21 @@ export default function ImportPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Job #</TableHead>
-                  <TableHead>Домен</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Файл</TableHead>
-                  <TableHead>Строки</TableHead>
-                  <TableHead>Дата</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead>{t("domain")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("file")}</TableHead>
+                  <TableHead>{t("rows")}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sessions.map((session) => {
                   const stCfg =
-                    statusConfig[session.status] || statusConfig.CREATED;
-                  const domCfg = domainConfig[session.domain] || {
-                    label: session.domain,
+                    statusStyleConfig[session.status] ||
+                    statusStyleConfig.CREATED;
+                  const domCfg = domainStyleConfig[session.domain] || {
+                    labelKey: "domain_PRODUCTS",
                     color: "text-muted-foreground",
                     bgColor: "bg-muted",
                   };
@@ -1343,14 +1416,14 @@ export default function ImportPage() {
                         <Badge
                           className={`${domCfg.bgColor} ${domCfg.color} border-0 text-xs`}
                         >
-                          {domCfg.label}
+                          {t(domCfg.labelKey)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge
                           className={`${stCfg.bgColor} ${stCfg.color} border-0`}
                         >
-                          {stCfg.label}
+                          {t(stCfg.labelKey)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">
@@ -1387,7 +1460,7 @@ export default function ImportPage() {
                               }}
                             >
                               <Eye className="h-4 w-4 mr-2" />
-                              Просмотр
+                              {t("view")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1402,9 +1475,11 @@ export default function ImportPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Показано {(meta.page - 1) * meta.limit + 1} -{" "}
-              {Math.min(meta.page * meta.limit, meta.total)} из {meta.total}{" "}
-              сессий
+              {t("showingRange", {
+                from: (meta.page - 1) * meta.limit + 1,
+                to: Math.min(meta.page * meta.limit, meta.total),
+                total: meta.total,
+              })}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -1414,7 +1489,7 @@ export default function ImportPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Назад
+                {t("back")}
               </Button>
               <span className="text-sm text-muted-foreground px-2">
                 {meta.page} / {meta.totalPages}
@@ -1425,7 +1500,7 @@ export default function ImportPage() {
                 disabled={page >= meta.totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Вперед
+                {t("forward")}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
@@ -1442,12 +1517,12 @@ export default function ImportPage() {
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Мастер импорта данных</DialogTitle>
+            <DialogTitle>{t("wizardTitle")}</DialogTitle>
           </DialogHeader>
 
           {/* Step Indicator */}
           <div className="flex items-center gap-1 mb-4">
-            {wizardSteps.map((step, idx) => {
+            {wizardStepDefs.map((step, idx) => {
               const currentIdx = getStepIndex(wizardStep);
               const isActive = idx === currentIdx;
               const isCompleted = idx < currentIdx;
@@ -1465,9 +1540,9 @@ export default function ImportPage() {
                     }`}
                   >
                     <StepIcon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{step.label}</span>
+                    <span className="truncate">{t(step.labelKey)}</span>
                   </div>
-                  {idx < wizardSteps.length - 1 && (
+                  {idx < wizardStepDefs.length - 1 && (
                     <ArrowRight className="h-4 w-4 mx-1 text-muted-foreground shrink-0" />
                   )}
                 </div>
@@ -1484,30 +1559,30 @@ export default function ImportPage() {
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Отклонить импорт</DialogTitle>
+            <DialogTitle>{t("rejectImport")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">
-                Причина отклонения
+                {t("rejectReasonLabel")}
               </label>
               <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Укажите причину отклонения..."
+                placeholder={t("rejectReasonPlaceholder")}
                 className="min-h-[100px]"
               />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setRejectOpen(false)}>
-                Отмена
+                {t("cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleReject}
                 disabled={!rejectReason || rejectMutation.isPending}
               >
-                {rejectMutation.isPending ? "Обработка..." : "Отклонить"}
+                {rejectMutation.isPending ? t("processing") : t("reject")}
               </Button>
             </div>
           </div>
@@ -1518,42 +1593,48 @@ export default function ImportPage() {
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Детали сессии импорта</DialogTitle>
+            <DialogTitle>{t("sessionDetails")}</DialogTitle>
           </DialogHeader>
           {detailSession && (
             <Tabs value={detailTab} onValueChange={setDetailTab}>
               <TabsList className="mb-4">
-                <TabsTrigger value="info">Информация</TabsTrigger>
-                <TabsTrigger value="validation">Валидация</TabsTrigger>
-                <TabsTrigger value="audit">Аудит</TabsTrigger>
+                <TabsTrigger value="info">{t("tabInfo")}</TabsTrigger>
+                <TabsTrigger value="validation">
+                  {t("tabValidation")}
+                </TabsTrigger>
+                <TabsTrigger value="audit">{t("tabAudit")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="info" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">ID сессии</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("sessionId")}
+                    </p>
                     <p className="font-mono text-sm">{detailSession.id}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Статус</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("status")}
+                    </p>
                     <Badge
-                      className={`mt-1 ${statusConfig[detailSession.status]?.bgColor} ${statusConfig[detailSession.status]?.color} border-0`}
+                      className={`mt-1 ${statusStyleConfig[detailSession.status]?.bgColor} ${statusStyleConfig[detailSession.status]?.color} border-0`}
                     >
-                      {statusConfig[detailSession.status]?.label ||
-                        detailSession.status}
+                      {getStatusLabel(detailSession.status)}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Домен</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("domain")}
+                    </p>
                     <Badge
-                      className={`mt-1 ${domainConfig[detailSession.domain]?.bgColor || "bg-muted"} ${domainConfig[detailSession.domain]?.color || "text-muted-foreground"} border-0`}
+                      className={`mt-1 ${domainStyleConfig[detailSession.domain]?.bgColor || "bg-muted"} ${domainStyleConfig[detailSession.domain]?.color || "text-muted-foreground"} border-0`}
                     >
-                      {domainConfig[detailSession.domain]?.label ||
-                        detailSession.domain}
+                      {getDomainLabel(detailSession.domain)}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Файл</p>
+                    <p className="text-sm text-muted-foreground">{t("file")}</p>
                     <p className="font-medium">{detailSession.file_name}</p>
                     {detailSession.file_size && (
                       <p className="text-xs text-muted-foreground">
@@ -1562,7 +1643,7 @@ export default function ImportPage() {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Строки</p>
+                    <p className="text-sm text-muted-foreground">{t("rows")}</p>
                     <p className="font-medium">
                       {detailSession.processed_rows} /{" "}
                       {detailSession.total_rows}
@@ -1570,7 +1651,7 @@ export default function ImportPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Ошибки / Предупреждения
+                      {t("errorsSlashWarnings")}
                     </p>
                     <p className="font-medium">
                       <span
@@ -1595,7 +1676,7 @@ export default function ImportPage() {
                   {detailSession.inserts_count != null && (
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Вставки (INSERT)
+                        {t("insertsCount")}
                       </p>
                       <p className="font-medium text-green-600">
                         {detailSession.inserts_count}
@@ -1605,7 +1686,7 @@ export default function ImportPage() {
                   {detailSession.updates_count != null && (
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Обновления (UPDATE)
+                        {t("updatesCount")}
                       </p>
                       <p className="font-medium text-blue-600">
                         {detailSession.updates_count}
@@ -1613,20 +1694,26 @@ export default function ImportPage() {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm text-muted-foreground">Создана</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("created")}
+                    </p>
                     <p className="text-sm">
                       {formatDateTime(detailSession.created_at)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Обновлена</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("updated")}
+                    </p>
                     <p className="text-sm">
                       {formatDateTime(detailSession.updated_at)}
                     </p>
                   </div>
                   {detailSession.created_by_name && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Создал</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("createdBy")}
+                      </p>
                       <p className="font-medium">
                         {detailSession.created_by_name}
                       </p>
@@ -1637,7 +1724,7 @@ export default function ImportPage() {
                 {detailSession.reject_reason && (
                   <div className="p-3 rounded-lg bg-red-50 border border-red-200">
                     <p className="text-sm font-medium text-red-700 mb-1">
-                      Причина отклонения:
+                      {t("rejectReasonTitle")}
                     </p>
                     <p className="text-sm text-red-600">
                       {detailSession.reject_reason}
@@ -1653,17 +1740,19 @@ export default function ImportPage() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-500" />
-                        Ошибки ({detailSession.validation_errors.length})
+                        {t("errorsWithCount", {
+                          count: detailSession.validation_errors.length,
+                        })}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-20">Строка</TableHead>
-                            <TableHead>Поле</TableHead>
-                            <TableHead>Сообщение</TableHead>
-                            <TableHead>Значение</TableHead>
+                            <TableHead className="w-20">{t("row")}</TableHead>
+                            <TableHead>{t("field")}</TableHead>
+                            <TableHead>{t("message")}</TableHead>
+                            <TableHead>{t("value")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1692,7 +1781,7 @@ export default function ImportPage() {
                     <CardContent className="flex flex-col items-center justify-center py-8">
                       <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
                       <p className="font-medium text-green-700">
-                        Ошибок валидации нет
+                        {t("noValidationErrors")}
                       </p>
                     </CardContent>
                   </Card>
@@ -1704,18 +1793,19 @@ export default function ImportPage() {
                       <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 text-amber-500" />
-                          Предупреждения (
-                          {detailSession.validation_warnings.length})
+                          {t("warningsWithCount", {
+                            count: detailSession.validation_warnings.length,
+                          })}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-20">Строка</TableHead>
-                              <TableHead>Поле</TableHead>
-                              <TableHead>Сообщение</TableHead>
-                              <TableHead>Значение</TableHead>
+                              <TableHead className="w-20">{t("row")}</TableHead>
+                              <TableHead>{t("field")}</TableHead>
+                              <TableHead>{t("message")}</TableHead>
+                              <TableHead>{t("value")}</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1751,10 +1841,10 @@ export default function ImportPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Действие</TableHead>
-                            <TableHead>Таблица</TableHead>
-                            <TableHead>ID строки</TableHead>
-                            <TableHead>Дата</TableHead>
+                            <TableHead>{t("auditAction")}</TableHead>
+                            <TableHead>{t("auditTable")}</TableHead>
+                            <TableHead>{t("auditRowId")}</TableHead>
+                            <TableHead>{t("date")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1787,7 +1877,7 @@ export default function ImportPage() {
                     <CardContent className="flex flex-col items-center justify-center py-8">
                       <History className="h-10 w-10 text-muted-foreground mb-3" />
                       <p className="text-muted-foreground">
-                        Записи аудита отсутствуют
+                        {t("noAuditRecords")}
                       </p>
                     </CardContent>
                   </Card>
