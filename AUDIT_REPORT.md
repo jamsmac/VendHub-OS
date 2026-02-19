@@ -439,11 +439,10 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | `client/i18n.ts`                                     | 1378 | 30    | 3 locale files + index        |
 | `api/database/migrations/CreateDirectoriesSystem.ts` | 1687 | —     | Skipped (immutable migration) |
 
-### P2-003: camelCase в entity property names
+### P2-003: ~~camelCase в entity property names~~ ✅ DONE
 
 - **Контекст:** Entity properties используют `camelCase` (`firstName`, `organizationId`), но `SnakeNamingStrategy` автоматически конвертирует в `snake_case` в БД
-- **Замечание:** Это технически работает, но CLAUDE.md требует `snake_case` в Entity. Есть inconsistency — некоторые entities используют `snake_case` (старые), другие `camelCase` (новые)
-- **Рекомендация:** Определить единый стандарт и привести к единообразию
+- **Решение:** Стандартизировано на camelCase (80% majority convention). 135 файлов обновлены, CLAUDE.md правила 1-4 обновлены. Коммит `0917715`
 
 ### P2-004: ~~Отсутствие E2E тестов~~ ✅ ALREADY DONE
 
@@ -879,7 +878,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 30  | Split 9 giant files (>1000 lines)                   | 16   | ✅ Done (1dd60a1, 75cb039, fc88d5a)               |
 | 31  | Add 10 missing Web Admin pages                      | 40   | ✅ Done (a84abfc) — 10 pages, 9170 LOC, 3 locales |
 | 32  | Add E2E tests (Playwright)                          | 20   | ✅ Already done (15 Playwright + 9 NestJS e2e)    |
-| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                           |
+| 33  | Standardize entity property naming                  | 8    | ✅ Done (0917715) — 135 files, camelCase standard |
 | 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                                 |
 | 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                                 |
 | 36  | i18n remaining sub-pages (~19 nested)               | 10   | ✅ Done (all nested pages localized)              |
