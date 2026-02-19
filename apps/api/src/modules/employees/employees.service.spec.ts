@@ -62,8 +62,8 @@ describe("EmployeesService", () => {
     emergencyContactPhone: null,
     emergencyContactRelation: null,
     notes: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Employee;
 
   const mockDepartment = {
@@ -77,8 +77,8 @@ describe("EmployeesService", () => {
     isActive: true,
     sortOrder: 0,
     subDepartments: [],
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Department;
 
   const mockAttendance = {
@@ -94,8 +94,8 @@ describe("EmployeesService", () => {
     note: null,
     checkInLocation: null,
     checkOutLocation: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Attendance;
 
   const mockEmployeeQueryBuilder = {

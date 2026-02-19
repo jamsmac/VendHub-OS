@@ -34,23 +34,23 @@ export enum TelegramMessageStatus {
 // ============================================================================
 
 @Entity("telegram_message_logs")
-@Index(["telegram_user_id"])
-@Index(["chat_id", "created_at"])
-@Index(["message_type", "status"])
-@Index(["organization_id", "created_at"])
+@Index(["telegramUserId"])
+@Index(["chatId", "createdAt"])
+@Index(["messageType", "status"])
+@Index(["organizationId", "createdAt"])
 export class TelegramMessageLog extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "uuid" })
-  telegram_user_id: string;
+  telegramUserId: string;
 
   @ManyToOne(() => TelegramUser, { onDelete: "SET NULL" })
   @JoinColumn({ name: "telegram_user_id" })
-  telegram_user: TelegramUser;
+  telegramUser: TelegramUser;
 
   @Column({ type: "varchar", length: 50 })
-  chat_id: string;
+  chatId: string;
 
   @Column({ type: "varchar", length: 10 })
   direction: string;
@@ -59,16 +59,16 @@ export class TelegramMessageLog extends BaseEntity {
     type: "enum",
     enum: TelegramMessageType,
   })
-  message_type: TelegramMessageType;
+  messageType: TelegramMessageType;
 
   @Column({ type: "varchar", length: 100, nullable: true })
   command: string | null;
 
   @Column({ type: "text", nullable: true })
-  message_text: string | null;
+  messageText: string | null;
 
   @Column({ type: "integer", nullable: true })
-  telegram_message_id: number | null;
+  telegramMessageId: number | null;
 
   @Column({
     type: "enum",
@@ -78,10 +78,10 @@ export class TelegramMessageLog extends BaseEntity {
   status: TelegramMessageStatus;
 
   @Column({ type: "text", nullable: true })
-  error_message: string | null;
+  errorMessage: string | null;
 
   @Column({ type: "integer", nullable: true })
-  response_time_ms: number | null;
+  responseTimeMs: number | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

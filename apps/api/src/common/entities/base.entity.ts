@@ -4,41 +4,44 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   Column,
-} from 'typeorm';
+} from "typeorm";
 
 /**
  * Base entity class that all entities should extend.
  *
  * Provides:
  * - UUID primary key
- * - Automatic timestamps (created_at, updated_at)
- * - Soft delete support (deleted_at)
- * - Audit fields (created_by_id, updated_by_id)
+ * - Automatic timestamps (createdAt, updatedAt)
+ * - Soft delete support (deletedAt)
+ * - Audit fields (createdById, updatedById)
+ *
+ * Note: SnakeNamingStrategy auto-converts camelCase properties
+ * to snake_case DB columns (e.g. createdAt → created_at).
  */
 export abstract class BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @CreateDateColumn({ type: 'timestamp with time zone' })
-  created_at: Date;
+  @CreateDateColumn({ type: "timestamp with time zone" })
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
-  updated_at: Date;
+  @UpdateDateColumn({ type: "timestamp with time zone" })
+  updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'timestamp with time zone', nullable: true })
-  deleted_at: Date | null;
+  @DeleteDateColumn({ type: "timestamp with time zone", nullable: true })
+  deletedAt: Date | null;
 
   /**
    * ID of the user who created this record.
    * Used for audit trails.
    */
-  @Column({ type: 'uuid', nullable: true })
-  created_by_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  createdById: string | null;
 
   /**
    * ID of the user who last updated this record.
    * Used for audit trails.
    */
-  @Column({ type: 'uuid', nullable: true })
-  updated_by_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  updatedById: string | null;
 }

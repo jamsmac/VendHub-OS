@@ -114,10 +114,10 @@ describe("PromoCodesService", () => {
 
       expect(promoCodeRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organization_id: orgId,
+          organizationId: orgId,
           code: "SUMMER2024",
           status: PromoCodeStatus.DRAFT,
-          current_total_uses: 0,
+          currentTotalUses: 0,
         }),
       );
       expect(result.status).toBe(PromoCodeStatus.DRAFT);
@@ -207,7 +207,7 @@ describe("PromoCodesService", () => {
 
       expect(result).toEqual(promo);
       expect(promoCodeRepo.findOne).toHaveBeenCalledWith({
-        where: { code: "SUMMER2024", organization_id: orgId },
+        where: { code: "SUMMER2024", organizationId: orgId },
       });
     });
 
@@ -249,7 +249,7 @@ describe("PromoCodesService", () => {
         id: "pc-1",
         code: "OLD",
         name: "Old Name",
-        organization_id: orgId,
+        organizationId: orgId,
       };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       promoCodeRepo.save!.mockImplementation((p) => Promise.resolve(p));
@@ -264,7 +264,7 @@ describe("PromoCodesService", () => {
     });
 
     it("should throw ConflictException if new code already taken", async () => {
-      const promo = { id: "pc-1", code: "OLD", organization_id: orgId };
+      const promo = { id: "pc-1", code: "OLD", organizationId: orgId };
       // First call: findById, second call: duplicate check
       promoCodeRepo
         .findOne!.mockResolvedValueOnce(promo)
@@ -287,14 +287,14 @@ describe("PromoCodesService", () => {
       status: PromoCodeStatus.ACTIVE,
       type: PromoCodeType.PERCENTAGE,
       value: 10,
-      valid_from: new Date("2020-01-01"),
-      valid_until: new Date("2030-12-31"),
-      max_total_uses: 100,
-      current_total_uses: 5,
-      max_uses_per_user: 1,
-      min_order_amount: null,
-      max_discount_amount: null,
-      organization_id: orgId,
+      validFrom: new Date("2020-01-01"),
+      validUntil: new Date("2030-12-31"),
+      maxTotalUses: 100,
+      currentTotalUses: 5,
+      maxUsesPerUser: 1,
+      minOrderAmount: null,
+      maxDiscountAmount: null,
+      organizationId: orgId,
     };
 
     it("should return valid=true for a valid promo code", async () => {
@@ -335,7 +335,7 @@ describe("PromoCodesService", () => {
     it("should return valid=false when code is expired", async () => {
       promoCodeRepo.findOne!.mockResolvedValue({
         ...activePromo,
-        valid_until: new Date("2020-01-01"),
+        validUntil: new Date("2020-01-01"),
       });
 
       const result = await service.validate({ code: "VALID" }, orgId);
@@ -347,8 +347,8 @@ describe("PromoCodesService", () => {
     it("should return valid=false when max usage reached", async () => {
       promoCodeRepo.findOne!.mockResolvedValue({
         ...activePromo,
-        max_total_uses: 5,
-        current_total_uses: 5,
+        maxTotalUses: 5,
+        currentTotalUses: 5,
       });
 
       const result = await service.validate({ code: "VALID" }, orgId);
@@ -373,7 +373,7 @@ describe("PromoCodesService", () => {
     it("should return valid=false when order amount below minimum", async () => {
       promoCodeRepo.findOne!.mockResolvedValue({
         ...activePromo,
-        min_order_amount: 50000,
+        minOrderAmount: 50000,
       });
 
       const result = await service.validate(
@@ -401,7 +401,7 @@ describe("PromoCodesService", () => {
     it("should cap percentage discount at max_discount_amount", async () => {
       promoCodeRepo.findOne!.mockResolvedValue({
         ...activePromo,
-        max_discount_amount: 5000,
+        maxDiscountAmount: 5000,
       });
       redemptionRepo.count!.mockResolvedValue(0);
 
@@ -426,14 +426,14 @@ describe("PromoCodesService", () => {
         status: PromoCodeStatus.ACTIVE,
         type: PromoCodeType.FIXED_AMOUNT,
         value: 5000,
-        valid_from: new Date("2020-01-01"),
-        valid_until: new Date("2030-12-31"),
-        max_total_uses: null,
-        current_total_uses: 0,
-        max_uses_per_user: 1,
-        min_order_amount: null,
-        max_discount_amount: null,
-        organization_id: orgId,
+        validFrom: new Date("2020-01-01"),
+        validUntil: new Date("2030-12-31"),
+        maxTotalUses: null,
+        currentTotalUses: 0,
+        maxUsesPerUser: 1,
+        minOrderAmount: null,
+        maxDiscountAmount: null,
+        organizationId: orgId,
       };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       redemptionRepo.count!.mockResolvedValue(0);
@@ -449,7 +449,7 @@ describe("PromoCodesService", () => {
 
       expect(result.discountApplied).toBe(5000);
       expect(result.redemption).toBeDefined();
-      expect(promo.current_total_uses).toBe(1);
+      expect(promo.currentTotalUses).toBe(1);
     });
 
     it("should throw BadRequestException when validation fails", async () => {
@@ -467,14 +467,14 @@ describe("PromoCodesService", () => {
         status: PromoCodeStatus.ACTIVE,
         type: PromoCodeType.LOYALTY_BONUS,
         value: 500,
-        valid_from: new Date("2020-01-01"),
-        valid_until: new Date("2030-12-31"),
-        max_total_uses: null,
-        current_total_uses: 0,
-        max_uses_per_user: 1,
-        min_order_amount: null,
-        max_discount_amount: null,
-        organization_id: orgId,
+        validFrom: new Date("2020-01-01"),
+        validUntil: new Date("2030-12-31"),
+        maxTotalUses: null,
+        currentTotalUses: 0,
+        maxUsesPerUser: 1,
+        minOrderAmount: null,
+        maxDiscountAmount: null,
+        organizationId: orgId,
       };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       redemptionRepo.count!.mockResolvedValue(0);
@@ -501,7 +501,7 @@ describe("PromoCodesService", () => {
       const promo = {
         id: "pc-1",
         status: PromoCodeStatus.ACTIVE,
-        organization_id: orgId,
+        organizationId: orgId,
       };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       promoCodeRepo.save!.mockImplementation((p) => Promise.resolve(p));
@@ -515,7 +515,7 @@ describe("PromoCodesService", () => {
       const promo = {
         id: "pc-1",
         status: PromoCodeStatus.EXPIRED,
-        organization_id: orgId,
+        organizationId: orgId,
       };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
 
@@ -531,7 +531,7 @@ describe("PromoCodesService", () => {
 
   describe("getStats", () => {
     it("should return parsed statistics for a promo code", async () => {
-      const promo = { id: "pc-1", organization_id: orgId };
+      const promo = { id: "pc-1", organizationId: orgId };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
 
       const mockQb = createMockQueryBuilder();
@@ -559,7 +559,7 @@ describe("PromoCodesService", () => {
 
   describe("getRedemptions", () => {
     it("should return paginated redemptions", async () => {
-      const promo = { id: "pc-1", organization_id: orgId };
+      const promo = { id: "pc-1", organizationId: orgId };
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       redemptionRepo.findAndCount!.mockResolvedValue([[{ id: "r-1" }], 1]);
 

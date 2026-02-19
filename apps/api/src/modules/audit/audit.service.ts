@@ -287,7 +287,7 @@ export class AuditService {
   ): Promise<{ logs: AuditLog[]; snapshots?: AuditSnapshot[] }> {
     const logs = await this.auditLogRepo.find({
       where: { entityType, entityId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       take: options?.limit || 100,
     });
 
@@ -295,7 +295,7 @@ export class AuditService {
     if (options?.includeSnapshots) {
       snapshots = await this.snapshotRepo.find({
         where: { entityType, entityId },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
     }
 
@@ -434,7 +434,7 @@ export class AuditService {
       where: {
         organizationId,
         category: AuditCategory.SECURITY,
-        created_at: Between(dateFrom, dateTo),
+        createdAt: Between(dateFrom, dateTo),
       },
     });
 
@@ -443,7 +443,7 @@ export class AuditService {
       where: {
         organizationId,
         isSuccess: false,
-        created_at: Between(dateFrom, dateTo),
+        createdAt: Between(dateFrom, dateTo),
       },
     });
 
@@ -507,7 +507,7 @@ export class AuditService {
   ): Promise<AuditSnapshot[]> {
     return this.snapshotRepo.find({
       where: { entityType, entityId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -616,7 +616,7 @@ export class AuditService {
 
     return this.sessionRepo.find({
       where,
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -743,7 +743,7 @@ export class AuditService {
         where: {
           organizationId: log.organizationId,
           action: log.action,
-          created_at: MoreThan(windowStart),
+          createdAt: MoreThan(windowStart),
         },
       });
 
@@ -860,7 +860,7 @@ export class AuditService {
 
     if (policy) {
       Object.assign(policy, data);
-      policy.updated_at = new Date();
+      policy.updatedAt = new Date();
     } else {
       policy = this.retentionPolicyRepo.create({
         organizationId,
@@ -979,7 +979,7 @@ export class AuditService {
   ): Promise<AuditReport[]> {
     return this.reportRepo.find({
       where: { organizationId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }

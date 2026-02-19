@@ -3,19 +3,19 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { StockOpeningBalance } from './entities/stock-opening-balance.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { StockOpeningBalance } from "./entities/stock-opening-balance.entity";
 import {
   CreateOpeningBalanceDto,
   BulkCreateOpeningBalanceDto,
   UpdateOpeningBalanceDto,
   QueryOpeningBalancesDto,
   ApplyAllDto,
-} from './dto/create-opening-balance.dto';
-import { randomUUID } from 'crypto';
+} from "./dto/create-opening-balance.dto";
+import { randomUUID } from "crypto";
 
 @Injectable()
 export class OpeningBalancesService {
@@ -43,15 +43,15 @@ export class OpeningBalancesService {
       warehouseId: dto.warehouseId,
       balanceDate: dto.balanceDate,
       quantity: dto.quantity,
-      unit: dto.unit || 'pcs',
+      unit: dto.unit || "pcs",
       unitCost: dto.unitCost,
       totalCost,
       batchNumber: dto.batchNumber || null,
       expiryDate: dto.expiryDate || null,
       location: dto.location || null,
       notes: dto.notes || null,
-      importSource: 'manual',
-      created_by_id: userId,
+      importSource: "manual",
+      createdById: userId,
     });
 
     const saved = await this.repository.save(balance);
@@ -82,16 +82,16 @@ export class OpeningBalancesService {
         warehouseId: item.warehouseId,
         balanceDate: item.balanceDate,
         quantity: item.quantity,
-        unit: item.unit || 'pcs',
+        unit: item.unit || "pcs",
         unitCost: item.unitCost,
         totalCost,
         batchNumber: item.batchNumber || null,
         expiryDate: item.expiryDate || null,
         location: item.location || null,
         notes: item.notes || null,
-        importSource: dto.importSource || 'manual',
+        importSource: dto.importSource || "manual",
         importSessionId,
-        created_by_id: userId,
+        createdById: userId,
       });
     });
 
@@ -110,40 +110,53 @@ export class OpeningBalancesService {
   async findAll(
     organizationId: string,
     params: QueryOpeningBalancesDto,
-  ): Promise<{ data: StockOpeningBalance[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: StockOpeningBalance[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = params.page || 1;
     const limit = params.limit || 20;
     const skip = (page - 1) * limit;
 
     const query = this.repository
-      .createQueryBuilder('sob')
-      .where('sob.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("sob")
+      .where("sob.organizationId = :organizationId", { organizationId });
 
     if (params.productId) {
-      query.andWhere('sob.productId = :productId', { productId: params.productId });
+      query.andWhere("sob.productId = :productId", {
+        productId: params.productId,
+      });
     }
 
     if (params.warehouseId) {
-      query.andWhere('sob.warehouseId = :warehouseId', { warehouseId: params.warehouseId });
+      query.andWhere("sob.warehouseId = :warehouseId", {
+        warehouseId: params.warehouseId,
+      });
     }
 
     if (params.isApplied !== undefined) {
-      query.andWhere('sob.isApplied = :isApplied', { isApplied: params.isApplied });
+      query.andWhere("sob.isApplied = :isApplied", {
+        isApplied: params.isApplied,
+      });
     }
 
     if (params.dateFrom) {
-      query.andWhere('sob.balanceDate >= :dateFrom', { dateFrom: params.dateFrom });
+      query.andWhere("sob.balanceDate >= :dateFrom", {
+        dateFrom: params.dateFrom,
+      });
     }
 
     if (params.dateTo) {
-      query.andWhere('sob.balanceDate <= :dateTo', { dateTo: params.dateTo });
+      query.andWhere("sob.balanceDate <= :dateTo", { dateTo: params.dateTo });
     }
 
     const total = await query.getCount();
 
     const data = await query
-      .orderBy('sob.balanceDate', 'DESC')
-      .addOrderBy('sob.created_at', 'DESC')
+      .orderBy("sob.balanceDate", "DESC")
+      .addOrderBy("sob.createdAt", "DESC")
       .skip(skip)
       .take(limit)
       .getMany();
@@ -174,7 +187,9 @@ export class OpeningBalancesService {
     const balance = await this.findById(id);
 
     if (balance.isApplied) {
-      throw new BadRequestException('Cannot update an already applied opening balance');
+      throw new BadRequestException(
+        "Cannot update an already applied opening balance",
+      );
     }
 
     // Recalculate totalCost if quantity or unitCost changed
@@ -197,7 +212,7 @@ export class OpeningBalancesService {
     const balance = await this.findById(id);
 
     if (balance.isApplied) {
-      throw new BadRequestException('Opening balance is already applied');
+      throw new BadRequestException("Opening balance is already applied");
     }
 
     balance.isApplied = true;
@@ -206,7 +221,7 @@ export class OpeningBalancesService {
 
     const saved = await this.repository.save(balance);
 
-    this.eventEmitter.emit('opening-balance.applied', {
+    this.eventEmitter.emit("opening-balance.applied", {
       id: saved.id,
       organizationId: saved.organizationId,
       productId: saved.productId,
@@ -254,7 +269,7 @@ export class OpeningBalancesService {
 
     // Emit events for each applied balance
     for (const balance of balances) {
-      this.eventEmitter.emit('opening-balance.applied', {
+      this.eventEmitter.emit("opening-balance.applied", {
         id: balance.id,
         organizationId: balance.organizationId,
         productId: balance.productId,
@@ -280,7 +295,9 @@ export class OpeningBalancesService {
     const balance = await this.findById(id);
 
     if (balance.isApplied) {
-      throw new BadRequestException('Cannot delete an already applied opening balance');
+      throw new BadRequestException(
+        "Cannot delete an already applied opening balance",
+      );
     }
 
     await this.repository.softDelete(id);
@@ -291,29 +308,33 @@ export class OpeningBalancesService {
   /**
    * Get statistics for opening balances
    */
-  async getStats(
-    organizationId: string,
-  ): Promise<{
+  async getStats(organizationId: string): Promise<{
     total: number;
     applied: number;
     pending: number;
     totalValue: number;
   }> {
     const stats = await this.repository
-      .createQueryBuilder('sob')
-      .select('COUNT(*)', 'total')
-      .addSelect('SUM(CASE WHEN sob.isApplied = true THEN 1 ELSE 0 END)', 'applied')
-      .addSelect('SUM(CASE WHEN sob.isApplied = false THEN 1 ELSE 0 END)', 'pending')
-      .addSelect('COALESCE(SUM(sob.totalCost), 0)', 'totalValue')
-      .where('sob.organizationId = :organizationId', { organizationId })
-      .andWhere('sob.deleted_at IS NULL')
+      .createQueryBuilder("sob")
+      .select("COUNT(*)", "total")
+      .addSelect(
+        "SUM(CASE WHEN sob.isApplied = true THEN 1 ELSE 0 END)",
+        "applied",
+      )
+      .addSelect(
+        "SUM(CASE WHEN sob.isApplied = false THEN 1 ELSE 0 END)",
+        "pending",
+      )
+      .addSelect("COALESCE(SUM(sob.totalCost), 0)", "totalValue")
+      .where("sob.organizationId = :organizationId", { organizationId })
+      .andWhere("sob.deletedAt IS NULL")
       .getRawOne();
 
     return {
-      total: parseInt(stats?.total || '0', 10),
-      applied: parseInt(stats?.applied || '0', 10),
-      pending: parseInt(stats?.pending || '0', 10),
-      totalValue: parseFloat(stats?.totalValue || '0'),
+      total: parseInt(stats?.total || "0", 10),
+      applied: parseInt(stats?.applied || "0", 10),
+      pending: parseInt(stats?.pending || "0", 10),
+      totalValue: parseFloat(stats?.totalValue || "0"),
     };
   }
 }

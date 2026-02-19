@@ -12,50 +12,50 @@ import { TelegramLanguage } from "./telegram-user.entity";
 // ============================================================================
 
 @Entity("telegram_settings")
-@Index(["setting_key"], { unique: true })
+@Index(["settingKey"], { unique: true })
 export class TelegramSettings extends BaseEntity {
   @Column({ type: "varchar", length: 50, unique: true })
-  setting_key: string;
+  settingKey: string;
 
   @Column({ type: "text", nullable: true })
-  bot_token_encrypted: string | null;
+  botTokenEncrypted: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  bot_username: string | null;
+  botUsername: string | null;
 
   @Column({ type: "varchar", length: 20, default: "polling" })
   mode: string;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  webhook_url: string | null;
+  webhookUrl: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "boolean", default: true })
-  send_notifications: boolean;
+  sendNotifications: boolean;
 
   @Column({ type: "integer", default: 30 })
-  max_messages_per_minute: number;
+  maxMessagesPerMinute: number;
 
   @Column({
     type: "enum",
     enum: TelegramLanguage,
     default: TelegramLanguage.RU,
   })
-  default_language: TelegramLanguage;
+  defaultLanguage: TelegramLanguage;
 
   @Column({ type: "text", nullable: true })
-  welcome_message_ru: string | null;
+  welcomeMessageRu: string | null;
 
   @Column({ type: "text", nullable: true })
-  welcome_message_uz: string | null;
+  welcomeMessageUz: string | null;
 
   @Column({ type: "text", nullable: true })
-  welcome_message_en: string | null;
+  welcomeMessageEn: string | null;
 
   @Column({ type: "jsonb", nullable: true })
-  default_notification_preferences: Record<string, unknown> | null;
+  defaultNotificationPreferences: Record<string, unknown> | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

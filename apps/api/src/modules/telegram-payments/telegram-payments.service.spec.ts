@@ -83,7 +83,7 @@ describe("TelegramPaymentsService", () => {
     providerPaymentChargeId: "provider-charge-1",
     invoicePayload: JSON.stringify({ orderId, userId, organizationId: orgId }),
     description: "Order #ORD-001",
-    created_at: new Date(),
+    createdAt: new Date(),
     completedAt: new Date(),
   };
 

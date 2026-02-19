@@ -58,8 +58,8 @@ describe("TasksService", () => {
     items: [],
     comments: [],
     components: [],
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Task;
 
   const mockQueryBuilder = {

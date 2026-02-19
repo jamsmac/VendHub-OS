@@ -67,8 +67,8 @@ import { BaseEntity } from "../../../common/entities/base.entity";
 
 @Entity("table_name")
 export class MyEntity extends BaseEntity {
-  // BaseEntity provides: id (UUID), created_at, updated_at,
-  // deleted_at, created_by_id, updated_by_id
+  // BaseEntity provides: id (UUID), createdAt, updatedAt,
+  // deletedAt, createdById, updatedById
   // DO NOT add these fields manually
 }
 ```
@@ -79,14 +79,14 @@ All primary keys are UUID (`string`), never `number`. All foreign keys are `stri
 
 ```typescript
 @Column({ type: 'uuid' })
-organization_id: string;
+organizationId: string;
 ```
 
-### Rule 3: snake_case DB columns
+### Rule 3: camelCase properties (SnakeNamingStrategy auto-converts to snake_case DB columns)
 
 ```typescript
 @Column({ type: 'varchar', length: 100 })
-machine_number: string;  // NOT machineNumber
+machineNumber: string;  // SnakeNamingStrategy → DB column "machine_number"
 ```
 
 ### Rule 4: class-validator on all inputs
@@ -97,7 +97,7 @@ Every controller endpoint accepting body/query MUST use DTOs with class-validato
 export class CreateProductDto {
   @IsString() @Length(1, 255) name: string;
   @IsEnum(ProductType) type: ProductType;
-  @IsOptional() @IsNumber() cost_price?: number;
+  @IsOptional() @IsNumber() costPrice?: number;
 }
 ```
 

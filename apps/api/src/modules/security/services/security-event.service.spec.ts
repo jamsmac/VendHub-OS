@@ -55,7 +55,7 @@ describe("SecurityEventService", () => {
     description: "User logged in successfully",
     ipAddress: "192.168.1.1",
     isResolved: false,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -288,7 +288,7 @@ describe("SecurityEventService", () => {
       await service.findAll({ organizationId: "org-1", startDate, endDate });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
-        "event.created_at BETWEEN :startDate AND :endDate",
+        "event.createdAt BETWEEN :startDate AND :endDate",
         { startDate, endDate },
       );
     });
@@ -353,7 +353,7 @@ describe("SecurityEventService", () => {
 
       expect(repo.find).toHaveBeenCalledWith({
         where: { userId },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
         take: 50,
       });
       expect(result).toHaveLength(1);
@@ -440,7 +440,7 @@ describe("SecurityEventService", () => {
       const result = await service.cleanup();
 
       expect(repo.softDelete).toHaveBeenCalledWith({
-        created_at: expect.any(Object), // LessThan
+        createdAt: expect.any(Object), // LessThan
         isResolved: true,
       });
       expect(result).toBe(42);

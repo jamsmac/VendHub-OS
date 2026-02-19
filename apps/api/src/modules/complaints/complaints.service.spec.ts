@@ -69,8 +69,8 @@ describe("ComplaintsService", () => {
     comments: [],
     actions: [],
     refunds: [],
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Complaint;
 
   const mockResolvedComplaint = {
@@ -90,8 +90,8 @@ describe("ComplaintsService", () => {
     currency: "UZS",
     status: RefundStatus.PENDING,
     reason: "Product not dispensed",
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as ComplaintRefund;
 
   const mockQueryBuilder = {

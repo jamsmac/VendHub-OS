@@ -306,7 +306,7 @@ export class ReferralsService {
     const referrals = await this.referralRepo.find({
       where: { referrerId: userId },
       relations: ["referred"],
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
 
     const totalReferrals = referrals.length;
@@ -403,7 +403,7 @@ export class ReferralsService {
     const referrals = await this.referralRepo.find({
       where: {
         organizationId,
-        created_at: Between(dateFrom, dateTo),
+        createdAt: Between(dateFrom, dateTo),
       },
       relations: ["referrer"],
     });
@@ -438,7 +438,7 @@ export class ReferralsService {
             activatedWithTime.reduce((sum, r) => {
               return (
                 sum +
-                (r.activatedAt.getTime() - r.created_at.getTime()) /
+                (r.activatedAt.getTime() - r.createdAt.getTime()) /
                   (1000 * 60 * 60 * 24)
               );
             }, 0) / activatedWithTime.length,
@@ -586,7 +586,7 @@ export class ReferralsService {
       status: referral.status,
       referrerRewardPoints: referral.referrerRewardPoints,
       referrerRewardPaid: referral.referrerRewardPaid,
-      createdAt: referral.created_at,
+      createdAt: referral.createdAt,
       activatedAt: referral.activatedAt,
       daysToActivate: referral.daysToActivate,
     };

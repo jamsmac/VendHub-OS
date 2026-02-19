@@ -298,33 +298,33 @@ export const AUDITED_ENTITIES = [
 @Index(["createdAt"])
 export class AuditLog extends BaseEntity {
   // Organization scope
-  @Column({ name: "organization_id", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   @Index()
   organizationId: string;
 
   // Who performed the action
-  @Column({ name: "user_id", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   @Index()
   userId: string;
 
-  @Column({ name: "user_email", type: "varchar", length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   userEmail: string;
 
-  @Column({ name: "user_name", type: "varchar", length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   userName: string;
 
-  @Column({ name: "user_role", type: "varchar", length: 50, nullable: true })
+  @Column({ type: "varchar", length: 50, nullable: true })
   userRole: string;
 
   // What was affected
-  @Column({ name: "entity_type", type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100 })
   @Index()
   entityType: string;
 
-  @Column({ name: "entity_id", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   entityId: string;
 
-  @Column({ name: "entity_name", type: "varchar", length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   entityName: string;
 
   // Action details
@@ -346,34 +346,29 @@ export class AuditLog extends BaseEntity {
   description: string;
 
   // Change tracking
-  @Column({ name: "old_values", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   oldValues: Record<string, unknown>;
 
-  @Column({ name: "new_values", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   newValues: Record<string, unknown>;
 
   @Column({ type: "jsonb", nullable: true })
   changes: AuditChanges[];
 
-  @Column({
-    name: "affected_fields",
-    type: "text",
-    array: true,
-    nullable: true,
-  })
+  @Column({ type: "text", array: true, nullable: true })
   affectedFields: string[];
 
   // Request context
   @Column({ type: "jsonb", nullable: true })
   context: AuditContext;
 
-  @Column({ name: "ip_address", type: "inet", nullable: true })
+  @Column({ type: "inet", nullable: true })
   ipAddress: string;
 
-  @Column({ name: "device_info", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   deviceInfo: AuditDeviceInfo;
 
-  @Column({ name: "geo_location", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   geoLocation: AuditGeoLocation;
 
   // Additional metadata
@@ -384,20 +379,20 @@ export class AuditLog extends BaseEntity {
   tags: string[];
 
   // Result
-  @Column({ name: "is_success", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   isSuccess: boolean;
 
-  @Column({ name: "error_message", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   errorMessage: string;
 
-  @Column({ name: "error_stack", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   errorStack: string;
 
   // TTL for automatic cleanup (in days)
-  @Column({ name: "retention_days", type: "int", default: 365 })
+  @Column({ type: "int", default: 365 })
   retentionDays: number;
 
-  @Column({ name: "expires_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   @Index()
   expiresAt: Date;
 }
@@ -410,19 +405,19 @@ export class AuditLog extends BaseEntity {
 @Index(["organizationId", "entityType", "entityId"])
 @Index(["createdAt"])
 export class AuditSnapshot extends BaseEntity {
-  @Column({ name: "organization_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   organizationId: string;
 
-  @Column({ name: "entity_type", type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100 })
   @Index()
   entityType: string;
 
-  @Column({ name: "entity_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   entityId: string;
 
-  @Column({ name: "entity_name", type: "varchar", length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   entityName: string;
 
   // Complete snapshot of entity at this point in time
@@ -436,23 +431,18 @@ export class AuditSnapshot extends BaseEntity {
   @Column({ type: "varchar", length: 64, nullable: true })
   checksum: string;
 
-  @Column({
-    name: "snapshot_reason",
-    type: "varchar",
-    length: 100,
-    nullable: true,
-  })
+  @Column({ type: "varchar", length: 100, nullable: true })
   snapshotReason: string;
 
   // Who created the snapshot
-  @Column({ name: "created_by", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   createdBy: string;
 
   // Retention
-  @Column({ name: "retention_days", type: "int", default: 2555 }) // ~7 years for compliance
+  @Column({ type: "int", default: 2555 }) // ~7 years for compliance
   retentionDays: number;
 
-  @Column({ name: "expires_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   expiresAt: Date;
 }
 
@@ -462,57 +452,47 @@ export class AuditSnapshot extends BaseEntity {
 @Entity("audit_retention_policies")
 @Index(["organizationId", "entityType"], { unique: true })
 export class AuditRetentionPolicy extends BaseEntity {
-  @Column({ name: "organization_id", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   organizationId: string;
 
-  @Column({ name: "entity_type", type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100 })
   entityType: string;
 
   // Retention settings
-  @Column({ name: "retention_days", type: "int", default: 365 })
+  @Column({ type: "int", default: 365 })
   retentionDays: number;
 
-  @Column({ name: "snapshot_retention_days", type: "int", default: 2555 })
+  @Column({ type: "int", default: 2555 })
   snapshotRetentionDays: number;
 
   // What to keep
-  @Column({ name: "keep_create", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   keepCreate: boolean;
 
-  @Column({ name: "keep_update", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   keepUpdate: boolean;
 
-  @Column({ name: "keep_delete", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   keepDelete: boolean;
 
-  @Column({ name: "create_snapshots", type: "boolean", default: false })
+  @Column({ type: "boolean", default: false })
   createSnapshots: boolean;
 
-  @Column({ name: "snapshot_on_delete", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   snapshotOnDelete: boolean;
 
   // Fields to exclude from audit
-  @Column({
-    name: "excluded_fields",
-    type: "text",
-    array: true,
-    nullable: true,
-  })
+  @Column({ type: "text", array: true, nullable: true })
   excludedFields: string[];
 
   // Compliance flags
-  @Column({ name: "is_compliance_required", type: "boolean", default: false })
+  @Column({ type: "boolean", default: false })
   isComplianceRequired: boolean;
 
-  @Column({
-    name: "compliance_standard",
-    type: "varchar",
-    length: 50,
-    nullable: true,
-  })
+  @Column({ type: "varchar", length: 50, nullable: true })
   complianceStandard: string; // e.g., 'GDPR', 'PCI-DSS', 'UZ-LAW'
 
-  @Column({ name: "is_active", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   isActive: boolean;
 }
 
@@ -522,7 +502,7 @@ export class AuditRetentionPolicy extends BaseEntity {
 @Entity("audit_alerts")
 @Index(["organizationId", "isActive"])
 export class AuditAlert extends BaseEntity {
-  @Column({ name: "organization_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   organizationId: string;
 
@@ -542,7 +522,7 @@ export class AuditAlert extends BaseEntity {
   @Column({ type: "enum", enum: AuditSeverity, array: true, nullable: true })
   severities: AuditSeverity[];
 
-  @Column({ name: "entity_types", type: "text", array: true, nullable: true })
+  @Column({ type: "text", array: true, nullable: true })
   entityTypes: string[];
 
   // Additional conditions (JSON query)
@@ -550,22 +530,17 @@ export class AuditAlert extends BaseEntity {
   conditions: Record<string, unknown>;
 
   // Threshold settings
-  @Column({ name: "threshold_count", type: "int", nullable: true })
+  @Column({ type: "int", nullable: true })
   thresholdCount: number;
 
-  @Column({ name: "threshold_window_minutes", type: "int", nullable: true })
+  @Column({ type: "int", nullable: true })
   thresholdWindowMinutes: number;
 
   // Notification settings
-  @Column({
-    name: "notification_channels",
-    type: "text",
-    array: true,
-    default: "{}",
-  })
+  @Column({ type: "text", array: true, default: "{}" })
   notificationChannels: string[]; // email, telegram, slack, webhook
 
-  @Column({ name: "notification_recipients", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   notificationRecipients: {
     emails?: string[];
     telegramChatIds?: string[];
@@ -573,25 +548,25 @@ export class AuditAlert extends BaseEntity {
     webhookUrls?: string[];
   };
 
-  @Column({ name: "notification_template", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   notificationTemplate: string;
 
   // Cooldown
-  @Column({ name: "cooldown_minutes", type: "int", default: 15 })
+  @Column({ type: "int", default: 15 })
   cooldownMinutes: number;
 
-  @Column({ name: "last_triggered_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   lastTriggeredAt: Date;
 
   // Status
-  @Column({ name: "is_active", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   isActive: boolean;
 
-  @Column({ name: "trigger_count", type: "int", default: 0 })
+  @Column({ type: "int", default: 0 })
   triggerCount: number;
 
   // Created by
-  @Column({ name: "created_by", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   createdBy: string;
 }
 
@@ -602,7 +577,7 @@ export class AuditAlert extends BaseEntity {
 @Index(["alertId", "triggeredAt"])
 @Index(["organizationId", "triggeredAt"])
 export class AuditAlertHistory extends BaseEntity {
-  @Column({ name: "alert_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   alertId: string;
 
@@ -610,55 +585,45 @@ export class AuditAlertHistory extends BaseEntity {
   @JoinColumn({ name: "alert_id" })
   alert: AuditAlert;
 
-  @Column({ name: "organization_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   organizationId: string;
 
   // Trigger details
-  @Column({ name: "triggered_at", type: "timestamptz" })
+  @Column({ type: "timestamptz" })
   @Index()
   triggeredAt: Date;
 
-  @Column({ name: "trigger_reason", type: "text" })
+  @Column({ type: "text" })
   triggerReason: string;
 
-  @Column({ name: "matched_events_count", type: "int", default: 1 })
+  @Column({ type: "int", default: 1 })
   matchedEventsCount: number;
 
-  @Column({
-    name: "matched_event_ids",
-    type: "uuid",
-    array: true,
-    nullable: true,
-  })
+  @Column({ type: "uuid", array: true, nullable: true })
   matchedEventIds: string[];
 
   // Notification status
-  @Column({ name: "notification_sent", type: "boolean", default: false })
+  @Column({ type: "boolean", default: false })
   notificationSent: boolean;
 
-  @Column({
-    name: "notification_channels_used",
-    type: "text",
-    array: true,
-    nullable: true,
-  })
+  @Column({ type: "text", array: true, nullable: true })
   notificationChannelsUsed: string[];
 
-  @Column({ name: "notification_error", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   notificationError: string;
 
   // Resolution
-  @Column({ name: "is_acknowledged", type: "boolean", default: false })
+  @Column({ type: "boolean", default: false })
   isAcknowledged: boolean;
 
-  @Column({ name: "acknowledged_by", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   acknowledgedBy: string;
 
-  @Column({ name: "acknowledged_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   acknowledgedAt: Date;
 
-  @Column({ name: "resolution_notes", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   resolutionNotes: string;
 }
 
@@ -670,71 +635,56 @@ export class AuditAlertHistory extends BaseEntity {
 @Index(["createdAt"])
 @Index(["isActive"])
 export class AuditSession extends BaseEntity {
-  @Column({ name: "organization_id", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   @Index()
   organizationId: string;
 
-  @Column({ name: "user_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   userId: string;
 
-  @Column({
-    name: "session_token_hash",
-    type: "varchar",
-    length: 64,
-    nullable: true,
-  })
+  @Column({ type: "varchar", length: 64, nullable: true })
   sessionTokenHash: string;
 
   // Session info
-  @Column({ name: "ip_address", type: "inet", nullable: true })
+  @Column({ type: "inet", nullable: true })
   ipAddress: string;
 
-  @Column({ name: "device_info", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   deviceInfo: AuditDeviceInfo;
 
-  @Column({ name: "geo_location", type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   geoLocation: AuditGeoLocation;
 
   // Login info
-  @Column({
-    name: "login_method",
-    type: "varchar",
-    length: 50,
-    default: "password",
-  })
+  @Column({ type: "varchar", length: 50, default: "password" })
   loginMethod: string; // password, sms, oauth, api_key
 
-  @Column({
-    name: "login_provider",
-    type: "varchar",
-    length: 50,
-    nullable: true,
-  })
+  @Column({ type: "varchar", length: 50, nullable: true })
   loginProvider: string; // google, telegram, etc.
 
   // Status
-  @Column({ name: "is_active", type: "boolean", default: true })
+  @Column({ type: "boolean", default: true })
   isActive: boolean;
 
-  @Column({ name: "is_suspicious", type: "boolean", default: false })
+  @Column({ type: "boolean", default: false })
   isSuspicious: boolean;
 
-  @Column({ name: "suspicious_reason", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   suspiciousReason: string;
 
   // Activity tracking
-  @Column({ name: "last_activity_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   lastActivityAt: Date;
 
-  @Column({ name: "actions_count", type: "int", default: 0 })
+  @Column({ type: "int", default: 0 })
   actionsCount: number;
 
   // Timestamps
-  @Column({ name: "ended_at", type: "timestamptz", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   endedAt: Date;
 
-  @Column({ name: "end_reason", type: "varchar", length: 50, nullable: true })
+  @Column({ type: "varchar", length: 50, nullable: true })
   endReason: string; // logout, timeout, forced, token_revoked
 }
 
@@ -745,24 +695,24 @@ export class AuditSession extends BaseEntity {
 @Index(["organizationId", "createdAt"])
 @Index(["reportType"])
 export class AuditReport extends BaseEntity {
-  @Column({ name: "organization_id", type: "uuid" })
+  @Column({ type: "uuid" })
   @Index()
   organizationId: string;
 
   @Column({ type: "varchar", length: 255 })
   name: string;
 
-  @Column({ name: "report_type", type: "varchar", length: 50 })
+  @Column({ type: "varchar", length: 50 })
   reportType: string; // activity, security, compliance, access, changes
 
   @Column({ type: "text", nullable: true })
   description: string;
 
   // Report parameters
-  @Column({ name: "date_from", type: "timestamptz" })
+  @Column({ type: "timestamptz" })
   dateFrom: Date;
 
-  @Column({ name: "date_to", type: "timestamptz" })
+  @Column({ type: "timestamptz" })
   dateTo: Date;
 
   @Column({ type: "jsonb", nullable: true })
@@ -789,25 +739,25 @@ export class AuditReport extends BaseEntity {
   };
 
   // File storage
-  @Column({ name: "file_path", type: "varchar", length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   filePath: string;
 
-  @Column({ name: "file_format", type: "varchar", length: 10, default: "pdf" })
+  @Column({ type: "varchar", length: 10, default: "pdf" })
   fileFormat: string;
 
-  @Column({ name: "file_size", type: "int", nullable: true })
+  @Column({ type: "int", nullable: true })
   fileSize: number;
 
   // Generation info
-  @Column({ name: "generated_by", type: "uuid", nullable: true })
+  @Column({ type: "uuid", nullable: true })
   generatedBy: string;
 
-  @Column({ name: "generation_duration_ms", type: "int", nullable: true })
+  @Column({ type: "int", nullable: true })
   generationDurationMs: number;
 
   @Column({ type: "varchar", length: 20, default: "completed" })
   status: string; // pending, generating, completed, failed
 
-  @Column({ name: "error_message", type: "text", nullable: true })
+  @Column({ type: "text", nullable: true })
   errorMessage: string;
 }

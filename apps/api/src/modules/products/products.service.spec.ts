@@ -41,8 +41,8 @@ describe("ProductsService", () => {
     imageUrl: null,
     unitOfMeasure: "cup",
     organizationId: orgId,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Product;
 
   const mockRecipe = {
@@ -53,7 +53,7 @@ describe("ProductsService", () => {
     version: 1,
     totalCost: 3500,
     ingredients: [],
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as Recipe;
 
   const mockQueryBuilder = {

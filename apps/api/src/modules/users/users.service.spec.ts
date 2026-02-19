@@ -30,8 +30,8 @@ describe("UsersService", () => {
     rejectedAt: null,
     rejectedById: null,
     rejectionReason: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as User;
 
   const mockPendingUser = {

@@ -265,7 +265,7 @@ describe("RecommendationsService", () => {
           id: "p-1",
           name: "New Product",
           isActive: true,
-          created_at: recentDate,
+          createdAt: recentDate,
         },
       ];
       productRepo.find!.mockResolvedValue(products);
@@ -280,7 +280,7 @@ describe("RecommendationsService", () => {
     it("should filter out products older than 30 days", async () => {
       const oldDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
       const products = [
-        { id: "p-1", name: "Old Product", isActive: true, created_at: oldDate },
+        { id: "p-1", name: "Old Product", isActive: true, createdAt: oldDate },
       ];
       productRepo.find!.mockResolvedValue(products);
 
@@ -295,7 +295,7 @@ describe("RecommendationsService", () => {
         id: `p-${i}`,
         name: `Product ${i}`,
         isActive: true,
-        created_at: recentDate,
+        createdAt: recentDate,
       }));
       productRepo.find!.mockResolvedValue(products);
 

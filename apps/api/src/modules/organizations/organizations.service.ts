@@ -23,7 +23,7 @@ export class OrganizationsService {
 
   async findAll(): Promise<Organization[]> {
     return this.organizationRepository.find({
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 

@@ -38,69 +38,69 @@ describe("ClientService", () => {
 
   const mockClient: ClientUser = {
     id: clientId,
-    telegram_id: "123456789",
+    telegramId: "123456789",
     phone: "+998901234567",
     email: "client@test.com",
-    first_name: "John",
-    last_name: "Doe",
+    firstName: "John",
+    lastName: "Doe",
     username: "johndoe",
     language: "ru",
-    organization_id: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    organizationId: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as ClientUser;
 
   const mockWallet: ClientWallet = {
     id: "wallet-uuid-1",
-    client_user_id: clientId,
-    organization_id: null,
+    clientUserId: clientId,
+    organizationId: null,
     balance: 50000,
     currency: "UZS",
-    is_active: true,
+    isActive: true,
   } as unknown as ClientWallet;
 
   const mockLoyaltyAccount: ClientLoyaltyAccount = {
     id: "loyalty-uuid-1",
-    client_user_id: clientId,
-    organization_id: null,
-    points_balance: 100,
-    total_earned: 500,
-    total_redeemed: 400,
+    clientUserId: clientId,
+    organizationId: null,
+    pointsBalance: 100,
+    totalEarned: 500,
+    totalRedeemed: 400,
     tier: "bronze",
   } as unknown as ClientLoyaltyAccount;
 
   const mockOrder: ClientOrder = {
     id: "order-uuid-1",
-    organization_id: null,
-    client_user_id: clientId,
-    machine_id: null,
-    order_number: "ORD-001",
+    organizationId: null,
+    clientUserId: clientId,
+    machineId: null,
+    orderNumber: "ORD-001",
     status: ClientOrderStatus.PENDING,
     items: [],
     subtotal: 24000,
-    discount_amount: 0,
-    loyalty_points_used: 0,
-    total_amount: 24000,
+    discountAmount: 0,
+    loyaltyPointsUsed: 0,
+    totalAmount: 24000,
     currency: "UZS",
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as ClientOrder;
 
   const mockLedgerEntry: ClientWalletLedger = {
     id: "ledger-uuid-1",
-    wallet_id: "wallet-uuid-1",
-    transaction_type: WalletTransactionType.TOP_UP,
+    walletId: "wallet-uuid-1",
+    transactionType: WalletTransactionType.TOP_UP,
     amount: 10000,
-    balance_before: 50000,
-    balance_after: 60000,
+    balanceBefore: 50000,
+    balanceAfter: 60000,
   } as unknown as ClientWalletLedger;
 
   const mockLoyaltyLedger: ClientLoyaltyLedger = {
     id: "loyalty-ledger-uuid-1",
-    loyalty_account_id: "loyalty-uuid-1",
+    loyaltyAccountId: "loyalty-uuid-1",
     reason: LoyaltyTransactionReason.ORDER_EARNED,
     points: 24,
-    balance_before: 100,
-    balance_after: 124,
+    balanceBefore: 100,
+    balanceAfter: 124,
   } as unknown as ClientLoyaltyLedger;
 
   // Mock transaction manager
@@ -309,7 +309,7 @@ describe("ClientService", () => {
       expect(result).toEqual(mockClient);
       expect(clientUserRepo.findOne).toHaveBeenCalledWith({
         where: { id: clientId },
-        relations: ["wallet", "loyalty_account"],
+        relations: ["wallet", "loyaltyAccount"],
       });
     });
 
@@ -330,8 +330,8 @@ describe("ClientService", () => {
 
       expect(result).toEqual(mockClient);
       expect(clientUserRepo.findOne).toHaveBeenCalledWith({
-        where: { telegram_id: "123456789" },
-        relations: ["wallet", "loyalty_account"],
+        where: { telegramId: "123456789" },
+        relations: ["wallet", "loyaltyAccount"],
       });
     });
 
@@ -347,7 +347,7 @@ describe("ClientService", () => {
   describe("updateClient", () => {
     it("should update client fields", async () => {
       const dto = { firstName: "Jane" };
-      const updated = { ...mockClient, first_name: "Jane" };
+      const updated = { ...mockClient, firstName: "Jane" };
 
       clientUserRepo.findOne.mockResolvedValue(mockClient);
       clientUserRepo.save.mockResolvedValue(updated as ClientUser);
@@ -355,7 +355,7 @@ describe("ClientService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateClient(clientId, dto as any);
 
-      expect(result.first_name).toEqual("Jane");
+      expect(result.firstName).toEqual("Jane");
     });
 
     it("should throw ConflictException when changing to duplicate telegramId", async () => {
@@ -395,7 +395,7 @@ describe("ClientService", () => {
       await service.getClients({ search: "john" } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        expect.stringContaining("client.first_name ILIKE :search"),
+        expect.stringContaining("client.firstName ILIKE :search"),
         { search: "%john%" },
       );
     });
@@ -448,7 +448,7 @@ describe("ClientService", () => {
     });
 
     it("should throw BadRequestException when wallet is deactivated", async () => {
-      const inactiveWallet = { ...mockWallet, is_active: false };
+      const inactiveWallet = { ...mockWallet, isActive: false };
       mockManager.findOne.mockResolvedValue(inactiveWallet);
 
       await expect(
@@ -509,7 +509,7 @@ describe("ClientService", () => {
       const paidOrder = {
         ...mockOrder,
         status: ClientOrderStatus.PAID,
-        total_amount: 24000,
+        totalAmount: 24000,
       };
       const completedOrder = {
         ...paidOrder,
@@ -642,7 +642,7 @@ describe("ClientService", () => {
     });
 
     it("should throw BadRequestException for insufficient points", async () => {
-      const lowBalance = { ...mockLoyaltyAccount, points_balance: 10 };
+      const lowBalance = { ...mockLoyaltyAccount, pointsBalance: 10 };
       mockManager.findOne.mockResolvedValue(lowBalance);
 
       await expect(

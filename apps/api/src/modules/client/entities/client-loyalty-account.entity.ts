@@ -10,41 +10,41 @@ import {
   OneToOne,
   OneToMany,
   JoinColumn,
-} from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { ClientUser } from './client-user.entity';
-import { ClientLoyaltyLedger } from './client-loyalty-ledger.entity';
+} from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
+import { ClientUser } from "./client-user.entity";
+import { ClientLoyaltyLedger } from "./client-loyalty-ledger.entity";
 
-@Entity('client_loyalty_accounts')
+@Entity("client_loyalty_accounts")
 export class ClientLoyaltyAccount extends BaseEntity {
-  @Column({ type: 'uuid', unique: true })
+  @Column({ type: "uuid", unique: true })
   @Index({ unique: true })
-  client_user_id: string;
+  clientUserId: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  organization_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  organizationId: string | null;
 
-  @Column({ type: 'integer', default: 0 })
-  points_balance: number;
+  @Column({ type: "integer", default: 0 })
+  pointsBalance: number;
 
-  @Column({ type: 'integer', default: 0 })
-  total_earned: number;
+  @Column({ type: "integer", default: 0 })
+  totalEarned: number;
 
-  @Column({ type: 'integer', default: 0 })
-  total_redeemed: number;
+  @Column({ type: "integer", default: 0 })
+  totalRedeemed: number;
 
-  @Column({ type: 'varchar', length: 20, default: 'bronze' })
+  @Column({ type: "varchar", length: 20, default: "bronze" })
   tier: string;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
-  tier_updated_at: Date | null;
+  @Column({ type: "timestamp with time zone", nullable: true })
+  tierUpdatedAt: Date | null;
 
   // Relations
 
-  @OneToOne(() => ClientUser, (user) => user.loyalty_account)
-  @JoinColumn({ name: 'client_user_id' })
-  client_user: ClientUser;
+  @OneToOne(() => ClientUser, (user) => user.loyaltyAccount)
+  @JoinColumn({ name: "client_user_id" })
+  clientUser: ClientUser;
 
-  @OneToMany(() => ClientLoyaltyLedger, (ledger) => ledger.loyalty_account)
-  ledger_entries: ClientLoyaltyLedger[];
+  @OneToMany(() => ClientLoyaltyLedger, (ledger) => ledger.loyaltyAccount)
+  ledgerEntries: ClientLoyaltyLedger[];
 }

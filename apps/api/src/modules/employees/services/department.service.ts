@@ -209,8 +209,8 @@ export class DepartmentService {
       subDepartments: department.subDepartments
         ? department.subDepartments.map((d) => this.mapDepartmentToDto(d))
         : undefined,
-      createdAt: department.created_at,
-      updatedAt: department.updated_at,
+      createdAt: department.createdAt,
+      updatedAt: department.updatedAt,
     };
   }
 }

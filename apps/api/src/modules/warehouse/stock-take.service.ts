@@ -53,7 +53,7 @@ export class StockTakeService {
       cost: dto.cost,
       notes: dto.notes,
       metadata: dto.metadata ?? {},
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.stockMovementRepository.save(movement);
@@ -83,7 +83,7 @@ export class StockTakeService {
     movement.status = StockMovementStatus.COMPLETED;
     movement.completedByUserId = userId;
     movement.completedAt = new Date();
-    movement.updated_by_id = userId;
+    movement.updatedById = userId;
 
     return this.stockMovementRepository.save(movement);
   }
@@ -110,7 +110,7 @@ export class StockTakeService {
     }
 
     movement.status = StockMovementStatus.CANCELLED;
-    movement.updated_by_id = userId;
+    movement.updatedById = userId;
 
     return this.stockMovementRepository.save(movement);
   }
@@ -197,7 +197,7 @@ export class StockTakeService {
       expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : null,
       notes: dto.notes,
       metadata: dto.metadata ?? {},
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.inventoryBatchRepository.save(batch);
@@ -262,7 +262,7 @@ export class StockTakeService {
       const depleteAmount = Math.min(batchRemaining, remaining);
 
       batch.remainingQuantity = batchRemaining - depleteAmount;
-      batch.updated_by_id = userId;
+      batch.updatedById = userId;
 
       const savedBatch = await this.inventoryBatchRepository.save(batch);
       affectedBatches.push(savedBatch);

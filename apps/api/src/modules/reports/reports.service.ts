@@ -205,7 +205,7 @@ export class ReportsService {
       dateFrom: dto.dateFrom,
       dateTo: dto.dateTo,
       status: ReportStatus.GENERATING,
-      created_by_id: generatedById,
+      createdById: generatedById,
       startedAt: new Date(),
     });
 
@@ -539,12 +539,12 @@ export class ReportsService {
       "r.generationTimeMs",
       "r.rowCount",
       "r.reportNumber",
-      "r.created_at",
+      "r.createdAt",
       "r.completedAt",
       "r.expiresAt",
     ]);
 
-    qb.orderBy("r.created_at", "DESC");
+    qb.orderBy("r.createdAt", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -611,7 +611,7 @@ export class ReportsService {
       runCount: 0,
       failCount: 0,
       nextRunAt,
-      created_by_id: createdById,
+      createdById: createdById,
     });
 
     return this.scheduledRepo.save(scheduled);
@@ -622,7 +622,7 @@ export class ReportsService {
   ): Promise<ScheduledReport[]> {
     return this.scheduledRepo.find({
       where: { organizationId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -769,7 +769,7 @@ export class ReportsService {
       isPublic: dto.isPublic || false,
       isDefault: false,
       isActive: true,
-      created_by_id: createdById,
+      createdById: createdById,
     });
 
     const saved = await this.dashboardRepo.save(dashboard);
@@ -801,7 +801,7 @@ export class ReportsService {
     return this.dashboardRepo.find({
       where: { organizationId },
       relations: ["widgets"],
-      order: { isDefault: "DESC", created_at: "DESC" },
+      order: { isDefault: "DESC", createdAt: "DESC" },
     });
   }
 
@@ -827,7 +827,7 @@ export class ReportsService {
   ): Promise<Dashboard> {
     const dashboard = await this.getDashboard(id);
     Object.assign(dashboard, updates);
-    dashboard.updated_at = new Date();
+    dashboard.updatedAt = new Date();
     await this.dashboardRepo.save(dashboard);
     return this.getDashboard(id);
   }

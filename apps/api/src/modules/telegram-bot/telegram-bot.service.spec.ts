@@ -136,13 +136,13 @@ describe("TelegramBotService", () => {
     it("should update and return existing telegram user", async () => {
       const existing = {
         id: "tu-1",
-        telegram_id: "123456",
-        chat_id: "old-chat",
+        telegramId: "123456",
+        chatId: "old-chat",
         username: "olduser",
-        first_name: "Old",
-        last_name: "Name",
-        organization_id: null,
-        last_interaction_at: null,
+        firstName: "Old",
+        lastName: "Name",
+        organizationId: null,
+        lastInteractionAt: null,
       };
 
       telegramUserRepo.findOne!.mockResolvedValue(existing);
@@ -158,29 +158,29 @@ describe("TelegramBotService", () => {
         "org-1",
       );
 
-      expect(result.chat_id).toBe("new-chat");
+      expect(result.chatId).toBe("new-chat");
       expect(result.username).toBe("newuser");
-      expect(result.first_name).toBe("New");
-      expect(result.last_name).toBe("User");
-      expect(result.organization_id).toBe("org-1");
-      expect(result.last_interaction_at).toBeInstanceOf(Date);
+      expect(result.firstName).toBe("New");
+      expect(result.lastName).toBe("User");
+      expect(result.organizationId).toBe("org-1");
+      expect(result.lastInteractionAt).toBeInstanceOf(Date);
     });
 
     it("should create a new telegram user when not found", async () => {
       telegramUserRepo.findOne!.mockResolvedValue(null);
       const created = {
         id: "tu-new",
-        telegram_id: "789",
-        chat_id: "chat-1",
+        telegramId: "789",
+        chatId: "chat-1",
         username: "testuser",
-        first_name: "Test",
-        last_name: null,
-        bot_type: "staff",
-        organization_id: "org-1",
+        firstName: "Test",
+        lastName: null,
+        botType: "staff",
+        organizationId: "org-1",
         language: TelegramLanguage.RU,
         status: TelegramUserStatus.ACTIVE,
-        is_verified: false,
-        notification_preferences: { tasks: true, machines: true, alerts: true },
+        isVerified: false,
+        notificationPreferences: { tasks: true, machines: true, alerts: true },
       };
       telegramUserRepo.create!.mockReturnValue(created);
       telegramUserRepo.save!.mockResolvedValue(created);
@@ -197,12 +197,12 @@ describe("TelegramBotService", () => {
 
       expect(telegramUserRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          telegram_id: "789",
-          chat_id: "chat-1",
+          telegramId: "789",
+          chatId: "chat-1",
           username: "testuser",
           language: TelegramLanguage.RU,
           status: TelegramUserStatus.ACTIVE,
-          is_verified: false,
+          isVerified: false,
         }),
       );
       expect(result.id).toBe("tu-new");
@@ -211,13 +211,13 @@ describe("TelegramBotService", () => {
     it("should preserve existing user fields when new values are null", async () => {
       const existing = {
         id: "tu-1",
-        telegram_id: "123",
-        chat_id: "chat-old",
+        telegramId: "123",
+        chatId: "chat-old",
         username: "existinguser",
-        first_name: "Existing",
-        last_name: "User",
-        organization_id: "org-1",
-        last_interaction_at: null,
+        firstName: "Existing",
+        lastName: "User",
+        organizationId: "org-1",
+        lastInteractionAt: null,
       };
 
       telegramUserRepo.findOne!.mockResolvedValue(existing);
@@ -233,8 +233,8 @@ describe("TelegramBotService", () => {
       );
 
       expect(result.username).toBe("existinguser");
-      expect(result.first_name).toBe("Existing");
-      expect(result.last_name).toBe("User");
+      expect(result.firstName).toBe("Existing");
+      expect(result.lastName).toBe("User");
     });
   });
 
@@ -266,10 +266,10 @@ describe("TelegramBotService", () => {
 
       expect(messageLogRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          telegram_user_id: "tu-1",
-          chat_id: "chat-1",
+          telegramUserId: "tu-1",
+          chatId: "chat-1",
           direction: "incoming",
-          message_type: TelegramMessageType.COMMAND,
+          messageType: TelegramMessageType.COMMAND,
           command: "/start",
         }),
       );
@@ -294,7 +294,7 @@ describe("TelegramBotService", () => {
 
       expect(messageLogRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          message_text: longText.substring(0, 1000),
+          messageText: longText.substring(0, 1000),
         }),
       );
     });
@@ -316,10 +316,10 @@ describe("TelegramBotService", () => {
       expect(messageLogRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           command: null,
-          message_text: null,
-          telegram_message_id: null,
-          response_time_ms: null,
-          organization_id: null,
+          messageText: null,
+          telegramMessageId: null,
+          responseTimeMs: null,
+          organizationId: null,
           metadata: null,
         }),
       );
@@ -354,9 +354,9 @@ describe("TelegramBotService", () => {
 
       expect(analyticsRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          bot_type: "staff",
-          event_type: TelegramEventType.COMMAND,
-          action_name: "/start",
+          botType: "staff",
+          eventType: TelegramEventType.COMMAND,
+          actionName: "/start",
           success: true,
         }),
       );
@@ -380,7 +380,7 @@ describe("TelegramBotService", () => {
       expect(analyticsRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error_message: "User blocked bot",
+          errorMessage: "User blocked bot",
         }),
       );
     });
@@ -393,10 +393,10 @@ describe("TelegramBotService", () => {
   describe("verifyUser", () => {
     it("should verify user with correct code", async () => {
       const user = {
-        telegram_id: "123",
-        is_verified: false,
-        verification_code: "123456",
-        verification_expires_at: new Date(Date.now() + 3600000),
+        telegramId: "123",
+        isVerified: false,
+        verificationCode: "123456",
+        verificationExpiresAt: new Date(Date.now() + 3600000),
       };
 
       telegramUserRepo.findOne!.mockResolvedValue(user);
@@ -406,8 +406,8 @@ describe("TelegramBotService", () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toBe("User verified successfully");
-      expect(user.is_verified).toBe(true);
-      expect(user.verification_code).toBeNull();
+      expect(user.isVerified).toBe(true);
+      expect(user.verificationCode).toBeNull();
     });
 
     it("should fail when telegram user not found", async () => {
@@ -421,8 +421,8 @@ describe("TelegramBotService", () => {
 
     it("should fail when user is already verified", async () => {
       telegramUserRepo.findOne!.mockResolvedValue({
-        telegram_id: "123",
-        is_verified: true,
+        telegramId: "123",
+        isVerified: true,
       });
 
       const result = await service.verifyUser("123", "123456");
@@ -433,9 +433,9 @@ describe("TelegramBotService", () => {
 
     it("should fail when no verification code is set", async () => {
       telegramUserRepo.findOne!.mockResolvedValue({
-        telegram_id: "123",
-        is_verified: false,
-        verification_code: null,
+        telegramId: "123",
+        isVerified: false,
+        verificationCode: null,
       });
 
       const result = await service.verifyUser("123", "123456");
@@ -446,10 +446,10 @@ describe("TelegramBotService", () => {
 
     it("should fail when verification code has expired", async () => {
       telegramUserRepo.findOne!.mockResolvedValue({
-        telegram_id: "123",
-        is_verified: false,
-        verification_code: "123456",
-        verification_expires_at: new Date(Date.now() - 3600000),
+        telegramId: "123",
+        isVerified: false,
+        verificationCode: "123456",
+        verificationExpiresAt: new Date(Date.now() - 3600000),
       });
 
       const result = await service.verifyUser("123", "123456");
@@ -460,10 +460,10 @@ describe("TelegramBotService", () => {
 
     it("should fail when verification code is wrong", async () => {
       telegramUserRepo.findOne!.mockResolvedValue({
-        telegram_id: "123",
-        is_verified: false,
-        verification_code: "123456",
-        verification_expires_at: new Date(Date.now() + 3600000),
+        telegramId: "123",
+        isVerified: false,
+        verificationCode: "123456",
+        verificationExpiresAt: new Date(Date.now() + 3600000),
       });
 
       const result = await service.verifyUser("123", "999999");
@@ -481,7 +481,7 @@ describe("TelegramBotService", () => {
     it("should merge new preferences with existing ones", async () => {
       const existing = {
         id: "tu-1",
-        notification_preferences: { tasks: true, machines: true, alerts: true },
+        notificationPreferences: { tasks: true, machines: true, alerts: true },
       };
 
       telegramUserRepo.findOne!.mockResolvedValue(existing);
@@ -492,7 +492,7 @@ describe("TelegramBotService", () => {
         dailyReport: true,
       });
 
-      expect(result.notification_preferences).toEqual({
+      expect(result.notificationPreferences).toEqual({
         tasks: false,
         machines: true,
         alerts: true,
@@ -542,17 +542,17 @@ describe("TelegramBotService", () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "tu.organization_id = :organizationId",
+        "tu.organizationId = :organizationId",
         { organizationId: "org-1" },
       );
       expect(mockQb.andWhere).toHaveBeenCalledWith("tu.status = :status", {
         status: TelegramUserStatus.ACTIVE,
       });
-      expect(mockQb.andWhere).toHaveBeenCalledWith("tu.bot_type = :botType", {
+      expect(mockQb.andWhere).toHaveBeenCalledWith("tu.botType = :botType", {
         botType: "staff",
       });
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "tu.is_verified = :isVerified",
+        "tu.isVerified = :isVerified",
         { isVerified: true },
       );
     });
@@ -578,7 +578,7 @@ describe("TelegramBotService", () => {
       const user = { id: "tu-1", username: "testuser" };
       telegramUserRepo.findOne!.mockResolvedValue(user);
       messageLogRepo.count!.mockResolvedValueOnce(50).mockResolvedValueOnce(15);
-      const lastMessage = { created_at: new Date("2025-06-01") };
+      const lastMessage = { createdAt: new Date("2025-06-01") };
       messageLogRepo.findOne!.mockResolvedValue(lastMessage);
 
       const result = await service.getTelegramUser("tu-1");
@@ -586,7 +586,7 @@ describe("TelegramBotService", () => {
       expect(result.user).toEqual(user);
       expect(result.stats.totalMessages).toBe(50);
       expect(result.stats.totalCommands).toBe(15);
-      expect(result.stats.lastMessageAt).toEqual(lastMessage.created_at);
+      expect(result.stats.lastMessageAt).toEqual(lastMessage.createdAt);
     });
 
     it("should throw NotFoundException when user not found", async () => {
@@ -630,6 +630,7 @@ describe("TelegramBotService", () => {
         { bot_type: "staff", count: "400" },
         { bot_type: "customer", count: "100" },
       ]);
+
       const avgResponseQb = createMockQueryBuilder();
       avgResponseQb.getRawOne.mockResolvedValue({ avg_response: "234.5" });
       const successQb = createMockQueryBuilder();
@@ -691,15 +692,15 @@ describe("TelegramBotService", () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "ml.organization_id = :organizationId",
+        "ml.organizationId = :organizationId",
         { organizationId: "org-1" },
       );
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "ml.telegram_user_id = :telegramUserId",
+        "ml.telegramUserId = :telegramUserId",
         { telegramUserId: "tu-1" },
       );
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "ml.message_type = :messageType",
+        "ml.messageType = :messageType",
         { messageType: TelegramMessageType.COMMAND },
       );
       expect(mockQb.andWhere).toHaveBeenCalledWith(

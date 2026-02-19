@@ -60,7 +60,7 @@ export class ReconciliationService {
       machineIds: dto.machineIds || [],
       timeTolerance: dto.timeTolerance ?? 300,
       amountTolerance: dto.amountTolerance ?? 0.01,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const saved = await this.runRepo.save(run);
@@ -376,7 +376,7 @@ export class ReconciliationService {
     mismatch.resolutionNotes = dto.resolutionNotes;
     mismatch.resolvedAt = new Date();
     mismatch.resolvedByUserId = userId;
-    mismatch.updated_by_id = userId;
+    mismatch.updatedById = userId;
 
     await this.mismatchRepo.save(mismatch);
 
@@ -415,7 +415,7 @@ export class ReconciliationService {
         importFilename: dto.importFilename || null,
         importRowNumber: index + 1,
         importedByUserId: userId,
-        created_by_id: userId,
+        createdById: userId,
         rawData: sale as unknown as Record<string, unknown>,
       }),
     );

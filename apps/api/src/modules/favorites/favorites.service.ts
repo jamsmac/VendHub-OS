@@ -333,7 +333,7 @@ export class FavoritesService {
           machineId: "",
           notes: fav.notes,
           sortOrder: fav.sortOrder,
-          createdAt: fav.created_at,
+          createdAt: fav.createdAt,
           product: {
             id: fav.product.id,
             name: fav.product.name,
@@ -353,7 +353,7 @@ export class FavoritesService {
           machineId: fav.machineId,
           notes: fav.notes,
           sortOrder: fav.sortOrder,
-          createdAt: fav.created_at,
+          createdAt: fav.createdAt,
           machine: {
             id: fav.machine.id,
             name: fav.machine.name,
@@ -500,7 +500,7 @@ export class FavoritesService {
       machineId: favorite.machineId,
       notes: favorite.notes,
       sortOrder: favorite.sortOrder,
-      createdAt: favorite.created_at,
+      createdAt: favorite.createdAt,
     };
   }
 }

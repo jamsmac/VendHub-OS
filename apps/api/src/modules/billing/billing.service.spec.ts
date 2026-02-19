@@ -47,10 +47,10 @@ describe("BillingService", () => {
     notes: null,
     payments: [],
     paidAt: null,
-    created_by_id: USER_ID,
-    updated_by_id: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdById: USER_ID,
+    updatedById: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Invoice;
 
   const mockSentInvoice = {
@@ -79,9 +79,9 @@ describe("BillingService", () => {
     paymentDate: new Date(),
     referenceNumber: null,
     notes: null,
-    created_by_id: USER_ID,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdById: USER_ID,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as BillingPayment;
 
   const mockInvoiceQueryBuilder = {
@@ -182,7 +182,7 @@ describe("BillingService", () => {
         expect.objectContaining({
           organizationId: ORG_ID,
           status: InvoiceStatus.DRAFT,
-          created_by_id: USER_ID,
+          createdById: USER_ID,
         }),
       );
     });

@@ -657,7 +657,7 @@ export class MaterialRequestsService {
     const requests = await this.requestRepo.find({
       where: { organizationId, status: MaterialRequestStatus.NEW },
       relations: ["items", "requester"],
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
 
     return requests.map((r) => this.mapToDto(r));
@@ -674,7 +674,7 @@ export class MaterialRequestsService {
 
     return this.historyRepo.find({
       where: { requestId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -815,8 +815,8 @@ export class MaterialRequestsService {
       completedAt: request.completedAt,
       cancelledAt: request.cancelledAt,
       items: (request.items || []).map((item) => this.mapItemToDto(item)),
-      createdAt: request.created_at,
-      updatedAt: request.updated_at,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
     };
   }
 
@@ -831,7 +831,7 @@ export class MaterialRequestsService {
       totalPrice: Number(item.totalPrice),
       deliveredQuantity: item.deliveredQuantity,
       notes: item.notes,
-      createdAt: item.created_at,
+      createdAt: item.createdAt,
     };
   }
 }

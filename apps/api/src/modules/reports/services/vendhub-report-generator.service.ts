@@ -236,7 +236,7 @@ export class VendHubReportGeneratorService {
     // Map to TransactionData
     return transactions.map((t) => ({
       id: t.id,
-      createdAt: t.created_at,
+      createdAt: t.createdAt,
       amount: Number(t.amount) || 0,
       paymentType: this.mapPaymentType(t.paymentMethod || t.type),
       paymentStatus: t.status === "completed" ? "Оплачено" : "Другое",

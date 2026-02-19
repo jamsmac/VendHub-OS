@@ -150,7 +150,7 @@ export class InventoryService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.warehouseRepo.findAndCount({
       where: { organizationId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -210,7 +210,7 @@ export class InventoryService {
     const safeLimit = Math.min(limit, 100);
     const [data, total] = await this.operatorRepo.findAndCount({
       where: { organizationId, operatorId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });

@@ -73,7 +73,7 @@ export class DirectoryEntryService {
       directoryId: directory.id,
       organizationId,
       normalizedName: dto.name.toLowerCase().trim(),
-      created_by_id: userId ?? null,
+      createdById: userId ?? null,
     });
 
     const saved = await this.entryRepository.save(entry);
@@ -255,7 +255,7 @@ export class DirectoryEntryService {
     Object.assign(entry, {
       ...dto,
       version: newVersion,
-      updated_by_id: userId ?? null,
+      updatedById: userId ?? null,
     });
 
     // Update normalizedName if name changed
@@ -450,7 +450,7 @@ export class DirectoryEntryService {
 
     entry.parentId = dto.newParentId ?? null;
     entry.version += 1;
-    entry.updated_by_id = userId ?? null;
+    entry.updatedById = userId ?? null;
     const saved = await this.entryRepository.save(entry);
 
     // Record audit
@@ -516,7 +516,7 @@ export class DirectoryEntryService {
         ? EntryStatus.PENDING_APPROVAL
         : EntryStatus.ACTIVE,
       organizationId,
-      created_by_id: userId ?? null,
+      createdById: userId ?? null,
     });
 
     const saved = await this.entryRepository.save(entry);

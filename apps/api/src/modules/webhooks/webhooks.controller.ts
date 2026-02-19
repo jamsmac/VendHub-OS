@@ -51,7 +51,7 @@ export class WebhooksController {
       secret: string;
       description?: string;
       is_active: boolean;
-      created_at: Date;
+      createdAt: Date;
       last_triggered_at?: Date;
       failure_count: number;
     }
@@ -84,7 +84,7 @@ export class WebhooksController {
       secret,
       description: dto.description,
       is_active: dto.is_active ?? true,
-      created_at: new Date(),
+      createdAt: new Date(),
       failure_count: 0,
     };
 
@@ -97,7 +97,7 @@ export class WebhooksController {
       secret, // Only shown once on creation!
       description: dto.description,
       is_active: webhook.is_active,
-      created_at: webhook.created_at,
+      createdAt: webhook.createdAt,
     };
   }
 
@@ -147,7 +147,7 @@ export class WebhooksController {
         events: w.events,
         description: w.description,
         is_active: w.is_active,
-        created_at: w.created_at,
+        createdAt: w.createdAt,
         last_triggered_at: w.last_triggered_at,
         failure_count: w.failure_count,
       })),
@@ -178,7 +178,7 @@ export class WebhooksController {
       events: webhook.events,
       description: webhook.description,
       is_active: webhook.is_active,
-      created_at: webhook.created_at,
+      createdAt: webhook.createdAt,
       last_triggered_at: webhook.last_triggered_at,
       failure_count: webhook.failure_count,
     };

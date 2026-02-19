@@ -87,7 +87,7 @@ describe("MachineAccessService", () => {
     valid_to: null,
     notes: null,
     metadata: {},
-    created_at: new Date("2025-01-15T10:00:00Z"),
+    createdAt: new Date("2025-01-15T10:00:00Z"),
   };
 
   const mockRevokedAccess: Partial<MachineAccess> = {
@@ -111,11 +111,11 @@ describe("MachineAccessService", () => {
         role: MachineAccessRole.REFILL,
         permissions: { canRefill: true },
         template: null as unknown as AccessTemplate,
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-        created_by_id: null,
-        updated_by_id: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        createdById: null,
+        updatedById: null,
       } as AccessTemplateRow,
     ],
   };
@@ -258,7 +258,7 @@ describe("MachineAccessService", () => {
 
       expect(result.is_active).toBe(false);
       expect(result.notes).toContain("Revoked: No longer needed");
-      expect(result.updated_by_id).toBe(USER_ID);
+      expect(result.updatedById).toBe(USER_ID);
     });
 
     it("should throw NotFoundException when access record not found", async () => {
@@ -302,7 +302,7 @@ describe("MachineAccessService", () => {
           organization_id: ORG_ID,
           is_active: true,
         },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
       expect(result).toHaveLength(1);
     });
@@ -317,7 +317,7 @@ describe("MachineAccessService", () => {
           machine_id: MACHINE_ID,
           organization_id: ORG_ID,
         },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
       expect(result).toHaveLength(2);
     });
@@ -335,7 +335,7 @@ describe("MachineAccessService", () => {
 
       expect(accessRepo.find).toHaveBeenCalledWith({
         where: { user_id: USER_ID, organization_id: ORG_ID, is_active: true },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
       expect(result).toHaveLength(1);
     });

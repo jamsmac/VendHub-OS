@@ -3,19 +3,25 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PurchaseHistory, PurchaseStatus } from './entities/purchase-history.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  PurchaseHistory,
+  PurchaseStatus,
+} from "./entities/purchase-history.entity";
 import {
   CreatePurchaseHistoryDto,
   BulkCreatePurchaseHistoryDto,
   UpdatePurchaseHistoryDto,
   ReceivePurchaseDto,
   ReturnPurchaseDto,
-} from './dto/create-purchase-history.dto';
-import { QueryPurchaseHistoryDto, PurchaseStatsQueryDto } from './dto/query-purchase-history.dto';
-import { randomUUID } from 'crypto';
+} from "./dto/create-purchase-history.dto";
+import {
+  QueryPurchaseHistoryDto,
+  PurchaseStatsQueryDto,
+} from "./dto/query-purchase-history.dto";
+import { randomUUID } from "crypto";
 
 @Injectable()
 export class PurchaseHistoryService {
@@ -35,7 +41,7 @@ export class PurchaseHistoryService {
     vatRate: number,
   ): { vatAmount: number; totalAmount: number } {
     const subtotal = quantity * unitPrice;
-    const vatAmount = Math.round((subtotal * vatRate) / 100 * 100) / 100;
+    const vatAmount = Math.round(((subtotal * vatRate) / 100) * 100) / 100;
     const totalAmount = Math.round((subtotal + vatAmount) * 100) / 100;
     return { vatAmount, totalAmount };
   }
@@ -49,7 +55,11 @@ export class PurchaseHistoryService {
     dto: CreatePurchaseHistoryDto,
   ): Promise<PurchaseHistory> {
     const vatRate = dto.vatRate ?? 12;
-    const { vatAmount, totalAmount } = this.calculateAmounts(dto.quantity, dto.unitPrice, vatRate);
+    const { vatAmount, totalAmount } = this.calculateAmounts(
+      dto.quantity,
+      dto.unitPrice,
+      vatRate,
+    );
 
     const purchase = this.repository.create({
       organizationId,
@@ -59,7 +69,7 @@ export class PurchaseHistoryService {
       productId: dto.productId,
       warehouseId: dto.warehouseId || null,
       quantity: dto.quantity,
-      unit: dto.unit || 'pcs',
+      unit: dto.unit || "pcs",
       unitPrice: dto.unitPrice,
       vatRate,
       vatAmount,
@@ -68,12 +78,12 @@ export class PurchaseHistoryService {
       productionDate: dto.productionDate || null,
       expiryDate: dto.expiryDate || null,
       status: PurchaseStatus.PENDING,
-      currency: dto.currency || 'UZS',
+      currency: dto.currency || "UZS",
       exchangeRate: dto.exchangeRate ?? 1,
       paymentMethod: dto.paymentMethod || null,
       notes: dto.notes || null,
-      importSource: 'manual',
-      created_by_id: userId,
+      importSource: "manual",
+      createdById: userId,
     });
 
     const saved = await this.repository.save(purchase);
@@ -97,7 +107,11 @@ export class PurchaseHistoryService {
 
     const purchases = dto.purchases.map((item) => {
       const vatRate = item.vatRate ?? 12;
-      const { vatAmount, totalAmount } = this.calculateAmounts(item.quantity, item.unitPrice, vatRate);
+      const { vatAmount, totalAmount } = this.calculateAmounts(
+        item.quantity,
+        item.unitPrice,
+        vatRate,
+      );
 
       return this.repository.create({
         organizationId,
@@ -107,7 +121,7 @@ export class PurchaseHistoryService {
         productId: item.productId,
         warehouseId: item.warehouseId || null,
         quantity: item.quantity,
-        unit: item.unit || 'pcs',
+        unit: item.unit || "pcs",
         unitPrice: item.unitPrice,
         vatRate,
         vatAmount,
@@ -116,13 +130,13 @@ export class PurchaseHistoryService {
         productionDate: item.productionDate || null,
         expiryDate: item.expiryDate || null,
         status: PurchaseStatus.PENDING,
-        currency: item.currency || 'UZS',
+        currency: item.currency || "UZS",
         exchangeRate: item.exchangeRate ?? 1,
         paymentMethod: item.paymentMethod || null,
         notes: item.notes || null,
-        importSource: dto.importSource || 'manual',
+        importSource: dto.importSource || "manual",
         importSessionId,
-        created_by_id: userId,
+        createdById: userId,
       });
     });
 
@@ -141,42 +155,55 @@ export class PurchaseHistoryService {
   async findAll(
     organizationId: string,
     params: QueryPurchaseHistoryDto,
-  ): Promise<{ data: PurchaseHistory[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: PurchaseHistory[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = params.page || 1;
     const limit = params.limit || 20;
     const skip = (page - 1) * limit;
 
     const query = this.repository
-      .createQueryBuilder('ph')
-      .where('ph.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("ph")
+      .where("ph.organizationId = :organizationId", { organizationId });
 
     if (params.supplierId) {
-      query.andWhere('ph.supplierId = :supplierId', { supplierId: params.supplierId });
+      query.andWhere("ph.supplierId = :supplierId", {
+        supplierId: params.supplierId,
+      });
     }
 
     if (params.productId) {
-      query.andWhere('ph.productId = :productId', { productId: params.productId });
+      query.andWhere("ph.productId = :productId", {
+        productId: params.productId,
+      });
     }
 
     if (params.warehouseId) {
-      query.andWhere('ph.warehouseId = :warehouseId', { warehouseId: params.warehouseId });
+      query.andWhere("ph.warehouseId = :warehouseId", {
+        warehouseId: params.warehouseId,
+      });
     }
 
     if (params.status) {
-      query.andWhere('ph.status = :status', { status: params.status });
+      query.andWhere("ph.status = :status", { status: params.status });
     }
 
     if (params.dateFrom) {
-      query.andWhere('ph.purchaseDate >= :dateFrom', { dateFrom: params.dateFrom });
+      query.andWhere("ph.purchaseDate >= :dateFrom", {
+        dateFrom: params.dateFrom,
+      });
     }
 
     if (params.dateTo) {
-      query.andWhere('ph.purchaseDate <= :dateTo', { dateTo: params.dateTo });
+      query.andWhere("ph.purchaseDate <= :dateTo", { dateTo: params.dateTo });
     }
 
     if (params.search) {
       query.andWhere(
-        '(ph.invoiceNumber ILIKE :search OR ph.batchNumber ILIKE :search OR ph.notes ILIKE :search)',
+        "(ph.invoiceNumber ILIKE :search OR ph.batchNumber ILIKE :search OR ph.notes ILIKE :search)",
         { search: `%${params.search}%` },
       );
     }
@@ -184,8 +211,8 @@ export class PurchaseHistoryService {
     const total = await query.getCount();
 
     const data = await query
-      .orderBy('ph.purchaseDate', 'DESC')
-      .addOrderBy('ph.created_at', 'DESC')
+      .orderBy("ph.purchaseDate", "DESC")
+      .addOrderBy("ph.createdAt", "DESC")
       .skip(skip)
       .take(limit)
       .getMany();
@@ -200,7 +227,9 @@ export class PurchaseHistoryService {
     const purchase = await this.repository.findOne({ where: { id } });
 
     if (!purchase) {
-      throw new NotFoundException(`Purchase history record with ID ${id} not found`);
+      throw new NotFoundException(
+        `Purchase history record with ID ${id} not found`,
+      );
     }
 
     return purchase;
@@ -225,7 +254,11 @@ export class PurchaseHistoryService {
     const quantity = dto.quantity ?? purchase.quantity;
     const unitPrice = dto.unitPrice ?? purchase.unitPrice;
     const vatRate = dto.vatRate ?? purchase.vatRate;
-    const { vatAmount, totalAmount } = this.calculateAmounts(quantity, unitPrice, vatRate);
+    const { vatAmount, totalAmount } = this.calculateAmounts(
+      quantity,
+      unitPrice,
+      vatRate,
+    );
 
     Object.assign(purchase, {
       ...dto,
@@ -253,9 +286,12 @@ export class PurchaseHistoryService {
     }
 
     purchase.status = PurchaseStatus.RECEIVED;
-    purchase.deliveryDate = dto?.deliveryDate ? new Date(dto.deliveryDate) : new Date();
-    purchase.deliveryNoteNumber = dto?.deliveryNoteNumber || purchase.deliveryNoteNumber;
-    purchase.updated_by_id = userId;
+    purchase.deliveryDate = dto?.deliveryDate
+      ? new Date(dto.deliveryDate)
+      : new Date();
+    purchase.deliveryNoteNumber =
+      dto?.deliveryNoteNumber || purchase.deliveryNoteNumber;
+    purchase.updatedById = userId;
 
     if (dto?.notes) {
       purchase.notes = purchase.notes
@@ -332,7 +368,10 @@ export class PurchaseHistoryService {
   async remove(id: string): Promise<void> {
     const purchase = await this.findById(id);
 
-    if (purchase.status !== PurchaseStatus.PENDING && purchase.status !== PurchaseStatus.CANCELLED) {
+    if (
+      purchase.status !== PurchaseStatus.PENDING &&
+      purchase.status !== PurchaseStatus.CANCELLED
+    ) {
       throw new BadRequestException(
         `Cannot delete purchase with status ${purchase.status}. Only PENDING or CANCELLED purchases can be deleted.`,
       );
@@ -352,54 +391,62 @@ export class PurchaseHistoryService {
   ): Promise<{
     totalPurchases: number;
     totalAmount: number;
-    bySupplier: Array<{ supplierId: string | null; count: number; totalAmount: number }>;
+    bySupplier: Array<{
+      supplierId: string | null;
+      count: number;
+      totalAmount: number;
+    }>;
     byProduct: Array<{ productId: string; count: number; totalAmount: number }>;
   }> {
     const baseQuery = this.repository
-      .createQueryBuilder('ph')
-      .where('ph.organizationId = :organizationId', { organizationId })
-      .andWhere('ph.deleted_at IS NULL');
+      .createQueryBuilder("ph")
+      .where("ph.organizationId = :organizationId", { organizationId })
+      .andWhere("ph.deletedAt IS NULL");
 
     if (params?.dateFrom) {
-      baseQuery.andWhere('ph.purchaseDate >= :dateFrom', { dateFrom: params.dateFrom });
+      baseQuery.andWhere("ph.purchaseDate >= :dateFrom", {
+        dateFrom: params.dateFrom,
+      });
     }
 
     if (params?.dateTo) {
-      baseQuery.andWhere('ph.purchaseDate <= :dateTo', { dateTo: params.dateTo });
+      baseQuery.andWhere("ph.purchaseDate <= :dateTo", {
+        dateTo: params.dateTo,
+      });
     }
 
     // Overall stats
     const overallStats = await baseQuery
       .clone()
-      .select('COUNT(*)', 'totalPurchases')
-      .addSelect('COALESCE(SUM(ph.totalAmount), 0)', 'totalAmount')
+      .select("COUNT(*)", "totalPurchases")
+      .addSelect("COALESCE(SUM(ph.totalAmount), 0)", "totalAmount")
       .getRawOne();
 
     // By supplier
     const bySupplier = await baseQuery
       .clone()
-      .select('ph.supplierId', 'supplierId')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('COALESCE(SUM(ph.totalAmount), 0)', 'totalAmount')
-      .groupBy('ph.supplierId')
-      .orderBy('SUM(ph.totalAmount)', 'DESC')
+      .select("ph.supplierId", "supplierId")
+      .addSelect("COUNT(*)", "count")
+      .addSelect("COALESCE(SUM(ph.totalAmount), 0)", "totalAmount")
+      .groupBy("ph.supplierId")
+      .orderBy("SUM(ph.totalAmount)", "DESC")
       .limit(10)
       .getRawMany();
 
     // By product
     const byProduct = await baseQuery
       .clone()
-      .select('ph.productId', 'productId')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('COALESCE(SUM(ph.totalAmount), 0)', 'totalAmount')
-      .groupBy('ph.productId')
-      .orderBy('SUM(ph.totalAmount)', 'DESC')
+      .select("ph.productId", "productId")
+      .addSelect("COUNT(*)", "count")
+      .addSelect("COALESCE(SUM(ph.totalAmount), 0)", "totalAmount")
+      .groupBy("ph.productId")
+      .orderBy("SUM(ph.totalAmount)", "DESC")
       .limit(10)
       .getRawMany();
 
     return {
-      totalPurchases: parseInt(overallStats?.totalPurchases || '0', 10),
-      totalAmount: parseFloat(overallStats?.totalAmount || '0'),
+      totalPurchases: parseInt(overallStats?.totalPurchases || "0", 10),
+      totalAmount: parseFloat(overallStats?.totalAmount || "0"),
       bySupplier: bySupplier.map((s) => ({
         supplierId: s.supplierId,
         count: parseInt(s.count, 10),

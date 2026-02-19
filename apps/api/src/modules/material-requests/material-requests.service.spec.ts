@@ -89,7 +89,7 @@ describe("MaterialRequestsService", () => {
     totalPrice: 500000,
     deliveredQuantity: 0,
     notes: undefined,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   const mockRequest: Partial<MaterialRequest> = {
@@ -114,8 +114,8 @@ describe("MaterialRequestsService", () => {
     completedAt: null as unknown as Date,
     cancelledAt: null as unknown as Date,
     items: [mockItem as MaterialRequestItem],
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const mockNewRequest: Partial<MaterialRequest> = {
@@ -275,8 +275,8 @@ describe("MaterialRequestsService", () => {
           ...entity,
           requester: { firstName: "T", lastName: "U" },
           items: entity.items || [],
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         }),
       );
       itemRepo.create!.mockImplementation((data) => data);
@@ -734,7 +734,7 @@ describe("MaterialRequestsService", () => {
       expect(requestRepo.find).toHaveBeenCalledWith({
         where: { organizationId: ORG_ID, status: MaterialRequestStatus.NEW },
         relations: ["items", "requester"],
-        order: { created_at: "ASC" },
+        order: { createdAt: "ASC" },
       });
       expect(result).toHaveLength(1);
     });
@@ -758,7 +758,7 @@ describe("MaterialRequestsService", () => {
 
       expect(historyRepo.find).toHaveBeenCalledWith({
         where: { requestId: "req-uuid-1" },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
       expect(result).toHaveLength(1);
     });

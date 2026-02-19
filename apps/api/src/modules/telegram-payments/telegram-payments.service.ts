@@ -8,20 +8,20 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ConfigService } from '@nestjs/config';
-import { TelegramPayment } from './entities/telegram-payment.entity';
-import { Order, PaymentStatus } from '../orders/entities/order.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ConfigService } from "@nestjs/config";
+import { TelegramPayment } from "./entities/telegram-payment.entity";
+import { Order, PaymentStatus } from "../orders/entities/order.entity";
 import {
   TelegramPaymentStatus,
   TelegramPaymentProvider,
   TelegramPaymentCurrency,
   TELEGRAM_PAYMENT_PROVIDERS_CONFIG,
   TELEGRAM_PAYMENT_ERRORS,
-} from './telegram-payments.constants';
+} from "./telegram-payments.constants";
 import {
   CreateInvoiceDto,
   CreateInvoiceLinkDto,
@@ -33,7 +33,7 @@ import {
   PaymentListDto,
   PaymentStatsDto,
   InvoiceResponseDto,
-} from './dto/telegram-payment.dto';
+} from "./dto/telegram-payment.dto";
 
 @Injectable()
 export class TelegramPaymentsService {
@@ -48,7 +48,7 @@ export class TelegramPaymentsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
   ) {
-    this.botToken = this.configService.get<string>('TELEGRAM_BOT_TOKEN', '');
+    this.botToken = this.configService.get<string>("TELEGRAM_BOT_TOKEN", "");
   }
 
   // ============================================================================
@@ -77,11 +77,11 @@ export class TelegramPaymentsService {
     // Get order
     const order = await this.orderRepo.findOne({
       where: { id: dto.orderId, organizationId },
-      relations: ['items', 'items.product'],
+      relations: ["items", "items.product"],
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     // Convert amount to smallest units
@@ -121,8 +121,8 @@ export class TelegramPaymentsService {
     await this.paymentRepo.save(payment);
 
     // Build invoice items
-    const prices = order.items.map(item => ({
-      label: item.product?.name || 'Product',
+    const prices = order.items.map((item) => ({
+      label: item.product?.name || "Product",
       amount: this.convertToSmallestUnits(item.totalPrice, dto.currency),
     }));
 
@@ -131,7 +131,8 @@ export class TelegramPaymentsService {
       await this.sendTelegramInvoice({
         chatId: dto.telegramChatId || dto.telegramUserId,
         title: `Order #${order.orderNumber}`,
-        description: dto.description || `Payment for order #${order.orderNumber}`,
+        description:
+          dto.description || `Payment for order #${order.orderNumber}`,
         payload: payment.invoicePayload,
         providerToken: providerConfig.token,
         currency: dto.currency,
@@ -143,10 +144,11 @@ export class TelegramPaymentsService {
       return {
         success: true,
         paymentId: payment.id,
-        message: 'Invoice sent to Telegram',
+        message: "Invoice sent to Telegram",
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       payment.status = TelegramPaymentStatus.FAILED;
       payment.failureReason = errorMessage;
       await this.paymentRepo.save(payment);
@@ -208,7 +210,8 @@ export class TelegramPaymentsService {
         invoiceLink,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       payment.status = TelegramPaymentStatus.FAILED;
       payment.failureReason = errorMessage;
       await this.paymentRepo.save(payment);
@@ -228,7 +231,9 @@ export class TelegramPaymentsService {
   /**
    * Обработать pre_checkout_query
    */
-  async handlePreCheckoutQuery(dto: PreCheckoutQueryDto): Promise<{ ok: boolean; errorMessage?: string }> {
+  async handlePreCheckoutQuery(
+    dto: PreCheckoutQueryDto,
+  ): Promise<{ ok: boolean; errorMessage?: string }> {
     try {
       // Parse payload to get payment info
       const payload = JSON.parse(dto.invoicePayload);
@@ -240,7 +245,7 @@ export class TelegramPaymentsService {
         });
 
         if (!order) {
-          return { ok: false, errorMessage: 'Order not found' };
+          return { ok: false, errorMessage: "Order not found" };
         }
 
         // Check if amount matches
@@ -250,7 +255,7 @@ export class TelegramPaymentsService {
         );
 
         if (dto.totalAmount !== expectedAmount) {
-          return { ok: false, errorMessage: 'Amount mismatch' };
+          return { ok: false, errorMessage: "Amount mismatch" };
         }
       }
 
@@ -259,9 +264,14 @@ export class TelegramPaymentsService {
 
       return { ok: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       this.logger.error(`Pre-checkout validation failed: ${errorMessage}`);
-      await this.answerPreCheckoutQuery(dto.preCheckoutQueryId, false, errorMessage);
+      await this.answerPreCheckoutQuery(
+        dto.preCheckoutQueryId,
+        false,
+        errorMessage,
+      );
       return { ok: false, errorMessage };
     }
   }
@@ -291,7 +301,10 @@ export class TelegramPaymentsService {
         orderId: payload.orderId,
         provider: TelegramPaymentProvider.PAYME, // Default, should be determined
         currency: dto.currency as TelegramPaymentCurrency,
-        amount: this.convertFromSmallestUnits(dto.totalAmount, dto.currency as TelegramPaymentCurrency),
+        amount: this.convertFromSmallestUnits(
+          dto.totalAmount,
+          dto.currency as TelegramPaymentCurrency,
+        ),
         telegramUserId,
         telegramPaymentChargeId: dto.telegramPaymentChargeId,
         providerPaymentChargeId: dto.providerPaymentChargeId,
@@ -304,7 +317,7 @@ export class TelegramPaymentsService {
 
       await this.paymentRepo.save(newPayment);
 
-      this.eventEmitter.emit('payment.completed', {
+      this.eventEmitter.emit("payment.completed", {
         paymentId: newPayment.id,
         orderId: payload.orderId,
         userId: payload.userId,
@@ -318,7 +331,7 @@ export class TelegramPaymentsService {
     payment.telegramUserId = telegramUserId;
     payment.telegramPaymentChargeId = dto.telegramPaymentChargeId;
     payment.providerPaymentChargeId = dto.providerPaymentChargeId;
-    payment.shippingOptionId = dto.shippingOptionId || '';
+    payment.shippingOptionId = dto.shippingOptionId || "";
     payment.orderInfo = dto.orderInfo || {};
     payment.status = TelegramPaymentStatus.COMPLETED;
     payment.completedAt = new Date();
@@ -333,7 +346,7 @@ export class TelegramPaymentsService {
       } as unknown as Parameters<typeof this.orderRepo.update>[1]);
     }
 
-    this.eventEmitter.emit('payment.completed', {
+    this.eventEmitter.emit("payment.completed", {
       paymentId: payment.id,
       orderId: payment.orderId,
       userId: payment.userId,
@@ -369,7 +382,7 @@ export class TelegramPaymentsService {
     }
 
     if (payment.refundedAt) {
-      throw new BadRequestException('Payment already refunded');
+      throw new BadRequestException("Payment already refunded");
     }
 
     const refundAmount = dto.amount || payment.amount;
@@ -386,7 +399,7 @@ export class TelegramPaymentsService {
 
       await this.paymentRepo.save(payment);
 
-      this.eventEmitter.emit('payment.refunded', {
+      this.eventEmitter.emit("payment.refunded", {
         paymentId: payment.id,
         orderId: payment.orderId,
         userId: payment.userId,
@@ -398,7 +411,8 @@ export class TelegramPaymentsService {
 
       return this.mapToDto(payment);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       this.logger.error(`Refund failed: ${errorMessage}`);
       throw new BadRequestException(`Refund failed: ${errorMessage}`);
     }
@@ -411,7 +425,10 @@ export class TelegramPaymentsService {
   /**
    * Получить платеж по ID
    */
-  async getPayment(paymentId: string, organizationId: string): Promise<PaymentDto> {
+  async getPayment(
+    paymentId: string,
+    organizationId: string,
+  ): Promise<PaymentDto> {
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId, organizationId },
     });
@@ -440,42 +457,50 @@ export class TelegramPaymentsService {
     filter: PaymentFilterDto,
     organizationId?: string,
   ): Promise<PaymentListDto> {
-    const { status, provider, userId, fromDate, toDate, page = 1, limit = 20 } = filter;
+    const {
+      status,
+      provider,
+      userId,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 20,
+    } = filter;
 
-    const qb = this.paymentRepo.createQueryBuilder('p');
+    const qb = this.paymentRepo.createQueryBuilder("p");
 
     if (organizationId) {
-      qb.andWhere('p.organizationId = :organizationId', { organizationId });
+      qb.andWhere("p.organizationId = :organizationId", { organizationId });
     }
 
     if (userId) {
-      qb.andWhere('p.userId = :userId', { userId });
+      qb.andWhere("p.userId = :userId", { userId });
     }
 
     if (status) {
-      qb.andWhere('p.status = :status', { status });
+      qb.andWhere("p.status = :status", { status });
     }
 
     if (provider) {
-      qb.andWhere('p.provider = :provider', { provider });
+      qb.andWhere("p.provider = :provider", { provider });
     }
 
     if (fromDate) {
-      qb.andWhere('p.createdAt >= :fromDate', { fromDate });
+      qb.andWhere("p.createdAt >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('p.createdAt <= :toDate', { toDate });
+      qb.andWhere("p.createdAt <= :toDate", { toDate });
     }
 
     const [items, total] = await qb
-      .orderBy('p.createdAt', 'DESC')
+      .orderBy("p.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(p => this.mapToDto(p)),
+      items: items.map((p) => this.mapToDto(p)),
       total,
       page,
       limit,
@@ -491,15 +516,16 @@ export class TelegramPaymentsService {
     fromDate?: Date,
     toDate?: Date,
   ): Promise<PaymentStatsDto> {
-    const qb = this.paymentRepo.createQueryBuilder('p')
-      .where('p.organizationId = :organizationId', { organizationId });
+    const qb = this.paymentRepo
+      .createQueryBuilder("p")
+      .where("p.organizationId = :organizationId", { organizationId });
 
     if (fromDate) {
-      qb.andWhere('p.createdAt >= :fromDate', { fromDate });
+      qb.andWhere("p.createdAt >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('p.createdAt <= :toDate', { toDate });
+      qb.andWhere("p.createdAt <= :toDate", { toDate });
     }
 
     const payments = await qb.getMany();
@@ -512,7 +538,10 @@ export class TelegramPaymentsService {
       totalAmount: 0,
       refundedAmount: 0,
       netAmount: 0,
-      byProvider: {} as Record<TelegramPaymentProvider, { count: number; amount: number }>,
+      byProvider: {} as Record<
+        TelegramPaymentProvider,
+        { count: number; amount: number }
+      >,
     };
 
     // Initialize provider stats
@@ -530,7 +559,9 @@ export class TelegramPaymentsService {
         stats.failedPayments++;
       } else if (payment.status === TelegramPaymentStatus.REFUNDED) {
         stats.refundedPayments++;
-        stats.refundedAmount += Number(payment.refundedAmount || payment.amount);
+        stats.refundedAmount += Number(
+          payment.refundedAmount || payment.amount,
+        );
       }
     }
 
@@ -555,8 +586,8 @@ export class TelegramPaymentsService {
     const url = `https://api.telegram.org/bot${this.botToken}/sendInvoice`;
 
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: params.chatId,
         title: params.title,
@@ -568,10 +599,14 @@ export class TelegramPaymentsService {
       }),
     });
 
-    const data = await response.json() as { ok: boolean; description?: string; result?: unknown };
+    const data = (await response.json()) as {
+      ok: boolean;
+      description?: string;
+      result?: unknown;
+    };
 
     if (!data.ok) {
-      throw new Error(data.description || 'Failed to send invoice');
+      throw new Error(data.description || "Failed to send invoice");
     }
 
     return data.result;
@@ -588,8 +623,8 @@ export class TelegramPaymentsService {
     const url = `https://api.telegram.org/bot${this.botToken}/createInvoiceLink`;
 
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: params.title,
         description: params.description,
@@ -600,10 +635,14 @@ export class TelegramPaymentsService {
       }),
     });
 
-    const data = await response.json() as { ok: boolean; description?: string; result?: string };
+    const data = (await response.json()) as {
+      ok: boolean;
+      description?: string;
+      result?: string;
+    };
 
     if (!data.ok) {
-      throw new Error(data.description || 'Failed to create invoice link');
+      throw new Error(data.description || "Failed to create invoice link");
     }
 
     return data.result as string;
@@ -617,8 +656,8 @@ export class TelegramPaymentsService {
     const url = `https://api.telegram.org/bot${this.botToken}/answerPreCheckoutQuery`;
 
     await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         pre_checkout_query_id: preCheckoutQueryId,
         ok,
@@ -634,18 +673,21 @@ export class TelegramPaymentsService {
     const url = `https://api.telegram.org/bot${this.botToken}/refundStarPayment`;
 
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: telegramUserId,
         telegram_payment_charge_id: telegramPaymentChargeId,
       }),
     });
 
-    const data = await response.json() as { ok: boolean; description?: string };
+    const data = (await response.json()) as {
+      ok: boolean;
+      description?: string;
+    };
 
     if (!data.ok) {
-      throw new Error(data.description || 'Failed to refund payment');
+      throw new Error(data.description || "Failed to refund payment");
     }
   }
 
@@ -653,7 +695,10 @@ export class TelegramPaymentsService {
   // HELPERS
   // ============================================================================
 
-  private convertToSmallestUnits(amount: number, currency: TelegramPaymentCurrency): number {
+  private convertToSmallestUnits(
+    amount: number,
+    currency: TelegramPaymentCurrency,
+  ): number {
     // UZS doesn't have decimal places, USD/RUB have cents/kopeks
     if (currency === TelegramPaymentCurrency.UZS) {
       return Math.round(amount * 100); // Telegram requires *100 for all currencies
@@ -661,7 +706,10 @@ export class TelegramPaymentsService {
     return Math.round(amount * 100);
   }
 
-  private convertFromSmallestUnits(amount: number, _currency: TelegramPaymentCurrency): number {
+  private convertFromSmallestUnits(
+    amount: number,
+    _currency: TelegramPaymentCurrency,
+  ): number {
     return amount / 100;
   }
 
@@ -680,10 +728,12 @@ export class TelegramPaymentsService {
       providerPaymentChargeId: payment.providerPaymentChargeId,
       description: payment.description,
       failureReason: payment.failureReason,
-      createdAt: payment.created_at,
+      createdAt: payment.createdAt,
       completedAt: payment.completedAt,
       refundedAt: payment.refundedAt,
-      refundedAmount: payment.refundedAmount ? Number(payment.refundedAmount) : undefined,
+      refundedAmount: payment.refundedAmount
+        ? Number(payment.refundedAmount)
+        : undefined,
     };
   }
 }

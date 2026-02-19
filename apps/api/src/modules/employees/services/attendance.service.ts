@@ -310,8 +310,8 @@ export class AttendanceService {
       note: attendance.note,
       checkInLocation: attendance.checkInLocation,
       checkOutLocation: attendance.checkOutLocation,
-      createdAt: attendance.created_at,
-      updatedAt: attendance.updated_at,
+      createdAt: attendance.createdAt,
+      updatedAt: attendance.updatedAt,
     };
   }
 }

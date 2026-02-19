@@ -73,7 +73,7 @@ describe("FiscalService", () => {
       defaultCashier: "Auto",
       autoOpenShift: false,
     },
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   const mockShift: Partial<FiscalShift> = {
@@ -213,7 +213,7 @@ describe("FiscalService", () => {
 
       expect(deviceRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
       expect(result).toEqual(devices);
     });
@@ -558,7 +558,7 @@ describe("FiscalService", () => {
 
       expect(queueRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId, status: FiscalQueueStatus.PENDING },
-        order: { priority: "DESC", created_at: "ASC" },
+        order: { priority: "DESC", createdAt: "ASC" },
       });
     });
 
@@ -569,7 +569,7 @@ describe("FiscalService", () => {
 
       expect(queueRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId },
-        order: { priority: "DESC", created_at: "ASC" },
+        order: { priority: "DESC", createdAt: "ASC" },
       });
     });
   });

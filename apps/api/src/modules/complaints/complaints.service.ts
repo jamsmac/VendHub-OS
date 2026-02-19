@@ -361,7 +361,7 @@ export class ComplaintsService {
       // Note: No separate closedAt field - resolvedAt is used for closure tracking
     }
 
-    complaint.updated_at = new Date();
+    complaint.updatedAt = new Date();
     const saved = await this.complaintRepo.save(complaint);
 
     // Log action
@@ -397,7 +397,7 @@ export class ComplaintsService {
       complaint.status === ComplaintStatus.NEW
         ? ComplaintStatus.IN_PROGRESS
         : complaint.status;
-    complaint.updated_at = new Date();
+    complaint.updatedAt = new Date();
 
     const saved = await this.complaintRepo.save(complaint);
 
@@ -520,7 +520,7 @@ export class ComplaintsService {
 
     return this.commentRepo.find({
       where,
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 
@@ -541,7 +541,7 @@ export class ComplaintsService {
       reason: dto.reason,
       refundDetails: dto.bankDetails,
       status: RefundStatus.PENDING,
-      created_by_id: dto.requestedById,
+      createdById: dto.requestedById,
     } as Partial<ComplaintRefund>);
 
     const saved = await this.refundRepo.save(refund);
@@ -679,7 +679,7 @@ export class ComplaintsService {
   async getQrCodesForMachine(machineId: string): Promise<ComplaintQrCode[]> {
     return this.qrCodeRepo.find({
       where: { machineId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -754,7 +754,7 @@ export class ComplaintsService {
     const complaints = await this.complaintRepo.find({
       where: {
         organizationId,
-        created_at: Between(dateFrom, dateTo),
+        createdAt: Between(dateFrom, dateTo),
       },
     });
 
@@ -778,7 +778,7 @@ export class ComplaintsService {
 
       if (c.resolvedAt) {
         resolvedCount++;
-        totalResolutionTime += c.resolvedAt.getTime() - c.created_at.getTime();
+        totalResolutionTime += c.resolvedAt.getTime() - c.createdAt.getTime();
       }
 
       if (c.satisfactionRating) {
@@ -849,7 +849,7 @@ export class ComplaintsService {
         organizationId,
         ticketNumber: Not(IsNull()),
       },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
 
     let sequence = 1;
@@ -1071,7 +1071,7 @@ export class ComplaintsService {
         status: In(statuses),
       },
       relations: ["comments", "actions"],
-      order: { priority: "DESC", created_at: "ASC" },
+      order: { priority: "DESC", createdAt: "ASC" },
     });
   }
 
@@ -1081,7 +1081,7 @@ export class ComplaintsService {
   async findByMachine(machineId: string, limit = 20): Promise<Complaint[]> {
     return this.complaintRepo.find({
       where: { machineId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }

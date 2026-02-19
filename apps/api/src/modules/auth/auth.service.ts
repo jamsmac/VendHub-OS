@@ -409,7 +409,7 @@ export class AuthService {
       deviceInfo: s.deviceInfo,
       ipAddress: s.ipAddress,
       lastActivityAt: s.lastActivityAt,
-      createdAt: s.created_at,
+      createdAt: s.createdAt,
     }));
   }
 
@@ -988,8 +988,8 @@ export class AuthService {
 
     return this.loginAttemptRepository.count({
       where: [
-        { email, success: false, created_at: MoreThan(since) },
-        { ipAddress, success: false, created_at: MoreThan(since) },
+        { email, success: false, createdAt: MoreThan(since) },
+        { ipAddress, success: false, createdAt: MoreThan(since) },
       ],
     });
   }
@@ -1035,7 +1035,7 @@ export class AuthService {
           }
         : null,
       preferences: user.preferences,
-      createdAt: user.created_at,
+      createdAt: user.createdAt,
     };
   }
 }

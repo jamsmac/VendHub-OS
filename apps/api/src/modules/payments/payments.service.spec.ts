@@ -28,41 +28,41 @@ describe("PaymentsService", () => {
 
   const mockTransaction = {
     id: "tx-uuid-1",
-    organization_id: ORG_ID,
+    organizationId: ORG_ID,
     provider: PaymentProvider.PAYME,
-    provider_tx_id: "payme-tx-123",
+    providerTxId: "payme-tx-123",
     amount: 50000,
     currency: "UZS",
     status: PaymentTransactionStatus.COMPLETED,
-    order_id: "order-001",
-    machine_id: null,
-    client_user_id: null,
-    processed_at: new Date(),
-    raw_request: {},
-    raw_response: {},
-    error_message: null,
+    orderId: "order-001",
+    machineId: null,
+    clientUserId: null,
+    processedAt: new Date(),
+    rawRequest: {},
+    rawResponse: {},
+    errorMessage: null,
     metadata: {},
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as PaymentTransaction;
 
   const mockPendingTransaction = {
     ...mockTransaction,
     id: "tx-uuid-2",
     status: PaymentTransactionStatus.PENDING,
-    provider_tx_id: null,
+    providerTxId: null,
   } as unknown as PaymentTransaction;
 
   const mockRefund = {
     id: "refund-uuid-1",
-    organization_id: ORG_ID,
-    payment_transaction_id: "tx-uuid-1",
+    organizationId: ORG_ID,
+    paymentTransactionId: "tx-uuid-1",
     amount: 50000,
     reason: "customer_request",
     status: RefundStatus.PENDING,
-    processed_by_user_id: "user-uuid-1",
-    created_at: new Date(),
-    updated_at: new Date(),
+    processedByUserId: "user-uuid-1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as PaymentRefund;
 
   const mockQueryBuilder = {
@@ -363,7 +363,7 @@ describe("PaymentsService", () => {
 
       expect(result).toEqual(mockTransaction);
       expect(transactionRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "tx-uuid-1", organization_id: ORG_ID },
+        where: { id: "tx-uuid-1", organizationId: ORG_ID },
         relations: ["refunds"],
       });
     });

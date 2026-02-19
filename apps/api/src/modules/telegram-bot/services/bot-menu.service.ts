@@ -149,7 +149,7 @@ export class BotMenuService {
     const totalTasks = await this.taskRepository.count({
       where: {
         assignedToUserId: ctx.user.id,
-        created_at: MoreThan(thirtyDaysAgo),
+        createdAt: MoreThan(thirtyDaysAgo),
       },
     });
 
@@ -194,7 +194,7 @@ export class BotMenuService {
       `📧 Email: ${ctx.user.email}\n` +
       `📱 Телефон: ${ctx.user.phone || "Не указан"}\n` +
       `🎭 Роль: ${roleLabels[ctx.user.role]}\n` +
-      `📅 Регистрация: ${new Date(ctx.user.created_at).toLocaleDateString("ru-RU")}`;
+      `📅 Регистрация: ${new Date(ctx.user.createdAt).toLocaleDateString("ru-RU")}`;
 
     const keyboard = Markup.inlineKeyboard([
       [Markup.button.callback("« В меню", "menu")],

@@ -15,21 +15,21 @@ export class BaseResponseDto {
 
   @ApiProperty({ description: "Creation timestamp" })
   @Expose()
-  created_at: Date;
+  createdAt: Date;
 
   @ApiProperty({ description: "Last update timestamp" })
   @Expose()
-  updated_at: Date;
+  updatedAt: Date;
 
   // Audit fields are EXCLUDED to prevent information disclosure
   @Exclude()
-  deleted_at?: Date;
+  deletedAt?: Date;
 
   @Exclude()
-  created_by_id?: string;
+  createdById?: string;
 
   @Exclude()
-  updated_by_id?: string;
+  updatedById?: string;
 }
 
 /**

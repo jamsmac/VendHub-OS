@@ -95,7 +95,7 @@ export class TripsService {
       startedAt: new Date(),
       startOdometer: input.startOdometer ?? null,
       notes: input.notes ?? null,
-      created_by_id: input.userId,
+      createdById: input.userId,
     });
 
     const savedTrip = await this.tripRepository.save(trip);
@@ -107,7 +107,7 @@ export class TripsService {
           tripId: savedTrip.id,
           taskId,
           status: TripTaskLinkStatus.PENDING,
-          created_by_id: input.userId,
+          createdById: input.userId,
         }),
       );
       await this.taskLinkRepository.save(links);
@@ -174,7 +174,7 @@ export class TripsService {
     trip.calculatedDistanceMeters = totalDistance;
     trip.visitedMachinesCount = uniqueMachines;
     trip.liveLocationActive = false;
-    trip.updated_by_id = userId ?? null;
+    trip.updatedById = userId ?? null;
 
     if (input.notes) {
       trip.notes = trip.notes ? `${trip.notes}\n${input.notes}` : input.notes;
@@ -227,7 +227,7 @@ export class TripsService {
     trip.status = TripStatus.CANCELLED;
     trip.endedAt = new Date();
     trip.liveLocationActive = false;
-    trip.updated_by_id = userId ?? null;
+    trip.updatedById = userId ?? null;
     if (reason) {
       trip.notes = trip.notes
         ? `${trip.notes}\n[Cancelled: ${reason}]`
@@ -642,7 +642,7 @@ export class TripsService {
       .andWhere("m.status = :status", { status: "active" })
       .andWhere("m.latitude IS NOT NULL")
       .andWhere("m.longitude IS NOT NULL")
-      .andWhere("m.deleted_at IS NULL")
+      .andWhere("m.deletedAt IS NULL")
       .andWhere("m.latitude BETWEEN :latMin AND :latMax", {
         latMin: lat - latDelta,
         latMax: lat + latDelta,
@@ -702,7 +702,7 @@ export class TripsService {
       .from("tasks", "t")
       .where("t.id IN (:...taskIds)", { taskIds })
       .andWhere("t.machine_id = :machineId", { machineId })
-      .andWhere("t.deleted_at IS NULL")
+      .andWhere("t.deletedAt IS NULL")
       .getRawMany();
 
     const matchingTaskIds = new Set(matchingTasks.map((t) => t.id));
@@ -745,7 +745,7 @@ export class TripsService {
       tripId,
       taskId,
       status: TripTaskLinkStatus.PENDING,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.taskLinkRepository.save(link);
@@ -765,7 +765,7 @@ export class TripsService {
     link.status = TripTaskLinkStatus.COMPLETED;
     link.completedAt = new Date();
     link.notes = notes ?? null;
-    link.updated_by_id = userId ?? null;
+    link.updatedById = userId ?? null;
 
     return this.taskLinkRepository.save(link);
   }
@@ -773,7 +773,7 @@ export class TripsService {
   async getTripTasks(tripId: string): Promise<TripTaskLink[]> {
     return this.taskLinkRepository.find({
       where: { tripId },
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 
@@ -845,7 +845,7 @@ export class TripsService {
     anomaly.resolvedById = userId;
     anomaly.resolvedAt = new Date();
     anomaly.resolutionNotes = notes ?? null;
-    anomaly.updated_by_id = userId;
+    anomaly.updatedById = userId;
 
     return this.anomalyRepository.save(anomaly);
   }
@@ -919,7 +919,7 @@ export class TripsService {
       performedById: input.performedById,
       performedAt: new Date(),
       notes: input.notes ?? null,
-      created_by_id: input.performedById,
+      createdById: input.performedById,
     });
 
     const saved = await this.reconciliationRepository.save(reconciliation);

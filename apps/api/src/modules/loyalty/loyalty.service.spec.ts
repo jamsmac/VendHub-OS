@@ -38,8 +38,8 @@ describe("LoyaltyService", () => {
     totalOrders: 0,
     totalSpent: 0,
     lastOrderDate: null,
-    created_at: new Date("2025-01-15"),
-    updated_at: new Date("2025-06-01"),
+    createdAt: new Date("2025-01-15"),
+    updatedAt: new Date("2025-06-01"),
   } as unknown as User;
 
   const mockTransaction = {
@@ -60,8 +60,8 @@ describe("LoyaltyService", () => {
     remainingAmount: 100,
     adminId: null,
     adminReason: null,
-    created_at: new Date("2025-06-01"),
-    updated_at: new Date("2025-06-01"),
+    createdAt: new Date("2025-06-01"),
+    updatedAt: new Date("2025-06-01"),
   } as unknown as PointsTransaction;
 
   // ---------------------------------------------------------------------------

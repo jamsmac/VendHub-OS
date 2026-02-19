@@ -37,11 +37,11 @@ describe("WarehouseService", () => {
     currentOccupancy: 3500,
     notes: null,
     metadata: {},
-    created_at: new Date("2025-01-01"),
-    updated_at: new Date("2025-01-01"),
-    deleted_at: null,
-    created_by_id: "user-uuid-1",
-    updated_by_id: null,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-01-01"),
+    deletedAt: null,
+    createdById: "user-uuid-1",
+    updatedById: null,
   } as Warehouse;
 
   const mockWarehouse2: Warehouse = {
@@ -60,11 +60,11 @@ describe("WarehouseService", () => {
     currentOccupancy: 1200,
     notes: null,
     metadata: {},
-    created_at: new Date("2025-01-02"),
-    updated_at: new Date("2025-01-02"),
-    deleted_at: null,
-    created_by_id: "user-uuid-2",
-    updated_by_id: null,
+    createdAt: new Date("2025-01-02"),
+    updatedAt: new Date("2025-01-02"),
+    deletedAt: null,
+    createdById: "user-uuid-2",
+    updatedById: null,
   } as Warehouse;
 
   const mockStockMovement: StockMovement = {
@@ -86,11 +86,11 @@ describe("WarehouseService", () => {
     cost: 500000,
     notes: "Urgent transfer",
     metadata: {},
-    created_at: new Date("2025-01-10"),
-    updated_at: new Date("2025-01-10"),
-    deleted_at: null,
-    created_by_id: "user-uuid-1",
-    updated_by_id: null,
+    createdAt: new Date("2025-01-10"),
+    updatedAt: new Date("2025-01-10"),
+    deletedAt: null,
+    createdById: "user-uuid-1",
+    updatedById: null,
   } as StockMovement;
 
   const mockWarehouseQueryBuilder = {
@@ -231,7 +231,7 @@ describe("WarehouseService", () => {
       expect(result).toEqual(mockWarehouse);
       expect(warehouseRepository.create).toHaveBeenCalledWith({
         ...dto,
-        created_by_id: userId,
+        createdById: userId,
       });
       expect(warehouseRepository.save).toHaveBeenCalledWith(mockWarehouse);
     });
@@ -251,7 +251,7 @@ describe("WarehouseService", () => {
       expect(result).toEqual(mockWarehouse);
       expect(warehouseRepository.create).toHaveBeenCalledWith({
         ...dto,
-        created_by_id: undefined,
+        createdById: undefined,
       });
     });
   });
@@ -360,7 +360,7 @@ describe("WarehouseService", () => {
       const updatedWarehouse = {
         ...mockWarehouse,
         name: "Updated Warehouse Name",
-        updated_by_id: "user-uuid-3",
+        updatedById: "user-uuid-3",
       } as Warehouse;
 
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
@@ -384,7 +384,7 @@ describe("WarehouseService", () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it("should set updated_by_id from userId parameter", async () => {
+    it("should set updatedById from userId parameter", async () => {
       warehouseRepository.findOne.mockResolvedValue({
         ...mockWarehouse,
       } as Warehouse);
@@ -398,7 +398,7 @@ describe("WarehouseService", () => {
         "user-uuid-5",
       );
 
-      expect(result.updated_by_id).toBe("user-uuid-5");
+      expect(result.updatedById).toBe("user-uuid-5");
     });
   });
 
@@ -468,7 +468,7 @@ describe("WarehouseService", () => {
         referenceNumber: "TRF-2025-001",
         cost: 500000,
         notes: "Urgent transfer",
-        created_by_id: "user-uuid-1",
+        createdById: "user-uuid-1",
       });
       expect(stockMovementRepository.save).toHaveBeenCalledWith(
         mockStockMovement,

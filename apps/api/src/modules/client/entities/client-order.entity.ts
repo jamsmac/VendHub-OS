@@ -35,30 +35,30 @@ export enum ClientOrderStatus {
  * Structure for individual items within an order
  */
 export interface OrderItem {
-  product_id: string;
-  product_name: string;
+  productId: string;
+  productName: string;
   quantity: number;
-  unit_price: number;
-  total_price: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 @Entity("client_orders")
-@Index(["client_user_id", "created_at"])
-@Index(["machine_id"])
+@Index(["clientUserId", "createdAt"])
+@Index(["machineId"])
 @Index(["status"])
-@Index(["organization_id"])
+@Index(["organizationId"])
 export class ClientOrder extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "varchar", length: 50, unique: true })
-  order_number: string;
+  orderNumber: string;
 
   @Column({ type: "uuid" })
-  client_user_id: string;
+  clientUserId: string;
 
   @Column({ type: "uuid", nullable: true })
-  machine_id: string | null;
+  machineId: string | null;
 
   @Column({
     type: "enum",
@@ -74,28 +74,28 @@ export class ClientOrder extends BaseEntity {
   subtotal: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
-  discount_amount: number;
+  discountAmount: number;
 
   @Column({ type: "integer", default: 0 })
-  loyalty_points_used: number;
+  loyaltyPointsUsed: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
-  total_amount: number;
+  totalAmount: number;
 
   @Column({ type: "varchar", length: 10, default: "UZS" })
   currency: string;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  paid_at: Date | null;
+  paidAt: Date | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  completed_at: Date | null;
+  completedAt: Date | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  cancelled_at: Date | null;
+  cancelledAt: Date | null;
 
   @Column({ type: "text", nullable: true })
-  cancellation_reason: string | null;
+  cancellationReason: string | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
@@ -104,7 +104,7 @@ export class ClientOrder extends BaseEntity {
 
   @ManyToOne(() => ClientUser, (user) => user.orders)
   @JoinColumn({ name: "client_user_id" })
-  client_user: ClientUser;
+  clientUser: ClientUser;
 
   @OneToMany(() => ClientPayment, (payment) => payment.order)
   payments: ClientPayment[];
@@ -115,9 +115,9 @@ export class ClientOrder extends BaseEntity {
    */
   @BeforeInsert()
   generateOrderNumber() {
-    if (!this.order_number) {
+    if (!this.orderNumber) {
       const random = Math.random().toString(16).substring(2, 10).toUpperCase();
-      this.order_number = `ORD-${random}`;
+      this.orderNumber = `ORD-${random}`;
     }
   }
 }

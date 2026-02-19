@@ -11,13 +11,13 @@ import { ClientOrder } from "./client-order.entity";
 import { ClientPayment } from "./client-payment.entity";
 
 @Entity("client_users")
-@Index(["organization_id"])
+@Index(["organizationId"])
 export class ClientUser extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "varchar", length: 50, nullable: true, unique: true })
-  telegram_id: string | null;
+  telegramId: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true, unique: true })
   phone: string | null;
@@ -26,10 +26,10 @@ export class ClientUser extends BaseEntity {
   email: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  first_name: string | null;
+  firstName: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  last_name: string | null;
+  lastName: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
   username: string | null;
@@ -38,31 +38,31 @@ export class ClientUser extends BaseEntity {
   language: string;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  avatar_url: string | null;
+  avatarUrl: string | null;
 
   @Column({ type: "boolean", default: false })
-  is_verified: boolean;
+  isVerified: boolean;
 
   @Column({ type: "boolean", default: false })
-  is_blocked: boolean;
+  isBlocked: boolean;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  last_activity_at: Date | null;
+  lastActivityAt: Date | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
 
   // Relations
 
-  @OneToOne(() => ClientWallet, (wallet) => wallet.client_user)
+  @OneToOne(() => ClientWallet, (wallet) => wallet.clientUser)
   wallet: ClientWallet;
 
-  @OneToOne(() => ClientLoyaltyAccount, (loyalty) => loyalty.client_user)
-  loyalty_account: ClientLoyaltyAccount;
+  @OneToOne(() => ClientLoyaltyAccount, (loyalty) => loyalty.clientUser)
+  loyaltyAccount: ClientLoyaltyAccount;
 
-  @OneToMany(() => ClientOrder, (order) => order.client_user)
+  @OneToMany(() => ClientOrder, (order) => order.clientUser)
   orders: ClientOrder[];
 
-  @OneToMany(() => ClientPayment, (payment) => payment.client_user)
+  @OneToMany(() => ClientPayment, (payment) => payment.clientUser)
   payments: ClientPayment[];
 }

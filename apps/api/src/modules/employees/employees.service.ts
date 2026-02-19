@@ -776,8 +776,8 @@ export class EmployeesService {
       emergencyContactPhone: employee.emergencyContactPhone,
       emergencyContactRelation: employee.emergencyContactRelation,
       notes: employee.notes,
-      createdAt: employee.created_at,
-      updatedAt: employee.updated_at,
+      createdAt: employee.createdAt,
+      updatedAt: employee.updatedAt,
     };
   }
 }

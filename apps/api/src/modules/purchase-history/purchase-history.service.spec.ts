@@ -113,7 +113,7 @@ describe("PurchaseHistoryService", () => {
           vatAmount: 180000,
           totalAmount: 1680000,
           status: PurchaseStatus.PENDING,
-          created_by_id: userId,
+          createdById: userId,
         }),
       );
     });

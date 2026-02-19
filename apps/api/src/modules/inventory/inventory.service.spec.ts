@@ -37,7 +37,7 @@ describe("InventoryService", () => {
     lastRestockedAt: new Date(),
     locationInWarehouse: "A1",
     availableQuantity: 90,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   const mockOperator: Record<string, unknown> = {
@@ -49,7 +49,7 @@ describe("InventoryService", () => {
     reservedQuantity: 0,
     lastReceivedAt: new Date(),
     availableQuantity: 30,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   const mockMachineInventory = {
@@ -62,7 +62,7 @@ describe("InventoryService", () => {
     totalSold: 200,
     slotNumber: 1,
     lastRefilledAt: new Date(),
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as MachineInventory;
 
   const mockMovement = {
@@ -73,7 +73,7 @@ describe("InventoryService", () => {
     quantity: 10,
     performedByUserId: "user-uuid-1",
     operationDate: new Date(),
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as InventoryMovement;
 
   const mockQueryBuilder = {

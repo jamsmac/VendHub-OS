@@ -282,7 +282,7 @@ describe("IntegrationService", () => {
       );
 
       expect(result.displayName).toBe("Payme v2");
-      expect(result.updated_by_id).toBe(userId);
+      expect(result.updatedById).toBe(userId);
     });
   });
 

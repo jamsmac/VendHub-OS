@@ -699,7 +699,7 @@ export class TelegramCustomerBotService
 
     complaints.forEach((complaint, index) => {
       const status = statusLabels[complaint.status] || complaint.status;
-      const date = new Date(complaint.created_at).toLocaleDateString("ru-RU");
+      const date = new Date(complaint.createdAt).toLocaleDateString("ru-RU");
 
       message += `${index + 1}. #${complaint.ticketNumber}\n`;
       message += `   📅 ${date} | ${status}\n\n`;
@@ -757,7 +757,7 @@ export class TelegramCustomerBotService
       `📝 Тип: ${typeLabels[complaint.category] || complaint.category}\n` +
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `🏭 Аппарат: ${(complaint as any).machine?.name || complaint.machineId || "N/A"}\n` +
-      `📅 Дата: ${new Date(complaint.created_at).toLocaleString("ru-RU")}\n\n` +
+      `📅 Дата: ${new Date(complaint.createdAt).toLocaleString("ru-RU")}\n\n` +
       `📄 Описание:\n${complaint.description}\n`;
 
     if (complaint.resolution) {
@@ -850,7 +850,7 @@ export class TelegramCustomerBotService
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `📦 Товар: ${(transaction as any).productName || "N/A"}\n` +
       `💰 Сумма: ${Number(transaction.amount).toLocaleString()} сум\n` +
-      `📅 Дата: ${new Date(transaction.created_at).toLocaleString("ru-RU")}\n`;
+      `📅 Дата: ${new Date(transaction.createdAt).toLocaleString("ru-RU")}\n`;
 
     if (transaction.status === "completed") {
       message += "\n✅ Покупка успешно завершена!";

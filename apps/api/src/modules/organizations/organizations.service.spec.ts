@@ -16,8 +16,8 @@ describe("OrganizationsService", () => {
     slug: "vendhub-test",
     description: "Test organization",
     isActive: true,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Organization;
 
   const mockOrganization2 = {
@@ -26,8 +26,8 @@ describe("OrganizationsService", () => {
     slug: "another-org",
     description: "Another organization",
     isActive: true,
-    created_at: new Date("2024-01-01"),
-    updated_at: new Date("2024-01-01"),
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
   } as unknown as Organization;
 
   beforeEach(async () => {
@@ -101,7 +101,7 @@ describe("OrganizationsService", () => {
 
       expect(result).toHaveLength(2);
       expect(organizationRepository.find).toHaveBeenCalledWith({
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
     });
 

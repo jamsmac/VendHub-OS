@@ -123,15 +123,15 @@ export class PaymentsService {
     let transactionId: string | undefined;
     if (organizationId) {
       const transaction = this.transactionRepo.create({
-        organization_id: organizationId,
+        organizationId: organizationId,
         provider: PaymentProvider.PAYME,
         amount,
         currency: "UZS",
         status: PaymentTransactionStatus.PENDING,
-        order_id: orderId,
-        machine_id: machineId || null,
-        client_user_id: clientUserId || null,
-        raw_request: { amount, orderId, amountInTiyn },
+        orderId: orderId,
+        machineId: machineId || null,
+        clientUserId: clientUserId || null,
+        rawRequest: { amount, orderId, amountInTiyn },
       });
       const saved = await this.transactionRepo.save(transaction);
       transactionId = saved.id;
@@ -243,7 +243,7 @@ export class PaymentsService {
 
     // Look for an existing pending transaction for this order
     const existing = await this.transactionRepo.findOne({
-      where: { order_id: orderId, provider: PaymentProvider.PAYME },
+      where: { orderId: orderId, provider: PaymentProvider.PAYME },
     });
 
     if (!existing) {
@@ -300,10 +300,10 @@ export class PaymentsService {
       };
     }
 
-    // Check if transaction already exists with this provider_tx_id
+    // Check if transaction already exists with this providerTxId
     const existingByProvider = await this.transactionRepo.findOne({
       where: {
-        provider_tx_id: paymeTransactionId,
+        providerTxId: paymeTransactionId,
         provider: PaymentProvider.PAYME,
       },
     });
@@ -312,7 +312,7 @@ export class PaymentsService {
       // Payme state: 1 = created
       return {
         result: {
-          create_time: existingByProvider.created_at.getTime(),
+          create_time: existingByProvider.createdAt.getTime(),
           transaction: existingByProvider.id,
           state: 1,
         },
@@ -323,7 +323,7 @@ export class PaymentsService {
     // Find existing pending transaction for this order, or create new one
     let transaction = await this.transactionRepo.findOne({
       where: {
-        order_id: orderId,
+        orderId: orderId,
         provider: PaymentProvider.PAYME,
         status: PaymentTransactionStatus.PENDING,
       },
@@ -333,22 +333,22 @@ export class PaymentsService {
 
     if (transaction) {
       // Update existing pending transaction with Payme's ID
-      transaction.provider_tx_id = paymeTransactionId;
+      transaction.providerTxId = paymeTransactionId;
       transaction.status = PaymentTransactionStatus.PROCESSING;
-      transaction.raw_request = data as unknown as Record<string, unknown>;
+      transaction.rawRequest = data as unknown as Record<string, unknown>;
       await this.transactionRepo.save(transaction);
     } else {
       // Create new transaction
       const amountUzs = data.params.amount ? data.params.amount / 100 : 0;
       transaction = this.transactionRepo.create({
-        organization_id: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
+        organizationId: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
         provider: PaymentProvider.PAYME,
-        provider_tx_id: paymeTransactionId,
+        providerTxId: paymeTransactionId,
         amount: amountUzs,
         currency: "UZS",
         status: PaymentTransactionStatus.PROCESSING,
-        order_id: orderId,
-        raw_request: data as unknown as Record<string, unknown>,
+        orderId: orderId,
+        rawRequest: data as unknown as Record<string, unknown>,
       });
       await this.transactionRepo.save(transaction);
     }
@@ -381,7 +381,7 @@ export class PaymentsService {
 
     const transaction = await this.transactionRepo.findOne({
       where: {
-        provider_tx_id: paymeTransactionId,
+        providerTxId: paymeTransactionId,
         provider: PaymentProvider.PAYME,
       },
     });
@@ -405,7 +405,7 @@ export class PaymentsService {
       return {
         result: {
           transaction: transaction.id,
-          perform_time: transaction.processed_at?.getTime() || Date.now(),
+          perform_time: transaction.processedAt?.getTime() || Date.now(),
           state: 2, // 2 = completed
         },
         id: data.id,
@@ -415,8 +415,8 @@ export class PaymentsService {
     // Mark as completed
     const performTime = Date.now();
     transaction.status = PaymentTransactionStatus.COMPLETED;
-    transaction.processed_at = new Date(performTime);
-    transaction.raw_response = data as unknown as Record<string, unknown>;
+    transaction.processedAt = new Date(performTime);
+    transaction.rawResponse = data as unknown as Record<string, unknown>;
     await this.transactionRepo.save(transaction);
 
     return {
@@ -447,7 +447,7 @@ export class PaymentsService {
 
     const transaction = await this.transactionRepo.findOne({
       where: {
-        provider_tx_id: paymeTransactionId,
+        providerTxId: paymeTransactionId,
         provider: PaymentProvider.PAYME,
       },
     });
@@ -471,8 +471,8 @@ export class PaymentsService {
       transaction.status === PaymentTransactionStatus.COMPLETED;
 
     transaction.status = PaymentTransactionStatus.CANCELLED;
-    transaction.raw_response = data as unknown as Record<string, unknown>;
-    transaction.error_message = `Cancelled by Payme, reason: ${data.params.reason}`;
+    transaction.rawResponse = data as unknown as Record<string, unknown>;
+    transaction.errorMessage = `Cancelled by Payme, reason: ${data.params.reason}`;
     await this.transactionRepo.save(transaction);
 
     return {
@@ -503,7 +503,7 @@ export class PaymentsService {
 
     const transaction = await this.transactionRepo.findOne({
       where: {
-        provider_tx_id: paymeTransactionId,
+        providerTxId: paymeTransactionId,
         provider: PaymentProvider.PAYME,
       },
     });
@@ -541,11 +541,11 @@ export class PaymentsService {
 
     return {
       result: {
-        create_time: transaction.created_at.getTime(),
-        perform_time: transaction.processed_at?.getTime() || null,
+        create_time: transaction.createdAt.getTime(),
+        perform_time: transaction.processedAt?.getTime() || null,
         cancel_time:
           transaction.status === PaymentTransactionStatus.CANCELLED
-            ? transaction.updated_at.getTime()
+            ? transaction.updatedAt.getTime()
             : null,
         transaction: transaction.id,
         state,
@@ -599,15 +599,15 @@ export class PaymentsService {
     let transactionId: string | undefined;
     if (organizationId) {
       const transaction = this.transactionRepo.create({
-        organization_id: organizationId,
+        organizationId: organizationId,
         provider: PaymentProvider.CLICK,
         amount,
         currency: "UZS",
         status: PaymentTransactionStatus.PENDING,
-        order_id: orderId,
-        machine_id: machineId || null,
-        client_user_id: clientUserId || null,
-        raw_request: { amount, orderId },
+        orderId: orderId,
+        machineId: machineId || null,
+        clientUserId: clientUserId || null,
+        rawRequest: { amount, orderId },
       });
       const saved = await this.transactionRepo.save(transaction);
       transactionId = saved.id;
@@ -697,20 +697,20 @@ export class PaymentsService {
 
     // Look for an existing pending transaction for this order
     const existing = await this.transactionRepo.findOne({
-      where: { order_id: orderId, provider: PaymentProvider.CLICK },
+      where: { orderId: orderId, provider: PaymentProvider.CLICK },
     });
 
     if (!existing) {
       // Create a new transaction record
       const transaction = this.transactionRepo.create({
-        organization_id: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
+        organizationId: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
         provider: PaymentProvider.CLICK,
-        provider_tx_id: data.click_trans_id,
+        providerTxId: data.click_trans_id,
         amount: data.amount,
         currency: "UZS",
         status: PaymentTransactionStatus.PENDING,
-        order_id: orderId,
-        raw_request: data as unknown as Record<string, unknown>,
+        orderId: orderId,
+        rawRequest: data as unknown as Record<string, unknown>,
       });
       const saved = await this.transactionRepo.save(transaction);
 
@@ -733,9 +733,9 @@ export class PaymentsService {
       };
     }
 
-    // Update provider_tx_id on existing transaction
-    existing.provider_tx_id = data.click_trans_id;
-    existing.raw_request = data as unknown as Record<string, unknown>;
+    // Update providerTxId on existing transaction
+    existing.providerTxId = data.click_trans_id;
+    existing.rawRequest = data as unknown as Record<string, unknown>;
     await this.transactionRepo.save(existing);
 
     return {
@@ -753,15 +753,15 @@ export class PaymentsService {
       // Click reports an error, cancel the transaction
       const transaction = await this.transactionRepo.findOne({
         where: {
-          provider_tx_id: data.click_trans_id,
+          providerTxId: data.click_trans_id,
           provider: PaymentProvider.CLICK,
         },
       });
 
       if (transaction) {
         transaction.status = PaymentTransactionStatus.FAILED;
-        transaction.error_message = data.error_note;
-        transaction.raw_response = data as unknown as Record<string, unknown>;
+        transaction.errorMessage = data.error_note;
+        transaction.rawResponse = data as unknown as Record<string, unknown>;
         await this.transactionRepo.save(transaction);
       }
 
@@ -775,7 +775,7 @@ export class PaymentsService {
 
     const transaction = await this.transactionRepo.findOne({
       where: {
-        provider_tx_id: data.click_trans_id,
+        providerTxId: data.click_trans_id,
         provider: PaymentProvider.CLICK,
       },
     });
@@ -802,8 +802,8 @@ export class PaymentsService {
 
     // Mark as completed
     transaction.status = PaymentTransactionStatus.COMPLETED;
-    transaction.processed_at = new Date();
-    transaction.raw_response = data as unknown as Record<string, unknown>;
+    transaction.processedAt = new Date();
+    transaction.rawResponse = data as unknown as Record<string, unknown>;
     await this.transactionRepo.save(transaction);
 
     return {
@@ -839,13 +839,13 @@ export class PaymentsService {
 
     // Create pending transaction record
     const transaction = this.transactionRepo.create({
-      organization_id: organizationId,
+      organizationId: organizationId,
       provider: PaymentProvider.UZUM,
       amount: dto.amount,
       currency: "UZS",
       status: PaymentTransactionStatus.PENDING,
-      order_id: dto.orderId,
-      raw_request: { ...dto, merchantId },
+      orderId: dto.orderId,
+      rawRequest: { ...dto, merchantId },
     });
     const saved = await this.transactionRepo.save(transaction);
 
@@ -967,23 +967,23 @@ export class PaymentsService {
       case "COMPLETED":
       case "SUCCESS":
         transaction.status = PaymentTransactionStatus.COMPLETED;
-        transaction.processed_at = new Date();
-        transaction.provider_tx_id = data.transactionId;
+        transaction.processedAt = new Date();
+        transaction.providerTxId = data.transactionId;
         break;
       case "FAILED":
       case "ERROR":
         transaction.status = PaymentTransactionStatus.FAILED;
-        transaction.error_message = `Uzum payment failed: ${data.status}`;
+        transaction.errorMessage = `Uzum payment failed: ${data.status}`;
         break;
       case "CANCELLED":
         transaction.status = PaymentTransactionStatus.CANCELLED;
-        transaction.error_message = "Payment cancelled by user";
+        transaction.errorMessage = "Payment cancelled by user";
         break;
       default:
         transaction.status = PaymentTransactionStatus.PROCESSING;
     }
 
-    transaction.raw_response = data as Record<string, unknown>;
+    transaction.rawResponse = data as Record<string, unknown>;
     await this.transactionRepo.save(transaction);
 
     return {
@@ -1021,13 +1021,13 @@ export class PaymentsService {
     // Store payment request in database
     if (organizationId) {
       const transaction = this.transactionRepo.create({
-        organization_id: organizationId,
+        organizationId: organizationId,
         provider: PaymentProvider.CASH, // Will be updated when provider is selected
         amount,
         currency: "UZS",
         status: PaymentTransactionStatus.PENDING,
-        order_id: paymentId,
-        machine_id: machineId,
+        orderId: paymentId,
+        machineId: machineId,
         metadata: { type: "qr_payment", expires_at: expiresAt.toISOString() },
       });
       await this.transactionRepo.save(transaction);
@@ -1100,7 +1100,7 @@ export class PaymentsService {
     const transaction = await this.transactionRepo.findOne({
       where: {
         id: dto.paymentTransactionId,
-        organization_id: organizationId,
+        organizationId: organizationId,
       },
     });
 
@@ -1120,7 +1120,7 @@ export class PaymentsService {
     // Validate refund amount does not exceed transaction amount
     const existingRefunds = await this.refundRepo.find({
       where: {
-        payment_transaction_id: transaction.id,
+        paymentTransactionId: transaction.id,
         status: RefundStatus.COMPLETED,
       },
     });
@@ -1138,13 +1138,13 @@ export class PaymentsService {
 
     // Create refund record
     const refund = this.refundRepo.create({
-      organization_id: organizationId,
-      payment_transaction_id: transaction.id,
+      organizationId: organizationId,
+      paymentTransactionId: transaction.id,
       amount: refundAmount,
       reason: dto.reason,
-      reason_note: dto.reasonNote || null,
+      reasonNote: dto.reasonNote || null,
       status: RefundStatus.PENDING,
-      processed_by_user_id: userId,
+      processedByUserId: userId,
     });
     const saved = await this.refundRepo.save(refund);
 
@@ -1165,14 +1165,14 @@ export class PaymentsService {
   async processRefund(refundId: string): Promise<PaymentRefund> {
     const refund = await this.refundRepo.findOne({
       where: { id: refundId },
-      relations: ["payment_transaction"],
+      relations: ["paymentTransaction"],
     });
 
     if (!refund) {
       throw new NotFoundException("Refund not found");
     }
 
-    return this.processProviderRefund(refund, refund.payment_transaction);
+    return this.processProviderRefund(refund, refund.paymentTransaction);
   }
 
   private async processProviderRefund(
@@ -1188,19 +1188,19 @@ export class PaymentsService {
           // Payme refund is handled via CancelTransaction webhook
           // We just mark as completed; Payme will call CancelTransaction
           this.logger.log(
-            `Payme refund initiated for transaction ${transaction.provider_tx_id}`,
+            `Payme refund initiated for transaction ${transaction.providerTxId}`,
           );
           refund.status = RefundStatus.COMPLETED;
-          refund.processed_at = new Date();
+          refund.processedAt = new Date();
           break;
 
         case PaymentProvider.CLICK:
           // Click refund: would call Click API
           this.logger.log(
-            `Click refund initiated for transaction ${transaction.provider_tx_id}`,
+            `Click refund initiated for transaction ${transaction.providerTxId}`,
           );
           refund.status = RefundStatus.COMPLETED;
-          refund.processed_at = new Date();
+          refund.processedAt = new Date();
           break;
 
         case PaymentProvider.UZUM: {
@@ -1226,7 +1226,7 @@ export class PaymentsService {
           );
           // In production, make HTTP call to Uzum refund API here
           refund.status = RefundStatus.COMPLETED;
-          refund.processed_at = new Date();
+          refund.processedAt = new Date();
           break;
         }
 
@@ -1235,7 +1235,7 @@ export class PaymentsService {
         case PaymentProvider.TELEGRAM_STARS:
           // Internal refunds: mark as completed immediately
           refund.status = RefundStatus.COMPLETED;
-          refund.processed_at = new Date();
+          refund.processedAt = new Date();
           break;
 
         default:
@@ -1246,7 +1246,7 @@ export class PaymentsService {
 
       // Update transaction status if fully refunded
       const allRefunds = await this.refundRepo.find({
-        where: { payment_transaction_id: transaction.id },
+        where: { paymentTransactionId: transaction.id },
       });
       const totalRefunded = allRefunds
         .filter(
@@ -1291,8 +1291,8 @@ export class PaymentsService {
 
     const qb = this.transactionRepo
       .createQueryBuilder("tx")
-      .where("tx.organization_id = :organizationId", { organizationId })
-      .orderBy("tx.created_at", "DESC")
+      .where("tx.organizationId = :organizationId", { organizationId })
+      .orderBy("tx.createdAt", "DESC")
       .skip(skip)
       .take(limit);
 
@@ -1305,19 +1305,19 @@ export class PaymentsService {
     }
 
     if (query.dateFrom) {
-      qb.andWhere("tx.created_at >= :dateFrom", { dateFrom: query.dateFrom });
+      qb.andWhere("tx.createdAt >= :dateFrom", { dateFrom: query.dateFrom });
     }
 
     if (query.dateTo) {
-      qb.andWhere("tx.created_at <= :dateTo", { dateTo: query.dateTo });
+      qb.andWhere("tx.createdAt <= :dateTo", { dateTo: query.dateTo });
     }
 
     if (query.orderId) {
-      qb.andWhere("tx.order_id = :orderId", { orderId: query.orderId });
+      qb.andWhere("tx.orderId = :orderId", { orderId: query.orderId });
     }
 
     if (query.machineId) {
-      qb.andWhere("tx.machine_id = :machineId", { machineId: query.machineId });
+      qb.andWhere("tx.machineId = :machineId", { machineId: query.machineId });
     }
 
     const [data, total] = await qb.getManyAndCount();
@@ -1333,7 +1333,7 @@ export class PaymentsService {
     organizationId: string,
   ): Promise<PaymentTransaction> {
     const transaction = await this.transactionRepo.findOne({
-      where: { id, organization_id: organizationId },
+      where: { id, organizationId: organizationId },
       relations: ["refunds"],
     });
 
@@ -1358,7 +1358,7 @@ export class PaymentsService {
       .createQueryBuilder("tx")
       .select("COALESCE(SUM(tx.amount), 0)", "total_revenue")
       .addSelect("COUNT(tx.id)", "total_count")
-      .where("tx.organization_id = :organizationId", { organizationId })
+      .where("tx.organizationId = :organizationId", { organizationId })
       .andWhere("tx.status = :status", {
         status: PaymentTransactionStatus.COMPLETED,
       })
@@ -1370,7 +1370,7 @@ export class PaymentsService {
       .select("tx.provider", "provider")
       .addSelect("COUNT(tx.id)", "count")
       .addSelect("COALESCE(SUM(tx.amount), 0)", "amount")
-      .where("tx.organization_id = :organizationId", { organizationId })
+      .where("tx.organizationId = :organizationId", { organizationId })
       .andWhere("tx.status = :status", {
         status: PaymentTransactionStatus.COMPLETED,
       })
@@ -1390,7 +1390,7 @@ export class PaymentsService {
       .createQueryBuilder("tx")
       .select("tx.status", "status")
       .addSelect("COUNT(tx.id)", "count")
-      .where("tx.organization_id = :organizationId", { organizationId })
+      .where("tx.organizationId = :organizationId", { organizationId })
       .groupBy("tx.status")
       .getRawMany();
 

@@ -36,11 +36,11 @@ describe("RoutesService", () => {
     notes: null,
     metadata: {},
     stops: [],
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: "user-uuid-1",
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: "user-uuid-1",
+    updatedById: null,
   } as unknown as Route;
 
   const mockRouteStop = {
@@ -57,11 +57,11 @@ describe("RoutesService", () => {
     latitude: 41.311081,
     longitude: 69.240562,
     metadata: {},
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: "user-uuid-1",
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: "user-uuid-1",
+    updatedById: null,
   } as unknown as RouteStop;
 
   const mockQueryBuilder = {
@@ -152,7 +152,7 @@ describe("RoutesService", () => {
           name: "Morning refill route - Chilanzar",
           status: RouteStatus.PLANNED,
           type: RouteType.REFILL,
-          created_by_id: "user-uuid-1",
+          createdById: "user-uuid-1",
         }),
       );
       expect(routeRepository.save).toHaveBeenCalledWith(mockRoute);
@@ -352,7 +352,7 @@ describe("RoutesService", () => {
 
       expect(result.status).toBe(RouteStatus.IN_PROGRESS);
       expect(result.startedAt).toBeInstanceOf(Date);
-      expect(result.updated_by_id).toBe("user-uuid-1");
+      expect(result.updatedById).toBe("user-uuid-1");
     });
 
     it("should throw NotFoundException for non-existent route", async () => {
@@ -391,7 +391,7 @@ describe("RoutesService", () => {
 
       expect(result.status).toBe(RouteStatus.COMPLETED);
       expect(result.completedAt).toBeInstanceOf(Date);
-      expect(result.updated_by_id).toBe("user-uuid-1");
+      expect(result.updatedById).toBe("user-uuid-1");
     });
 
     it("should accept completion data with actualDurationMinutes and actualDistanceKm", async () => {
@@ -469,7 +469,7 @@ describe("RoutesService", () => {
           machineId: "machine-uuid-1",
           sequence: 1,
           status: RouteStopStatus.PENDING,
-          created_by_id: "user-uuid-1",
+          createdById: "user-uuid-1",
         }),
       );
       expect(routeStopRepository.save).toHaveBeenCalledWith(mockRouteStop);

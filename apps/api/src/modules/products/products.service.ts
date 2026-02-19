@@ -115,8 +115,8 @@ export class ProductsService {
         "product.imageUrl",
         "product.unitOfMeasure",
         "product.organizationId",
-        "product.created_at",
-        "product.updated_at",
+        "product.createdAt",
+        "product.updatedAt",
       ])
       .where("product.organizationId = :organizationId", { organizationId });
 
@@ -218,7 +218,7 @@ export class ProductsService {
       temperatureCelsius: dto.temperatureCelsius,
       servingSizeMl: dto.servingSizeMl,
       settings: dto.settings || {},
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const savedRecipe = await this.recipeRepository.save(recipe);
@@ -233,7 +233,7 @@ export class ProductsService {
           unitOfMeasure: ing.unitOfMeasure,
           sortOrder: ing.sortOrder ?? 1,
           isOptional: ing.isOptional ?? false,
-          created_by_id: userId,
+          createdById: userId,
         }),
       );
       await this.recipeIngredientRepository.save(ingredientEntities);
@@ -262,7 +262,7 @@ export class ProductsService {
     return this.recipeRepository.find({
       where: { productId, organizationId },
       relations: ["ingredients"],
-      order: { typeCode: "ASC", created_at: "ASC" },
+      order: { typeCode: "ASC", createdAt: "ASC" },
     });
   }
 
@@ -284,7 +284,7 @@ export class ProductsService {
     Object.assign(recipe, {
       ...dto,
       version: previousVersion + 1,
-      updated_by_id: userId,
+      updatedById: userId,
     });
 
     const savedRecipe = await this.recipeRepository.save(recipe);
@@ -345,7 +345,7 @@ export class ProductsService {
       unitOfMeasure: unitOfMeasure as any,
       sortOrder: sortOrder ?? 1,
       isOptional: isOptional ?? false,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const saved = await this.recipeIngredientRepository.save(ingredient);
@@ -408,7 +408,7 @@ export class ProductsService {
     }
 
     ingredient.quantity = quantity;
-    ingredient.updated_by_id = userId ?? null;
+    ingredient.updatedById = userId ?? null;
     const saved = await this.recipeIngredientRepository.save(ingredient);
 
     await this.recalculateRecipeCost(recipeId);
@@ -464,7 +464,7 @@ export class ProductsService {
         ingredients: ingredientDetails,
       },
       changeReason,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.recipeSnapshotRepository.save(snapshot);
@@ -504,7 +504,7 @@ export class ProductsService {
       storageLocation: dto.storageLocation,
       notes: dto.notes,
       status: IngredientBatchStatus.IN_STOCK,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.ingredientBatchRepository.save(batch);
@@ -534,7 +534,7 @@ export class ProductsService {
         organizationId,
         status: IngredientBatchStatus.IN_STOCK,
       },
-      order: { receivedDate: "ASC", created_at: "ASC" },
+      order: { receivedDate: "ASC", createdAt: "ASC" },
     });
 
     let remaining = quantityToDeplete;
@@ -549,7 +549,7 @@ export class ProductsService {
 
       const toDeduct = Math.min(available, remaining);
       batch.remainingQuantity = Number(batch.remainingQuantity) - toDeduct;
-      batch.updated_by_id = userId ?? null;
+      batch.updatedById = userId ?? null;
 
       // Mark as depleted if nothing remains
       if (batch.remainingQuantity <= 0) {
@@ -574,7 +574,7 @@ export class ProductsService {
         organizationId,
         status: IngredientBatchStatus.IN_STOCK,
       },
-      order: { receivedDate: "ASC", created_at: "ASC" },
+      order: { receivedDate: "ASC", createdAt: "ASC" },
     });
   }
 
@@ -665,14 +665,14 @@ export class ProductsService {
       sellingPrice: newSellingPrice,
       changeReason: dto.changeReason,
       changedByUserId: userId,
-      created_by_id: userId,
+      createdById: userId,
     });
     const savedHistory = await this.priceHistoryRepository.save(history);
 
     // Update the product prices
     product.purchasePrice = newPurchasePrice;
     product.sellingPrice = newSellingPrice;
-    product.updated_by_id = userId;
+    product.updatedById = userId;
     const savedProduct = await this.productRepository.save(product);
 
     return { product: savedProduct, history: savedHistory };
@@ -703,7 +703,7 @@ export class ProductsService {
     const supplier = this.supplierRepository.create({
       ...dto,
       organizationId,
-      created_by_id: userId,
+      createdById: userId,
     });
     return this.supplierRepository.save(supplier);
   }
@@ -749,7 +749,7 @@ export class ProductsService {
     userId: string,
   ): Promise<Supplier> {
     const supplier = await this.findSupplierById(id, organizationId);
-    Object.assign(supplier, { ...dto, updated_by_id: userId });
+    Object.assign(supplier, { ...dto, updatedById: userId });
     return this.supplierRepository.save(supplier);
   }
 }

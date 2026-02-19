@@ -103,7 +103,7 @@ describe("OpeningBalancesService", () => {
           unitCost: 15000,
           totalCost: 1500000,
           importSource: "manual",
-          created_by_id: "user-1",
+          createdById: "user-1",
         }),
       );
       expect(result.id).toBe("ob-1");

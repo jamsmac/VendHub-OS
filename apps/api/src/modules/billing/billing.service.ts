@@ -80,7 +80,7 @@ export class BillingService {
       currency: dto.currency || "UZS",
       lineItems: dto.lineItems,
       notes: dto.notes || null,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const saved = await this.invoiceRepo.save(invoice);
@@ -217,7 +217,7 @@ export class BillingService {
       invoice.totalAmount = subtotal + taxAmount - invoice.discountAmount;
     }
 
-    invoice.updated_by_id = userId;
+    invoice.updatedById = userId;
 
     await this.invoiceRepo.save(invoice);
 
@@ -241,7 +241,7 @@ export class BillingService {
     }
 
     invoice.status = InvoiceStatus.SENT;
-    invoice.updated_by_id = userId;
+    invoice.updatedById = userId;
 
     await this.invoiceRepo.save(invoice);
 
@@ -265,7 +265,7 @@ export class BillingService {
     }
 
     invoice.status = InvoiceStatus.CANCELLED;
-    invoice.updated_by_id = userId;
+    invoice.updatedById = userId;
 
     await this.invoiceRepo.save(invoice);
 
@@ -324,14 +324,14 @@ export class BillingService {
       paymentDate: new Date(dto.paymentDate),
       referenceNumber: dto.referenceNumber || null,
       notes: dto.notes || null,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     await this.paymentRepo.save(payment);
 
     // Update invoice paid amount and status
     invoice.paidAmount = Number(invoice.paidAmount) + dto.amount;
-    invoice.updated_by_id = userId;
+    invoice.updatedById = userId;
 
     if (invoice.paidAmount >= Number(invoice.totalAmount)) {
       invoice.status = InvoiceStatus.PAID;

@@ -61,7 +61,7 @@ export class AlertsService {
 
     const rule = this.ruleRepository.create({
       organizationId,
-      created_by_id: userId,
+      createdById: userId,
       ...dto,
     });
 
@@ -95,7 +95,7 @@ export class AlertsService {
     const qb = this.ruleRepository
       .createQueryBuilder("r")
       .where("r.organizationId = :organizationId", { organizationId })
-      .andWhere("r.deleted_at IS NULL");
+      .andWhere("r.deletedAt IS NULL");
 
     if (activeOnly) {
       qb.andWhere("r.isActive = true");
@@ -117,7 +117,7 @@ export class AlertsService {
       });
     }
 
-    qb.orderBy("r.created_at", "DESC");
+    qb.orderBy("r.createdAt", "DESC");
 
     const [data, total] = await qb
       .skip((page - 1) * limit)
@@ -365,7 +365,7 @@ export class AlertsService {
       .createQueryBuilder("h")
       .leftJoinAndSelect("h.rule", "rule")
       .where("h.organizationId = :organizationId", { organizationId })
-      .andWhere("h.deleted_at IS NULL");
+      .andWhere("h.deletedAt IS NULL");
 
     if (ruleId) {
       qb.andWhere("h.ruleId = :ruleId", { ruleId });
@@ -407,7 +407,7 @@ export class AlertsService {
       .andWhere("h.status IN (:...statuses)", {
         statuses: [AlertHistoryStatus.ACTIVE, AlertHistoryStatus.ACKNOWLEDGED],
       })
-      .andWhere("h.deleted_at IS NULL");
+      .andWhere("h.deletedAt IS NULL");
 
     if (machineId) {
       qb.andWhere("h.machineId = :machineId", { machineId });

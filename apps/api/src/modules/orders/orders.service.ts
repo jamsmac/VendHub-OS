@@ -557,8 +557,8 @@ export class OrdersService {
       completedAt: order.completedAt,
       cancelledAt: order.cancelledAt,
       paidAt: order.paidAt,
-      createdAt: order.created_at,
-      updatedAt: order.updated_at,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
     };
   }
 

@@ -21,14 +21,14 @@ export enum LoyaltyTransactionReason {
 }
 
 @Entity("client_loyalty_ledger")
-@Index(["loyalty_account_id", "created_at"])
+@Index(["loyaltyAccountId", "createdAt"])
 @Index(["reason"])
 export class ClientLoyaltyLedger extends BaseEntity {
   @Column({ type: "uuid" })
-  loyalty_account_id: string;
+  loyaltyAccountId: string;
 
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "enum", enum: LoyaltyTransactionReason })
   reason: LoyaltyTransactionReason;
@@ -37,26 +37,26 @@ export class ClientLoyaltyLedger extends BaseEntity {
   points: number;
 
   @Column({ type: "integer" })
-  balance_before: number;
+  balanceBefore: number;
 
   @Column({ type: "integer" })
-  balance_after: number;
+  balanceAfter: number;
 
   @Column({ type: "text", nullable: true })
   description: string | null;
 
   @Column({ type: "uuid", nullable: true })
-  reference_id: string | null;
+  referenceId: string | null;
 
   @Column({ type: "varchar", length: 50, nullable: true })
-  reference_type: string | null;
+  referenceType: string | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
 
   // Relations
 
-  @ManyToOne(() => ClientLoyaltyAccount, (account) => account.ledger_entries)
+  @ManyToOne(() => ClientLoyaltyAccount, (account) => account.ledgerEntries)
   @JoinColumn({ name: "loyalty_account_id" })
-  loyalty_account: ClientLoyaltyAccount;
+  loyaltyAccount: ClientLoyaltyAccount;
 }

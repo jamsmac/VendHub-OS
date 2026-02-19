@@ -55,7 +55,7 @@ describe("WashingScheduleService", () => {
     lastWashDate: new Date("2025-01-01"),
     nextWashDate: new Date("2025-01-08"),
     isActive: true,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -93,7 +93,7 @@ describe("WashingScheduleService", () => {
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          created_by_id: userId,
+          createdById: userId,
           machineId: "machine-1",
         }),
       );

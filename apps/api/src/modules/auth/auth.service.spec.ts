@@ -93,7 +93,7 @@ describe("AuthService", () => {
     lastLoginIp: null,
     mustChangePassword: false,
     preferences: {},
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as User;
 
   const mockSession = {
@@ -108,7 +108,7 @@ describe("AuthService", () => {
     deviceInfo: {},
     ipAddress: "127.0.0.1",
     user: mockUser,
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as UserSession;
 
   beforeEach(async () => {

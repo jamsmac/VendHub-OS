@@ -117,7 +117,7 @@ export class MachineAccessService {
     access.notes = dto.reason
       ? `${access.notes || ""}\nRevoked: ${dto.reason}`.trim()
       : access.notes;
-    access.updated_by_id = revokedByUserId;
+    access.updatedById = revokedByUserId;
 
     const saved = await this.accessRepo.save(access);
     this.logger.log(
@@ -147,7 +147,7 @@ export class MachineAccessService {
 
     return this.accessRepo.find({
       where,
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -171,7 +171,7 @@ export class MachineAccessService {
 
     return this.accessRepo.find({
       where,
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -220,7 +220,7 @@ export class MachineAccessService {
 
     const total = await qb.getCount();
 
-    qb.orderBy("ma.created_at", "DESC");
+    qb.orderBy("ma.createdAt", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 

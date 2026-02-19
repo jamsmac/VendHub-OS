@@ -27,31 +27,31 @@ export enum TelegramLanguage {
 // ============================================================================
 
 @Entity("telegram_users")
-@Index(["telegram_id"], { unique: true })
-@Index(["user_id"])
-@Index(["organization_id", "status"])
-@Index(["chat_id"])
+@Index(["telegramId"], { unique: true })
+@Index(["userId"])
+@Index(["organizationId", "status"])
+@Index(["chatId"])
 export class TelegramUser extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "varchar", length: 50, unique: true })
-  telegram_id: string;
+  telegramId: string;
 
   @Column({ type: "uuid", nullable: true })
-  user_id: string | null;
+  userId: string | null;
 
   @Column({ type: "varchar", length: 50 })
-  chat_id: string;
+  chatId: string;
 
   @Column({ type: "varchar", length: 100, nullable: true })
   username: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  first_name: string | null;
+  firstName: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  last_name: string | null;
+  lastName: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
   phone: string | null;
@@ -71,22 +71,22 @@ export class TelegramUser extends BaseEntity {
   status: TelegramUserStatus;
 
   @Column({ type: "varchar", length: 20 })
-  bot_type: string;
+  botType: string;
 
   @Column({ type: "jsonb", nullable: true })
-  notification_preferences: Record<string, unknown> | null;
+  notificationPreferences: Record<string, unknown> | null;
 
   @Column({ type: "boolean", default: false })
-  is_verified: boolean;
+  isVerified: boolean;
 
   @Column({ type: "varchar", length: 10, nullable: true })
-  verification_code: string | null;
+  verificationCode: string | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  verification_expires_at: Date | null;
+  verificationExpiresAt: Date | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  last_interaction_at: Date | null;
+  lastInteractionAt: Date | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

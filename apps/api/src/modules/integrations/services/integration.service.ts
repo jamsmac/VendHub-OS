@@ -115,7 +115,7 @@ export class IntegrationService {
       templateId: data.templateId,
       config,
       status: IntegrationStatus.DRAFT,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.integrationRepo.save(integration);
@@ -131,7 +131,7 @@ export class IntegrationService {
 
     Object.assign(integration, {
       ...data,
-      updated_by_id: userId,
+      updatedById: userId,
     });
 
     return this.integrationRepo.save(integration);
@@ -149,7 +149,7 @@ export class IntegrationService {
       ...integration.config,
       ...config,
     };
-    integration.updated_by_id = userId;
+    integration.updatedById = userId;
 
     return this.integrationRepo.save(integration);
   }
@@ -168,7 +168,7 @@ export class IntegrationService {
     } else {
       integration.credentials = credentials;
     }
-    integration.updated_by_id = userId;
+    integration.updatedById = userId;
 
     return this.integrationRepo.save(integration);
   }
@@ -185,7 +185,7 @@ export class IntegrationService {
     this.validateStatusTransition(integration.status, status);
 
     integration.status = status;
-    integration.updated_by_id = userId;
+    integration.updatedById = userId;
 
     return this.integrationRepo.save(integration);
   }
@@ -203,7 +203,7 @@ export class IntegrationService {
   ) {
     const integration = await this.findOne(id, organizationId);
     integration.sandboxMode = sandboxMode;
-    integration.updated_by_id = userId;
+    integration.updatedById = userId;
     return this.integrationRepo.save(integration);
   }
 

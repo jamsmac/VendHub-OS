@@ -30,25 +30,25 @@ export enum ClientPaymentProvider {
 }
 
 @Entity("client_payments")
-@Index(["order_id"])
-@Index(["client_user_id"])
+@Index(["orderId"])
+@Index(["clientUserId"])
 @Index(["provider", "status"])
-@Index(["provider_payment_id"])
+@Index(["providerPaymentId"])
 export class ClientPayment extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "uuid" })
-  order_id: string;
+  orderId: string;
 
   @Column({ type: "uuid" })
-  client_user_id: string;
+  clientUserId: string;
 
   @Column({ type: "varchar", length: 20 })
   provider: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  provider_payment_id: string | null;
+  providerPaymentId: string | null;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
   amount: number;
@@ -64,13 +64,13 @@ export class ClientPayment extends BaseEntity {
   status: ClientPaymentStatus;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  paid_at: Date | null;
+  paidAt: Date | null;
 
   @Column({ type: "text", nullable: true })
-  error_message: string | null;
+  errorMessage: string | null;
 
   @Column({ type: "jsonb", nullable: true })
-  raw_response: Record<string, unknown> | null;
+  rawResponse: Record<string, unknown> | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
@@ -83,5 +83,5 @@ export class ClientPayment extends BaseEntity {
 
   @ManyToOne(() => ClientUser, (user) => user.payments)
   @JoinColumn({ name: "client_user_id" })
-  client_user: ClientUser;
+  clientUser: ClientUser;
 }

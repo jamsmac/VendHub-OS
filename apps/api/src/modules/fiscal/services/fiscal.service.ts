@@ -248,7 +248,7 @@ export class FiscalService {
   async getDevices(organizationId: string): Promise<FiscalDevice[]> {
     return this.deviceRepo.find({
       where: { organizationId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -725,7 +725,7 @@ export class FiscalService {
 
     return this.queueRepo.find({
       where,
-      order: { priority: "DESC", created_at: "ASC" },
+      order: { priority: "DESC", createdAt: "ASC" },
     });
   }
 
@@ -817,7 +817,7 @@ export class FiscalService {
     const todayReceipts = await this.receiptRepo.find({
       where: {
         deviceId,
-        created_at: Between(today, tomorrow),
+        createdAt: Between(today, tomorrow),
       },
     });
 

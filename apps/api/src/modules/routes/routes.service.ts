@@ -2,18 +2,21 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   Route,
   RouteType,
   RouteStatus,
   RouteStop,
   RouteStopStatus,
-} from './entities/route.entity';
-import { CreateRouteDto, UpdateRouteDto } from './dto/create-route.dto';
-import { CreateRouteStopDto, UpdateRouteStopDto } from './dto/create-route-stop.dto';
+} from "./entities/route.entity";
+import { CreateRouteDto, UpdateRouteDto } from "./dto/create-route.dto";
+import {
+  CreateRouteStopDto,
+  UpdateRouteStopDto,
+} from "./dto/create-route-stop.dto";
 
 @Injectable()
 export class RoutesService {
@@ -41,7 +44,7 @@ export class RoutesService {
       estimatedDistanceKm: dto.estimatedDistanceKm,
       notes: dto.notes,
       metadata: dto.metadata ?? {},
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.routeRepository.save(route);
@@ -71,38 +74,40 @@ export class RoutesService {
       limit = 20,
     } = filters || {};
 
-    const query = this.routeRepository.createQueryBuilder('route');
+    const query = this.routeRepository.createQueryBuilder("route");
 
-    query.where('route.organizationId = :organizationId', { organizationId });
+    query.where("route.organizationId = :organizationId", { organizationId });
 
     if (operatorId) {
-      query.andWhere('route.operatorId = :operatorId', { operatorId });
+      query.andWhere("route.operatorId = :operatorId", { operatorId });
     }
 
     if (type) {
-      query.andWhere('route.type = :type', { type });
+      query.andWhere("route.type = :type", { type });
     }
 
     if (status) {
-      query.andWhere('route.status = :status', { status });
+      query.andWhere("route.status = :status", { status });
     }
 
     if (plannedDateFrom) {
-      query.andWhere('route.plannedDate >= :plannedDateFrom', { plannedDateFrom });
+      query.andWhere("route.plannedDate >= :plannedDateFrom", {
+        plannedDateFrom,
+      });
     }
 
     if (plannedDateTo) {
-      query.andWhere('route.plannedDate <= :plannedDateTo', { plannedDateTo });
+      query.andWhere("route.plannedDate <= :plannedDateTo", { plannedDateTo });
     }
 
     if (search) {
-      query.andWhere('route.name ILIKE :search', { search: `%${search}%` });
+      query.andWhere("route.name ILIKE :search", { search: `%${search}%` });
     }
 
     const total = await query.getCount();
 
-    query.orderBy('route.plannedDate', 'DESC');
-    query.addOrderBy('route.name', 'ASC');
+    query.orderBy("route.plannedDate", "DESC");
+    query.addOrderBy("route.name", "ASC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -120,23 +125,27 @@ export class RoutesService {
   async findById(id: string): Promise<Route | null> {
     return this.routeRepository.findOne({
       where: { id },
-      relations: ['stops'],
-      order: { stops: { sequence: 'ASC' } },
+      relations: ["stops"],
+      order: { stops: { sequence: "ASC" } },
     });
   }
 
-  async update(id: string, dto: UpdateRouteDto, userId?: string): Promise<Route> {
+  async update(
+    id: string,
+    dto: UpdateRouteDto,
+    userId?: string,
+  ): Promise<Route> {
     const route = await this.findById(id);
     if (!route) {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
 
     if (route.status === RouteStatus.COMPLETED) {
-      throw new BadRequestException('Cannot update a completed route');
+      throw new BadRequestException("Cannot update a completed route");
     }
 
     if (route.status === RouteStatus.CANCELLED) {
-      throw new BadRequestException('Cannot update a cancelled route');
+      throw new BadRequestException("Cannot update a cancelled route");
     }
 
     // Map DTO fields to entity, handling date conversion
@@ -146,14 +155,18 @@ export class RoutesService {
     if (dto.operatorId !== undefined) route.operatorId = dto.operatorId;
     if (dto.name !== undefined) route.name = dto.name;
     if (dto.type !== undefined) route.type = dto.type;
-    if (dto.estimatedDurationMinutes !== undefined) route.estimatedDurationMinutes = dto.estimatedDurationMinutes;
-    if (dto.estimatedDistanceKm !== undefined) route.estimatedDistanceKm = dto.estimatedDistanceKm;
-    if (dto.actualDurationMinutes !== undefined) route.actualDurationMinutes = dto.actualDurationMinutes;
-    if (dto.actualDistanceKm !== undefined) route.actualDistanceKm = dto.actualDistanceKm;
+    if (dto.estimatedDurationMinutes !== undefined)
+      route.estimatedDurationMinutes = dto.estimatedDurationMinutes;
+    if (dto.estimatedDistanceKm !== undefined)
+      route.estimatedDistanceKm = dto.estimatedDistanceKm;
+    if (dto.actualDurationMinutes !== undefined)
+      route.actualDurationMinutes = dto.actualDurationMinutes;
+    if (dto.actualDistanceKm !== undefined)
+      route.actualDistanceKm = dto.actualDistanceKm;
     if (dto.notes !== undefined) route.notes = dto.notes;
     if (dto.metadata !== undefined) route.metadata = dto.metadata;
 
-    route.updated_by_id = userId ?? route.updated_by_id;
+    route.updatedById = userId ?? route.updatedById;
 
     return this.routeRepository.save(route);
   }
@@ -165,7 +178,9 @@ export class RoutesService {
     }
 
     if (route.status === RouteStatus.IN_PROGRESS) {
-      throw new BadRequestException('Cannot delete a route that is in progress');
+      throw new BadRequestException(
+        "Cannot delete a route that is in progress",
+      );
     }
 
     await this.routeRepository.softDelete(id);
@@ -189,7 +204,7 @@ export class RoutesService {
 
     route.status = RouteStatus.IN_PROGRESS;
     route.startedAt = new Date();
-    route.updated_by_id = userId;
+    route.updatedById = userId;
 
     return this.routeRepository.save(route);
   }
@@ -197,7 +212,11 @@ export class RoutesService {
   async completeRoute(
     id: string,
     userId: string,
-    completionData?: { actualDurationMinutes?: number; actualDistanceKm?: number; notes?: string },
+    completionData?: {
+      actualDurationMinutes?: number;
+      actualDistanceKm?: number;
+      notes?: string;
+    },
   ): Promise<Route> {
     const route = await this.findById(id);
     if (!route) {
@@ -212,7 +231,7 @@ export class RoutesService {
 
     route.status = RouteStatus.COMPLETED;
     route.completedAt = new Date();
-    route.updated_by_id = userId;
+    route.updatedById = userId;
 
     // Calculate actual duration if not provided and route was started
     if (completionData?.actualDurationMinutes !== undefined) {
@@ -237,7 +256,11 @@ export class RoutesService {
   // ROUTE STOP MANAGEMENT
   // ============================================================================
 
-  async addStop(routeId: string, dto: CreateRouteStopDto, userId?: string): Promise<RouteStop> {
+  async addStop(
+    routeId: string,
+    dto: CreateRouteStopDto,
+    userId?: string,
+  ): Promise<RouteStop> {
     const route = await this.routeRepository.findOne({
       where: { id: routeId },
     });
@@ -245,8 +268,13 @@ export class RoutesService {
       throw new NotFoundException(`Route with ID ${routeId} not found`);
     }
 
-    if (route.status === RouteStatus.COMPLETED || route.status === RouteStatus.CANCELLED) {
-      throw new BadRequestException('Cannot add stops to a completed or cancelled route');
+    if (
+      route.status === RouteStatus.COMPLETED ||
+      route.status === RouteStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        "Cannot add stops to a completed or cancelled route",
+      );
     }
 
     // Check for duplicate sequence
@@ -265,12 +293,14 @@ export class RoutesService {
       sequence: dto.sequence,
       taskId: dto.taskId ?? null,
       status: RouteStopStatus.PENDING,
-      estimatedArrival: dto.estimatedArrival ? new Date(dto.estimatedArrival) : null,
+      estimatedArrival: dto.estimatedArrival
+        ? new Date(dto.estimatedArrival)
+        : null,
       notes: dto.notes ?? null,
       latitude: dto.latitude ?? null,
       longitude: dto.longitude ?? null,
       metadata: dto.metadata ?? {},
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.routeStopRepository.save(stop);
@@ -292,15 +322,22 @@ export class RoutesService {
     if (dto.sequence !== undefined) stop.sequence = dto.sequence;
     if (dto.taskId !== undefined) stop.taskId = dto.taskId;
     if (dto.status !== undefined) stop.status = dto.status;
-    if (dto.estimatedArrival !== undefined) stop.estimatedArrival = dto.estimatedArrival ? new Date(dto.estimatedArrival) : null;
-    if (dto.actualArrival !== undefined) stop.actualArrival = dto.actualArrival ? new Date(dto.actualArrival) : null;
-    if (dto.departedAt !== undefined) stop.departedAt = dto.departedAt ? new Date(dto.departedAt) : null;
+    if (dto.estimatedArrival !== undefined)
+      stop.estimatedArrival = dto.estimatedArrival
+        ? new Date(dto.estimatedArrival)
+        : null;
+    if (dto.actualArrival !== undefined)
+      stop.actualArrival = dto.actualArrival
+        ? new Date(dto.actualArrival)
+        : null;
+    if (dto.departedAt !== undefined)
+      stop.departedAt = dto.departedAt ? new Date(dto.departedAt) : null;
     if (dto.notes !== undefined) stop.notes = dto.notes;
     if (dto.latitude !== undefined) stop.latitude = dto.latitude;
     if (dto.longitude !== undefined) stop.longitude = dto.longitude;
     if (dto.metadata !== undefined) stop.metadata = dto.metadata;
 
-    stop.updated_by_id = userId ?? stop.updated_by_id;
+    stop.updatedById = userId ?? stop.updatedById;
 
     return this.routeStopRepository.save(stop);
   }
@@ -309,7 +346,11 @@ export class RoutesService {
    * Reorder stops by setting new sequence values.
    * Accepts an ordered array of stop IDs.
    */
-  async reorderStops(routeId: string, stopIds: string[], userId?: string): Promise<RouteStop[]> {
+  async reorderStops(
+    routeId: string,
+    stopIds: string[],
+    userId?: string,
+  ): Promise<RouteStop[]> {
     const route = await this.routeRepository.findOne({
       where: { id: routeId },
     });
@@ -317,8 +358,13 @@ export class RoutesService {
       throw new NotFoundException(`Route with ID ${routeId} not found`);
     }
 
-    if (route.status === RouteStatus.COMPLETED || route.status === RouteStatus.CANCELLED) {
-      throw new BadRequestException('Cannot reorder stops on a completed or cancelled route');
+    if (
+      route.status === RouteStatus.COMPLETED ||
+      route.status === RouteStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        "Cannot reorder stops on a completed or cancelled route",
+      );
     }
 
     // Verify all stop IDs belong to this route
@@ -329,7 +375,9 @@ export class RoutesService {
     const existingStopIds = new Set(existingStops.map((s) => s.id));
     for (const stopId of stopIds) {
       if (!existingStopIds.has(stopId)) {
-        throw new BadRequestException(`Stop with ID ${stopId} does not belong to route ${routeId}`);
+        throw new BadRequestException(
+          `Stop with ID ${stopId} does not belong to route ${routeId}`,
+        );
       }
     }
 
@@ -339,7 +387,7 @@ export class RoutesService {
       const stop = existingStops.find((s) => s.id === stopIds[i]);
       if (stop) {
         stop.sequence = i + 1;
-        stop.updated_by_id = userId ?? stop.updated_by_id;
+        stop.updatedById = userId ?? stop.updatedById;
         const savedStop = await this.routeStopRepository.save(stop);
         updatedStops.push(savedStop);
       }
@@ -351,7 +399,7 @@ export class RoutesService {
   async getStops(routeId: string): Promise<RouteStop[]> {
     return this.routeStopRepository.find({
       where: { routeId },
-      order: { sequence: 'ASC' },
+      order: { sequence: "ASC" },
     });
   }
 

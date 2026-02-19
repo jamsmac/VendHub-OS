@@ -19,42 +19,42 @@ export enum WalletTransactionType {
 }
 
 @Entity("client_wallet_ledger")
-@Index(["wallet_id", "created_at"])
-@Index(["transaction_type"])
+@Index(["walletId", "createdAt"])
+@Index(["transactionType"])
 export class ClientWalletLedger extends BaseEntity {
   @Column({ type: "uuid" })
-  wallet_id: string;
+  walletId: string;
 
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "enum", enum: WalletTransactionType })
-  transaction_type: WalletTransactionType;
+  transactionType: WalletTransactionType;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
   amount: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
-  balance_before: number;
+  balanceBefore: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
-  balance_after: number;
+  balanceAfter: number;
 
   @Column({ type: "text", nullable: true })
   description: string | null;
 
   @Column({ type: "uuid", nullable: true })
-  reference_id: string | null;
+  referenceId: string | null;
 
   @Column({ type: "varchar", length: 50, nullable: true })
-  reference_type: string | null;
+  referenceType: string | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
 
   // Relations
 
-  @ManyToOne(() => ClientWallet, (wallet) => wallet.ledger_entries)
+  @ManyToOne(() => ClientWallet, (wallet) => wallet.ledgerEntries)
   @JoinColumn({ name: "wallet_id" })
   wallet: ClientWallet;
 }

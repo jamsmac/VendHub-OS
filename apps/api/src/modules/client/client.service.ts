@@ -83,7 +83,7 @@ export class ClientService {
     // Check for duplicates
     if (dto.telegramId) {
       const existing = await this.clientUserRepo.findOne({
-        where: { telegram_id: dto.telegramId },
+        where: { telegramId: dto.telegramId },
       });
       if (existing) {
         throw new ConflictException(
@@ -115,34 +115,34 @@ export class ClientService {
     return this.dataSource.transaction(async (manager) => {
       // Create client user
       const clientUser = manager.create(ClientUser, {
-        telegram_id: dto.telegramId || null,
+        telegramId: dto.telegramId || null,
         phone: dto.phone || null,
         email: dto.email || null,
-        first_name: dto.firstName || null,
-        last_name: dto.lastName || null,
+        firstName: dto.firstName || null,
+        lastName: dto.lastName || null,
         username: dto.username || null,
         language: dto.language || "ru",
-        organization_id: null,
+        organizationId: null,
       });
       const savedUser = await manager.save(ClientUser, clientUser);
 
       // Auto-create wallet
       const wallet = manager.create(ClientWallet, {
-        client_user_id: savedUser.id,
-        organization_id: null,
+        clientUserId: savedUser.id,
+        organizationId: null,
         balance: 0,
         currency: "UZS",
-        is_active: true,
+        isActive: true,
       });
       await manager.save(ClientWallet, wallet);
 
       // Auto-create loyalty account
       const loyaltyAccount = manager.create(ClientLoyaltyAccount, {
-        client_user_id: savedUser.id,
-        organization_id: null,
-        points_balance: 0,
-        total_earned: 0,
-        total_redeemed: 0,
+        clientUserId: savedUser.id,
+        organizationId: null,
+        pointsBalance: 0,
+        totalEarned: 0,
+        totalRedeemed: 0,
         tier: "bronze",
       });
       await manager.save(ClientLoyaltyAccount, loyaltyAccount);
@@ -161,7 +161,7 @@ export class ClientService {
   async findClientById(id: string): Promise<ClientUser> {
     const client = await this.clientUserRepo.findOne({
       where: { id },
-      relations: ["wallet", "loyalty_account"],
+      relations: ["wallet", "loyaltyAccount"],
     });
     if (!client) {
       throw new NotFoundException(`Client with ID ${id} not found`);
@@ -174,8 +174,8 @@ export class ClientService {
    */
   async findClientByTelegramId(telegramId: string): Promise<ClientUser> {
     const client = await this.clientUserRepo.findOne({
-      where: { telegram_id: telegramId },
-      relations: ["wallet", "loyalty_account"],
+      where: { telegramId: telegramId },
+      relations: ["wallet", "loyaltyAccount"],
     });
     if (!client) {
       throw new NotFoundException(
@@ -195,9 +195,9 @@ export class ClientService {
     const client = await this.findClientById(id);
 
     // Check unique constraints if changing identifiers
-    if (dto.telegramId && dto.telegramId !== client.telegram_id) {
+    if (dto.telegramId && dto.telegramId !== client.telegramId) {
       const existing = await this.clientUserRepo.findOne({
-        where: { telegram_id: dto.telegramId },
+        where: { telegramId: dto.telegramId },
       });
       if (existing) {
         throw new ConflictException(
@@ -227,11 +227,11 @@ export class ClientService {
     }
 
     // Map DTO fields to entity columns
-    if (dto.telegramId !== undefined) client.telegram_id = dto.telegramId;
+    if (dto.telegramId !== undefined) client.telegramId = dto.telegramId;
     if (dto.phone !== undefined) client.phone = dto.phone;
     if (dto.email !== undefined) client.email = dto.email;
-    if (dto.firstName !== undefined) client.first_name = dto.firstName;
-    if (dto.lastName !== undefined) client.last_name = dto.lastName;
+    if (dto.firstName !== undefined) client.firstName = dto.firstName;
+    if (dto.lastName !== undefined) client.lastName = dto.lastName;
     if (dto.username !== undefined) client.username = dto.username;
     if (dto.language !== undefined) client.language = dto.language;
 
@@ -257,31 +257,31 @@ export class ClientService {
     const qb = this.clientUserRepo.createQueryBuilder("client");
 
     if (organizationId) {
-      qb.andWhere("client.organization_id = :organizationId", {
+      qb.andWhere("client.organizationId = :organizationId", {
         organizationId,
       });
     }
 
     if (query.search) {
       qb.andWhere(
-        "(client.first_name ILIKE :search OR client.last_name ILIKE :search OR client.phone ILIKE :search OR client.email ILIKE :search OR client.telegram_id ILIKE :search)",
+        "(client.firstName ILIKE :search OR client.lastName ILIKE :search OR client.phone ILIKE :search OR client.email ILIKE :search OR client.telegramId ILIKE :search)",
         { search: `%${query.search}%` },
       );
     }
 
     if (query.isVerified !== undefined) {
-      qb.andWhere("client.is_verified = :isVerified", {
+      qb.andWhere("client.isVerified = :isVerified", {
         isVerified: query.isVerified === "true",
       });
     }
 
     if (query.isBlocked !== undefined) {
-      qb.andWhere("client.is_blocked = :isBlocked", {
+      qb.andWhere("client.isBlocked = :isBlocked", {
         isBlocked: query.isBlocked === "true",
       });
     }
 
-    qb.orderBy("client.created_at", "DESC");
+    qb.orderBy("client.createdAt", "DESC");
     qb.skip(skip).take(limit);
 
     const [data, total] = await qb.getManyAndCount();
@@ -298,7 +298,7 @@ export class ClientService {
    */
   async getWallet(clientUserId: string): Promise<ClientWallet> {
     const wallet = await this.walletRepo.findOne({
-      where: { client_user_id: clientUserId },
+      where: { clientUserId: clientUserId },
     });
     if (!wallet) {
       throw new NotFoundException(
@@ -317,7 +317,7 @@ export class ClientService {
   ): Promise<ClientWalletLedger> {
     return this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(ClientWallet, {
-        where: { client_user_id: clientUserId },
+        where: { clientUserId: clientUserId },
         lock: { mode: "pessimistic_write" },
       });
 
@@ -327,7 +327,7 @@ export class ClientService {
         );
       }
 
-      if (!wallet.is_active) {
+      if (!wallet.isActive) {
         throw new BadRequestException("Wallet is deactivated");
       }
 
@@ -340,12 +340,12 @@ export class ClientService {
 
       // Create ledger entry
       const ledgerEntry = manager.create(ClientWalletLedger, {
-        wallet_id: wallet.id,
-        organization_id: wallet.organization_id,
-        transaction_type: WalletTransactionType.TOP_UP,
+        walletId: wallet.id,
+        organizationId: wallet.organizationId,
+        transactionType: WalletTransactionType.TOP_UP,
         amount: dto.amount,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
         description: dto.description || "Wallet top-up",
       });
       const savedEntry = await manager.save(ClientWalletLedger, ledgerEntry);
@@ -368,7 +368,7 @@ export class ClientService {
   ): Promise<ClientWalletLedger> {
     return this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(ClientWallet, {
-        where: { client_user_id: clientUserId },
+        where: { clientUserId: clientUserId },
         lock: { mode: "pessimistic_write" },
       });
 
@@ -391,14 +391,14 @@ export class ClientService {
       await manager.save(ClientWallet, wallet);
 
       const ledgerEntry = manager.create(ClientWalletLedger, {
-        wallet_id: wallet.id,
-        organization_id: wallet.organization_id,
-        transaction_type: WalletTransactionType.MANUAL_ADJUSTMENT,
+        walletId: wallet.id,
+        organizationId: wallet.organizationId,
+        transactionType: WalletTransactionType.MANUAL_ADJUSTMENT,
         amount: dto.amount,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
         description: dto.description || dto.reason,
-        created_by_id: userId,
+        createdById: userId,
       });
       const savedEntry = await manager.save(ClientWalletLedger, ledgerEntry);
 
@@ -428,8 +428,8 @@ export class ClientService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.walletLedgerRepo.findAndCount({
-      where: { wallet_id: wallet.id },
-      order: { created_at: "DESC" },
+      where: { walletId: wallet.id },
+      order: { createdAt: "DESC" },
       skip,
       take: limit,
     });
@@ -468,40 +468,37 @@ export class ClientService {
       }
 
       return {
-        product_id: item.productId,
-        product_name:
+        productId: item.productId,
+        productName:
           product?.name || `Unknown (${item.productId.substring(0, 8)})`,
         quantity: item.quantity,
-        unit_price: unitPrice,
-        total_price: totalPrice,
+        unitPrice: unitPrice,
+        totalPrice: totalPrice,
       };
     });
 
-    const subtotal = orderItems.reduce(
-      (sum, item) => sum + item.total_price,
-      0,
-    );
+    const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const discountAmount = 0; // Promo code logic would go here
     const loyaltyPointsUsed = dto.useLoyaltyPoints || 0;
     const totalAmount = Math.max(0, subtotal - discountAmount);
 
     const order = this.orderRepo.create({
-      organization_id: client.organization_id,
-      client_user_id: clientUserId,
-      machine_id: dto.machineId || null,
+      organizationId: client.organizationId,
+      clientUserId: clientUserId,
+      machineId: dto.machineId || null,
       status: ClientOrderStatus.PENDING,
       items: orderItems,
       subtotal,
-      discount_amount: discountAmount,
-      loyalty_points_used: loyaltyPointsUsed,
-      total_amount: totalAmount,
+      discountAmount: discountAmount,
+      loyaltyPointsUsed: loyaltyPointsUsed,
+      totalAmount: totalAmount,
       currency: "UZS",
     });
 
     const savedOrder = await this.orderRepo.save(order);
 
     this.logger.log(
-      `Order created: ${savedOrder.order_number} for client ${clientUserId}`,
+      `Order created: ${savedOrder.orderNumber} for client ${clientUserId}`,
     );
 
     // Attempt to process payment immediately
@@ -533,16 +530,16 @@ export class ClientService {
 
     if (order.status !== ClientOrderStatus.PENDING) {
       throw new BadRequestException(
-        `Order ${order.order_number} is not in PENDING status`,
+        `Order ${order.orderNumber} is not in PENDING status`,
       );
     }
 
     const payment = this.paymentRepo.create({
-      organization_id: order.organization_id,
-      order_id: orderId,
-      client_user_id: order.client_user_id,
+      organizationId: order.organizationId,
+      orderId: orderId,
+      clientUserId: order.clientUserId,
       provider,
-      amount: order.total_amount,
+      amount: order.totalAmount,
       currency: order.currency,
       status: ClientPaymentStatus.PENDING,
     });
@@ -550,7 +547,7 @@ export class ClientService {
     const savedPayment = await this.paymentRepo.save(payment);
 
     this.logger.log(
-      `Payment created: ${savedPayment.id} for order ${order.order_number}, provider=${provider}`,
+      `Payment created: ${savedPayment.id} for order ${order.orderNumber}, provider=${provider}`,
     );
 
     // For wallet payments, process immediately
@@ -571,22 +568,22 @@ export class ClientService {
   ): Promise<ClientPayment> {
     return this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(ClientWallet, {
-        where: { client_user_id: order.client_user_id },
+        where: { clientUserId: order.clientUserId },
         lock: { mode: "pessimistic_write" },
       });
 
-      if (!wallet || !wallet.is_active) {
+      if (!wallet || !wallet.isActive) {
         payment.status = ClientPaymentStatus.FAILED;
-        payment.error_message = "Wallet not found or inactive";
+        payment.errorMessage = "Wallet not found or inactive";
         return manager.save(ClientPayment, payment);
       }
 
       const balanceBefore = Number(wallet.balance);
-      const amount = Number(order.total_amount);
+      const amount = Number(order.totalAmount);
 
       if (balanceBefore < amount) {
         payment.status = ClientPaymentStatus.FAILED;
-        payment.error_message = `Insufficient wallet balance. Required: ${amount}, available: ${balanceBefore}`;
+        payment.errorMessage = `Insufficient wallet balance. Required: ${amount}, available: ${balanceBefore}`;
         return manager.save(ClientPayment, payment);
       }
 
@@ -597,30 +594,30 @@ export class ClientService {
 
       // Create wallet ledger entry
       const ledgerEntry = manager.create(ClientWalletLedger, {
-        wallet_id: wallet.id,
-        organization_id: wallet.organization_id,
-        transaction_type: WalletTransactionType.PURCHASE,
+        walletId: wallet.id,
+        organizationId: wallet.organizationId,
+        transactionType: WalletTransactionType.PURCHASE,
         amount: -amount,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
-        description: `Payment for order ${order.order_number}`,
-        reference_id: order.id,
-        reference_type: "order",
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
+        description: `Payment for order ${order.orderNumber}`,
+        referenceId: order.id,
+        referenceType: "order",
       });
       await manager.save(ClientWalletLedger, ledgerEntry);
 
       // Mark payment as success
       payment.status = ClientPaymentStatus.SUCCESS;
-      payment.paid_at = new Date();
+      payment.paidAt = new Date();
       const savedPayment = await manager.save(ClientPayment, payment);
 
       // Mark order as paid
       order.status = ClientOrderStatus.PAID;
-      order.paid_at = new Date();
+      order.paidAt = new Date();
       await manager.save(ClientOrder, order);
 
       this.logger.log(
-        `Wallet payment successful: order=${order.order_number}, amount=${amount}`,
+        `Wallet payment successful: order=${order.orderNumber}, amount=${amount}`,
       );
 
       return savedPayment;
@@ -641,19 +638,19 @@ export class ClientService {
       order.status !== ClientOrderStatus.DISPENSING
     ) {
       throw new BadRequestException(
-        `Order ${order.order_number} cannot be completed from status ${order.status}`,
+        `Order ${order.orderNumber} cannot be completed from status ${order.status}`,
       );
     }
 
     order.status = ClientOrderStatus.COMPLETED;
-    order.completed_at = new Date();
+    order.completedAt = new Date();
     const savedOrder = await this.orderRepo.save(order);
 
     // Award loyalty points (1 point per 1000 UZS)
-    const pointsToAward = Math.floor(Number(order.total_amount) / 1000);
+    const pointsToAward = Math.floor(Number(order.totalAmount) / 1000);
     if (pointsToAward > 0) {
       await this.earnLoyaltyPoints(
-        order.client_user_id,
+        order.clientUserId,
         pointsToAward,
         LoyaltyTransactionReason.ORDER_EARNED,
         order.id,
@@ -661,7 +658,7 @@ export class ClientService {
     }
 
     this.logger.log(
-      `Order completed: ${order.order_number}, points awarded: ${pointsToAward}`,
+      `Order completed: ${order.orderNumber}, points awarded: ${pointsToAward}`,
     );
 
     return savedOrder;
@@ -685,7 +682,7 @@ export class ClientService {
         order.status === ClientOrderStatus.REFUNDED
       ) {
         throw new BadRequestException(
-          `Order ${order.order_number} cannot be cancelled from status ${order.status}`,
+          `Order ${order.orderNumber} cannot be cancelled from status ${order.status}`,
         );
       }
 
@@ -696,70 +693,70 @@ export class ClientService {
       order.status = wasPaid
         ? ClientOrderStatus.REFUNDED
         : ClientOrderStatus.CANCELLED;
-      order.cancelled_at = new Date();
-      order.cancellation_reason = reason;
+      order.cancelledAt = new Date();
+      order.cancellationReason = reason;
       const savedOrder = await manager.save(ClientOrder, order);
 
       // If was paid, refund to wallet
       if (wasPaid) {
         const wallet = await manager.findOne(ClientWallet, {
-          where: { client_user_id: order.client_user_id },
+          where: { clientUserId: order.clientUserId },
           lock: { mode: "pessimistic_write" },
         });
 
         if (wallet) {
           const balanceBefore = Number(wallet.balance);
-          const refundAmount = Number(order.total_amount);
+          const refundAmount = Number(order.totalAmount);
           const balanceAfter = balanceBefore + refundAmount;
 
           wallet.balance = balanceAfter;
           await manager.save(ClientWallet, wallet);
 
           const ledgerEntry = manager.create(ClientWalletLedger, {
-            wallet_id: wallet.id,
-            organization_id: wallet.organization_id,
-            transaction_type: WalletTransactionType.REFUND,
+            walletId: wallet.id,
+            organizationId: wallet.organizationId,
+            transactionType: WalletTransactionType.REFUND,
             amount: refundAmount,
-            balance_before: balanceBefore,
-            balance_after: balanceAfter,
-            description: `Refund for cancelled order ${order.order_number}: ${reason}`,
-            reference_id: order.id,
-            reference_type: "order",
+            balanceBefore: balanceBefore,
+            balanceAfter: balanceAfter,
+            description: `Refund for cancelled order ${order.orderNumber}: ${reason}`,
+            referenceId: order.id,
+            referenceType: "order",
           });
           await manager.save(ClientWalletLedger, ledgerEntry);
 
           // Mark payment as refunded
           await manager.update(
             ClientPayment,
-            { order_id: orderId, status: ClientPaymentStatus.SUCCESS },
+            { orderId: orderId, status: ClientPaymentStatus.SUCCESS },
             { status: ClientPaymentStatus.REFUNDED },
           );
         }
 
         // Refund loyalty points if any were used
-        if (order.loyalty_points_used > 0) {
+        if (order.loyaltyPointsUsed > 0) {
           const loyaltyAccount = await manager.findOne(ClientLoyaltyAccount, {
-            where: { client_user_id: order.client_user_id },
+            where: { clientUserId: order.clientUserId },
           });
 
           if (loyaltyAccount) {
-            const pointsBefore = loyaltyAccount.points_balance;
-            const pointsAfter = pointsBefore + order.loyalty_points_used;
+            const pointsBefore = loyaltyAccount.pointsBalance;
+            const pointsAfter = pointsBefore + order.loyaltyPointsUsed;
 
-            loyaltyAccount.points_balance = pointsAfter;
-            loyaltyAccount.total_redeemed -= order.loyalty_points_used;
+            loyaltyAccount.pointsBalance = pointsAfter;
+            loyaltyAccount.totalRedeemed -= order.loyaltyPointsUsed;
             await manager.save(ClientLoyaltyAccount, loyaltyAccount);
 
             const loyaltyLedger = manager.create(ClientLoyaltyLedger, {
-              loyalty_account_id: loyaltyAccount.id,
-              organization_id: loyaltyAccount.organization_id,
+              loyaltyAccountId: loyaltyAccount.id,
+              organizationId: loyaltyAccount.organizationId,
               reason: LoyaltyTransactionReason.ORDER_REFUND,
-              points: order.loyalty_points_used,
-              balance_before: pointsBefore,
-              balance_after: pointsAfter,
-              description: `Points refund for cancelled order ${order.order_number}`,
-              reference_id: order.id,
-              reference_type: "order",
+              points: order.loyaltyPointsUsed,
+              balanceBefore: pointsBefore,
+              balanceAfter: pointsAfter,
+              description: `Points refund for cancelled order ${order.orderNumber}`,
+              referenceId: order.id,
+              referenceType: "order",
             });
             await manager.save(ClientLoyaltyLedger, loyaltyLedger);
           }
@@ -767,7 +764,7 @@ export class ClientService {
       }
 
       this.logger.log(
-        `Order ${wasPaid ? "refunded" : "cancelled"}: ${order.order_number}, reason: ${reason}`,
+        `Order ${wasPaid ? "refunded" : "cancelled"}: ${order.orderNumber}, reason: ${reason}`,
       );
 
       return savedOrder;
@@ -794,19 +791,19 @@ export class ClientService {
     qb.leftJoinAndSelect("order.payments", "payment");
 
     if (organizationId) {
-      qb.andWhere("order.organization_id = :organizationId", {
+      qb.andWhere("order.organizationId = :organizationId", {
         organizationId,
       });
     }
 
     if (query.clientUserId) {
-      qb.andWhere("order.client_user_id = :clientUserId", {
+      qb.andWhere("order.clientUserId = :clientUserId", {
         clientUserId: query.clientUserId,
       });
     }
 
     if (query.machineId) {
-      qb.andWhere("order.machine_id = :machineId", {
+      qb.andWhere("order.machineId = :machineId", {
         machineId: query.machineId,
       });
     }
@@ -816,16 +813,16 @@ export class ClientService {
     }
 
     if (query.dateFrom) {
-      qb.andWhere("order.created_at >= :dateFrom", {
+      qb.andWhere("order.createdAt >= :dateFrom", {
         dateFrom: query.dateFrom,
       });
     }
 
     if (query.dateTo) {
-      qb.andWhere("order.created_at <= :dateTo", { dateTo: query.dateTo });
+      qb.andWhere("order.createdAt <= :dateTo", { dateTo: query.dateTo });
     }
 
-    qb.orderBy("order.created_at", "DESC");
+    qb.orderBy("order.createdAt", "DESC");
     qb.skip(skip).take(limit);
 
     const [data, total] = await qb.getManyAndCount();
@@ -842,7 +839,7 @@ export class ClientService {
    */
   async getLoyaltyAccount(clientUserId: string): Promise<ClientLoyaltyAccount> {
     const account = await this.loyaltyAccountRepo.findOne({
-      where: { client_user_id: clientUserId },
+      where: { clientUserId: clientUserId },
     });
     if (!account) {
       throw new NotFoundException(
@@ -867,7 +864,7 @@ export class ClientService {
 
     return this.dataSource.transaction(async (manager) => {
       const account = await manager.findOne(ClientLoyaltyAccount, {
-        where: { client_user_id: clientUserId },
+        where: { clientUserId: clientUserId },
         lock: { mode: "pessimistic_write" },
       });
 
@@ -877,28 +874,28 @@ export class ClientService {
         );
       }
 
-      const balanceBefore = account.points_balance;
+      const balanceBefore = account.pointsBalance;
       const balanceAfter = balanceBefore + points;
 
-      account.points_balance = balanceAfter;
-      account.total_earned += points;
+      account.pointsBalance = balanceAfter;
+      account.totalEarned += points;
 
       // Update tier based on total earned
-      account.tier = this.calculateTier(account.total_earned);
-      account.tier_updated_at = new Date();
+      account.tier = this.calculateTier(account.totalEarned);
+      account.tierUpdatedAt = new Date();
 
       await manager.save(ClientLoyaltyAccount, account);
 
       const ledgerEntry = manager.create(ClientLoyaltyLedger, {
-        loyalty_account_id: account.id,
-        organization_id: account.organization_id,
+        loyaltyAccountId: account.id,
+        organizationId: account.organizationId,
         reason,
         points,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
         description: `Earned ${points} points`,
-        reference_id: referenceId || null,
-        reference_type: referenceId ? "order" : null,
+        referenceId: referenceId || null,
+        referenceType: referenceId ? "order" : null,
       });
       const saved = await manager.save(ClientLoyaltyLedger, ledgerEntry);
 
@@ -925,7 +922,7 @@ export class ClientService {
 
     return this.dataSource.transaction(async (manager) => {
       const account = await manager.findOne(ClientLoyaltyAccount, {
-        where: { client_user_id: clientUserId },
+        where: { clientUserId: clientUserId },
         lock: { mode: "pessimistic_write" },
       });
 
@@ -935,29 +932,29 @@ export class ClientService {
         );
       }
 
-      if (account.points_balance < points) {
+      if (account.pointsBalance < points) {
         throw new BadRequestException(
-          `Insufficient loyalty points. Available: ${account.points_balance}, requested: ${points}`,
+          `Insufficient loyalty points. Available: ${account.pointsBalance}, requested: ${points}`,
         );
       }
 
-      const balanceBefore = account.points_balance;
+      const balanceBefore = account.pointsBalance;
       const balanceAfter = balanceBefore - points;
 
-      account.points_balance = balanceAfter;
-      account.total_redeemed += points;
+      account.pointsBalance = balanceAfter;
+      account.totalRedeemed += points;
       await manager.save(ClientLoyaltyAccount, account);
 
       const ledgerEntry = manager.create(ClientLoyaltyLedger, {
-        loyalty_account_id: account.id,
-        organization_id: account.organization_id,
+        loyaltyAccountId: account.id,
+        organizationId: account.organizationId,
         reason,
         points: -points,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
         description: `Redeemed ${points} points`,
-        reference_id: referenceId || null,
-        reference_type: referenceId ? "order" : null,
+        referenceId: referenceId || null,
+        referenceType: referenceId ? "order" : null,
       });
       const saved = await manager.save(ClientLoyaltyLedger, ledgerEntry);
 

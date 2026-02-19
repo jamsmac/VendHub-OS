@@ -459,7 +459,7 @@ describe("ReportsService", () => {
       expect(result).toEqual(scheduled);
       expect(scheduledRepo.find).toHaveBeenCalledWith({
         where: { organizationId: "org-1" },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
     });
   });
@@ -518,7 +518,7 @@ describe("ReportsService", () => {
       expect(dashboardRepo.find).toHaveBeenCalledWith({
         where: { organizationId: "org-1" },
         relations: ["widgets"],
-        order: { isDefault: "DESC", created_at: "DESC" },
+        order: { isDefault: "DESC", createdAt: "DESC" },
       });
       expect(result).toEqual(dashboards);
     });

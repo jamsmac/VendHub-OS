@@ -430,7 +430,7 @@ export class InventoryReservationService {
   ): Promise<InventoryReservation[]> {
     return this.reservationRepo.find({
       where: { organizationId, taskId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -449,7 +449,7 @@ export class InventoryReservationService {
           ReservationStatus.PARTIALLY_FULFILLED,
         ]),
       },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -511,7 +511,7 @@ export class InventoryReservationService {
 
     const total = await query.getCount();
 
-    query.orderBy("r.created_at", "DESC");
+    query.orderBy("r.createdAt", "DESC");
 
     const page = filters?.page || 1;
     const limit = Math.min(filters?.limit || 50, 100);

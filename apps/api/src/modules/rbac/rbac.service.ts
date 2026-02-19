@@ -97,7 +97,7 @@ export class RbacService {
     const query = this.roleRepository
       .createQueryBuilder("role")
       .leftJoinAndSelect("role.permissions", "permission")
-      .where("role.deleted_at IS NULL");
+      .where("role.deletedAt IS NULL");
 
     if (organizationId) {
       if (includeGlobal) {

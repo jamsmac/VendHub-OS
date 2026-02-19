@@ -57,8 +57,8 @@ describe("FavoritesService", () => {
     sortOrder: 1,
     product: mockProduct,
     machine: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Favorite;
 
   const mockMachineFavorite: Favorite = {
@@ -71,8 +71,8 @@ describe("FavoritesService", () => {
     sortOrder: 1,
     product: null,
     machine: mockMachine,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Favorite;
 
   const mockQueryBuilder = {

@@ -30,50 +30,50 @@ export enum TelegramEventType {
 // ============================================================================
 
 @Entity("telegram_bot_analytics")
-@Index(["telegram_user_id", "created_at"])
-@Index(["event_type", "created_at"])
-@Index(["organization_id", "created_at"])
-@Index(["action_name"])
+@Index(["telegramUserId", "createdAt"])
+@Index(["eventType", "createdAt"])
+@Index(["organizationId", "createdAt"])
+@Index(["actionName"])
 export class TelegramBotAnalytics extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
-  organization_id: string | null;
+  organizationId: string | null;
 
   @Column({ type: "uuid", nullable: true })
-  telegram_user_id: string | null;
+  telegramUserId: string | null;
 
   @ManyToOne(() => TelegramUser, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "telegram_user_id" })
-  telegram_user: TelegramUser | null;
+  telegramUser: TelegramUser | null;
 
   @Column({ type: "uuid", nullable: true })
-  user_id: string | null;
+  userId: string | null;
 
   @Column({ type: "varchar", length: 20 })
-  bot_type: string;
+  botType: string;
 
   @Column({
     type: "enum",
     enum: TelegramEventType,
   })
-  event_type: TelegramEventType;
+  eventType: TelegramEventType;
 
   @Column({ type: "varchar", length: 100 })
-  action_name: string;
+  actionName: string;
 
   @Column({ type: "varchar", length: 50, nullable: true })
-  action_category: string | null;
+  actionCategory: string | null;
 
   @Column({ type: "integer", nullable: true })
-  response_time_ms: number | null;
+  responseTimeMs: number | null;
 
   @Column({ type: "boolean", default: true })
   success: boolean;
 
   @Column({ type: "text", nullable: true })
-  error_message: string | null;
+  errorMessage: string | null;
 
   @Column({ type: "varchar", length: 50, nullable: true })
-  session_id: string | null;
+  sessionId: string | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

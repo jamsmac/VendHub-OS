@@ -47,8 +47,8 @@ describe("ContractorsService", () => {
       accountNumber: "20208000",
       mfo: "00000",
     },
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Contractor;
 
   const mockInvoice: ContractorInvoice = {
@@ -67,8 +67,8 @@ describe("ContractorsService", () => {
     approvedAt: null,
     attachmentUrls: [],
     contractor: mockContractor,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as ContractorInvoice;
 
   const mockQueryBuilder = {

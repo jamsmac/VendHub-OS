@@ -45,7 +45,7 @@ export class BotTaskOpsService {
         ]),
       },
       relations: ["machine"],
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       take: pageSize,
       skip,
     });

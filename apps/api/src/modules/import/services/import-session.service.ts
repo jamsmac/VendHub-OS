@@ -879,14 +879,14 @@ export class ImportSessionService {
       });
     }
     if (query.dateFrom) {
-      qb.andWhere("s.created_at >= :dateFrom", { dateFrom: query.dateFrom });
+      qb.andWhere("s.createdAt >= :dateFrom", { dateFrom: query.dateFrom });
     }
     if (query.dateTo) {
-      qb.andWhere("s.created_at <= :dateTo", { dateTo: query.dateTo });
+      qb.andWhere("s.createdAt <= :dateTo", { dateTo: query.dateTo });
     }
 
     const [data, total] = await qb
-      .orderBy("s.created_at", "DESC")
+      .orderBy("s.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();

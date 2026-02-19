@@ -322,8 +322,8 @@ export class PayrollService {
       overtimeHours: Number(payroll.overtimeHours),
       details: payroll.details,
       note: payroll.note,
-      createdAt: payroll.created_at,
-      updatedAt: payroll.updated_at,
+      createdAt: payroll.createdAt,
+      updatedAt: payroll.updatedAt,
     };
   }
 }

@@ -101,7 +101,7 @@ export class CommissionService {
       paymentStatus: PaymentStatus.PENDING,
       paymentDueDate,
       calculatedByUserId: userId,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     await this.commissionRepo.save(commission);

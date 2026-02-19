@@ -15,7 +15,7 @@ import {
 export class PaymentTransactionResponseDto extends BaseResponseDto {
   @ApiProperty({ description: "Organization ID" })
   @Expose()
-  organization_id: string;
+  organizationId: string;
 
   @ApiProperty({
     description: "Payment provider",
@@ -26,7 +26,7 @@ export class PaymentTransactionResponseDto extends BaseResponseDto {
 
   @ApiPropertyOptional({ description: "Payment provider transaction ID" })
   @Expose()
-  provider_tx_id?: string;
+  providerTxId?: string;
 
   @ApiProperty({ description: "Transaction amount (UZS)" })
   @Expose()
@@ -45,23 +45,23 @@ export class PaymentTransactionResponseDto extends BaseResponseDto {
 
   @ApiPropertyOptional({ description: "Associated order ID" })
   @Expose()
-  order_id?: string;
+  orderId?: string;
 
   @ApiPropertyOptional({ description: "Associated machine ID" })
   @Expose()
-  machine_id?: string;
+  machineId?: string;
 
   @ApiPropertyOptional({ description: "Client/user ID" })
   @Expose()
-  client_user_id?: string;
+  clientUserId?: string;
 
   @ApiPropertyOptional({ description: "Error message if transaction failed" })
   @Expose()
-  error_message?: string;
+  errorMessage?: string;
 
   @ApiPropertyOptional({ description: "Processing timestamp" })
   @Expose()
-  processed_at?: Date;
+  processedAt?: Date;
 
   @ApiProperty({
     description: "Metadata",
@@ -73,10 +73,10 @@ export class PaymentTransactionResponseDto extends BaseResponseDto {
   metadata?: Record<string, unknown>;
 
   @Exclude()
-  raw_request?: Record<string, unknown>; // Raw API request - may contain sensitive data
+  rawRequest?: Record<string, unknown>; // Raw API request - may contain sensitive data
 
   @Exclude()
-  raw_response?: Record<string, unknown>; // Raw API response - may contain sensitive data
+  rawResponse?: Record<string, unknown>; // Raw API response - may contain sensitive data
 
   @Exclude()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,11 +90,11 @@ export class PaymentTransactionResponseDto extends BaseResponseDto {
 export class PaymentRefundResponseDto extends BaseResponseDto {
   @ApiProperty({ description: "Payment transaction ID" })
   @Expose()
-  payment_transaction_id: string;
+  paymentTransactionId: string;
 
   @ApiPropertyOptional({ description: "Refund provider transaction ID" })
   @Expose()
-  provider_refund_id?: string;
+  providerRefundId?: string;
 
   @ApiProperty({ description: "Refund amount (UZS)" })
   @Expose()
@@ -113,11 +113,11 @@ export class PaymentRefundResponseDto extends BaseResponseDto {
 
   @ApiPropertyOptional({ description: "Error message if refund failed" })
   @Expose()
-  error_message?: string;
+  errorMessage?: string;
 
   @ApiPropertyOptional({ description: "Refund completion timestamp" })
   @Expose()
-  processed_at?: Date;
+  processedAt?: Date;
 
   @ApiProperty({
     description: "Metadata",
@@ -129,14 +129,14 @@ export class PaymentRefundResponseDto extends BaseResponseDto {
   metadata?: Record<string, unknown>;
 
   @Exclude()
-  raw_request?: Record<string, unknown>; // Raw API request
+  rawRequest?: Record<string, unknown>; // Raw API request
 
   @Exclude()
-  raw_response?: Record<string, unknown>; // Raw API response
+  rawResponse?: Record<string, unknown>; // Raw API response
 
   @Exclude()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payment_transaction?: any; // Related transaction
+  paymentTransaction?: any; // Related transaction
 }
 
 /**

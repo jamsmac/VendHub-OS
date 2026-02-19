@@ -359,7 +359,7 @@ describe("IncidentsService", () => {
 
       expect(result.title).toBe("Updated title");
       expect(result.priority).toBe(IncidentPriority.HIGH);
-      expect(result.updated_by_id).toBe(USER_ID);
+      expect(result.updatedById).toBe(USER_ID);
     });
 
     it("should set resolved_at when status transitions to RESOLVED", async () => {
@@ -463,7 +463,7 @@ describe("IncidentsService", () => {
 
       expect(result.assigned_to_user_id).toBe(techId);
       expect(result.status).toBe(IncidentStatus.INVESTIGATING);
-      expect(result.updated_by_id).toBe(USER_ID);
+      expect(result.updatedById).toBe(USER_ID);
     });
 
     it("should assign user without changing status if not REPORTED", async () => {

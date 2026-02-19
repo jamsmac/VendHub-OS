@@ -95,19 +95,19 @@ export class SecurityEventService {
       query.andWhere("event.isResolved = :isResolved", { isResolved });
     }
     if (startDate && endDate) {
-      query.andWhere("event.created_at BETWEEN :startDate AND :endDate", {
+      query.andWhere("event.createdAt BETWEEN :startDate AND :endDate", {
         startDate,
         endDate,
       });
     } else if (startDate) {
-      query.andWhere("event.created_at >= :startDate", { startDate });
+      query.andWhere("event.createdAt >= :startDate", { startDate });
     } else if (endDate) {
-      query.andWhere("event.created_at <= :endDate", { endDate });
+      query.andWhere("event.createdAt <= :endDate", { endDate });
     }
 
     const total = await query.getCount();
 
-    query.orderBy("event.created_at", "DESC");
+    query.orderBy("event.createdAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -128,7 +128,7 @@ export class SecurityEventService {
   ): Promise<SecurityEvent[]> {
     return this.securityEventRepository.find({
       where: { userId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -165,7 +165,7 @@ export class SecurityEventService {
     cutoff.setDate(cutoff.getDate() - retentionDays);
 
     const result = await this.securityEventRepository.softDelete({
-      created_at: LessThan(cutoff),
+      createdAt: LessThan(cutoff),
       isResolved: true,
     });
 

@@ -60,7 +60,7 @@ export class DirectoryAuditService {
       .createQueryBuilder("a")
       .innerJoin("directory_entries", "e", "e.id = a.entry_id")
       .where("e.directory_id = :directoryId", { directoryId })
-      .andWhere("e.deleted_at IS NULL")
+      .andWhere("e.deletedAt IS NULL")
       .andWhere(
         new Brackets((qb) => {
           qb.where("e.organization_id IS NULL").orWhere(

@@ -1,12 +1,11 @@
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { SalesImport, ImportStatus } from "./entities/sales-import.entity";
 import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SalesImport, ImportStatus } from './entities/sales-import.entity';
-import { CreateSalesImportDto, QuerySalesImportsDto } from './dto/create-sales-import.dto';
+  CreateSalesImportDto,
+  QuerySalesImportsDto,
+} from "./dto/create-sales-import.dto";
 
 @Injectable()
 export class SalesImportService {
@@ -32,7 +31,7 @@ export class SalesImportService {
       fileType: dto.fileType,
       fileId: dto.fileId || null,
       status: ImportStatus.PENDING,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const saved = await this.repository.save(importRecord);
@@ -87,10 +86,7 @@ export class SalesImportService {
     }
 
     if (data.errors) {
-      importRecord.errors = [
-        ...importRecord.errors,
-        ...data.errors,
-      ];
+      importRecord.errors = [...importRecord.errors, ...data.errors];
     }
 
     return this.repository.save(importRecord);
@@ -139,31 +135,38 @@ export class SalesImportService {
   async findAll(
     organizationId: string,
     params: QuerySalesImportsDto,
-  ): Promise<{ data: SalesImport[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: SalesImport[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = params.page || 1;
     const limit = params.limit || 20;
     const skip = (page - 1) * limit;
 
     const query = this.repository
-      .createQueryBuilder('si')
-      .where('si.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("si")
+      .where("si.organizationId = :organizationId", { organizationId });
 
     if (params.status) {
-      query.andWhere('si.status = :status', { status: params.status });
+      query.andWhere("si.status = :status", { status: params.status });
     }
 
     if (params.dateFrom) {
-      query.andWhere('si.created_at >= :dateFrom', { dateFrom: params.dateFrom });
+      query.andWhere("si.createdAt >= :dateFrom", {
+        dateFrom: params.dateFrom,
+      });
     }
 
     if (params.dateTo) {
-      query.andWhere('si.created_at <= :dateTo', { dateTo: params.dateTo });
+      query.andWhere("si.createdAt <= :dateTo", { dateTo: params.dateTo });
     }
 
     const total = await query.getCount();
 
     const data = await query
-      .orderBy('si.created_at', 'DESC')
+      .orderBy("si.createdAt", "DESC")
       .skip(skip)
       .take(limit)
       .getMany();
@@ -198,35 +201,33 @@ export class SalesImportService {
   /**
    * Get import statistics
    */
-  async getStats(
-    organizationId: string,
-  ): Promise<{
+  async getStats(organizationId: string): Promise<{
     totalImports: number;
     lastImportDate: Date | null;
     successRate: number;
     byStatus: Record<string, number>;
   }> {
     const stats = await this.repository
-      .createQueryBuilder('si')
-      .select('COUNT(*)', 'totalImports')
-      .addSelect('MAX(si.created_at)', 'lastImportDate')
+      .createQueryBuilder("si")
+      .select("COUNT(*)", "totalImports")
+      .addSelect("MAX(si.createdAt)", "lastImportDate")
       .addSelect(
-        'CASE WHEN COUNT(*) > 0 THEN ROUND(SUM(CASE WHEN si.status = :completed THEN 1 ELSE 0 END)::numeric / COUNT(*)::numeric * 100, 2) ELSE 0 END',
-        'successRate',
+        "CASE WHEN COUNT(*) > 0 THEN ROUND(SUM(CASE WHEN si.status = :completed THEN 1 ELSE 0 END)::numeric / COUNT(*)::numeric * 100, 2) ELSE 0 END",
+        "successRate",
       )
-      .where('si.organizationId = :organizationId', { organizationId })
-      .andWhere('si.deleted_at IS NULL')
-      .setParameter('completed', ImportStatus.COMPLETED)
+      .where("si.organizationId = :organizationId", { organizationId })
+      .andWhere("si.deletedAt IS NULL")
+      .setParameter("completed", ImportStatus.COMPLETED)
       .getRawOne();
 
     // Status breakdown
     const statusCounts = await this.repository
-      .createQueryBuilder('si')
-      .select('si.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('si.organizationId = :organizationId', { organizationId })
-      .andWhere('si.deleted_at IS NULL')
-      .groupBy('si.status')
+      .createQueryBuilder("si")
+      .select("si.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("si.organizationId = :organizationId", { organizationId })
+      .andWhere("si.deletedAt IS NULL")
+      .groupBy("si.status")
       .getRawMany();
 
     const byStatus: Record<string, number> = {};
@@ -235,9 +236,9 @@ export class SalesImportService {
     }
 
     return {
-      totalImports: parseInt(stats?.totalImports || '0', 10),
+      totalImports: parseInt(stats?.totalImports || "0", 10),
       lastImportDate: stats?.lastImportDate || null,
-      successRate: parseFloat(stats?.successRate || '0'),
+      successRate: parseFloat(stats?.successRate || "0"),
       byStatus,
     };
   }

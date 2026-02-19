@@ -41,11 +41,11 @@ describe("AlertsService", () => {
     cooldownMinutes: 60,
     isActive: true,
     metadata: {},
-    created_by_id: userId,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    updated_by_id: null,
+    createdById: userId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    updatedById: null,
   } as unknown as AlertRule;
 
   const mockAlert: AlertHistory = {
@@ -64,9 +64,9 @@ describe("AlertsService", () => {
     message: "Low Stock Alert: value 5 less_than 10",
     metadata: {},
     rule: mockRule,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
   } as unknown as AlertHistory;
 
   const createMockAlert = (): AlertHistory =>
@@ -154,7 +154,7 @@ describe("AlertsService", () => {
       expect(result).toEqual(mockRule);
       expect(ruleRepository.create).toHaveBeenCalledWith({
         organizationId: orgId,
-        created_by_id: userId,
+        createdById: userId,
         ...dto,
       });
       expect(ruleRepository.save).toHaveBeenCalledWith(mockRule);

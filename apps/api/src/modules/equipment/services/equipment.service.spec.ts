@@ -67,7 +67,7 @@ describe("EquipmentService", () => {
     componentStatus: EquipmentComponentStatus.INSTALLED,
     machineId: "machine-1",
     serialNumber: "SN-PUMP-001",
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -122,7 +122,7 @@ describe("EquipmentService", () => {
       expect(componentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          created_by_id: userId,
+          createdById: userId,
           name: "Water Pump",
         }),
       );
@@ -146,7 +146,7 @@ describe("EquipmentService", () => {
         "c.organizationId = :organizationId",
         { organizationId: orgId },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith("c.deleted_at IS NULL");
+      expect(qb.andWhere).toHaveBeenCalledWith("c.deletedAt IS NULL");
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);

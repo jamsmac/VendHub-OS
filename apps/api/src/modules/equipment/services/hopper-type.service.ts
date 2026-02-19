@@ -3,20 +3,16 @@
  * Business logic for hopper type dictionary management
  */
 
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
-import { HopperType } from '../entities/equipment-component.entity';
+import { HopperType } from "../entities/equipment-component.entity";
 import {
   CreateHopperTypeDto,
   UpdateHopperTypeDto,
   HopperTypeQueryDto,
-} from '../dto/create-hopper-type.dto';
+} from "../dto/create-hopper-type.dto";
 
 @Injectable()
 export class HopperTypeService {
@@ -34,7 +30,7 @@ export class HopperTypeService {
   ): Promise<HopperType> {
     const hopperType = this.hopperTypeRepository.create({
       organizationId,
-      created_by_id: userId,
+      createdById: userId,
       ...dto,
     });
 
@@ -47,27 +43,27 @@ export class HopperTypeService {
   async findAll(
     organizationId: string,
     query: HopperTypeQueryDto,
-  ): Promise<{ data: HopperType[]; total: number; page: number; limit: number }> {
-    const {
-      search,
-      activeOnly = true,
-      page = 1,
-      limit = 20,
-    } = query;
+  ): Promise<{
+    data: HopperType[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { search, activeOnly = true, page = 1, limit = 20 } = query;
 
     const qb = this.hopperTypeRepository
-      .createQueryBuilder('h')
-      .where('h.organizationId = :organizationId', { organizationId })
-      .andWhere('h.deleted_at IS NULL');
+      .createQueryBuilder("h")
+      .where("h.organizationId = :organizationId", { organizationId })
+      .andWhere("h.deletedAt IS NULL");
 
     if (activeOnly) {
-      qb.andWhere('h.isActive = true');
+      qb.andWhere("h.isActive = true");
     }
     if (search) {
-      qb.andWhere('h.name ILIKE :search', { search: `%${search}%` });
+      qb.andWhere("h.name ILIKE :search", { search: `%${search}%` });
     }
 
-    qb.orderBy('h.name', 'ASC');
+    qb.orderBy("h.name", "ASC");
 
     const [data, total] = await qb
       .skip((page - 1) * limit)

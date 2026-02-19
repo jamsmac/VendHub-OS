@@ -58,7 +58,7 @@ describe("SparePartService", () => {
     quantity: 10,
     minQuantity: 5,
     isActive: true,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -96,7 +96,7 @@ describe("SparePartService", () => {
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          created_by_id: userId,
+          createdById: userId,
         }),
       );
       expect(result).toEqual(created);

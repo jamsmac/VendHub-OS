@@ -623,7 +623,7 @@ export class TransactionsService {
           (byPaymentMethod[t.paymentMethod] || 0) + 1;
       }
 
-      const hour = t.created_at.getHours();
+      const hour = t.createdAt.getHours();
       if (!byHourMap[hour]) {
         byHourMap[hour] = { count: 0, revenue: 0 };
       }
@@ -641,7 +641,7 @@ export class TransactionsService {
     const itemsQb = this.itemRepo.createQueryBuilder("i");
     itemsQb.innerJoin("i.transaction", "t");
     itemsQb.where("t.organizationId = :organizationId", { organizationId });
-    itemsQb.andWhere("t.created_at BETWEEN :dateFrom AND :dateTo", {
+    itemsQb.andWhere("t.createdAt BETWEEN :dateFrom AND :dateTo", {
       dateFrom,
       dateTo,
     });
@@ -694,7 +694,7 @@ export class TransactionsService {
     const count = await this.transactionRepo.count({
       where: {
         organizationId,
-        created_at: Between(
+        createdAt: Between(
           new Date(date.setHours(0, 0, 0, 0)),
           new Date(date.setHours(23, 59, 59, 999)),
         ),
@@ -826,10 +826,10 @@ export class TransactionsService {
     const [data, total] = await this.transactionRepo.findAndCount({
       where: {
         machineId,
-        created_at: Between(today, new Date()),
+        createdAt: Between(today, new Date()),
       },
       relations: ["items"],
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
       skip: (page - 1) * safeLimit,
       take: safeLimit,
     });
@@ -885,7 +885,7 @@ export class TransactionsService {
       .addSelect("COALESCE(SUM(t.total_amount), 0)", "total")
       .where("t.organization_id = :organizationId", { organizationId })
       .andWhere("t.status = :status", { status: TransactionStatus.COMPLETED })
-      .andWhere("t.created_at BETWEEN :dateFrom AND :dateTo", {
+      .andWhere("t.createdAt BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
@@ -1219,7 +1219,7 @@ export class TransactionsService {
     // Hourly breakdown
     const hourlyMap: Record<number, { count: number; amount: number }> = {};
     for (const t of sales) {
-      const hour = t.created_at.getHours();
+      const hour = t.createdAt.getHours();
       if (!hourlyMap[hour]) {
         hourlyMap[hour] = { count: 0, amount: 0 };
       }
@@ -1234,7 +1234,7 @@ export class TransactionsService {
     const itemsQb = this.itemRepo.createQueryBuilder("i");
     itemsQb.innerJoin("i.transaction", "t");
     itemsQb.where("t.organizationId = :organizationId", { organizationId });
-    itemsQb.andWhere("t.created_at BETWEEN :dayStart AND :dayEnd", {
+    itemsQb.andWhere("t.createdAt BETWEEN :dayStart AND :dayEnd", {
       dayStart,
       dayEnd,
     });

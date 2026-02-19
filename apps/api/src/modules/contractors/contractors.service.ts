@@ -8,17 +8,17 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron } from "@nestjs/schedule";
 import {
   Contractor,
   ContractorInvoice,
   ServiceType,
   InvoiceStatus,
-} from './entities/contractor.entity';
+} from "./entities/contractor.entity";
 import {
   CreateContractorDto,
   UpdateContractorDto,
@@ -32,7 +32,7 @@ import {
   InvoiceDto,
   InvoiceListDto,
   ContractorStatsDto,
-} from './dto/contractor.dto';
+} from "./dto/contractor.dto";
 
 @Injectable()
 export class ContractorsService {
@@ -60,7 +60,9 @@ export class ContractorsService {
     const contractor = this.contractorRepo.create({
       organizationId,
       ...dto,
-      contractStart: dto.contractStart ? new Date(dto.contractStart) : undefined,
+      contractStart: dto.contractStart
+        ? new Date(dto.contractStart)
+        : undefined,
       contractEnd: dto.contractEnd ? new Date(dto.contractEnd) : undefined,
     });
 
@@ -68,7 +70,7 @@ export class ContractorsService {
 
     this.logger.log(`Contractor ${contractor.companyName} created`);
 
-    this.eventEmitter.emit('contractor.created', {
+    this.eventEmitter.emit("contractor.created", {
       contractorId: contractor.id,
       organizationId,
     });
@@ -88,8 +90,12 @@ export class ContractorsService {
 
     Object.assign(contractor, {
       ...dto,
-      contractStart: dto.contractStart ? new Date(dto.contractStart) : contractor.contractStart,
-      contractEnd: dto.contractEnd ? new Date(dto.contractEnd) : contractor.contractEnd,
+      contractStart: dto.contractStart
+        ? new Date(dto.contractStart)
+        : contractor.contractStart,
+      contractEnd: dto.contractEnd
+        ? new Date(dto.contractEnd)
+        : contractor.contractEnd,
     });
 
     await this.contractorRepo.save(contractor);
@@ -115,13 +121,15 @@ export class ContractorsService {
     });
 
     if (pendingInvoices > 0) {
-      throw new BadRequestException('Cannot delete contractor with pending invoices');
+      throw new BadRequestException(
+        "Cannot delete contractor with pending invoices",
+      );
     }
 
     contractor.isActive = false;
     await this.contractorRepo.save(contractor);
 
-    this.eventEmitter.emit('contractor.deleted', {
+    this.eventEmitter.emit("contractor.deleted", {
       contractorId: contractor.id,
       organizationId,
     });
@@ -148,32 +156,32 @@ export class ContractorsService {
     const { serviceType, isActive, search, page = 1, limit = 20 } = filter;
 
     const qb = this.contractorRepo
-      .createQueryBuilder('c')
-      .where('c.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("c")
+      .where("c.organizationId = :organizationId", { organizationId });
 
     if (serviceType) {
-      qb.andWhere('c.serviceType = :serviceType', { serviceType });
+      qb.andWhere("c.serviceType = :serviceType", { serviceType });
     }
 
     if (isActive !== undefined) {
-      qb.andWhere('c.isActive = :isActive', { isActive });
+      qb.andWhere("c.isActive = :isActive", { isActive });
     }
 
     if (search) {
       qb.andWhere(
-        '(c.companyName ILIKE :search OR c.contactPerson ILIKE :search OR c.phone ILIKE :search)',
+        "(c.companyName ILIKE :search OR c.contactPerson ILIKE :search OR c.phone ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     const [items, total] = await qb
-      .orderBy('c.companyName', 'ASC')
+      .orderBy("c.companyName", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(c => this.mapContractorToDto(c)),
+      items: items.map((c) => this.mapContractorToDto(c)),
       total,
       page,
       limit,
@@ -190,10 +198,10 @@ export class ContractorsService {
   ): Promise<ContractorDto[]> {
     const contractors = await this.contractorRepo.find({
       where: { organizationId, serviceType, isActive: true },
-      order: { companyName: 'ASC' },
+      order: { companyName: "ASC" },
     });
 
-    return contractors.map(c => this.mapContractorToDto(c));
+    return contractors.map((c) => this.mapContractorToDto(c));
   }
 
   // ============================================================================
@@ -216,7 +224,7 @@ export class ContractorsService {
     });
 
     if (existing) {
-      throw new ConflictException('Invoice number already exists');
+      throw new ConflictException("Invoice number already exists");
     }
 
     const invoice = this.invoiceRepo.create({
@@ -230,7 +238,9 @@ export class ContractorsService {
 
     await this.invoiceRepo.save(invoice);
 
-    this.logger.log(`Invoice ${invoice.invoiceNumber} created for contractor ${contractor.companyName}`);
+    this.logger.log(
+      `Invoice ${invoice.invoiceNumber} created for contractor ${contractor.companyName}`,
+    );
 
     return this.mapInvoiceToDto(invoice, contractor);
   }
@@ -246,7 +256,7 @@ export class ContractorsService {
     const invoice = await this.findInvoice(invoiceId, organizationId);
 
     if (invoice.status !== InvoiceStatus.PENDING) {
-      throw new BadRequestException('Can only update pending invoices');
+      throw new BadRequestException("Can only update pending invoices");
     }
 
     Object.assign(invoice, {
@@ -256,7 +266,10 @@ export class ContractorsService {
 
     await this.invoiceRepo.save(invoice);
 
-    const contractor = await this.findContractor(invoice.contractorId, organizationId);
+    const contractor = await this.findContractor(
+      invoice.contractorId,
+      organizationId,
+    );
     return this.mapInvoiceToDto(invoice, contractor);
   }
 
@@ -271,7 +284,7 @@ export class ContractorsService {
     const invoice = await this.findInvoice(invoiceId, organizationId);
 
     if (invoice.status !== InvoiceStatus.PENDING) {
-      throw new BadRequestException('Can only approve pending invoices');
+      throw new BadRequestException("Can only approve pending invoices");
     }
 
     invoice.status = InvoiceStatus.APPROVED;
@@ -280,12 +293,15 @@ export class ContractorsService {
 
     await this.invoiceRepo.save(invoice);
 
-    this.eventEmitter.emit('contractor-invoice.approved', {
+    this.eventEmitter.emit("contractor-invoice.approved", {
       invoiceId: invoice.id,
       organizationId,
     });
 
-    const contractor = await this.findContractor(invoice.contractorId, organizationId);
+    const contractor = await this.findContractor(
+      invoice.contractorId,
+      organizationId,
+    );
     return this.mapInvoiceToDto(invoice, contractor);
   }
 
@@ -300,25 +316,30 @@ export class ContractorsService {
     const invoice = await this.findInvoice(invoiceId, organizationId);
 
     if (invoice.status === InvoiceStatus.CANCELLED) {
-      throw new BadRequestException('Cannot pay cancelled invoice');
+      throw new BadRequestException("Cannot pay cancelled invoice");
     }
 
     invoice.paidAmount = Number(invoice.paidAmount) + dto.amount;
 
     if (invoice.paidAmount >= invoice.amount) {
       invoice.status = InvoiceStatus.PAID;
-      invoice.paidDate = dto.paymentDate ? new Date(dto.paymentDate) : new Date();
+      invoice.paidDate = dto.paymentDate
+        ? new Date(dto.paymentDate)
+        : new Date();
     }
 
     await this.invoiceRepo.save(invoice);
 
-    this.eventEmitter.emit('contractor-invoice.paid', {
+    this.eventEmitter.emit("contractor-invoice.paid", {
       invoiceId: invoice.id,
       amount: dto.amount,
       organizationId,
     });
 
-    const contractor = await this.findContractor(invoice.contractorId, organizationId);
+    const contractor = await this.findContractor(
+      invoice.contractorId,
+      organizationId,
+    );
     return this.mapInvoiceToDto(invoice, contractor);
   }
 
@@ -332,13 +353,16 @@ export class ContractorsService {
     const invoice = await this.findInvoice(invoiceId, organizationId);
 
     if (invoice.status === InvoiceStatus.PAID) {
-      throw new BadRequestException('Cannot cancel paid invoice');
+      throw new BadRequestException("Cannot cancel paid invoice");
     }
 
     invoice.status = InvoiceStatus.CANCELLED;
     await this.invoiceRepo.save(invoice);
 
-    const contractor = await this.findContractor(invoice.contractorId, organizationId);
+    const contractor = await this.findContractor(
+      invoice.contractorId,
+      organizationId,
+    );
     return this.mapInvoiceToDto(invoice, contractor);
   }
 
@@ -362,37 +386,44 @@ export class ContractorsService {
     organizationId: string,
     filter: InvoiceFilterDto,
   ): Promise<InvoiceListDto> {
-    const { status, contractorId, fromDate, toDate, page = 1, limit = 20 } = filter;
+    const {
+      status,
+      contractorId,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 20,
+    } = filter;
 
     const qb = this.invoiceRepo
-      .createQueryBuilder('i')
-      .leftJoinAndSelect('i.contractor', 'contractor')
-      .where('i.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("i")
+      .leftJoinAndSelect("i.contractor", "contractor")
+      .where("i.organizationId = :organizationId", { organizationId });
 
     if (status) {
-      qb.andWhere('i.status = :status', { status });
+      qb.andWhere("i.status = :status", { status });
     }
 
     if (contractorId) {
-      qb.andWhere('i.contractorId = :contractorId', { contractorId });
+      qb.andWhere("i.contractorId = :contractorId", { contractorId });
     }
 
     if (fromDate) {
-      qb.andWhere('i.issueDate >= :fromDate', { fromDate });
+      qb.andWhere("i.issueDate >= :fromDate", { fromDate });
     }
 
     if (toDate) {
-      qb.andWhere('i.issueDate <= :toDate', { toDate });
+      qb.andWhere("i.issueDate <= :toDate", { toDate });
     }
 
     const [items, total] = await qb
-      .orderBy('i.dueDate', 'ASC')
+      .orderBy("i.dueDate", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      items: items.map(i => this.mapInvoiceToDto(i, i.contractor)),
+      items: items.map((i) => this.mapInvoiceToDto(i, i.contractor)),
       total,
       page,
       limit,
@@ -408,12 +439,14 @@ export class ContractorsService {
    * Получить статистику
    */
   async getStats(organizationId: string): Promise<ContractorStatsDto> {
-    const contractors = await this.contractorRepo.find({ where: { organizationId } });
+    const contractors = await this.contractorRepo.find({
+      where: { organizationId },
+    });
     const invoices = await this.invoiceRepo.find({ where: { organizationId } });
 
     const stats: ContractorStatsDto = {
       totalContractors: contractors.length,
-      activeContractors: contractors.filter(c => c.isActive).length,
+      activeContractors: contractors.filter((c) => c.isActive).length,
       byServiceType: {} as Record<string, number>,
       totalInvoices: invoices.length,
       pendingInvoices: 0,
@@ -441,7 +474,10 @@ export class ContractorsService {
       stats.totalInvoiceAmount += Number(invoice.amount);
       stats.paidAmount += Number(invoice.paidAmount);
 
-      if (invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.APPROVED) {
+      if (
+        invoice.status === InvoiceStatus.PENDING ||
+        invoice.status === InvoiceStatus.APPROVED
+      ) {
         stats.pendingInvoices++;
         if (new Date(invoice.dueDate) < now) {
           stats.overdueInvoices++;
@@ -461,7 +497,7 @@ export class ContractorsService {
   /**
    * Отметить просроченные счета (ежедневно в 01:00)
    */
-  @Cron('0 1 * * *', { timeZone: 'Asia/Tashkent' })
+  @Cron("0 1 * * *", { timeZone: "Asia/Tashkent" })
   async markOverdueInvoices(): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -477,7 +513,7 @@ export class ContractorsService {
       invoice.status = InvoiceStatus.OVERDUE;
       await this.invoiceRepo.save(invoice);
 
-      this.eventEmitter.emit('contractor-invoice.overdue', {
+      this.eventEmitter.emit("contractor-invoice.overdue", {
         invoiceId: invoice.id,
         contractorId: invoice.contractorId,
         organizationId: invoice.organizationId,
@@ -502,7 +538,7 @@ export class ContractorsService {
     });
 
     if (!contractor) {
-      throw new NotFoundException('Contractor not found');
+      throw new NotFoundException("Contractor not found");
     }
 
     return contractor;
@@ -517,7 +553,7 @@ export class ContractorsService {
     });
 
     if (!invoice) {
-      throw new NotFoundException('Invoice not found');
+      throw new NotFoundException("Invoice not found");
     }
 
     return invoice;
@@ -541,12 +577,15 @@ export class ContractorsService {
       isActive: contractor.isActive,
       bankDetails: contractor.bankDetails,
       notes: contractor.notes,
-      createdAt: contractor.created_at,
-      updatedAt: contractor.updated_at,
+      createdAt: contractor.createdAt,
+      updatedAt: contractor.updatedAt,
     };
   }
 
-  private mapInvoiceToDto(invoice: ContractorInvoice, contractor?: Contractor): InvoiceDto {
+  private mapInvoiceToDto(
+    invoice: ContractorInvoice,
+    contractor?: Contractor,
+  ): InvoiceDto {
     return {
       id: invoice.id,
       organizationId: invoice.organizationId,
@@ -563,7 +602,7 @@ export class ContractorsService {
       approvedBy: invoice.approvedBy,
       approvedAt: invoice.approvedAt,
       attachmentUrls: invoice.attachmentUrls,
-      createdAt: invoice.created_at,
+      createdAt: invoice.createdAt,
     };
   }
 }

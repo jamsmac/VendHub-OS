@@ -242,7 +242,7 @@ export class LeaveService {
     }
 
     const [items, total] = await qb
-      .orderBy("lr.created_at", "DESC")
+      .orderBy("lr.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -340,8 +340,8 @@ export class LeaveService {
       approvedById: leaveRequest.approvedById,
       approvedAt: leaveRequest.approvedAt,
       rejectionReason: leaveRequest.rejectionReason,
-      createdAt: leaveRequest.created_at,
-      updatedAt: leaveRequest.updated_at,
+      createdAt: leaveRequest.createdAt,
+      updatedAt: leaveRequest.updatedAt,
     };
   }
 }

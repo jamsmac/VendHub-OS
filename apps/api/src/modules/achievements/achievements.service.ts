@@ -57,7 +57,7 @@ export class AchievementsService {
         orgId: organizationId,
       })
       .orderBy("a.display_order", "ASC")
-      .addOrderBy("a.created_at", "ASC");
+      .addOrderBy("a.createdAt", "ASC");
 
     if (filter?.category) {
       qb.andWhere("a.category = :category", { category: filter.category });

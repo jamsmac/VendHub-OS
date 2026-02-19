@@ -49,7 +49,7 @@ describe("HopperTypeService", () => {
     organizationId: orgId,
     name: "Standard Hopper",
     isActive: true,
-    created_at: new Date(),
+    createdAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -81,7 +81,7 @@ describe("HopperTypeService", () => {
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          created_by_id: userId,
+          createdById: userId,
           name: "Large Hopper",
         }),
       );
@@ -102,7 +102,7 @@ describe("HopperTypeService", () => {
         "h.organizationId = :organizationId",
         { organizationId: orgId },
       );
-      expect(qb.andWhere).toHaveBeenCalledWith("h.deleted_at IS NULL");
+      expect(qb.andWhere).toHaveBeenCalledWith("h.deletedAt IS NULL");
       expect(qb.andWhere).toHaveBeenCalledWith("h.isActive = true");
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);

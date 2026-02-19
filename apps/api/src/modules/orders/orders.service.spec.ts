@@ -97,8 +97,8 @@ describe("OrdersService", () => {
     paidAt: null,
     refundedAt: null,
     metadata: null,
-    created_at: new Date("2025-06-01T10:00:00Z"),
-    updated_at: new Date("2025-06-01T10:00:00Z"),
+    createdAt: new Date("2025-06-01T10:00:00Z"),
+    updatedAt: new Date("2025-06-01T10:00:00Z"),
   } as unknown as Order;
 
   // ---------------------------------------------------------------------------

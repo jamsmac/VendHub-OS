@@ -31,20 +31,20 @@ export enum RefundReason {
 // ============================================================================
 
 @Entity("payment_refunds")
-@Index(["payment_transaction_id"])
+@Index(["paymentTransactionId"])
 @Index(["status"])
 export class PaymentRefund extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "uuid" })
-  payment_transaction_id: string;
+  paymentTransactionId: string;
 
   @ManyToOne(() => PaymentTransaction, (tx) => tx.refunds, {
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "payment_transaction_id" })
-  payment_transaction: PaymentTransaction;
+  paymentTransaction: PaymentTransaction;
 
   @Column({ type: "decimal", precision: 12, scale: 2 })
   amount: number;
@@ -56,7 +56,7 @@ export class PaymentRefund extends BaseEntity {
   reason: RefundReason;
 
   @Column({ type: "text", nullable: true })
-  reason_note: string | null;
+  reasonNote: string | null;
 
   @Column({
     type: "enum",
@@ -66,11 +66,11 @@ export class PaymentRefund extends BaseEntity {
   status: RefundStatus;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  provider_refund_id: string | null;
+  providerRefundId: string | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  processed_at: Date | null;
+  processedAt: Date | null;
 
   @Column({ type: "uuid", nullable: true })
-  processed_by_user_id: string | null;
+  processedByUserId: string | null;
 }

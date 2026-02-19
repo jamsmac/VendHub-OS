@@ -205,7 +205,7 @@ export class IncidentsService {
       }
     }
 
-    incident.updated_by_id = userId;
+    incident.updatedById = userId;
 
     const saved = await this.incidentRepo.save(incident);
     this.logger.log(
@@ -274,7 +274,7 @@ export class IncidentsService {
       incident.status = IncidentStatus.INVESTIGATING;
     }
 
-    incident.updated_by_id = userId;
+    incident.updatedById = userId;
 
     const saved = await this.incidentRepo.save(incident);
     this.logger.log(

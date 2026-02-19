@@ -43,9 +43,9 @@ describe("ReconciliationService", () => {
     completedAt: null,
     processingTimeMs: null,
     errorMessage: null,
-    created_by_id: USER_ID,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdById: USER_ID,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as ReconciliationRun;
 
   const mockCompletedRun = {
@@ -68,8 +68,8 @@ describe("ReconciliationService", () => {
     resolutionNotes: null,
     resolvedAt: null,
     resolvedByUserId: null,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as ReconciliationMismatch;
 
   const mockRunQueryBuilder = {
@@ -172,7 +172,7 @@ describe("ReconciliationService", () => {
         expect.objectContaining({
           organizationId: ORG_ID,
           status: ReconciliationStatus.PENDING,
-          created_by_id: USER_ID,
+          createdById: USER_ID,
         }),
       );
     });

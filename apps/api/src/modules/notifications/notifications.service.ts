@@ -385,7 +385,7 @@ export class NotificationsService {
     }
 
     notification.status = NotificationStatus.CANCELLED;
-    notification.updated_at = new Date();
+    notification.updatedAt = new Date();
 
     // Удалить из очереди
     await this.queueRepo.softDelete({ notificationId: id });
@@ -503,7 +503,7 @@ export class NotificationsService {
     cutoff.setDate(cutoff.getDate() - olderThanDays);
 
     const result = await this.notificationRepo.softDelete({
-      created_at: LessThan(cutoff),
+      createdAt: LessThan(cutoff),
       status: In([NotificationStatus.READ, NotificationStatus.DELIVERED]),
     });
 
@@ -661,7 +661,7 @@ export class NotificationsService {
   ): Promise<NotificationTemplate> {
     const template = await this.getTemplate(id);
     Object.assign(template, data);
-    template.updated_at = new Date();
+    template.updatedAt = new Date();
     return this.templateRepo.save(template);
   }
 
@@ -727,7 +727,7 @@ export class NotificationsService {
   async getCampaigns(organizationId: string): Promise<NotificationCampaign[]> {
     return this.campaignRepo.find({
       where: { organizationId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -789,7 +789,7 @@ export class NotificationsService {
         status: NotificationStatus.QUEUED,
         scheduledAt: LessThan(new Date()),
       },
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
       take: 100,
     });
 
@@ -908,7 +908,7 @@ export class NotificationsService {
           where: {
             organizationId,
             type: eventType,
-            created_at: MoreThan(
+            createdAt: MoreThan(
               new Date(Date.now() - rule.cooldownMinutes * 60000),
             ),
           },

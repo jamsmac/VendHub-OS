@@ -202,8 +202,8 @@ export class PerformanceReviewService {
       employeeComments: review.employeeComments,
       reviewerComments: review.reviewerComments,
       completedAt: review.completedAt,
-      createdAt: review.created_at,
-      updatedAt: review.updated_at,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
     };
   }
 }

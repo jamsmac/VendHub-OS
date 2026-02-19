@@ -50,8 +50,8 @@ describe("AuditService", () => {
     isSuccess: true,
     retentionDays: 365,
     expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as AuditLog;
 
   const mockSnapshot: AuditSnapshot = {
@@ -62,7 +62,7 @@ describe("AuditService", () => {
     entityName: "Americano",
     snapshot: { name: "Americano", price: 12000 },
     retentionDays: 2555,
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as AuditSnapshot;
 
   const mockSession: AuditSession = {
@@ -72,7 +72,7 @@ describe("AuditService", () => {
     isActive: true,
     actionsCount: 0,
     lastActivityAt: new Date(),
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as AuditSession;
 
   const mockReport: AuditReport = {
@@ -81,7 +81,7 @@ describe("AuditService", () => {
     name: "security Report - 2024-01-01",
     reportType: "security",
     status: "completed",
-    created_at: new Date(),
+    createdAt: new Date(),
   } as unknown as AuditReport;
 
   const mockQueryBuilder = {
@@ -495,7 +495,7 @@ describe("AuditService", () => {
       expect(result).toEqual([mockSession]);
       expect(sessionRepo.find).toHaveBeenCalledWith({
         where: { userId, isActive: true },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
     });
 
@@ -506,7 +506,7 @@ describe("AuditService", () => {
 
       expect(sessionRepo.find).toHaveBeenCalledWith({
         where: { userId },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
       });
     });
   });
@@ -601,7 +601,7 @@ describe("AuditService", () => {
       expect(result).toEqual([mockReport]);
       expect(reportRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId },
-        order: { created_at: "DESC" },
+        order: { createdAt: "DESC" },
         take: 20,
       });
     });

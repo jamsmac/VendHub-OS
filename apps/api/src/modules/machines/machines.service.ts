@@ -131,8 +131,8 @@ export class MachinesService {
       "machine.longitude",
       "machine.lastRefillDate",
       "machine.lastMaintenanceDate",
-      "machine.created_at",
-      "machine.updated_at",
+      "machine.createdAt",
+      "machine.updatedAt",
     ]);
 
     const data = await query.getMany();
@@ -280,7 +280,7 @@ export class MachinesService {
       price: dto.price,
       costPrice: dto.costPrice,
       minQuantity: dto.minQuantity ?? 0,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.slotRepository.save(slot);
@@ -299,7 +299,7 @@ export class MachinesService {
     }
 
     Object.assign(slot, dto);
-    slot.updated_by_id = userId ?? slot.updated_by_id;
+    slot.updatedById = userId ?? slot.updatedById;
 
     return this.slotRepository.save(slot);
   }
@@ -325,7 +325,7 @@ export class MachinesService {
 
     slot.currentQuantity = newQuantity;
     slot.lastRefilledAt = new Date();
-    slot.updated_by_id = userId ?? slot.updated_by_id;
+    slot.updatedById = userId ?? slot.updatedById;
 
     const savedSlot = await this.slotRepository.save(slot);
 
@@ -357,7 +357,7 @@ export class MachinesService {
       reason: dto.reason ?? MoveReason.RELOCATION,
       notes: dto.notes,
       movedAt: new Date(),
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const savedHistory = await this.locationHistoryRepository.save(history);
@@ -409,7 +409,7 @@ export class MachinesService {
 
     return this.componentRepository.find({
       where: { machineId },
-      order: { created_at: "DESC" },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -433,7 +433,7 @@ export class MachinesService {
       status: ComponentStatus.INSTALLED,
       installedAt: new Date(),
       installedByUserId: userId,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.componentRepository.save(component);
@@ -452,7 +452,7 @@ export class MachinesService {
 
     component.status = ComponentStatus.REMOVED;
     component.machineId = null;
-    component.updated_by_id = userId;
+    component.updatedById = userId;
 
     return this.componentRepository.save(component);
   }
@@ -476,7 +476,7 @@ export class MachinesService {
       severity: (dto.severity as any) ?? "error",
       context: dto.context ?? {},
       occurredAt: new Date(),
-      created_by_id: userId,
+      createdById: userId,
     });
 
     const savedError = await this.errorLogRepository.save(errorLog);
@@ -510,7 +510,7 @@ export class MachinesService {
     errorLog.resolvedAt = new Date();
     errorLog.resolvedByUserId = userId;
     errorLog.resolution = dto.resolution;
-    errorLog.updated_by_id = userId;
+    errorLog.updatedById = userId;
 
     const savedError = await this.errorLogRepository.save(errorLog);
 
@@ -578,7 +578,7 @@ export class MachinesService {
       estimatedCost: dto.estimatedCost,
       repeatIntervalDays: dto.repeatIntervalDays,
       status: MaintenanceStatus.SCHEDULED,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     return this.maintenanceRepository.save(schedule);
@@ -625,7 +625,7 @@ export class MachinesService {
     schedule.actualDurationMinutes =
       dto.actualDurationMinutes ?? schedule.actualDurationMinutes;
     schedule.actualCost = dto.actualCost ?? schedule.actualCost;
-    schedule.updated_by_id = userId;
+    schedule.updatedById = userId;
 
     const savedSchedule = await this.maintenanceRepository.save(schedule);
 
@@ -649,7 +649,7 @@ export class MachinesService {
         estimatedCost: schedule.estimatedCost,
         repeatIntervalDays: schedule.repeatIntervalDays,
         status: MaintenanceStatus.SCHEDULED,
-        created_by_id: userId,
+        createdById: userId,
       });
 
       const savedNext = await this.maintenanceRepository.save(nextSchedule);

@@ -56,8 +56,8 @@ describe("TripsService", () => {
     taskLinks: [],
     stops: [],
     anomalies: [],
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Trip;
 
   const mockVehicle = {

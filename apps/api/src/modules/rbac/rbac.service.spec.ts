@@ -23,11 +23,11 @@ describe("RbacService", () => {
     action: "read",
     description: "Read machines",
     isActive: true,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Permission;
 
   const mockPermission2: Permission = {
@@ -37,11 +37,11 @@ describe("RbacService", () => {
     action: "create",
     description: "Create machines",
     isActive: true,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Permission;
 
   const mockManagePermission: Permission = {
@@ -51,11 +51,11 @@ describe("RbacService", () => {
     action: "manage",
     description: "Full manage machines",
     isActive: true,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Permission;
 
   const mockWildcardPermission: Permission = {
@@ -65,11 +65,11 @@ describe("RbacService", () => {
     action: "manage",
     description: "Superadmin wildcard",
     isActive: true,
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Permission;
 
   const mockRole: Role = {
@@ -81,11 +81,11 @@ describe("RbacService", () => {
     organizationId: orgId,
     level: 50,
     permissions: [mockPermission],
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Role;
 
   const mockSystemRole: Role = {
@@ -97,11 +97,11 @@ describe("RbacService", () => {
     organizationId: null,
     level: 90,
     permissions: [mockPermission, mockPermission2],
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as Role;
 
   const mockUser: User = {
@@ -111,11 +111,11 @@ describe("RbacService", () => {
     lastName: "User",
     organizationId: orgId,
     roles: [mockRole],
-    created_at: new Date(),
-    updated_at: new Date(),
-    deleted_at: null,
-    created_by_id: null,
-    updated_by_id: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    createdById: null,
+    updatedById: null,
   } as unknown as User;
 
   const mockQueryBuilder = {

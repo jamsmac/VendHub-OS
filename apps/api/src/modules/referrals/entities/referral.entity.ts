@@ -146,7 +146,7 @@ export class Referral extends BaseEntity {
   get daysToActivate(): number {
     if (this.activatedAt) return 0;
     const daysDiff = Math.floor(
-      (Date.now() - this.created_at.getTime()) / (1000 * 60 * 60 * 24),
+      (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60 * 24),
     );
     return Math.max(0, 30 - daysDiff); // 30 days to activate
   }

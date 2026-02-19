@@ -634,7 +634,7 @@ export class LoyaltyService {
       this.userRepo.count({
         where: {
           organizationId,
-          created_at: Between(dateFrom, dateTo),
+          createdAt: Between(dateFrom, dateTo),
         },
       }),
     ]);
@@ -1087,7 +1087,7 @@ export class LoyaltyService {
         isExpired: false,
         remainingAmount: MoreThan(0),
       },
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
 
     let remaining = amount;
@@ -1131,7 +1131,7 @@ export class LoyaltyService {
       balanceAfter: tx.balanceAfter,
       source: tx.source,
       description: tx.description || "",
-      createdAt: tx.created_at,
+      createdAt: tx.createdAt,
       expiresAt: tx.expiresAt || null,
       icon: icons[tx.source] || "💰",
       color: tx.amount > 0 ? "green" : tx.amount < 0 ? "red" : "gray",

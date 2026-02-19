@@ -110,7 +110,7 @@ export class DirectoriesService {
       .createQueryBuilder("d")
       .where("d.slug = :slug", { slug: dto.slug })
       .withDeleted()
-      .andWhere("d.deleted_at IS NULL")
+      .andWhere("d.deletedAt IS NULL")
       .getOne();
 
     if (existing) {
@@ -123,7 +123,7 @@ export class DirectoriesService {
       ...dto,
       organizationId,
       scope: dto.scope ?? DirectoryScope.HQ,
-      created_by_id: userId ?? null,
+      createdById: userId ?? null,
     });
 
     return this.directoryRepository.save(directory);
@@ -278,7 +278,7 @@ export class DirectoriesService {
 
     Object.assign(directory, {
       ...dto,
-      updated_by_id: userId ?? null,
+      updatedById: userId ?? null,
     });
 
     return this.directoryRepository.save(directory);

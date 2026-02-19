@@ -9,13 +9,16 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Contract, ContractStatus } from '../entities/contract.entity';
-import { Contractor } from '../entities/contractor.entity';
-import { CreateContractDto, UpdateContractDto } from '../dto/create-contract.dto';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Contract, ContractStatus } from "../entities/contract.entity";
+import { Contractor } from "../entities/contractor.entity";
+import {
+  CreateContractDto,
+  UpdateContractDto,
+} from "../dto/create-contract.dto";
 
 @Injectable()
 export class ContractService {
@@ -47,7 +50,7 @@ export class ContractService {
     });
 
     if (!contractor) {
-      throw new NotFoundException('Contractor not found');
+      throw new NotFoundException("Contractor not found");
     }
 
     // Check unique contract number within organization
@@ -75,7 +78,7 @@ export class ContractService {
       commissionTiers: dto.commissionTiers,
       commissionHybridFixed: dto.commissionHybridFixed,
       commissionHybridRate: dto.commissionHybridRate,
-      currency: dto.currency || 'UZS',
+      currency: dto.currency || "UZS",
       paymentTermDays: dto.paymentTermDays ?? 30,
       paymentType: dto.paymentType,
       minimumMonthlyRevenue: dto.minimumMonthlyRevenue,
@@ -83,7 +86,7 @@ export class ContractService {
       specialConditions: dto.specialConditions,
       notes: dto.notes,
       contractFileId: dto.contractFileId,
-      created_by_id: userId,
+      createdById: userId,
     });
 
     await this.contractRepo.save(contract);
@@ -92,7 +95,7 @@ export class ContractService {
       `Contract ${contract.contractNumber} created for contractor ${contractor.companyName}`,
     );
 
-    this.eventEmitter.emit('contract.created', {
+    this.eventEmitter.emit("contract.created", {
       contractId: contract.id,
       contractorId: contractor.id,
       organizationId,
@@ -112,24 +115,30 @@ export class ContractService {
       page?: number;
       limit?: number;
     },
-  ): Promise<{ items: Contract[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: Contract[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const { contractorId, status, page = 1, limit = 20 } = params;
 
     const qb = this.contractRepo
-      .createQueryBuilder('c')
-      .leftJoinAndSelect('c.contractor', 'contractor')
-      .where('c.organizationId = :organizationId', { organizationId });
+      .createQueryBuilder("c")
+      .leftJoinAndSelect("c.contractor", "contractor")
+      .where("c.organizationId = :organizationId", { organizationId });
 
     if (contractorId) {
-      qb.andWhere('c.contractorId = :contractorId', { contractorId });
+      qb.andWhere("c.contractorId = :contractorId", { contractorId });
     }
 
     if (status) {
-      qb.andWhere('c.status = :status', { status });
+      qb.andWhere("c.status = :status", { status });
     }
 
     const [items, total] = await qb
-      .orderBy('c.created_at', 'DESC')
+      .orderBy("c.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -149,11 +158,11 @@ export class ContractService {
   async findById(id: string, organizationId: string): Promise<Contract> {
     const contract = await this.contractRepo.findOne({
       where: { id, organizationId },
-      relations: ['contractor'],
+      relations: ["contractor"],
     });
 
     if (!contract) {
-      throw new NotFoundException('Contract not found');
+      throw new NotFoundException("Contract not found");
     }
 
     return contract;
@@ -170,7 +179,7 @@ export class ContractService {
     const contract = await this.findById(id, organizationId);
 
     if (contract.status === ContractStatus.TERMINATED) {
-      throw new BadRequestException('Cannot update a terminated contract');
+      throw new BadRequestException("Cannot update a terminated contract");
     }
 
     Object.assign(contract, {
@@ -193,7 +202,7 @@ export class ContractService {
 
     if (contract.status !== ContractStatus.DRAFT) {
       throw new BadRequestException(
-        'Only DRAFT contracts can be deleted. Use terminate for active contracts.',
+        "Only DRAFT contracts can be deleted. Use terminate for active contracts.",
       );
     }
 
@@ -201,7 +210,7 @@ export class ContractService {
 
     this.logger.log(`Contract ${contract.contractNumber} deleted (soft)`);
 
-    this.eventEmitter.emit('contract.deleted', {
+    this.eventEmitter.emit("contract.deleted", {
       contractId: contract.id,
       organizationId,
     });
@@ -228,7 +237,7 @@ export class ContractService {
 
     this.logger.log(`Contract ${contract.contractNumber} activated`);
 
-    this.eventEmitter.emit('contract.activated', {
+    this.eventEmitter.emit("contract.activated", {
       contractId: contract.id,
       contractorId: contract.contractorId,
       organizationId,
@@ -254,7 +263,7 @@ export class ContractService {
 
     this.logger.log(`Contract ${contract.contractNumber} suspended`);
 
-    this.eventEmitter.emit('contract.suspended', {
+    this.eventEmitter.emit("contract.suspended", {
       contractId: contract.id,
       contractorId: contract.contractorId,
       organizationId,
@@ -270,7 +279,7 @@ export class ContractService {
     const contract = await this.findById(id, organizationId);
 
     if (contract.status === ContractStatus.TERMINATED) {
-      throw new BadRequestException('Contract is already terminated');
+      throw new BadRequestException("Contract is already terminated");
     }
 
     contract.status = ContractStatus.TERMINATED;
@@ -278,7 +287,7 @@ export class ContractService {
 
     this.logger.log(`Contract ${contract.contractNumber} terminated`);
 
-    this.eventEmitter.emit('contract.terminated', {
+    this.eventEmitter.emit("contract.terminated", {
       contractId: contract.id,
       contractorId: contract.contractorId,
       organizationId,

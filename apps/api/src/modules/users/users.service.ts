@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User, UserStatus } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User, UserStatus } from "./entities/user.entity";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -28,30 +32,30 @@ export class UsersService {
     },
   ) {
     const { page = 1, limit = 20, role, status, search } = options || {};
-    const query = this.userRepository.createQueryBuilder('user');
+    const query = this.userRepository.createQueryBuilder("user");
 
     if (organizationId) {
-      query.where('user.organization_id = :organizationId', { organizationId });
+      query.where("user.organization_id = :organizationId", { organizationId });
     }
 
     if (role) {
-      query.andWhere('user.role = :role', { role });
+      query.andWhere("user.role = :role", { role });
     }
 
     if (status) {
-      query.andWhere('user.status = :status', { status });
+      query.andWhere("user.status = :status", { status });
     }
 
     if (search) {
       query.andWhere(
-        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+        "(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
     const total = await query.getCount();
 
-    query.orderBy('user.created_at', 'DESC');
+    query.orderBy("user.createdAt", "DESC");
     query.skip((page - 1) * limit);
     query.take(limit);
 
@@ -69,14 +73,14 @@ export class UsersService {
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['organization'],
+      relations: ["organization"],
     });
   }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['organization'],
+      relations: ["organization"],
     });
   }
 
@@ -115,7 +119,7 @@ export class UsersService {
   async findOneWithRoles(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['organization', 'roles'],
+      relations: ["organization", "roles"],
     });
   }
 
@@ -126,7 +130,7 @@ export class UsersService {
     }
 
     if (user.status !== UserStatus.PENDING) {
-      throw new BadRequestException('User is not in pending status');
+      throw new BadRequestException("User is not in pending status");
     }
 
     user.status = UserStatus.ACTIVE;
@@ -136,14 +140,18 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async rejectUser(userId: string, rejectedById: string, reason: string): Promise<User> {
+  async rejectUser(
+    userId: string,
+    rejectedById: string,
+    reason: string,
+  ): Promise<User> {
     const user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
     if (user.status !== UserStatus.PENDING) {
-      throw new BadRequestException('User is not in pending status');
+      throw new BadRequestException("User is not in pending status");
     }
 
     user.status = UserStatus.REJECTED;

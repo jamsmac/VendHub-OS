@@ -36,11 +36,11 @@ export enum PromoCodeStatus {
 
 @Entity("promo_codes")
 @Index(["code"], { unique: true })
-@Index(["organization_id", "status"])
-@Index(["valid_from", "valid_until"])
+@Index(["organizationId", "status"])
+@Index(["validFrom", "validUntil"])
 export class PromoCode extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "varchar", length: 50, unique: true })
   code: string;
@@ -70,35 +70,35 @@ export class PromoCode extends BaseEntity {
   // ===== Usage Limits =====
 
   @Column({ type: "int", nullable: true })
-  max_total_uses: number | null;
+  maxTotalUses: number | null;
 
   @Column({ type: "int", default: 1 })
-  max_uses_per_user: number;
+  maxUsesPerUser: number;
 
   @Column({ type: "int", default: 0 })
-  current_total_uses: number;
+  currentTotalUses: number;
 
   // ===== Validity Period =====
 
   @Column({ type: "timestamp with time zone" })
-  valid_from: Date;
+  validFrom: Date;
 
   @Column({ type: "timestamp with time zone" })
-  valid_until: Date;
+  validUntil: Date;
 
   // ===== Applicability Rules =====
 
   @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
-  min_order_amount: number | null;
+  minOrderAmount: number | null;
 
   @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
-  max_discount_amount: number | null;
+  maxDiscountAmount: number | null;
 
   @Column({ type: "jsonb", nullable: true })
-  applicable_machine_ids: string[] | null;
+  applicableMachineIds: string[] | null;
 
   @Column({ type: "jsonb", nullable: true })
-  applicable_product_ids: string[] | null;
+  applicableProductIds: string[] | null;
 
   // ===== Metadata =====
 
@@ -107,7 +107,7 @@ export class PromoCode extends BaseEntity {
 
   // ===== Relations =====
 
-  @OneToMany(() => PromoCodeRedemption, (redemption) => redemption.promo_code)
+  @OneToMany(() => PromoCodeRedemption, (redemption) => redemption.promoCode)
   redemptions: PromoCodeRedemption[];
 
   // ===== Hooks =====

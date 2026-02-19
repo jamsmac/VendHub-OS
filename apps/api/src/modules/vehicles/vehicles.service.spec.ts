@@ -25,8 +25,8 @@ describe("VehiclesService", () => {
     status: VehicleStatus.ACTIVE,
     notes: null,
     metadata: {},
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as Vehicle;
 
   const createMockQueryBuilder = (result: unknown = []) => ({
@@ -213,7 +213,7 @@ describe("VehiclesService", () => {
       );
 
       expect(result.brand).toBe("Honda");
-      expect(result.updated_by_id).toBe("user-1");
+      expect(result.updatedById).toBe("user-1");
     });
 
     it("should throw NotFoundException when vehicle not found", async () => {

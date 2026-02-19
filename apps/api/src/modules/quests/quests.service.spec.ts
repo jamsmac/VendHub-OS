@@ -63,11 +63,11 @@ describe("QuestsService", () => {
     totalCompleted: 5,
     userQuests: [] as UserQuest[],
     organization: null as unknown,
-    created_at: new Date("2025-01-01"),
-    updated_at: new Date("2025-01-01"),
-    deleted_at: null as Date | null,
-    created_by_id: null as string | null,
-    updated_by_id: null as string | null,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-01-01"),
+    deletedAt: null as Date | null,
+    createdById: null as string | null,
+    updatedById: null as string | null,
   };
   Object.defineProperties(mockQuestBase, {
     completionRate: {
@@ -122,11 +122,11 @@ describe("QuestsService", () => {
     completedAt: new Date("2025-01-01T14:00:00Z") as Date | null,
     claimedAt: null as Date | null,
     expiredAt: null as Date | null,
-    created_at: new Date("2025-01-01"),
-    updated_at: new Date("2025-01-01"),
-    deleted_at: null as Date | null,
-    created_by_id: null as string | null,
-    updated_by_id: null as string | null,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-01-01"),
+    deletedAt: null as Date | null,
+    createdById: null as string | null,
+    updatedById: null as string | null,
   };
   Object.defineProperties(mockUserQuestBase, {
     progressPercent: {

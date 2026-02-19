@@ -254,8 +254,8 @@ export class TelegramBotController {
     // Return all settings (staff_bot and customer_bot)
     return this.telegramBotService["settingsRepo"].find({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { deleted_at: null as any },
-      order: { setting_key: "ASC" },
+      where: { deletedAt: null as any },
+      order: { settingKey: "ASC" },
     });
   }
 
@@ -277,32 +277,32 @@ export class TelegramBotController {
     @Body() dto: UpdateTelegramSettingsDto,
   ) {
     let settings = await this.telegramBotService["settingsRepo"].findOne({
-      where: { setting_key: key },
+      where: { settingKey: key },
     });
 
     if (!settings) {
       // Create default settings entry
       settings = this.telegramBotService["settingsRepo"].create({
-        setting_key: key,
+        settingKey: key,
       });
     }
 
     // Apply updates
     if (dto.mode !== undefined) settings.mode = dto.mode;
-    if (dto.webhookUrl !== undefined) settings.webhook_url = dto.webhookUrl;
-    if (dto.isActive !== undefined) settings.is_active = dto.isActive;
+    if (dto.webhookUrl !== undefined) settings.webhookUrl = dto.webhookUrl;
+    if (dto.isActive !== undefined) settings.isActive = dto.isActive;
     if (dto.sendNotifications !== undefined)
-      settings.send_notifications = dto.sendNotifications;
+      settings.sendNotifications = dto.sendNotifications;
     if (dto.maxMessagesPerMinute !== undefined)
-      settings.max_messages_per_minute = dto.maxMessagesPerMinute;
+      settings.maxMessagesPerMinute = dto.maxMessagesPerMinute;
     if (dto.defaultLanguage !== undefined)
-      settings.default_language = dto.defaultLanguage;
+      settings.defaultLanguage = dto.defaultLanguage;
     if (dto.welcomeMessageRu !== undefined)
-      settings.welcome_message_ru = dto.welcomeMessageRu;
+      settings.welcomeMessageRu = dto.welcomeMessageRu;
     if (dto.welcomeMessageUz !== undefined)
-      settings.welcome_message_uz = dto.welcomeMessageUz;
+      settings.welcomeMessageUz = dto.welcomeMessageUz;
     if (dto.welcomeMessageEn !== undefined)
-      settings.welcome_message_en = dto.welcomeMessageEn;
+      settings.welcomeMessageEn = dto.welcomeMessageEn;
 
     return this.telegramBotService["settingsRepo"].save(settings);
   }

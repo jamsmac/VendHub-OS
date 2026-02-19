@@ -578,7 +578,7 @@ export class TasksService {
 
     return this.taskItemRepository.find({
       where: { taskId },
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 
@@ -618,7 +618,7 @@ export class TasksService {
     return this.taskCommentRepository.find({
       where: { taskId },
       relations: ["user"],
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 
@@ -653,7 +653,7 @@ export class TasksService {
 
     return this.taskComponentRepository.find({
       where: { taskId },
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 
@@ -698,7 +698,7 @@ export class TasksService {
     return this.taskPhotoRepository.find({
       where: { taskId },
       relations: ["uploadedBy"],
-      order: { created_at: "ASC" },
+      order: { createdAt: "ASC" },
     });
   }
 }

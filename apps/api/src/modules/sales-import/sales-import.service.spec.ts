@@ -86,7 +86,7 @@ describe("SalesImportService", () => {
         fileType: dto.fileType,
         fileId: null,
         status: ImportStatus.PENDING,
-        created_by_id: "user-1",
+        createdById: "user-1",
       };
 
       repository.create!.mockReturnValue(created);
@@ -101,7 +101,7 @@ describe("SalesImportService", () => {
         fileType: ImportFileType.EXCEL,
         fileId: null,
         status: ImportStatus.PENDING,
-        created_by_id: "user-1",
+        createdById: "user-1",
       });
       expect(result.status).toBe(ImportStatus.PENDING);
     });
@@ -377,10 +377,10 @@ describe("SalesImportService", () => {
       await service.findAll("org-1", params);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "si.created_at >= :dateFrom",
+        "si.createdAt >= :dateFrom",
         { dateFrom: "2025-01-01" },
       );
-      expect(mockQb.andWhere).toHaveBeenCalledWith("si.created_at <= :dateTo", {
+      expect(mockQb.andWhere).toHaveBeenCalledWith("si.createdAt <= :dateTo", {
         dateTo: "2025-12-31",
       });
     });
