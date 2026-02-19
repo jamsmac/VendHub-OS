@@ -865,7 +865,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | #   | Задача                                  | Часы | Статус                       |
 | --- | --------------------------------------- | ---- | ---------------------------- |
 | 26  | Setup next-intl for Web Admin           | 8    | ✅ Done                      |
-| 27  | Extract hardcoded strings to i18n files | 32   | ✅ 15 страниц (осталось ~15) |
+| 27  | Extract hardcoded strings to i18n files | 32   | ✅ 20 страниц (осталось ~10) |
 
 ### Неделя 6+: P2 — Улучшения
 
@@ -879,7 +879,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                        |
 | 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                              |
 | 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                              |
-| 36  | i18n remaining ~15 web admin pages                  | 15   | ⚠️ Open (15/30 done)                           |
+| 36  | i18n remaining ~10 web admin pages                  | 10   | ⚠️ Open (20/30 done)                           |
 
 ### Общая оценка трудозатрат
 
