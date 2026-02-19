@@ -21,6 +21,11 @@ import { CartScreen } from "../screens/client/CartScreen";
 import { CheckoutScreen } from "../screens/client/CheckoutScreen";
 import { OrderSuccessScreen } from "../screens/client/OrderSuccessScreen";
 import { QuestsScreen } from "../screens/client/QuestsScreen";
+import { OrderHistoryScreen } from "../screens/client/OrderHistoryScreen";
+import { AchievementsScreen } from "../screens/client/AchievementsScreen";
+import { PromoCodeScreen } from "../screens/client/PromoCodeScreen";
+import { ReferralScreen } from "../screens/client/ReferralScreen";
+import { PointsHistoryScreen } from "../screens/client/PointsHistoryScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
@@ -40,6 +45,11 @@ export type ClientStackParamList = {
   Checkout: undefined;
   OrderSuccess: { orderId: string; total?: number; points?: number };
   Quests: undefined;
+  OrderHistory: undefined;
+  Achievements: undefined;
+  PromoCode: undefined;
+  Referrals: undefined;
+  FullHistory: undefined;
   Profile: undefined;
   Notifications: undefined;
   Settings: undefined;
@@ -140,6 +150,31 @@ export function ClientNavigator() {
         name="Quests"
         component={QuestsScreen}
         options={{ title: "Квесты" }}
+      />
+      <Stack.Screen
+        name="OrderHistory"
+        component={OrderHistoryScreen}
+        options={{ title: "Мои заказы" }}
+      />
+      <Stack.Screen
+        name="Achievements"
+        component={AchievementsScreen}
+        options={{ title: "Достижения" }}
+      />
+      <Stack.Screen
+        name="PromoCode"
+        component={PromoCodeScreen}
+        options={{ title: "Промокод" }}
+      />
+      <Stack.Screen
+        name="Referrals"
+        component={ReferralScreen}
+        options={{ title: "Рефералы" }}
+      />
+      <Stack.Screen
+        name="FullHistory"
+        component={PointsHistoryScreen}
+        options={{ title: "История баллов" }}
       />
       <Stack.Screen
         name="Profile"
