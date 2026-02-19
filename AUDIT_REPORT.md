@@ -18,7 +18,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | -------------- | ---- | ----- | --------------------------------------------------------------------- |
 | Архитектура    | 9/10 | 9/10  | Отличная модульная структура, правильные паттерны                     |
 | Backend API    | 8/10 | 9/10  | @Roles() добавлен ко всем контроллерам, cross-tenant fix, any→typed   |
-| Web Admin      | 6/10 | 8/10  | Auth исправлен, RBAC sidebar, i18n 5 страниц, shadcn/ui установлены   |
+| Web Admin      | 6/10 | 9/10  | Auth исправлен, RBAC sidebar, i18n 100% (49 страниц), shadcn/ui       |
 | Client PWA     | 5/10 | 6/10  | TS ошибки исправлены, canvas-confetti добавлен, token refresh         |
 | Mobile         | 4/10 | 7/10  | Компилируется (0 TS ошибок), auth token, API URL, offline support     |
 | Bot            | 7/10 | 8/10  | Auth добавлен, trip кириллица, API prefix исправлен                   |
@@ -279,7 +279,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Что:** Строки на русском вбиты прямо в JSX, нет i18n фреймворка
 - **Почему:** Невозможна локализация на узбекский и английский
 - **Как исправить:** Интегрировать `next-intl` или `react-i18next`, вынести строки в JSON файлы
-- **Прогресс:** next-intl интегрирован, 5 ядерных страниц локализованы (auth, machines, products, users, transactions) — ~180 ключей в 3 локалях (ru, en, uz). Остаётся ~45 страниц
+- **Прогресс:** ✅ ЗАВЕРШЕНО — next-intl интегрирован, все ~49 страниц локализованы (~2500+ ключей, 53 namespace, 3 локали: ru, en, uz). 10 batch-коммитов от `0a9b2ae` до `09a54a5`
 - **Оценка:** ~~40 часов~~ ~30 часов (осталось ~45 страниц)
 
 ### P1-004: ✅ FIXED — 78 console.log в production коде API
@@ -860,12 +860,12 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 24  | Web: fix token refresh race condition     | 3         | ✅ Done |
 | 25  | Web: типизировать API client              | 2 (start) | ✅ Done |
 
-### ~~Неделя 4-5: P1 i18n~~ ✅ НАЧАТО (5/50 страниц)
+### ~~Неделя 4-5: P1 i18n~~ ✅ ЗАВЕРШЕНО (все ~49 страниц)
 
-| #   | Задача                                  | Часы | Статус             |
-| --- | --------------------------------------- | ---- | ------------------ |
-| 26  | Setup next-intl for Web Admin           | 8    | ✅ Done            |
-| 27  | Extract hardcoded strings to i18n files | 32   | ✅ 30 страниц done |
+| #   | Задача                                  | Часы | Статус                                                 |
+| --- | --------------------------------------- | ---- | ------------------------------------------------------ |
+| 26  | Setup next-intl for Web Admin           | 8    | ✅ Done                                                |
+| 27  | Extract hardcoded strings to i18n files | 32   | ✅ Done (все ~49 страниц, ~2500+ ключей, 53 namespace) |
 
 ### Неделя 6+: P2 — Улучшения
 
@@ -879,7 +879,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                        |
 | 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                              |
 | 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                              |
-| 36  | i18n remaining sub-pages (~19 nested)               | 10   | ⚠️ Open (30 main + 19 nested remaining)        |
+| 36  | i18n remaining sub-pages (~19 nested)               | 10   | ✅ Done (all nested pages localized)           |
 
 ### Общая оценка трудозатрат
 
