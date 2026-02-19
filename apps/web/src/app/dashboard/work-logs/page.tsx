@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Clock,
   Search,
@@ -76,26 +77,11 @@ interface TimeOffRequest {
   createdAt: string;
 }
 
-const workLogTypeLabels: Record<string, string> = {
-  shift: "Смена",
-  task: "Задача",
-  break: "Перерыв",
-  overtime: "Переработка",
-};
-
 const workLogTypeColors: Record<string, string> = {
   shift: "bg-blue-500/10 text-blue-500",
   task: "bg-green-500/10 text-green-500",
   break: "bg-amber-500/10 text-amber-500",
   overtime: "bg-purple-500/10 text-purple-500",
-};
-
-const statusLabels: Record<string, string> = {
-  active: "Активен",
-  completed: "Завершён",
-  approved: "Одобрен",
-  rejected: "Отклонён",
-  pending: "Ожидает",
 };
 
 const statusColors: Record<string, string> = {
@@ -106,13 +92,6 @@ const statusColors: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-500",
 };
 
-const timeOffTypeLabels: Record<string, string> = {
-  vacation: "Отпуск",
-  sick: "Больничный",
-  personal: "Личные",
-  unpaid: "За свой счёт",
-};
-
 const timeOffTypeColors: Record<string, string> = {
   vacation: "bg-blue-500/10 text-blue-500",
   sick: "bg-red-500/10 text-red-500",
@@ -121,6 +100,7 @@ const timeOffTypeColors: Record<string, string> = {
 };
 
 export default function WorkLogsPage() {
+  const t = useTranslations("workLogs");
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("logs");
   const [search, setSearch] = useState("");
@@ -179,10 +159,10 @@ export default function WorkLogsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-off-requests"] });
-      toast.success("Статус обновлён");
+      toast.success(t("statusUpdated"));
     },
     onError: () => {
-      toast.error("Ошибка обновления");
+      toast.error(t("updateError"));
     },
   });
 
@@ -199,17 +179,17 @@ export default function WorkLogsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-logs"] });
-      toast.success("Статус обновлён");
+      toast.success(t("statusUpdated"));
     },
     onError: () => {
-      toast.error("Ошибка обновления");
+      toast.error(t("updateError"));
     },
   });
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours}ч ${mins}м`;
+    return t("durationFormat", { hours, minutes: mins });
   };
 
   const stats = useMemo(
@@ -230,19 +210,17 @@ export default function WorkLogsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Табель учёта</h1>
-          <p className="text-muted-foreground">
-            Учёт рабочего времени и отпусков
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Экспорт
+            {t("export")}
           </Button>
           <Button variant="outline">
             <FileText className="w-4 h-4 mr-2" />
-            Отчёт
+            {t("report")}
           </Button>
         </div>
       </div>
@@ -258,7 +236,7 @@ export default function WorkLogsPage() {
               <p className="text-2xl font-bold">
                 {formatDuration(stats.totalHours)}
               </p>
-              <p className="text-sm text-muted-foreground">Всего часов</p>
+              <p className="text-sm text-muted-foreground">{t("totalHours")}</p>
             </div>
           </div>
         </div>
@@ -269,7 +247,7 @@ export default function WorkLogsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.activeNow}</p>
-              <p className="text-sm text-muted-foreground">Сейчас работают</p>
+              <p className="text-sm text-muted-foreground">{t("workingNow")}</p>
             </div>
           </div>
         </div>
@@ -281,7 +259,7 @@ export default function WorkLogsPage() {
             <div>
               <p className="text-2xl font-bold">{stats.pendingApproval}</p>
               <p className="text-sm text-muted-foreground">
-                Ожидают подтверждения
+                {t("pendingApproval")}
               </p>
             </div>
           </div>
@@ -293,7 +271,9 @@ export default function WorkLogsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.pendingTimeOff}</p>
-              <p className="text-sm text-muted-foreground">Заявок на отпуск</p>
+              <p className="text-sm text-muted-foreground">
+                {t("timeOffRequests")}
+              </p>
             </div>
           </div>
         </div>
@@ -304,11 +284,11 @@ export default function WorkLogsPage() {
         <TabsList>
           <TabsTrigger value="logs">
             <Clock className="w-4 h-4 mr-2" />
-            Рабочее время
+            {t("workTime")}
           </TabsTrigger>
           <TabsTrigger value="time-off">
             <CalendarDays className="w-4 h-4 mr-2" />
-            Отпуска
+            {t("timeOff")}
             {stats.pendingTimeOff > 0 && (
               <Badge className="ml-2 bg-amber-500">
                 {stats.pendingTimeOff}
@@ -324,7 +304,7 @@ export default function WorkLogsPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по сотруднику..."
+                placeholder={t("searchByEmployee")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -343,13 +323,13 @@ export default function WorkLogsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Сотрудник</TableHead>
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Начало</TableHead>
-                  <TableHead>Окончание</TableHead>
-                  <TableHead>Длительность</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead className="w-24">Действия</TableHead>
+                  <TableHead>{t("colEmployee")}</TableHead>
+                  <TableHead>{t("colType")}</TableHead>
+                  <TableHead>{t("colStart")}</TableHead>
+                  <TableHead>{t("colEnd")}</TableHead>
+                  <TableHead>{t("colDuration")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead className="w-24">{t("colActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -384,7 +364,7 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={workLogTypeColors[log.type]}>
-                          {workLogTypeLabels[log.type]}
+                          {t(`type_${log.type}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -417,7 +397,7 @@ export default function WorkLogsPage() {
                         ) : (
                           <Badge className="bg-green-500/10 text-green-500">
                             <Play className="w-3 h-3 mr-1" />
-                            Активен
+                            {t("status_active")}
                           </Badge>
                         )}
                       </TableCell>
@@ -432,7 +412,7 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[log.status]}>
-                          {statusLabels[log.status]}
+                          {t(`status_${log.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -473,9 +453,7 @@ export default function WorkLogsPage() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
                       <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">
-                        Записей не найдено
-                      </p>
+                      <p className="text-muted-foreground">{t("noRecords")}</p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -491,7 +469,7 @@ export default function WorkLogsPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по сотруднику..."
+                placeholder={t("searchByEmployee")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -504,13 +482,13 @@ export default function WorkLogsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Сотрудник</TableHead>
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Период</TableHead>
-                  <TableHead>Дней</TableHead>
-                  <TableHead>Причина</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead className="w-24">Действия</TableHead>
+                  <TableHead>{t("colEmployee")}</TableHead>
+                  <TableHead>{t("colType")}</TableHead>
+                  <TableHead>{t("colPeriod")}</TableHead>
+                  <TableHead>{t("colDays")}</TableHead>
+                  <TableHead>{t("colReason")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead className="w-24">{t("colActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -541,7 +519,7 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={timeOffTypeColors[request.type]}>
-                          {timeOffTypeLabels[request.type]}
+                          {t(`timeOffType_${request.type}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -567,7 +545,7 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[request.status]}>
-                          {statusLabels[request.status]}
+                          {t(`status_${request.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -608,7 +586,9 @@ export default function WorkLogsPage() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
                       <CalendarDays className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Заявок не найдено</p>
+                      <p className="text-muted-foreground">
+                        {t("noTimeOffRequests")}
+                      </p>
                     </TableCell>
                   </TableRow>
                 )}

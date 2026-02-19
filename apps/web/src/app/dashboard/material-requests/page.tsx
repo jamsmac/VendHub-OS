@@ -57,6 +57,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 interface MaterialRequest {
   id: string;
@@ -92,16 +93,16 @@ interface MaterialRequest {
   deliveredAt?: string;
 }
 
-const statusLabels: Record<string, string> = {
-  draft: "Черновик",
-  submitted: "На рассмотрении",
-  approved: "Одобрена",
-  rejected: "Отклонена",
-  processing: "Комплектуется",
-  shipped: "Отправлена",
-  delivered: "Доставлена",
-  cancelled: "Отменена",
-};
+const statusKeys = [
+  "draft",
+  "submitted",
+  "approved",
+  "rejected",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+] as const;
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -114,12 +115,7 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-const priorityLabels: Record<string, string> = {
-  low: "Низкий",
-  normal: "Обычный",
-  high: "Высокий",
-  urgent: "Срочный",
-};
+const priorityKeys = ["low", "normal", "high", "urgent"] as const;
 
 const priorityColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
@@ -129,6 +125,7 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function MaterialRequestsPage() {
+  const t = useTranslations("materialRequests");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -172,10 +169,10 @@ export default function MaterialRequestsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requests"] });
-      toast.success("Статус обновлён");
+      toast.success(t("statusUpdated"));
     },
     onError: () => {
-      toast.error("Ошибка обновления статуса");
+      toast.error(t("statusUpdateError"));
     },
   });
 
@@ -201,16 +198,14 @@ export default function MaterialRequestsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить заявки
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["material-requests"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -221,21 +216,19 @@ export default function MaterialRequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Заявки на материалы</h1>
-          <p className="text-muted-foreground">
-            Управление заявками на пополнение
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Создать заявку
+              {t("createRequest")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Новая заявка</DialogTitle>
+              <DialogTitle>{t("newRequest")}</DialogTitle>
             </DialogHeader>
             <MaterialRequestForm
               onSuccess={() => {
@@ -258,7 +251,7 @@ export default function MaterialRequestsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего заявок</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -269,7 +262,9 @@ export default function MaterialRequestsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.pending}</p>
-              <p className="text-sm text-muted-foreground">На рассмотрении</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsPending")}
+              </p>
             </div>
           </div>
         </div>
@@ -280,7 +275,9 @@ export default function MaterialRequestsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.processing}</p>
-              <p className="text-sm text-muted-foreground">В обработке</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsProcessing")}
+              </p>
             </div>
           </div>
         </div>
@@ -291,7 +288,9 @@ export default function MaterialRequestsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.urgent}</p>
-              <p className="text-sm text-muted-foreground">Срочных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsUrgent")}
+              </p>
             </div>
           </div>
         </div>
@@ -302,7 +301,7 @@ export default function MaterialRequestsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск заявок..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -312,20 +311,17 @@ export default function MaterialRequestsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              Статус
+              {t("filterStatus")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem
-                key={value}
-                onClick={() => setStatusFilter(value)}
-              >
-                {label}
+            {statusKeys.map((key) => (
+              <DropdownMenuItem key={key} onClick={() => setStatusFilter(key)}>
+                {t(`status_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -334,20 +330,20 @@ export default function MaterialRequestsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Package className="w-4 h-4 mr-2" />
-              Приоритет
+              {t("filterPriority")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
-              Все приоритеты
+              {t("allPriorities")}
             </DropdownMenuItem>
-            {Object.entries(priorityLabels).map(([value, label]) => (
+            {priorityKeys.map((key) => (
               <DropdownMenuItem
-                key={value}
-                onClick={() => setPriorityFilter(value)}
+                key={key}
+                onClick={() => setPriorityFilter(key)}
               >
-                {label}
+                {t(`priority_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -359,12 +355,12 @@ export default function MaterialRequestsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Заявка</TableHead>
-              <TableHead>Заявитель</TableHead>
-              <TableHead>Позиции</TableHead>
-              <TableHead>Приоритет</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Дата</TableHead>
+              <TableHead>{t("colRequest")}</TableHead>
+              <TableHead>{t("colRequester")}</TableHead>
+              <TableHead>{t("colItems")}</TableHead>
+              <TableHead>{t("colPriority")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colDate")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -400,17 +396,19 @@ export default function MaterialRequestsPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Package className="w-4 h-4 text-muted-foreground" />
-                      <span>{request.totalItems} позиций</span>
+                      <span>
+                        {t("itemsCount", { count: request.totalItems })}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge className={priorityColors[request.priority]}>
-                      {priorityLabels[request.priority]}
+                      {t(`priority_${request.priority}`)}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[request.status]}>
-                      {statusLabels[request.status]}
+                      {t(`status_${request.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -422,7 +420,7 @@ export default function MaterialRequestsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Действия"
+                          aria-label={t("actionsLabel")}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -432,11 +430,11 @@ export default function MaterialRequestsPage() {
                           onClick={() => setSelectedRequest(request)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
-                          Просмотр
+                          {t("actionView")}
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Edit className="w-4 h-4 mr-2" />
-                          Редактировать
+                          {t("actionEdit")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {request.status === "draft" && (
@@ -449,7 +447,7 @@ export default function MaterialRequestsPage() {
                             }
                           >
                             <Send className="w-4 h-4 mr-2" />
-                            Отправить
+                            {t("actionSend")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "submitted" && (
@@ -463,7 +461,7 @@ export default function MaterialRequestsPage() {
                               }
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Одобрить
+                              {t("actionApprove")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -474,7 +472,7 @@ export default function MaterialRequestsPage() {
                               }
                             >
                               <XCircle className="w-4 h-4 mr-2" />
-                              Отклонить
+                              {t("actionReject")}
                             </DropdownMenuItem>
                           </>
                         )}
@@ -488,7 +486,7 @@ export default function MaterialRequestsPage() {
                             }
                           >
                             <Warehouse className="w-4 h-4 mr-2" />
-                            Начать комплектацию
+                            {t("actionStartProcessing")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "processing" && (
@@ -501,7 +499,7 @@ export default function MaterialRequestsPage() {
                             }
                           >
                             <Truck className="w-4 h-4 mr-2" />
-                            Отправить
+                            {t("actionShip")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "shipped" && (
@@ -514,7 +512,7 @@ export default function MaterialRequestsPage() {
                             }
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Подтвердить доставку
+                            {t("actionConfirmDelivery")}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -526,7 +524,7 @@ export default function MaterialRequestsPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <PackagePlus className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Заявки не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -541,21 +539,27 @@ export default function MaterialRequestsPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Заявка #{selectedRequest?.requestNumber}</DialogTitle>
+            <DialogTitle>
+              {t("dialogTitle", {
+                number: selectedRequest?.requestNumber ?? "",
+              })}
+            </DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Badge className={statusColors[selectedRequest.status]}>
-                  {statusLabels[selectedRequest.status]}
+                  {t(`status_${selectedRequest.status}`)}
                 </Badge>
                 <Badge className={priorityColors[selectedRequest.priority]}>
-                  {priorityLabels[selectedRequest.priority]}
+                  {t(`priority_${selectedRequest.priority}`)}
                 </Badge>
               </div>
 
               <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Заявитель</h4>
+                <h4 className="text-sm font-medium mb-2">
+                  {t("detailRequester")}
+                </h4>
                 <p className="font-medium">
                   {selectedRequest.requester.firstName}{" "}
                   {selectedRequest.requester.lastName}
@@ -563,7 +567,7 @@ export default function MaterialRequestsPage() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Позиции</h4>
+                <h4 className="text-sm font-medium">{t("detailItems")}</h4>
                 {selectedRequest.items.map((item) => (
                   <div
                     key={item.id}
@@ -577,11 +581,13 @@ export default function MaterialRequestsPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">
-                        {item.requestedQuantity} шт.
+                        {t("detailPcs", { count: item.requestedQuantity })}
                       </p>
                       {item.approvedQuantity !== undefined && (
                         <p className="text-sm text-green-500">
-                          Одобрено: {item.approvedQuantity}
+                          {t("detailApproved", {
+                            count: item.approvedQuantity,
+                          })}
                         </p>
                       )}
                     </div>
@@ -591,19 +597,21 @@ export default function MaterialRequestsPage() {
 
               {selectedRequest.notes && (
                 <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Примечание</h4>
+                  <h4 className="text-sm font-medium mb-2">
+                    {t("detailNotes")}
+                  </h4>
                   <p className="text-sm">{selectedRequest.notes}</p>
                 </div>
               )}
 
               <div className="text-sm text-muted-foreground">
                 <p>
-                  Создана:{" "}
+                  {t("detailCreated")}{" "}
                   {new Date(selectedRequest.createdAt).toLocaleString("ru-RU")}
                 </p>
                 {selectedRequest.approvedAt && (
                   <p>
-                    Одобрена:{" "}
+                    {t("detailApprovedAt")}{" "}
                     {new Date(selectedRequest.approvedAt).toLocaleString(
                       "ru-RU",
                     )}
@@ -611,7 +619,7 @@ export default function MaterialRequestsPage() {
                 )}
                 {selectedRequest.deliveredAt && (
                   <p>
-                    Доставлена:{" "}
+                    {t("detailDeliveredAt")}{" "}
                     {new Date(selectedRequest.deliveredAt).toLocaleString(
                       "ru-RU",
                     )}
@@ -628,6 +636,7 @@ export default function MaterialRequestsPage() {
 
 // Material Request Form Component
 function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
+  const t = useTranslations("materialRequests");
   const [formData, setFormData] = useState({
     priority: "normal",
     notes: "",
@@ -639,11 +648,11 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
       return api.post("/material-requests", data);
     },
     onSuccess: () => {
-      toast.success("Заявка создана");
+      toast.success(t("requestCreated"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка создания заявки");
+      toast.error(t("createError"));
     },
   });
 
@@ -655,7 +664,7 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Приоритет</label>
+        <label className="text-sm font-medium">{t("formPriority")}</label>
         <Select
           value={formData.priority}
           onValueChange={(value) =>
@@ -663,29 +672,29 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите приоритет" />
+            <SelectValue placeholder={t("formPriorityPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(priorityLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
+            {priorityKeys.map((key) => (
+              <SelectItem key={key} value={key}>
+                {t(`priority_${key}`)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Примечание</label>
+        <label className="text-sm font-medium">{t("formNotes")}</label>
         <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           className="h-20 resize-none"
-          placeholder="Дополнительная информация о заявке"
+          placeholder={t("formNotesPlaceholder")}
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Создание..." : "Создать заявку"}
+          {mutation.isPending ? t("formCreating") : t("formCreateRequest")}
         </Button>
       </div>
     </form>

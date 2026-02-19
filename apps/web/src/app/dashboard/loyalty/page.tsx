@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   Gift,
   Users,
@@ -98,53 +99,53 @@ const LEVEL_COLORS: Record<string, { bg: string; text: string; icon: string }> =
     },
   };
 
-const SOURCE_LABELS: Record<string, string> = {
-  order_cashback: "Кэшбэк с заказов",
-  welcome_bonus: "Приветственный бонус",
-  quest_reward: "Квесты",
-  achievement_reward: "Достижения",
-  referral_bonus: "Реферальная программа",
-  promo_code: "Промокоды",
-  admin_adjustment: "Ручная корректировка",
-  streak_bonus: "Бонус за серию",
+const SOURCE_KEYS: Record<string, string> = {
+  order_cashback: "sourceOrderCashback",
+  welcome_bonus: "sourceWelcomeBonus",
+  quest_reward: "sourceQuestReward",
+  achievement_reward: "sourceAchievementReward",
+  referral_bonus: "sourceReferralBonus",
+  promo_code: "sourcePromoCode",
+  admin_adjustment: "sourceAdminAdjustment",
+  streak_bonus: "sourceStreakBonus",
 };
 
-const SUB_PAGES = [
+interface SubPage {
+  key: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const SUB_PAGES: SubPage[] = [
   {
-    name: "Транзакции",
+    key: "subTransactions",
     href: "/dashboard/loyalty/transactions",
     icon: TrendingUp,
-    description: "История начислений и списаний баллов",
   },
   {
-    name: "Уровни",
+    key: "subLevels",
     href: "/dashboard/loyalty/levels",
     icon: Star,
-    description: "Настройка уровней лояльности",
   },
   {
-    name: "Достижения",
+    key: "subAchievements",
     href: "/dashboard/loyalty/achievements",
     icon: Trophy,
-    description: "Управление ачивками и бейджами",
   },
   {
-    name: "Квесты",
+    key: "subQuests",
     href: "/dashboard/loyalty/quests",
     icon: Target,
-    description: "Ежедневные и недельные квесты",
   },
   {
-    name: "Промокоды",
+    key: "subPromoCodes",
     href: "/dashboard/loyalty/promo-codes",
     icon: Ticket,
-    description: "Создание и управление промокодами",
   },
   {
-    name: "Настройки",
+    key: "subSettings",
     href: "/dashboard/loyalty/settings",
     icon: Settings,
-    description: "Параметры программы лояльности",
   },
 ];
 
@@ -153,6 +154,7 @@ const SUB_PAGES = [
 // ============================================================================
 
 export default function LoyaltyDashboardPage() {
+  const t = useTranslations("loyalty");
   const [statsPeriod, setStatsPeriod] = useState<string>("month");
 
   // Stats query
@@ -208,19 +210,17 @@ export default function LoyaltyDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Программа лояльности</h1>
-          <p className="text-muted-foreground">
-            Управление бонусами, достижениями и квестами
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Select value={statsPeriod} onValueChange={setStatsPeriod}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="week">За неделю</SelectItem>
-            <SelectItem value="month">За месяц</SelectItem>
-            <SelectItem value="year">За год</SelectItem>
+            <SelectItem value="week">{t("periodWeek")}</SelectItem>
+            <SelectItem value="month">{t("periodMonth")}</SelectItem>
+            <SelectItem value="year">{t("periodYear")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -231,7 +231,7 @@ export default function LoyaltyDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Участников</p>
+                <p className="text-sm text-muted-foreground">{t("members")}</p>
                 <p className="text-2xl font-bold">
                   {stats?.totalMembers?.toLocaleString() || "—"}
                 </p>
@@ -239,7 +239,7 @@ export default function LoyaltyDashboardPage() {
                   {stats?.newMembers ? (
                     <span className="text-green-600 flex items-center gap-0.5">
                       <ArrowUpRight className="h-3 w-3" />+{stats.newMembers}{" "}
-                      новых
+                      {t("newOnes")}
                     </span>
                   ) : null}
                 </p>
@@ -256,13 +256,13 @@ export default function LoyaltyDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Начислено баллов
+                  {t("pointsEarned")}
                 </p>
                 <p className="text-2xl font-bold">
                   {stats?.totalEarned?.toLocaleString() || "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Активных: {stats?.activeMembers || 0}
+                  {t("activeCount", { count: stats?.activeMembers || 0 })}
                 </p>
               </div>
               <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -277,13 +277,13 @@ export default function LoyaltyDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Потрачено баллов
+                  {t("pointsSpent")}
                 </p>
                 <p className="text-2xl font-bold">
                   {stats?.totalSpent?.toLocaleString() || "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Redemption:{" "}
+                  {t("redemption")}{" "}
                   {stats?.redemptionRate
                     ? `${stats.redemptionRate.toFixed(1)}%`
                     : "—"}
@@ -300,12 +300,14 @@ export default function LoyaltyDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Средний баланс</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("averageBalance")}
+                </p>
                 <p className="text-2xl font-bold">
                   {stats?.averageBalance?.toLocaleString() || "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  баллов на пользователя
+                  {t("pointsPerUser")}
                 </p>
               </div>
               <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -324,7 +326,7 @@ export default function LoyaltyDashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                Распределение по уровням
+                {t("levelDistribution")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -379,7 +381,7 @@ export default function LoyaltyDashboardPage() {
           {/* Top Earn Sources */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Источники начисления</CardTitle>
+              <CardTitle className="text-lg">{t("earnSources")}</CardTitle>
             </CardHeader>
             <CardContent>
               {statsLoading ? (
@@ -399,11 +401,13 @@ export default function LoyaltyDashboardPage() {
                       className="flex items-center justify-between py-2 border-b last:border-0"
                     >
                       <span className="text-sm">
-                        {SOURCE_LABELS[source.source] || source.source}
+                        {SOURCE_KEYS[source.source]
+                          ? t(SOURCE_KEYS[source.source])
+                          : source.source}
                       </span>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium">
-                          {source.total.toLocaleString()} баллов
+                          {source.total.toLocaleString()} {t("points")}
                         </span>
                         <Badge variant="secondary" className="text-xs">
                           {source.percent.toFixed(1)}%
@@ -414,7 +418,7 @@ export default function LoyaltyDashboardPage() {
                   {(!stats?.topEarnSources ||
                     stats.topEarnSources.length === 0) && (
                     <p className="text-sm text-muted-foreground py-4 text-center">
-                      Нет данных за выбранный период
+                      {t("noDataForPeriod")}
                     </p>
                   )}
                 </div>
@@ -430,28 +434,39 @@ export default function LoyaltyDashboardPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Timer className="h-5 w-5 text-orange-500" />
-                    Сгорающие баллы (30 дней)
+                    {t("expiringPoints")}
                   </CardTitle>
                   <CardDescription>
-                    Пользователи с баллами, которые скоро истекут
+                    {t("expiringPointsDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {expiringData.slice(0, 5).map((item: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between py-2 border-b last:border-0"
-                      >
-                        <span className="text-sm">
-                          {item.firstName} {item.lastNameInitial}.
-                        </span>
-                        <Badge variant="destructive">
-                          {item.expiringPoints?.toLocaleString()} баллов
-                        </Badge>
-                      </div>
-                    ))}
+                    {expiringData
+                      .slice(0, 5)
+                      .map(
+                        (
+                          item: {
+                            firstName: string;
+                            lastNameInitial: string;
+                            expiringPoints?: number;
+                          },
+                          idx: number,
+                        ) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between py-2 border-b last:border-0"
+                          >
+                            <span className="text-sm">
+                              {item.firstName} {item.lastNameInitial}.
+                            </span>
+                            <Badge variant="destructive">
+                              {item.expiringPoints?.toLocaleString()}{" "}
+                              {t("points")}
+                            </Badge>
+                          </div>
+                        ),
+                      )}
                   </div>
                 </CardContent>
               </Card>
@@ -465,14 +480,14 @@ export default function LoyaltyDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-yellow-500" />
-                Топ за месяц
+                {t("topMonthly")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {leaderboard.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Нет данных
+                    {t("noData")}
                   </p>
                 ) : (
                   leaderboard.slice(0, 10).map((entry) => {
@@ -496,7 +511,7 @@ export default function LoyaltyDashboardPage() {
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {levelConfig.icon}{" "}
-                            {entry.pointsBalance.toLocaleString()} баллов
+                            {entry.pointsBalance.toLocaleString()} {t("points")}
                           </p>
                         </div>
                         <div className="text-right">
@@ -506,7 +521,7 @@ export default function LoyaltyDashboardPage() {
                           {entry.currentStreak > 0 && (
                             <p className="text-xs text-muted-foreground flex items-center gap-0.5 justify-end">
                               <Zap className="h-3 w-3" />
-                              {entry.currentStreak}д
+                              {t("streakDays", { count: entry.currentStreak })}
                             </p>
                           )}
                         </div>
@@ -520,7 +535,7 @@ export default function LoyaltyDashboardPage() {
           {/* Quick Navigation */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Разделы</CardTitle>
+              <CardTitle className="text-lg">{t("sections")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">
               {SUB_PAGES.map((page) => (
@@ -533,9 +548,11 @@ export default function LoyaltyDashboardPage() {
                     <page.icon className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{page.name}</p>
+                    <p className="text-sm font-medium">
+                      {t(`${page.key}Name`)}
+                    </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {page.description}
+                      {t(`${page.key}Desc`)}
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />

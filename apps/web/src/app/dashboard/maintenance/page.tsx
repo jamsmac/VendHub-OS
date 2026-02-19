@@ -55,6 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 interface MaintenanceRequest {
   id: string;
@@ -90,12 +91,12 @@ interface MaintenanceRequest {
   createdAt: string;
 }
 
-const typeLabels: Record<string, string> = {
-  preventive: "Профилактика",
-  corrective: "Ремонт",
-  emergency: "Аварийный",
-  inspection: "Осмотр",
-};
+const typeKeys = [
+  "preventive",
+  "corrective",
+  "emergency",
+  "inspection",
+] as const;
 
 const typeColors: Record<string, string> = {
   preventive: "bg-blue-500/10 text-blue-500",
@@ -104,12 +105,7 @@ const typeColors: Record<string, string> = {
   inspection: "bg-green-500/10 text-green-500",
 };
 
-const priorityLabels: Record<string, string> = {
-  low: "Низкий",
-  medium: "Средний",
-  high: "Высокий",
-  critical: "Критический",
-};
+const priorityKeys = ["low", "medium", "high", "critical"] as const;
 
 const priorityColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
@@ -118,17 +114,17 @@ const priorityColors: Record<string, string> = {
   critical: "bg-red-500/10 text-red-500",
 };
 
-const statusLabels: Record<string, string> = {
-  draft: "Черновик",
-  submitted: "Подана",
-  approved: "Одобрена",
-  scheduled: "Запланирована",
-  in_progress: "В работе",
-  completed: "Завершена",
-  verified: "Проверена",
-  rejected: "Отклонена",
-  cancelled: "Отменена",
-};
+const statusKeys = [
+  "draft",
+  "submitted",
+  "approved",
+  "scheduled",
+  "in_progress",
+  "completed",
+  "verified",
+  "rejected",
+  "cancelled",
+] as const;
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -143,6 +139,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MaintenancePage() {
+  const t = useTranslations("maintenance");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -187,10 +184,10 @@ export default function MaintenancePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
-      toast.success("Статус обновлён");
+      toast.success(t("statusUpdated"));
     },
     onError: () => {
-      toast.error("Ошибка обновления статуса");
+      toast.error(t("statusUpdateError"));
     },
   });
 
@@ -214,16 +211,14 @@ export default function MaintenancePage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить заявки
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["maintenance"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -234,21 +229,19 @@ export default function MaintenancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Техобслуживание</h1>
-          <p className="text-muted-foreground">
-            Управление заявками на обслуживание и ремонт
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Создать заявку
+              {t("createRequest")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Новая заявка на ТО</DialogTitle>
+              <DialogTitle>{t("newRequest")}</DialogTitle>
             </DialogHeader>
             <MaintenanceForm
               onSuccess={() => {
@@ -269,7 +262,7 @@ export default function MaintenancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего заявок</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -280,7 +273,9 @@ export default function MaintenancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inProgress}</p>
-              <p className="text-sm text-muted-foreground">В работе</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsInProgress")}
+              </p>
             </div>
           </div>
         </div>
@@ -291,7 +286,9 @@ export default function MaintenancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.scheduled}</p>
-              <p className="text-sm text-muted-foreground">Запланировано</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsScheduled")}
+              </p>
             </div>
           </div>
         </div>
@@ -302,7 +299,9 @@ export default function MaintenancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.critical}</p>
-              <p className="text-sm text-muted-foreground">Критических</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsCritical")}
+              </p>
             </div>
           </div>
         </div>
@@ -313,7 +312,7 @@ export default function MaintenancePage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск заявок..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -323,20 +322,17 @@ export default function MaintenancePage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              Статус
+              {t("filterStatus")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem
-                key={value}
-                onClick={() => setStatusFilter(value)}
-              >
-                {label}
+            {statusKeys.map((key) => (
+              <DropdownMenuItem key={key} onClick={() => setStatusFilter(key)}>
+                {t(`status_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -345,20 +341,17 @@ export default function MaintenancePage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Wrench className="w-4 h-4 mr-2" />
-              Тип
+              {t("filterType")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-              Все типы
+              {t("allTypes")}
             </DropdownMenuItem>
-            {Object.entries(typeLabels).map(([value, label]) => (
-              <DropdownMenuItem
-                key={value}
-                onClick={() => setTypeFilter(value)}
-              >
-                {label}
+            {typeKeys.map((key) => (
+              <DropdownMenuItem key={key} onClick={() => setTypeFilter(key)}>
+                {t(`type_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -367,20 +360,20 @@ export default function MaintenancePage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <AlertTriangle className="w-4 h-4 mr-2" />
-              Приоритет
+              {t("filterPriority")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
-              Все приоритеты
+              {t("allPriorities")}
             </DropdownMenuItem>
-            {Object.entries(priorityLabels).map(([value, label]) => (
+            {priorityKeys.map((key) => (
               <DropdownMenuItem
-                key={value}
-                onClick={() => setPriorityFilter(value)}
+                key={key}
+                onClick={() => setPriorityFilter(key)}
               >
-                {label}
+                {t(`priority_${key}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -392,12 +385,12 @@ export default function MaintenancePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Заявка</TableHead>
-              <TableHead>Автомат</TableHead>
-              <TableHead>Тип</TableHead>
-              <TableHead>Приоритет</TableHead>
-              <TableHead>Исполнитель</TableHead>
-              <TableHead>Статус</TableHead>
+              <TableHead>{t("colRequest")}</TableHead>
+              <TableHead>{t("colMachine")}</TableHead>
+              <TableHead>{t("colType")}</TableHead>
+              <TableHead>{t("colPriority")}</TableHead>
+              <TableHead>{t("colAssignee")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -434,12 +427,12 @@ export default function MaintenancePage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={typeColors[request.type]}>
-                      {typeLabels[request.type]}
+                      {t(`type_${request.type}`)}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={priorityColors[request.priority]}>
-                      {priorityLabels[request.priority]}
+                      {t(`priority_${request.priority}`)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -452,12 +445,14 @@ export default function MaintenancePage() {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">Не назначен</span>
+                      <span className="text-muted-foreground">
+                        {t("notAssigned")}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[request.status]}>
-                      {statusLabels[request.status]}
+                      {t(`status_${request.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -466,7 +461,7 @@ export default function MaintenancePage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Действия"
+                          aria-label={t("actionsLabel")}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -474,7 +469,7 @@ export default function MaintenancePage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Edit className="w-4 h-4 mr-2" />
-                          Редактировать
+                          {t("actionEdit")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {request.status === "draft" && (
@@ -487,7 +482,7 @@ export default function MaintenancePage() {
                             }
                           >
                             <Play className="w-4 h-4 mr-2" />
-                            Подать заявку
+                            {t("actionSubmit")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "submitted" && (
@@ -501,7 +496,7 @@ export default function MaintenancePage() {
                               }
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Одобрить
+                              {t("actionApprove")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -512,7 +507,7 @@ export default function MaintenancePage() {
                               }
                             >
                               <XCircle className="w-4 h-4 mr-2" />
-                              Отклонить
+                              {t("actionReject")}
                             </DropdownMenuItem>
                           </>
                         )}
@@ -526,7 +521,7 @@ export default function MaintenancePage() {
                             }
                           >
                             <Play className="w-4 h-4 mr-2" />
-                            Начать работу
+                            {t("actionStart")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "in_progress" && (
@@ -539,7 +534,7 @@ export default function MaintenancePage() {
                             }
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Завершить
+                            {t("actionComplete")}
                           </DropdownMenuItem>
                         )}
                         {request.status === "completed" && (
@@ -552,7 +547,7 @@ export default function MaintenancePage() {
                             }
                           >
                             <FileCheck className="w-4 h-4 mr-2" />
-                            Подтвердить
+                            {t("actionVerify")}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -564,7 +559,7 @@ export default function MaintenancePage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <Wrench className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Заявки не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -583,6 +578,7 @@ function MaintenanceForm({
   request?: MaintenanceRequest;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("maintenance");
   const [formData, setFormData] = useState({
     machineId: request?.machineId || "",
     type: request?.type || "corrective",
@@ -601,11 +597,11 @@ function MaintenanceForm({
       return api.post("/maintenance", data);
     },
     onSuccess: () => {
-      toast.success(request ? "Заявка обновлена" : "Заявка создана");
+      toast.success(request ? t("requestUpdated") : t("requestCreated"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка сохранения");
+      toast.error(t("saveError"));
     },
   });
 
@@ -617,52 +613,53 @@ function MaintenanceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Заголовок</label>
+        <label className="text-sm font-medium">{t("formTitle")}</label>
         <Input
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Краткое описание проблемы"
+          placeholder={t("formTitlePlaceholder")}
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Тип работ</label>
+          <label className="text-sm font-medium">{t("formWorkType")}</label>
           <Select
             value={formData.type}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onValueChange={(value) =>
-              setFormData({ ...formData, type: value as any })
+              setFormData({ ...formData, type: value as typeof formData.type })
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите тип работ" />
+              <SelectValue placeholder={t("formWorkTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(typeLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {typeKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`type_${key}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Приоритет</label>
+          <label className="text-sm font-medium">{t("formPriority")}</label>
           <Select
             value={formData.priority}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onValueChange={(value) =>
-              setFormData({ ...formData, priority: value as any })
+              setFormData({
+                ...formData,
+                priority: value as typeof formData.priority,
+              })
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите приоритет" />
+              <SelectValue placeholder={t("formPriorityPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(priorityLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {priorityKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`priority_${key}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -670,20 +667,22 @@ function MaintenanceForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Описание</label>
+        <label className="text-sm font-medium">{t("formDescription")}</label>
         <Textarea
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
           }
           className="h-24 resize-none"
-          placeholder="Подробное описание проблемы и необходимых работ"
+          placeholder={t("formDescriptionPlaceholder")}
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Плановая дата</label>
+          <label className="text-sm font-medium">
+            {t("formScheduledDate")}
+          </label>
           <Input
             type="date"
             value={formData.scheduledDate}
@@ -693,7 +692,9 @@ function MaintenanceForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Оценка стоимости (UZS)</label>
+          <label className="text-sm font-medium">
+            {t("formEstimatedCost")}
+          </label>
           <Input
             type="number"
             value={formData.estimatedCost}
@@ -707,10 +708,10 @@ function MaintenanceForm({
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending
-            ? "Сохранение..."
+            ? t("formSaving")
             : request
-              ? "Обновить"
-              : "Создать"}
+              ? t("formUpdate")
+              : t("formCreate")}
         </Button>
       </div>
     </form>
