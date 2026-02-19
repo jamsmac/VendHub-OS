@@ -433,8 +433,12 @@ export const machineAccessApi = {
     api.get(`/machine-access/machine/${machineId}`),
   getByUser: (userId: string) => api.get(`/machine-access/user/${userId}`),
   getTemplates: () => api.get("/machine-access/templates/list"),
+  getTemplate: (id: string) => api.get(`/machine-access/templates/${id}`),
   createTemplate: (data: RequestBody) =>
     api.post("/machine-access/templates", data),
+  updateTemplate: (id: string, data: RequestBody) =>
+    api.patch(`/machine-access/templates/${id}`, data),
+  deleteTemplate: (id: string) => api.delete(`/machine-access/templates/${id}`),
   applyTemplate: (data: RequestBody) =>
     api.post("/machine-access/templates/apply", data),
 };
@@ -856,6 +860,101 @@ export const fiscalApi = {
       .then((r) => r.data),
   retryQueueItem: (queueItemId: string): Promise<void> =>
     api.post(`/fiscal/queue/${queueItemId}/retry`).then(() => undefined),
+};
+
+export const organizationsApi = {
+  getAll: (params?: QueryParams) =>
+    api.get("/organizations", { params }).then((r) => r.data),
+  getById: (id: string) => api.get(`/organizations/${id}`).then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/organizations", data).then((r) => r.data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/organizations/${id}`, data).then((r) => r.data),
+  delete: (id: string) => api.delete(`/organizations/${id}`),
+};
+
+export const vehiclesApi = {
+  getAll: (params?: QueryParams) =>
+    api.get("/vehicles", { params }).then((r) => r.data),
+  getById: (id: string) => api.get(`/vehicles/${id}`).then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/vehicles", data).then((r) => r.data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/vehicles/${id}`, data).then((r) => r.data),
+  updateOdometer: (id: string, data: RequestBody) =>
+    api.patch(`/vehicles/${id}/odometer`, data).then((r) => r.data),
+  delete: (id: string) => api.delete(`/vehicles/${id}`),
+};
+
+export const webhooksApi = {
+  getAll: (params?: QueryParams) =>
+    api.get("/webhooks", { params }).then((r) => r.data),
+  getById: (id: string) => api.get(`/webhooks/${id}`).then((r) => r.data),
+  getEvents: () => api.get("/webhooks/events/list").then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/webhooks", data).then((r) => r.data),
+  update: (id: string, data: RequestBody) =>
+    api.put(`/webhooks/${id}`, data).then((r) => r.data),
+  delete: (id: string) => api.delete(`/webhooks/${id}`),
+  regenerateSecret: (id: string) =>
+    api.post(`/webhooks/${id}/regenerate-secret`).then((r) => r.data),
+  test: (id: string, data?: RequestBody) =>
+    api.post(`/webhooks/${id}/test`, data).then((r) => r.data),
+  getLogs: (id: string, params?: QueryParams) =>
+    api.get(`/webhooks/${id}/logs`, { params }).then((r) => r.data),
+};
+
+export const referencesApi = {
+  // Goods classifiers (MXIK)
+  getGoodsClassifiers: (params?: QueryParams) =>
+    api.get("/references/goods-classifiers", { params }).then((r) => r.data),
+  getGoodsClassifier: (code: string) =>
+    api.get(`/references/goods-classifiers/${code}`).then((r) => r.data),
+  createGoodsClassifier: (data: RequestBody) =>
+    api.post("/references/goods-classifiers", data).then((r) => r.data),
+  updateGoodsClassifier: (id: string, data: RequestBody) =>
+    api.patch(`/references/goods-classifiers/${id}`, data).then((r) => r.data),
+  // IKPU tax codes
+  getIkpuCodes: (params?: QueryParams) =>
+    api.get("/references/ikpu-codes", { params }).then((r) => r.data),
+  getIkpuCode: (code: string) =>
+    api.get(`/references/ikpu-codes/${code}`).then((r) => r.data),
+  createIkpuCode: (data: RequestBody) =>
+    api.post("/references/ikpu-codes", data).then((r) => r.data),
+  updateIkpuCode: (id: string, data: RequestBody) =>
+    api.patch(`/references/ikpu-codes/${id}`, data).then((r) => r.data),
+  // VAT rates
+  getVatRates: (params?: QueryParams) =>
+    api.get("/references/vat-rates", { params }).then((r) => r.data),
+  getVatRate: (code: string) =>
+    api.get(`/references/vat-rates/${code}`).then((r) => r.data),
+  createVatRate: (data: RequestBody) =>
+    api.post("/references/vat-rates", data).then((r) => r.data),
+  updateVatRate: (id: string, data: RequestBody) =>
+    api.patch(`/references/vat-rates/${id}`, data).then((r) => r.data),
+  // Package types
+  getPackageTypes: (params?: QueryParams) =>
+    api.get("/references/package-types", { params }).then((r) => r.data),
+  getPackageType: (code: string) =>
+    api.get(`/references/package-types/${code}`).then((r) => r.data),
+  createPackageType: (data: RequestBody) =>
+    api.post("/references/package-types", data).then((r) => r.data),
+  updatePackageType: (id: string, data: RequestBody) =>
+    api.patch(`/references/package-types/${id}`, data).then((r) => r.data),
+  // Payment providers
+  getPaymentProviders: (params?: QueryParams) =>
+    api.get("/references/payment-providers", { params }).then((r) => r.data),
+  getPaymentProvider: (code: string) =>
+    api.get(`/references/payment-providers/${code}`).then((r) => r.data),
+  createPaymentProvider: (data: RequestBody) =>
+    api.post("/references/payment-providers", data).then((r) => r.data),
+  updatePaymentProvider: (id: string, data: RequestBody) =>
+    api.patch(`/references/payment-providers/${id}`, data).then((r) => r.data),
+  // Static read-only
+  getMarkingRequirements: () =>
+    api.get("/references/marking-requirements").then((r) => r.data),
+  getCurrencies: () => api.get("/references/currencies").then((r) => r.data),
+  getRegions: () => api.get("/references/regions").then((r) => r.data),
 };
 
 export const directoriesApi = {

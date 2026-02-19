@@ -36,6 +36,16 @@ import {
   Cog,
   Upload,
   Scale,
+  Building,
+  Warehouse,
+  AlertTriangle,
+  ShieldAlert,
+  Truck,
+  Star,
+  Webhook,
+  KeyRound,
+  DollarSign,
+  BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
@@ -161,6 +171,34 @@ const navigation: NavItem[] = [
     icon: MessageSquare,
     roles: MANAGEMENT,
   },
+  {
+    nameKey: "incidents",
+    fallback: "Инциденты",
+    href: "/dashboard/incidents",
+    icon: ShieldAlert,
+    roles: OPERATIONS,
+  },
+  {
+    nameKey: "alerts",
+    fallback: "Алерты",
+    href: "/dashboard/alerts",
+    icon: AlertTriangle,
+    roles: OPERATIONS,
+  },
+  {
+    nameKey: "vehicles",
+    fallback: "Транспорт",
+    href: "/dashboard/vehicles",
+    icon: Truck,
+    roles: OPERATIONS,
+  },
+  {
+    nameKey: "operatorRatings",
+    fallback: "Рейтинги",
+    href: "/dashboard/operator-ratings",
+    icon: Star,
+    roles: MANAGEMENT,
+  },
 
   // ── Finance ───────────────────────────────────────────────
   {
@@ -191,6 +229,13 @@ const navigation: NavItem[] = [
     icon: Scale,
     roles: FINANCE,
   },
+  {
+    nameKey: "openingBalances",
+    fallback: "Нач. остатки",
+    href: "/dashboard/opening-balances",
+    icon: DollarSign,
+    roles: FINANCE,
+  },
 
   // ── HR ────────────────────────────────────────────────────
   {
@@ -217,11 +262,25 @@ const navigation: NavItem[] = [
 
   // ── Admin ─────────────────────────────────────────────────
   {
+    nameKey: "organizations",
+    fallback: "Организации",
+    href: "/dashboard/organizations",
+    icon: Building,
+    roles: [UserRole.OWNER],
+  },
+  {
     nameKey: "users",
     fallback: "Пользователи",
     href: "/dashboard/users",
     icon: Users,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+  },
+  {
+    nameKey: "warehouse",
+    fallback: "Склады",
+    href: "/dashboard/warehouse",
+    icon: Warehouse,
+    roles: STOCK,
   },
   {
     nameKey: "locations",
@@ -274,6 +333,27 @@ const navigation: NavItem[] = [
     fallback: "Интеграции",
     href: "/dashboard/integrations",
     icon: Plug,
+    roles: [UserRole.OWNER, UserRole.ADMIN],
+  },
+  {
+    nameKey: "webhooks",
+    fallback: "Вебхуки",
+    href: "/dashboard/webhooks",
+    icon: Webhook,
+    roles: [UserRole.OWNER, UserRole.ADMIN],
+  },
+  {
+    nameKey: "machineAccess",
+    fallback: "Доступ к автоматам",
+    href: "/dashboard/machine-access",
+    icon: KeyRound,
+    roles: MANAGEMENT,
+  },
+  {
+    nameKey: "references",
+    fallback: "Справочники НСИ",
+    href: "/dashboard/references",
+    icon: BookOpen,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {
