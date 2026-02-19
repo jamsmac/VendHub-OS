@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { loyaltyApi } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 // ============================================================================
 // Types
@@ -34,6 +35,8 @@ interface LevelInfo {
 // ============================================================================
 
 export default function LoyaltyLevelsPage() {
+  const t = useTranslations("loyaltyLevels");
+
   const { data: levelsData, isLoading } = useQuery({
     queryKey: ["loyalty-levels-info"],
     queryFn: async () => {
@@ -67,10 +70,8 @@ export default function LoyaltyLevelsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Уровни лояльности</h1>
-          <p className="text-muted-foreground">
-            Информация об уровнях и привилегиях
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -88,9 +89,9 @@ export default function LoyaltyLevelsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {levels.map((level, index) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const dist = levelDistribution.find(
-              (d: any) => d.level === level.level,
+              (d: { level: string; count: number; percent: number }) =>
+                d.level === level.level,
             );
             const nextLevel = levels[index + 1];
 
@@ -111,7 +112,10 @@ export default function LoyaltyLevelsPage() {
                     </div>
                     {dist && (
                       <Badge variant="secondary">
-                        {dist.count} чел ({dist.percent.toFixed(1)}%)
+                        {t("peopleBadge", {
+                          count: dist.count,
+                          percent: dist.percent.toFixed(1),
+                        })}
                       </Badge>
                     )}
                   </div>
@@ -123,14 +127,18 @@ export default function LoyaltyLevelsPage() {
                       <p className="text-lg font-bold">
                         {level.cashbackPercent}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Кэшбэк</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("cashback")}
+                      </p>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <TrendingUp className="h-4 w-4 mx-auto mb-1 text-blue-600" />
                       <p className="text-lg font-bold">
                         x{level.bonusMultiplier}
                       </p>
-                      <p className="text-xs text-muted-foreground">Множитель</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("multiplier")}
+                      </p>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <Star className="h-4 w-4 mx-auto mb-1 text-yellow-600" />
@@ -138,21 +146,23 @@ export default function LoyaltyLevelsPage() {
                         {level.minPoints.toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Мин. баллов
+                        {t("minPoints")}
                       </p>
                     </div>
                   </div>
 
                   {nextLevel && (
                     <div className="text-xs text-muted-foreground text-center border-t pt-3">
-                      До <span className="font-medium">{nextLevel.name}</span>:{" "}
-                      {nextLevel.minPoints.toLocaleString()} баллов
+                      {t("untilNext", {
+                        name: nextLevel.name,
+                        points: nextLevel.minPoints.toLocaleString(),
+                      })}
                     </div>
                   )}
                   {!nextLevel && (
                     <div className="text-xs text-center border-t pt-3">
                       <Badge variant="outline" className="text-xs">
-                        Максимальный уровень
+                        {t("maxLevel")}
                       </Badge>
                     </div>
                   )}
@@ -168,24 +178,15 @@ export default function LoyaltyLevelsPage() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Gift className="h-5 w-5" />
-            Правила программы
+            {t("rulesTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            Баллы начисляются автоматически за каждую покупку в виде кэшбэка
-            (процент зависит от уровня).
-          </p>
-          <p>
-            Уровень определяется по общему количеству заработанных баллов за всё
-            время.
-          </p>
-          <p>
-            Баллы можно потратить на скидку при оплате заказа (минимум 100
-            баллов, максимум 50% от суммы заказа).
-          </p>
-          <p>Неиспользованные баллы сгорают через 180 дней после начисления.</p>
-          <p>1 балл = 1 сум при списании.</p>
+          <p>{t("rule1")}</p>
+          <p>{t("rule2")}</p>
+          <p>{t("rule3")}</p>
+          <p>{t("rule4")}</p>
+          <p>{t("rule5")}</p>
         </CardContent>
       </Card>
     </div>

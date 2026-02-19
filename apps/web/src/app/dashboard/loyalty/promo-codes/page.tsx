@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Ticket,
@@ -63,18 +64,12 @@ interface PromoCode {
 // Constants
 // ============================================================================
 
-const TYPE_LABELS: Record<
-  string,
-  { label: string; format: (v: number) => string }
-> = {
-  fixed_discount: {
-    label: "Фиксированная скидка",
-    format: (v) => `${v.toLocaleString()} сум`,
-  },
-  percent_discount: { label: "Процентная скидка", format: (v) => `${v}%` },
-  bonus_points: { label: "Бонусные баллы", format: (v) => `+${v} баллов` },
-  free_product: { label: "Бесплатный товар", format: (v) => `${v} шт.` },
-};
+const PROMO_TYPES = [
+  "fixed_discount",
+  "percent_discount",
+  "bonus_points",
+  "free_product",
+] as const;
 
 const EMPTY_FORM: {
   code: string;
@@ -103,6 +98,7 @@ const EMPTY_FORM: {
 // ============================================================================
 
 export default function PromoCodesPage() {
+  const t = useTranslations("promoCodes");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -202,6 +198,23 @@ export default function PromoCodesPage() {
     navigator.clipboard.writeText(code);
   };
 
+  const formatTypeValue = (type: string, value: number): string => {
+    switch (type) {
+      case "fixed_discount":
+        return t("typeFormat_fixed_discount", {
+          value: value.toLocaleString(),
+        });
+      case "percent_discount":
+        return t("typeFormat_percent_discount", { value });
+      case "bonus_points":
+        return t("typeFormat_bonus_points", { value });
+      case "free_product":
+        return t("typeFormat_free_product", { value });
+      default:
+        return String(value);
+    }
+  };
+
   const codes = (codesData || []).filter(
     (c) =>
       !search ||
@@ -223,10 +236,8 @@ export default function PromoCodesPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Промокоды</h1>
-            <p className="text-muted-foreground">
-              Создание и управление промокодами
-            </p>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
         <Button
@@ -237,7 +248,7 @@ export default function PromoCodesPage() {
           }}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Новый промокод
+          {t("newPromoCode")}
         </Button>
       </div>
 
@@ -249,7 +260,7 @@ export default function PromoCodesPage() {
               <Ticket className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Всего промокодов</p>
+              <p className="text-sm text-muted-foreground">{t("statTotal")}</p>
               <p className="text-xl font-bold">{codes.length}</p>
             </div>
           </CardContent>
@@ -260,7 +271,7 @@ export default function PromoCodesPage() {
               <TrendingUp className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Активных</p>
+              <p className="text-sm text-muted-foreground">{t("statActive")}</p>
               <p className="text-xl font-bold">{activeCodes.length}</p>
             </div>
           </CardContent>
@@ -271,7 +282,9 @@ export default function PromoCodesPage() {
               <Users className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Использований</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statRedemptions")}
+              </p>
               <p className="text-xl font-bold">{totalRedemptions}</p>
             </div>
           </CardContent>
@@ -282,7 +295,7 @@ export default function PromoCodesPage() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Поиск по коду или описанию..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -300,21 +313,19 @@ export default function PromoCodesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-lg font-medium">Нет промокодов</p>
+            <p className="text-lg font-medium">{t("emptyTitle")}</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Создайте первый промокод
+              {t("emptySubtitle")}
             </p>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Создать
+              {t("createBtn")}
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
           {codes.map((code) => {
-            const typeConfig =
-              TYPE_LABELS[code.type] || TYPE_LABELS.bonus_points;
             const isExpired =
               code.expiresAt && new Date(code.expiresAt) < new Date();
             code.maxUses > 0 ? (code.usedCount / code.maxUses) * 100 : 0;
@@ -340,28 +351,33 @@ export default function PromoCodesPage() {
                       </Button>
                       {!code.isActive && (
                         <Badge variant="destructive" className="text-xs">
-                          Неактивен
+                          {t("badgeInactive")}
                         </Badge>
                       )}
                       {isExpired && (
                         <Badge variant="secondary" className="text-xs">
-                          Истёк
+                          {t("badgeExpired")}
                         </Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {code.description || typeConfig.label}
+                      {code.description || t(`type_${code.type}`)}
                     </p>
                     <div className="flex gap-1.5 mt-1.5">
                       <Badge variant="outline" className="text-xs">
-                        {typeConfig.format(code.value)}
+                        {formatTypeValue(code.type, code.value)}
                       </Badge>
                       <Badge variant="secondary" className="text-xs">
-                        {code.usedCount}/{code.maxUses || "∞"} использований
+                        {t("usageCount", {
+                          used: code.usedCount,
+                          max: code.maxUses || "\u221E",
+                        })}
                       </Badge>
                       {code.minOrderAmount > 0 && (
                         <Badge variant="secondary" className="text-xs">
-                          от {code.minOrderAmount.toLocaleString()} сум
+                          {t("minOrder", {
+                            amount: code.minOrderAmount.toLocaleString(),
+                          })}
                         </Badge>
                       )}
                       {code.expiresAt && (
@@ -370,8 +386,11 @@ export default function PromoCodesPage() {
                           className="text-xs flex items-center gap-1"
                         >
                           <Calendar className="h-3 w-3" />
-                          до{" "}
-                          {new Date(code.expiresAt).toLocaleDateString("ru-RU")}
+                          {t("expiresDate", {
+                            date: new Date(code.expiresAt).toLocaleDateString(
+                              "ru-RU",
+                            ),
+                          })}
                         </Badge>
                       )}
                     </div>
@@ -416,13 +435,13 @@ export default function PromoCodesPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "Редактировать" : "Новый"} промокод
+              {editingId ? t("dialogTitleEdit") : t("dialogTitleNew")}
             </DialogTitle>
-            <DialogDescription>Настройте параметры промокода</DialogDescription>
+            <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Код</Label>
+              <Label>{t("labelCode")}</Label>
               <div className="flex gap-2">
                 <Input
                   value={form.code}
@@ -433,44 +452,43 @@ export default function PromoCodesPage() {
                   className="font-mono"
                 />
                 <Button variant="outline" type="button" onClick={generateCode}>
-                  Сгенерировать
+                  {t("generateBtn")}
                 </Button>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Описание</Label>
+              <Label>{t("labelDescription")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                placeholder="Описание промокода"
+                placeholder={t("descriptionPlaceholder")}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Тип</Label>
+                <Label>{t("labelType")}</Label>
                 {}
                 <Select
                   value={form.type}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onValueChange={(v: any) => setForm({ ...form, type: v })}
                 >
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                    {PROMO_TYPES.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v.label}
+                        {t(`type_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Значение</Label>
+                <Label>{t("labelValue")}</Label>
                 <Input
                   type="number"
                   value={form.value}
@@ -482,7 +500,7 @@ export default function PromoCodesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Макс. использований (0 = безлимит)</Label>
+                <Label>{t("labelMaxUses")}</Label>
                 <Input
                   type="number"
                   value={form.maxUses}
@@ -492,7 +510,7 @@ export default function PromoCodesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>На 1 пользователя</Label>
+                <Label>{t("labelPerUser")}</Label>
                 <Input
                   type="number"
                   value={form.maxUsesPerUser}
@@ -503,7 +521,7 @@ export default function PromoCodesPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Мин. сумма заказа (0 = без ограничений)</Label>
+              <Label>{t("labelMinOrder")}</Label>
               <Input
                 type="number"
                 value={form.minOrderAmount}
@@ -514,7 +532,7 @@ export default function PromoCodesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Действует с</Label>
+                <Label>{t("labelStartsAt")}</Label>
                 <Input
                   type="date"
                   value={form.startsAt}
@@ -524,7 +542,7 @@ export default function PromoCodesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Действует до</Label>
+                <Label>{t("labelExpiresAt")}</Label>
                 <Input
                   type="date"
                   value={form.expiresAt}
@@ -537,7 +555,7 @@ export default function PromoCodesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeForm}>
-              Отмена
+              {t("cancelBtn")}
             </Button>
             <Button
               onClick={handleSave}
@@ -548,8 +566,8 @@ export default function PromoCodesPage() {
               }
             >
               {createMutation.isPending || updateMutation.isPending
-                ? "Сохранение..."
-                : "Сохранить"}
+                ? t("saving")
+                : t("saveBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -562,7 +580,7 @@ export default function PromoCodesPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>История использований</DialogTitle>
+            <DialogTitle>{t("redemptionsTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {redemptionsData?.data?.length > 0 ? (
@@ -583,13 +601,13 @@ export default function PromoCodesPage() {
                   <Badge variant="secondary">
                     {r.discount?.toLocaleString() ||
                       r.pointsEarned?.toLocaleString() ||
-                      "—"}
+                      "\u2014"}
                   </Badge>
                 </div>
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Нет использований
+                {t("noRedemptions")}
               </p>
             )}
           </div>

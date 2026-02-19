@@ -11,6 +11,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,31 +56,25 @@ interface _PointsTransaction {
 // Constants
 // ============================================================================
 
-const _TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  earn: { label: "Начисление", color: "text-green-600" },
-  spend: { label: "Списание", color: "text-red-600" },
-  expire: { label: "Сгорание", color: "text-orange-600" },
-  adjust: { label: "Корректировка", color: "text-blue-600" },
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  order_cashback: "Кэшбэк",
-  welcome_bonus: "Приветственный",
-  quest_reward: "Квест",
-  achievement_reward: "Достижение",
-  referral_bonus: "Реферал",
-  promo_code: "Промокод",
-  admin_adjustment: "Ручная",
-  streak_bonus: "Серия",
-  points_expiry: "Сгорание",
-  order_payment: "Оплата заказа",
-};
+const SOURCE_KEYS = [
+  "order_cashback",
+  "welcome_bonus",
+  "quest_reward",
+  "achievement_reward",
+  "referral_bonus",
+  "promo_code",
+  "admin_adjustment",
+  "streak_bonus",
+  "points_expiry",
+  "order_payment",
+] as const;
 
 // ============================================================================
 // Component
 // ============================================================================
 
 export default function LoyaltyTransactionsPage() {
+  const t = useTranslations("loyaltyTransactions");
   const queryClient = useQueryClient();
   const [_typeFilter, _setTypeFilter] = useState<string>("all");
   const [_sourceFilter, _setSourceFilter] = useState<string>("all");
@@ -138,15 +133,13 @@ export default function LoyaltyTransactionsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Транзакции баллов</h1>
-            <p className="text-muted-foreground">
-              История начислений и списаний
-            </p>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
         <Button onClick={() => setShowAdjustDialog(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
-          Корректировка
+          {t("adjustBtn")}
         </Button>
       </div>
 
@@ -159,9 +152,11 @@ export default function LoyaltyTransactionsPage() {
                 <ArrowUpRight className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Начислено</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statEarned")}
+                </p>
                 <p className="text-xl font-bold">
-                  {statsData?.totalEarned?.toLocaleString() || "—"}
+                  {statsData?.totalEarned?.toLocaleString() || "\u2014"}
                 </p>
               </div>
             </div>
@@ -174,9 +169,11 @@ export default function LoyaltyTransactionsPage() {
                 <ArrowDownRight className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Потрачено</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statSpent")}
+                </p>
                 <p className="text-xl font-bold">
-                  {statsData?.totalSpent?.toLocaleString() || "—"}
+                  {statsData?.totalSpent?.toLocaleString() || "\u2014"}
                 </p>
               </div>
             </div>
@@ -189,9 +186,11 @@ export default function LoyaltyTransactionsPage() {
                 <TrendingUp className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Средний баланс</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statAvgBalance")}
+                </p>
                 <p className="text-xl font-bold">
-                  {statsData?.averageBalance?.toLocaleString() || "—"}
+                  {statsData?.averageBalance?.toLocaleString() || "\u2014"}
                 </p>
               </div>
             </div>
@@ -204,11 +203,13 @@ export default function LoyaltyTransactionsPage() {
                 <RotateCcw className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Redemption Rate</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statRedemptionRate")}
+                </p>
                 <p className="text-xl font-bold">
                   {statsData?.redemptionRate
                     ? `${statsData.redemptionRate.toFixed(1)}%`
-                    : "—"}
+                    : "\u2014"}
                 </p>
               </div>
             </div>
@@ -219,7 +220,7 @@ export default function LoyaltyTransactionsPage() {
       {/* Timeline Chart Placeholder */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Динамика за период</CardTitle>
+          <CardTitle className="text-lg">{t("timelineTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {statsData?.timeline && statsData.timeline.length > 0 ? (
@@ -241,7 +242,7 @@ export default function LoyaltyTransactionsPage() {
                       -{item.spent.toLocaleString()}
                     </span>
                     <Badge variant="secondary" className="text-xs">
-                      +{item.newMembers} чел
+                      {t("newMembers", { count: item.newMembers })}
                     </Badge>
                   </div>
                 </div>
@@ -249,7 +250,7 @@ export default function LoyaltyTransactionsPage() {
             </div>
           ) : (
             <div className="h-32 flex items-center justify-center text-muted-foreground">
-              {statsLoading ? "Загрузка..." : "Нет данных за выбранный период"}
+              {statsLoading ? t("loading") : t("noDataForPeriod")}
             </div>
           )}
         </CardContent>
@@ -258,7 +259,7 @@ export default function LoyaltyTransactionsPage() {
       {/* Top Sources */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Источники начисления</CardTitle>
+          <CardTitle className="text-lg">{t("sourcesTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -270,7 +271,9 @@ export default function LoyaltyTransactionsPage() {
               >
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {SOURCE_LABELS[source.source] || source.source}
+                    {SOURCE_KEYS.includes(source.source)
+                      ? t(`source_${source.source}`)
+                      : source.source}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-3">
@@ -283,7 +286,6 @@ export default function LoyaltyTransactionsPage() {
                 </div>
               </div>
             ))}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           </div>
         </CardContent>
       </Card>
@@ -292,14 +294,12 @@ export default function LoyaltyTransactionsPage() {
       <Dialog open={showAdjustDialog} onOpenChange={setShowAdjustDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Корректировка баллов</DialogTitle>
-            <DialogDescription>
-              Начислите или спишите баллы пользователю с указанием причины
-            </DialogDescription>
+            <DialogTitle>{t("adjustTitle")}</DialogTitle>
+            <DialogDescription>{t("adjustDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Пользователь</Label>
+              <Label>{t("labelUser")}</Label>
               <Select
                 value={adjustForm.userId}
                 onValueChange={(v) =>
@@ -307,23 +307,24 @@ export default function LoyaltyTransactionsPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите пользователя" />
+                  <SelectValue placeholder={t("selectUserPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {(Array.isArray(usersData)
                     ? usersData
                     : usersData?.data || []
-                  ).map((user: any) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName} ({user.email})
-                    </SelectItem>
-                  ))}
+                  )
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    .map((user: any) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName} ({user.email})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Количество баллов</Label>
+              <Label>{t("labelPoints")}</Label>
               <Input
                 type="number"
                 value={adjustForm.amount}
@@ -333,20 +334,18 @@ export default function LoyaltyTransactionsPage() {
                     amount: Number(e.target.value),
                   })
                 }
-                placeholder="Положительное = начисление, отрицательное = списание"
+                placeholder={t("pointsPlaceholder")}
               />
-              <p className="text-xs text-muted-foreground">
-                Положительное число — начисление, отрицательное — списание
-              </p>
+              <p className="text-xs text-muted-foreground">{t("pointsHint")}</p>
             </div>
             <div className="space-y-2">
-              <Label>Причина</Label>
+              <Label>{t("labelReason")}</Label>
               <Textarea
                 value={adjustForm.reason}
                 onChange={(e) =>
                   setAdjustForm({ ...adjustForm, reason: e.target.value })
                 }
-                placeholder="Например: Компенсация за технический сбой"
+                placeholder={t("reasonPlaceholder")}
               />
             </div>
           </div>
@@ -355,7 +354,7 @@ export default function LoyaltyTransactionsPage() {
               variant="outline"
               onClick={() => setShowAdjustDialog(false)}
             >
-              Отмена
+              {t("cancelBtn")}
             </Button>
             <Button
               onClick={() => adjustMutation.mutate(adjustForm)}
@@ -366,7 +365,7 @@ export default function LoyaltyTransactionsPage() {
                 adjustMutation.isPending
               }
             >
-              {adjustMutation.isPending ? "Сохранение..." : "Применить"}
+              {adjustMutation.isPending ? t("saving") : t("applyBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

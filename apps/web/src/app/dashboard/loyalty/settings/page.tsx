@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 // ============================================================================
 // Current Configuration (read-only display of system defaults)
@@ -30,7 +31,7 @@ const LOYALTY_CONFIG = {
   levels: [
     {
       name: "Bronze",
-      icon: "🥉",
+      icon: "\u{1F949}",
       minPoints: 0,
       cashback: 1,
       multiplier: 1,
@@ -38,7 +39,7 @@ const LOYALTY_CONFIG = {
     },
     {
       name: "Silver",
-      icon: "🥈",
+      icon: "\u{1F948}",
       minPoints: 1000,
       cashback: 2,
       multiplier: 1.2,
@@ -46,7 +47,7 @@ const LOYALTY_CONFIG = {
     },
     {
       name: "Gold",
-      icon: "🥇",
+      icon: "\u{1F947}",
       minPoints: 5000,
       cashback: 3,
       multiplier: 1.5,
@@ -54,7 +55,7 @@ const LOYALTY_CONFIG = {
     },
     {
       name: "Platinum",
-      icon: "💎",
+      icon: "\u{1F48E}",
       minPoints: 20000,
       cashback: 5,
       multiplier: 2,
@@ -81,6 +82,8 @@ const LOYALTY_CONFIG = {
 // ============================================================================
 
 export default function LoyaltySettingsPage() {
+  const t = useTranslations("loyaltySettings");
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,10 +94,8 @@ export default function LoyaltySettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Настройки программы</h1>
-          <p className="text-muted-foreground">
-            Текущая конфигурация программы лояльности
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -104,14 +105,14 @@ export default function LoyaltySettingsPage() {
           <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Конфигурация задаётся в коде
+              {t("infoBannerTitle")}
             </p>
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              Параметры программы лояльности определены в файле{" "}
+              {t("infoBannerTextBefore")}{" "}
               <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 rounded text-xs">
                 loyalty.constants.ts
               </code>
-              . Для изменения параметров обратитесь к администратору системы.
+              {t("infoBannerTextAfter")}
             </p>
           </div>
         </CardContent>
@@ -122,11 +123,9 @@ export default function LoyaltySettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="h-5 w-5" />
-            Уровни лояльности
+            {t("levelsTitle")}
           </CardTitle>
-          <CardDescription>
-            Пороги, кэшбэк и множители для каждого уровня
-          </CardDescription>
+          <CardDescription>{t("levelsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -134,16 +133,16 @@ export default function LoyaltySettingsPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-2 text-sm font-medium text-muted-foreground">
-                    Уровень
+                    {t("colLevel")}
                   </th>
                   <th className="text-right py-2 text-sm font-medium text-muted-foreground">
-                    Мин. баллов
+                    {t("colMinPoints")}
                   </th>
                   <th className="text-right py-2 text-sm font-medium text-muted-foreground">
-                    Кэшбэк
+                    {t("colCashback")}
                   </th>
                   <th className="text-right py-2 text-sm font-medium text-muted-foreground">
-                    Множитель
+                    {t("colMultiplier")}
                   </th>
                 </tr>
               </thead>
@@ -183,38 +182,43 @@ export default function LoyaltySettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Gift className="h-5 w-5" />
-              Правила начисления
+              {t("accrualRulesTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between py-2 border-b">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">Приветственный бонус</span>
+                <span className="text-sm">{t("welcomeBonus")}</span>
               </div>
-              <Badge>{LOYALTY_CONFIG.rules.welcomeBonus} баллов</Badge>
+              <Badge>
+                {t("welcomeBonusValue", {
+                  points: LOYALTY_CONFIG.rules.welcomeBonus,
+                })}
+              </Badge>
             </div>
             <div className="flex items-center justify-between py-2 border-b">
               <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Курс списания</span>
+                <span className="text-sm">{t("redemptionRate")}</span>
               </div>
               <Badge variant="outline">
-                1 балл = {LOYALTY_CONFIG.rules.pointsToSum} сум
+                {t("redemptionRateValue", {
+                  sum: LOYALTY_CONFIG.rules.pointsToSum,
+                })}
               </Badge>
             </div>
             <div className="flex items-center justify-between py-2 border-b">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">Кэшбэк</span>
+                <span className="text-sm">{t("cashback")}</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                зависит от уровня ({LOYALTY_CONFIG.levels[0].cashback}%–
-                {
-                  LOYALTY_CONFIG.levels[LOYALTY_CONFIG.levels.length - 1]
-                    .cashback
-                }
-                %)
+                {t("cashbackRange", {
+                  min: LOYALTY_CONFIG.levels[0].cashback,
+                  max: LOYALTY_CONFIG.levels[LOYALTY_CONFIG.levels.length - 1]
+                    .cashback,
+                })}
               </span>
             </div>
           </CardContent>
@@ -224,18 +228,18 @@ export default function LoyaltySettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Ограничения
+              {t("restrictionsTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">Мин. баллов для списания</span>
+              <span className="text-sm">{t("minPointsRedeem")}</span>
               <Badge variant="outline">
                 {LOYALTY_CONFIG.rules.minSpendPoints}
               </Badge>
             </div>
             <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">Макс. % оплаты баллами</span>
+              <span className="text-sm">{t("maxPayPercent")}</span>
               <Badge variant="outline">
                 {LOYALTY_CONFIG.rules.maxSpendPercent}%
               </Badge>
@@ -243,10 +247,12 @@ export default function LoyaltySettingsPage() {
             <div className="flex items-center justify-between py-2 border-b">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-orange-500" />
-                <span className="text-sm">Срок действия баллов</span>
+                <span className="text-sm">{t("pointsExpiry")}</span>
               </div>
               <Badge variant="destructive">
-                {LOYALTY_CONFIG.rules.pointsExpireDays} дней
+                {t("pointsExpiryValue", {
+                  days: LOYALTY_CONFIG.rules.pointsExpireDays,
+                })}
               </Badge>
             </div>
           </CardContent>
@@ -258,11 +264,9 @@ export default function LoyaltySettingsPage() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Бонусы за серию
+            {t("streakTitle")}
           </CardTitle>
-          <CardDescription>
-            Бонусные баллы за непрерывную серию заказов
-          </CardDescription>
+          <CardDescription>{t("streakDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -271,10 +275,12 @@ export default function LoyaltySettingsPage() {
                 key={milestone.days}
                 className="text-center p-4 bg-muted/50 rounded-lg"
               >
-                <p className="text-2xl mb-1">🔥</p>
-                <p className="text-lg font-bold">{milestone.days} дней</p>
+                <p className="text-2xl mb-1">{"\u{1F525}"}</p>
+                <p className="text-lg font-bold">
+                  {t("streakDays", { days: milestone.days })}
+                </p>
                 <p className="text-sm text-green-600 font-medium">
-                  +{milestone.bonus} баллов
+                  {t("streakBonus", { bonus: milestone.bonus })}
                 </p>
               </div>
             ))}
