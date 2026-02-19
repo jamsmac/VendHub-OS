@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,19 +12,18 @@ import { UserForm, UserFormData } from "@/components/users/UserForm";
 
 export default function CreateUserPage() {
   const router = useRouter();
+  const t = useTranslations("userNew");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: UserFormData) => {
     setIsSubmitting(true);
     try {
       await usersApi.create(data);
-      toast.success("Пользователь создан");
+      toast.success(t("createSuccess"));
       router.push("/dashboard/users");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Ошибка создания пользователя",
-      );
+      toast.error(error.response?.data?.message || t("createError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -35,14 +35,12 @@ export default function CreateUserPage() {
         <Link href="/dashboard/users">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад
+            {t("back")}
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Новый пользователь</h1>
-          <p className="text-muted-foreground">
-            Создание нового пользователя системы
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
       <UserForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />

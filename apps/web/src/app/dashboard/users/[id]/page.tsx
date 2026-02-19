@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -22,67 +23,57 @@ import { usersApi } from "@/lib/api";
 import { UserForm, UserFormData } from "@/components/users/UserForm";
 import { RoleAssignment } from "@/components/users/RoleAssignment";
 
-const roleConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
+const roleStyleConfig: Record<string, { color: string; bgColor: string }> = {
   owner: {
-    label: "Владелец",
     color: "text-purple-600",
     bgColor: "bg-purple-100",
   },
   admin: {
-    label: "Администратор",
     color: "text-red-600",
     bgColor: "bg-red-100",
   },
   manager: {
-    label: "Менеджер",
     color: "text-blue-600",
     bgColor: "bg-blue-100",
   },
   operator: {
-    label: "Оператор",
     color: "text-green-600",
     bgColor: "bg-green-100",
   },
   warehouse: {
-    label: "Склад",
     color: "text-orange-600",
     bgColor: "bg-orange-100",
   },
   accountant: {
-    label: "Бухгалтер",
     color: "text-cyan-600",
     bgColor: "bg-cyan-100",
   },
   viewer: {
-    label: "Наблюдатель",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const statusConfig: Record<
+const statusStyleConfig: Record<
   string,
-  { label: string; color: string; icon: any }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  { color: string; icon: any }
 > = {
-  active: { label: "Активен", color: "text-green-600", icon: CheckCircle },
+  active: { color: "text-green-600", icon: CheckCircle },
   inactive: {
-    label: "Неактивен",
     color: "text-muted-foreground",
     icon: XCircle,
   },
-  suspended: { label: "Заблокирован", color: "text-red-600", icon: XCircle },
-  pending: { label: "Ожидает", color: "text-yellow-600", icon: Shield },
-  rejected: { label: "Отклонен", color: "text-red-600", icon: XCircle },
+  suspended: { color: "text-red-600", icon: XCircle },
+  pending: { color: "text-yellow-600", icon: Shield },
+  rejected: { color: "text-red-600", icon: XCircle },
 };
 
 export default function UserDetailPage() {
   const params = useParams();
   useRouter();
   const queryClient = useQueryClient();
+  const tl = useTranslations("userDetail");
   const userId = params.id as string;
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,11 +94,11 @@ export default function UserDetailPage() {
       if (!payload.password) delete (payload as any).password;
       await usersApi.update(userId, payload);
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
-      toast.success("Данные обновлены");
+      toast.success(tl("updateSuccess"));
       setIsEditing(false);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Ошибка обновления");
+      toast.error(error.response?.data?.message || tl("updateError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -124,17 +115,20 @@ export default function UserDetailPage() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg font-medium">Пользователь не найден</p>
+        <p className="text-lg font-medium">{tl("notFound")}</p>
         <Link href="/dashboard/users">
-          <Button variant="link">Вернуться к списку</Button>
+          <Button variant="link">{tl("backToList")}</Button>
         </Link>
       </div>
     );
   }
 
-  const role = roleConfig[user.role] || roleConfig.viewer;
-  const status = statusConfig[user.status] || statusConfig.inactive;
-  const StatusIcon = status.icon;
+  const roleKey = (user.role as string) || "viewer";
+  const roleStyle = roleStyleConfig[roleKey] || roleStyleConfig.viewer;
+  const statusKey = (user.status as string) || "inactive";
+  const statusStyle =
+    statusStyleConfig[statusKey] || statusStyleConfig.inactive;
+  const StatusIcon = statusStyle.icon;
   const initials =
     `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
 
@@ -146,7 +140,7 @@ export default function UserDetailPage() {
           <Link href="/dashboard/users">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад
+              {tl("back")}
             </Button>
           </Link>
           <div>
@@ -155,13 +149,13 @@ export default function UserDetailPage() {
             </h1>
             <div className="flex items-center gap-2 mt-1">
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${role.bgColor} ${role.color}`}
+                className={`text-xs px-2 py-0.5 rounded-full ${roleStyle.bgColor} ${roleStyle.color}`}
               >
-                {role.label}
+                {tl(`role_${roleKey}`)}
               </span>
-              <div className={`flex items-center gap-1 ${status.color}`}>
+              <div className={`flex items-center gap-1 ${statusStyle.color}`}>
                 <StatusIcon className="h-4 w-4" />
-                <span className="text-xs">{status.label}</span>
+                <span className="text-xs">{tl(`status_${statusKey}`)}</span>
               </div>
             </div>
           </div>
@@ -170,7 +164,7 @@ export default function UserDetailPage() {
           variant={isEditing ? "outline" : "default"}
           onClick={() => setIsEditing(!isEditing)}
         >
-          {isEditing ? "Отменить" : "Редактировать"}
+          {isEditing ? tl("cancel") : tl("edit")}
         </Button>
       </div>
 
@@ -194,13 +188,13 @@ export default function UserDetailPage() {
           {/* Profile Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Профиль</CardTitle>
+              <CardTitle>{tl("profile")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={user.avatarUrl} />
-                  <AvatarFallback className={`text-lg ${role.bgColor}`}>
+                  <AvatarFallback className={`text-lg ${roleStyle.bgColor}`}>
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -208,7 +202,9 @@ export default function UserDetailPage() {
                   <p className="text-lg font-medium">
                     {user.firstName} {user.lastName}
                   </p>
-                  <p className="text-sm text-muted-foreground">{role.label}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tl(`role_${roleKey}`)}
+                  </p>
                 </div>
               </div>
               <div className="space-y-3 pt-4 border-t">
@@ -225,20 +221,22 @@ export default function UserDetailPage() {
                 <div className="flex items-center gap-3 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Создан:{" "}
-                    {new Date(
-                      user.createdAt || user.created_at,
-                    ).toLocaleDateString("ru-RU")}
+                    {tl("createdAt", {
+                      date: new Date(
+                        user.createdAt || user.created_at,
+                      ).toLocaleDateString("ru-RU"),
+                    })}
                   </span>
                 </div>
                 {(user.lastLoginAt || user.last_login_at) && (
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      Последний вход:{" "}
-                      {new Date(
-                        user.lastLoginAt || user.last_login_at,
-                      ).toLocaleDateString("ru-RU")}
+                      {tl("lastLogin", {
+                        date: new Date(
+                          user.lastLoginAt || user.last_login_at,
+                        ).toLocaleDateString("ru-RU"),
+                      })}
                     </span>
                   </div>
                 )}

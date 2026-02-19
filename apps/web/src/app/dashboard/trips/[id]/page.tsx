@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -70,70 +71,6 @@ interface TripTask {
   notes?: string;
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  planned: {
-    label: "Запланирован",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  active: {
-    label: "Активен",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  completed: {
-    label: "Завершён",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
-  cancelled: { label: "Отменён", color: "text-red-600", bgColor: "bg-red-100" },
-};
-
-const stopStatusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  pending: {
-    label: "Ожидает",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
-  arrived: { label: "Прибыл", color: "text-blue-600", bgColor: "bg-blue-100" },
-  completed: {
-    label: "Завершено",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  skipped: {
-    label: "Пропущено",
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-};
-
-const anomalyTypeConfig: Record<string, string> = {
-  route_deviation: "Отклонение от маршрута",
-  long_stop: "Длительная остановка",
-  missed_stop: "Пропущенная остановка",
-  speed_violation: "Превышение скорости",
-};
-
-const severityConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  low: { label: "Низкая", color: "text-yellow-600", bgColor: "bg-yellow-100" },
-  medium: {
-    label: "Средняя",
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-  high: { label: "Высокая", color: "text-red-600", bgColor: "bg-red-100" },
-};
-
 function DetailSkeleton() {
   return (
     <div className="space-y-6">
@@ -172,6 +109,87 @@ export default function TripDetailPage({
 }) {
   const { id } = use(params);
   const queryClient = useQueryClient();
+  const t = useTranslations("tripDetail");
+
+  const statusConfig: Record<
+    string,
+    { label: string; color: string; bgColor: string }
+  > = {
+    planned: {
+      label: t("status_planned"),
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    active: {
+      label: t("status_active"),
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    completed: {
+      label: t("status_completed"),
+      color: "text-muted-foreground",
+      bgColor: "bg-muted",
+    },
+    cancelled: {
+      label: t("status_cancelled"),
+      color: "text-red-600",
+      bgColor: "bg-red-100",
+    },
+  };
+
+  const stopStatusConfig: Record<
+    string,
+    { label: string; color: string; bgColor: string }
+  > = {
+    pending: {
+      label: t("stopStatus_pending"),
+      color: "text-muted-foreground",
+      bgColor: "bg-muted",
+    },
+    arrived: {
+      label: t("stopStatus_arrived"),
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    completed: {
+      label: t("stopStatus_completed"),
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    skipped: {
+      label: t("stopStatus_skipped"),
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+  };
+
+  const anomalyTypeConfig: Record<string, string> = {
+    route_deviation: t("anomaly_route_deviation"),
+    long_stop: t("anomaly_long_stop"),
+    missed_stop: t("anomaly_missed_stop"),
+    speed_violation: t("anomaly_speed_violation"),
+  };
+
+  const severityConfig: Record<
+    string,
+    { label: string; color: string; bgColor: string }
+  > = {
+    low: {
+      label: t("severity_low"),
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-100",
+    },
+    medium: {
+      label: t("severity_medium"),
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+    high: {
+      label: t("severity_high"),
+      color: "text-red-600",
+      bgColor: "bg-red-100",
+    },
+  };
 
   const {
     data: trip,
@@ -204,19 +222,18 @@ export default function TripDetailPage({
     mutationFn: () => tripsApi.end(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips", id] });
-      toast.success("Рейс завершён");
+      toast.success(t("toast_tripEnded"));
     },
-    onError: () => toast.error("Не удалось завершить рейс"),
+    onError: () => toast.error(t("toast_endError")),
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () =>
-      tripsApi.cancel(id, { reason: "Отменён администратором" }),
+    mutationFn: () => tripsApi.cancel(id, { reason: t("cancelledByAdmin") }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips", id] });
-      toast.success("Рейс отменён");
+      toast.success(t("toast_tripCancelled"));
     },
-    onError: () => toast.error("Не удалось отменить рейс"),
+    onError: () => toast.error(t("toast_cancelError")),
   });
 
   const [confirmState, setConfirmState] = useState<{
@@ -230,20 +247,20 @@ export default function TripDetailPage({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить рейс</p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadTripError")}</p>
         <div className="flex gap-2">
           <Button
             onClick={() =>
               queryClient.invalidateQueries({ queryKey: ["trips", id] })
             }
           >
-            Повторить
+            {t("retry")}
           </Button>
           <Link href="/dashboard/trips">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад к рейсам
+              {t("backToTrips")}
             </Button>
           </Link>
         </div>
@@ -255,11 +272,11 @@ export default function TripDetailPage({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium">Рейс не найден</p>
+        <p className="text-lg font-medium">{t("tripNotFound")}</p>
         <Link href="/dashboard/trips">
           <Button variant="outline" className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к рейсам
+            {t("backToTrips")}
           </Button>
         </Link>
       </div>
@@ -277,13 +294,13 @@ export default function TripDetailPage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/dashboard/trips">
-            <Button variant="ghost" size="sm" aria-label="Назад к рейсам">
+            <Button variant="ghost" size="sm" aria-label={t("backToTrips")}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Рейс</h1>
+              <h1 className="text-3xl font-bold">{t("title")}</h1>
               <span
                 className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
               >
@@ -293,7 +310,7 @@ export default function TripDetailPage({
             <p className="text-muted-foreground">
               {trip.employee
                 ? `${trip.employee.firstName} ${trip.employee.lastName || ""}`
-                : "Без водителя"}
+                : t("noDriver")}
               {trip.route ? ` — ${trip.route.name}` : ""}
             </p>
           </div>
@@ -306,26 +323,26 @@ export default function TripDetailPage({
                 disabled={endMutation.isPending}
                 onClick={() =>
                   setConfirmState({
-                    title: "Завершить рейс?",
+                    title: t("confirmEnd"),
                     action: () => endMutation.mutate(),
                   })
                 }
               >
                 <Square className="h-4 w-4 mr-2" />
-                {endMutation.isPending ? "Завершение..." : "Завершить"}
+                {endMutation.isPending ? t("ending") : t("end")}
               </Button>
               <Button
                 variant="destructive"
                 disabled={cancelMutation.isPending}
                 onClick={() =>
                   setConfirmState({
-                    title: "Отменить рейс?",
+                    title: t("confirmCancel"),
                     action: () => cancelMutation.mutate(),
                   })
                 }
               >
                 <XCircle className="h-4 w-4 mr-2" />
-                {cancelMutation.isPending ? "Отмена..." : "Отменить"}
+                {cancelMutation.isPending ? t("cancelling") : t("cancel")}
               </Button>
             </>
           )}
@@ -335,25 +352,29 @@ export default function TripDetailPage({
       {/* Tabs */}
       <Tabs defaultValue="info">
         <TabsList>
-          <TabsTrigger value="info">Информация</TabsTrigger>
-          <TabsTrigger value="stops">Остановки ({stopList.length})</TabsTrigger>
-          <TabsTrigger value="anomalies">
-            Аномалии ({anomalyList.length})
+          <TabsTrigger value="info">{t("tabInfo")}</TabsTrigger>
+          <TabsTrigger value="stops">
+            {t("tabStops", { count: stopList.length })}
           </TabsTrigger>
-          <TabsTrigger value="tasks">Задачи ({taskList.length})</TabsTrigger>
+          <TabsTrigger value="anomalies">
+            {t("tabAnomalies", { count: anomalyList.length })}
+          </TabsTrigger>
+          <TabsTrigger value="tasks">
+            {t("tabTasks", { count: taskList.length })}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Основная информация</CardTitle>
+                <CardTitle className="text-lg">{t("mainInfo")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    Водитель:
+                    {t("driver")}
                   </span>
                   <span className="text-sm font-medium">
                     {trip.employee
@@ -364,7 +385,7 @@ export default function TripDetailPage({
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    Маршрут:
+                    {t("route")}
                   </span>
                   <span className="text-sm font-medium">
                     {trip.route?.name || "—"}
@@ -373,7 +394,7 @@ export default function TripDetailPage({
                 <div className="flex items-center gap-2">
                   <Car className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    Транспорт:
+                    {t("vehicle")}
                   </span>
                   <span className="text-sm font-medium">
                     {trip.vehicle
@@ -384,7 +405,9 @@ export default function TripDetailPage({
                 {trip.taskType && (
                   <div className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Тип:</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("type")}
+                    </span>
                     <span className="text-sm font-medium">{trip.taskType}</span>
                   </div>
                 )}
@@ -392,12 +415,16 @@ export default function TripDetailPage({
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Время и расстояние</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("timeAndDistance")}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Начало:</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("startTime")}
+                  </span>
                   <span className="text-sm font-medium">
                     {trip.startedAt
                       ? new Date(trip.startedAt).toLocaleString("ru-RU")
@@ -406,7 +433,9 @@ export default function TripDetailPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Конец:</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("endTime")}
+                  </span>
                   <span className="text-sm font-medium">
                     {trip.endedAt
                       ? new Date(trip.endedAt).toLocaleString("ru-RU")
@@ -417,10 +446,10 @@ export default function TripDetailPage({
                   <div className="flex items-center gap-2">
                     <Ruler className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Расстояние:
+                      {t("distance")}
                     </span>
                     <span className="text-sm font-medium">
-                      {trip.distanceKm.toFixed(1)} км
+                      {t("distanceKm", { value: trip.distanceKm.toFixed(1) })}
                     </span>
                   </div>
                 )}
@@ -428,23 +457,27 @@ export default function TripDetailPage({
                   <div className="flex items-center gap-2">
                     <Timer className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Длительность:
+                      {t("duration")}
                     </span>
                     <span className="text-sm font-medium">
-                      {Math.floor(trip.durationMinutes / 60)}ч{" "}
-                      {trip.durationMinutes % 60}мин
+                      {t("durationValue", {
+                        hours: Math.floor(trip.durationMinutes / 60),
+                        minutes: trip.durationMinutes % 60,
+                      })}
                     </span>
                   </div>
                 )}
                 {trip.notes && (
                   <div className="pt-2 border-t">
-                    <p className="text-sm text-muted-foreground">Заметки:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("notes")}
+                    </p>
                     <p className="text-sm">{trip.notes}</p>
                   </div>
                 )}
                 {trip.cancelReason && (
                   <div className="pt-2 border-t">
-                    <p className="text-sm text-red-500">Причина отмены:</p>
+                    <p className="text-sm text-red-500">{t("cancelReason")}</p>
                     <p className="text-sm">{trip.cancelReason}</p>
                   </div>
                 )}
@@ -458,7 +491,7 @@ export default function TripDetailPage({
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Остановок нет</p>
+                <p className="text-lg font-medium">{t("noStops")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -477,7 +510,9 @@ export default function TripDetailPage({
                           <div className="flex items-center gap-2">
                             <span className="font-medium">
                               {stop.machine?.name ||
-                                `Остановка ${stop.sequenceNumber || index + 1}`}
+                                t("stopN", {
+                                  n: stop.sequenceNumber || index + 1,
+                                })}
                             </span>
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full ${ss.bgColor} ${ss.color}`}
@@ -491,7 +526,7 @@ export default function TripDetailPage({
                             )}
                             {stop.arrivedAt && (
                               <span>
-                                Прибытие:{" "}
+                                {t("arrival")}{" "}
                                 {new Date(stop.arrivedAt).toLocaleTimeString(
                                   "ru-RU",
                                 )}
@@ -499,7 +534,7 @@ export default function TripDetailPage({
                             )}
                             {stop.departedAt && (
                               <span>
-                                Отбытие:{" "}
+                                {t("departure")}{" "}
                                 {new Date(stop.departedAt).toLocaleTimeString(
                                   "ru-RU",
                                 )}
@@ -521,7 +556,7 @@ export default function TripDetailPage({
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-                <p className="text-lg font-medium">Аномалий нет</p>
+                <p className="text-lg font-medium">{t("noAnomalies")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -554,7 +589,7 @@ export default function TripDetailPage({
                                 variant="outline"
                                 className="text-green-600"
                               >
-                                Решено
+                                {t("resolved")}
                               </Badge>
                             )}
                           </div>
@@ -583,7 +618,7 @@ export default function TripDetailPage({
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <ClipboardList className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Задачи не привязаны</p>
+                <p className="text-lg font-medium">{t("noTasks")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -598,11 +633,11 @@ export default function TripDetailPage({
                           <span className="font-medium">
                             {tripTask.task
                               ? `#${tripTask.task.taskNumber} — ${tripTask.task.taskType}`
-                              : "Задача"}
+                              : t("task")}
                           </span>
                           {tripTask.task && (
                             <p className="text-sm text-muted-foreground">
-                              Статус: {tripTask.task.status}
+                              {t("taskStatus")} {tripTask.task.status}
                             </p>
                           )}
                         </div>
@@ -610,14 +645,14 @@ export default function TripDetailPage({
                       {tripTask.completedAt ? (
                         <Badge variant="outline" className="text-green-600">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Выполнено
+                          {t("taskCompleted")}
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
                           className="text-muted-foreground"
                         >
-                          Ожидает
+                          {t("taskPending")}
                         </Badge>
                       )}
                     </div>

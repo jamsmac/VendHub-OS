@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   Route,
@@ -53,27 +54,6 @@ interface RouteStop {
   estimatedArrivalMinutes?: number;
   estimatedDurationMinutes?: number;
 }
-
-const statusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  draft: {
-    label: "Черновик",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
-  active: {
-    label: "Активен",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  inactive: {
-    label: "Неактивен",
-    color: "text-red-600",
-    bgColor: "bg-red-100",
-  },
-};
 
 function DetailSkeleton() {
   return (
@@ -129,6 +109,7 @@ export default function RouteDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("routeDetail");
   const [isAddStopOpen, setIsAddStopOpen] = useState(false);
   const [newStopMachineId, setNewStopMachineId] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -159,21 +140,21 @@ export default function RouteDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id] });
       setIsEditing(false);
-      toast.success("Маршрут обновлён");
+      toast.success(t("toastRouteUpdated"));
     },
     onError: () => {
-      toast.error("Не удалось обновить маршрут");
+      toast.error(t("toastRouteUpdateError"));
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => routesApi.delete(id),
     onSuccess: () => {
-      toast.success("Маршрут удалён");
+      toast.success(t("toastRouteDeleted"));
       router.push("/dashboard/routes");
     },
     onError: () => {
-      toast.error("Не удалось удалить маршрут");
+      toast.error(t("toastRouteDeleteError"));
     },
   });
 
@@ -182,10 +163,10 @@ export default function RouteDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id] });
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
-      toast.success("Маршрут оптимизирован");
+      toast.success(t("toastRouteOptimized"));
     },
     onError: () => {
-      toast.error("Не удалось оптимизировать маршрут");
+      toast.error(t("toastRouteOptimizeError"));
     },
   });
 
@@ -193,10 +174,10 @@ export default function RouteDetailPage({
     mutationFn: () => routesApi.start(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id] });
-      toast.success("Маршрут активирован");
+      toast.success(t("toastRouteActivated"));
     },
     onError: () => {
-      toast.error("Не удалось активировать маршрут");
+      toast.error(t("toastRouteActivateError"));
     },
   });
 
@@ -204,10 +185,10 @@ export default function RouteDetailPage({
     mutationFn: () => routesApi.complete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id] });
-      toast.success("Маршрут завершён");
+      toast.success(t("toastRouteCompleted"));
     },
     onError: () => {
-      toast.error("Не удалось завершить маршрут");
+      toast.error(t("toastRouteCompleteError"));
     },
   });
 
@@ -218,10 +199,10 @@ export default function RouteDetailPage({
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
       setIsAddStopOpen(false);
       setNewStopMachineId("");
-      toast.success("Остановка добавлена");
+      toast.success(t("toastStopAdded"));
     },
     onError: () => {
-      toast.error("Не удалось добавить остановку");
+      toast.error(t("toastStopAddError"));
     },
   });
 
@@ -229,10 +210,10 @@ export default function RouteDetailPage({
     mutationFn: (stopId: string) => routesApi.removeStop(id, stopId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
-      toast.success("Остановка удалена");
+      toast.success(t("toastStopRemoved"));
     },
     onError: () => {
-      toast.error("Не удалось удалить остановку");
+      toast.error(t("toastStopRemoveError"));
     },
   });
 
@@ -241,10 +222,10 @@ export default function RouteDetailPage({
     mutationFn: (data: any) => routesApi.reorderStops(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
-      toast.success("Порядок обновлён");
+      toast.success(t("toastOrderUpdated"));
     },
     onError: () => {
-      toast.error("Не удалось изменить порядок");
+      toast.error(t("toastOrderUpdateError"));
     },
   });
 
@@ -256,16 +237,14 @@ export default function RouteDetailPage({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить маршрут
-        </p>
+        <p className="text-lg font-medium">{t("loadingError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadRouteError")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["routes", id] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -275,18 +254,24 @@ export default function RouteDetailPage({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Route className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium">Маршрут не найден</p>
+        <p className="text-lg font-medium">{t("routeNotFound")}</p>
         <Link href="/dashboard/routes">
           <Button variant="outline" className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к маршрутам
+            {t("backToRoutes")}
           </Button>
         </Link>
       </div>
     );
   }
 
-  const status = statusConfig[route.status] || statusConfig.draft;
+  const statusKey = route.status || "draft";
+  const statusColorMap: Record<string, { color: string; bgColor: string }> = {
+    draft: { color: "text-muted-foreground", bgColor: "bg-muted" },
+    active: { color: "text-green-600", bgColor: "bg-green-100" },
+    inactive: { color: "text-red-600", bgColor: "bg-red-100" },
+  };
+  const statusColors = statusColorMap[statusKey] || statusColorMap.draft;
   const stopList: RouteStop[] = Array.isArray(stops) ? stops : [];
 
   const handleMoveStop = (stopIndex: number, direction: "up" | "down") => {
@@ -306,7 +291,7 @@ export default function RouteDetailPage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/dashboard/routes">
-            <Button variant="ghost" size="sm" aria-label="Назад к маршрутам">
+            <Button variant="ghost" size="sm" aria-label={t("backToRoutes")}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
@@ -318,21 +303,21 @@ export default function RouteDetailPage({
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     className="w-64"
-                    aria-label="Название маршрута"
+                    aria-label={t("routeNameLabel")}
                   />
                   <Button
                     size="sm"
                     disabled={updateMutation.isPending}
                     onClick={() => updateMutation.mutate({ name: editName })}
                   >
-                    {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+                    {updateMutation.isPending ? t("saving") : t("save")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setIsEditing(false)}
                   >
-                    Отмена
+                    {t("cancel")}
                   </Button>
                 </div>
               ) : (
@@ -341,7 +326,7 @@ export default function RouteDetailPage({
                   <Button
                     variant="ghost"
                     size="sm"
-                    aria-label="Редактировать название"
+                    aria-label={t("editNameLabel")}
                     onClick={() => {
                       setEditName(route.name);
                       setIsEditing(true);
@@ -352,9 +337,9 @@ export default function RouteDetailPage({
                 </>
               )}
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
+                className={`text-xs px-2 py-0.5 rounded-full ${statusColors.bgColor} ${statusColors.color}`}
               >
-                {status.label}
+                {t(`status_${statusKey}`)}
               </span>
             </div>
             {route.description && (
@@ -370,7 +355,7 @@ export default function RouteDetailPage({
               onClick={() => startMutation.mutate()}
             >
               <Play className="h-4 w-4 mr-2" />
-              {startMutation.isPending ? "Активация..." : "Активировать"}
+              {startMutation.isPending ? t("activating") : t("activate")}
             </Button>
           )}
           {route.status === "active" && (
@@ -380,7 +365,7 @@ export default function RouteDetailPage({
               onClick={() => completeMutation.mutate()}
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              {completeMutation.isPending ? "Завершение..." : "Завершить"}
+              {completeMutation.isPending ? t("completing") : t("complete")}
             </Button>
           )}
           <Button
@@ -389,20 +374,20 @@ export default function RouteDetailPage({
             onClick={() => optimizeMutation.mutate()}
           >
             <Zap className="h-4 w-4 mr-2" />
-            {optimizeMutation.isPending ? "Оптимизация..." : "Оптимизировать"}
+            {optimizeMutation.isPending ? t("optimizing") : t("optimize")}
           </Button>
           <Button
             variant="destructive"
             disabled={deleteMutation.isPending}
             onClick={() => {
               setConfirmState({
-                title: "Удалить маршрут?",
+                title: t("confirmDeleteRoute"),
                 action: () => deleteMutation.mutate(),
               });
             }}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            {deleteMutation.isPending ? "Удаление..." : "Удалить"}
+            {deleteMutation.isPending ? t("deleting") : t("delete")}
           </Button>
         </div>
       </div>
@@ -414,7 +399,9 @@ export default function RouteDetailPage({
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Остановок</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("stopsCount")}
+                </p>
                 <p className="text-xl font-bold">{stopList.length}</p>
               </div>
             </div>
@@ -426,9 +413,13 @@ export default function RouteDetailPage({
               <div className="flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Расстояние</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("distance")}
+                  </p>
                   <p className="text-xl font-bold">
-                    {route.totalDistanceKm.toFixed(1)} км
+                    {t("distanceValue", {
+                      km: route.totalDistanceKm.toFixed(1),
+                    })}
                   </p>
                 </div>
               </div>
@@ -441,10 +432,12 @@ export default function RouteDetailPage({
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Время</p>
+                  <p className="text-sm text-muted-foreground">{t("time")}</p>
                   <p className="text-xl font-bold">
-                    {Math.floor(route.estimatedDurationMinutes / 60)}ч{" "}
-                    {route.estimatedDurationMinutes % 60}мин
+                    {t("timeValue", {
+                      hours: Math.floor(route.estimatedDurationMinutes / 60),
+                      minutes: route.estimatedDurationMinutes % 60,
+                    })}
                   </p>
                 </div>
               </div>
@@ -457,26 +450,28 @@ export default function RouteDetailPage({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Остановки</CardTitle>
+            <CardTitle>{t("stops")}</CardTitle>
             <Dialog open={isAddStopOpen} onOpenChange={setIsAddStopOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Добавить остановку
+                  {t("addStop")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Добавить остановку</DialogTitle>
+                  <DialogTitle>{t("addStop")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">ID автомата</label>
+                    <label className="text-sm font-medium">
+                      {t("machineId")}
+                    </label>
                     <Input
-                      placeholder="UUID автомата..."
+                      placeholder={t("machineIdPlaceholder")}
                       value={newStopMachineId}
                       onChange={(e) => setNewStopMachineId(e.target.value)}
-                      aria-label="ID автомата"
+                      aria-label={t("machineId")}
                     />
                   </div>
                   <Button
@@ -489,7 +484,7 @@ export default function RouteDetailPage({
                     }
                     disabled={!newStopMachineId || addStopMutation.isPending}
                   >
-                    {addStopMutation.isPending ? "Добавление..." : "Добавить"}
+                    {addStopMutation.isPending ? t("adding") : t("add")}
                   </Button>
                 </div>
               </DialogContent>
@@ -500,7 +495,7 @@ export default function RouteDetailPage({
           {stopList.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <MapPin className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p>Остановок нет. Добавьте первую остановку.</p>
+              <p>{t("noStops")}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -517,7 +512,9 @@ export default function RouteDetailPage({
                       <Coffee className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="font-medium truncate">
                         {stop.machine?.name ||
-                          `Остановка ${stop.sequenceNumber || index + 1}`}
+                          t("stopNumber", {
+                            num: stop.sequenceNumber || index + 1,
+                          })}
                       </span>
                     </div>
                     {stop.machine?.address && (
@@ -527,7 +524,9 @@ export default function RouteDetailPage({
                     )}
                     {stop.estimatedArrivalMinutes != null && (
                       <p className="text-xs text-muted-foreground">
-                        ~{stop.estimatedArrivalMinutes} мин
+                        {t("estimatedMinutes", {
+                          min: stop.estimatedArrivalMinutes,
+                        })}
                       </p>
                     )}
                   </div>
@@ -535,7 +534,7 @@ export default function RouteDetailPage({
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Переместить вверх"
+                      aria-label={t("moveUp")}
                       disabled={index === 0 || reorderMutation.isPending}
                       onClick={() => handleMoveStop(index, "up")}
                     >
@@ -544,7 +543,7 @@ export default function RouteDetailPage({
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Переместить вниз"
+                      aria-label={t("moveDown")}
                       disabled={
                         index === stopList.length - 1 ||
                         reorderMutation.isPending
@@ -556,12 +555,12 @@ export default function RouteDetailPage({
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Удалить остановку"
+                      aria-label={t("removeStop")}
                       className="text-destructive hover:text-destructive"
                       disabled={removeStopMutation.isPending}
                       onClick={() => {
                         setConfirmState({
-                          title: "Удалить остановку?",
+                          title: t("confirmDeleteStop"),
                           action: () => removeStopMutation.mutate(stop.id),
                         });
                       }}

@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   Route,
   ArrowLeft,
@@ -15,14 +16,14 @@ import {
   Save,
   Coffee,
   MapPin,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { routesApi, machinesApi } from '@/lib/api';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { routesApi, machinesApi } from "@/lib/api";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Machine {
   id: string;
@@ -53,22 +54,32 @@ function MachineCardSkeleton() {
 export default function RouteBuilderPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [routeName, setRouteName] = useState('');
-  const [routeDescription, setRouteDescription] = useState('');
-  const [machineSearch, setMachineSearch] = useState('');
-  const [debouncedMachineSearch, setDebouncedMachineSearch] = useState('');
+  const t = useTranslations("routeBuilder");
+  const [routeName, setRouteName] = useState("");
+  const [routeDescription, setRouteDescription] = useState("");
+  const [machineSearch, setMachineSearch] = useState("");
+  const [debouncedMachineSearch, setDebouncedMachineSearch] = useState("");
   const [stops, setStops] = useState<BuilderStop[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedMachineSearch(machineSearch), 300);
+    const timer = setTimeout(
+      () => setDebouncedMachineSearch(machineSearch),
+      300,
+    );
     return () => clearTimeout(timer);
   }, [machineSearch]);
 
-  const { data: machines, isLoading: machinesLoading, isError: machinesError } = useQuery({
-    queryKey: ['machines', debouncedMachineSearch],
+  const {
+    data: machines,
+    isLoading: machinesLoading,
+    isError: machinesError,
+  } = useQuery({
+    queryKey: ["machines", debouncedMachineSearch],
     queryFn: () =>
-      machinesApi.getAll({ search: debouncedMachineSearch }).then((res) => res.data.data || res.data),
+      machinesApi
+        .getAll({ search: debouncedMachineSearch })
+        .then((res) => res.data.data || res.data),
   });
 
   const machineList: Machine[] = Array.isArray(machines) ? machines : [];
@@ -91,11 +102,14 @@ export default function RouteBuilderPage() {
     setStops(newStops.map((s, i) => ({ ...s, sequenceNumber: i + 1 })));
   };
 
-  const moveStop = (index: number, direction: 'up' | 'down') => {
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+  const moveStop = (index: number, direction: "up" | "down") => {
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
     if (swapIndex < 0 || swapIndex >= stops.length) return;
     const newStops = [...stops];
-    [newStops[index], newStops[swapIndex]] = [newStops[swapIndex], newStops[index]];
+    [newStops[index], newStops[swapIndex]] = [
+      newStops[swapIndex],
+      newStops[index],
+    ];
     setStops(newStops.map((s, i) => ({ ...s, sequenceNumber: i + 1 })));
   };
 
@@ -121,11 +135,11 @@ export default function RouteBuilderPage() {
     setIsSaving(true);
     try {
       const routeId = await createRouteWithStops();
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
-      toast.success('Маршрут создан');
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success(t("toastRouteCreated"));
       router.push(`/dashboard/routes/${routeId}`);
     } catch {
-      toast.error('Не удалось создать маршрут');
+      toast.error(t("toastRouteCreateError"));
       setIsSaving(false);
     }
   };
@@ -136,11 +150,11 @@ export default function RouteBuilderPage() {
     try {
       const routeId = await createRouteWithStops();
       await routesApi.optimize(routeId);
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
-      toast.success('Маршрут создан и оптимизирован');
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success(t("toastRouteCreatedOptimized"));
       router.push(`/dashboard/routes/${routeId}`);
     } catch {
-      toast.error('Не удалось создать и оптимизировать маршрут');
+      toast.error(t("toastRouteCreateOptimizeError"));
       setIsSaving(false);
     }
   };
@@ -150,40 +164,40 @@ export default function RouteBuilderPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/routes">
-          <Button variant="ghost" size="sm" aria-label="Назад к маршрутам">
+          <Button variant="ghost" size="sm" aria-label={t("backToRoutes")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Конструктор маршрута</h1>
-          <p className="text-muted-foreground">
-            Выберите автоматы и задайте порядок обслуживания
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
       {/* Route Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Информация о маршруте</CardTitle>
+          <CardTitle>{t("routeInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Название *</label>
+            <label className="text-sm font-medium">{t("nameLabel")}</label>
             <Input
-              placeholder="Например: Маршрут Центр-1"
+              placeholder={t("namePlaceholder")}
               value={routeName}
               onChange={(e) => setRouteName(e.target.value)}
-              aria-label="Название маршрута"
+              aria-label={t("routeNameAria")}
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Описание</label>
+            <label className="text-sm font-medium">
+              {t("descriptionLabel")}
+            </label>
             <Input
-              placeholder="Описание маршрута..."
+              placeholder={t("descriptionPlaceholder")}
               value={routeDescription}
               onChange={(e) => setRouteDescription(e.target.value)}
-              aria-label="Описание маршрута"
+              aria-label={t("routeDescriptionAria")}
             />
           </div>
         </CardContent>
@@ -195,39 +209,45 @@ export default function RouteBuilderPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coffee className="h-5 w-5" />
-              Доступные автоматы
+              {t("availableMachines")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск автоматов..."
+                placeholder={t("searchMachinesPlaceholder")}
                 value={machineSearch}
                 onChange={(e) => setMachineSearch(e.target.value)}
                 className="pl-10"
-                aria-label="Поиск автоматов"
+                aria-label={t("searchMachinesAria")}
               />
             </div>
 
             {machinesLoading ? (
               <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => <MachineCardSkeleton key={i} />)}
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <MachineCardSkeleton key={i} />
+                ))}
               </div>
             ) : machinesError ? (
               <div className="text-center py-6">
-                <p className="text-destructive mb-2">Ошибка загрузки автоматов</p>
+                <p className="text-destructive mb-2">
+                  {t("machinesLoadError")}
+                </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ['machines'] })}
+                  onClick={() =>
+                    queryClient.invalidateQueries({ queryKey: ["machines"] })
+                  }
                 >
-                  Повторить
+                  {t("retry")}
                 </Button>
               </div>
             ) : machineList.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground">
-                Автоматы не найдены
+                {t("noMachinesFound")}
               </div>
             ) : (
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -248,16 +268,16 @@ export default function RouteBuilderPage() {
                       </div>
                       <Button
                         size="sm"
-                        variant={isAdded ? 'ghost' : 'outline'}
+                        variant={isAdded ? "ghost" : "outline"}
                         disabled={isAdded}
                         onClick={() => addStop(machine)}
                       >
                         {isAdded ? (
-                          'Добавлен'
+                          t("added")
                         ) : (
                           <>
                             <Plus className="h-4 w-4 mr-1" />
-                            Добавить
+                            {t("add")}
                           </>
                         )}
                       </Button>
@@ -274,14 +294,14 @@ export default function RouteBuilderPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Остановки ({stops.length})
+              {t("stopsTitle", { count: stops.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {stops.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Route className="h-8 w-8 mx-auto mb-2" />
-                <p>Добавьте автоматы из списка слева</p>
+                <p>{t("addMachinesHint")}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -305,25 +325,25 @@ export default function RouteBuilderPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label="Переместить вверх"
+                        aria-label={t("moveUp")}
                         disabled={index === 0}
-                        onClick={() => moveStop(index, 'up')}
+                        onClick={() => moveStop(index, "up")}
                       >
                         <ArrowUp className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label="Переместить вниз"
+                        aria-label={t("moveDown")}
                         disabled={index === stops.length - 1}
-                        onClick={() => moveStop(index, 'down')}
+                        onClick={() => moveStop(index, "down")}
                       >
                         <ArrowDown className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label="Удалить остановку"
+                        aria-label={t("removeStop")}
                         className="text-destructive hover:text-destructive"
                         onClick={() => removeStop(index)}
                       >
@@ -343,7 +363,7 @@ export default function RouteBuilderPage() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              {stops.length} остановок в маршруте
+              {t("stopsInRoute", { count: stops.length })}
             </div>
             <div className="flex gap-2">
               <Button
@@ -352,14 +372,14 @@ export default function RouteBuilderPage() {
                 onClick={handleOptimize}
               >
                 <Zap className="h-4 w-4 mr-2" />
-                {isSaving ? 'Сохранение...' : 'Сохранить и оптимизировать'}
+                {isSaving ? t("saving") : t("saveAndOptimize")}
               </Button>
               <Button
                 disabled={stops.length === 0 || !routeName.trim() || isSaving}
                 onClick={handleSave}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Сохранение...' : 'Сохранить маршрут'}
+                {isSaving ? t("saving") : t("saveRoute")}
               </Button>
             </div>
           </div>
