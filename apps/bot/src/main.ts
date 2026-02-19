@@ -89,9 +89,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Set bot commands
-  // Client commands (default)
-  await bot.telegram.setMyCommands([
+  // Set bot commands — all available commands (handlers enforce auth per role)
+  const allCommands = [
     { command: "start", description: "Главное меню" },
     { command: "find", description: "Найти ближайшие автоматы" },
     { command: "menu", description: "Меню автомата" },
@@ -102,25 +101,16 @@ async function main() {
     { command: "history", description: "История покупок" },
     { command: "referral", description: "Реферальная программа" },
     { command: "cart", description: "Корзина" },
+    { command: "tasks", description: "Мои задачи" },
+    { command: "route", description: "Маршрут на сегодня" },
+    { command: "report", description: "Дневной отчёт" },
+    { command: "alerts", description: "Уведомления" },
+    { command: "trip", description: "Управление поездками" },
     { command: "settings", description: "Настройки" },
     { command: "support", description: "Поддержка" },
     { command: "help", description: "Помощь" },
-  ]);
-
-  // Staff-specific commands (shown in group chats or via BotFather scope)
-  await bot.telegram.setMyCommands(
-    [
-      { command: "tasks", description: "Мои задачи" },
-      { command: "route", description: "Маршрут на сегодня" },
-      { command: "report", description: "Дневной отчёт" },
-      { command: "alerts", description: "Уведомления" },
-      { command: "trip", description: "Управление поездками" },
-      { command: "find", description: "Найти автомат" },
-      { command: "settings", description: "Настройки" },
-      { command: "help", description: "Помощь" },
-    ],
-    { scope: { type: "all_group_chats" } },
-  );
+  ];
+  await bot.telegram.setMyCommands(allCommands);
   logger.info("Bot commands set");
 
   // Health check HTTP server (for Docker/K8s probes)

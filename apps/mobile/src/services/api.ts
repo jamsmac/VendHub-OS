@@ -173,12 +173,6 @@ export const inventoryApi = {
     items: { productId: string; quantity: number }[];
     note?: string;
   }) => api.post("/inventory/transfer", data),
-  createTransfer: (data: {
-    fromMachineId: string;
-    toMachineId: string;
-    items: { productId: string; quantity: number }[];
-    note?: string;
-  }) => api.post("/inventory/transfer", data),
   getMovements: (params?: Record<string, unknown>) =>
     api.get("/inventory/movements", { params }),
 };

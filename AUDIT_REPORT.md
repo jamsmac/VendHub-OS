@@ -871,7 +871,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | #   | Задача                                              | Часы | Статус                            |
 | --- | --------------------------------------------------- | ---- | --------------------------------- |
 | 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody) |
-| 29  | Resolve 4 circular dependencies                     | 8    | ⚠️ Open                           |
+| 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)   |
 | 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open                           |
 | 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                           |
 | 32  | Add E2E tests (Playwright)                          | 20   | ⚠️ Open                           |
@@ -954,8 +954,8 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | F-02 | ~~API client — pervasive `any` typing~~         | api.ts              | ~~HIGH~~ ✅ FIXED     |
 | F-03 | Token refresh race condition                    | api.ts:30-53        | ~~HIGH~~ ✅ FIXED     |
 | F-04 | Нет RBAC фильтрации sidebar                     | sidebar.tsx:37-64   | ~~HIGH~~ ✅ FIXED     |
-| F-05 | Dashboard main page — hardcoded empty data      | page.tsx:107-128    | MEDIUM ⚠️             |
-| F-06 | Нет `loading.tsx` (Next.js Suspense)            | Все dashboard/      | MEDIUM ⚠️             |
+| F-05 | ~~Dashboard main page — hardcoded empty data~~  | page.tsx:107-128    | ~~MEDIUM~~ ✅ FIXED   |
+| F-06 | ~~Нет `loading.tsx` (Next.js Suspense)~~        | Все dashboard/      | ~~MEDIUM~~ ✅ FIXED   |
 | F-07 | Mixed HTTP methods (PATCH vs PUT)               | api.ts              | LOW                   |
 | F-08 | 10 API модулей без dashboard страниц            | —                   | MEDIUM ⚠️             |
 
@@ -977,18 +977,18 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | F-15 | API URL = localhost (не работает на устройствах) | app.json + api.ts:9 | ~~CRITICAL~~ ✅ FIXED |
 | F-16 | expo-router plugin конфликт с React Navigation   | app.json:54         | ~~HIGH~~ ✅ FIXED     |
 | F-17 | Hardcoded EAS project ID (не UUID)               | app.json:97         | MEDIUM ⚠️             |
-| F-18 | Duplicate `transfer` methods в inventoryApi      | api.ts:84-91        | LOW                   |
-| F-19 | ProfileScreen — пустые onPress handlers          | ProfileScreen.tsx   | MEDIUM ⚠️             |
+| F-18 | ~~Duplicate `transfer` methods в inventoryApi~~  | api.ts:84-91        | ~~LOW~~ ✅ FIXED      |
+| F-19 | ~~ProfileScreen — пустые onPress handlers~~      | ProfileScreen.tsx   | ~~MEDIUM~~ ✅ FIXED   |
 
 ### Bot — критические находки (ОБНОВЛЕНО v2.0)
 
-| #    | Проблема                             | Файл                | Severity              |
-| ---- | ------------------------------------ | ------------------- | --------------------- |
-| F-20 | Все API вызовы без аутентификации    | api.ts:22-25        | ~~CRITICAL~~ ✅ FIXED |
-| F-21 | ~~handleConfirmOrder — заглушка~~    | callbacks.ts:294    | ~~HIGH~~ ✅ FIXED     |
-| F-22 | Trip сообщения в транслитерации      | commands.ts:369-520 | ~~MEDIUM~~ ✅ FIXED   |
-| F-23 | Staff commands scope неправильный    | main.ts:107-116     | MEDIUM ⚠️             |
-| F-24 | Silent error swallowing в API client | api.ts              | LOW                   |
+| #    | Проблема                              | Файл                | Severity              |
+| ---- | ------------------------------------- | ------------------- | --------------------- |
+| F-20 | Все API вызовы без аутентификации     | api.ts:22-25        | ~~CRITICAL~~ ✅ FIXED |
+| F-21 | ~~handleConfirmOrder — заглушка~~     | callbacks.ts:294    | ~~HIGH~~ ✅ FIXED     |
+| F-22 | Trip сообщения в транслитерации       | commands.ts:369-520 | ~~MEDIUM~~ ✅ FIXED   |
+| F-23 | ~~Staff commands scope неправильный~~ | main.ts:107-116     | ~~MEDIUM~~ ✅ FIXED   |
+| F-24 | Silent error swallowing в API client  | api.ts              | LOW                   |
 
 ### Общая матрица auth-проблем (ОБНОВЛЕНО v2.0)
 

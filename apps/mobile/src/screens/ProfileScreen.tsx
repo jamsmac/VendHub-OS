@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -59,7 +60,11 @@ export function ProfileScreen() {
     {
       icon: "person-outline",
       label: "Редактировать профиль",
-      onPress: () => {},
+      onPress: () =>
+        Alert.alert(
+          "Редактирование профиля",
+          "Для изменения данных профиля обратитесь к администратору через веб-панель.",
+        ),
     },
     {
       icon: "notifications-outline",
@@ -71,11 +76,19 @@ export function ProfileScreen() {
       label: "Настройки",
       onPress: () => navigation.navigate("Settings"),
     },
-    { icon: "help-circle-outline", label: "Помощь", onPress: () => {} },
+    {
+      icon: "help-circle-outline",
+      label: "Помощь",
+      onPress: () => Linking.openURL("https://t.me/vendhub_support"),
+    },
     {
       icon: "information-circle-outline",
       label: "О приложении",
-      onPress: () => {},
+      onPress: () =>
+        Alert.alert(
+          "VendHub Mobile",
+          "Версия: 1.0.0\nСистема управления вендинговыми автоматами\n\n© 2024-2026 VendHub",
+        ),
     },
   ];
 

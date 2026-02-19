@@ -92,7 +92,7 @@ export function TransferScreen() {
   // Transfer mutation
   const transferMutation = useMutation({
     mutationFn: () =>
-      inventoryApi.createTransfer({
+      inventoryApi.transfer({
         fromMachineId: fromMachineId!,
         toMachineId: toMachineId!,
         items: transferItems.map((item) => ({
