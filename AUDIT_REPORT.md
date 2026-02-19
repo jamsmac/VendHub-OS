@@ -23,7 +23,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | Mobile         | 4/10 | 7/10  | Компилируется (0 TS ошибок), auth token, API URL, offline support     |
 | Bot            | 7/10 | 8/10  | Auth добавлен, trip кириллица, API prefix исправлен                   |
 | Infrastructure | 8/10 | 9/10  | K8s probes fix, nginx UID, .dockerignore, Prometheus auth             |
-| Testing        | 7/10 | 7/10  | 1646 тестов pass, но 2 модуля без тестов                              |
+| Testing        | 7/10 | 8/10  | 1646+ тестов pass, bull-board + health покрыты (6 suites, 33 tests)   |
 | Security       | 5/10 | 8/10  | @Roles() на всех endpoints, cross-tenant fix, auth во всех фронтендах |
 
 ---
@@ -304,11 +304,17 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** В каждом сервисе заменить `.delete()` на `.softDelete()`
 - **Оценка:** 4 часа
 
-### P1-006: ⚠️ OPEN — 2 модуля без тестов
+### P1-006: ✅ FIXED — 2 модуля без тестов
 
 - **Где:** `bull-board`, `health`
-- **Что:** Нет ни одного .spec.ts файла
-- **Оценка:** 4 часа
+- **Что было:** Нет ни одного .spec.ts файла
+- **Исправлено:** Добавлено 6 spec-файлов, 33 теста:
+  - `bull-board.controller.spec.ts` (2 теста)
+  - `health.controller.spec.ts` (6 тестов: check, liveness, readiness, detailed, version)
+  - `memory.health.spec.ts` (5 тестов: checkHeap, checkRSS, healthy/unhealthy/details)
+  - `database.health.spec.ts` (7 тестов: healthy, query, pool, errors, fallback)
+  - `redis.health.spec.ts` (8 тестов: not_configured, healthy, info, errors, destroy)
+  - `disk.health.spec.ts` (5 тестов: healthy, details, threshold exceeded, error handling)
 
 ### P1-007: ✅ FIXED — Missing module `canvas-confetti` types (Client)
 
@@ -843,7 +849,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | 15  | Fix hard delete → softDelete (7 services) | 4    | ✅ Done           |
 | 16  | Fix achievements TS errors                | 1    | ✅ Done           |
 | 17  | Fix Client PWA TS errors                  | 1.5  | ✅ Done           |
-| 18  | Add tests for bull-board, health          | 3    | ⚠️ Open           |
+| 18  | Add tests for bull-board, health          | 3    | ✅ Done           |
 
 ### ~~Неделя 3: P1 — Frontend Auth & UX~~ ✅ ЧАСТИЧНО (4/7 задач)
 
