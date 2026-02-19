@@ -692,25 +692,37 @@ export class TripsService {
       where: { tripId, status: TripTaskLinkStatus.PENDING },
     });
 
-    for (const link of taskLinks) {
-      // Check if the task is for this machine
-      const task = await this.tripRepository.manager
-        .createQueryBuilder()
-        .select(["id", "machine_id"])
-        .from("tasks", "t")
-        .where("t.id = :taskId", { taskId: link.taskId })
-        .andWhere("t.machine_id = :machineId", { machineId })
-        .andWhere("t.deleted_at IS NULL")
-        .getRawOne();
+    if (taskLinks.length === 0) return;
 
-      if (task) {
-        link.status = TripTaskLinkStatus.IN_PROGRESS;
-        link.verifiedByGps = true;
-        link.verifiedAt = new Date();
-        link.startedAt = new Date();
-        await this.taskLinkRepository.save(link);
-      }
+    // Batch query: find which of these tasks belong to this machine
+    const taskIds = taskLinks.map((link) => link.taskId);
+    const matchingTasks = await this.tripRepository.manager
+      .createQueryBuilder()
+      .select(["id"])
+      .from("tasks", "t")
+      .where("t.id IN (:...taskIds)", { taskIds })
+      .andWhere("t.machine_id = :machineId", { machineId })
+      .andWhere("t.deleted_at IS NULL")
+      .getRawMany();
+
+    const matchingTaskIds = new Set(matchingTasks.map((t) => t.id));
+
+    // Update matching links in batch
+    const linksToUpdate = taskLinks.filter((link) =>
+      matchingTaskIds.has(link.taskId),
+    );
+
+    if (linksToUpdate.length === 0) return;
+
+    const now = new Date();
+    for (const link of linksToUpdate) {
+      link.status = TripTaskLinkStatus.IN_PROGRESS;
+      link.verifiedByGps = true;
+      link.verifiedAt = now;
+      link.startedAt = now;
     }
+
+    await this.taskLinkRepository.save(linksToUpdate);
   }
 
   // ============================================================================

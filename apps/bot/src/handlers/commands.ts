@@ -265,7 +265,8 @@ async function handleReferral(ctx: BotContext) {
   }
 
   const referralCode = user.referralCode || `VH${ctx.from!.id}`;
-  const referralLink = `https://t.me/${config.botToken.split(":")[0]}?start=ref_${referralCode}`;
+  const botUsername = ctx.botInfo?.username || "vendhub_bot";
+  const referralLink = `https://t.me/${botUsername}?start=ref_${referralCode}`;
 
   await ctx.reply(
     formatReferralMessage(referralCode, referralLink, user.referralsCount || 0),
