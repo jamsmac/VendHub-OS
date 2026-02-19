@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { directoriesApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { directoriesApi } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -16,15 +17,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   Search,
   Plus,
@@ -33,13 +34,15 @@ import {
   Building2,
   Filter,
   Settings2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 
-type ApiError = Error & { response?: { data?: { message?: string | string[] } } };
+type ApiError = Error & {
+  response?: { data?: { message?: string | string[] } };
+};
 
-type DirectoryType = 'MANUAL' | 'EXTERNAL' | 'PARAM' | 'TEMPLATE';
-type DirectoryScope = 'HQ' | 'ORGANIZATION' | 'LOCATION';
+type DirectoryType = "MANUAL" | "EXTERNAL" | "PARAM" | "TEMPLATE";
+type DirectoryScope = "HQ" | "ORGANIZATION" | "LOCATION";
 
 interface Directory {
   id: string;
@@ -54,36 +57,37 @@ interface Directory {
   updatedAt: string;
 }
 
-const TYPE_LABELS: Record<DirectoryType, string> = {
-  MANUAL: 'Ручной',
-  EXTERNAL: 'Внешний',
-  PARAM: 'Параметр',
-  TEMPLATE: 'Шаблон',
+const TYPE_KEYS: Record<DirectoryType, string> = {
+  MANUAL: "type_manual",
+  EXTERNAL: "type_external",
+  PARAM: "type_param",
+  TEMPLATE: "type_template",
 };
 
-const SCOPE_LABELS: Record<DirectoryScope, string> = {
-  HQ: 'Штаб-квартира',
-  ORGANIZATION: 'Организация',
-  LOCATION: 'Локация',
+const SCOPE_KEYS: Record<DirectoryScope, string> = {
+  HQ: "scope_hq",
+  ORGANIZATION: "scope_organization",
+  LOCATION: "scope_location",
 };
 
 export default function DirectoriesPage() {
+  const t = useTranslations("directories");
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [scopeFilter, setScopeFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [scopeFilter, setScopeFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Form state for create dialog
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    type: 'MANUAL' as DirectoryType,
-    scope: 'HQ' as DirectoryScope,
-    description: '',
+    name: "",
+    slug: "",
+    type: "MANUAL" as DirectoryType,
+    scope: "HQ" as DirectoryScope,
+    description: "",
   });
 
   // Debounce search input
@@ -97,12 +101,12 @@ export default function DirectoriesPage() {
 
   // Fetch directories
   const { data: directories, isLoading } = useQuery({
-    queryKey: ['directories', debouncedSearch, scopeFilter, typeFilter],
+    queryKey: ["directories", debouncedSearch, scopeFilter, typeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (scopeFilter !== 'all') params.append('scope', scopeFilter);
-      if (typeFilter !== 'all') params.append('type', typeFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (scopeFilter !== "all") params.append("scope", scopeFilter);
+      if (typeFilter !== "all") params.append("type", typeFilter);
 
       const response = await directoriesApi.getAll(Object.fromEntries(params));
       return (response.data?.data ?? response.data) as Directory[];
@@ -113,30 +117,34 @@ export default function DirectoriesPage() {
   const createMutation = useMutation({
     mutationFn: (data: typeof formData) => directoriesApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['directories'] });
+      queryClient.invalidateQueries({ queryKey: ["directories"] });
       setIsCreateDialogOpen(false);
       setFormData({
-        name: '',
-        slug: '',
-        type: 'MANUAL',
-        scope: 'HQ',
-        description: '',
+        name: "",
+        slug: "",
+        type: "MANUAL",
+        scope: "HQ",
+        description: "",
       });
-      toast.success('Справочник успешно создан');
+      toast.success(t("createSuccess"));
     },
     onError: (error: ApiError) => {
-      const message = error.response?.data?.message || error.message || 'Ошибка при создании справочника';
+      const message =
+        error.response?.data?.message || error.message || t("createError");
       toast.error(Array.isArray(message) ? message[0] : message);
     },
   });
 
   // Calculate stats
-  const stats = useMemo(() => ({
-    total: directories?.length || 0,
-    system: directories?.filter((d) => d.isSystem).length || 0,
-    custom: directories?.filter((d) => !d.isSystem).length || 0,
-    external: directories?.filter((d) => d.type === 'EXTERNAL').length || 0,
-  }), [directories]);
+  const stats = useMemo(
+    () => ({
+      total: directories?.length || 0,
+      system: directories?.filter((d) => d.isSystem).length || 0,
+      custom: directories?.filter((d) => !d.isSystem).length || 0,
+      external: directories?.filter((d) => d.type === "EXTERNAL").length || 0,
+    }),
+    [directories],
+  );
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,14 +160,12 @@ export default function DirectoriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Мастер-данные</h1>
-          <p className="text-muted-foreground mt-1">
-            Управление справочниками системы
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Добавить справочник
+          {t("addDirectory")}
         </Button>
       </div>
 
@@ -168,7 +174,7 @@ export default function DirectoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Всего справочников
+              {t("statsTotal")}
             </CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -180,7 +186,7 @@ export default function DirectoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Системных
+              {t("statsSystem")}
             </CardTitle>
             <Settings2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -192,7 +198,7 @@ export default function DirectoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Пользовательских
+              {t("statsCustom")}
             </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -204,7 +210,7 @@ export default function DirectoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Внешних
+              {t("statsExternal")}
             </CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -221,7 +227,7 @@ export default function DirectoriesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Поиск справочников..."
+                placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -232,27 +238,31 @@ export default function DirectoriesPage() {
               <Select value={scopeFilter} onValueChange={setScopeFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Область" />
+                  <SelectValue placeholder={t("filterScope")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все области</SelectItem>
-                  <SelectItem value="HQ">Штаб-квартира</SelectItem>
-                  <SelectItem value="ORGANIZATION">Организация</SelectItem>
-                  <SelectItem value="LOCATION">Локация</SelectItem>
+                  <SelectItem value="all">{t("allScopes")}</SelectItem>
+                  <SelectItem value="HQ">{t("scope_hq")}</SelectItem>
+                  <SelectItem value="ORGANIZATION">
+                    {t("scope_organization")}
+                  </SelectItem>
+                  <SelectItem value="LOCATION">
+                    {t("scope_location")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Database className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Тип" />
+                  <SelectValue placeholder={t("filterType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все типы</SelectItem>
-                  <SelectItem value="MANUAL">Ручной</SelectItem>
-                  <SelectItem value="EXTERNAL">Внешний</SelectItem>
-                  <SelectItem value="PARAM">Параметр</SelectItem>
-                  <SelectItem value="TEMPLATE">Шаблон</SelectItem>
+                  <SelectItem value="all">{t("allTypes")}</SelectItem>
+                  <SelectItem value="MANUAL">{t("type_manual")}</SelectItem>
+                  <SelectItem value="EXTERNAL">{t("type_external")}</SelectItem>
+                  <SelectItem value="PARAM">{t("type_param")}</SelectItem>
+                  <SelectItem value="TEMPLATE">{t("type_template")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -294,7 +304,7 @@ export default function DirectoriesPage() {
                   {directory.isSystem && (
                     <Badge variant="outline" className="ml-2">
                       <Settings2 className="mr-1 h-3 w-3" />
-                      Системный
+                      {t("systemBadge")}
                     </Badge>
                   )}
                 </div>
@@ -308,14 +318,14 @@ export default function DirectoriesPage() {
                   )}
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="default">
-                      {TYPE_LABELS[directory.type]}
+                      {t(TYPE_KEYS[directory.type])}
                     </Badge>
                     <Badge variant="secondary">
-                      {SCOPE_LABELS[directory.scope]}
+                      {t(SCOPE_KEYS[directory.scope])}
                     </Badge>
                     {directory.recordCount !== undefined && (
                       <Badge variant="outline">
-                        {directory.recordCount} записей
+                        {t("recordCount", { count: directory.recordCount })}
                       </Badge>
                     )}
                   </div>
@@ -328,45 +338,52 @@ export default function DirectoriesPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Database className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Справочники не найдены</p>
+            <p className="text-lg font-medium">{t("notFound")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Попробуйте изменить параметры фильтрации
+              {t("notFoundHint")}
             </p>
           </CardContent>
         </Card>
       )}
 
       {/* Create Directory Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-        setIsCreateDialogOpen(open);
-        if (!open) {
-          setFormData({ name: '', slug: '', type: 'MANUAL', scope: 'HQ', description: '' });
-        }
-      }}>
+      <Dialog
+        open={isCreateDialogOpen}
+        onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (!open) {
+            setFormData({
+              name: "",
+              slug: "",
+              type: "MANUAL",
+              scope: "HQ",
+              description: "",
+            });
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
-            <DialogTitle>Создать справочник</DialogTitle>
-            <DialogDescription>
-              Добавьте новый справочник в систему мастер-данных
-            </DialogDescription>
+            <DialogTitle>{t("createTitle")}</DialogTitle>
+            <DialogDescription>{t("createDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Название</Label>
+                <Label htmlFor="name">{t("formName")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="Введите название справочника"
+                  placeholder={t("formNamePlaceholder")}
                   required
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="slug">Код (slug)</Label>
+                <Label htmlFor="slug">{t("formSlug")}</Label>
                 <Input
                   id="slug"
                   value={formData.slug}
@@ -379,7 +396,7 @@ export default function DirectoriesPage() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="type">Тип</Label>
+                <Label htmlFor="type">{t("formType")}</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value: DirectoryType) =>
@@ -390,16 +407,20 @@ export default function DirectoriesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="MANUAL">Ручной</SelectItem>
-                    <SelectItem value="EXTERNAL">Внешний</SelectItem>
-                    <SelectItem value="PARAM">Параметр</SelectItem>
-                    <SelectItem value="TEMPLATE">Шаблон</SelectItem>
+                    <SelectItem value="MANUAL">{t("type_manual")}</SelectItem>
+                    <SelectItem value="EXTERNAL">
+                      {t("type_external")}
+                    </SelectItem>
+                    <SelectItem value="PARAM">{t("type_param")}</SelectItem>
+                    <SelectItem value="TEMPLATE">
+                      {t("type_template")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="scope">Область</Label>
+                <Label htmlFor="scope">{t("formScope")}</Label>
                 <Select
                   value={formData.scope}
                   onValueChange={(value: DirectoryScope) =>
@@ -410,22 +431,26 @@ export default function DirectoriesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="HQ">Штаб-квартира</SelectItem>
-                    <SelectItem value="ORGANIZATION">Организация</SelectItem>
-                    <SelectItem value="LOCATION">Локация</SelectItem>
+                    <SelectItem value="HQ">{t("scope_hq")}</SelectItem>
+                    <SelectItem value="ORGANIZATION">
+                      {t("scope_organization")}
+                    </SelectItem>
+                    <SelectItem value="LOCATION">
+                      {t("scope_location")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="description">Описание</Label>
+                <Label htmlFor="description">{t("formDescription")}</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Краткое описание справочника"
+                  placeholder={t("formDescriptionPlaceholder")}
                 />
               </div>
             </div>
@@ -436,10 +461,10 @@ export default function DirectoriesPage() {
                 onClick={() => setIsCreateDialogOpen(false)}
                 disabled={createMutation.isPending}
               >
-                Отмена
+                {t("cancelBtn")}
               </Button>
               <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Создание...' : 'Создать'}
+                {createMutation.isPending ? t("creating") : t("createBtn")}
               </Button>
             </DialogFooter>
           </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
@@ -72,12 +73,12 @@ interface Contractor {
   createdAt: string;
 }
 
-const typeLabels: Record<string, string> = {
-  repair: "Ремонт",
-  supply: "Поставка",
-  logistics: "Логистика",
-  cleaning: "Клининг",
-  other: "Другое",
+const typeKeys: Record<string, string> = {
+  repair: "type_repair",
+  supply: "type_supply",
+  logistics: "type_logistics",
+  cleaning: "type_cleaning",
+  other: "type_other",
 };
 
 const typeColors: Record<string, string> = {
@@ -88,10 +89,10 @@ const typeColors: Record<string, string> = {
   other: "bg-muted text-muted-foreground",
 };
 
-const statusLabels: Record<string, string> = {
-  active: "Активный",
-  inactive: "Неактивный",
-  pending: "Ожидает",
+const statusKeys: Record<string, string> = {
+  active: "status_active",
+  inactive: "status_inactive",
+  pending: "status_pending",
 };
 
 const statusColors: Record<string, string> = {
@@ -101,6 +102,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ContractorsPage() {
+  const t = useTranslations("contractors");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -137,10 +139,10 @@ export default function ContractorsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractors"] });
-      toast.success("Подрядчик удалён");
+      toast.success(t("deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить подрядчика");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -161,16 +163,14 @@ export default function ContractorsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить подрядчиков
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["contractors"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -181,21 +181,19 @@ export default function ContractorsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Подрядчики</h1>
-          <p className="text-muted-foreground">
-            Управление подрядчиками и контрактами
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Добавить подрядчика
+              {t("addContractor")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Новый подрядчик</DialogTitle>
+              <DialogTitle>{t("newContractor")}</DialogTitle>
             </DialogHeader>
             <ContractorForm
               onSuccess={() => {
@@ -216,7 +214,7 @@ export default function ContractorsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего подрядчиков</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -227,7 +225,9 @@ export default function ContractorsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-sm text-muted-foreground">Активных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsActive")}
+              </p>
             </div>
           </div>
         </div>
@@ -240,7 +240,9 @@ export default function ContractorsPage() {
               <p className="text-2xl font-bold">
                 {formatMoney(stats.totalSpent)}
               </p>
-              <p className="text-sm text-muted-foreground">Общие расходы</p>
+              <p className="text-sm text-muted-foreground">
+                {t("totalExpenses")}
+              </p>
             </div>
           </div>
         </div>
@@ -251,7 +253,7 @@ export default function ContractorsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск подрядчиков..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -261,20 +263,20 @@ export default function ContractorsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              Статус
+              {t("filterStatus")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusLabels).map(([value, label]) => (
+            {Object.entries(statusKeys).map(([value, key]) => (
               <DropdownMenuItem
                 key={value}
                 onClick={() => setStatusFilter(value)}
               >
-                {label}
+                {t(key)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -283,20 +285,20 @@ export default function ContractorsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Building2 className="w-4 h-4 mr-2" />
-              Тип
+              {t("filterType")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-              Все типы
+              {t("allTypes")}
             </DropdownMenuItem>
-            {Object.entries(typeLabels).map(([value, label]) => (
+            {Object.entries(typeKeys).map(([value, key]) => (
               <DropdownMenuItem
                 key={value}
                 onClick={() => setTypeFilter(value)}
               >
-                {label}
+                {t(key)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -308,12 +310,12 @@ export default function ContractorsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Подрядчик</TableHead>
-              <TableHead>Тип</TableHead>
-              <TableHead>Контактное лицо</TableHead>
-              <TableHead>Рейтинг</TableHead>
-              <TableHead>Заказов</TableHead>
-              <TableHead>Статус</TableHead>
+              <TableHead>{t("colContractor")}</TableHead>
+              <TableHead>{t("colType")}</TableHead>
+              <TableHead>{t("colContactPerson")}</TableHead>
+              <TableHead>{t("colRating")}</TableHead>
+              <TableHead>{t("colOrders")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -338,7 +340,8 @@ export default function ContractorsPage() {
                         <p className="font-medium">{contractor.name}</p>
                         {contractor.contractNumber && (
                           <p className="text-sm text-muted-foreground">
-                            №{contractor.contractNumber}
+                            {t("contractNumberPrefix")}
+                            {contractor.contractNumber}
                           </p>
                         )}
                       </div>
@@ -346,7 +349,7 @@ export default function ContractorsPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={typeColors[contractor.type]}>
-                      {typeLabels[contractor.type]}
+                      {t(typeKeys[contractor.type])}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -385,7 +388,7 @@ export default function ContractorsPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[contractor.status]}>
-                      {statusLabels[contractor.status]}
+                      {t(statusKeys[contractor.status])}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -394,7 +397,7 @@ export default function ContractorsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Действия"
+                          aria-label={t("actionsLabel")}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -402,18 +405,18 @@ export default function ContractorsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Edit className="w-4 h-4 mr-2" />
-                          Редактировать
+                          {t("actionEdit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <FileText className="w-4 h-4 mr-2" />
-                          Договор
+                          {t("actionContract")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => deleteMutation.mutate(contractor.id)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Удалить
+                          {t("actionDelete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -424,7 +427,7 @@ export default function ContractorsPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <Building2 className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Подрядчики не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -443,6 +446,7 @@ function ContractorForm({
   contractor?: Contractor;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("contractors");
   const [formData, setFormData] = useState({
     name: contractor?.name || "",
     contactPerson: contractor?.contactPerson || "",
@@ -463,11 +467,11 @@ function ContractorForm({
       return api.post("/contractors", data);
     },
     onSuccess: () => {
-      toast.success(contractor ? "Подрядчик обновлён" : "Подрядчик добавлен");
+      toast.success(contractor ? t("updated") : t("added"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка сохранения");
+      toast.error(t("saveError"));
     },
   });
 
@@ -479,7 +483,7 @@ function ContractorForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Название компании</label>
+        <label className="text-sm font-medium">{t("formCompanyName")}</label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -488,7 +492,9 @@ function ContractorForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Контактное лицо</label>
+          <label className="text-sm font-medium">
+            {t("formContactPerson")}
+          </label>
           <Input
             value={formData.contactPerson}
             onChange={(e) =>
@@ -498,21 +504,20 @@ function ContractorForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Тип услуг</label>
+          <label className="text-sm font-medium">{t("formServiceType")}</label>
           <Select
             value={formData.type}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onValueChange={(value) =>
-              setFormData({ ...formData, type: value as any })
+            onValueChange={(value: string) =>
+              setFormData({ ...formData, type: value as Contractor["type"] })
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите тип услуг" />
+              <SelectValue placeholder={t("formServiceTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(typeLabels).map(([value, label]) => (
+              {Object.entries(typeKeys).map(([value, key]) => (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(key)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -521,7 +526,7 @@ function ContractorForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Email</label>
+          <label className="text-sm font-medium">{t("formEmail")}</label>
           <Input
             type="email"
             value={formData.email}
@@ -532,7 +537,7 @@ function ContractorForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Телефон</label>
+          <label className="text-sm font-medium">{t("formPhone")}</label>
           <Input
             value={formData.phone}
             onChange={(e) =>
@@ -544,7 +549,9 @@ function ContractorForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Номер договора</label>
+          <label className="text-sm font-medium">
+            {t("formContractNumber")}
+          </label>
           <Input
             value={formData.contractNumber}
             onChange={(e) =>
@@ -553,7 +560,9 @@ function ContractorForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Окончание договора</label>
+          <label className="text-sm font-medium">
+            {t("formContractEndDate")}
+          </label>
           <Input
             type="date"
             value={formData.contractEndDate}
@@ -564,7 +573,7 @@ function ContractorForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Адрес</label>
+        <label className="text-sm font-medium">{t("formAddress")}</label>
         <Input
           value={formData.address}
           onChange={(e) =>
@@ -573,7 +582,7 @@ function ContractorForm({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Примечания</label>
+        <label className="text-sm font-medium">{t("formNotes")}</label>
         <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -583,10 +592,10 @@ function ContractorForm({
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending
-            ? "Сохранение..."
+            ? t("formSaving")
             : contractor
-              ? "Обновить"
-              : "Добавить"}
+              ? t("formUpdate")
+              : t("formAdd")}
         </Button>
       </div>
     </form>

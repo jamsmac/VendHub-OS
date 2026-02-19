@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   Card,
@@ -67,48 +68,62 @@ function formatDateTime(dateStr: string): string {
 }
 
 function DeviceStatusBadge({ status }: { status: FiscalDeviceStatus }) {
+  const t = useTranslations("fiscal");
   const config: Record<
     FiscalDeviceStatus,
-    { label: string; className: string }
+    { labelKey: string; className: string }
   > = {
-    active: { label: "Aktivnyj", className: "bg-green-500" },
-    inactive: { label: "Neaktivnyj", className: "bg-gray-400" },
-    error: { label: "Oshibka", className: "bg-red-500" },
+    active: { labelKey: "deviceStatusActive", className: "bg-green-500" },
+    inactive: { labelKey: "deviceStatusInactive", className: "bg-gray-400" },
+    error: { labelKey: "deviceStatusError", className: "bg-red-500" },
     maintenance: {
-      label: "Obsluzhivanie",
+      labelKey: "deviceStatusMaintenance",
       className: "bg-yellow-500 text-white",
     },
   };
 
-  const { label, className } = config[status];
-  return <Badge className={className}>{label}</Badge>;
+  const { labelKey, className } = config[status];
+  return <Badge className={className}>{t(labelKey)}</Badge>;
 }
 
 function ReceiptStatusBadge({ status }: { status: FiscalReceiptStatus }) {
+  const t = useTranslations("fiscal");
   const config: Record<
     FiscalReceiptStatus,
-    { icon: React.ElementType; label: string; className: string }
+    { icon: React.ElementType; labelKey: string; className: string }
   > = {
-    pending: { icon: Clock, label: "Ozhidanie", className: "text-yellow-600" },
+    pending: {
+      icon: Clock,
+      labelKey: "receiptStatusPending",
+      className: "text-yellow-600",
+    },
     processing: {
       icon: RefreshCw,
-      label: "Obrabotka",
+      labelKey: "receiptStatusProcessing",
       className: "text-blue-600 animate-spin",
     },
     success: {
       icon: CheckCircle,
-      label: "Uspeshno",
+      labelKey: "receiptStatusSuccess",
       className: "text-green-600",
     },
-    failed: { icon: XCircle, label: "Oshibka", className: "text-red-600" },
-    cancelled: { icon: XCircle, label: "Otmeneno", className: "text-gray-600" },
+    failed: {
+      icon: XCircle,
+      labelKey: "receiptStatusFailed",
+      className: "text-red-600",
+    },
+    cancelled: {
+      icon: XCircle,
+      labelKey: "receiptStatusCancelled",
+      className: "text-gray-600",
+    },
   };
 
-  const { icon: Icon, label, className } = config[status];
+  const { icon: Icon, labelKey, className } = config[status];
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       <Icon className="h-4 w-4" />
-      <span className="text-sm">{label}</span>
+      <span className="text-sm">{t(labelKey)}</span>
     </div>
   );
 }
@@ -126,6 +141,7 @@ function DeviceCard({
   onXReport: (deviceId: string) => void;
   isActioning: boolean;
 }) {
+  const t = useTranslations("fiscal");
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -142,22 +158,30 @@ function DeviceCard({
           <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-green-800">
-                Smena #{device.currentShift.shiftNumber} otkryta
+                {t("shiftOpenLabel", {
+                  number: device.currentShift.shiftNumber,
+                })}
               </span>
-              <Badge className="bg-green-500">Aktivna</Badge>
+              <Badge className="bg-green-500">{t("shiftActive")}</Badge>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
-              <div>Kassir: {device.currentShift.cashierName}</div>
-              <div>Otkryta: {formatDateTime(device.currentShift.openedAt)}</div>
               <div>
-                Prodazh: {formatCurrency(device.currentShift.totalSales)}
+                {t("cashier")}: {device.currentShift.cashierName}
               </div>
-              <div>Chekov: {device.currentShift.receiptsCount}</div>
+              <div>
+                {t("openedAt")}: {formatDateTime(device.currentShift.openedAt)}
+              </div>
+              <div>
+                {t("sales")}: {formatCurrency(device.currentShift.totalSales)}
+              </div>
+              <div>
+                {t("receiptsCount")}: {device.currentShift.receiptsCount}
+              </div>
             </div>
           </div>
         ) : (
           <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
-            <div className="text-muted-foreground">Smena ne otkryta</div>
+            <div className="text-muted-foreground">{t("shiftNotOpen")}</div>
           </div>
         )}
 
@@ -166,19 +190,19 @@ function DeviceCard({
             <div className="text-2xl font-bold text-blue-600">
               {device.todayStats.receiptsCount}
             </div>
-            <div className="text-xs text-blue-600">Chekov segodnya</div>
+            <div className="text-xs text-blue-600">{t("receiptsToday")}</div>
           </div>
           <div className="text-center p-2 bg-green-50 rounded">
             <div className="text-lg font-bold text-green-600">
               {formatCurrency(device.todayStats.totalSales)}
             </div>
-            <div className="text-xs text-green-600">Prodazhi</div>
+            <div className="text-xs text-green-600">{t("salesToday")}</div>
           </div>
           <div className="text-center p-2 bg-red-50 rounded">
             <div className="text-lg font-bold text-red-600">
               {formatCurrency(device.todayStats.totalRefunds)}
             </div>
-            <div className="text-xs text-red-600">Vozvraty</div>
+            <div className="text-xs text-red-600">{t("refunds")}</div>
           </div>
         </div>
 
@@ -187,8 +211,8 @@ function DeviceCard({
             <div className="flex items-center gap-2 text-yellow-700">
               <AlertTriangle className="h-4 w-4" />
               <span className="text-sm">
-                V ocheredi: {device.queueStats.pending} | Oshibok:{" "}
-                {device.queueStats.failed}
+                {t("queuePending")}: {device.queueStats.pending} |{" "}
+                {t("queueErrors")}: {device.queueStats.failed}
               </span>
             </div>
           </div>
@@ -202,7 +226,7 @@ function DeviceCard({
               disabled={device.status !== "active" || isActioning}
             >
               <Play className="h-4 w-4 mr-1" />
-              Otkryt' smenu
+              {t("openShift")}
             </Button>
           ) : (
             <>
@@ -213,7 +237,7 @@ function DeviceCard({
                 disabled={isActioning}
               >
                 <Square className="h-4 w-4 mr-1" />
-                Zakryt' smenu
+                {t("closeShift")}
               </Button>
               <Button
                 size="sm"
@@ -222,7 +246,7 @@ function DeviceCard({
                 disabled={isActioning}
               >
                 <FileText className="h-4 w-4 mr-1" />
-                X-otchyot
+                {t("xReport")}
               </Button>
             </>
           )}
@@ -233,6 +257,7 @@ function DeviceCard({
 }
 
 function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
+  const t = useTranslations("fiscal");
   return (
     <div className="flex items-center justify-between p-3 border-b last:border-0 hover:bg-muted/50">
       <div className="flex items-center gap-3">
@@ -247,11 +272,13 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
         </div>
         <div>
           <div className="font-medium">
-            {receipt.type === "sale" ? "Prodazha" : "Vozvrat"}{" "}
+            {receipt.type === "sale" ? t("typeSale") : t("typeRefund")}{" "}
             {formatCurrency(receipt.total)}
           </div>
           <div className="text-sm text-muted-foreground">
-            {receipt.items.map((i) => i.name).join(", ")}
+            {receipt.items
+              .map((item: FiscalReceiptItem) => item.name)
+              .join(", ")}
           </div>
           <div className="text-xs text-muted-foreground">
             {formatDateTime(receipt.createdAt)}
@@ -289,6 +316,7 @@ function ReceiptRow({ receipt }: { receipt: FiscalReceipt }) {
 }
 
 export default function FiscalPage() {
+  const t = useTranslations("fiscal");
   const queryClient = useQueryClient();
   const [showAddDevice, setShowAddDevice] = useState(false);
   const [receiptFilter, setReceiptFilter] = useState<string>("");
@@ -346,40 +374,46 @@ export default function FiscalPage() {
     mutationFn: (deviceId: string) =>
       fiscalApi.openShift(deviceId, { cashierName: "VendHub Auto" }),
     onSuccess: (data: OpenShiftResponse) => {
-      toast.success("Smena otkryta", {
-        description: `Smena #${data.shiftNumber}`,
+      toast.success(t("toastShiftOpened"), {
+        description: t("toastShiftNumber", { number: data.shiftNumber }),
       });
       queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error("Oshibka otkrytiya smeny"),
+    onError: () => toast.error(t("toastShiftOpenError")),
   });
 
   const closeShiftMutation = useMutation({
     mutationFn: (deviceId: string) => fiscalApi.closeShift(deviceId),
     onSuccess: (data: CloseShiftResponse) => {
-      toast.success("Smena zakryta", {
-        description: `Z-otchyot: ${data.zReportNumber} | Prodazhi: ${formatCurrency(data.totalSales)}`,
+      toast.success(t("toastShiftClosed"), {
+        description: t("toastZReport", {
+          number: data.zReportNumber,
+          sales: formatCurrency(data.totalSales),
+        }),
       });
       queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error("Oshibka zakrytiya smeny"),
+    onError: () => toast.error(t("toastShiftCloseError")),
   });
 
   const xReportMutation = useMutation({
     mutationFn: (deviceId: string) => fiscalApi.getXReport(deviceId),
     onSuccess: (data: XReportResponse) => {
-      toast.success("X-otchyot sformirovan", {
-        description: `Prodazhi: ${formatCurrency(data.totalSales)} | Chekov: ${data.receiptsCount}`,
+      toast.success(t("toastXReportGenerated"), {
+        description: t("toastXReportDetails", {
+          sales: formatCurrency(data.totalSales),
+          count: data.receiptsCount,
+        }),
       });
     },
-    onError: () => toast.error("Oshibka formirovaniya X-otchyota"),
+    onError: () => toast.error(t("toastXReportError")),
   });
 
   const createDeviceMutation = useMutation({
     mutationFn: (data: CreateFiscalDeviceRequest) =>
       fiscalApi.createDevice(data),
     onSuccess: () => {
-      toast.success("Ustrojstvo dobavleno");
+      toast.success(t("toastDeviceAdded"));
       setShowAddDevice(false);
       setNewDevice({
         provider: "multikassa",
@@ -389,7 +423,7 @@ export default function FiscalPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["fiscal"] });
     },
-    onError: () => toast.error("Oshibka dobavleniya ustrojstva"),
+    onError: () => toast.error(t("toastDeviceAddError")),
   });
 
   const isActioning =
@@ -428,8 +462,8 @@ export default function FiscalPage() {
     (r: FiscalReceipt) =>
       !receiptFilter ||
       r.fiscalNumber?.toLowerCase().includes(receiptFilter.toLowerCase()) ||
-      r.items.some((i: FiscalReceiptItem) =>
-        i.name.toLowerCase().includes(receiptFilter.toLowerCase()),
+      r.items.some((item: FiscalReceiptItem) =>
+        item.name.toLowerCase().includes(receiptFilter.toLowerCase()),
       ),
   );
 
@@ -439,7 +473,7 @@ export default function FiscalPage() {
       !newDevice.credentials?.login ||
       !newDevice.credentials?.password
     ) {
-      toast.error("Zapolnite obyazatel'nye polya");
+      toast.error(t("toastFillRequired"));
       return;
     }
     createDeviceMutation.mutate(newDevice as CreateFiscalDeviceRequest);
@@ -450,13 +484,13 @@ export default function FiscalPage() {
       <div className="container mx-auto py-6 space-y-6">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24" />
+          {[1, 2, 3, 4].map((idx) => (
+            <Skeleton key={idx} className="h-24" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2].map((i) => (
-            <Skeleton key={i} className="h-64" />
+          {[1, 2].map((idx) => (
+            <Skeleton key={idx} className="h-64" />
           ))}
         </div>
       </div>
@@ -467,10 +501,8 @@ export default function FiscalPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Fiskalizatsiya</h1>
-          <p className="text-muted-foreground">
-            MultiKassa | Cheki | Z-otchyoty | Smeny
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -480,11 +512,11 @@ export default function FiscalPage() {
             }
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Obnovit'
+            {t("refresh")}
           </Button>
           <Button onClick={() => setShowAddDevice(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Dobavit' ustrojstvo
+            {t("addDevice")}
           </Button>
         </div>
       </div>
@@ -495,7 +527,7 @@ export default function FiscalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Prodazhi segodnya
+                  {t("statsSalesToday")}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(totalSalesToday)}
@@ -511,7 +543,9 @@ export default function FiscalPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Chekov segodnya</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsReceiptsToday")}
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {totalReceiptsToday}
                 </p>
@@ -526,7 +560,9 @@ export default function FiscalPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Vozvraty</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsRefunds")}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(totalRefundsToday)}
                 </p>
@@ -541,7 +577,9 @@ export default function FiscalPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">V ocheredi</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsInQueue")}
+                </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {pendingQueue}
                 </p>
@@ -555,15 +593,15 @@ export default function FiscalPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Fiskal'nye ustrojstva</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("fiscalDevices")}</h2>
         {deviceStats.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Net podklyuchennykh ustrojstv</p>
+              <p>{t("noDevices")}</p>
               <Button className="mt-4" onClick={() => setShowAddDevice(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Dobavit' ustrojstvo
+                {t("addDevice")}
               </Button>
             </CardContent>
           </Card>
@@ -587,16 +625,14 @@ export default function FiscalPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Poslednie cheki</CardTitle>
-              <CardDescription>
-                Istoriya fiskalizirovannykh chekov
-              </CardDescription>
+              <CardTitle>{t("recentReceipts")}</CardTitle>
+              <CardDescription>{t("receiptHistory")}</CardDescription>
             </div>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Poisk chekov..."
+                  placeholder={t("searchReceipts")}
                   value={receiptFilter}
                   onChange={(e) => setReceiptFilter(e.target.value)}
                   className="pl-8 w-64"
@@ -608,13 +644,13 @@ export default function FiscalPage() {
         <CardContent>
           {receiptsLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16" />
+              {[1, 2, 3].map((idx) => (
+                <Skeleton key={idx} className="h-16" />
               ))}
             </div>
           ) : filteredReceipts.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
-              Net chekov
+              {t("noReceipts")}
             </div>
           ) : (
             <div className="divide-y">
@@ -630,12 +666,12 @@ export default function FiscalPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle>Dobavit' fiskal'noe ustrojstvo</CardTitle>
-              <CardDescription>Podklyuchenie k MultiKassa</CardDescription>
+              <CardTitle>{t("addDeviceTitle")}</CardTitle>
+              <CardDescription>{t("addDeviceDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Nazvanie ustrojstva *</Label>
+                <Label htmlFor="name">{t("deviceNameLabel")}</Label>
                 <Input
                   id="name"
                   placeholder="MultiKassa Terminal 1"
@@ -646,10 +682,10 @@ export default function FiscalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="login">Login *</Label>
+                <Label htmlFor="login">{t("loginLabel")}</Label>
                 <Input
                   id="login"
-                  placeholder="Login ot MultiKassa"
+                  placeholder={t("loginPlaceholder")}
                   value={newDevice.credentials?.login ?? ""}
                   onChange={(e) =>
                     setNewDevice((prev) => ({
@@ -663,11 +699,11 @@ export default function FiscalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="password">Parol' *</Label>
+                <Label htmlFor="password">{t("passwordLabel")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Parol'"
+                  placeholder={t("passwordPlaceholder")}
                   value={newDevice.credentials?.password ?? ""}
                   onChange={(e) =>
                     setNewDevice((prev) => ({
@@ -681,7 +717,7 @@ export default function FiscalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="tin">INN kompanii</Label>
+                <Label htmlFor="tin">{t("companyTinLabel")}</Label>
                 <Input
                   id="tin"
                   placeholder="123456789"
@@ -698,7 +734,7 @@ export default function FiscalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="cashier">Kassir po umolchaniyu</Label>
+                <Label htmlFor="cashier">{t("defaultCashierLabel")}</Label>
                 <Input
                   id="cashier"
                   placeholder="VendHub Auto"
@@ -727,22 +763,20 @@ export default function FiscalPage() {
                   }
                   className="h-4 w-4"
                 />
-                <Label htmlFor="sandbox">Rezhim pesochnitsy (Sandbox)</Label>
+                <Label htmlFor="sandbox">{t("sandboxMode")}</Label>
               </div>
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
                   onClick={() => setShowAddDevice(false)}
                 >
-                  Otmena
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={handleSubmitDevice}
                   disabled={createDeviceMutation.isPending}
                 >
-                  {createDeviceMutation.isPending
-                    ? "Dobavlenie..."
-                    : "Dobavit'"}
+                  {createDeviceMutation.isPending ? t("adding") : t("add")}
                 </Button>
               </div>
             </CardContent>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   ClipboardCheck,
   Plus,
@@ -79,44 +80,38 @@ interface CreateRunPayload {
 
 // ─── Constants ────────────────────────────────────────────────────────
 
-const runStatusConfig: Record<
+const runStatusVariants: Record<
   ReconciliationRun["status"],
-  { label: string; variant: "warning" | "info" | "success" | "destructive" }
+  "warning" | "info" | "success" | "destructive"
 > = {
-  PENDING: { label: "Ожидание", variant: "warning" },
-  PROCESSING: { label: "В процессе", variant: "info" },
-  COMPLETED: { label: "Завершено", variant: "success" },
-  FAILED: { label: "Ошибка", variant: "destructive" },
+  PENDING: "warning",
+  PROCESSING: "info",
+  COMPLETED: "success",
+  FAILED: "destructive",
 };
 
-const mismatchTypeConfig: Record<
+const mismatchTypeVariants: Record<
   MismatchType,
-  {
-    label: string;
-    variant: "warning" | "info" | "destructive" | "secondary" | "default";
-  }
+  "warning" | "info" | "destructive" | "secondary" | "default"
 > = {
-  AMOUNT_MISMATCH: { label: "Расхождение суммы", variant: "warning" },
-  MISSING_IN_HW: { label: "Нет в аппарате", variant: "destructive" },
-  MISSING_IN_SW: { label: "Нет в системе", variant: "destructive" },
-  DUPLICATE: { label: "Дубликат", variant: "info" },
-  TIME_MISMATCH: { label: "Расхождение времени", variant: "secondary" },
-  STATUS_MISMATCH: { label: "Расхождение статуса", variant: "default" },
+  AMOUNT_MISMATCH: "warning",
+  MISSING_IN_HW: "destructive",
+  MISSING_IN_SW: "destructive",
+  DUPLICATE: "info",
+  TIME_MISMATCH: "secondary",
+  STATUS_MISMATCH: "default",
 };
 
 const ALL_SOURCES = ["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"] as const;
 
-const sourceLabels: Record<string, string> = {
-  SOFTWARE: "Программная",
-  HARDWARE: "Аппаратная",
-  PAYMENT_PROVIDER: "Платёжные провайдеры",
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────
 
-const formatUZS = (amount: number | null | undefined): string => {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("uz-UZ").format(amount) + " сум";
+const formatUZS = (
+  amount: number | null | undefined,
+  currencyLabel: string,
+): string => {
+  if (amount == null) return "\u2014";
+  return new Intl.NumberFormat("uz-UZ").format(amount) + " " + currencyLabel;
 };
 
 const formatDate = (iso: string): string => {
@@ -142,6 +137,7 @@ const shortId = (id: string): string => id.slice(0, 8);
 // ─── Page Component ───────────────────────────────────────────────────
 
 export default function ReconciliationPage() {
+  const t = useTranslations("reconciliation");
   const queryClient = useQueryClient();
 
   // UI state
@@ -243,7 +239,7 @@ export default function ReconciliationPage() {
                 new Date(a.created_at).getTime(),
             )[0].created_at,
           )
-        : "—",
+        : "\u2014",
     averageMatchRate:
       runs.length > 0
         ? (
@@ -294,21 +290,19 @@ export default function ReconciliationPage() {
       {/* ─── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Сверка данных</h1>
-          <p className="text-muted-foreground">
-            Сверка продаж с аппаратными данными
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={() => setShowForm((prev) => !prev)}>
           {showForm ? (
             <>
               <ChevronUp className="h-4 w-4 mr-2" />
-              Скрыть
+              {t("hide")}
             </>
           ) : (
             <>
               <Plus className="h-4 w-4 mr-2" />
-              Новая сверка
+              {t("newRun")}
             </>
           )}
         </Button>
@@ -318,12 +312,12 @@ export default function ReconciliationPage() {
       {showForm && (
         <Card>
           <CardContent className="pt-6 space-y-5">
-            <h2 className="text-lg font-semibold">Параметры сверки</h2>
+            <h2 className="text-lg font-semibold">{t("formTitle")}</h2>
 
             {/* Date range */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="dateFrom">Дата начала</Label>
+                <Label htmlFor="dateFrom">{t("dateStart")}</Label>
                 <Input
                   id="dateFrom"
                   type="date"
@@ -332,7 +326,7 @@ export default function ReconciliationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dateTo">Дата окончания</Label>
+                <Label htmlFor="dateTo">{t("dateEnd")}</Label>
                 <Input
                   id="dateTo"
                   type="date"
@@ -344,9 +338,7 @@ export default function ReconciliationPage() {
 
             {/* Machine IDs */}
             <div className="space-y-2">
-              <Label htmlFor="machineIds">
-                Аппараты (ID через запятую, необязательно)
-              </Label>
+              <Label htmlFor="machineIds">{t("machineIdsLabel")}</Label>
               <Input
                 id="machineIds"
                 placeholder="e.g. VM-001, VM-002"
@@ -358,9 +350,7 @@ export default function ReconciliationPage() {
             {/* Tolerance settings */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="timeTolerance">
-                  Допуск по времени (минуты)
-                </Label>
+                <Label htmlFor="timeTolerance">{t("timeToleranceLabel")}</Label>
                 <Input
                   id="timeTolerance"
                   type="number"
@@ -370,7 +360,9 @@ export default function ReconciliationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amountTolerance">Допуск по сумме (%)</Label>
+                <Label htmlFor="amountTolerance">
+                  {t("amountToleranceLabel")}
+                </Label>
                 <Input
                   id="amountTolerance"
                   type="number"
@@ -384,7 +376,7 @@ export default function ReconciliationPage() {
 
             {/* Sources */}
             <div className="space-y-2">
-              <Label>Источники данных</Label>
+              <Label>{t("dataSources")}</Label>
               <div className="flex flex-wrap gap-3">
                 {ALL_SOURCES.map((source) => (
                   <label
@@ -397,7 +389,7 @@ export default function ReconciliationPage() {
                       onChange={() => toggleSource(source)}
                       className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                     />
-                    <span className="text-sm">{sourceLabels[source]}</span>
+                    <span className="text-sm">{t(`source_${source}`)}</span>
                   </label>
                 ))}
               </div>
@@ -417,12 +409,12 @@ export default function ReconciliationPage() {
                 {createRunMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Запуск...
+                    {t("starting")}
                   </>
                 ) : (
                   <>
                     <ClipboardCheck className="h-4 w-4 mr-2" />
-                    Запустить
+                    {t("start")}
                   </>
                 )}
               </Button>
@@ -437,7 +429,9 @@ export default function ReconciliationPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Всего сверок</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotalRuns")}
+                </p>
                 <p className="text-2xl font-bold">{stats.totalRuns}</p>
               </div>
               <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
@@ -449,7 +443,7 @@ export default function ReconciliationPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Последняя сверка
+                  {t("statsLastRun")}
                 </p>
                 <p className="text-lg font-bold">{stats.lastRunDate}</p>
               </div>
@@ -462,7 +456,7 @@ export default function ReconciliationPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Средний % совпадений
+                  {t("statsAvgMatchRate")}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.averageMatchRate}%
@@ -477,7 +471,7 @@ export default function ReconciliationPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Всего расхождений
+                  {t("statsTotalMismatches")}
                 </p>
                 <p className="text-2xl font-bold text-red-600">
                   {stats.totalMismatches}
@@ -492,21 +486,19 @@ export default function ReconciliationPage() {
       {/* ─── Runs List ───────────────────────────────────────────── */}
       {runsLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <Skeleton key={idx} className="h-16 w-full" />
           ))}
         </div>
       ) : runs.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileCheck className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Сверки не найдены</p>
-            <p className="text-muted-foreground mb-4">
-              Создайте первую сверку для сравнения данных
-            </p>
+            <p className="text-lg font-medium">{t("noRuns")}</p>
+            <p className="text-muted-foreground mb-4">{t("noRunsHint")}</p>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Новая сверка
+              {t("newRun")}
             </Button>
           </CardContent>
         </Card>
@@ -516,20 +508,22 @@ export default function ReconciliationPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Период</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Совпадение</TableHead>
-                  <TableHead>Совпало</TableHead>
-                  <TableHead>Расхождения</TableHead>
-                  <TableHead>Пропущено</TableHead>
-                  <TableHead>Создано</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead>{t("colId")}</TableHead>
+                  <TableHead>{t("colPeriod")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead>{t("colMatchRate")}</TableHead>
+                  <TableHead>{t("colMatched")}</TableHead>
+                  <TableHead>{t("colMismatches")}</TableHead>
+                  <TableHead>{t("colMissing")}</TableHead>
+                  <TableHead>{t("colCreated")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("colActions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {runs.map((run) => {
-                  const statusCfg = runStatusConfig[run.status];
+                  const variant = runStatusVariants[run.status];
                   const isExpanded = expandedRunId === run.id;
 
                   return (
@@ -552,14 +546,14 @@ export default function ReconciliationPage() {
                             {formatDate(run.date_to)}
                           </span>
                           <span>
-                            <Badge variant={statusCfg.variant}>
-                              {statusCfg.label}
+                            <Badge variant={variant}>
+                              {t(`runStatus_${run.status}`)}
                             </Badge>
                           </span>
                           <span className="text-sm font-medium">
                             {run.match_rate != null
                               ? `${run.match_rate.toFixed(1)}%`
-                              : "—"}
+                              : "\u2014"}
                           </span>
                           <span className="text-sm text-green-600">
                             {run.matched_count ?? 0}
@@ -580,7 +574,7 @@ export default function ReconciliationPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmState({
-                                  title: "Удалить сверку?",
+                                  title: t("deleteRunConfirm"),
                                   action: () =>
                                     deleteRunMutation.mutate(run.id),
                                 });
@@ -600,60 +594,76 @@ export default function ReconciliationPage() {
                         {isExpanded && (
                           <div className="border-t bg-muted/30 px-6 py-4">
                             <h3 className="text-sm font-semibold mb-3">
-                              Расхождения для сверки {shortId(run.id)}
+                              {t("mismatchesForRun", { id: shortId(run.id) })}
                             </h3>
 
                             {mismatchesLoading ? (
                               <div className="flex items-center gap-2 text-muted-foreground py-4">
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Загрузка расхождений...
+                                {t("loadingMismatches")}
                               </div>
                             ) : mismatches.length === 0 ? (
                               <div className="flex items-center gap-2 text-muted-foreground py-4">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
-                                Расхождений не обнаружено
+                                {t("noMismatches")}
                               </div>
                             ) : (
                               <div className="overflow-x-auto">
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
-                                      <TableHead>Заказ #</TableHead>
-                                      <TableHead>Код аппарата</TableHead>
-                                      <TableHead>Тип</TableHead>
-                                      <TableHead>Сумма (аппарат)</TableHead>
-                                      <TableHead>Сумма (система)</TableHead>
-                                      <TableHead>Разница</TableHead>
-                                      <TableHead>Статус</TableHead>
+                                      <TableHead>
+                                        {t("colOrderNumber")}
+                                      </TableHead>
+                                      <TableHead>
+                                        {t("colMachineCode")}
+                                      </TableHead>
+                                      <TableHead>{t("colType")}</TableHead>
+                                      <TableHead>{t("colHwAmount")}</TableHead>
+                                      <TableHead>{t("colSwAmount")}</TableHead>
+                                      <TableHead>
+                                        {t("colDifference")}
+                                      </TableHead>
+                                      <TableHead>
+                                        {t("colMismatchStatus")}
+                                      </TableHead>
                                       <TableHead className="text-right">
-                                        Действие
+                                        {t("colAction")}
                                       </TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
                                     {mismatches.map((m) => {
-                                      const typeCfg =
-                                        mismatchTypeConfig[m.mismatch_type];
+                                      const typeVariant =
+                                        mismatchTypeVariants[m.mismatch_type];
                                       const isResolving = resolvingId === m.id;
 
                                       return (
                                         <TableRow key={m.id}>
                                           <TableCell className="font-mono text-sm">
-                                            {m.order_number || "—"}
+                                            {m.order_number || "\u2014"}
                                           </TableCell>
                                           <TableCell className="text-sm">
-                                            {m.machine_code || "—"}
+                                            {m.machine_code || "\u2014"}
                                           </TableCell>
                                           <TableCell>
-                                            <Badge variant={typeCfg.variant}>
-                                              {typeCfg.label}
+                                            <Badge variant={typeVariant}>
+                                              {t(
+                                                `mismatchType_${m.mismatch_type}`,
+                                              )}
                                             </Badge>
                                           </TableCell>
                                           <TableCell className="text-sm">
-                                            {formatUZS(m.hw_amount)}
+                                            {formatUZS(
+                                              m.hw_amount,
+                                              t("currency"),
+                                            )}
                                           </TableCell>
                                           <TableCell className="text-sm">
-                                            {formatUZS(m.sw_amount)}
+                                            {formatUZS(
+                                              m.sw_amount,
+                                              t("currency"),
+                                            )}
                                           </TableCell>
                                           <TableCell className="text-sm font-medium">
                                             {m.discrepancy != null ? (
@@ -666,32 +676,38 @@ export default function ReconciliationPage() {
                                                       : ""
                                                 }
                                               >
-                                                {formatUZS(m.discrepancy)}
+                                                {formatUZS(
+                                                  m.discrepancy,
+                                                  t("currency"),
+                                                )}
                                               </span>
                                             ) : (
-                                              "—"
+                                              "\u2014"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {m.status === "resolved" ? (
                                               <Badge variant="success">
-                                                Решено
+                                                {t("statusResolved")}
                                               </Badge>
                                             ) : (
                                               <Badge variant="destructive">
-                                                Не решено
+                                                {t("statusUnresolved")}
                                               </Badge>
                                             )}
                                           </TableCell>
                                           <TableCell className="text-right">
                                             {m.status === "resolved" ? (
                                               <span className="text-xs text-muted-foreground italic">
-                                                {m.resolution_notes || "Решено"}
+                                                {m.resolution_notes ||
+                                                  t("statusResolved")}
                                               </span>
                                             ) : isResolving ? (
                                               <div className="flex items-center gap-2 justify-end">
                                                 <Input
-                                                  placeholder="Комментарий..."
+                                                  placeholder={t(
+                                                    "commentPlaceholder",
+                                                  )}
                                                   className="w-48 h-8 text-sm"
                                                   value={resolutionNotes}
                                                   onChange={(e) =>
@@ -746,7 +762,7 @@ export default function ReconciliationPage() {
                                                   setResolutionNotes("");
                                                 }}
                                               >
-                                                Разрешить
+                                                {t("resolve")}
                                               </Button>
                                             )}
                                           </TableCell>

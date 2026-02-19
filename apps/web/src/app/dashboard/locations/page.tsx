@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   Search,
@@ -55,48 +56,41 @@ interface Location {
   longitude: number;
 }
 
-const typeConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  mall: { label: "ТЦ", color: "text-purple-700", bgColor: "bg-purple-100" },
-  office: { label: "Офис", color: "text-blue-700", bgColor: "bg-blue-100" },
-  university: {
-    label: "Учебное",
-    color: "text-green-700",
-    bgColor: "bg-green-100",
-  },
-  transport: {
-    label: "Транспорт",
-    color: "text-orange-700",
-    bgColor: "bg-orange-100",
-  },
-  other: {
-    label: "Другое",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
+const typeStyles: Record<string, { color: string; bgColor: string }> = {
+  mall: { color: "text-purple-700", bgColor: "bg-purple-100" },
+  office: { color: "text-blue-700", bgColor: "bg-blue-100" },
+  university: { color: "text-green-700", bgColor: "bg-green-100" },
+  transport: { color: "text-orange-700", bgColor: "bg-orange-100" },
+  other: { color: "text-muted-foreground", bgColor: "bg-muted" },
 };
 
-const typeOptions = [
-  { value: "ALL", label: "Все типы" },
-  { value: "mall", label: "ТЦ / Торговый центр" },
-  { value: "office", label: "Офис" },
-  { value: "university", label: "Учебное заведение" },
-  { value: "transport", label: "Транспортный узел" },
-  { value: "other", label: "Другое" },
+const cityCoords = [
+  { key: "city_tashkent", lat: 41.299496, lng: 69.240073 },
+  { key: "city_samarkand", lat: 39.6548, lng: 66.959722 },
+  { key: "city_bukhara", lat: 39.768889, lng: 64.421389 },
+  { key: "city_namangan", lat: 41.0, lng: 71.666667 },
+  { key: "city_andijan", lat: 40.783333, lng: 72.333333 },
+  { key: "city_fergana", lat: 40.383333, lng: 71.789167 },
+  { key: "city_nukus", lat: 42.460833, lng: 59.603611 },
+  { key: "city_karshi", lat: 38.860278, lng: 65.8 },
 ];
 
-const uzbekistanCities = [
-  { name: "Ташкент", lat: 41.299496, lng: 69.240073 },
-  { name: "Самарканд", lat: 39.6548, lng: 66.959722 },
-  { name: "Бухара", lat: 39.768889, lng: 64.421389 },
-  { name: "Наманган", lat: 41.0, lng: 71.666667 },
-  { name: "Андижан", lat: 40.783333, lng: 72.333333 },
-  { name: "Фергана", lat: 40.383333, lng: 71.789167 },
-  { name: "Нукус", lat: 42.460833, lng: 59.603611 },
-  { name: "Карши", lat: 38.860278, lng: 65.8 },
-];
+const typeFilterKeys = [
+  { value: "ALL", key: "typeFilter_all" },
+  { value: "mall", key: "typeFilter_mall" },
+  { value: "office", key: "typeFilter_office" },
+  { value: "university", key: "typeFilter_university" },
+  { value: "transport", key: "typeFilter_transport" },
+  { value: "other", key: "typeFilter_other" },
+] as const;
+
+const typeFormKeys = [
+  { value: "mall", key: "typeFilter_mall" },
+  { value: "office", key: "typeFilter_office" },
+  { value: "university", key: "typeFilter_university" },
+  { value: "transport", key: "typeFilter_transport" },
+  { value: "other", key: "typeFilter_other" },
+] as const;
 
 // --- Map Picker Component ---
 interface MapPickerProps {
@@ -110,6 +104,7 @@ function MapPicker({
   initialLng = 69.279737,
   onLocationSelect,
 }: MapPickerProps) {
+  const t = useTranslations("locations");
   const mapRef = useRef<HTMLDivElement>(null);
   const [marker, setMarker] = useState({ lat: initialLat, lng: initialLng });
   const [address, setAddress] = useState("");
@@ -189,15 +184,13 @@ function MapPicker({
           getAddressFromCoords(lat, lng);
         },
         () => {
-          toast.error(
-            "Не удалось определить местоположение. Выберите вручную.",
-          );
+          toast.error(t("geolocationError"));
         },
       );
     }
   };
 
-  const jumpToCity = (city: { name: string; lat: number; lng: number }) => {
+  const jumpToCity = (city: { key: string; lat: number; lng: number }) => {
     setMarker({ lat: city.lat, lng: city.lng });
     if (googleMapRef.current && markerRef.current) {
       const newPos = new google.maps.LatLng(city.lat, city.lng);
@@ -211,17 +204,17 @@ function MapPicker({
   return (
     <div className="space-y-4">
       <div>
-        <Label className="mb-2 block">Быстрый переход к городу</Label>
+        <Label className="mb-2 block">{t("quickCityJump")}</Label>
         <div className="flex flex-wrap gap-2">
-          {uzbekistanCities.map((city) => (
+          {cityCoords.map((city) => (
             <Button
-              key={city.name}
+              key={city.key}
               type="button"
               variant="outline"
               size="sm"
               onClick={() => jumpToCity(city)}
             >
-              {city.name}
+              {t(city.key)}
             </Button>
           ))}
         </div>
@@ -236,10 +229,10 @@ function MapPicker({
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
               <MapPin className="h-12 w-12 text-primary mx-auto mb-4" />
               <p className="text-muted-foreground mb-2">
-                Для карты нужен Google Maps API ключ
+                {t("mapApiKeyNeeded")}
               </p>
               <p className="text-sm text-muted-foreground">
-                Можно ввести координаты вручную ниже
+                {t("enterCoordsManually")}
               </p>
             </div>
           )}
@@ -250,7 +243,7 @@ function MapPicker({
           size="icon"
           className="absolute top-3 right-3 shadow-md"
           onClick={getCurrentLocation}
-          title="Моё местоположение"
+          title={t("myLocation")}
         >
           <Navigation className="h-4 w-4" />
         </Button>
@@ -258,7 +251,7 @@ function MapPicker({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Широта</Label>
+          <Label>{t("latitude")}</Label>
           <Input
             type="number"
             step="0.000001"
@@ -278,7 +271,7 @@ function MapPicker({
           />
         </div>
         <div>
-          <Label>Долгота</Label>
+          <Label>{t("longitude")}</Label>
           <Input
             type="number"
             step="0.000001"
@@ -301,16 +294,18 @@ function MapPicker({
 
       <div>
         <Label>
-          Адрес
+          {t("address")}
           {isLoading && (
-            <span className="ml-2 text-muted-foreground">(определение...)</span>
+            <span className="ml-2 text-muted-foreground">
+              {t("detectingAddress")}
+            </span>
           )}
         </Label>
         <div className="flex gap-2">
           <Input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Адрес определится автоматически или введите вручную"
+            placeholder={t("addressAutoPlaceholder")}
             className="flex-1"
           />
           <Button
@@ -318,7 +313,7 @@ function MapPicker({
             variant="outline"
             onClick={() => getAddressFromCoords(marker.lat, marker.lng)}
           >
-            Определить
+            {t("detectAddress")}
           </Button>
         </div>
       </div>
@@ -328,7 +323,7 @@ function MapPicker({
         className="w-full"
         onClick={() => onLocationSelect(marker.lat, marker.lng, address)}
       >
-        Подтвердить местоположение
+        {t("confirmLocation")}
       </Button>
     </div>
   );
@@ -348,6 +343,7 @@ function LocationFormDialog({
   location,
   onSave,
 }: LocationFormProps) {
+  const t = useTranslations("locations");
   const [formData, setFormData] = useState({
     name: location?.name || "",
     address: location?.address || "",
@@ -397,21 +393,19 @@ function LocationFormDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {location ? "Редактировать локацию" : "Новая локация"}
+            {location ? t("dialogTitleEdit") : t("dialogTitleNew")}
           </DialogTitle>
           <DialogDescription>
-            {location
-              ? "Измените данные локации"
-              : "Заполните информацию о новой локации"}
+            {location ? t("dialogDescEdit") : t("dialogDescNew")}
           </DialogDescription>
         </DialogHeader>
 
         {showMapPicker ? (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Выбор на карте</h3>
+              <h3 className="text-lg font-medium">{t("mapSelection")}</h3>
               <Button variant="link" onClick={() => setShowMapPicker(false)}>
-                Назад к форме
+                {t("backToForm")}
               </Button>
             </div>
             <MapPicker
@@ -432,7 +426,7 @@ function LocationFormDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Название *</Label>
+                <Label htmlFor="name">{t("nameLabel")}</Label>
                 <Input
                   id="name"
                   required
@@ -440,11 +434,11 @@ function LocationFormDialog({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  placeholder="Tashkent City Mall"
+                  placeholder={t("namePlaceholder")}
                 />
               </div>
               <div>
-                <Label htmlFor="city">Город *</Label>
+                <Label htmlFor="city">{t("cityLabel")}</Label>
                 <Select
                   value={formData.city}
                   onValueChange={(v) =>
@@ -452,12 +446,12 @@ function LocationFormDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите город" />
+                    <SelectValue placeholder={t("cityPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {uzbekistanCities.map((city) => (
-                      <SelectItem key={city.name} value={city.name}>
-                        {city.name}
+                    {cityCoords.map((city) => (
+                      <SelectItem key={city.key} value={t(city.key)}>
+                        {t(city.key)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -467,7 +461,7 @@ function LocationFormDialog({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="type">Тип</Label>
+                <Label htmlFor="type">{t("typeLabel")}</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(v) =>
@@ -478,18 +472,16 @@ function LocationFormDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {typeOptions
-                      .filter((o) => o.value !== "ALL")
-                      .map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
+                    {typeFormKeys.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {t(opt.key)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="hours">Режим работы</Label>
+                <Label htmlFor="hours">{t("workingHoursLabel")}</Label>
                 <Input
                   id="hours"
                   value={formData.workingHours}
@@ -499,13 +491,13 @@ function LocationFormDialog({
                       workingHours: e.target.value,
                     }))
                   }
-                  placeholder="09:00 - 22:00"
+                  placeholder={t("workingHoursPlaceholder")}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="phone">Телефон</Label>
+              <Label htmlFor="phone">{t("phoneLabel")}</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -516,7 +508,7 @@ function LocationFormDialog({
                     contactPhone: e.target.value,
                   }))
                 }
-                placeholder="+998 71 200 0001"
+                placeholder={t("phonePlaceholder")}
               />
             </div>
 
@@ -525,7 +517,7 @@ function LocationFormDialog({
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    Адрес и координаты
+                    {t("addressAndCoords")}
                   </CardTitle>
                   <Button
                     type="button"
@@ -534,13 +526,13 @@ function LocationFormDialog({
                     onClick={() => setShowMapPicker(true)}
                   >
                     <Map className="h-4 w-4 mr-2" />
-                    Выбрать на карте
+                    {t("chooseOnMap")}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="address">Адрес *</Label>
+                  <Label htmlFor="address">{t("addressLabel")}</Label>
                   <Input
                     id="address"
                     required
@@ -551,12 +543,12 @@ function LocationFormDialog({
                         address: e.target.value,
                       }))
                     }
-                    placeholder="Введите улицу и дом"
+                    placeholder={t("addressPlaceholder")}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Широта</Label>
+                    <Label>{t("latitude")}</Label>
                     <Input
                       type="number"
                       step="0.000001"
@@ -571,7 +563,7 @@ function LocationFormDialog({
                     />
                   </div>
                   <div>
-                    <Label>Долгота</Label>
+                    <Label>{t("longitude")}</Label>
                     <Input
                       type="number"
                       step="0.000001"
@@ -594,7 +586,7 @@ function LocationFormDialog({
                     className="flex items-center gap-2 text-sm text-primary hover:underline"
                   >
                     <Eye className="h-4 w-4" />
-                    Посмотреть на Google Maps
+                    {t("viewOnGoogleMaps")}
                   </a>
                 )}
               </CardContent>
@@ -606,11 +598,9 @@ function LocationFormDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Отмена
+                {t("cancel")}
               </Button>
-              <Button type="submit">
-                {location ? "Сохранить" : "Добавить"}
-              </Button>
+              <Button type="submit">{location ? t("save") : t("add")}</Button>
             </DialogFooter>
           </form>
         )}
@@ -621,6 +611,7 @@ function LocationFormDialog({
 
 // --- Main Page ---
 export default function LocationsPage() {
+  const t = useTranslations("locations");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedType, setSelectedType] = useState("ALL");
@@ -641,16 +632,15 @@ export default function LocationsPage() {
       setError(null);
       const response = await locationsApi.getAll();
       setLocations(response.data.data || response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Не удалось загрузить локации";
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { message?: string } } };
+      const message = apiErr.response?.data?.message || t("loadFailed");
       setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchLocations();
@@ -663,16 +653,13 @@ export default function LocationsPage() {
 
   const filteredLocations = useMemo(
     () =>
-      locations.filter((location) => {
+      locations.filter((loc) => {
         const matchesSearch =
           !debouncedSearch ||
-          location.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          location.address
-            .toLowerCase()
-            .includes(debouncedSearch.toLowerCase()) ||
-          location.city.toLowerCase().includes(debouncedSearch.toLowerCase());
-        const matchesType =
-          selectedType === "ALL" || location.type === selectedType;
+          loc.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          loc.address.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          loc.city.toLowerCase().includes(debouncedSearch.toLowerCase());
+        const matchesType = selectedType === "ALL" || loc.type === selectedType;
         return matchesSearch && matchesType;
       }),
     [locations, debouncedSearch, selectedType],
@@ -693,8 +680,8 @@ export default function LocationsPage() {
     setIsFormOpen(true);
   };
 
-  const handleEditLocation = (location: Location) => {
-    setEditingLocation(location);
+  const handleEditLocation = (loc: Location) => {
+    setEditingLocation(loc);
     setIsFormOpen(true);
   };
 
@@ -702,32 +689,30 @@ export default function LocationsPage() {
     try {
       if (editingLocation) {
         await locationsApi.update(editingLocation.id, data);
-        toast.success("Локация обновлена");
+        toast.success(t("locationUpdated"));
       } else {
         await locationsApi.create(data);
-        toast.success("Локация добавлена");
+        toast.success(t("locationAdded"));
       }
       fetchLocations();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Не удалось сохранить локацию";
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { message?: string } } };
+      const message = apiErr.response?.data?.message || t("saveFailed");
       toast.error(message);
     }
   };
 
   const handleDeleteLocation = (id: string) => {
     setConfirmState({
-      title: "Удалить локацию?",
+      title: t("deleteConfirm"),
       action: async () => {
         try {
           await locationsApi.delete(id);
-          toast.success("Локация удалена");
+          toast.success(t("locationDeleted"));
           fetchLocations();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-          const message =
-            err.response?.data?.message || "Не удалось удалить локацию";
+        } catch (err: unknown) {
+          const apiErr = err as { response?: { data?: { message?: string } } };
+          const message = apiErr.response?.data?.message || t("deleteFailed");
           toast.error(message);
         }
       },
@@ -739,14 +724,12 @@ export default function LocationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Локации</h1>
-          <p className="text-muted-foreground">
-            Управление местоположениями автоматов
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={handleAddLocation}>
           <Plus className="h-4 w-4 mr-2" />
-          Добавить локацию
+          {t("addLocation")}
         </Button>
       </div>
 
@@ -756,7 +739,9 @@ export default function LocationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Всего локаций</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotal")}
+                </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <MapPin className="h-8 w-8 text-blue-600" />
@@ -767,7 +752,9 @@ export default function LocationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Активных</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsActive")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.active}
                 </p>
@@ -780,7 +767,9 @@ export default function LocationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Автоматов</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsMachines")}
+                </p>
                 <p className="text-2xl font-bold text-purple-600">
                   {stats.totalMachines}
                 </p>
@@ -793,7 +782,9 @@ export default function LocationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Городов</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsCities")}
+                </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {stats.cities}
                 </p>
@@ -809,7 +800,7 @@ export default function LocationsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
-            <p className="text-muted-foreground">Загрузка локаций...</p>
+            <p className="text-muted-foreground">{t("loadingLocations")}</p>
           </CardContent>
         </Card>
       )}
@@ -820,11 +811,11 @@ export default function LocationsPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MapPin className="h-12 w-12 text-destructive mb-4" />
             <p className="text-lg font-medium text-destructive">
-              Ошибка загрузки
+              {t("loadErrorTitle")}
             </p>
             <p className="text-muted-foreground mb-4">{error}</p>
             <Button onClick={fetchLocations} variant="outline">
-              Попробовать снова
+              {t("retry")}
             </Button>
           </CardContent>
         </Card>
@@ -837,7 +828,7 @@ export default function LocationsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по названию, адресу, городу..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -848,9 +839,9 @@ export default function LocationsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {typeOptions.map((opt) => (
+                {typeFilterKeys.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.key)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -881,12 +872,14 @@ export default function LocationsPage() {
                   <div className="text-center">
                     <Map className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground mb-2">
-                      Для карты нужен Google Maps API ключ
+                      {t("mapApiKeyNeeded")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {filteredLocations.length} локаций в{" "}
-                      {new Set(filteredLocations.map((l) => l.city)).size}{" "}
-                      городах
+                      {t("locationsInCities", {
+                        count: filteredLocations.length,
+                        cities: new Set(filteredLocations.map((l) => l.city))
+                          .size,
+                      })}
                     </p>
                     <div className="mt-4 flex flex-wrap justify-center gap-2">
                       {filteredLocations.map((loc) => (
@@ -910,62 +903,68 @@ export default function LocationsPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Локации не найдены</p>
+                <p className="text-lg font-medium">{t("notFound")}</p>
                 <p className="text-muted-foreground mb-4">
-                  Попробуйте изменить параметры поиска
+                  {t("changeSearch")}
                 </p>
                 <Button onClick={handleAddLocation}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Добавить локацию
+                  {t("addLocation")}
                 </Button>
               </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLocations.map((location) => {
-                const tc = typeConfig[location.type] || typeConfig.other;
+              {filteredLocations.map((loc) => {
+                const tc = typeStyles[loc.type] || typeStyles.other;
+                const typeKey = `type_${loc.type}` as
+                  | "type_mall"
+                  | "type_office"
+                  | "type_university"
+                  | "type_transport"
+                  | "type_other";
                 return (
                   <Card
-                    key={location.id}
+                    key={loc.id}
                     className="hover:shadow-md transition-shadow"
                   >
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-semibold">{location.name}</h3>
+                          <h3 className="font-semibold">{loc.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {location.city}
+                            {loc.city}
                           </p>
                         </div>
                         <Badge className={`${tc.bgColor} ${tc.color} border-0`}>
-                          {tc.label}
+                          {t(typeKey)}
                         </Badge>
                       </div>
 
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{location.address}</span>
+                          <span className="truncate">{loc.address}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 shrink-0" />
-                          <span>{location.workingHours}</span>
+                          <span>{loc.workingHours}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 shrink-0" />
-                          <span>{location.contactPhone}</span>
+                          <span>{loc.contactPhone}</span>
                         </div>
-                        {location.latitude && location.longitude && (
+                        {loc.latitude && loc.longitude && (
                           <div className="flex items-center gap-2">
                             <Navigation className="h-4 w-4 shrink-0" />
                             <a
-                              href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
+                              href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary hover:underline"
                             >
-                              {location.latitude.toFixed(6)},{" "}
-                              {location.longitude.toFixed(6)}
+                              {loc.latitude.toFixed(6)},{" "}
+                              {loc.longitude.toFixed(6)}
                             </a>
                           </div>
                         )}
@@ -974,10 +973,10 @@ export default function LocationsPage() {
                       <div className="flex items-center justify-between mt-4 pt-4 border-t">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">
-                            {location.machineCount}
+                            {loc.machineCount}
                           </span>
                           <span className="text-sm text-muted-foreground">
-                            автоматов
+                            {t("machinesCount")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -985,8 +984,8 @@ export default function LocationsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            aria-label="Редактировать"
-                            onClick={() => handleEditLocation(location)}
+                            aria-label={t("editAriaLabel")}
+                            onClick={() => handleEditLocation(loc)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -994,8 +993,8 @@ export default function LocationsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
-                            aria-label="Удалить"
-                            onClick={() => handleDeleteLocation(location.id)}
+                            aria-label={t("deleteAriaLabel")}
+                            onClick={() => handleDeleteLocation(loc.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1025,8 +1024,8 @@ export default function LocationsPage() {
           if (!open) setConfirmState(null);
         }}
         title={confirmState?.title ?? ""}
-        description="Это действие нельзя отменить. Локация будет удалена."
-        confirmLabel="Удалить"
+        description={t("deleteDescription")}
+        confirmLabel={t("deleteLabel")}
         onConfirm={() => confirmState?.action()}
       />
     </div>
