@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   Coffee,
   Search,
@@ -18,6 +19,7 @@ import {
   Thermometer,
   Battery,
   Signal,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,37 +63,36 @@ interface MachineMapItem {
 // Constants
 // ============================================================================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; bgColor: string; icon: any }
+  { labelKey: string; color: string; bgColor: string; icon: LucideIcon }
 > = {
   online: {
-    label: "Онлайн",
+    labelKey: "status_online",
     color: "text-green-600",
     bgColor: "bg-green-500",
     icon: CheckCircle,
   },
   offline: {
-    label: "Офлайн",
+    labelKey: "status_offline",
     color: "text-gray-500",
     bgColor: "bg-gray-400",
     icon: WifiOff,
   },
   warning: {
-    label: "Внимание",
+    labelKey: "status_warning",
     color: "text-yellow-600",
     bgColor: "bg-yellow-500",
     icon: AlertTriangle,
   },
   error: {
-    label: "Ошибка",
+    labelKey: "status_error",
     color: "text-red-600",
     bgColor: "bg-red-500",
     icon: XCircle,
   },
   maintenance: {
-    label: "ТО",
+    labelKey: "status_maintenance",
     color: "text-blue-600",
     bgColor: "bg-blue-500",
     icon: Wrench,
@@ -105,6 +106,7 @@ const TASHKENT_CENTER = { lat: 41.2995, lng: 69.2401 };
 // ============================================================================
 
 export default function MapPage() {
+  const t = useTranslations("map");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -275,15 +277,13 @@ export default function MapPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Карта автоматов</h1>
-          <p className="text-muted-foreground">
-            Расположение и статус всех автоматов в реальном времени
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-1" />
-            Обновить
+            {t("refresh")}
           </Button>
           <div className="flex border rounded-md">
             <Button
@@ -313,7 +313,7 @@ export default function MapPage() {
           size="sm"
           onClick={() => setStatusFilter("all")}
         >
-          Все ({statusCounts.total || 0})
+          {t("filterAll", { count: statusCounts.total || 0 })}
         </Button>
         {Object.entries(STATUS_CONFIG).map(([key, config]) => (
           <Button
@@ -324,7 +324,7 @@ export default function MapPage() {
             className="gap-1.5"
           >
             <div className={`w-2 h-2 rounded-full ${config.bgColor}`} />
-            {config.label} ({statusCounts[key] || 0})
+            {t(config.labelKey)} ({statusCounts[key] || 0})
           </Button>
         ))}
       </div>
@@ -333,7 +333,7 @@ export default function MapPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Поиск по номеру, названию или адресу..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -352,13 +352,11 @@ export default function MapPage() {
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <MapPin className="h-16 w-16 mb-4" />
                 <p className="text-lg font-medium">
-                  Google Maps API Key не настроен
+                  {t("apiKeyNotConfigured")}
                 </p>
-                <p className="text-sm">
-                  Добавьте NEXT_PUBLIC_GOOGLE_MAPS_KEY в .env
-                </p>
+                <p className="text-sm">{t("addApiKeyHint")}</p>
                 <p className="text-sm mt-4">
-                  {machines.length} автоматов найдено
+                  {t("machinesFound", { count: machines.length })}
                 </p>
                 <Button
                   variant="outline"
@@ -366,7 +364,7 @@ export default function MapPage() {
                   onClick={() => setViewMode("list")}
                 >
                   <List className="h-4 w-4 mr-2" />
-                  Список
+                  {t("listView")}
                 </Button>
               </div>
             )}
@@ -375,7 +373,7 @@ export default function MapPage() {
           {/* Floating Stats */}
           <div className="absolute top-3 right-3 bg-card/95 backdrop-blur border rounded-lg p-3 shadow-lg">
             <p className="text-sm font-medium mb-1">
-              Автоматов: {machines.length}
+              {t("machinesCount", { count: machines.length })}
             </p>
             <div className="space-y-1">
               {Object.entries(STATUS_CONFIG).map(([key, config]) => {
@@ -385,7 +383,7 @@ export default function MapPage() {
                   <div key={key} className="flex items-center gap-1.5 text-xs">
                     <div className={`w-2 h-2 rounded-full ${config.bgColor}`} />
                     <span>
-                      {config.label}: {count}
+                      {t(config.labelKey)}: {count}
                     </span>
                   </div>
                 );
@@ -409,9 +407,9 @@ export default function MapPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Coffee className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-lg font-medium">Автоматы не найдены</p>
+                <p className="text-lg font-medium">{t("notFound")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Попробуйте изменить фильтры
+                  {t("tryChangeFilters")}
                 </p>
               </CardContent>
             </Card>
@@ -452,23 +450,25 @@ export default function MapPage() {
                         <MapPin className="h-3 w-3 inline mr-1" />
                         {machine.locationName ||
                           machine.address ||
-                          "Адрес не указан"}
+                          t("noAddress")}
                       </p>
                     </div>
                     <div className="text-right space-y-1">
                       <div className="flex items-center gap-2 justify-end">
                         <Badge variant="secondary" className="text-xs">
-                          Заполнен: {stockPercent}%
+                          {t("stockFilled", { percent: stockPercent })}
                         </Badge>
                         {machine.errors > 0 && (
                           <Badge variant="destructive" className="text-xs">
-                            {machine.errors} ошибок
+                            {t("errorsCount", { count: machine.errors })}
                           </Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Сегодня: {machine.todaySales} продаж /{" "}
-                        {machine.todayRevenue?.toLocaleString()} сум
+                        {t("todayStats", {
+                          sales: machine.todaySales,
+                          revenue: machine.todayRevenue?.toLocaleString(),
+                        })}
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -517,18 +517,20 @@ export default function MapPage() {
                           className={`h-5 w-5 ${statusConfig.color}`}
                         />
                         <span className={`font-medium ${statusConfig.color}`}>
-                          {statusConfig.label}
+                          {t(statusConfig.labelKey)}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        Последний раз:{" "}
+                        {t("lastSeen")}{" "}
                         {new Date(m.lastSeen).toLocaleString("ru-RU")}
                       </span>
                     </div>
 
                     {/* Location */}
                     <div>
-                      <p className="text-sm font-medium mb-1">Расположение</p>
+                      <p className="text-sm font-medium mb-1">
+                        {t("location")}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {m.locationName}
                       </p>
@@ -537,19 +539,19 @@ export default function MapPage() {
                       </p>
                       {m.latitude && m.longitude && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          📍 {m.latitude.toFixed(5)}, {m.longitude.toFixed(5)}
+                          {m.latitude.toFixed(5)}, {m.longitude.toFixed(5)}
                         </p>
                       )}
                     </div>
 
                     {/* Today Stats */}
                     <div>
-                      <p className="text-sm font-medium mb-2">Сегодня</p>
+                      <p className="text-sm font-medium mb-2">{t("today")}</p>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-muted/50 rounded-lg text-center">
                           <p className="text-xl font-bold">{m.todaySales}</p>
                           <p className="text-xs text-muted-foreground">
-                            Продаж
+                            {t("sales")}
                           </p>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg text-center">
@@ -557,7 +559,7 @@ export default function MapPage() {
                             {m.todayRevenue?.toLocaleString()}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Выручка (сум)
+                            {t("revenueUzs")}
                           </p>
                         </div>
                       </div>
@@ -565,7 +567,9 @@ export default function MapPage() {
 
                     {/* Stock */}
                     <div>
-                      <p className="text-sm font-medium mb-2">Заполненность</p>
+                      <p className="text-sm font-medium mb-2">
+                        {t("stockLevel")}
+                      </p>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 bg-muted rounded-full h-3">
                           <div
@@ -578,8 +582,10 @@ export default function MapPage() {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {m.slotsCount - m.emptySlotsCount} / {m.slotsCount}{" "}
-                        слотов заполнено
+                        {t("slotsFilled", {
+                          filled: m.slotsCount - m.emptySlotsCount,
+                          total: m.slotsCount,
+                        })}
                       </p>
                     </div>
 
@@ -588,7 +594,9 @@ export default function MapPage() {
                       m.signalStrength !== undefined ||
                       m.batteryLevel !== undefined) && (
                       <div>
-                        <p className="text-sm font-medium mb-2">Телеметрия</p>
+                        <p className="text-sm font-medium mb-2">
+                          {t("telemetry")}
+                        </p>
                         <div className="grid grid-cols-3 gap-2">
                           {m.temperature !== undefined && (
                             <div className="p-2 bg-muted/50 rounded-lg text-center">
@@ -624,7 +632,7 @@ export default function MapPage() {
                         <div className="flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 text-red-600" />
                           <span className="text-sm font-medium text-red-700 dark:text-red-400">
-                            {m.errors} активных ошибок
+                            {t("activeErrors", { count: m.errors })}
                           </span>
                         </div>
                       </div>
@@ -638,7 +646,7 @@ export default function MapPage() {
                       >
                         <Button variant="outline" className="w-full">
                           <ExternalLink className="h-4 w-4 mr-2" />
-                          Подробнее
+                          {t("details")}
                         </Button>
                       </Link>
                     </div>

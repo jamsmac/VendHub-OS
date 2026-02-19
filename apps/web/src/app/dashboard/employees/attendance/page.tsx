@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Clock,
   Users,
@@ -44,15 +45,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface AttendanceRecord {
   id: string;
   employee_id: string;
@@ -81,14 +73,6 @@ interface Employee {
   lastName: string;
 }
 
-const statusLabels: Record<string, string> = {
-  PRESENT: "Присутствует",
-  ABSENT: "Отсутствует",
-  LATE: "Опоздание",
-  HALF_DAY: "Полдня",
-  ON_LEAVE: "В отпуске",
-};
-
 const statusColors: Record<string, string> = {
   PRESENT: "bg-green-500/10 text-green-500",
   ABSENT: "bg-red-500/10 text-red-500",
@@ -100,11 +84,30 @@ const statusColors: Record<string, string> = {
 export default function AttendancePage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const te = useTranslations("employees");
+  const ta = useTranslations("attendance");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0],
   );
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: te("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: te("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: te("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: te("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: te("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: te("tabReviews") },
+  ];
+
+  const statusLabels: Record<string, string> = {
+    PRESENT: ta("statusPresent"),
+    ABSENT: ta("statusAbsent"),
+    LATE: ta("statusLate"),
+    HALF_DAY: ta("statusHalfDay"),
+    ON_LEAVE: ta("statusOnLeave"),
+  };
 
   const { data: attendance, isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ["attendance", selectedDate],
@@ -150,7 +153,7 @@ export default function AttendancePage() {
 
   const formatHours = (hours?: number) => {
     if (!hours && hours !== 0) return "--";
-    return `${hours.toFixed(1)} ч`;
+    return ta("hoursShort", { value: hours.toFixed(1) });
   };
 
   return (
@@ -158,10 +161,8 @@ export default function AttendancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{te("title")}</h1>
+          <p className="text-muted-foreground">{te("subtitle")}</p>
         </div>
       </div>
 
@@ -191,7 +192,9 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total_employees}</p>
-              <p className="text-sm text-muted-foreground">Всего</p>
+              <p className="text-sm text-muted-foreground">
+                {ta("statsTotal")}
+              </p>
             </div>
           </div>
         </div>
@@ -202,7 +205,9 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.present}</p>
-              <p className="text-sm text-muted-foreground">Присутствует</p>
+              <p className="text-sm text-muted-foreground">
+                {ta("statsPresent")}
+              </p>
             </div>
           </div>
         </div>
@@ -213,7 +218,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.late}</p>
-              <p className="text-sm text-muted-foreground">Опоздал</p>
+              <p className="text-sm text-muted-foreground">{ta("statsLate")}</p>
             </div>
           </div>
         </div>
@@ -224,7 +229,9 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.absent}</p>
-              <p className="text-sm text-muted-foreground">Отсутствует</p>
+              <p className="text-sm text-muted-foreground">
+                {ta("statsAbsent")}
+              </p>
             </div>
           </div>
         </div>
@@ -235,7 +242,9 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.on_leave}</p>
-              <p className="text-sm text-muted-foreground">В отпуске</p>
+              <p className="text-sm text-muted-foreground">
+                {ta("statsOnLeave")}
+              </p>
             </div>
           </div>
         </div>
@@ -244,7 +253,7 @@ export default function AttendancePage() {
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium">Дата:</label>
+          <label className="text-sm font-medium">{ta("dateLabel")}</label>
           <Input
             type="date"
             value={selectedDate}
@@ -257,12 +266,12 @@ export default function AttendancePage() {
             <DialogTrigger asChild>
               <Button>
                 <LogIn className="w-4 h-4 mr-2" />
-                Отметить приход
+                {ta("checkIn")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Отметить приход</DialogTitle>
+                <DialogTitle>{ta("checkIn")}</DialogTitle>
               </DialogHeader>
               <CheckInForm
                 employees={employees || []}
@@ -280,12 +289,12 @@ export default function AttendancePage() {
             <DialogTrigger asChild>
               <Button variant="outline">
                 <LogOut className="w-4 h-4 mr-2" />
-                Отметить уход
+                {ta("checkOut")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Отметить уход</DialogTitle>
+                <DialogTitle>{ta("checkOut")}</DialogTitle>
               </DialogHeader>
               <CheckOutForm
                 employees={employees || []}
@@ -307,12 +316,12 @@ export default function AttendancePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Сотрудник</TableHead>
-              <TableHead>Приход</TableHead>
-              <TableHead>Уход</TableHead>
-              <TableHead>Отработано</TableHead>
-              <TableHead>Переработка</TableHead>
-              <TableHead>Статус</TableHead>
+              <TableHead>{ta("colEmployee")}</TableHead>
+              <TableHead>{ta("colCheckIn")}</TableHead>
+              <TableHead>{ta("colCheckOut")}</TableHead>
+              <TableHead>{ta("colWorked")}</TableHead>
+              <TableHead>{ta("colOvertime")}</TableHead>
+              <TableHead>{ta("colStatus")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -378,9 +387,7 @@ export default function AttendancePage() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
                   <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">
-                    Нет данных о посещаемости за выбранную дату
-                  </p>
+                  <p className="text-muted-foreground">{ta("noData")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -398,6 +405,7 @@ function CheckInForm({
   employees: Employee[];
   onSuccess: () => void;
 }) {
+  const ta = useTranslations("attendance");
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
@@ -418,11 +426,11 @@ function CheckInForm({
       });
     },
     onSuccess: () => {
-      toast.success("Приход отмечен");
+      toast.success(ta("checkInSuccess"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось отметить приход");
+      toast.error(ta("checkInError"));
     },
   });
 
@@ -434,7 +442,7 @@ function CheckInForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Сотрудник</label>
+        <label className="text-sm font-medium">{ta("formEmployee")}</label>
         <Select
           value={formData.employee_id}
           onValueChange={(value) =>
@@ -442,7 +450,7 @@ function CheckInForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите сотрудника" />
+            <SelectValue placeholder={ta("formSelectEmployee")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -454,7 +462,7 @@ function CheckInForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Время</label>
+        <label className="text-sm font-medium">{ta("formTime")}</label>
         <Input
           type="time"
           value={formData.time}
@@ -463,21 +471,23 @@ function CheckInForm({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Заметка (необязательно)</label>
+        <label className="text-sm font-medium">{ta("formNoteOptional")}</label>
         <Input
           value={formData.note}
           onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-          placeholder="Причина или комментарий"
+          placeholder={ta("formNotePlaceholder")}
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Локация (необязательно)</label>
+        <label className="text-sm font-medium">
+          {ta("formLocationOptional")}
+        </label>
         <Input
           value={formData.location}
           onChange={(e) =>
             setFormData({ ...formData, location: e.target.value })
           }
-          placeholder="Офис, удаленно и т.д."
+          placeholder={ta("formLocationPlaceholder")}
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
@@ -485,7 +495,7 @@ function CheckInForm({
           type="submit"
           disabled={mutation.isPending || !formData.employee_id}
         >
-          {mutation.isPending ? "Сохранение..." : "Отметить приход"}
+          {mutation.isPending ? ta("saving") : ta("checkIn")}
         </Button>
       </div>
     </form>
@@ -499,6 +509,7 @@ function CheckOutForm({
   employees: Employee[];
   onSuccess: () => void;
 }) {
+  const ta = useTranslations("attendance");
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
@@ -515,11 +526,11 @@ function CheckOutForm({
       });
     },
     onSuccess: () => {
-      toast.success("Уход отмечен");
+      toast.success(ta("checkOutSuccess"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось отметить уход");
+      toast.error(ta("checkOutError"));
     },
   });
 
@@ -531,7 +542,7 @@ function CheckOutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Сотрудник</label>
+        <label className="text-sm font-medium">{ta("formEmployee")}</label>
         <Select
           value={formData.employee_id}
           onValueChange={(value) =>
@@ -539,7 +550,7 @@ function CheckOutForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите сотрудника" />
+            <SelectValue placeholder={ta("formSelectEmployee")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -551,7 +562,7 @@ function CheckOutForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Время</label>
+        <label className="text-sm font-medium">{ta("formTime")}</label>
         <Input
           type="time"
           value={formData.time}
@@ -564,7 +575,7 @@ function CheckOutForm({
           type="submit"
           disabled={mutation.isPending || !formData.employee_id}
         >
-          {mutation.isPending ? "Сохранение..." : "Отметить уход"}
+          {mutation.isPending ? ta("saving") : ta("checkOut")}
         </Button>
       </div>
     </form>

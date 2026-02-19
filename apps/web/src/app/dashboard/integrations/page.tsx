@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { integrationsApi } from "@/lib/api";
 import {
@@ -90,62 +91,44 @@ const categoryIcons: Record<string, React.ReactNode> = {
   loyalty: <Star className="h-5 w-5" />,
 };
 
-const statusConfig: Record<
+const statusStyles: Record<
   string,
-  { color: string; bg: string; icon: React.ReactNode; label: string }
+  { color: string; bg: string; icon: React.ReactNode }
 > = {
   draft: {
     color: "text-muted-foreground",
     bg: "bg-muted",
     icon: <Clock className="h-4 w-4" />,
-    label: "Черновик",
   },
   configuring: {
     color: "text-blue-600",
     bg: "bg-blue-100",
     icon: <Settings className="h-4 w-4 animate-spin" />,
-    label: "Настройка",
   },
   testing: {
     color: "text-yellow-600",
     bg: "bg-yellow-100",
     icon: <TestTube className="h-4 w-4" />,
-    label: "Тестирование",
   },
   active: {
     color: "text-green-600",
     bg: "bg-green-100",
     icon: <CheckCircle className="h-4 w-4" />,
-    label: "Активна",
   },
   paused: {
     color: "text-orange-600",
     bg: "bg-orange-100",
     icon: <Pause className="h-4 w-4" />,
-    label: "Приостановлена",
   },
   error: {
     color: "text-red-600",
     bg: "bg-red-100",
     icon: <XCircle className="h-4 w-4" />,
-    label: "Ошибка",
   },
 };
 
-const filterCategories = [
-  { id: "all", label: "Все", icon: <Zap className="h-4 w-4" /> },
-  { id: "payment", label: "Платежи", icon: <CreditCard className="h-4 w-4" /> },
-  { id: "fiscal", label: "Фискал", icon: <Receipt className="h-4 w-4" /> },
-  { id: "sms", label: "SMS", icon: <MessageSquare className="h-4 w-4" /> },
-  { id: "email", label: "Email", icon: <Mail className="h-4 w-4" /> },
-  {
-    id: "analytics",
-    label: "Аналитика",
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-];
-
 export default function IntegrationsPage() {
+  const t = useTranslations("integrations");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -157,6 +140,35 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const filterCategories = [
+    { id: "all", label: t("filterAll"), icon: <Zap className="h-4 w-4" /> },
+    {
+      id: "payment",
+      label: t("filterPayment"),
+      icon: <CreditCard className="h-4 w-4" />,
+    },
+    {
+      id: "fiscal",
+      label: t("filterFiscal"),
+      icon: <Receipt className="h-4 w-4" />,
+    },
+    {
+      id: "sms",
+      label: t("filterSms"),
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      id: "email",
+      label: t("filterEmail"),
+      icon: <Mail className="h-4 w-4" />,
+    },
+    {
+      id: "analytics",
+      label: t("filterAnalytics"),
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+  ];
+
   const fetchIntegrations = useCallback(async () => {
     try {
       setLoading(true);
@@ -165,14 +177,13 @@ export default function IntegrationsPage() {
       setIntegrations(response.data.data || response.data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Не удалось загрузить интеграции";
+      const message = err.response?.data?.message || t("loadFailed");
       setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -218,19 +229,22 @@ export default function IntegrationsPage() {
     [integrations],
   );
 
+  const getStatusLabel = (status: string) => {
+    const key = `status_${status}` as const;
+    return t(key);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Интеграции</h1>
-          <p className="text-muted-foreground">
-            Управляйте платёжными системами и сервисами
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={() => setShowAddModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Добавить интеграцию
+          {t("addIntegration")}
         </Button>
       </div>
 
@@ -241,7 +255,7 @@ export default function IntegrationsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Всего интеграций
+                  {t("statsTotal")}
                 </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
@@ -253,7 +267,9 @@ export default function IntegrationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Активных</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsActive")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.active}
                 </p>
@@ -266,7 +282,9 @@ export default function IntegrationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">На тестировании</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTesting")}
+                </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {stats.testing}
                 </p>
@@ -279,7 +297,9 @@ export default function IntegrationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">С ошибками</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsErrors")}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {stats.errors}
                 </p>
@@ -295,7 +315,7 @@ export default function IntegrationsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
-            <p className="text-muted-foreground">Загрузка интеграций...</p>
+            <p className="text-muted-foreground">{t("loading")}</p>
           </CardContent>
         </Card>
       )}
@@ -306,11 +326,11 @@ export default function IntegrationsPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
             <p className="text-lg font-medium text-destructive">
-              Ошибка загрузки
+              {t("loadError")}
             </p>
             <p className="text-muted-foreground mb-4">{error}</p>
             <Button onClick={fetchIntegrations} variant="outline">
-              Попробовать снова
+              {t("retry")}
             </Button>
           </CardContent>
         </Card>
@@ -323,7 +343,7 @@ export default function IntegrationsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск интеграций..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -347,7 +367,7 @@ export default function IntegrationsPage() {
           {/* Integrations List */}
           <div className="space-y-4">
             {filteredIntegrations.map((integration) => {
-              const status = statusConfig[integration.status];
+              const status = statusStyles[integration.status];
               const totalRequests =
                 integration.successCount + integration.errorCount;
               const successRate =
@@ -378,7 +398,7 @@ export default function IntegrationsPage() {
                               className={`flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${status.bg} ${status.color}`}
                             >
                               {status.icon}
-                              {status.label}
+                              {getStatusLabel(integration.status)}
                             </span>
                             {integration.sandboxMode && (
                               <Badge variant="secondary">Sandbox</Badge>
@@ -394,13 +414,17 @@ export default function IntegrationsPage() {
                         {/* Stats */}
                         <div className="hidden md:flex items-center gap-4 text-sm">
                           <div className="text-center">
-                            <p className="text-muted-foreground">Успешность</p>
+                            <p className="text-muted-foreground">
+                              {t("successRate")}
+                            </p>
                             <p className="font-semibold text-green-600">
                               {successRate}%
                             </p>
                           </div>
                           <div className="text-center">
-                            <p className="text-muted-foreground">Запросов</p>
+                            <p className="text-muted-foreground">
+                              {t("requests")}
+                            </p>
                             <p className="font-semibold">{totalRequests}</p>
                           </div>
                         </div>
@@ -414,21 +438,21 @@ export default function IntegrationsPage() {
                               setSelectedIntegration(integration);
                               setShowConfigModal(true);
                             }}
-                            aria-label="Настроить"
+                            aria-label={t("actionConfigure")}
                           >
                             <Settings className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            aria-label="Тестировать"
+                            aria-label={t("actionTest")}
                           >
                             <TestTube className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            aria-label="Подробнее"
+                            aria-label={t("actionDetails")}
                           >
                             <ChevronRight className="h-4 w-4" />
                           </Button>
@@ -444,13 +468,11 @@ export default function IntegrationsPage() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Zap className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">Интеграции не найдены</p>
-                  <p className="text-muted-foreground mb-4">
-                    Добавьте первую интеграцию для начала работы
-                  </p>
+                  <p className="text-lg font-medium">{t("notFound")}</p>
+                  <p className="text-muted-foreground mb-4">{t("addFirst")}</p>
                   <Button onClick={() => setShowAddModal(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Добавить интеграцию
+                    {t("addIntegration")}
                   </Button>
                 </CardContent>
               </Card>
@@ -469,7 +491,7 @@ export default function IntegrationsPage() {
             const response = await integrationsApi.create({
               name: template.name,
               displayName: template.displayName,
-              description: "Новая интеграция",
+              description: t("newIntegrationDescription"),
               category: template.category,
               status: "draft",
               logo: template.logo,
@@ -479,12 +501,11 @@ export default function IntegrationsPage() {
             setShowAddModal(false);
             setSelectedIntegration(newIntegration);
             setShowConfigModal(true);
-            toast.success("Интеграция создана");
+            toast.success(t("integrationCreated"));
             fetchIntegrations();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (err: any) {
-            const message =
-              err.response?.data?.message || "Не удалось создать интеграцию";
+            const message = err.response?.data?.message || t("createFailed");
             toast.error(message);
           }
         }}
@@ -502,13 +523,11 @@ export default function IntegrationsPage() {
           onSave={async (updated) => {
             try {
               await integrationsApi.update(updated.id, updated);
-              toast.success("Интеграция сохранена");
+              toast.success(t("integrationSaved"));
               fetchIntegrations();
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
-              const message =
-                err.response?.data?.message ||
-                "Не удалось сохранить интеграцию";
+              const message = err.response?.data?.message || t("saveFailed");
               toast.error(message);
             }
           }}
@@ -530,24 +549,23 @@ function AddIntegrationDialog({
   templates: Template[];
   onSelect: (template: Template) => void;
 }) {
+  const t = useTranslations("integrations");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAISetup, setShowAISetup] = useState(false);
   const [documentationUrl, setDocumentationUrl] = useState("");
 
   const filteredTemplates = templates.filter(
-    (t) =>
-      t.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    (tpl) =>
+      tpl.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tpl.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Добавить интеграцию</DialogTitle>
-          <DialogDescription>
-            Выберите готовый шаблон или настройте с помощью AI
-          </DialogDescription>
+          <DialogTitle>{t("addIntegration")}</DialogTitle>
+          <DialogDescription>{t("addDialogDescription")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 overflow-y-auto flex-1 pr-1">
@@ -558,10 +576,9 @@ function AddIntegrationDialog({
                 <Sparkles className="h-6 w-6 text-purple-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold mb-1">Настройка с помощью AI</h3>
+                <h3 className="font-semibold mb-1">{t("aiSetupTitle")}</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Просто вставьте ссылку на API документацию, и AI автоматически
-                  настроит интеграцию
+                  {t("aiSetupDescription")}
                 </p>
 
                 {showAISetup ? (
@@ -575,19 +592,19 @@ function AddIntegrationDialog({
                     <div className="flex gap-2">
                       <Button
                         onClick={() => {
-                          toast.info("AI анализирует документацию...");
+                          toast.info(t("aiAnalyzing"));
                         }}
                         disabled={!documentationUrl}
                         className="bg-purple-600 hover:bg-purple-700"
                       >
                         <Bot className="h-4 w-4 mr-2" />
-                        Анализировать
+                        {t("aiAnalyze")}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => setShowAISetup(false)}
                       >
-                        Отмена
+                        {t("cancel")}
                       </Button>
                     </div>
                   </div>
@@ -598,7 +615,7 @@ function AddIntegrationDialog({
                     className="border-purple-200 text-purple-600 hover:bg-purple-50"
                   >
                     <Bot className="h-4 w-4 mr-2" />
-                    Настроить с AI
+                    {t("aiSetupButton")}
                   </Button>
                 )}
               </div>
@@ -609,7 +626,7 @@ function AddIntegrationDialog({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Поиск шаблонов..."
+              placeholder={t("searchTemplates")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -618,7 +635,7 @@ function AddIntegrationDialog({
 
           {/* Templates Grid */}
           <div>
-            <h3 className="font-medium mb-3">Готовые шаблоны</h3>
+            <h3 className="font-medium mb-3">{t("readyTemplates")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredTemplates.map((template) => (
                 <Card
@@ -683,11 +700,11 @@ function AddIntegrationDialog({
               onSelect({
                 id: "custom",
                 name: "custom",
-                displayName: "Своя интеграция",
+                displayName: t("customIntegration"),
                 description: "",
                 category: "payment",
                 country: "UZ",
-                logo: "⚙️",
+                logo: "",
                 website: "",
                 documentationUrl: "",
                 tags: [],
@@ -699,9 +716,9 @@ function AddIntegrationDialog({
           >
             <CardContent className="flex flex-col items-center justify-center py-6">
               <Settings className="h-8 w-8 text-muted-foreground mb-2" />
-              <h4 className="font-semibold">Создать свою интеграцию</h4>
+              <h4 className="font-semibold">{t("createCustom")}</h4>
               <p className="text-sm text-muted-foreground">
-                Настройте все параметры вручную
+                {t("createCustomDescription")}
               </p>
             </CardContent>
           </Card>
@@ -723,6 +740,7 @@ function ConfigurationDialog({
   integration: Integration;
   onSave: (integration: Integration) => void;
 }) {
+  const t = useTranslations("integrations");
   const [formData, setFormData] = useState({
     displayName: integration.displayName,
     description: integration.description,
@@ -736,7 +754,7 @@ function ConfigurationDialog({
   >([
     {
       role: "assistant",
-      content: `Привет! Я помогу настроить интеграцию ${integration.displayName}. Что вы хотите настроить?\n\n• Эндпоинты API\n• Аутентификацию\n• Вебхуки\n• Маппинг полей\n\nИли просто вставьте ссылку на документацию, и я проанализирую её.`,
+      content: t("aiChatGreeting", { name: integration.displayName }),
     },
   ]);
 
@@ -748,14 +766,14 @@ function ConfigurationDialog({
       { role: "user", content: aiMessage },
       {
         role: "assistant",
-        content:
-          "Анализирую вашу документацию... Найдено 3 эндпоинта и настройки аутентификации. Хотите, чтобы я применил эти настройки?",
+        content: t("aiChatAnalyzing"),
       },
     ]);
     setAiMessage("");
   };
 
-  const status = statusConfig[integration.status];
+  const status = statusStyles[integration.status];
+  const statusLabel = t(`status_${integration.status}` as const);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -773,14 +791,14 @@ function ConfigurationDialog({
               <span
                 className={`text-xs px-2 py-0.5 rounded-full ${status.bg} ${status.color}`}
               >
-                {status.label}
+                {statusLabel}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
               <TestTube className="h-4 w-4 mr-1" />
-              Тест
+              {t("configTest")}
             </Button>
             <Button
               size="sm"
@@ -789,7 +807,7 @@ function ConfigurationDialog({
                 onOpenChange(false);
               }}
             >
-              Сохранить
+              {t("configSave")}
             </Button>
           </div>
         </div>
@@ -806,35 +824,35 @@ function ConfigurationDialog({
                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 px-0"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Основные
+                {t("tabGeneral")}
               </TabsTrigger>
               <TabsTrigger
                 value="credentials"
                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 px-0"
               >
                 <Eye className="h-4 w-4 mr-2" />
-                Ключи
+                {t("tabCredentials")}
               </TabsTrigger>
               <TabsTrigger
                 value="endpoints"
                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 px-0"
               >
                 <Zap className="h-4 w-4 mr-2" />
-                Эндпоинты
+                {t("tabEndpoints")}
               </TabsTrigger>
               <TabsTrigger
                 value="webhooks"
                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 px-0"
               >
                 <Bell className="h-4 w-4 mr-2" />
-                Вебхуки
+                {t("tabWebhooks")}
               </TabsTrigger>
               <TabsTrigger
                 value="ai"
                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 px-0"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                AI Помощник
+                {t("tabAiAssistant")}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -842,7 +860,7 @@ function ConfigurationDialog({
           <div className="flex-1 overflow-y-auto p-6">
             <TabsContent value="general" className="mt-0 space-y-6">
               <div className="space-y-2">
-                <Label>Название</Label>
+                <Label>{t("fieldName")}</Label>
                 <Input
                   value={formData.displayName}
                   onChange={(e) =>
@@ -851,7 +869,7 @@ function ConfigurationDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Описание</Label>
+                <Label>{t("fieldDescription")}</Label>
                 <Textarea
                   value={formData.description}
                   onChange={(e) =>
@@ -862,9 +880,9 @@ function ConfigurationDialog({
               </div>
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div>
-                  <h4 className="font-medium">Режим песочницы</h4>
+                  <h4 className="font-medium">{t("sandboxMode")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Использовать тестовые данные
+                    {t("sandboxDescription")}
                   </p>
                 </div>
                 <Button
@@ -882,15 +900,18 @@ function ConfigurationDialog({
                       : ""
                   }
                 >
-                  {formData.sandboxMode ? "Включён" : "Выключен"}
+                  {formData.sandboxMode ? t("sandboxOn") : t("sandboxOff")}
                 </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="credentials" className="mt-0 space-y-4">
               <p className="text-sm text-muted-foreground mb-4">
-                Введите API ключи для{" "}
-                {formData.sandboxMode ? "тестового" : "продуктового"} режима
+                {t("credentialsHint", {
+                  mode: formData.sandboxMode
+                    ? t("credentialsTestMode")
+                    : t("credentialsProdMode"),
+                })}
               </p>
 
               {["merchant_id", "secret_key", "api_key"].map((key) => (
@@ -906,7 +927,7 @@ function ConfigurationDialog({
                           [key]: e.target.value,
                         })
                       }
-                      placeholder={`Введите ${key}`}
+                      placeholder={t("credentialsEnter", { key })}
                       className="pr-20 font-mono text-sm"
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -920,7 +941,11 @@ function ConfigurationDialog({
                             [key]: !showSecrets[key],
                           })
                         }
-                        aria-label={showSecrets[key] ? "Скрыть" : "Показать"}
+                        aria-label={
+                          showSecrets[key]
+                            ? t("credentialsHide")
+                            : t("credentialsShow")
+                        }
                       >
                         {showSecrets[key] ? (
                           <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -934,9 +959,9 @@ function ConfigurationDialog({
                         className="h-7 w-7 p-0"
                         onClick={() => {
                           navigator.clipboard.writeText(credentials[key] || "");
-                          toast.success("Скопировано");
+                          toast.success(t("copied"));
                         }}
-                        aria-label="Копировать"
+                        aria-label={t("credentialsCopy")}
                       >
                         <Copy className="h-4 w-4 text-muted-foreground" />
                       </Button>
@@ -948,7 +973,7 @@ function ConfigurationDialog({
 
             <TabsContent value="endpoints" className="mt-0 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Настройка API эндпоинтов
+                {t("endpointsDescription")}
               </p>
 
               {["createPayment", "checkStatus", "cancelPayment", "refund"].map(
@@ -974,9 +999,9 @@ function ConfigurationDialog({
             <TabsContent value="webhooks" className="mt-0 space-y-4">
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div>
-                  <h4 className="font-medium">Вебхуки включены</h4>
+                  <h4 className="font-medium">{t("webhooksEnabled")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Получать уведомления о платежах
+                    {t("webhooksDescription")}
                   </p>
                 </div>
                 <Button
@@ -984,12 +1009,12 @@ function ConfigurationDialog({
                   size="sm"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Включён
+                  {t("sandboxOn")}
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <Label>URL вебхука</Label>
+                <Label>{t("webhookUrl")}</Label>
                 <div className="flex gap-2">
                   <Input
                     value={`https://api.vendhub.uz/webhooks/${integration.name}`}
@@ -1003,9 +1028,9 @@ function ConfigurationDialog({
                       navigator.clipboard.writeText(
                         `https://api.vendhub.uz/webhooks/${integration.name}`,
                       );
-                      toast.success("URL скопирован");
+                      toast.success(t("urlCopied"));
                     }}
-                    aria-label="Копировать URL"
+                    aria-label={t("copyUrl")}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -1042,13 +1067,13 @@ function ConfigurationDialog({
                   value={aiMessage}
                   onChange={(e) => setAiMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendAiMessage()}
-                  placeholder="Введите сообщение или вставьте ссылку на документацию..."
+                  placeholder={t("aiInputPlaceholder")}
                 />
                 <Button
                   onClick={handleSendAiMessage}
                   disabled={!aiMessage.trim()}
                 >
-                  Отправить
+                  {t("aiSend")}
                 </Button>
               </div>
             </TabsContent>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Building2,
   Plus,
@@ -51,15 +52,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface Department {
   id: string;
   name: string;
@@ -84,6 +76,8 @@ interface Employee {
 export default function DepartmentsPage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const t = useTranslations("departments");
+  const tEmp = useTranslations("employees");
   const [search, setSearch] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
@@ -115,11 +109,11 @@ export default function DepartmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["departments"] });
-      toast.success("Отдел удален");
+      toast.success(t("deleted"));
       setDeleteConfirmId(null);
     },
     onError: () => {
-      toast.error("Не удалось удалить отдел");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -134,17 +128,22 @@ export default function DepartmentsPage() {
     subDepartments: childDepartments.length,
   };
 
-  (parentId: string) => flatDepartments.filter((d) => d.parent_id === parentId);
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: tEmp("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: tEmp("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: tEmp("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: tEmp("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: tEmp("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: tEmp("tabReviews") },
+  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{tEmp("title")}</h1>
+          <p className="text-muted-foreground">{tEmp("subtitle")}</p>
         </div>
       </div>
 
@@ -174,7 +173,7 @@ export default function DepartmentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего отделов</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -185,7 +184,9 @@ export default function DepartmentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-sm text-muted-foreground">Активных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsActive")}
+              </p>
             </div>
           </div>
         </div>
@@ -196,7 +197,9 @@ export default function DepartmentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.withManager}</p>
-              <p className="text-sm text-muted-foreground">С руководителем</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsWithManager")}
+              </p>
             </div>
           </div>
         </div>
@@ -207,7 +210,9 @@ export default function DepartmentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.subDepartments}</p>
-              <p className="text-sm text-muted-foreground">Подотделов</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsSubDepartments")}
+              </p>
             </div>
           </div>
         </div>
@@ -218,7 +223,7 @@ export default function DepartmentsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск отделов..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -228,12 +233,12 @@ export default function DepartmentsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Создать отдел
+              {t("createDepartment")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Новый отдел</DialogTitle>
+              <DialogTitle>{t("newDepartment")}</DialogTitle>
             </DialogHeader>
             <DepartmentForm
               employees={employees || []}
@@ -254,7 +259,7 @@ export default function DepartmentsPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Редактировать отдел</DialogTitle>
+            <DialogTitle>{t("editDepartment")}</DialogTitle>
           </DialogHeader>
           {editingDepartment && (
             <DepartmentForm
@@ -279,15 +284,14 @@ export default function DepartmentsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Подтвердите удаление</DialogTitle>
+            <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Вы уверены, что хотите удалить этот отдел? Это действие нельзя
-            отменить.
+            {t("deleteConfirmText")}
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
-              Отмена
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -296,7 +300,7 @@ export default function DepartmentsPage() {
                 deleteConfirmId && deleteMutation.mutate(deleteConfirmId)
               }
             >
-              {deleteMutation.isPending ? "Удаление..." : "Удалить"}
+              {deleteMutation.isPending ? t("deleting") : t("delete")}
             </Button>
           </div>
         </DialogContent>
@@ -307,11 +311,11 @@ export default function DepartmentsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Название</TableHead>
-              <TableHead>Код</TableHead>
-              <TableHead>Руководитель</TableHead>
-              <TableHead>Подотделов</TableHead>
-              <TableHead>Статус</TableHead>
+              <TableHead>{t("colName")}</TableHead>
+              <TableHead>{t("colCode")}</TableHead>
+              <TableHead>{t("colManager")}</TableHead>
+              <TableHead>{t("colSubDepartments")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -341,7 +345,7 @@ export default function DepartmentsPage() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
                   <Building2 className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Отделы не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -365,6 +369,7 @@ function DepartmentRow({
   onEdit: (dept: Department) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useTranslations("departments");
   const children = allDepartments.filter((d) => d.parent_id === department.id);
 
   return (
@@ -409,7 +414,7 @@ function DepartmentRow({
                 : "bg-red-500/10 text-red-500"
             }
           >
-            {department.is_active ? "Активный" : "Неактивный"}
+            {department.is_active ? t("statusActive") : t("statusInactive")}
           </Badge>
         </TableCell>
         <TableCell>
@@ -422,14 +427,14 @@ function DepartmentRow({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(department)}>
                 <Edit className="w-4 h-4 mr-2" />
-                Редактировать
+                {t("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(department.id)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Удалить
+                {t("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -460,6 +465,7 @@ function DepartmentForm({
   departments: Department[];
   onSuccess: () => void;
 }) {
+  const t = useTranslations("departments");
   const [formData, setFormData] = useState({
     name: department?.name || "",
     code: department?.code || "",
@@ -483,11 +489,11 @@ function DepartmentForm({
       return api.post("/employees/departments", payload);
     },
     onSuccess: () => {
-      toast.success(department ? "Отдел обновлен" : "Отдел создан");
+      toast.success(department ? t("updated") : t("created"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка сохранения");
+      toast.error(t("saveError"));
     },
   });
 
@@ -500,16 +506,16 @@ function DepartmentForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Название</label>
+          <label className="text-sm font-medium">{t("formName")}</label>
           <Input
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Отдел продаж"
+            placeholder={t("formNamePlaceholder")}
             required
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Код</label>
+          <label className="text-sm font-medium">{t("formCode")}</label>
           <Input
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
@@ -519,17 +525,17 @@ function DepartmentForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Описание</label>
+        <label className="text-sm font-medium">{t("formDescription")}</label>
         <Input
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
           }
-          placeholder="Описание отдела"
+          placeholder={t("formDescriptionPlaceholder")}
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Руководитель</label>
+        <label className="text-sm font-medium">{t("formManager")}</label>
         <Select
           value={formData.manager_id}
           onValueChange={(value) =>
@@ -537,10 +543,10 @@ function DepartmentForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите руководителя" />
+            <SelectValue placeholder={t("formManagerPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Не назначен</SelectItem>
+            <SelectItem value="">{t("formManagerNone")}</SelectItem>
             {employees.map((emp) => (
               <SelectItem key={emp.id} value={emp.id}>
                 {emp.firstName} {emp.lastName}
@@ -550,7 +556,7 @@ function DepartmentForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Родительский отдел</label>
+        <label className="text-sm font-medium">{t("formParent")}</label>
         <Select
           value={formData.parent_id}
           onValueChange={(value) =>
@@ -558,10 +564,10 @@ function DepartmentForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Нет (корневой отдел)" />
+            <SelectValue placeholder={t("formParentNone")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Нет (корневой отдел)</SelectItem>
+            <SelectItem value="">{t("formParentNone")}</SelectItem>
             {departments.map((dept) => (
               <SelectItem key={dept.id} value={dept.id}>
                 {dept.name}
@@ -581,16 +587,16 @@ function DepartmentForm({
           className="rounded border-input"
         />
         <label htmlFor="is_active" className="text-sm font-medium">
-          Активный отдел
+          {t("formIsActive")}
         </label>
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending
-            ? "Сохранение..."
+            ? t("saving")
             : department
-              ? "Обновить"
-              : "Создать"}
+              ? t("formUpdate")
+              : t("formCreate")}
         </Button>
       </div>
     </form>

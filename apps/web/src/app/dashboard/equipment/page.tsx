@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Wrench,
@@ -78,103 +79,33 @@ interface WashingSchedule {
 
 type TabType = "components" | "spare-parts" | "washing";
 
-const componentStatusConfig: Record<
+const componentStatusStyles: Record<
   string,
-  { label: string; color: string; bgColor: string }
+  { color: string; bgColor: string }
 > = {
-  active: {
-    label: "Активен",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  installed: {
-    label: "Установлен",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  maintenance: {
-    label: "Обслуживание",
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-100",
-  },
-  repair: {
-    label: "Ремонт",
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
+  active: { color: "text-green-600", bgColor: "bg-green-100" },
+  installed: { color: "text-blue-600", bgColor: "bg-blue-100" },
+  maintenance: { color: "text-yellow-600", bgColor: "bg-yellow-100" },
+  repair: { color: "text-orange-600", bgColor: "bg-orange-100" },
   decommissioned: {
-    label: "Списан",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
-  in_storage: {
-    label: "На складе",
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-  },
-  in_transit: {
-    label: "В пути",
-    color: "text-cyan-600",
-    bgColor: "bg-cyan-100",
-  },
-  defective: { label: "Дефект", color: "text-red-600", bgColor: "bg-red-100" },
+  in_storage: { color: "text-purple-600", bgColor: "bg-purple-100" },
+  in_transit: { color: "text-cyan-600", bgColor: "bg-cyan-100" },
+  defective: { color: "text-red-600", bgColor: "bg-red-100" },
 };
 
-const componentTypeConfig: Record<string, string> = {
-  motor: "Мотор",
-  compressor: "Компрессор",
-  heater: "Нагреватель",
-  dispenser: "Диспенсер",
-  grinder: "Кофемолка",
-  brewer: "Заварочный блок",
-  pump: "Помпа",
-  mixer: "Миксер",
-  cooler: "Охладитель",
-  board: "Плата управления",
-  display: "Дисплей",
-  keyboard: "Клавиатура",
-  coin_acceptor: "Монетоприёмник",
-  bill_acceptor: "Купюроприёмник",
-  card_reader: "Картридер",
-  hopper: "Бункер",
-  sensor: "Датчик",
-  valve: "Клапан",
-};
-
-const washingFrequencyConfig: Record<string, string> = {
-  daily: "Ежедневно",
-  weekly: "Еженедельно",
-  biweekly: "Раз в 2 недели",
-  monthly: "Ежемесячно",
-};
-
-const washingStatusConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  active: {
-    label: "Активно",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  overdue: {
-    label: "Просрочено",
-    color: "text-red-600",
-    bgColor: "bg-red-100",
-  },
-  completed: {
-    label: "Выполнено",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  paused: {
-    label: "Приостановлено",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
-};
+const washingStatusStyles: Record<string, { color: string; bgColor: string }> =
+  {
+    active: { color: "text-green-600", bgColor: "bg-green-100" },
+    overdue: { color: "text-red-600", bgColor: "bg-red-100" },
+    completed: { color: "text-blue-600", bgColor: "bg-blue-100" },
+    paused: { color: "text-muted-foreground", bgColor: "bg-muted" },
+  };
 
 export default function EquipmentPage() {
+  const t = useTranslations("equipment");
   const [activeTab, setActiveTab] = useState<TabType>("components");
   const [confirmState, setConfirmState] = useState<{
     title: string;
@@ -243,9 +174,9 @@ export default function EquipmentPage() {
   // --- Tabs config ---
 
   const tabs = [
-    { id: "components" as const, label: "Компоненты", icon: Cog },
-    { id: "spare-parts" as const, label: "Запасные части", icon: Package },
-    { id: "washing" as const, label: "Расписание моек", icon: Droplets },
+    { id: "components" as const, label: t("tabComponents"), icon: Cog },
+    { id: "spare-parts" as const, label: t("tabSpareParts"), icon: Package },
+    { id: "washing" as const, label: t("tabWashing"), icon: Droplets },
   ];
 
   // --- Stats ---
@@ -301,6 +232,43 @@ export default function EquipmentPage() {
 
   const isLoading = componentsLoading || sparePartsLoading || washingLoading;
 
+  // --- Component status helpers ---
+
+  const getComponentStatusLabel = (status: string) => {
+    const key = `componentStatus_${status}` as const;
+    return t(key);
+  };
+
+  const getComponentTypeLabel = (componentType: string) => {
+    const key = `componentType_${componentType}` as const;
+    return t(key);
+  };
+
+  const getWashingFrequencyLabel = (frequency: string) => {
+    const key = `washingFrequency_${frequency}` as const;
+    return t(key);
+  };
+
+  const getWashingStatusLabel = (status: string) => {
+    const key = `washingStatus_${status}` as const;
+    return t(key);
+  };
+
+  // --- Status filter options per tab ---
+
+  const componentStatusKeys = [
+    "active",
+    "installed",
+    "maintenance",
+    "repair",
+    "decommissioned",
+    "in_storage",
+    "in_transit",
+    "defective",
+  ];
+
+  const washingStatusKeys = ["active", "overdue", "completed", "paused"];
+
   // --- Render Stats ---
 
   const renderStats = () => {
@@ -312,7 +280,7 @@ export default function EquipmentPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Всего компонентов
+                    {t("statsComponentsTotal")}
                   </p>
                   <p className="text-2xl font-bold">{componentStats.total}</p>
                 </div>
@@ -324,7 +292,9 @@ export default function EquipmentPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Активных</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("statsActive")}
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {componentStats.active}
                   </p>
@@ -338,7 +308,7 @@ export default function EquipmentPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Требуют обслуживания
+                    {t("statsNeedsMaintenance")}
                   </p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {componentStats.maintenance}
@@ -352,7 +322,9 @@ export default function EquipmentPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">На складе</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("statsInStorage")}
+                  </p>
                   <p className="text-2xl font-bold text-purple-600">
                     {componentStats.inStorage}
                   </p>
@@ -373,7 +345,7 @@ export default function EquipmentPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Всего запчастей
+                    {t("statsSparePartsTotal")}
                   </p>
                   <p className="text-2xl font-bold">{sparePartStats.total}</p>
                 </div>
@@ -385,7 +357,9 @@ export default function EquipmentPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">На складе</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("statsInStock")}
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {sparePartStats.inStock}
                   </p>
@@ -398,7 +372,9 @@ export default function EquipmentPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Мало</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("statsLowStock")}
+                  </p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {sparePartStats.lowStock}
                   </p>
@@ -411,7 +387,9 @@ export default function EquipmentPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Отсутствуют</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("statsOutOfStock")}
+                  </p>
                   <p className="text-2xl font-bold text-red-600">
                     {sparePartStats.outOfStock}
                   </p>
@@ -432,7 +410,7 @@ export default function EquipmentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Всего расписаний
+                  {t("statsSchedulesTotal")}
                 </p>
                 <p className="text-2xl font-bold">{washingStats.total}</p>
               </div>
@@ -444,7 +422,9 @@ export default function EquipmentPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Активных</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsActive")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {washingStats.active}
                 </p>
@@ -457,7 +437,9 @@ export default function EquipmentPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Просрочено</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsOverdue")}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {washingStats.overdue}
                 </p>
@@ -470,7 +452,9 @@ export default function EquipmentPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">На сегодня</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsToday")}
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {washingStats.today}
                 </p>
@@ -489,7 +473,7 @@ export default function EquipmentPage() {
     const filtered = components?.filter(
       (c: Component) =>
         c.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
-        componentTypeConfig[c.componentType]
+        getComponentTypeLabel(c.componentType)
           ?.toLowerCase()
           .includes(search.toLowerCase()),
     );
@@ -499,14 +483,14 @@ export default function EquipmentPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Cog className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Компоненты не найдены</p>
+            <p className="text-lg font-medium">{t("componentsNotFound")}</p>
             <p className="text-muted-foreground mb-4">
-              Добавьте первый компонент оборудования
+              {t("componentsAddFirst")}
             </p>
             <Link href="/dashboard/equipment/components/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Добавить компонент
+                {t("addComponent")}
               </Button>
             </Link>
           </CardContent>
@@ -517,11 +501,11 @@ export default function EquipmentPage() {
     return (
       <div className="space-y-4">
         {filtered?.map((component: Component) => {
-          const statusCfg =
-            componentStatusConfig[component.status] ||
-            componentStatusConfig.active;
+          const statusStyles =
+            componentStatusStyles[component.status] ||
+            componentStatusStyles.active;
           const typeLabel =
-            componentTypeConfig[component.componentType] ||
+            getComponentTypeLabel(component.componentType) ||
             component.componentType;
 
           return (
@@ -541,9 +525,9 @@ export default function EquipmentPage() {
                           {component.serialNumber} - {typeLabel}
                         </h3>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${statusCfg.bgColor} ${statusCfg.color}`}
+                          className={`text-xs px-2 py-0.5 rounded-full ${statusStyles.bgColor} ${statusStyles.color}`}
                         >
-                          {statusCfg.label}
+                          {getComponentStatusLabel(component.status)}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
@@ -556,7 +540,7 @@ export default function EquipmentPage() {
                         {component.lastMaintenanceDate && (
                           <span className="flex items-center gap-1">
                             <Wrench className="h-3 w-3" />
-                            Обслуживание:{" "}
+                            {t("maintenanceDate")}{" "}
                             {new Date(
                               component.lastMaintenanceDate,
                             ).toLocaleDateString("ru-RU")}
@@ -568,7 +552,11 @@ export default function EquipmentPage() {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" aria-label="Действия">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={t("actionsLabel")}
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -578,7 +566,7 @@ export default function EquipmentPage() {
                       >
                         <DropdownMenuItem>
                           <Eye className="h-4 w-4 mr-2" />
-                          Просмотр
+                          {t("actionView")}
                         </DropdownMenuItem>
                       </Link>
                       <Link
@@ -586,21 +574,21 @@ export default function EquipmentPage() {
                       >
                         <DropdownMenuItem>
                           <Edit className="h-4 w-4 mr-2" />
-                          Редактировать
+                          {t("actionEdit")}
                         </DropdownMenuItem>
                       </Link>
                       <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => {
                           setConfirmState({
-                            title: "Удалить компонент?",
+                            title: t("deleteComponentConfirm"),
                             action: () =>
                               deleteComponentMutation.mutate(component.id),
                           });
                         }}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Удалить
+                        {t("actionDelete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -627,14 +615,14 @@ export default function EquipmentPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Запасные части не найдены</p>
+            <p className="text-lg font-medium">{t("sparePartsNotFound")}</p>
             <p className="text-muted-foreground mb-4">
-              Добавьте первую запасную часть
+              {t("sparePartsAddFirst")}
             </p>
             <Link href="/dashboard/equipment/spare-parts/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Добавить запчасть
+                {t("addSparePart")}
               </Button>
             </Link>
           </CardContent>
@@ -650,25 +638,25 @@ export default function EquipmentPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Артикул
+                    {t("colPartNumber")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Наименование
+                    {t("colName")}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                    Количество
+                    {t("colQuantity")}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                    Мин.
+                    {t("colMin")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Поставщик
+                    {t("colSupplier")}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                    Стоимость
+                    {t("colCost")}
                   </th>
                   <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                    Действия
+                    {t("actionsLabel")}
                   </th>
                 </tr>
               </thead>
@@ -704,13 +692,13 @@ export default function EquipmentPage() {
                           </span>
                           {isOut && (
                             <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">
-                              Нет
+                              {t("stockNone")}
                             </span>
                           )}
                           {isLow && (
                             <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-600">
                               <AlertTriangle className="h-3 w-3" />
-                              Мало
+                              {t("stockLow")}
                             </span>
                           )}
                         </div>
@@ -735,7 +723,7 @@ export default function EquipmentPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                aria-label="Действия"
+                                aria-label={t("actionsLabel")}
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
@@ -746,7 +734,7 @@ export default function EquipmentPage() {
                               >
                                 <DropdownMenuItem>
                                   <Eye className="h-4 w-4 mr-2" />
-                                  Просмотр
+                                  {t("actionView")}
                                 </DropdownMenuItem>
                               </Link>
                               <Link
@@ -754,21 +742,21 @@ export default function EquipmentPage() {
                               >
                                 <DropdownMenuItem>
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Редактировать
+                                  {t("actionEdit")}
                                 </DropdownMenuItem>
                               </Link>
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onClick={() => {
                                   setConfirmState({
-                                    title: "Удалить запчасть?",
+                                    title: t("deleteSparePartConfirm"),
                                     action: () =>
                                       deleteSparePartMutation.mutate(part.id),
                                   });
                                 }}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Удалить
+                                {t("actionDelete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -797,14 +785,12 @@ export default function EquipmentPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Droplets className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Расписания моек не найдены</p>
-            <p className="text-muted-foreground mb-4">
-              Создайте первое расписание мойки
-            </p>
+            <p className="text-lg font-medium">{t("washingNotFound")}</p>
+            <p className="text-muted-foreground mb-4">{t("washingAddFirst")}</p>
             <Link href="/dashboard/equipment/washing/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Создать расписание
+                {t("createSchedule")}
               </Button>
             </Link>
           </CardContent>
@@ -820,25 +806,25 @@ export default function EquipmentPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Автомат
+                    {t("colMachine")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Частота
+                    {t("colFrequency")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Следующая мойка
+                    {t("colNextWash")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Последняя мойка
+                    {t("colLastWash")}
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                    Ответственный
+                    {t("colAssignee")}
                   </th>
                   <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                    Статус
+                    {t("colStatus")}
                   </th>
                   <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                    Действия
+                    {t("actionsLabel")}
                   </th>
                 </tr>
               </thead>
@@ -847,10 +833,13 @@ export default function EquipmentPage() {
                   const isOverdue =
                     schedule.nextWashDate &&
                     new Date(schedule.nextWashDate) < today;
-                  const statusCfg = isOverdue
-                    ? washingStatusConfig.overdue
-                    : washingStatusConfig[schedule.status] ||
-                      washingStatusConfig.active;
+                  const statusStyles = isOverdue
+                    ? washingStatusStyles.overdue
+                    : washingStatusStyles[schedule.status] ||
+                      washingStatusStyles.active;
+                  const statusLabel = isOverdue
+                    ? getWashingStatusLabel("overdue")
+                    : getWashingStatusLabel(schedule.status);
 
                   return (
                     <tr
@@ -866,7 +855,7 @@ export default function EquipmentPage() {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
-                        {washingFrequencyConfig[schedule.frequency] ||
+                        {getWashingFrequencyLabel(schedule.frequency) ||
                           schedule.frequency}
                       </td>
                       <td className="py-3 px-4">
@@ -910,9 +899,9 @@ export default function EquipmentPage() {
                       <td className="py-3 px-4">
                         <div className="flex justify-center">
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${statusCfg.bgColor} ${statusCfg.color}`}
+                            className={`text-xs px-2 py-0.5 rounded-full ${statusStyles.bgColor} ${statusStyles.color}`}
                           >
-                            {statusCfg.label}
+                            {statusLabel}
                           </span>
                         </div>
                       </td>
@@ -923,7 +912,7 @@ export default function EquipmentPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                aria-label="Действия"
+                                aria-label={t("actionsLabel")}
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
@@ -934,7 +923,7 @@ export default function EquipmentPage() {
                               >
                                 <DropdownMenuItem>
                                   <Eye className="h-4 w-4 mr-2" />
-                                  Просмотр
+                                  {t("actionView")}
                                 </DropdownMenuItem>
                               </Link>
                               <Link
@@ -942,21 +931,21 @@ export default function EquipmentPage() {
                               >
                                 <DropdownMenuItem>
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Редактировать
+                                  {t("actionEdit")}
                                 </DropdownMenuItem>
                               </Link>
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onClick={() => {
                                   setConfirmState({
-                                    title: "Удалить расписание?",
+                                    title: t("deleteScheduleConfirm"),
                                     action: () =>
                                       deleteWashingMutation.mutate(schedule.id),
                                   });
                                 }}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Удалить
+                                {t("actionDelete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1002,35 +991,32 @@ export default function EquipmentPage() {
 
   const addButtonConfig: Record<TabType, { label: string; href: string }> = {
     components: {
-      label: "Добавить компонент",
+      label: t("addComponent"),
       href: "/dashboard/equipment/components/new",
     },
     "spare-parts": {
-      label: "Добавить запчасть",
+      label: t("addSparePart"),
       href: "/dashboard/equipment/spare-parts/new",
     },
     washing: {
-      label: "Создать расписание",
+      label: t("createSchedule"),
       href: "/dashboard/equipment/washing/new",
     },
   };
 
   // --- Status filter options per tab ---
 
-  const statusFilterOptions: Record<TabType, Record<string, string>> = {
-    components: Object.fromEntries(
-      Object.entries(componentStatusConfig).map(([key, cfg]) => [
-        key,
-        cfg.label,
-      ]),
-    ),
-    "spare-parts": {},
-    washing: Object.fromEntries(
-      Object.entries(washingStatusConfig).map(([key, cfg]) => [key, cfg.label]),
-    ),
-  };
+  const currentFilterOptions: Record<string, string> =
+    activeTab === "components"
+      ? Object.fromEntries(
+          componentStatusKeys.map((key) => [key, getComponentStatusLabel(key)]),
+        )
+      : activeTab === "washing"
+        ? Object.fromEntries(
+            washingStatusKeys.map((key) => [key, getWashingStatusLabel(key)]),
+          )
+        : {};
 
-  const currentFilterOptions = statusFilterOptions[activeTab];
   const hasFilter = Object.keys(currentFilterOptions).length > 0;
 
   return (
@@ -1038,10 +1024,8 @@ export default function EquipmentPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Оборудование</h1>
-          <p className="text-muted-foreground">
-            Управление компонентами, запасными частями и расписанием моек
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link href={addButtonConfig[activeTab].href}>
           <Button>
@@ -1078,7 +1062,7 @@ export default function EquipmentPage() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -1091,12 +1075,12 @@ export default function EquipmentPage() {
                 <Filter className="h-4 w-4 mr-2" />
                 {statusFilter
                   ? currentFilterOptions[statusFilter]
-                  : "Все статусы"}
+                  : t("allStatuses")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setStatusFilter(null)}>
-                Все статусы
+                {t("allStatuses")}
               </DropdownMenuItem>
               {Object.entries(currentFilterOptions).map(([key, label]) => (
                 <DropdownMenuItem
