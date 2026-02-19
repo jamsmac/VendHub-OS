@@ -293,7 +293,80 @@ async function handleEditCart(ctx: BotContext) {
 
 async function handleConfirmOrder(ctx: BotContext) {
   await ctx.answerCbQuery("Заказ оформляется...");
-  // Order confirmation logic
+
+  const user = await api.getUserByTelegramId(ctx.from!.id);
+  if (!user) {
+    await ctx.editMessageText(
+      "❌ Пользователь не найден. Используйте /start для регистрации.",
+    );
+    return;
+  }
+
+  const cart = ctx.session.cart || [];
+  const machineId = ctx.session.machineId;
+
+  if (cart.length === 0) {
+    await ctx.editMessageText(
+      "🛒 Корзина пуста. Выберите товар для заказа.\n\n📱 Главное меню:",
+      mainMenuInline,
+    );
+    return;
+  }
+
+  if (!machineId) {
+    await ctx.editMessageText(
+      "❌ Автомат не выбран. Отсканируйте QR-код автомата.\n\n📱 Главное меню:",
+      mainMenuInline,
+    );
+    return;
+  }
+
+  try {
+    const items = cart.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
+
+    const order = await api.createOrder(user.id, machineId, items);
+
+    if (!order) {
+      await ctx.editMessageText(
+        "❌ Не удалось создать заказ. Попробуйте позже.\n\n📱 Главное меню:",
+        mainMenuInline,
+      );
+      return;
+    }
+
+    // Clear cart on success
+    ctx.session.cart = [];
+    ctx.session.machineId = undefined;
+    resetStep(ctx);
+
+    const total = cart.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+
+    await ctx.editMessageText(
+      "✅ *Заказ оформлен!*\n\n" +
+        `📋 Номер: ${order.orderNumber}\n` +
+        `💰 Сумма: ${total.toLocaleString()} UZS\n` +
+        `📦 Товаров: ${cart.length}\n` +
+        (order.pointsEarned > 0
+          ? `💎 Начислено баллов: +${order.pointsEarned}\n`
+          : "") +
+        "\nСпасибо за покупку! 🎉",
+      {
+        parse_mode: "Markdown",
+        ...mainMenuInline,
+      },
+    );
+  } catch {
+    await ctx.editMessageText(
+      "❌ Ошибка при оформлении заказа. Попробуйте позже.\n\n📱 Главное меню:",
+      mainMenuInline,
+    );
+  }
 }
 
 async function handleCancelOrder(ctx: BotContext) {

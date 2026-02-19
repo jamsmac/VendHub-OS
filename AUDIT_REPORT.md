@@ -352,12 +352,11 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** Добавить `roles` поле к каждому пункту, фильтровать по `user.role`
 - **Оценка:** 4 часа
 
-### P1-012: ⚠️ OPEN — Client PWA — не настоящий PWA
+### P1-012: ✅ FIXED — Client PWA — не настоящий PWA
 
 - **Где:** `apps/client/`
-- **Что:** Нет `manifest.json` в `public/`, нет исходного service worker. VitePWA сконфигурирован в `vite.config.ts` но `public/` директория отсутствует. PWA нельзя установить как standalone app
-- **Как исправить:** Создать `public/manifest.json` с иконками, настроить VitePWA корректно
-- **Оценка:** 4 часа
+- **Что было:** Нет `manifest.json` в `public/`, нет исходного service worker
+- **Исправлено:** VitePWA полностью настроен в `vite.config.ts` (manifest, workbox, runtime caching), SW регистрация в `main.tsx` с auto-update + hourly check, `public/` содержит все иконки (64/192/512px + apple-touch-icon + maskable), `index.html` имеет все PWA meta-теги. Единственный minor: `favicon.ico` пустой (0 bytes), но SVG favicon работает
 
 ### P1-013: ✅ FIXED — Client PWA — нет token refresh
 
@@ -367,12 +366,11 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** Добавить refresh token логику аналогично Web Admin
 - **Оценка:** 4 часа
 
-### P1-014: ⚠️ OPEN — Bot — order confirmation это заглушка
+### P1-014: ✅ FIXED — Bot — order confirmation это заглушка
 
-- **Где:** `apps/bot/src/handlers/callbacks.ts:305-308`
-- **Что:** `handleConfirmOrder` только показывает "Заказ оформляется..." но не создаёт заказ через API
-- **Как исправить:** Реализовать полный order flow: создание заказа, оплата, подтверждение
-- **Оценка:** 8 часов
+- **Где:** `apps/bot/src/handlers/callbacks.ts:294`
+- **Что было:** `handleConfirmOrder` только показывал "Заказ оформляется..." без логики
+- **Исправлено:** Полный order flow — getUserByTelegramId → валидация cart+machineId → api.createOrder → показ номера заказа + суммы + начисленных баллов → очистка корзины. Обработка ошибок: пустая корзина, нет автомата, API failure
 
 ### P1-015: ✅ FIXED — Bot — trip сообщения в транслитерации
 
@@ -857,8 +855,8 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | --- | ----------------------------------------- | --------- | ------- |
 | 19  | Web: RBAC sidebar filtering               | 4         | ✅ Done |
 | 20  | Client: добавить token refresh            | 4         | ✅ Done |
-| 21  | Client: настроить PWA (manifest, SW)      | 4         | ⚠️ Open |
-| 22  | Bot: реализовать order flow               | 8         | ⚠️ Open |
+| 21  | Client: настроить PWA (manifest, SW)      | 4         | ✅ Done |
+| 22  | Bot: реализовать order flow               | 8         | ✅ Done |
 | 23  | Bot: fix trip transliteration → кириллица | 2         | ✅ Done |
 | 24  | Web: fix token refresh race condition     | 3         | ✅ Done |
 | 25  | Web: типизировать API client              | 2 (start) | ⚠️ Open |
@@ -967,7 +965,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 | #    | Проблема                                                    | Файл           | Severity              |
 | ---- | ----------------------------------------------------------- | -------------- | --------------------- |
-| F-09 | Не настоящий PWA (нет manifest, SW)                         | public/        | HIGH ⚠️               |
+| F-09 | ~~Не настоящий PWA (нет manifest, SW)~~                     | public/        | ~~HIGH~~ ✅ FIXED     |
 | F-10 | i18n import crash при смене языка                           | store.ts:213   | ~~CRITICAL~~ ✅ FIXED |
 | F-11 | Нет token refresh — logout при истечении                    | api.ts:24-33   | ~~HIGH~~ ✅ FIXED     |
 | F-12 | Auth только через Telegram (нет email/password)             | api.ts:228-231 | MEDIUM ⚠️             |
@@ -986,13 +984,13 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### Bot — критические находки (ОБНОВЛЕНО v2.0)
 
-| #    | Проблема                             | Файл                 | Severity              |
-| ---- | ------------------------------------ | -------------------- | --------------------- |
-| F-20 | Все API вызовы без аутентификации    | api.ts:22-25         | ~~CRITICAL~~ ✅ FIXED |
-| F-21 | handleConfirmOrder — заглушка        | callbacks.ts:305-308 | HIGH ⚠️               |
-| F-22 | Trip сообщения в транслитерации      | commands.ts:369-520  | ~~MEDIUM~~ ✅ FIXED   |
-| F-23 | Staff commands scope неправильный    | main.ts:107-116      | MEDIUM ⚠️             |
-| F-24 | Silent error swallowing в API client | api.ts               | LOW                   |
+| #    | Проблема                             | Файл                | Severity              |
+| ---- | ------------------------------------ | ------------------- | --------------------- |
+| F-20 | Все API вызовы без аутентификации    | api.ts:22-25        | ~~CRITICAL~~ ✅ FIXED |
+| F-21 | ~~handleConfirmOrder — заглушка~~    | callbacks.ts:294    | ~~HIGH~~ ✅ FIXED     |
+| F-22 | Trip сообщения в транслитерации      | commands.ts:369-520 | ~~MEDIUM~~ ✅ FIXED   |
+| F-23 | Staff commands scope неправильный    | main.ts:107-116     | MEDIUM ⚠️             |
+| F-24 | Silent error swallowing в API client | api.ts              | LOW                   |
 
 ### Общая матрица auth-проблем (ОБНОВЛЕНО v2.0)
 
