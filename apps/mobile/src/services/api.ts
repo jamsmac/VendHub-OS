@@ -135,8 +135,7 @@ export const authApi = {
 };
 
 export const tasksApi = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll: (params?: any) => api.get("/tasks", { params }),
+  getAll: (params?: Record<string, unknown>) => api.get("/tasks", { params }),
   getMy: () => api.get("/tasks/my"),
   getById: (id: string) => api.get(`/tasks/${id}`),
   start: (id: string) => api.post(`/tasks/${id}/start`),
@@ -148,16 +147,17 @@ export const tasksApi = {
     api.post(`/tasks/${id}/photo-after`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  complete: (id: string, data: any) => api.post(`/tasks/${id}/complete`, data),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateItems: (id: string, items: any[]) =>
-    api.patch(`/tasks/${id}/items`, { items }),
+  complete: (id: string, data: Record<string, unknown>) =>
+    api.post(`/tasks/${id}/complete`, data),
+  updateItems: (
+    id: string,
+    items: { productId: string; quantity: number; notes?: string }[],
+  ) => api.patch(`/tasks/${id}/items`, { items }),
 };
 
 export const machinesApi = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll: (params?: any) => api.get("/machines", { params }),
+  getAll: (params?: Record<string, unknown>) =>
+    api.get("/machines", { params }),
   getMy: () => api.get("/machines/my"),
   getById: (id: string) => api.get(`/machines/${id}`),
   getInventory: (id: string) => api.get(`/machines/${id}/inventory`),
@@ -167,16 +167,20 @@ export const inventoryApi = {
   getOperator: () => api.get("/inventory/operator"),
   getMachine: (machineId: string) =>
     api.get("/inventory/machine", { params: { machineId } }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transfer: (data: any) => api.post("/inventory/transfer", data),
+  transfer: (data: {
+    fromMachineId: string;
+    toMachineId: string;
+    items: { productId: string; quantity: number }[];
+    note?: string;
+  }) => api.post("/inventory/transfer", data),
   createTransfer: (data: {
     fromMachineId: string;
     toMachineId: string;
     items: { productId: string; quantity: number }[];
     note?: string;
   }) => api.post("/inventory/transfer", data),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getMovements: (params?: any) => api.get("/inventory/movements", { params }),
+  getMovements: (params?: Record<string, unknown>) =>
+    api.get("/inventory/movements", { params }),
 };
 
 export const notificationsApi = {
@@ -199,19 +203,22 @@ export const reportsApi = {
 export const ordersApi = {
   create: (data: {
     machineId: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    items: { productId: string; quantity: number; customization?: any }[];
+    items: {
+      productId: string;
+      quantity: number;
+      customization?: Record<string, unknown>;
+    }[];
     paymentMethod?: string;
     usePoints?: number;
   }) => api.post("/orders", data),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getMy: (params?: any) => api.get("/orders/my", { params }),
+  getMy: (params?: Record<string, unknown>) =>
+    api.get("/orders/my", { params }),
   getById: (id: string) => api.get(`/orders/${id}`),
 };
 
 export const productsApi = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getAll: (params?: any) => api.get("/products", { params }),
+  getAll: (params?: Record<string, unknown>) =>
+    api.get("/products", { params }),
   getByMachine: (machineId: string) =>
     api.get(`/machines/${machineId}/products`),
   getById: (id: string) => api.get(`/products/${id}`),
@@ -220,11 +227,11 @@ export const productsApi = {
 
 export const loyaltyApi = {
   getMe: () => api.get("/loyalty/me"),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getHistory: (params?: any) => api.get("/loyalty/history", { params }),
+  getHistory: (params?: Record<string, unknown>) =>
+    api.get("/loyalty/history", { params }),
   getRewards: () => api.get("/loyalty/rewards"),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getLeaderboard: (params?: any) => api.get("/loyalty/leaderboard", { params }),
+  getLeaderboard: (params?: Record<string, unknown>) =>
+    api.get("/loyalty/leaderboard", { params }),
 };
 
 export const questsApi = {
@@ -261,6 +268,6 @@ export const promoCodesApi = {
 
 export const referralsApi = {
   getStats: () => api.get("/referrals/stats"),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getHistory: (params?: any) => api.get("/referrals/history", { params }),
+  getHistory: (params?: Record<string, unknown>) =>
+    api.get("/referrals/history", { params }),
 };

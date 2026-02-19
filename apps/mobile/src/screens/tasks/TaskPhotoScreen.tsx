@@ -12,7 +12,7 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { Camera, CameraType } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -28,16 +28,15 @@ export function TaskPhotoScreen() {
   const queryClient = useQueryClient();
   const { taskId, type } = route.params;
 
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<string | null>(null);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
 
   React.useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, []);
+    if (!permission?.granted) {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
 
   const uploadMutation = useMutation({
     mutationFn: async (uri: string) => {
@@ -46,8 +45,7 @@ export function TaskPhotoScreen() {
         uri,
         type: "image/jpeg",
         name: `photo_${type}_${Date.now()}.jpg`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Blob);
 
       if (type === "before") {
         return tasksApi.uploadPhotoBefore(taskId, formData);
@@ -60,21 +58,25 @@ export function TaskPhotoScreen() {
       Alert.alert("Успешно", "Фото загружено!");
       navigation.goBack();
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { message?: string } };
+      };
       Alert.alert(
         "Ошибка",
-        error.response?.data?.message || "Не удалось загрузить фото",
+        axiosError.response?.data?.message || "Не удалось загрузить фото",
       );
     },
   });
 
   const takePhoto = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({
+      const result = await cameraRef.current.takePictureAsync({
         quality: 0.7,
       });
-      setPhoto(photo.uri);
+      if (result) {
+        setPhoto(result.uri);
+      }
     }
   };
 
@@ -95,7 +97,7 @@ export function TaskPhotoScreen() {
     }
   };
 
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <View style={styles.container}>
         <Text>Запрос доступа к камере...</Text>
@@ -103,7 +105,7 @@ export function TaskPhotoScreen() {
     );
   }
 
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Нет доступа к камере</Text>
@@ -140,13 +142,13 @@ export function TaskPhotoScreen() {
 
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef}>
+      <CameraView style={styles.camera} facing="back" ref={cameraRef}>
         <View style={styles.cameraOverlay}>
           <Text style={styles.cameraTitle}>
             {type === "before" ? "Фото ДО выполнения" : "Фото ПОСЛЕ выполнения"}
           </Text>
         </View>
-      </Camera>
+      </CameraView>
       <View style={styles.controls}>
         <TouchableOpacity
           style={styles.galleryButton}

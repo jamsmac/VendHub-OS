@@ -5,6 +5,10 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { NotFoundException } from "@nestjs/common";
 import { WashingScheduleService } from "./washing-schedule.service";
 import { WashingSchedule } from "../entities/equipment-component.entity";
+import {
+  CreateWashingScheduleDto,
+  UpdateWashingScheduleDto,
+} from "../dto/create-washing-schedule.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -80,8 +84,11 @@ describe("WashingScheduleService", () => {
       repo.create!.mockReturnValue(created);
       repo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(orgId, userId, dto as any);
+      const result = await service.create(
+        orgId,
+        userId,
+        dto as CreateWashingScheduleDto,
+      );
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -126,8 +133,7 @@ describe("WashingScheduleService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { machineId: "m1" } as any);
+      await service.findAll(orgId, { machineId: "m1" });
 
       expect(qb.andWhere).toHaveBeenCalledWith("w.machineId = :machineId", {
         machineId: "m1",
@@ -139,8 +145,7 @@ describe("WashingScheduleService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { dueWithinDays: 3 } as any);
+      await service.findAll(orgId, { dueWithinDays: 3 });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "w.nextWashDate <= :futureDate",
@@ -153,8 +158,7 @@ describe("WashingScheduleService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { overdueOnly: true } as any);
+      await service.findAll(orgId, { overdueOnly: true });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "w.nextWashDate < :today",
@@ -167,8 +171,7 @@ describe("WashingScheduleService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { page: 2, limit: 5 } as any);
+      await service.findAll(orgId, { page: 2, limit: 5 });
 
       expect(qb.skip).toHaveBeenCalledWith(5);
       expect(qb.take).toHaveBeenCalledWith(5);
@@ -196,10 +199,9 @@ describe("WashingScheduleService", () => {
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(orgId, scheduleId, {
         frequencyDays: 14,
-      } as any);
+      } as UpdateWashingScheduleDto);
 
       expect(result.frequencyDays).toBe(14);
     });
@@ -207,8 +209,7 @@ describe("WashingScheduleService", () => {
     it("should throw NotFoundException for non-existent schedule", async () => {
       repo.findOne!.mockResolvedValue(null);
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update(orgId, "missing", {} as any),
+        service.update(orgId, "missing", {} as UpdateWashingScheduleDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

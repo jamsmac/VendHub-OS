@@ -74,8 +74,9 @@ describe("TripsService", () => {
     execute: jest.fn().mockResolvedValue({ affected: 1 }),
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMockSelectQueryBuilder = (result: any = null) => ({
+  const createMockSelectQueryBuilder = (
+    result: Record<string, unknown> | null = null,
+  ) => ({
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
@@ -231,10 +232,8 @@ describe("TripsService", () => {
         .mockResolvedValueOnce(mockTrip); // getTripById
       tripRepository.create.mockReturnValue(mockTrip);
       tripRepository.save.mockResolvedValue(mockTrip);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskLinkRepository.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskLinkRepository.save.mockResolvedValue([] as any);
+      taskLinkRepository.create.mockReturnValue({} as unknown as TripTaskLink);
+      taskLinkRepository.save.mockResolvedValue([] as unknown as TripTaskLink);
 
       await service.startTrip({
         organizationId: "org-uuid-1",
@@ -249,20 +248,28 @@ describe("TripsService", () => {
 
   describe("endTrip", () => {
     it("should end an active trip", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
+      const activeTrip = {
+        ...mockTrip,
+        status: TripStatus.ACTIVE,
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null);
 
       const selectQb = createMockSelectQueryBuilder({ total: "0" });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.createQueryBuilder.mockReturnValue(selectQb as any);
+      pointRepository.createQueryBuilder.mockReturnValue(
+        selectQb as unknown as ReturnType<
+          Repository<TripPoint>["createQueryBuilder"]
+        >,
+      );
 
       stopRepository.find.mockResolvedValue([]);
 
       const updateQb = createMockUpdateQueryBuilder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      stopRepository.createQueryBuilder.mockReturnValue(updateQb as any);
+      stopRepository.createQueryBuilder.mockReturnValue(
+        updateQb as unknown as ReturnType<
+          Repository<TripStop>["createQueryBuilder"]
+        >,
+      );
 
       tripRepository.save.mockImplementation(async (t) => t as Trip);
 
@@ -274,11 +281,10 @@ describe("TripsService", () => {
     });
 
     it("should throw BadRequestException when trip is not active", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const completedTrip = {
         ...mockTrip,
         status: TripStatus.COMPLETED,
-      } as any;
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
       await expect(service.endTrip("trip-uuid-1", {})).rejects.toThrow(
@@ -297,12 +303,11 @@ describe("TripsService", () => {
 
   describe("cancelTrip", () => {
     it("should cancel an active trip with reason", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const activeTrip = {
         ...mockTrip,
         status: TripStatus.ACTIVE,
         notes: null,
-      } as any;
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       tripRepository.save.mockImplementation(async (t) => t as Trip);
 
@@ -317,11 +322,10 @@ describe("TripsService", () => {
     });
 
     it("should throw BadRequestException for non-active trip", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const completedTrip = {
         ...mockTrip,
         status: TripStatus.COMPLETED,
-      } as any;
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
       await expect(service.cancelTrip("trip-uuid-1", "reason")).rejects.toThrow(
@@ -380,8 +384,10 @@ describe("TripsService", () => {
 
   describe("addPoint", () => {
     it("should add a valid GPS point", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
+      const activeTrip = {
+        ...mockTrip,
+        status: TripStatus.ACTIVE,
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null); // no previous point
 
@@ -390,16 +396,26 @@ describe("TripsService", () => {
         isFiltered: false,
         filterReason: null,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.create.mockReturnValue(savedPoint as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.save.mockResolvedValue(savedPoint as any);
+      pointRepository.create.mockReturnValue(
+        savedPoint as unknown as TripPoint,
+      );
+      pointRepository.save.mockResolvedValue(
+        savedPoint as unknown as TripPoint,
+      );
 
       const updateQb = createMockUpdateQueryBuilder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.update.mockResolvedValue({ affected: 1 } as any);
+      tripRepository.createQueryBuilder.mockReturnValue(
+        updateQb as unknown as ReturnType<
+          Repository<Trip>["createQueryBuilder"]
+        >,
+      );
+      tripRepository.update.mockResolvedValue({
+        affected: 1,
+      } as unknown as ReturnType<Repository<Trip>["update"]> extends Promise<
+        infer R
+      >
+        ? R
+        : never);
 
       // Mock for stop detection
       pointRepository.find.mockResolvedValue([]);
@@ -414,8 +430,10 @@ describe("TripsService", () => {
     });
 
     it("should filter point with low accuracy", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
+      const activeTrip = {
+        ...mockTrip,
+        status: TripStatus.ACTIVE,
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null);
 
@@ -424,14 +442,19 @@ describe("TripsService", () => {
         isFiltered: true,
         filterReason: "LOW_ACCURACY",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.create.mockReturnValue(savedPoint as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.save.mockResolvedValue(savedPoint as any);
+      pointRepository.create.mockReturnValue(
+        savedPoint as unknown as TripPoint,
+      );
+      pointRepository.save.mockResolvedValue(
+        savedPoint as unknown as TripPoint,
+      );
 
       const updateQb = createMockUpdateQueryBuilder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
+      tripRepository.createQueryBuilder.mockReturnValue(
+        updateQb as unknown as ReturnType<
+          Repository<Trip>["createQueryBuilder"]
+        >,
+      );
 
       const result = await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
@@ -452,11 +475,10 @@ describe("TripsService", () => {
     });
 
     it("should throw BadRequestException for non-active trip", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const completedTrip = {
         ...mockTrip,
         status: TripStatus.COMPLETED,
-      } as any;
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(completedTrip);
 
       await expect(
@@ -465,8 +487,10 @@ describe("TripsService", () => {
     });
 
     it("should set start coordinates on first valid point", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const activeTrip = { ...mockTrip, status: TripStatus.ACTIVE } as any;
+      const activeTrip = {
+        ...mockTrip,
+        status: TripStatus.ACTIVE,
+      } as unknown as Trip;
       tripRepository.findOne.mockResolvedValue(activeTrip);
       pointRepository.findOne.mockResolvedValue(null); // no previous = first point
 
@@ -475,16 +499,26 @@ describe("TripsService", () => {
         isFiltered: false,
         filterReason: null,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.create.mockReturnValue(savedPoint as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointRepository.save.mockResolvedValue(savedPoint as any);
+      pointRepository.create.mockReturnValue(
+        savedPoint as unknown as TripPoint,
+      );
+      pointRepository.save.mockResolvedValue(
+        savedPoint as unknown as TripPoint,
+      );
 
       const updateQb = createMockUpdateQueryBuilder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.update.mockResolvedValue({ affected: 1 } as any);
+      tripRepository.createQueryBuilder.mockReturnValue(
+        updateQb as unknown as ReturnType<
+          Repository<Trip>["createQueryBuilder"]
+        >,
+      );
+      tripRepository.update.mockResolvedValue({
+        affected: 1,
+      } as unknown as ReturnType<Repository<Trip>["update"]> extends Promise<
+        infer R
+      >
+        ? R
+        : never);
       pointRepository.find.mockResolvedValue([]);
 
       await service.addPoint("trip-uuid-1", {
@@ -508,10 +542,12 @@ describe("TripsService", () => {
       taskLinkRepository.findOne.mockResolvedValue(null);
 
       const mockLink = { tripId: "trip-uuid-1", taskId: "task-uuid-1" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskLinkRepository.create.mockReturnValue(mockLink as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskLinkRepository.save.mockResolvedValue(mockLink as any);
+      taskLinkRepository.create.mockReturnValue(
+        mockLink as unknown as TripTaskLink,
+      );
+      taskLinkRepository.save.mockResolvedValue(
+        mockLink as unknown as TripTaskLink,
+      );
 
       const result = await service.linkTask(
         "trip-uuid-1",
@@ -530,8 +566,9 @@ describe("TripsService", () => {
     });
 
     it("should throw ConflictException for duplicate link", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskLinkRepository.findOne.mockResolvedValue({ id: "existing" } as any);
+      taskLinkRepository.findOne.mockResolvedValue({
+        id: "existing",
+      } as unknown as TripTaskLink);
 
       await expect(
         service.linkTask("trip-uuid-1", "task-uuid-1"),
@@ -545,8 +582,7 @@ describe("TripsService", () => {
         tripId: "trip-uuid-1",
         taskId: "task-uuid-1",
         status: TripTaskLinkStatus.IN_PROGRESS,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as TripTaskLink;
       taskLinkRepository.findOne.mockResolvedValue(mockLink);
       taskLinkRepository.save.mockImplementation(
         async (l) => l as TripTaskLink,
@@ -585,14 +621,19 @@ describe("TripsService", () => {
         type: AnomalyType.SPEED_VIOLATION,
         severity: AnomalySeverity.WARNING,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      anomalyRepository.create.mockReturnValue(mockAnomaly as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      anomalyRepository.save.mockResolvedValue(mockAnomaly as any);
+      anomalyRepository.create.mockReturnValue(
+        mockAnomaly as unknown as TripAnomaly,
+      );
+      anomalyRepository.save.mockResolvedValue(
+        mockAnomaly as unknown as TripAnomaly,
+      );
 
       const updateQb = createMockUpdateQueryBuilder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tripRepository.createQueryBuilder.mockReturnValue(updateQb as any);
+      tripRepository.createQueryBuilder.mockReturnValue(
+        updateQb as unknown as ReturnType<
+          Repository<Trip>["createQueryBuilder"]
+        >,
+      );
 
       const result = await service.createAnomaly("trip-uuid-1", "org-uuid-1", {
         type: AnomalyType.SPEED_VIOLATION,
@@ -617,8 +658,7 @@ describe("TripsService", () => {
         tripId: "trip-uuid-1",
         resolved: false,
         resolvedById: null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as TripAnomaly;
       anomalyRepository.findOne.mockResolvedValue(mockAnomaly);
       tripRepository.findOne.mockResolvedValue(mockTrip); // org access check
       anomalyRepository.save.mockImplementation(async (a) => a as TripAnomaly);
@@ -654,12 +694,19 @@ describe("TripsService", () => {
       vehicleRepository.findOne.mockResolvedValue(mockVehicle);
 
       const mockRecon = { id: "recon-uuid-1" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reconciliationRepository.create.mockReturnValue(mockRecon as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reconciliationRepository.save.mockResolvedValue(mockRecon as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicleRepository.update.mockResolvedValue({ affected: 1 } as any);
+      reconciliationRepository.create.mockReturnValue(
+        mockRecon as unknown as TripReconciliation,
+      );
+      reconciliationRepository.save.mockResolvedValue(
+        mockRecon as unknown as TripReconciliation,
+      );
+      vehicleRepository.update.mockResolvedValue({
+        affected: 1,
+      } as unknown as ReturnType<Repository<Vehicle>["update"]> extends Promise<
+        infer R
+      >
+        ? R
+        : never);
 
       const result = await service.performReconciliation({
         organizationId: "org-uuid-1",

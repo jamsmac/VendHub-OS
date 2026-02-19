@@ -4,7 +4,11 @@ import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException } from "@nestjs/common";
 
 import { LocationsService } from "./locations.service";
-import { Location } from "./entities/location.entity";
+import {
+  Location,
+  LocationType,
+  LocationStatus,
+} from "./entities/location.entity";
 
 // ============================================================================
 // MOCK HELPERS
@@ -63,10 +67,8 @@ describe("LocationsService", () => {
     name: "Mega Planet",
     code: "LOC-TAS-A1B2",
     description: "Large shopping center",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    type: "shopping_center" as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    status: "active" as any,
+    type: LocationType.SHOPPING_CENTER,
+    status: LocationStatus.ACTIVE,
     address: {
       country: "Uzbekistan",
       region: "Toshkent viloyati",
@@ -74,8 +76,7 @@ describe("LocationsService", () => {
       street: "Amir Temur ko'chasi",
       building: "15A",
       fullAddress: "Toshkent, Amir Temur ko'chasi, 15A",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+    } as Location["address"],
     city: "Toshkent",
     latitude: 41.3111,
     longitude: 69.2797,
@@ -316,10 +317,9 @@ describe("LocationsService", () => {
         Promise.resolve(entity),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update("loc-uuid-1", {
         name: "Updated Name",
-      } as any);
+      });
 
       expect(result.name).toBe("Updated Name");
       expect(locationRepo.save).toHaveBeenCalled();
@@ -329,8 +329,7 @@ describe("LocationsService", () => {
       locationRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update("nonexistent", { name: "Test" } as any),
+        service.update("nonexistent", { name: "Test" }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -345,8 +344,7 @@ describe("LocationsService", () => {
         machineCount: 10,
         isActive: false,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.update("loc-uuid-1", updateData as any);
+      const result = await service.update("loc-uuid-1", updateData);
 
       expect(result.name).toBe("New Name");
       expect(result.machineCount).toBe(10);

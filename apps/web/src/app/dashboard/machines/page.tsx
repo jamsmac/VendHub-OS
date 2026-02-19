@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -21,7 +21,9 @@ import {
   Trash2,
   LayoutList,
   MapPin as MapPinIcon,
+  LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,50 +59,54 @@ interface Machine {
   stockLevel?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const statusConfig: Record<
+const statusStyles: Record<
   string,
-  { label: string; color: string; icon: any; bgColor: string }
+  { color: string; icon: LucideIcon; bgColor: string }
 > = {
   active: {
-    label: "Активен",
     color: "text-green-600",
     icon: CheckCircle,
     bgColor: "bg-green-100",
   },
   low_stock: {
-    label: "Мало товара",
     color: "text-yellow-600",
     icon: AlertTriangle,
     bgColor: "bg-yellow-100",
   },
   error: {
-    label: "Ошибка",
     color: "text-red-600",
     icon: XCircle,
     bgColor: "bg-red-100",
   },
   maintenance: {
-    label: "Обслуживание",
     color: "text-blue-600",
     icon: Wrench,
     bgColor: "bg-blue-100",
   },
   offline: {
-    label: "Офлайн",
     color: "text-muted-foreground",
     icon: XCircle,
     bgColor: "bg-muted",
   },
   disabled: {
-    label: "Отключён",
     color: "text-muted-foreground",
     icon: XCircle,
     bgColor: "bg-muted/50",
   },
 };
 
+const statusLabelKeys: Record<string, string> = {
+  active: "statusActive",
+  low_stock: "statusLowStock",
+  error: "statusError",
+  maintenance: "statusMaintenance",
+  offline: "statusOffline",
+  disabled: "statusDisabled",
+};
+
 export default function MachinesPage() {
+  const t = useTranslations("machines");
+  const tCommon = useTranslations("common");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -110,6 +116,20 @@ export default function MachinesPage() {
     action: () => void;
   } | null>(null);
   const queryClient = useQueryClient();
+
+  const statusConfig = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(statusStyles).map(([key, style]) => [
+          key,
+          {
+            ...style,
+            label: t(statusLabelKeys[key] as Parameters<typeof t>[0]),
+          },
+        ]),
+      ),
+    [t],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -144,10 +164,10 @@ export default function MachinesPage() {
     mutationFn: machinesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["machines"] });
-      toast.success("Автомат удалён");
+      toast.success(t("deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить автомат");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -165,16 +185,14 @@ export default function MachinesPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить автоматы
-        </p>
+        <p className="text-lg font-medium">{tCommon("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["machines"] })
           }
         >
-          Повторить
+          {tCommon("retry")}
         </Button>
       </div>
     );
@@ -185,15 +203,13 @@ export default function MachinesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Автоматы</h1>
-          <p className="text-muted-foreground">
-            Управление вендинговыми аппаратами
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link href="/dashboard/machines/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Добавить автомат
+            {t("addMachine")}
           </Button>
         </Link>
       </div>
@@ -204,7 +220,9 @@ export default function MachinesPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Всего</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotal")}
+                </p>
                 <p className="text-2xl font-bold">{stats?.total || 0}</p>
               </div>
               <Coffee className="h-8 w-8 text-muted-foreground" />
@@ -215,7 +233,9 @@ export default function MachinesPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Активные</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsActive")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats?.active || 0}
                 </p>
@@ -229,7 +249,7 @@ export default function MachinesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Требуют внимания
+                  {t("statsNeedsAttention")}
                 </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {stats?.needsAttention || 0}
@@ -243,7 +263,9 @@ export default function MachinesPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Ошибки</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsErrors")}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {stats?.errors || 0}
                 </p>
@@ -259,7 +281,7 @@ export default function MachinesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по названию или адресу..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -269,12 +291,14 @@ export default function MachinesPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {statusFilter ? statusConfig[statusFilter]?.label : "Все статусы"}
+              {statusFilter
+                ? statusConfig[statusFilter]?.label
+                : tCommon("allStatuses")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter(null)}>
-              Все статусы
+              {tCommon("allStatuses")}
             </DropdownMenuItem>
             {Object.entries(statusConfig).map(([key, config]) => (
               <DropdownMenuItem key={key} onClick={() => setStatusFilter(key)}>
@@ -293,7 +317,7 @@ export default function MachinesPage() {
             onClick={() => setViewMode("list")}
           >
             <LayoutList className="h-4 w-4 mr-1" />
-            Список
+            {tCommon("list")}
           </Button>
           <Button
             variant={viewMode === "map" ? "default" : "ghost"}
@@ -301,7 +325,7 @@ export default function MachinesPage() {
             onClick={() => setViewMode("map")}
           >
             <MapPinIcon className="h-4 w-4 mr-1" />
-            Карта
+            {tCommon("map")}
           </Button>
         </div>
       </div>
@@ -336,16 +360,16 @@ export default function MachinesPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Coffee className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Автоматы не найдены</p>
+                <p className="text-lg font-medium">{t("notFound")}</p>
                 <p className="text-muted-foreground mb-4">
                   {search || statusFilter
-                    ? "Попробуйте изменить фильтры"
-                    : "Добавьте первый автомат"}
+                    ? tCommon("changeFilters")
+                    : t("addFirst")}
                 </p>
                 <Link href="/dashboard/machines/new">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Добавить автомат
+                    {t("addMachine")}
                   </Button>
                 </Link>
               </CardContent>
@@ -382,7 +406,7 @@ export default function MachinesPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Действия"
+                              aria-label={tCommon("actions")}
                             >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
@@ -391,7 +415,7 @@ export default function MachinesPage() {
                             <Link href={`/dashboard/machines/${machine.id}`}>
                               <DropdownMenuItem>
                                 <Eye className="h-4 w-4 mr-2" />
-                                Просмотр
+                                {tCommon("view")}
                               </DropdownMenuItem>
                             </Link>
                             <Link
@@ -399,21 +423,21 @@ export default function MachinesPage() {
                             >
                               <DropdownMenuItem>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Редактировать
+                                {tCommon("edit")}
                               </DropdownMenuItem>
                             </Link>
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => {
                                 setConfirmState({
-                                  title: "Удалить автомат?",
+                                  title: t("deleteConfirm"),
                                   action: () =>
                                     deleteMutation.mutate(machine.id),
                                 });
                               }}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Удалить
+                              {tCommon("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -423,7 +447,7 @@ export default function MachinesPage() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4" />
                         <span className="truncate">
-                          {machine.address || "Адрес не указан"}
+                          {machine.address || tCommon("noAddress")}
                         </span>
                       </div>
 
@@ -432,7 +456,7 @@ export default function MachinesPage() {
                           <Battery className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="text-xs text-muted-foreground">
-                              Запас
+                              {tCommon("stock")}
                             </p>
                             <p className="text-sm font-medium">
                               {machine.stockLevel !== undefined
@@ -445,7 +469,7 @@ export default function MachinesPage() {
                           <Banknote className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="text-xs text-muted-foreground">
-                              В кассе
+                              {tCommon("cashBox")}
                             </p>
                             <p className="text-sm font-medium">
                               {machine.currentCashAmount
@@ -459,7 +483,7 @@ export default function MachinesPage() {
                       <div className="pt-3 border-t">
                         <Link href={`/dashboard/machines/${machine.id}`}>
                           <Button variant="outline" className="w-full">
-                            Подробнее
+                            {tCommon("details")}
                           </Button>
                         </Link>
                       </div>

@@ -170,15 +170,13 @@ describe("OrganizationsService", () => {
 
   describe("update", () => {
     it("should update organization when found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       organizationRepository.findOne.mockResolvedValue({
         ...mockOrganization,
-      } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as unknown as Organization);
       organizationRepository.save.mockResolvedValue({
         ...mockOrganization,
         name: "Updated Name",
-      } as any);
+      } as unknown as Organization);
 
       const result = await service.update("org-uuid-1", {
         name: "Updated Name",
@@ -197,8 +195,7 @@ describe("OrganizationsService", () => {
     });
 
     it("should merge partial data into existing organization", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existingOrg = { ...mockOrganization } as any;
+      const existingOrg = { ...mockOrganization } as unknown as Organization;
       organizationRepository.findOne.mockResolvedValue(existingOrg);
       organizationRepository.save.mockImplementation(
         async (org) => org as Organization,
@@ -217,10 +214,13 @@ describe("OrganizationsService", () => {
   describe("remove", () => {
     it("should soft delete organization when found", async () => {
       organizationRepository.findOne.mockResolvedValue(mockOrganization);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       organizationRepository.softDelete.mockResolvedValue({
         affected: 1,
-      } as any);
+      } as unknown as ReturnType<
+        Repository<Organization>["softDelete"]
+      > extends Promise<infer R>
+        ? R
+        : never);
 
       await service.remove("org-uuid-1");
 
@@ -239,10 +239,13 @@ describe("OrganizationsService", () => {
 
     it("should call findById internally before soft deleting", async () => {
       organizationRepository.findOne.mockResolvedValue(mockOrganization);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       organizationRepository.softDelete.mockResolvedValue({
         affected: 1,
-      } as any);
+      } as unknown as ReturnType<
+        Repository<Organization>["softDelete"]
+      > extends Promise<infer R>
+        ? R
+        : never);
 
       await service.remove("org-uuid-1");
 

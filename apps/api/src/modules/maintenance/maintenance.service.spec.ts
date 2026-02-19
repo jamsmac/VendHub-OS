@@ -14,6 +14,20 @@ import {
   MaintenanceType,
   MaintenancePriority,
 } from "./entities/maintenance.entity";
+import {
+  CreateMaintenanceRequestDto,
+  UpdateMaintenanceRequestDto,
+  ApproveMaintenanceRequestDto,
+  RejectMaintenanceRequestDto,
+  AssignTechnicianDto,
+  StartMaintenanceDto,
+  CompleteMaintenanceDto,
+  VerifyMaintenanceDto,
+  MaintenanceQueryDto,
+  CreateMaintenancePartDto,
+  CreateMaintenanceWorkLogDto,
+  CreateMaintenanceScheduleDto,
+} from "./dto/maintenance.dto";
 
 // ============================================================================
 // MOCK HELPERS
@@ -130,8 +144,7 @@ describe("MaintenanceService", () => {
 
     eventEmitter = {
       emit: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<EventEmitter2>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -178,8 +191,11 @@ describe("MaintenanceService", () => {
         title: "Machine coin acceptor broken",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(ORG_ID, USER_ID, dto as any);
+      const result = await service.create(
+        ORG_ID,
+        USER_ID,
+        dto as CreateMaintenanceRequestDto,
+      );
 
       expect(maintenanceRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -208,8 +224,11 @@ describe("MaintenanceService", () => {
         title: "Machine on fire",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(ORG_ID, USER_ID, dto as any);
+      const result = await service.create(
+        ORG_ID,
+        USER_ID,
+        dto as CreateMaintenanceRequestDto,
+      );
 
       expect(result.slaDueDate).toBeInstanceOf(Date);
       // CRITICAL = 4 hours, check it is within ~4 hours from now
@@ -257,8 +276,11 @@ describe("MaintenanceService", () => {
       );
 
       const dto = { title: "Updated title" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.update(ORG_ID, "mnt-uuid-1", dto as any);
+      const result = await service.update(
+        ORG_ID,
+        "mnt-uuid-1",
+        dto as UpdateMaintenanceRequestDto,
+      );
 
       expect(result.title).toBe("Updated title");
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -271,8 +293,9 @@ describe("MaintenanceService", () => {
       maintenanceRepo.findOne!.mockResolvedValue({ ...mockSubmittedRequest });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update(ORG_ID, "mnt-uuid-2", { title: "X" } as any),
+        service.update(ORG_ID, "mnt-uuid-2", {
+          title: "X",
+        } as UpdateMaintenanceRequestDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -343,12 +366,11 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.approve(
         ORG_ID,
         "mnt-uuid-2",
         USER_ID,
-        {} as any,
+        {} as ApproveMaintenanceRequestDto,
       );
 
       expect(result.status).toBe(MaintenanceStatus.APPROVED);
@@ -362,13 +384,9 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      const result = await service.approve(
-        ORG_ID,
-        "mnt-uuid-2",
-        USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { estimatedCost: 500000 } as any,
-      );
+      const result = await service.approve(ORG_ID, "mnt-uuid-2", USER_ID, {
+        estimatedCost: 500000,
+      } as ApproveMaintenanceRequestDto);
 
       expect(result.estimatedCost).toBe(500000);
     });
@@ -385,13 +403,9 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      const result = await service.reject(
-        ORG_ID,
-        "mnt-uuid-2",
-        USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { reason: "Budget exceeded" } as any,
-      );
+      const result = await service.reject(ORG_ID, "mnt-uuid-2", USER_ID, {
+        reason: "Budget exceeded",
+      } as RejectMaintenanceRequestDto);
 
       expect(result.status).toBe(MaintenanceStatus.REJECTED);
       expect(result.rejectionReason).toBe("Budget exceeded");
@@ -413,8 +427,10 @@ describe("MaintenanceService", () => {
         ORG_ID,
         "mnt-uuid-3",
         USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { technicianId: TECH_ID, scheduledDate: new Date("2025-02-01") } as any,
+        {
+          technicianId: TECH_ID,
+          scheduledDate: new Date("2025-02-01"),
+        } as AssignTechnicianDto,
       );
 
       expect(result.assignedTechnicianId).toBe(TECH_ID);
@@ -435,8 +451,7 @@ describe("MaintenanceService", () => {
         ORG_ID,
         "mnt-uuid-1",
         USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { technicianId: TECH_ID } as any,
+        { technicianId: TECH_ID } as AssignTechnicianDto,
       );
 
       expect(result.status).toBe(MaintenanceStatus.SCHEDULED);
@@ -458,12 +473,11 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.start(
         ORG_ID,
         "mnt-uuid-1",
         USER_ID,
-        {} as any,
+        {} as StartMaintenanceDto,
       );
 
       expect(result.status).toBe(MaintenanceStatus.IN_PROGRESS);
@@ -491,12 +505,11 @@ describe("MaintenanceService", () => {
         recommendations: "Schedule preventive maintenance",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.complete(
         ORG_ID,
         "mnt-uuid-4",
         USER_ID,
-        dto as any,
+        dto as CompleteMaintenanceDto,
       );
 
       expect(result.status).toBe(MaintenanceStatus.COMPLETED);
@@ -517,13 +530,9 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      const result = await service.verify(
-        ORG_ID,
-        "mnt-uuid-5",
-        USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { passed: true } as any,
-      );
+      const result = await service.verify(ORG_ID, "mnt-uuid-5", USER_ID, {
+        passed: true,
+      } as VerifyMaintenanceDto);
 
       expect(result.status).toBe(MaintenanceStatus.VERIFIED);
       expect(result.verifiedByUserId).toBe(USER_ID);
@@ -536,13 +545,9 @@ describe("MaintenanceService", () => {
         Promise.resolve(entity),
       );
 
-      const result = await service.verify(
-        ORG_ID,
-        "mnt-uuid-5",
-        USER_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { passed: false } as any,
-      );
+      const result = await service.verify(ORG_ID, "mnt-uuid-5", USER_ID, {
+        passed: false,
+      } as VerifyMaintenanceDto);
 
       expect(result.status).toBe(MaintenanceStatus.IN_PROGRESS);
     });
@@ -604,8 +609,11 @@ describe("MaintenanceService", () => {
         unitPrice: 100000,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.addPart(ORG_ID, "mnt-uuid-1", dto as any);
+      const result = await service.addPart(
+        ORG_ID,
+        "mnt-uuid-1",
+        dto as CreateMaintenancePartDto,
+      );
 
       expect(partRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -643,12 +651,11 @@ describe("MaintenanceService", () => {
         description: "Replaced coin acceptor",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.addWorkLog(
         ORG_ID,
         "mnt-uuid-1",
         TECH_ID,
-        dto as any,
+        dto as unknown as CreateMaintenanceWorkLogDto,
       );
 
       expect(result.durationMinutes).toBe(150);
@@ -666,8 +673,12 @@ describe("MaintenanceService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.addWorkLog(ORG_ID, "mnt-uuid-1", TECH_ID, dto as any),
+        service.addWorkLog(
+          ORG_ID,
+          "mnt-uuid-1",
+          TECH_ID,
+          dto as unknown as CreateMaintenanceWorkLogDto,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -755,8 +766,11 @@ describe("MaintenanceService", () => {
         frequencyValue: 1,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createSchedule(ORG_ID, USER_ID, dto as any);
+      const result = await service.createSchedule(
+        ORG_ID,
+        USER_ID,
+        dto as unknown as CreateMaintenanceScheduleDto,
+      );
 
       expect(result.nextDueDate).toBeInstanceOf(Date);
       expect(scheduleRepo.save).toHaveBeenCalled();
@@ -777,8 +791,10 @@ describe("MaintenanceService", () => {
         sortBy: "createdAt",
         sortOrder: "DESC",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.findAll(ORG_ID, query as any);
+      const result = await service.findAll(
+        ORG_ID,
+        query as MaintenanceQueryDto,
+      );
 
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
@@ -787,8 +803,7 @@ describe("MaintenanceService", () => {
     it("should apply search filter", async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(ORG_ID, { search: "coin" } as any);
+      await service.findAll(ORG_ID, { search: "coin" } as MaintenanceQueryDto);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "(m.title ILIKE :search OR m.requestNumber ILIKE :search OR m.description ILIKE :search)",

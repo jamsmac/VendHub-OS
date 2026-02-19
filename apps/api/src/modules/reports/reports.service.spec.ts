@@ -474,10 +474,9 @@ describe("ReportsService", () => {
       scheduledRepo.findOne!.mockResolvedValue(existing);
       scheduledRepo.save!.mockResolvedValue({ ...existing, name: "New Name" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateScheduledReport("s1", {
         name: "New Name",
-      } as any);
+      } as Partial<ScheduledReport>);
 
       expect(result.name).toBe("New Name");
     });
@@ -646,8 +645,9 @@ describe("ReportsService", () => {
       widgetRepo.findOne!.mockResolvedValue(widget);
       widgetRepo.save!.mockResolvedValue({ ...widget, title: "New" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.updateWidget("w1", { title: "New" } as any);
+      const result = await service.updateWidget("w1", {
+        title: "New",
+      } as Partial<DashboardWidget>);
       expect(result.title).toBe("New");
     });
 

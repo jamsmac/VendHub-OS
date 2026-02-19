@@ -4,6 +4,10 @@ import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException } from "@nestjs/common";
 import { HopperTypeService } from "./hopper-type.service";
 import { HopperType } from "../entities/equipment-component.entity";
+import {
+  CreateHopperTypeDto,
+  UpdateHopperTypeDto,
+} from "../dto/create-hopper-type.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -68,8 +72,11 @@ describe("HopperTypeService", () => {
       repo.create!.mockReturnValue(created);
       repo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(orgId, userId, dto as any);
+      const result = await service.create(
+        orgId,
+        userId,
+        dto as unknown as CreateHopperTypeDto,
+      );
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -108,8 +115,7 @@ describe("HopperTypeService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { activeOnly: false } as any);
+      await service.findAll(orgId, { activeOnly: false });
 
       const activeCalls = qb.andWhere.mock.calls.filter(
         (c: string[]) => c[0] === "h.isActive = true",
@@ -122,8 +128,7 @@ describe("HopperTypeService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { search: "standard" } as any);
+      await service.findAll(orgId, { search: "standard" });
 
       expect(qb.andWhere).toHaveBeenCalledWith("h.name ILIKE :search", {
         search: "%standard%",
@@ -135,8 +140,7 @@ describe("HopperTypeService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { page: 2, limit: 5 } as any);
+      await service.findAll(orgId, { page: 2, limit: 5 });
 
       expect(qb.skip).toHaveBeenCalledWith(5);
       expect(qb.take).toHaveBeenCalledWith(5);
@@ -180,10 +184,9 @@ describe("HopperTypeService", () => {
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(orgId, "ht-uuid-1", {
         name: "Big Hopper",
-      } as any);
+      } as UpdateHopperTypeDto);
 
       expect(result.name).toBe("Big Hopper");
       expect(repo.save).toHaveBeenCalled();
@@ -193,8 +196,7 @@ describe("HopperTypeService", () => {
       repo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update(orgId, "missing", { name: "X" } as any),
+        service.update(orgId, "missing", { name: "X" } as UpdateHopperTypeDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

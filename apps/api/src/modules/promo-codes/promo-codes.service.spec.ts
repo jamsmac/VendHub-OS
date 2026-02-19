@@ -13,6 +13,10 @@ import {
   PromoCodeType,
 } from "./entities/promo-code.entity";
 import { PromoCodeRedemption } from "./entities/promo-code-redemption.entity";
+import {
+  CreatePromoCodeDto,
+  UpdatePromoCodeDto,
+} from "./dto/create-promo-code.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -106,8 +110,7 @@ describe("PromoCodesService", () => {
       promoCodeRepo.create!.mockReturnValue(created);
       promoCodeRepo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(dto as any, orgId);
+      const result = await service.create(dto as CreatePromoCodeDto, orgId);
 
       expect(promoCodeRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -126,10 +129,9 @@ describe("PromoCodesService", () => {
         code: "SUMMER2024",
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await expect(service.create(dto as any, orgId)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(
+        service.create(dto as CreatePromoCodeDto, orgId),
+      ).rejects.toThrow(ConflictException);
     });
 
     it("should uppercase the code on lookup", async () => {
@@ -138,8 +140,7 @@ describe("PromoCodesService", () => {
       promoCodeRepo.create!.mockReturnValue({ id: "pc-1" });
       promoCodeRepo.save!.mockResolvedValue({ id: "pc-1" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(dtoLower as any, orgId);
+      await service.create(dtoLower as CreatePromoCodeDto, orgId);
 
       expect(promoCodeRepo.findOne).toHaveBeenCalledWith({
         where: { code: "SUMMER2024" },
@@ -171,8 +172,7 @@ describe("PromoCodesService", () => {
       mockQb.getMany.mockResolvedValue([]);
       promoCodeRepo.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll({ status: PromoCodeStatus.ACTIVE } as any, orgId);
+      await service.findAll({ status: PromoCodeStatus.ACTIVE }, orgId);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith("pc.status = :status", {
         status: PromoCodeStatus.ACTIVE,
@@ -185,8 +185,7 @@ describe("PromoCodesService", () => {
       mockQb.getMany.mockResolvedValue([]);
       promoCodeRepo.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll({ search: "summer" } as any, orgId);
+      await service.findAll({ search: "summer" }, orgId);
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "(pc.code ILIKE :search OR pc.name ILIKE :search)",
@@ -255,10 +254,9 @@ describe("PromoCodesService", () => {
       promoCodeRepo.findOne!.mockResolvedValue(promo);
       promoCodeRepo.save!.mockImplementation((p) => Promise.resolve(p));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(
         "pc-1",
-        { name: "New Name" } as any,
+        { name: "New Name" } as UpdatePromoCodeDto,
         orgId,
       );
 
@@ -273,8 +271,7 @@ describe("PromoCodesService", () => {
         .mockResolvedValueOnce({ id: "pc-2", code: "TAKEN" });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update("pc-1", { code: "TAKEN" } as any, orgId),
+        service.update("pc-1", { code: "TAKEN" } as UpdatePromoCodeDto, orgId),
       ).rejects.toThrow(ConflictException);
     });
   });

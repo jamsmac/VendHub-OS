@@ -5,6 +5,8 @@ import { NotFoundException, ConflictException } from "@nestjs/common";
 
 import { OperatorRatingsService } from "./operator-ratings.service";
 import { OperatorRating } from "./entities/operator-rating.entity";
+import { CalculateRatingDto } from "./dto/calculate-rating.dto";
+import { QueryRatingsDto } from "./dto/query-ratings.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
@@ -158,8 +160,10 @@ describe("OperatorRatingsService", () => {
       ratingRepo.save.mockResolvedValue(mockRating);
       ratingRepo.find.mockResolvedValue([mockRating]); // for recalculateRanks
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.calculateRating(baseDto as any, ORG_ID);
+      const result = await service.calculateRating(
+        baseDto as CalculateRatingDto,
+        ORG_ID,
+      );
 
       expect(result).toBeDefined();
       expect(ratingRepo.create).toHaveBeenCalled();
@@ -170,8 +174,7 @@ describe("OperatorRatingsService", () => {
       ratingRepo.findOne.mockResolvedValueOnce(mockRating); // existing rating found
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.calculateRating(baseDto as any, ORG_ID),
+        service.calculateRating(baseDto as CalculateRatingDto, ORG_ID),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -205,16 +208,14 @@ describe("OperatorRatingsService", () => {
       ratingRepo.findOne
         .mockResolvedValueOnce(null) // no existing
         .mockResolvedValueOnce(mockRating); // findById
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ratingRepo.create.mockImplementation((data) => data as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ratingRepo.create.mockImplementation((data) => data as OperatorRating);
       ratingRepo.save.mockImplementation(
-        async (data) => ({ ...data, id: "new-uuid" }) as any,
+        async (data) =>
+          ({ ...data, id: "new-uuid" }) as unknown as OperatorRating,
       );
       ratingRepo.find.mockResolvedValue([]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.calculateRating(highDto as any, ORG_ID);
+      await service.calculateRating(highDto as CalculateRatingDto, ORG_ID);
 
       // The grade in create call should be A+ for perfect scores
       expect(ratingRepo.create).toHaveBeenCalledWith(
@@ -247,9 +248,8 @@ describe("OperatorRatingsService", () => {
       ratingRepo.find.mockResolvedValue([]);
 
       // Should not throw division by zero
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.calculateRating(zeroDto as any, ORG_ID),
+        service.calculateRating(zeroDto as CalculateRatingDto, ORG_ID),
       ).resolves.toBeDefined();
     });
   });
@@ -264,8 +264,13 @@ describe("OperatorRatingsService", () => {
         .mockResolvedValueOnce(mockRating) // findById
         .mockResolvedValueOnce(null) // no duplicate in calculateRating
         .mockResolvedValueOnce(mockRating); // findById after save
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ratingRepo.softDelete.mockResolvedValue(undefined as any);
+      ratingRepo.softDelete.mockResolvedValue(
+        undefined as unknown as ReturnType<
+          Repository<OperatorRating>["softDelete"]
+        > extends Promise<infer R>
+          ? R
+          : never,
+      );
       ratingRepo.create.mockReturnValue(mockRating);
       ratingRepo.save.mockResolvedValue(mockRating);
       ratingRepo.find.mockResolvedValue([mockRating]);
@@ -278,10 +283,9 @@ describe("OperatorRatingsService", () => {
         tasks_completed: 8,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.recalculateRating(
         "rating-uuid-1",
-        dto as any,
+        dto as CalculateRatingDto,
         ORG_ID,
       );
 
@@ -293,8 +297,11 @@ describe("OperatorRatingsService", () => {
       ratingRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.recalculateRating("non-existent", {} as any, ORG_ID),
+        service.recalculateRating(
+          "non-existent",
+          {} as CalculateRatingDto,
+          ORG_ID,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -330,8 +337,10 @@ describe("OperatorRatingsService", () => {
 
   describe("query", () => {
     it("should return paginated ratings", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.query({ page: 1, limit: 20 } as any, ORG_ID);
+      const result = await service.query(
+        { page: 1, limit: 20 } as QueryRatingsDto,
+        ORG_ID,
+      );
 
       expect(result).toHaveProperty("data");
       expect(result).toHaveProperty("total", 1);
@@ -340,9 +349,8 @@ describe("OperatorRatingsService", () => {
     });
 
     it("should filter by user_id", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.query(
-        { user_id: USER_ID, page: 1, limit: 20 } as any,
+        { user_id: USER_ID, page: 1, limit: 20 } as QueryRatingsDto,
         ORG_ID,
       );
 
@@ -353,8 +361,10 @@ describe("OperatorRatingsService", () => {
     });
 
     it("should filter by grade", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.query({ grade: "A", page: 1, limit: 20 } as any, ORG_ID);
+      await service.query(
+        { grade: "A", page: 1, limit: 20 } as QueryRatingsDto,
+        ORG_ID,
+      );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "r.grade = :grade",
@@ -437,8 +447,13 @@ describe("OperatorRatingsService", () => {
   describe("remove", () => {
     it("should soft delete rating", async () => {
       ratingRepo.findOne.mockResolvedValue(mockRating);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ratingRepo.softDelete.mockResolvedValue(undefined as any);
+      ratingRepo.softDelete.mockResolvedValue(
+        undefined as unknown as ReturnType<
+          Repository<OperatorRating>["softDelete"]
+        > extends Promise<infer R>
+          ? R
+          : never,
+      );
 
       await service.remove("rating-uuid-1", ORG_ID);
 

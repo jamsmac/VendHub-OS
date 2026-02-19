@@ -5,7 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In } from "typeorm";
+import { Repository, In, IsNull, FindOptionsWhere } from "typeorm";
 import { Role } from "./entities/role.entity";
 import { Permission } from "./entities/permission.entity";
 import { User } from "../users/entities/user.entity";
@@ -30,10 +30,9 @@ export class RbacService {
 
   async createRole(dto: CreateRoleDto, organizationId?: string): Promise<Role> {
     const existing = await this.roleRepository.findOne({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       where: {
         name: dto.name,
-        organizationId: organizationId || (undefined as any),
+        organizationId: organizationId || IsNull(),
       },
     });
     if (existing) {
@@ -161,8 +160,7 @@ export class RbacService {
   }) {
     const { resource, page = 1, limit = 200 } = options || {};
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isActive: true };
+    const where: FindOptionsWhere<Permission> = { isActive: true };
     if (resource) {
       where.resource = resource;
     }
@@ -212,8 +210,7 @@ export class RbacService {
     const role = await this.roleRepository.findOneBy({ id: roleId });
     if (!role) throw new NotFoundException("Role not found");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const alreadyAssigned = user.roles?.some((r: any) => r.id === roleId);
+    const alreadyAssigned = user.roles?.some((r: Role) => r.id === roleId);
     if (alreadyAssigned) {
       throw new BadRequestException("Role already assigned to user");
     }
@@ -229,8 +226,7 @@ export class RbacService {
     });
     if (!user) throw new NotFoundException("User not found");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    user.roles = (user.roles || []).filter((r: any) => r.id !== roleId);
+    user.roles = (user.roles || []).filter((r: Role) => r.id !== roleId);
     await this.userRepository.save(user);
   }
 

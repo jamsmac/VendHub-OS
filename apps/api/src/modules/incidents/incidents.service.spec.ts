@@ -10,6 +10,11 @@ import {
   IncidentType,
   IncidentPriority,
 } from "./entities/incident.entity";
+import { CreateIncidentDto } from "./dto/create-incident.dto";
+import {
+  UpdateIncidentDto,
+  QueryIncidentsDto,
+} from "./dto/update-incident.dto";
 
 // ============================================================================
 // MOCK HELPERS
@@ -134,8 +139,11 @@ describe("IncidentsService", () => {
       incidentRepo.create!.mockReturnValue(mockIncident);
       incidentRepo.save!.mockResolvedValue(mockIncident);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(dto as any, USER_ID, ORG_ID);
+      const result = await service.create(
+        dto as CreateIncidentDto,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -169,8 +177,11 @@ describe("IncidentsService", () => {
         priority: IncidentPriority.HIGH,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(dto as any, USER_ID, ORG_ID);
+      const result = await service.create(
+        dto as CreateIncidentDto,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({ priority: IncidentPriority.HIGH }),
@@ -199,8 +210,7 @@ describe("IncidentsService", () => {
         insurance_claim_number: "INS-2025-001",
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(dto as any, USER_ID, ORG_ID);
+      await service.create(dto as CreateIncidentDto, USER_ID, ORG_ID);
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -255,8 +265,7 @@ describe("IncidentsService", () => {
     });
 
     it("should return paginated results with defaults", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.query({} as any, ORG_ID);
+      const result = await service.query({} as QueryIncidentsDto, ORG_ID);
 
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         "i.organization_id = :organizationId",
@@ -271,8 +280,10 @@ describe("IncidentsService", () => {
     });
 
     it("should apply machine_id filter", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.query({ machine_id: MACHINE_ID } as any, ORG_ID);
+      await service.query(
+        { machine_id: MACHINE_ID } as QueryIncidentsDto,
+        ORG_ID,
+      );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "i.machine_id = :machine_id",
@@ -281,8 +292,10 @@ describe("IncidentsService", () => {
     });
 
     it("should apply status filter", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.query({ status: IncidentStatus.REPORTED } as any, ORG_ID);
+      await service.query(
+        { status: IncidentStatus.REPORTED } as QueryIncidentsDto,
+        ORG_ID,
+      );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "i.status = :status",
@@ -291,8 +304,7 @@ describe("IncidentsService", () => {
     });
 
     it("should apply search filter with ILIKE", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.query({ search: "jammed" } as any, ORG_ID);
+      await service.query({ search: "jammed" } as QueryIncidentsDto, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "(i.title ILIKE :search OR i.description ILIKE :search)",
@@ -302,8 +314,7 @@ describe("IncidentsService", () => {
 
     it("should apply date range filters", async () => {
       const dto = { date_from: "2025-01-01", date_to: "2025-01-31" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.query(dto as any, ORG_ID);
+      await service.query(dto as QueryIncidentsDto, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "i.reported_at >= :date_from",
@@ -318,8 +329,10 @@ describe("IncidentsService", () => {
     it("should calculate totalPages correctly", async () => {
       mockQueryBuilder.getCount.mockResolvedValue(55);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.query({ page: 1, limit: 20 } as any, ORG_ID);
+      const result = await service.query(
+        { page: 1, limit: 20 } as QueryIncidentsDto,
+        ORG_ID,
+      );
 
       expect(result.totalPages).toBe(3);
     });
@@ -337,10 +350,9 @@ describe("IncidentsService", () => {
       );
 
       const dto = { title: "Updated title", priority: IncidentPriority.HIGH };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(
         "incident-uuid-1",
-        dto as any,
+        dto as UpdateIncidentDto,
         USER_ID,
         ORG_ID,
       );
@@ -360,10 +372,9 @@ describe("IncidentsService", () => {
         status: IncidentStatus.RESOLVED,
         resolution: "Fixed the jam",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(
         "incident-uuid-1",
-        dto as any,
+        dto as UpdateIncidentDto,
         USER_ID,
         ORG_ID,
       );
@@ -377,8 +388,7 @@ describe("IncidentsService", () => {
       incidentRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update("nonexistent", {} as any, USER_ID, ORG_ID),
+        service.update("nonexistent", {} as UpdateIncidentDto, USER_ID, ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
   });

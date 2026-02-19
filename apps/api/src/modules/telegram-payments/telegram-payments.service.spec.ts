@@ -13,6 +13,14 @@ import {
   TelegramPaymentProvider,
   TelegramPaymentCurrency,
 } from "./telegram-payments.constants";
+import {
+  CreateInvoiceDto,
+  CreateInvoiceLinkDto,
+  PreCheckoutQueryDto,
+  SuccessfulPaymentDto,
+  RefundPaymentDto,
+  PaymentFilterDto,
+} from "./dto/telegram-payment.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -45,8 +53,7 @@ const createMockQueryBuilder = () => ({
 });
 
 // Mock global fetch
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockFetchResponse = (data: any) => ({
+const mockFetchResponse = (data: Record<string, unknown>) => ({
   json: jest.fn().mockResolvedValue(data),
 });
 
@@ -78,8 +85,7 @@ describe("TelegramPaymentsService", () => {
     description: "Order #ORD-001",
     created_at: new Date(),
     completedAt: new Date(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  };
 
   const mockOrder: Partial<Order> = {
     id: orderId,
@@ -96,21 +102,18 @@ describe("TelegramPaymentsService", () => {
         product: { name: "Snickers" },
       },
     ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as unknown as Order;
 
   beforeEach(async () => {
     paymentRepo = createMockRepository<TelegramPayment>();
     orderRepo = createMockRepository<Order>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    eventEmitter = { emit: jest.fn() } as any;
+    eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
     configService = {
       get: jest.fn((key: string) => {
         if (key === "TELEGRAM_BOT_TOKEN") return "test-bot-token";
         return "";
       }),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<ConfigService>;
 
     // Mock global fetch
     global.fetch = jest.fn();
@@ -158,8 +161,7 @@ describe("TelegramPaymentsService", () => {
         currency: TelegramPaymentCurrency.UZS,
         telegramUserId: 123456789,
         telegramChatId: 123456789,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as CreateInvoiceDto);
 
       expect(result.success).toBe(true);
       expect(result.paymentId).toBeDefined();
@@ -173,8 +175,7 @@ describe("TelegramPaymentsService", () => {
           provider: "invalid_provider",
           currency: TelegramPaymentCurrency.UZS,
           orderId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        } as unknown as CreateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -184,8 +185,7 @@ describe("TelegramPaymentsService", () => {
           provider: TelegramPaymentProvider.PAYME,
           currency: TelegramPaymentCurrency.USD, // Payme only supports UZS
           orderId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        } as unknown as CreateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -198,8 +198,7 @@ describe("TelegramPaymentsService", () => {
           currency: TelegramPaymentCurrency.UZS,
           orderId: "nonexistent",
           telegramUserId: 123,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        } as CreateInvoiceDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -220,8 +219,7 @@ describe("TelegramPaymentsService", () => {
         currency: TelegramPaymentCurrency.UZS,
         telegramUserId: 123,
         telegramChatId: 123,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as CreateInvoiceDto);
 
       expect(result.success).toBe(false);
       expect(result.message).toBe("Bot blocked");
@@ -249,8 +247,7 @@ describe("TelegramPaymentsService", () => {
         amount: 5000000, // smallest units
         title: "Order Payment",
         description: "Pay for order",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as CreateInvoiceLinkDto);
 
       expect(result.success).toBe(true);
       expect(result.invoiceLink).toBe("https://t.me/invoice/xxx");
@@ -273,8 +270,7 @@ describe("TelegramPaymentsService", () => {
         invoicePayload: JSON.stringify({ orderId }),
         currency: "UZS",
         totalAmount: 5000000, // 50000 * 100
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as PreCheckoutQueryDto);
 
       expect(result.ok).toBe(true);
     });
@@ -290,8 +286,7 @@ describe("TelegramPaymentsService", () => {
         invoicePayload: JSON.stringify({ orderId: "nonexistent" }),
         currency: "UZS",
         totalAmount: 5000000,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as PreCheckoutQueryDto);
 
       expect(result.ok).toBe(false);
       expect(result.errorMessage).toBe("Order not found");
@@ -308,8 +303,7 @@ describe("TelegramPaymentsService", () => {
         invoicePayload: JSON.stringify({ orderId }),
         currency: "UZS",
         totalAmount: 9999999,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as PreCheckoutQueryDto);
 
       expect(result.ok).toBe(false);
       expect(result.errorMessage).toBe("Amount mismatch");
@@ -325,8 +319,7 @@ describe("TelegramPaymentsService", () => {
         invoicePayload: "invalid-json",
         currency: "UZS",
         totalAmount: 100,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as PreCheckoutQueryDto);
 
       expect(result.ok).toBe(false);
     });
@@ -357,8 +350,7 @@ describe("TelegramPaymentsService", () => {
         totalAmount: 5000000,
         telegramPaymentChargeId: "charge-new",
         providerPaymentChargeId: "prov-charge",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as SuccessfulPaymentDto);
 
       expect(result.status).toBe(TelegramPaymentStatus.COMPLETED);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -386,8 +378,7 @@ describe("TelegramPaymentsService", () => {
         totalAmount: 5000000,
         telegramPaymentChargeId: "charge-new",
         providerPaymentChargeId: "prov-charge",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as SuccessfulPaymentDto);
 
       expect(paymentRepo.create).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -417,8 +408,7 @@ describe("TelegramPaymentsService", () => {
       const result = await service.refundPayment(orgId, {
         paymentId,
         reason: "Customer request",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as RefundPaymentDto);
 
       expect(result.status).toBe(TelegramPaymentStatus.REFUNDED);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -431,8 +421,9 @@ describe("TelegramPaymentsService", () => {
       paymentRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.refundPayment(orgId, { paymentId: "nonexistent" } as any),
+        service.refundPayment(orgId, {
+          paymentId: "nonexistent",
+        } as RefundPaymentDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -443,8 +434,7 @@ describe("TelegramPaymentsService", () => {
       });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.refundPayment(orgId, { paymentId } as any),
+        service.refundPayment(orgId, { paymentId } as RefundPaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -456,8 +446,7 @@ describe("TelegramPaymentsService", () => {
       });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.refundPayment(orgId, { paymentId } as any),
+        service.refundPayment(orgId, { paymentId } as RefundPaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -472,8 +461,7 @@ describe("TelegramPaymentsService", () => {
       );
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.refundPayment(orgId, { paymentId } as any),
+        service.refundPayment(orgId, { paymentId } as RefundPaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -509,12 +497,10 @@ describe("TelegramPaymentsService", () => {
     it("should return paginated payments list", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockPayment], 1]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getPayments(
-        { page: 1, limit: 20 } as any,
+        { page: 1, limit: 20 } as PaymentFilterDto,
         orgId,
       );
 
@@ -526,8 +512,7 @@ describe("TelegramPaymentsService", () => {
     it("should apply all optional filters", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[], 0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentRepo.createQueryBuilder!.mockReturnValue(qb);
 
       await service.getPayments(
         {
@@ -538,8 +523,7 @@ describe("TelegramPaymentsService", () => {
           toDate: new Date(),
           page: 1,
           limit: 10,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        } as PaymentFilterDto,
         orgId,
       );
 
@@ -581,8 +565,7 @@ describe("TelegramPaymentsService", () => {
           refundedAmount: 20000,
         },
       ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentRepo.createQueryBuilder!.mockReturnValue(qb);
 
       const result = await service.getStats(orgId);
 
@@ -598,8 +581,7 @@ describe("TelegramPaymentsService", () => {
     it("should return zero stats when no payments", async () => {
       const qb = createMockQueryBuilder();
       qb.getMany.mockResolvedValue([]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentRepo.createQueryBuilder!.mockReturnValue(qb);
 
       const result = await service.getStats(orgId);
 
@@ -616,11 +598,12 @@ describe("TelegramPaymentsService", () => {
     it("should call getPayments with userId filter", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[], 0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      paymentRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.getUserPayments(userId, { page: 1, limit: 10 } as any);
+      await service.getUserPayments(userId, {
+        page: 1,
+        limit: 10,
+      } as PaymentFilterDto);
 
       expect(qb.andWhere).toHaveBeenCalledWith("p.userId = :userId", {
         userId,

@@ -11,6 +11,9 @@ import {
 import {
   IntegrationCategory,
   IntegrationStatus,
+  AuthType,
+  HttpMethod,
+  ParamLocation,
 } from "../types/integration.types";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
@@ -70,29 +73,26 @@ describe("IntegrationService", () => {
       sandboxMode: true,
       baseUrl: "https://checkout.payme.uz",
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auth: {
-        type: "api_key" as any,
-        config: { keyName: "Authorization", keyLocation: "header" as any },
+        type: AuthType.API_KEY,
+        config: { keyName: "Authorization", keyLocation: ParamLocation.HEADER },
       },
       credentials: [],
       supportedCurrencies: ["UZS"],
       supportedMethods: [],
       endpoints: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createPayment: {
           id: "cp",
           name: "Create",
           description: "d",
-          method: "POST" as any,
+          method: HttpMethod.POST,
           path: "/payments",
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkStatus: {
           id: "cs",
           name: "Status",
           description: "d",
-          method: "GET" as any,
+          method: HttpMethod.GET,
           path: "/payments/{id}",
         },
       },
@@ -102,10 +102,8 @@ describe("IntegrationService", () => {
     sandboxMode: true,
     successCount: 0,
     errorCount: 0,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lastTestedAt: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lastUsedAt: null as any,
+    lastTestedAt: undefined,
+    lastUsedAt: undefined,
   };
 
   const mockTemplate: Partial<IntegrationTemplate> = {
@@ -498,8 +496,9 @@ describe("IntegrationService", () => {
       logRepo.create!.mockReturnValue(logData);
       logRepo.save!.mockResolvedValue({ id: "log-1", ...logData });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createLog(logData as any);
+      const result = await service.createLog(
+        logData as Partial<IntegrationLog>,
+      );
 
       expect(result.id).toBe("log-1");
     });

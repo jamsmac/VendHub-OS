@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Coffee, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/lib/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,19 +21,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const loginSchema = z.object({
-  email: z.string().email("Введите корректный email"),
-  password: z.string().min(8, "Минимум 8 символов"),
-  twoFactorCode: z.string().optional(),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-
 export default function AuthPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
+
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t("validEmail")),
+        password: z.string().min(8, t("minPassword")),
+        twoFactorCode: z.string().optional(),
+      }),
+    [t],
+  );
+
+  type LoginForm = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -48,15 +54,15 @@ export default function AuthPage() {
 
       if (result.requiresTwoFactor) {
         setRequires2FA(true);
-        toast.info("Введите код из приложения аутентификации");
+        toast.info(t("twoFactorPrompt"));
         return;
       }
 
-      toast.success("Добро пожаловать!");
+      toast.success(t("welcome"));
       router.push("/dashboard");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error.message || "Ошибка входа");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t("loginError");
+      toast.error(message || t("loginError"));
     }
   };
 
@@ -67,13 +73,13 @@ export default function AuthPage() {
           <div className="mx-auto w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4">
             <Coffee className="w-6 h-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">VendHub Admin</CardTitle>
-          <CardDescription>Войдите в систему управления</CardDescription>
+          <CardTitle className="text-2xl">{t("loginTitle")}</CardTitle>
+          <CardDescription>{t("loginSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -88,7 +94,7 @@ export default function AuthPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -120,13 +126,13 @@ export default function AuthPage() {
                 href="/auth/reset-password"
                 className="text-sm text-primary hover:underline"
               >
-                Забыли пароль?
+                {t("forgotPassword")}
               </Link>
             </div>
 
             {requires2FA && (
               <div className="space-y-2">
-                <Label htmlFor="twoFactorCode">Код 2FA</Label>
+                <Label htmlFor="twoFactorCode">{t("twoFactorCode")}</Label>
                 <Input
                   id="twoFactorCode"
                   type="text"
@@ -141,10 +147,10 @@ export default function AuthPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Вход...
+                  {t("loggingIn")}
                 </>
               ) : (
-                "Войти"
+                t("login")
               )}
             </Button>
           </form>

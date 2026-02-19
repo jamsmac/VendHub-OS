@@ -1,35 +1,32 @@
 /**
  * VendHub Mobile App - React Native / Expo
- * Main entry point for operator mobile application
+ * Main entry point with offline-first persistence
  */
 
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
+import { OfflineBanner } from "./src/components/OfflineBanner";
+import { queryClient, asyncStoragePersister } from "./src/lib/offline";
 
 export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: asyncStoragePersister }}
+        >
           <NavigationContainer>
             <StatusBar style="auto" />
+            <OfflineBanner />
             <RootNavigator />
           </NavigationContainer>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
   );

@@ -3,7 +3,7 @@
  * Scan machine QR/barcode for quick identification
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -16,8 +16,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Camera } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { api } from "../../services/api";
+import { MainStackParamList } from "../../navigation/MainNavigator";
 
 const COLORS = {
   primary: "#4F46E5",
@@ -32,19 +33,18 @@ const { width } = Dimensions.get("window");
 const SCAN_SIZE = width * 0.7;
 
 export function BarcodeScanScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, []);
+  React.useEffect(() => {
+    if (!permission?.granted) {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
 
   const handleBarCodeScanned = async ({
     data,
@@ -104,7 +104,7 @@ export function BarcodeScanScreen() {
     }
   };
 
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -113,7 +113,7 @@ export function BarcodeScanScreen() {
     );
   }
 
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="camera-outline" size={64} color={COLORS.muted} />
@@ -134,11 +134,13 @@ export function BarcodeScanScreen() {
 
   return (
     <View style={styles.container}>
-      <Camera
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+      <CameraView
+        facing="back"
+        enableTorch={flashOn}
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
-        barCodeScannerSettings={{
-          barCodeTypes: ["qr", "code128", "ean13"],
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "code128", "ean13"],
         }}
       />
 

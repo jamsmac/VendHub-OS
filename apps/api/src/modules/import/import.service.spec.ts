@@ -83,8 +83,7 @@ describe("ImportService", () => {
     failedRows: 0,
     skippedRows: 0,
     createdByUserId: userId,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  };
 
   const mockSession: Partial<ImportSession> = {
     id: sessionId,
@@ -107,8 +106,7 @@ describe("ImportService", () => {
     column_mapping: null,
     classification_confidence: null,
     uploaded_by_user_id: userId,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  };
 
   const mockTemplate: Partial<ImportTemplate> = {
     id: templateId,
@@ -118,8 +116,7 @@ describe("ImportService", () => {
     source: ImportSource.CSV,
     isActive: true,
     createdByUserId: userId,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  };
 
   beforeEach(async () => {
     importJobRepo = createMockRepository<ImportJob>();
@@ -139,8 +136,7 @@ describe("ImportService", () => {
         manager: { save: jest.fn() },
       }),
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    eventEmitter = { emit: jest.fn() } as any;
+    eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -230,8 +226,7 @@ describe("ImportService", () => {
     it("should return paginated list of import jobs", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockJob], 1]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      importJobRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      importJobRepo.createQueryBuilder!.mockReturnValue(qb);
 
       const result = await service.listImportJobs(orgId, {}, 1, 20);
 
@@ -242,8 +237,7 @@ describe("ImportService", () => {
     it("should apply filters", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[], 0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      importJobRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      importJobRepo.createQueryBuilder!.mockReturnValue(qb);
 
       await service.listImportJobs(
         orgId,
@@ -530,14 +524,9 @@ describe("ImportService", () => {
     it("should return paginated sessions", async () => {
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[mockSession], 1]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sessionRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      sessionRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.getSessions(
-        { page: 1, limit: 20 } as any,
-        orgId,
-      );
+      const result = await service.getSessions({ page: 1, limit: 20 }, orgId);
 
       expect(result.data).toEqual([mockSession]);
       expect(result.total).toBe(1);
@@ -620,8 +609,7 @@ describe("ImportService", () => {
 
       const result = await service.approveSession(
         sessionId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { autoExecute: false } as any,
+        { autoExecute: false },
         userId,
         orgId,
       );
@@ -636,9 +624,8 @@ describe("ImportService", () => {
         status: ImportSessionStatus.UPLOADED,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.approveSession(sessionId, {} as any, userId, orgId),
+        service.approveSession(sessionId, {}, userId, orgId),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -724,13 +711,11 @@ describe("ImportService", () => {
       sessionRepo.findOne!.mockResolvedValue(mockSession);
       const qb = createMockQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([[], 0]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      auditLogRepo.createQueryBuilder!.mockReturnValue(qb as any);
+      auditLogRepo.createQueryBuilder!.mockReturnValue(qb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getAuditLog(
         sessionId,
-        { page: 1, limit: 20 } as any,
+        { page: 1, limit: 20 },
         orgId,
       );
 

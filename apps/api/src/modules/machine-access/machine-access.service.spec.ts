@@ -14,6 +14,11 @@ import {
   AccessTemplateRow,
   MachineAccessRole,
 } from "./entities/machine-access.entity";
+import {
+  CreateMachineAccessDto,
+  RevokeMachineAccessDto,
+} from "./dto/create-machine-access.dto";
+import { CreateAccessTemplateDto } from "./dto/create-access-template.dto";
 
 // ============================================================================
 // MOCK HELPERS
@@ -105,8 +110,7 @@ describe("MachineAccessService", () => {
         template_id: "template-uuid-1",
         role: MachineAccessRole.REFILL,
         permissions: { canRefill: true },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        template: null as any,
+        template: null as unknown as AccessTemplate,
         created_at: new Date(),
         updated_at: new Date(),
         deleted_at: null,
@@ -167,8 +171,11 @@ describe("MachineAccessService", () => {
         role: MachineAccessRole.REFILL,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.grantAccess(dto as any, GRANTER_ID, ORG_ID);
+      const result = await service.grantAccess(
+        dto as CreateMachineAccessDto,
+        GRANTER_ID,
+        ORG_ID,
+      );
 
       expect(accessRepo.findOne).toHaveBeenCalledWith({
         where: {
@@ -201,8 +208,7 @@ describe("MachineAccessService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.grantAccess(dto as any, GRANTER_ID, ORG_ID),
+        service.grantAccess(dto as CreateMachineAccessDto, GRANTER_ID, ORG_ID),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -219,8 +225,11 @@ describe("MachineAccessService", () => {
         valid_to: "2025-12-31T23:59:59Z",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.grantAccess(dto as any, GRANTER_ID, ORG_ID);
+      await service.grantAccess(
+        dto as CreateMachineAccessDto,
+        GRANTER_ID,
+        ORG_ID,
+      );
 
       expect(accessRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -241,8 +250,11 @@ describe("MachineAccessService", () => {
       accessRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
 
       const dto = { access_id: "access-uuid-1", reason: "No longer needed" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.revokeAccess(dto as any, USER_ID, ORG_ID);
+      const result = await service.revokeAccess(
+        dto as RevokeMachineAccessDto,
+        USER_ID,
+        ORG_ID,
+      );
 
       expect(result.is_active).toBe(false);
       expect(result.notes).toContain("Revoked: No longer needed");
@@ -253,9 +265,8 @@ describe("MachineAccessService", () => {
       accessRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.revokeAccess(
-          { access_id: "nonexistent" } as any,
+          { access_id: "nonexistent" } as RevokeMachineAccessDto,
           USER_ID,
           ORG_ID,
         ),
@@ -266,9 +277,8 @@ describe("MachineAccessService", () => {
       accessRepo.findOne!.mockResolvedValue({ ...mockRevokedAccess });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.revokeAccess(
-          { access_id: "access-uuid-2" } as any,
+          { access_id: "access-uuid-2" } as RevokeMachineAccessDto,
           USER_ID,
           ORG_ID,
         ),
@@ -437,8 +447,10 @@ describe("MachineAccessService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createTemplate(dto as any, ORG_ID);
+      const result = await service.createTemplate(
+        dto as CreateAccessTemplateDto,
+        ORG_ID,
+      );
 
       expect(templateRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -458,8 +470,7 @@ describe("MachineAccessService", () => {
 
       const dto = { name: "Empty Template" };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createTemplate(dto as any, ORG_ID);
+      await service.createTemplate(dto as CreateAccessTemplateDto, ORG_ID);
 
       expect(templateRowRepo.create).not.toHaveBeenCalled();
     });

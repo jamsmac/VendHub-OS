@@ -706,11 +706,10 @@ describe("TelegramBotService", () => {
       userRepo.findOne!.mockResolvedValue({ id: "user-1", telegramId: null });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.sendTaskAssignedNotification("user-1", {
           id: "t1",
           typeCode: "refill",
-        } as any),
+        } as Partial<Task> as Task),
       ).resolves.not.toThrow();
     });
 
@@ -718,10 +717,9 @@ describe("TelegramBotService", () => {
       userRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.sendTaskAssignedNotification("non-existent", {
           id: "t1",
-        } as any),
+        } as Partial<Task> as Task),
       ).resolves.not.toThrow();
     });
   });
@@ -731,10 +729,9 @@ describe("TelegramBotService", () => {
       userRepo.findOne!.mockResolvedValue({ id: "user-1", telegramId: "123" });
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.sendMachineAlertNotification(
           "user-1",
-          { id: "m1", name: "Machine A" } as any,
+          { id: "m1", name: "Machine A" } as Partial<Machine> as Machine,
           "low_stock",
         ),
       ).resolves.not.toThrow();

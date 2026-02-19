@@ -16,6 +16,11 @@ import {
   QuestDifficulty,
 } from "./constants/quest.constants";
 import { PointsSource } from "../loyalty/constants/loyalty.constants";
+import {
+  CreateQuestDto,
+  UpdateQuestDto,
+  QuestFilterDto,
+} from "./dto/quest.dto";
 
 describe("QuestsService", () => {
   let service: QuestsService;
@@ -43,12 +48,9 @@ describe("QuestsService", () => {
     difficulty: QuestDifficulty.MEDIUM,
     targetValue: 3,
     rewardPoints: 50,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    additionalRewards: [] as any[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    requirements: null as any,
+    additionalRewards: [] as unknown[],
+    metadata: null as Record<string, unknown> | null,
+    requirements: null as Record<string, unknown> | null,
     icon: "🎯",
     color: "#4CAF50",
     imageUrl: null as string | null,
@@ -59,10 +61,8 @@ describe("QuestsService", () => {
     displayOrder: 0,
     totalStarted: 10,
     totalCompleted: 5,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userQuests: [] as any[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    organization: null as any,
+    userQuests: [] as UserQuest[],
+    organization: null as unknown,
     created_at: new Date("2025-01-01"),
     updated_at: new Date("2025-01-01"),
     deleted_at: null as Date | null,
@@ -109,8 +109,7 @@ describe("QuestsService", () => {
     userId: "user-uuid-1",
     questId: "quest-uuid-1",
     quest: mockQuest,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    user: null as any,
+    user: null as User | null,
     status: QuestStatus.COMPLETED,
     currentValue: 3,
     targetValue: 3,
@@ -119,8 +118,7 @@ describe("QuestsService", () => {
     periodEnd: new Date("2025-01-02"),
     rewardPoints: 50,
     pointsClaimed: null as number | null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rewardsClaimed: null as any,
+    rewardsClaimed: null as Record<string, unknown> | null,
     completedAt: new Date("2025-01-01T14:00:00Z") as Date | null,
     claimedAt: null as Date | null,
     expiredAt: null as Date | null,
@@ -163,8 +161,10 @@ describe("QuestsService", () => {
   // Mock query builder helpers
   // ---------------------------------------------------------------------------
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMockQueryBuilder = (result: any = [], rawResult: any = null) => ({
+  const createMockQueryBuilder = (
+    result: unknown[] = [],
+    rawResult: Record<string, unknown> | null = null,
+  ) => ({
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
@@ -284,13 +284,13 @@ describe("QuestsService", () => {
         ...dtoWithDifficulty,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.create.mockReturnValue(createdQuest as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.save.mockResolvedValue(createdQuest as any);
+      questRepo.create.mockReturnValue(createdQuest as unknown as Quest);
+      questRepo.save.mockResolvedValue(createdQuest as unknown as Quest);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createQuest(orgId, dtoWithDifficulty as any);
+      const result = await service.createQuest(
+        orgId,
+        dtoWithDifficulty as CreateQuestDto,
+      );
 
       expect(result).toEqual(createdQuest);
       expect(questRepo.create).toHaveBeenCalledWith(
@@ -311,13 +311,10 @@ describe("QuestsService", () => {
         difficulty: QuestDifficulty.MEDIUM,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.create.mockReturnValue(createdQuest as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.save.mockResolvedValue(createdQuest as any);
+      questRepo.create.mockReturnValue(createdQuest as unknown as Quest);
+      questRepo.save.mockResolvedValue(createdQuest as unknown as Quest);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createQuest(orgId, createDto as any);
+      await service.createQuest(orgId, createDto as CreateQuestDto);
 
       expect(questRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -336,16 +333,13 @@ describe("QuestsService", () => {
       const updateDto = { title: "Updated title", rewardPoints: 200 };
       const updatedQuest = { ...mockQuest, ...updateDto };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.findOne.mockResolvedValue({ ...mockQuest } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.save.mockResolvedValue(updatedQuest as any);
+      questRepo.findOne.mockResolvedValue({ ...mockQuest } as unknown as Quest);
+      questRepo.save.mockResolvedValue(updatedQuest as unknown as Quest);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateQuest(
         "quest-uuid-1",
         orgId,
-        updateDto as any,
+        updateDto as UpdateQuestDto,
       );
 
       expect(result).toEqual(updatedQuest);
@@ -359,10 +353,9 @@ describe("QuestsService", () => {
       questRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateQuest("quest-uuid-1", "other-org-uuid", {
           title: "x",
-        } as any),
+        } as UpdateQuestDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -370,8 +363,9 @@ describe("QuestsService", () => {
       questRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.updateQuest("nonexistent-uuid", orgId, { title: "x" } as any),
+        service.updateQuest("nonexistent-uuid", orgId, {
+          title: "x",
+        } as UpdateQuestDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -418,8 +412,9 @@ describe("QuestsService", () => {
   describe("getQuests", () => {
     it("should return quests for an organization with default filter", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
       const result = await service.getQuests(orgId, {});
 
@@ -434,8 +429,9 @@ describe("QuestsService", () => {
 
     it("should filter by period when specified", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
       await service.getQuests(orgId, { period: QuestPeriod.DAILY });
 
@@ -446,11 +442,13 @@ describe("QuestsService", () => {
 
     it("should filter by type when specified", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.getQuests(orgId, { type: QuestType.ORDER_COUNT } as any);
+      await service.getQuests(orgId, {
+        type: QuestType.ORDER_COUNT,
+      } as QuestFilterDto);
 
       expect(qb.andWhere).toHaveBeenCalledWith("q.type = :type", {
         type: QuestType.ORDER_COUNT,
@@ -459,8 +457,9 @@ describe("QuestsService", () => {
 
     it("should filter by isActive when specified", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
       await service.getQuests(orgId, { isActive: true });
 
@@ -471,8 +470,9 @@ describe("QuestsService", () => {
 
     it("should exclude expired quests by default", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
       await service.getQuests(orgId, {});
 
@@ -484,17 +484,17 @@ describe("QuestsService", () => {
 
     it("should include expired quests when includeExpired is true", async () => {
       const qb = createMockQueryBuilder([mockQuest]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      questRepo.createQueryBuilder.mockReturnValue(qb as any);
+      questRepo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Quest>["createQueryBuilder"]>,
+      );
 
       await service.getQuests(orgId, { includeExpired: true });
 
       // When includeExpired is true the "endsAt" filter is NOT applied.
       // Verify it was NOT called with the endsAt condition.
       const endsAtCalls = qb.andWhere.mock.calls.filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (call: any[]) =>
-          typeof call[0] === "string" && call[0].includes("endsAt"),
+        (call: unknown[]) =>
+          typeof call[0] === "string" && (call[0] as string).includes("endsAt"),
       );
       expect(endsAtCalls).toHaveLength(0);
     });
@@ -507,14 +507,12 @@ describe("QuestsService", () => {
   describe("getUserQuestsSummary", () => {
     it("should return user quests summary grouped by period", async () => {
       // Stub the internal ensureUserHasQuests path
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.findOne.mockResolvedValue(mockUser as any);
+      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
       userQuestRepo.count.mockResolvedValue(1); // existing quests present
       // Return a dummy achievement so createAchievements doesn't get called
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       questRepo.find.mockResolvedValue([
         { id: "achievement-1", period: QuestPeriod.ONE_TIME },
-      ] as any);
+      ] as unknown as Quest[]);
       userQuestRepo.find.mockResolvedValue([]); // No existing user quests for achievements
 
       const dailyUQ = {
@@ -556,8 +554,11 @@ describe("QuestsService", () => {
       };
 
       const uqQB = createMockQueryBuilder([dailyUQ, completedUQ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userQuestRepo.createQueryBuilder.mockReturnValue(uqQB as any);
+      userQuestRepo.createQueryBuilder.mockReturnValue(
+        uqQB as unknown as ReturnType<
+          Repository<UserQuest>["createQueryBuilder"]
+        >,
+      );
 
       const result = await service.getUserQuestsSummary("user-uuid-1");
 
@@ -584,8 +585,9 @@ describe("QuestsService", () => {
 
   describe("getUserQuest", () => {
     it("should return a single user quest with progress", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userQuestRepo.findOne.mockResolvedValue(mockUserQuest as any);
+      userQuestRepo.findOne.mockResolvedValue(
+        mockUserQuest as unknown as UserQuest,
+      );
 
       const result = await service.getUserQuest("user-uuid-1", "uq-uuid-1");
 
@@ -622,26 +624,23 @@ describe("QuestsService", () => {
           period: QuestPeriod.DAILY,
           additionalRewards: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
 
       userQuestRepo.findOne.mockResolvedValue(completedUQ);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.findOne.mockResolvedValue(mockUser as any);
+      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
       loyaltyService.earnPoints.mockResolvedValue({
         earned: 50,
         newBalance: 550,
         levelUp: null,
         streakBonus: null,
         message: "Earned 50 points",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
       userQuestRepo.save.mockResolvedValue({
         ...completedUQ,
         status: QuestStatus.CLAIMED,
         claimedAt: new Date(),
         pointsClaimed: 50,
-      });
+      } as unknown as UserQuest);
 
       const result = await service.claimReward("user-uuid-1", "uq-uuid-1");
 
@@ -672,8 +671,7 @@ describe("QuestsService", () => {
       const inProgressUQ = {
         ...mockUserQuest,
         status: QuestStatus.IN_PROGRESS,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
       userQuestRepo.findOne.mockResolvedValue(inProgressUQ);
 
       await expect(
@@ -693,8 +691,7 @@ describe("QuestsService", () => {
       const completedUQ = {
         ...mockUserQuest,
         status: QuestStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
       userQuestRepo.findOne.mockResolvedValue(completedUQ);
       userRepo.findOne.mockResolvedValue(null);
 
@@ -712,20 +709,17 @@ describe("QuestsService", () => {
           period: QuestPeriod.WEEKLY,
           additionalRewards: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
 
       userQuestRepo.findOne.mockResolvedValue(weeklyUQ);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.findOne.mockResolvedValue(mockUser as any);
+      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
       loyaltyService.earnPoints.mockResolvedValue({
         earned: 50,
         newBalance: 550,
         levelUp: null,
         streakBonus: null,
         message: "Earned",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
       userQuestRepo.save.mockResolvedValue(weeklyUQ);
 
       await service.claimReward("user-uuid-1", "uq-uuid-1");
@@ -746,20 +740,17 @@ describe("QuestsService", () => {
           period: QuestPeriod.ONE_TIME,
           additionalRewards: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
 
       userQuestRepo.findOne.mockResolvedValue(achievementUQ);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.findOne.mockResolvedValue(mockUser as any);
+      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
       loyaltyService.earnPoints.mockResolvedValue({
         earned: 50,
         newBalance: 550,
         levelUp: null,
         streakBonus: null,
         message: "Earned",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
       userQuestRepo.save.mockResolvedValue(achievementUQ);
 
       await service.claimReward("user-uuid-1", "uq-uuid-1");
@@ -788,8 +779,7 @@ describe("QuestsService", () => {
           period: QuestPeriod.DAILY,
           additionalRewards: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
 
       const uq2 = {
         ...mockUserQuest,
@@ -802,8 +792,7 @@ describe("QuestsService", () => {
           period: QuestPeriod.WEEKLY,
           additionalRewards: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as UserQuest;
 
       // claimAllRewards first calls find() to get completed quests
       userQuestRepo.find.mockResolvedValue([uq1, uq2]);
@@ -815,27 +804,23 @@ describe("QuestsService", () => {
       userRepo.findOne.mockResolvedValue({
         ...mockUser,
         pointsBalance: 650,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as unknown as User);
       loyaltyService.earnPoints
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockResolvedValueOnce({
           earned: 50,
           newBalance: 550,
           levelUp: null,
           streakBonus: null,
           message: "",
-        } as any)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>)
         .mockResolvedValueOnce({
           earned: 100,
           newBalance: 650,
           levelUp: null,
           streakBonus: null,
           message: "",
-        } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userQuestRepo.save.mockResolvedValue({} as any);
+        } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
+      userQuestRepo.save.mockResolvedValue({} as unknown as UserQuest);
 
       const result = await service.claimAllRewards("user-uuid-1");
 
@@ -871,8 +856,11 @@ describe("QuestsService", () => {
         completed: "40",
         points: "5000",
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userQuestRepo.createQueryBuilder.mockReturnValue(statsQB as any);
+      userQuestRepo.createQueryBuilder.mockReturnValue(
+        statsQB as unknown as ReturnType<
+          Repository<UserQuest>["createQueryBuilder"]
+        >,
+      );
 
       const result = await service.getStats(orgId, dateFrom, dateTo);
 
@@ -898,8 +886,11 @@ describe("QuestsService", () => {
         completed: "0",
         points: "0",
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userQuestRepo.createQueryBuilder.mockReturnValue(statsQB as any);
+      userQuestRepo.createQueryBuilder.mockReturnValue(
+        statsQB as unknown as ReturnType<
+          Repository<UserQuest>["createQueryBuilder"]
+        >,
+      );
 
       const result = await service.getStats(orgId, dateFrom, dateTo);
 

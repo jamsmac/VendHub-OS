@@ -11,6 +11,13 @@ import {
   ReconciliationStatus,
   MismatchType,
 } from "./entities/reconciliation.entity";
+import {
+  CreateReconciliationRunDto,
+  QueryReconciliationRunsDto,
+  QueryMismatchesDto,
+  ResolveMismatchDto,
+  ImportHwSalesDto,
+} from "./dto/create-reconciliation-run.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
@@ -154,8 +161,11 @@ describe("ReconciliationService", () => {
         sources: ["hw"],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createRun(ORG_ID, USER_ID, dto as any);
+      const result = await service.createRun(
+        ORG_ID,
+        USER_ID,
+        dto as CreateReconciliationRunDto,
+      );
 
       expect(result).toEqual(mockRun);
       expect(runRepo.create).toHaveBeenCalledWith(
@@ -177,8 +187,11 @@ describe("ReconciliationService", () => {
         sources: ["hw"],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createRun(ORG_ID, USER_ID, dto as any);
+      await service.createRun(
+        ORG_ID,
+        USER_ID,
+        dto as CreateReconciliationRunDto,
+      );
 
       expect(runRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -211,12 +224,14 @@ describe("ReconciliationService", () => {
     });
 
     it("should process a pending run and mark as completed", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pendingRun = { ...mockRun } as any;
+      const pendingRun = { ...mockRun } as unknown as ReconciliationRun;
       runRepo.findOne.mockResolvedValue(pendingRun);
       runRepo.save.mockImplementation(async (run) => run as ReconciliationRun);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hwSaleRepo.createQueryBuilder.mockReturnValue(mockHwQueryBuilder as any);
+      hwSaleRepo.createQueryBuilder.mockReturnValue(
+        mockHwQueryBuilder as unknown as ReturnType<
+          Repository<HwImportedSale>["createQueryBuilder"]
+        >,
+      );
       mockHwQueryBuilder.getMany.mockResolvedValue([]);
 
       const result = await service.processReconciliation("run-uuid-1");
@@ -233,11 +248,10 @@ describe("ReconciliationService", () => {
 
   describe("findAll", () => {
     it("should return paginated reconciliation runs", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAll(ORG_ID, {
         page: 1,
         limit: 20,
-      } as any);
+      } as QueryReconciliationRunsDto);
 
       expect(result).toHaveProperty("items");
       expect(result).toHaveProperty("total", 1);
@@ -246,12 +260,11 @@ describe("ReconciliationService", () => {
     });
 
     it("should filter by status", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAll(ORG_ID, {
         status: ReconciliationStatus.COMPLETED,
         page: 1,
         limit: 20,
-      } as any);
+      } as QueryReconciliationRunsDto);
 
       expect(mockRunQueryBuilder.andWhere).toHaveBeenCalledWith(
         "r.status = :status",
@@ -292,11 +305,10 @@ describe("ReconciliationService", () => {
 
   describe("getMismatches", () => {
     it("should return paginated mismatches for a run", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getMismatches("run-uuid-1", {
         page: 1,
         limit: 20,
-      } as any);
+      } as QueryMismatchesDto);
 
       expect(result).toHaveProperty("items");
       expect(result).toHaveProperty("total", 1);
@@ -313,19 +325,19 @@ describe("ReconciliationService", () => {
 
   describe("resolveMismatch", () => {
     it("should resolve an unresolved mismatch", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const unresolvedMismatch = { ...mockMismatch } as any;
+      const unresolvedMismatch = {
+        ...mockMismatch,
+      } as unknown as ReconciliationMismatch;
       mismatchRepo.findOne.mockResolvedValue(unresolvedMismatch);
       mismatchRepo.save.mockImplementation(
         async (m) => m as ReconciliationMismatch,
       );
 
       const dto = { resolutionNotes: "Fixed manually" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.resolveMismatch(
         "mismatch-uuid-1",
         USER_ID,
-        dto as any,
+        dto as ResolveMismatchDto,
       );
 
       expect(result.isResolved).toBe(true);
@@ -337,21 +349,26 @@ describe("ReconciliationService", () => {
       mismatchRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.resolveMismatch("non-existent", USER_ID, {} as any),
+        service.resolveMismatch(
+          "non-existent",
+          USER_ID,
+          {} as ResolveMismatchDto,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
     it("should throw BadRequestException when mismatch is already resolved", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mismatchRepo.findOne.mockResolvedValue({
         ...mockMismatch,
         isResolved: true,
-      } as any);
+      } as unknown as ReconciliationMismatch);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.resolveMismatch("mismatch-uuid-1", USER_ID, {} as any),
+        service.resolveMismatch(
+          "mismatch-uuid-1",
+          USER_ID,
+          {} as ResolveMismatchDto,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -363,8 +380,13 @@ describe("ReconciliationService", () => {
   describe("deleteRun", () => {
     it("should soft delete a completed run", async () => {
       runRepo.findOne.mockResolvedValue(mockCompletedRun);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      runRepo.softDelete.mockResolvedValue(undefined as any);
+      runRepo.softDelete.mockResolvedValue(
+        undefined as unknown as ReturnType<
+          Repository<ReconciliationRun>["softDelete"]
+        > extends Promise<infer R>
+          ? R
+          : never,
+      );
 
       await service.deleteRun("run-uuid-2");
 
@@ -394,10 +416,8 @@ describe("ReconciliationService", () => {
 
   describe("importHwSales", () => {
     it("should import HW sales and return batch info", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hwSaleRepo.create.mockImplementation((data) => data as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hwSaleRepo.save.mockResolvedValue([] as any);
+      hwSaleRepo.create.mockImplementation((data) => data as HwImportedSale);
+      hwSaleRepo.save.mockResolvedValue([] as unknown as HwImportedSale);
 
       const dto = {
         importSource: "excel",
@@ -407,8 +427,11 @@ describe("ReconciliationService", () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.importHwSales(ORG_ID, USER_ID, dto as any);
+      const result = await service.importHwSales(
+        ORG_ID,
+        USER_ID,
+        dto as ImportHwSalesDto,
+      );
 
       expect(result).toHaveProperty("batchId");
       expect(result.imported).toBe(2);

@@ -65,9 +65,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Ошибка входа";
+    } catch (error: unknown) {
+      const axiosError = error as {
+        response?: { data?: { message?: string } };
+      };
+      const message = axiosError.response?.data?.message || "Ошибка входа";
       set({ error: message, isLoading: false });
       throw new Error(message);
     }

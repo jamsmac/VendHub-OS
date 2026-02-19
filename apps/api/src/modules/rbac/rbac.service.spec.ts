@@ -714,11 +714,10 @@ describe("RbacService", () => {
 
   describe("getUserRoles", () => {
     it("should return user roles with permissions", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         roles: [mockRole],
-      } as any);
+      } as unknown as User);
 
       const result = await service.getUserRoles("user-uuid-1");
 

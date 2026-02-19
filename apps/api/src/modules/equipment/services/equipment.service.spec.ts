@@ -10,7 +10,14 @@ import {
   ComponentMovement,
   EquipmentComponentStatus,
   EquipmentComponentType,
+  ComponentMaintenanceType,
 } from "../entities/equipment-component.entity";
+import {
+  CreateEquipmentComponentDto,
+  UpdateEquipmentComponentDto,
+  CreateComponentMaintenanceDto,
+  CreateComponentMovementDto,
+} from "../dto/create-equipment.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -106,8 +113,11 @@ describe("EquipmentService", () => {
       componentRepo.create!.mockReturnValue(created);
       componentRepo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.createComponent(orgId, userId, dto as any);
+      const result = await service.createComponent(
+        orgId,
+        userId,
+        dto as CreateEquipmentComponentDto,
+      );
 
       expect(componentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -148,8 +158,7 @@ describe("EquipmentService", () => {
       componentRepo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAllComponents(orgId, { machineId: "m1" } as any);
+      await service.findAllComponents(orgId, { machineId: "m1" });
 
       expect(qb.andWhere).toHaveBeenCalledWith("c.machineId = :machineId", {
         machineId: "m1",
@@ -161,8 +170,9 @@ describe("EquipmentService", () => {
       componentRepo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAllComponents(orgId, { componentType: "pump" } as any);
+      await service.findAllComponents(orgId, {
+        componentType: EquipmentComponentType.PUMP,
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "c.componentType = :componentType",
@@ -175,8 +185,7 @@ describe("EquipmentService", () => {
       componentRepo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAllComponents(orgId, { search: "pump" } as any);
+      await service.findAllComponents(orgId, { search: "pump" });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "(c.name ILIKE :search OR c.serialNumber ILIKE :search)",
@@ -189,8 +198,7 @@ describe("EquipmentService", () => {
       componentRepo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAllComponents(orgId, { page: 3, limit: 10 } as any);
+      await service.findAllComponents(orgId, { page: 3, limit: 10 });
 
       expect(qb.skip).toHaveBeenCalledWith(20);
       expect(qb.take).toHaveBeenCalledWith(10);
@@ -219,11 +227,10 @@ describe("EquipmentService", () => {
       componentRepo.save!.mockImplementation(async (d) => d);
 
       const dto = { name: "Updated Pump" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateComponent(
         orgId,
         componentId,
-        dto as any,
+        dto as UpdateEquipmentComponentDto,
       );
 
       expect(result.name).toBe("Updated Pump");
@@ -236,8 +243,11 @@ describe("EquipmentService", () => {
     it("should throw NotFoundException for non-existent component", async () => {
       componentRepo.findOne!.mockResolvedValue(null);
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.updateComponent(orgId, "missing", {} as any),
+        service.updateComponent(
+          orgId,
+          "missing",
+          {} as UpdateEquipmentComponentDto,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -283,9 +293,8 @@ describe("EquipmentService", () => {
 
       const result = await service.createMaintenance(orgId, userId, {
         componentId,
-        maintenanceType: "preventive",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+        maintenanceType: "preventive" as ComponentMaintenanceType,
+      } as CreateComponentMaintenanceDto);
 
       expect(result).toEqual(maint);
       expect(componentRepo.update).toHaveBeenCalledWith(componentId, {
@@ -300,8 +309,9 @@ describe("EquipmentService", () => {
     it("should throw NotFoundException for invalid component", async () => {
       componentRepo.findOne!.mockResolvedValue(null);
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.createMaintenance(orgId, userId, { componentId: "bad" } as any),
+        service.createMaintenance(orgId, userId, {
+          componentId: "bad",
+        } as CreateComponentMaintenanceDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -325,11 +335,10 @@ describe("EquipmentService", () => {
 
       await service.findMaintenanceHistory(orgId, {
         componentId: "c1",
-        maintenanceType: "corrective",
+        maintenanceType: "corrective" as ComponentMaintenanceType,
         startDate: new Date("2025-01-01"),
         endDate: new Date("2025-12-31"),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith("m.componentId = :componentId", {
         componentId: "c1",
@@ -359,11 +368,10 @@ describe("EquipmentService", () => {
       movementRepo.create!.mockReturnValue({ id: "mv-1", ...movementData });
       movementRepo.save!.mockResolvedValue({ id: "mv-1", ...movementData });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createMovement(
         orgId,
         userId,
-        movementData as any,
+        movementData as CreateComponentMovementDto,
       );
 
       expect(result).toBeDefined();
@@ -384,8 +392,11 @@ describe("EquipmentService", () => {
       movementRepo.create!.mockReturnValue({ id: "mv-2", ...movementData });
       movementRepo.save!.mockResolvedValue({ id: "mv-2", ...movementData });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.createMovement(orgId, userId, movementData as any);
+      await service.createMovement(
+        orgId,
+        userId,
+        movementData as CreateComponentMovementDto,
+      );
 
       expect(comp.machineId).toBeNull();
     });
@@ -394,8 +405,9 @@ describe("EquipmentService", () => {
       componentRepo.findOne!.mockResolvedValue(mockComponent);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.createMovement(orgId, userId, { componentId } as any),
+        service.createMovement(orgId, userId, {
+          componentId,
+        } as CreateComponentMovementDto),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -417,8 +429,7 @@ describe("EquipmentService", () => {
       movementRepo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findMovementHistory(orgId, { machineId: "mx" } as any);
+      await service.findMovementHistory(orgId, { machineId: "mx" });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "(m.fromMachineId = :machineId OR m.toMachineId = :machineId)",

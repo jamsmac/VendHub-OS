@@ -5,6 +5,11 @@ import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { OpeningBalancesService } from "./opening-balances.service";
 import { StockOpeningBalance } from "./entities/stock-opening-balance.entity";
+import {
+  CreateOpeningBalanceDto,
+  BulkCreateOpeningBalanceDto,
+  ApplyAllDto,
+} from "./dto/create-opening-balance.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -128,8 +133,11 @@ describe("OpeningBalancesService", () => {
       repository.create!.mockReturnValue({ id: "ob-3" });
       repository.save!.mockResolvedValue({ id: "ob-3" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create("org-1", "user-1", dtoNoUnit as any);
+      await service.create(
+        "org-1",
+        "user-1",
+        dtoNoUnit as unknown as CreateOpeningBalanceDto,
+      );
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ unit: "pcs" }),
@@ -164,8 +172,11 @@ describe("OpeningBalancesService", () => {
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.bulkCreate("org-1", "user-1", dto as any);
+      const result = await service.bulkCreate(
+        "org-1",
+        "user-1",
+        dto as unknown as BulkCreateOpeningBalanceDto,
+      );
 
       expect(result.created).toBe(2);
       expect(result.importSessionId).toBeDefined();
@@ -188,8 +199,11 @@ describe("OpeningBalancesService", () => {
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.bulkCreate("org-1", "user-1", dto as any);
+      await service.bulkCreate(
+        "org-1",
+        "user-1",
+        dto as unknown as BulkCreateOpeningBalanceDto,
+      );
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ importSource: "excel" }),
@@ -223,8 +237,7 @@ describe("OpeningBalancesService", () => {
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll("org-1", { productId: "prod-1" } as any);
+      await service.findAll("org-1", { productId: "prod-1" });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "sob.productId = :productId",
@@ -238,8 +251,7 @@ describe("OpeningBalancesService", () => {
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll("org-1", { isApplied: false } as any);
+      await service.findAll("org-1", { isApplied: false });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "sob.isApplied = :isApplied",
@@ -390,10 +402,9 @@ describe("OpeningBalancesService", () => {
       repository.find!.mockResolvedValue(balances);
       repository.save!.mockResolvedValue(balances);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.applyAll("org-1", "user-1", {
         balanceDate: "2024-01-01",
-      } as any);
+      } as ApplyAllDto);
 
       expect(result.applied).toBe(2);
       expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
@@ -402,10 +413,9 @@ describe("OpeningBalancesService", () => {
     it("should return applied=0 when no balances found", async () => {
       repository.find!.mockResolvedValue([]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.applyAll("org-1", "user-1", {
         balanceDate: "2024-01-01",
-      } as any);
+      } as ApplyAllDto);
 
       expect(result.applied).toBe(0);
     });

@@ -5,6 +5,8 @@ import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
 import { User, UserStatus } from "./entities/user.entity";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 
@@ -92,8 +94,7 @@ describe("UsersService", () => {
         firstName: "Test",
         lastName: "User",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(dto as any);
+      const result = await service.create(dto as CreateUserDto);
 
       expect(result).toEqual(mockUser);
       expect(userRepository.create).toHaveBeenCalledWith(dto);
@@ -110,8 +111,7 @@ describe("UsersService", () => {
       userRepository.create.mockReturnValue(mockUser);
       userRepository.save.mockResolvedValue(mockUser);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(dto as any);
+      await service.create(dto as CreateUserDto);
 
       expect(userRepository.create).toHaveBeenCalledWith(dto);
     });
@@ -226,16 +226,14 @@ describe("UsersService", () => {
   describe("update", () => {
     it("should update user when found", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.save.mockResolvedValue({
         ...mockUser,
         firstName: "Updated",
-      } as any);
+      } as unknown as User);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update("user-uuid-1", {
         firstName: "Updated",
-      } as any);
+      } as UpdateUserDto);
 
       expect(result.firstName).toBe("Updated");
       expect(userRepository.save).toHaveBeenCalled();
@@ -245,8 +243,9 @@ describe("UsersService", () => {
       userRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.update("non-existent", { firstName: "Updated" } as any),
+        service.update("non-existent", {
+          firstName: "Updated",
+        } as UpdateUserDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -280,8 +279,9 @@ describe("UsersService", () => {
 
   describe("approveUser", () => {
     it("should approve a pending user", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepository.findOne.mockResolvedValue({ ...mockPendingUser } as any);
+      userRepository.findOne.mockResolvedValue({
+        ...mockPendingUser,
+      } as unknown as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
       const result = await service.approveUser("user-uuid-2", "admin-uuid");
@@ -300,11 +300,10 @@ describe("UsersService", () => {
     });
 
     it("should throw BadRequestException when user is not pending", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         status: UserStatus.ACTIVE,
-      } as any);
+      } as unknown as User);
 
       await expect(
         service.approveUser("user-uuid-1", "admin-uuid"),
@@ -318,8 +317,9 @@ describe("UsersService", () => {
 
   describe("rejectUser", () => {
     it("should reject a pending user with reason", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepository.findOne.mockResolvedValue({ ...mockPendingUser } as any);
+      userRepository.findOne.mockResolvedValue({
+        ...mockPendingUser,
+      } as unknown as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
       const result = await service.rejectUser(
@@ -334,11 +334,10 @@ describe("UsersService", () => {
     });
 
     it("should throw BadRequestException when user is not pending", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         status: UserStatus.ACTIVE,
-      } as any);
+      } as unknown as User);
 
       await expect(
         service.rejectUser("user-uuid-1", "admin-uuid", "reason"),
@@ -352,8 +351,13 @@ describe("UsersService", () => {
 
   describe("updateLastLogin", () => {
     it("should update last login timestamp and IP", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepository.update.mockResolvedValue(undefined as any);
+      userRepository.update.mockResolvedValue(
+        undefined as unknown as ReturnType<
+          Repository<User>["update"]
+        > extends Promise<infer R>
+          ? R
+          : never,
+      );
 
       await service.updateLastLogin("user-uuid-1", "192.168.1.1");
 

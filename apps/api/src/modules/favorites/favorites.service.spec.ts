@@ -1,12 +1,20 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, UpdateResult } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { FavoritesService } from "./favorites.service";
 import { Favorite, FavoriteType } from "./entities/favorite.entity";
 import { Product } from "../products/entities/product.entity";
 import { Machine } from "../machines/entities/machine.entity";
+import {
+  AddFavoriteDto,
+  UpdateFavoriteDto,
+  AddFavoritesBulkDto,
+  RemoveFavoritesBulkDto,
+  ReorderFavoritesDto,
+  FavoriteFilterDto,
+} from "./dto/favorite.dto";
 
 describe("FavoritesService", () => {
   let service: FavoritesService;
@@ -139,8 +147,7 @@ describe("FavoritesService", () => {
       favoriteRepo.create.mockReturnValue(mockFavorite);
       favoriteRepo.save.mockResolvedValue(mockFavorite);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.addFavorite(userId, dto as any);
+      const result = await service.addFavorite(userId, dto as AddFavoriteDto);
 
       expect(result.success).toBe(true);
       expect(result.alreadyExists).toBe(false);
@@ -160,8 +167,7 @@ describe("FavoritesService", () => {
       favoriteRepo.create.mockReturnValue(mockMachineFavorite);
       favoriteRepo.save.mockResolvedValue(mockMachineFavorite);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.addFavorite(userId, dto as any);
+      const result = await service.addFavorite(userId, dto as AddFavoriteDto);
 
       expect(result.success).toBe(true);
       expect(machineRepo.findOne).toHaveBeenCalledWith({
@@ -178,8 +184,7 @@ describe("FavoritesService", () => {
       productRepo.findOne.mockResolvedValue(mockProduct);
       favoriteRepo.findOne.mockResolvedValue(mockFavorite);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.addFavorite(userId, dto as any);
+      const result = await service.addFavorite(userId, dto as AddFavoriteDto);
 
       expect(result.success).toBe(true);
       expect(result.alreadyExists).toBe(true);
@@ -193,8 +198,7 @@ describe("FavoritesService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.addFavorite(userId, dto as any),
+        service.addFavorite(userId, dto as AddFavoriteDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -205,8 +209,7 @@ describe("FavoritesService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.addFavorite(userId, dto as any),
+        service.addFavorite(userId, dto as AddFavoriteDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -219,8 +222,7 @@ describe("FavoritesService", () => {
       productRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.addFavorite(userId, dto as any),
+        service.addFavorite(userId, dto as AddFavoriteDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -233,16 +235,16 @@ describe("FavoritesService", () => {
       machineRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.addFavorite(userId, dto as any),
+        service.addFavorite(userId, dto as AddFavoriteDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("removeFavorite", () => {
     it("should remove a favorite by id", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 1,
+      } as UpdateResult);
 
       await service.removeFavorite(userId, favoriteId);
 
@@ -253,8 +255,9 @@ describe("FavoritesService", () => {
     });
 
     it("should throw NotFoundException when favorite not found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 0 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 0,
+      } as UpdateResult);
 
       await expect(
         service.removeFavorite(userId, "non-existent"),
@@ -264,8 +267,9 @@ describe("FavoritesService", () => {
 
   describe("removeFavoriteByItem", () => {
     it("should remove favorite by product id", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 1,
+      } as UpdateResult);
 
       await service.removeFavoriteByItem(
         userId,
@@ -281,8 +285,9 @@ describe("FavoritesService", () => {
     });
 
     it("should remove favorite by machine id", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 1,
+      } as UpdateResult);
 
       await service.removeFavoriteByItem(
         userId,
@@ -298,8 +303,9 @@ describe("FavoritesService", () => {
     });
 
     it("should throw NotFoundException when item not found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 0 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 0,
+      } as UpdateResult);
 
       await expect(
         service.removeFavoriteByItem(userId, FavoriteType.PRODUCT, "none"),
@@ -315,11 +321,10 @@ describe("FavoritesService", () => {
       favoriteRepo.findOne.mockResolvedValue(mockFavorite);
       favoriteRepo.save.mockResolvedValue(updated as Favorite);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateFavorite(
         userId,
         favoriteId,
-        dto as any,
+        dto as UpdateFavoriteDto,
       );
 
       expect(result.notes).toEqual("Updated notes");
@@ -329,8 +334,7 @@ describe("FavoritesService", () => {
       favoriteRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.updateFavorite(userId, "non-existent", {} as any),
+        service.updateFavorite(userId, "non-existent", {} as UpdateFavoriteDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -354,8 +358,9 @@ describe("FavoritesService", () => {
 
     it("should remove favorite when exists", async () => {
       favoriteRepo.findOne.mockResolvedValue(mockFavorite);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 1,
+      } as UpdateResult);
 
       const result = await service.toggleFavorite(
         userId,
@@ -387,8 +392,10 @@ describe("FavoritesService", () => {
       favoriteRepo.create.mockReturnValue(mockFavorite);
       favoriteRepo.save.mockResolvedValue(mockFavorite);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const results = await service.addFavoritesBulk(userId, dto as any);
+      const results = await service.addFavoritesBulk(
+        userId,
+        dto as AddFavoritesBulkDto,
+      );
 
       expect(results).toHaveLength(2);
       expect(results.every((r) => r.success)).toBe(true);
@@ -401,8 +408,10 @@ describe("FavoritesService", () => {
 
       productRepo.findOne.mockResolvedValue(null);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const results = await service.addFavoritesBulk(userId, dto as any);
+      const results = await service.addFavoritesBulk(
+        userId,
+        dto as AddFavoritesBulkDto,
+      );
 
       expect(results[0].success).toBe(false);
     });
@@ -410,13 +419,13 @@ describe("FavoritesService", () => {
 
   describe("removeFavoritesBulk", () => {
     it("should remove multiple favorites", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.softDelete.mockResolvedValue({ affected: 3 } as any);
+      favoriteRepo.softDelete.mockResolvedValue({
+        affected: 3,
+      } as UpdateResult);
 
       const result = await service.removeFavoritesBulk(userId, {
         ids: ["id1", "id2", "id3"],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as RemoveFavoritesBulkDto);
 
       expect(result).toEqual(3);
     });
@@ -424,13 +433,11 @@ describe("FavoritesService", () => {
 
   describe("reorderFavorites", () => {
     it("should update sort order for favorites", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      favoriteRepo.update.mockResolvedValue({ affected: 1 } as any);
+      favoriteRepo.update.mockResolvedValue({ affected: 1 } as UpdateResult);
 
       await service.reorderFavorites(userId, {
         orderedIds: ["id1", "id2", "id3"],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as ReorderFavoritesDto);
 
       expect(favoriteRepo.update).toHaveBeenCalledTimes(3);
       expect(favoriteRepo.update).toHaveBeenCalledWith(
@@ -516,8 +523,10 @@ describe("FavoritesService", () => {
         .mockResolvedValueOnce(1) // products
         .mockResolvedValueOnce(1); // machines
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.getFavorites(userId, {} as any);
+      const result = await service.getFavorites(
+        userId,
+        {} as FavoriteFilterDto,
+      );
 
       expect(result.totalProducts).toEqual(1);
       expect(result.totalMachines).toEqual(1);
@@ -529,8 +538,7 @@ describe("FavoritesService", () => {
 
       await service.getFavorites(userId, {
         type: FavoriteType.PRODUCT,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as FavoriteFilterDto);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith("f.type = :type", {
         type: FavoriteType.PRODUCT,

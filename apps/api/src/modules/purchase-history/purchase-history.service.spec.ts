@@ -7,6 +7,13 @@ import {
   PurchaseHistory,
   PurchaseStatus,
 } from "./entities/purchase-history.entity";
+import {
+  CreatePurchaseHistoryDto,
+  BulkCreatePurchaseHistoryDto,
+  UpdatePurchaseHistoryDto,
+  ReceivePurchaseDto,
+  ReturnPurchaseDto,
+} from "./dto/create-purchase-history.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -87,8 +94,11 @@ describe("PurchaseHistoryService", () => {
       repository.create!.mockReturnValue(created);
       repository.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(orgId, userId, dto as any);
+      await service.create(
+        orgId,
+        userId,
+        dto as unknown as CreatePurchaseHistoryDto,
+      );
 
       // subtotal = 100 * 15000 = 1500000
       // vatAmount = 1500000 * 12 / 100 = 180000
@@ -113,8 +123,11 @@ describe("PurchaseHistoryService", () => {
       repository.create!.mockReturnValue({ id: "ph-2" });
       repository.save!.mockResolvedValue({ id: "ph-2" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(orgId, userId, dtoWithVat as any);
+      await service.create(
+        orgId,
+        userId,
+        dtoWithVat as unknown as CreatePurchaseHistoryDto,
+      );
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -129,8 +142,11 @@ describe("PurchaseHistoryService", () => {
       repository.create!.mockReturnValue({ id: "ph-3" });
       repository.save!.mockResolvedValue({ id: "ph-3" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(orgId, userId, dto as any);
+      await service.create(
+        orgId,
+        userId,
+        dto as unknown as CreatePurchaseHistoryDto,
+      );
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ currency: "UZS", exchangeRate: 1 }),
@@ -141,8 +157,11 @@ describe("PurchaseHistoryService", () => {
       repository.create!.mockReturnValue({ id: "ph-4" });
       repository.save!.mockResolvedValue({ id: "ph-4" });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(orgId, userId, dto as any);
+      await service.create(
+        orgId,
+        userId,
+        dto as unknown as CreatePurchaseHistoryDto,
+      );
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ importSource: "manual" }),
@@ -175,8 +194,11 @@ describe("PurchaseHistoryService", () => {
       repository.create!.mockImplementation((d) => d);
       repository.save!.mockResolvedValue([]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.bulkCreate(orgId, userId, dto as any);
+      const result = await service.bulkCreate(
+        orgId,
+        userId,
+        dto as unknown as BulkCreatePurchaseHistoryDto,
+      );
 
       expect(result.created).toBe(2);
       expect(result.importSessionId).toBeDefined();
@@ -208,8 +230,7 @@ describe("PurchaseHistoryService", () => {
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { supplierId: "sup-1" } as any);
+      await service.findAll(orgId, { supplierId: "sup-1" });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "ph.supplierId = :supplierId",
@@ -223,8 +244,7 @@ describe("PurchaseHistoryService", () => {
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { status: PurchaseStatus.PENDING } as any);
+      await service.findAll(orgId, { status: PurchaseStatus.PENDING });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith("ph.status = :status", {
         status: PurchaseStatus.PENDING,
@@ -237,8 +257,7 @@ describe("PurchaseHistoryService", () => {
       mockQb.getMany.mockResolvedValue([]);
       repository.createQueryBuilder!.mockReturnValue(mockQb);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { search: "INV-001" } as any);
+      await service.findAll(orgId, { search: "INV-001" });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
         "(ph.invoiceNumber ILIKE :search OR ph.batchNumber ILIKE :search OR ph.notes ILIKE :search)",
@@ -286,8 +305,9 @@ describe("PurchaseHistoryService", () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.update("ph-1", { quantity: 200 } as any);
+      const result = await service.update("ph-1", {
+        quantity: 200,
+      } as UpdatePurchaseHistoryDto);
 
       expect(result.quantity).toBe(200);
     });
@@ -296,9 +316,8 @@ describe("PurchaseHistoryService", () => {
       const purchase = { id: "ph-1", status: PurchaseStatus.RECEIVED };
       repository.findOne!.mockResolvedValue(purchase);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(
-        service.update("ph-1", { quantity: 200 } as any),
+        service.update("ph-1", { quantity: 200 } as UpdatePurchaseHistoryDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -313,8 +332,9 @@ describe("PurchaseHistoryService", () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.update("ph-1", { unitPrice: 2000 } as any);
+      const result = await service.update("ph-1", {
+        unitPrice: 2000,
+      } as UpdatePurchaseHistoryDto);
 
       // subtotal = 10 * 2000 = 20000, vat = 2400, total = 22400
       expect(result.vatAmount).toBe(2400);
@@ -364,8 +384,7 @@ describe("PurchaseHistoryService", () => {
 
       const result = await service.receive("ph-1", userId, {
         notes: "Received in good condition",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as ReceivePurchaseDto);
 
       expect(result.notes).toContain("Original note");
       expect(result.notes).toContain("[Received] Received in good condition");
@@ -410,10 +429,9 @@ describe("PurchaseHistoryService", () => {
       repository.findOne!.mockResolvedValue(purchase);
       repository.save!.mockImplementation((p) => Promise.resolve(p));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.returnPurchase("ph-1", {
         reason: "Defective",
-      } as any);
+      } as ReturnPurchaseDto);
 
       expect(result.status).toBe(PurchaseStatus.RETURNED);
       expect(result.metadata.returnReason).toBe("Defective");
@@ -424,8 +442,9 @@ describe("PurchaseHistoryService", () => {
       repository.findOne!.mockResolvedValue(purchase);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.returnPurchase("ph-1", { reason: "Defective" } as any),
+        service.returnPurchase("ph-1", {
+          reason: "Defective",
+        } as ReturnPurchaseDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -442,8 +461,7 @@ describe("PurchaseHistoryService", () => {
       const result = await service.returnPurchase("ph-1", {
         reason: "Wrong item",
         notes: "Returned to supplier",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as ReturnPurchaseDto);
 
       expect(result.notes).toContain("[Returned] Returned to supplier");
     });

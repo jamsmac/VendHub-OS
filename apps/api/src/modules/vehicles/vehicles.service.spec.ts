@@ -5,6 +5,8 @@ import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 import { VehiclesService } from "./vehicles.service";
 import { Vehicle, VehicleType, VehicleStatus } from "./entities/vehicle.entity";
+import { CreateVehicleDto } from "./dto/create-vehicle.dto";
+import { UpdateResult } from "typeorm";
 
 describe("VehiclesService", () => {
   let service: VehiclesService;
@@ -27,8 +29,7 @@ describe("VehiclesService", () => {
     updated_at: new Date(),
   } as unknown as Vehicle;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMockQueryBuilder = (result: any = []) => ({
+  const createMockQueryBuilder = (result: unknown = []) => ({
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
@@ -84,9 +85,8 @@ describe("VehiclesService", () => {
       vehicleRepository.create.mockReturnValue(mockVehicle);
       vehicleRepository.save.mockResolvedValue(mockVehicle);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.create(
-        createDto as any,
+        createDto as CreateVehicleDto,
         "org-uuid-1",
         "user-1",
       );
@@ -103,8 +103,7 @@ describe("VehiclesService", () => {
       vehicleRepository.findOne.mockResolvedValue(mockVehicle);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        service.create(createDto as any, "org-uuid-1", "user-1"),
+        service.create(createDto as CreateVehicleDto, "org-uuid-1", "user-1"),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -113,8 +112,7 @@ describe("VehiclesService", () => {
       vehicleRepository.create.mockReturnValue(mockVehicle);
       vehicleRepository.save.mockResolvedValue(mockVehicle);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.create(createDto as any, "org-uuid-1");
+      await service.create(createDto as CreateVehicleDto, "org-uuid-1");
 
       expect(vehicleRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({ currentOdometer: 0 }),
@@ -129,8 +127,9 @@ describe("VehiclesService", () => {
   describe("findAll", () => {
     it("should return paginated vehicles for organization", async () => {
       const qb = createMockQueryBuilder(mockVehicle);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicleRepository.createQueryBuilder.mockReturnValue(qb as any);
+      vehicleRepository.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Vehicle>["createQueryBuilder"]>,
+      );
 
       const result = await service.findAll("org-uuid-1");
 
@@ -146,8 +145,9 @@ describe("VehiclesService", () => {
 
     it("should apply search filter when provided", async () => {
       const qb = createMockQueryBuilder(mockVehicle);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicleRepository.createQueryBuilder.mockReturnValue(qb as any);
+      vehicleRepository.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Vehicle>["createQueryBuilder"]>,
+      );
 
       await service.findAll("org-uuid-1", { search: "Toyota" });
 
@@ -159,8 +159,9 @@ describe("VehiclesService", () => {
 
     it("should apply type filter when provided", async () => {
       const qb = createMockQueryBuilder(mockVehicle);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicleRepository.createQueryBuilder.mockReturnValue(qb as any);
+      vehicleRepository.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<Repository<Vehicle>["createQueryBuilder"]>,
+      );
 
       await service.findAll("org-uuid-1", { type: VehicleType.PERSONAL });
 
@@ -201,8 +202,7 @@ describe("VehiclesService", () => {
 
   describe("update", () => {
     it("should update vehicle when found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existingVehicle = { ...mockVehicle } as any;
+      const existingVehicle = { ...mockVehicle } as Vehicle;
       vehicleRepository.findOne.mockResolvedValue(existingVehicle);
       vehicleRepository.save.mockImplementation(async (v) => v as Vehicle);
 
@@ -225,11 +225,10 @@ describe("VehiclesService", () => {
     });
 
     it("should update lastOdometerUpdate when odometer changes", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingVehicle = {
         ...mockVehicle,
         lastOdometerUpdate: null,
-      } as any;
+      } as Vehicle;
       vehicleRepository.findOne.mockResolvedValue(existingVehicle);
       vehicleRepository.save.mockImplementation(async (v) => v as Vehicle);
 
@@ -248,8 +247,7 @@ describe("VehiclesService", () => {
 
   describe("updateOdometer", () => {
     it("should update odometer and timestamp", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existingVehicle = { ...mockVehicle } as any;
+      const existingVehicle = { ...mockVehicle } as Vehicle;
       vehicleRepository.findOne.mockResolvedValue(existingVehicle);
       vehicleRepository.save.mockImplementation(async (v) => v as Vehicle);
 
@@ -279,8 +277,9 @@ describe("VehiclesService", () => {
   describe("remove", () => {
     it("should soft delete vehicle when found", async () => {
       vehicleRepository.findOne.mockResolvedValue(mockVehicle);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicleRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+      vehicleRepository.softDelete.mockResolvedValue({
+        affected: 1,
+      } as UpdateResult);
 
       await service.remove("vehicle-uuid-1");
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -18,6 +19,7 @@ import {
   Trash2,
   UserPlus,
   AlertTriangle,
+  type LucideIcon,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,62 +56,27 @@ interface User {
   lastLoginAt?: string;
 }
 
-const roleConfig: Record<
-  string,
-  { label: string; color: string; bgColor: string }
-> = {
-  owner: {
-    label: "Владелец",
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-  },
-  admin: {
-    label: "Администратор",
-    color: "text-red-600",
-    bgColor: "bg-red-100",
-  },
-  manager: {
-    label: "Менеджер",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  operator: {
-    label: "Оператор",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  warehouse: {
-    label: "Склад",
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-  accountant: {
-    label: "Бухгалтер",
-    color: "text-cyan-600",
-    bgColor: "bg-cyan-100",
-  },
-  viewer: {
-    label: "Наблюдатель",
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-  },
+// Structural data at module level (no labels)
+const roleColors: Record<string, { color: string; bgColor: string }> = {
+  owner: { color: "text-purple-600", bgColor: "bg-purple-100" },
+  admin: { color: "text-red-600", bgColor: "bg-red-100" },
+  manager: { color: "text-blue-600", bgColor: "bg-blue-100" },
+  operator: { color: "text-green-600", bgColor: "bg-green-100" },
+  warehouse: { color: "text-orange-600", bgColor: "bg-orange-100" },
+  accountant: { color: "text-cyan-600", bgColor: "bg-cyan-100" },
+  viewer: { color: "text-muted-foreground", bgColor: "bg-muted" },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const statusConfig: Record<
-  string,
-  { label: string; color: string; icon: any }
-> = {
-  active: { label: "Активен", color: "text-green-600", icon: CheckCircle },
-  inactive: {
-    label: "Неактивен",
-    color: "text-muted-foreground",
-    icon: XCircle,
-  },
-  suspended: { label: "Заблокирован", color: "text-red-600", icon: XCircle },
+const statusIcons: Record<string, { color: string; icon: LucideIcon }> = {
+  active: { color: "text-green-600", icon: CheckCircle },
+  inactive: { color: "text-muted-foreground", icon: XCircle },
+  suspended: { color: "text-red-600", icon: XCircle },
 };
 
 export default function UsersPage() {
+  const t = useTranslations("users");
+  const tCommon = useTranslations("common");
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
@@ -118,6 +85,31 @@ export default function UsersPage() {
     action: () => void;
   } | null>(null);
   const queryClient = useQueryClient();
+
+  const roleConfig: Record<
+    string,
+    { label: string; color: string; bgColor: string }
+  > = useMemo(
+    () => ({
+      owner: { ...roleColors.owner, label: t("roles.owner") },
+      admin: { ...roleColors.admin, label: t("roles.admin") },
+      manager: { ...roleColors.manager, label: t("roles.manager") },
+      operator: { ...roleColors.operator, label: t("roles.operator") },
+      warehouse: { ...roleColors.warehouse, label: t("roles.warehouse") },
+      accountant: { ...roleColors.accountant, label: t("roles.accountant") },
+      viewer: { ...roleColors.viewer, label: t("roles.viewer") },
+    }),
+    [t],
+  );
+
+  const statusConfig = useMemo(
+    () => ({
+      active: { ...statusIcons.active, label: t("statusActive") },
+      inactive: { ...statusIcons.inactive, label: t("statusInactive") },
+      suspended: { ...statusIcons.suspended, label: t("statusSuspended") },
+    }),
+    [t],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -137,10 +129,10 @@ export default function UsersPage() {
     mutationFn: usersApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Пользователь удалён");
+      toast.success(t("deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить пользователя");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -168,7 +160,7 @@ export default function UsersPage() {
       total: users?.length || 0,
       active: users?.filter((u: User) => u.status === "active").length || 0,
       byRole: Object.fromEntries(
-        Object.keys(roleConfig).map((role) => [
+        Object.keys(roleColors).map((role) => [
           role,
           users?.filter((u: User) => u.role === role).length || 0,
         ]),
@@ -181,14 +173,12 @@ export default function UsersPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить пользователей
-        </p>
+        <p className="text-lg font-medium">{tCommon("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
         >
-          Повторить
+          {tCommon("retry")}
         </Button>
       </div>
     );
@@ -199,15 +189,13 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Пользователи</h1>
-          <p className="text-muted-foreground">
-            Управление сотрудниками организации
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link href="/dashboard/users/new">
           <Button>
             <UserPlus className="h-4 w-4 mr-2" />
-            Добавить пользователя
+            {t("addUser")}
           </Button>
         </Link>
       </div>
@@ -218,7 +206,9 @@ export default function UsersPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Всего</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotal")}
+                </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground" />
@@ -229,7 +219,9 @@ export default function UsersPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Активные</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsActive")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.active}
                 </p>
@@ -242,7 +234,9 @@ export default function UsersPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Менеджеры</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsManagers")}
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {stats.byRole.manager || 0}
                 </p>
@@ -255,7 +249,9 @@ export default function UsersPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Операторы</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsOperators")}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.byRole.operator || 0}
                 </p>
@@ -271,7 +267,7 @@ export default function UsersPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по имени или email..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -281,12 +277,12 @@ export default function UsersPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              {roleFilter ? roleConfig[roleFilter]?.label : "Все роли"}
+              {roleFilter ? roleConfig[roleFilter]?.label : tCommon("allRoles")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setRoleFilter(null)}>
-              Все роли
+              {tCommon("allRoles")}
             </DropdownMenuItem>
             {Object.entries(roleConfig).map(([key, config]) => (
               <DropdownMenuItem key={key} onClick={() => setRoleFilter(key)}>
@@ -325,14 +321,12 @@ export default function UsersPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Пользователи не найдены</p>
-            <p className="text-muted-foreground mb-4">
-              Добавьте первого пользователя
-            </p>
+            <p className="text-lg font-medium">{t("notFound")}</p>
+            <p className="text-muted-foreground mb-4">{t("addFirst")}</p>
             <Link href="/dashboard/users/new">
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Добавить пользователя
+                {t("addUser")}
               </Button>
             </Link>
           </CardContent>
@@ -342,6 +336,7 @@ export default function UsersPage() {
           {filteredUsers?.map((user: User) => {
             const role = roleConfig[user.role] || roleConfig.viewer;
             const status = statusConfig[user.status] || statusConfig.inactive;
+            const StatusIcon = status.icon;
             const initials =
               `${user.firstName[0]}${user.lastName?.[0] || ""}`.toUpperCase();
 
@@ -366,13 +361,17 @@ export default function UsersPage() {
                           >
                             {role.label}
                           </span>
-                          <status.icon className={`h-4 w-4 ${status.color}`} />
+                          <StatusIcon className={`h-4 w-4 ${status.color}`} />
                         </div>
                       </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" aria-label="Действия">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label={tCommon("actions")}
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -380,26 +379,26 @@ export default function UsersPage() {
                         <Link href={`/dashboard/users/${user.id}`}>
                           <DropdownMenuItem>
                             <Eye className="h-4 w-4 mr-2" />
-                            Просмотр
+                            {tCommon("view")}
                           </DropdownMenuItem>
                         </Link>
                         <Link href={`/dashboard/users/${user.id}/edit`}>
                           <DropdownMenuItem>
                             <Edit className="h-4 w-4 mr-2" />
-                            Редактировать
+                            {tCommon("edit")}
                           </DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => {
                             setConfirmState({
-                              title: "Удалить пользователя?",
+                              title: t("deleteConfirm"),
                               action: () => deleteMutation.mutate(user.id),
                             });
                           }}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Удалить
+                          {tCommon("delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -421,12 +420,12 @@ export default function UsersPage() {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
-                        Создан:{" "}
+                        {tCommon("created")}:{" "}
                         {new Date(user.createdAt).toLocaleDateString("ru-RU")}
                       </span>
                       {user.lastLoginAt && (
                         <span>
-                          Вход:{" "}
+                          {tCommon("lastLogin")}:{" "}
                           {new Date(user.lastLoginAt).toLocaleDateString(
                             "ru-RU",
                           )}

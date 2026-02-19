@@ -21,7 +21,11 @@ import {
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles, UserRole } from "../../common/decorators";
-import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  ICurrentUser,
+} from "../../common/decorators/current-user.decorator";
+import { Location } from "./entities/location.entity";
 
 @ApiTags("locations")
 @Controller("locations")
@@ -33,16 +37,14 @@ export class LocationsController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Create a new location" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create(
     @Body() createLocationDto: CreateLocationDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.locationsService.create({
       ...createLocationDto,
       organizationId: user.organizationId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as Partial<Location>);
   }
 
   @Get()
@@ -73,8 +75,7 @@ export class LocationsController {
   @ApiOperation({ summary: "Get nearby locations" })
   findNearby(
     @Query() query: QueryNearbyLocationsDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.locationsService.findNearby(
       query.lat,
@@ -105,8 +106,10 @@ export class LocationsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateLocationDto: UpdateLocationDto,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.locationsService.update(id, updateLocationDto as any);
+    return this.locationsService.update(
+      id,
+      updateLocationDto as Partial<Location>,
+    );
   }
 
   @Delete(":id")

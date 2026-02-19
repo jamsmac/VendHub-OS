@@ -4,7 +4,14 @@ import { Repository, ObjectLiteral } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { NotFoundException } from "@nestjs/common";
 import { SparePartService } from "./spare-part.service";
-import { SparePart } from "../entities/equipment-component.entity";
+import {
+  SparePart,
+  EquipmentComponentType,
+} from "../entities/equipment-component.entity";
+import {
+  CreateSparePartDto,
+  UpdateSparePartDto,
+} from "../dto/create-spare-part.dto";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -80,8 +87,11 @@ describe("SparePartService", () => {
       repo.create!.mockReturnValue(created);
       repo.save!.mockResolvedValue(created);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await service.create(orgId, userId, dto as any);
+      const result = await service.create(
+        orgId,
+        userId,
+        dto as CreateSparePartDto,
+      );
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -114,8 +124,7 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { search: "filter" } as any);
+      await service.findAll(orgId, { search: "filter" });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "(s.name ILIKE :search OR s.partNumber ILIKE :search)",
@@ -128,8 +137,9 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { compatibleWith: "pump" } as any);
+      await service.findAll(orgId, {
+        compatibleWith: EquipmentComponentType.PUMP,
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         "s.compatibleComponentTypes ::jsonb @> :compatibleWith",
@@ -142,8 +152,7 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { lowStockOnly: true } as any);
+      await service.findAll(orgId, { lowStockOnly: true });
 
       expect(qb.andWhere).toHaveBeenCalledWith("s.quantity <= s.minQuantity");
     });
@@ -153,8 +162,7 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { supplierId: "sup-1" } as any);
+      await service.findAll(orgId, { supplierId: "sup-1" });
 
       expect(qb.andWhere).toHaveBeenCalledWith("s.supplierId = :supplierId", {
         supplierId: "sup-1",
@@ -166,8 +174,7 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.findAll(orgId, { activeOnly: false } as any);
+      await service.findAll(orgId, { activeOnly: false });
 
       const activeCalls = qb.andWhere.mock.calls.filter(
         (c: string[]) => c[0] === "s.isActive = true",
@@ -180,11 +187,10 @@ describe("SparePartService", () => {
       repo.createQueryBuilder!.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.findAll(orgId, {
         sortBy: "partNumber",
         sortOrder: "DESC",
-      } as any);
+      });
 
       expect(qb.orderBy).toHaveBeenCalledWith("s.partNumber", "DESC");
     });
@@ -211,10 +217,9 @@ describe("SparePartService", () => {
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.update(orgId, sparePartId, {
         name: "Updated Filter",
-      } as any);
+      } as UpdateSparePartDto);
 
       expect(result.name).toBe("Updated Filter");
     });
@@ -224,8 +229,9 @@ describe("SparePartService", () => {
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.update(orgId, sparePartId, { quantity: 3 } as any);
+      await service.update(orgId, sparePartId, {
+        quantity: 3,
+      } as UpdateSparePartDto);
 
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         "equipment.spare_part.low_stock",
@@ -238,8 +244,7 @@ describe("SparePartService", () => {
       repo.findOne!.mockResolvedValue(existing);
       repo.save!.mockImplementation(async (d) => d);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await service.update(orgId, sparePartId, {} as any);
+      await service.update(orgId, sparePartId, {} as UpdateSparePartDto);
 
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
