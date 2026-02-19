@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Banknote,
   Calculator,
@@ -43,15 +44,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface PayrollRecord {
   id: string;
   employee_id: string;
@@ -76,12 +68,12 @@ interface Employee {
   lastName: string;
 }
 
-const payrollStatusLabels: Record<string, string> = {
-  DRAFT: "Черновик",
-  CALCULATED: "Рассчитано",
-  APPROVED: "Одобрено",
-  PAID: "Оплачено",
-  CANCELLED: "Отменено",
+const payrollStatusKeys: Record<string, string> = {
+  DRAFT: "statusDraft",
+  CALCULATED: "statusCalculated",
+  APPROVED: "statusApproved",
+  PAID: "statusPaid",
+  CANCELLED: "statusCancelled",
 };
 
 const payrollStatusColors: Record<string, string> = {
@@ -95,24 +87,26 @@ const payrollStatusColors: Record<string, string> = {
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
 
-const months = [
-  "Январь",
-  "Февраль",
-  "Март",
-  "Апрель",
-  "Май",
-  "Июнь",
-  "Июль",
-  "Август",
-  "Сентябрь",
-  "Октябрь",
-  "Ноябрь",
-  "Декабрь",
+const monthKeys = [
+  "monthJanuary",
+  "monthFebruary",
+  "monthMarch",
+  "monthApril",
+  "monthMay",
+  "monthJune",
+  "monthJuly",
+  "monthAugust",
+  "monthSeptember",
+  "monthOctober",
+  "monthNovember",
+  "monthDecember",
 ];
 
 export default function PayrollPage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const t = useTranslations("payroll");
+  const tEmp = useTranslations("employees");
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth()));
   const [selectedYear, setSelectedYear] = useState(String(now.getFullYear()));
@@ -147,10 +141,10 @@ export default function PayrollPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payrolls"] });
-      toast.success("Зарплата одобрена");
+      toast.success(t("toastApproved"));
     },
     onError: () => {
-      toast.error("Не удалось одобрить");
+      toast.error(t("toastApproveError"));
     },
   });
 
@@ -160,11 +154,11 @@ export default function PayrollPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payrolls"] });
-      toast.success("Зарплата выплачена");
+      toast.success(t("toastPaid"));
       setPayConfirmId(null);
     },
     onError: () => {
-      toast.error("Не удалось выплатить");
+      toast.error(t("toastPayError"));
     },
   });
 
@@ -181,15 +175,22 @@ export default function PayrollPage() {
     years.push(String(y));
   }
 
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: tEmp("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: tEmp("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: tEmp("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: tEmp("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: tEmp("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: tEmp("tabReviews") },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{tEmp("title")}</h1>
+          <p className="text-muted-foreground">{tEmp("subtitle")}</p>
         </div>
       </div>
 
@@ -221,7 +222,9 @@ export default function PayrollPage() {
               <p className="text-lg font-bold">
                 {formatCurrency(totalPayroll)}
               </p>
-              <p className="text-sm text-muted-foreground">Всего к выплате</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsTotalPayroll")}
+              </p>
             </div>
           </div>
         </div>
@@ -234,7 +237,9 @@ export default function PayrollPage() {
               <p className="text-lg font-bold">
                 {formatCurrency(Math.round(avgSalary))}
               </p>
-              <p className="text-sm text-muted-foreground">Средняя зарплата</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsAvgSalary")}
+              </p>
             </div>
           </div>
         </div>
@@ -245,7 +250,9 @@ export default function PayrollPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{pendingApproval}</p>
-              <p className="text-sm text-muted-foreground">Ожидает одобрения</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsPendingApproval")}
+              </p>
             </div>
           </div>
         </div>
@@ -256,7 +263,7 @@ export default function PayrollPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{paidThisMonth}</p>
-              <p className="text-sm text-muted-foreground">Выплачено</p>
+              <p className="text-sm text-muted-foreground">{t("statsPaid")}</p>
             </div>
           </div>
         </div>
@@ -265,15 +272,15 @@ export default function PayrollPage() {
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium">Период:</label>
+          <label className="text-sm font-medium">{t("period")}:</label>
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {months.map((month, idx) => (
+              {monthKeys.map((key, idx) => (
                 <SelectItem key={idx} value={String(idx)}>
-                  {month}
+                  {t(key)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -295,12 +302,12 @@ export default function PayrollPage() {
           <DialogTrigger asChild>
             <Button>
               <Calculator className="w-4 h-4 mr-2" />
-              Рассчитать зарплату
+              {t("calculatePayroll")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Расчет зарплаты</DialogTitle>
+              <DialogTitle>{t("calculateTitle")}</DialogTitle>
             </DialogHeader>
             <CalculatePayrollForm
               employees={employees || []}
@@ -320,7 +327,7 @@ export default function PayrollPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Детали зарплаты</DialogTitle>
+            <DialogTitle>{t("detailTitle")}</DialogTitle>
           </DialogHeader>
           {detailPayroll && (
             <div className="space-y-4">
@@ -349,57 +356,68 @@ export default function PayrollPage() {
                 <Badge
                   className={`ml-auto ${payrollStatusColors[detailPayroll.status]}`}
                 >
-                  {payrollStatusLabels[detailPayroll.status]}
+                  {t(
+                    payrollStatusKeys[detailPayroll.status] ??
+                      detailPayroll.status,
+                  )}
                 </Badge>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Базовая зарплата
+                    {t("baseSalary")}
                   </span>
                   <span className="font-medium">
                     {formatCurrency(detailPayroll.base_salary)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Переработка</span>
+                  <span className="text-muted-foreground">
+                    {t("overtimePay")}
+                  </span>
                   <span className="font-medium text-blue-600">
                     +{formatCurrency(detailPayroll.overtime_pay)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Бонусы</span>
+                  <span className="text-muted-foreground">{t("bonuses")}</span>
                   <span className="font-medium text-green-600">
                     +{formatCurrency(detailPayroll.bonuses)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Удержания</span>
+                  <span className="text-muted-foreground">
+                    {t("deductions")}
+                  </span>
                   <span className="font-medium text-red-600">
                     -{formatCurrency(detailPayroll.deductions)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Налог</span>
+                  <span className="text-muted-foreground">{t("tax")}</span>
                   <span className="font-medium text-red-600">
                     -{formatCurrency(detailPayroll.tax)}
                   </span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between">
-                    <span className="font-semibold">Итого к выплате</span>
+                    <span className="font-semibold">{t("netSalary")}</span>
                     <span className="font-bold text-lg">
                       {formatCurrency(detailPayroll.net_salary)}
                     </span>
                   </div>
                 </div>
                 <div className="flex justify-between pt-1">
-                  <span className="text-muted-foreground">Рабочих дней</span>
+                  <span className="text-muted-foreground">
+                    {t("workingDays")}
+                  </span>
                   <span>{detailPayroll.working_days}</span>
                 </div>
                 {detailPayroll.paid_at && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Дата выплаты</span>
+                    <span className="text-muted-foreground">
+                      {t("paidDate")}
+                    </span>
                     <span>
                       {new Date(detailPayroll.paid_at).toLocaleDateString(
                         "ru-RU",
@@ -420,21 +438,20 @@ export default function PayrollPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Подтвердите выплату</DialogTitle>
+            <DialogTitle>{t("payConfirmTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Вы уверены, что хотите подтвердить выплату зарплаты? Это действие
-            нельзя отменить.
+            {t("payConfirmMessage")}
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setPayConfirmId(null)}>
-              Отмена
+              {t("cancel")}
             </Button>
             <Button
               disabled={payMutation.isPending}
               onClick={() => payConfirmId && payMutation.mutate(payConfirmId)}
             >
-              {payMutation.isPending ? "Оплата..." : "Подтвердить выплату"}
+              {payMutation.isPending ? t("paying") : t("confirmPayment")}
             </Button>
           </div>
         </DialogContent>
@@ -445,16 +462,16 @@ export default function PayrollPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Сотрудник</TableHead>
-              <TableHead>Период</TableHead>
-              <TableHead className="text-right">Оклад</TableHead>
-              <TableHead className="text-right">Переработка</TableHead>
-              <TableHead className="text-right">Бонусы</TableHead>
-              <TableHead className="text-right">Удержания</TableHead>
-              <TableHead className="text-right">Налог</TableHead>
-              <TableHead className="text-right">К выплате</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Действия</TableHead>
+              <TableHead>{t("colEmployee")}</TableHead>
+              <TableHead>{t("colPeriod")}</TableHead>
+              <TableHead className="text-right">{t("colSalary")}</TableHead>
+              <TableHead className="text-right">{t("colOvertime")}</TableHead>
+              <TableHead className="text-right">{t("colBonuses")}</TableHead>
+              <TableHead className="text-right">{t("colDeductions")}</TableHead>
+              <TableHead className="text-right">{t("colTax")}</TableHead>
+              <TableHead className="text-right">{t("colNetPay")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -542,7 +559,7 @@ export default function PayrollPage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {payrollStatusLabels[record.status] || record.status}
+                      {t(payrollStatusKeys[record.status] ?? record.status)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -552,7 +569,7 @@ export default function PayrollPage() {
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => setDetailPayroll(record)}
-                        title="Подробнее"
+                        title={t("actionDetails")}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -563,7 +580,7 @@ export default function PayrollPage() {
                           className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                           onClick={() => approveMutation.mutate(record.id)}
                           disabled={approveMutation.isPending}
-                          title="Одобрить"
+                          title={t("actionApprove")}
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -574,7 +591,7 @@ export default function PayrollPage() {
                           size="icon"
                           className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                           onClick={() => setPayConfirmId(record.id)}
-                          title="Выплатить"
+                          title={t("actionPay")}
                         >
                           <CreditCard className="w-4 h-4" />
                         </Button>
@@ -587,9 +604,7 @@ export default function PayrollPage() {
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-8">
                   <Banknote className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">
-                    Нет данных о зарплатах за выбранный период
-                  </p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -607,6 +622,7 @@ function CalculatePayrollForm({
   employees: Employee[];
   onSuccess: () => void;
 }) {
+  const t = useTranslations("payroll");
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
     .toISOString()
@@ -632,11 +648,11 @@ function CalculatePayrollForm({
       });
     },
     onSuccess: () => {
-      toast.success("Зарплата рассчитана");
+      toast.success(t("toastCalculated"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось рассчитать зарплату");
+      toast.error(t("toastCalculateError"));
     },
   });
 
@@ -648,7 +664,7 @@ function CalculatePayrollForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Сотрудник</label>
+        <label className="text-sm font-medium">{t("colEmployee")}</label>
         <Select
           value={formData.employee_id}
           onValueChange={(value) =>
@@ -656,7 +672,7 @@ function CalculatePayrollForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите сотрудника" />
+            <SelectValue placeholder={t("selectEmployee")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -669,7 +685,7 @@ function CalculatePayrollForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Начало периода</label>
+          <label className="text-sm font-medium">{t("periodStart")}</label>
           <Input
             type="date"
             value={formData.period_start}
@@ -680,7 +696,7 @@ function CalculatePayrollForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Конец периода</label>
+          <label className="text-sm font-medium">{t("periodEnd")}</label>
           <Input
             type="date"
             value={formData.period_end}
@@ -692,7 +708,7 @@ function CalculatePayrollForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Рабочих дней</label>
+        <label className="text-sm font-medium">{t("workingDays")}</label>
         <Input
           type="number"
           value={formData.working_days}
@@ -709,7 +725,7 @@ function CalculatePayrollForm({
           type="submit"
           disabled={mutation.isPending || !formData.employee_id}
         >
-          {mutation.isPending ? "Расчет..." : "Рассчитать"}
+          {mutation.isPending ? t("calculating") : t("calculate")}
         </Button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   CalendarDays,
   Plus,
@@ -52,15 +53,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface LeaveRequest {
   id: string;
   employee_id: string;
@@ -82,16 +74,16 @@ interface Employee {
   lastName: string;
 }
 
-const leaveTypeLabels: Record<string, string> = {
-  ANNUAL: "Ежегодный",
-  SICK: "Больничный",
-  UNPAID: "Без оплаты",
-  MATERNITY: "Декретный",
-  PATERNITY: "Отцовский",
-  BEREAVEMENT: "По утрате",
-  STUDY: "Учебный",
-  OTHER: "Другое",
-};
+const LEAVE_TYPES = [
+  "ANNUAL",
+  "SICK",
+  "UNPAID",
+  "MATERNITY",
+  "PATERNITY",
+  "BEREAVEMENT",
+  "STUDY",
+  "OTHER",
+] as const;
 
 const leaveTypeColors: Record<string, string> = {
   ANNUAL: "bg-blue-500/10 text-blue-500",
@@ -104,12 +96,12 @@ const leaveTypeColors: Record<string, string> = {
   OTHER: "bg-muted text-muted-foreground",
 };
 
-const leaveStatusLabels: Record<string, string> = {
-  PENDING: "Ожидает",
-  APPROVED: "Одобрено",
-  REJECTED: "Отклонено",
-  CANCELLED: "Отменено",
-};
+const LEAVE_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CANCELLED",
+] as const;
 
 const leaveStatusColors: Record<string, string> = {
   PENDING: "bg-amber-500/10 text-amber-500",
@@ -121,11 +113,22 @@ const leaveStatusColors: Record<string, string> = {
 export default function LeavePage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const tl = useTranslations("leave");
+  const te = useTranslations("employees");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: te("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: te("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: te("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: te("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: te("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: te("tabReviews") },
+  ];
 
   const { data: leaveRequests, isLoading } = useQuery<LeaveRequest[]>({
     queryKey: ["leave-requests", statusFilter, typeFilter],
@@ -152,10 +155,10 @@ export default function LeavePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
-      toast.success("Заявка одобрена");
+      toast.success(tl("requestApproved"));
     },
     onError: () => {
-      toast.error("Не удалось одобрить заявку");
+      toast.error(tl("approveFailed"));
     },
   });
 
@@ -165,12 +168,12 @@ export default function LeavePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
-      toast.success("Заявка отклонена");
+      toast.success(tl("requestRejected"));
       setRejectDialogId(null);
       setRejectReason("");
     },
     onError: () => {
-      toast.error("Не удалось отклонить заявку");
+      toast.error(tl("rejectFailed"));
     },
   });
 
@@ -180,10 +183,10 @@ export default function LeavePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
-      toast.success("Заявка отменена");
+      toast.success(tl("requestCancelled"));
     },
     onError: () => {
-      toast.error("Не удалось отменить заявку");
+      toast.error(tl("cancelFailed"));
     },
   });
 
@@ -212,10 +215,8 @@ export default function LeavePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{te("title")}</h1>
+          <p className="text-muted-foreground">{te("subtitle")}</p>
         </div>
       </div>
 
@@ -245,7 +246,9 @@ export default function LeavePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего заявок</p>
+              <p className="text-sm text-muted-foreground">
+                {tl("statsTotal")}
+              </p>
             </div>
           </div>
         </div>
@@ -256,7 +259,9 @@ export default function LeavePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.pending}</p>
-              <p className="text-sm text-muted-foreground">Ожидает решения</p>
+              <p className="text-sm text-muted-foreground">
+                {tl("statsPending")}
+              </p>
             </div>
           </div>
         </div>
@@ -268,7 +273,7 @@ export default function LeavePage() {
             <div>
               <p className="text-2xl font-bold">{stats.approvedThisMonth}</p>
               <p className="text-sm text-muted-foreground">
-                Одобрено в этом месяце
+                {tl("statsApprovedThisMonth")}
               </p>
             </div>
           </div>
@@ -280,7 +285,9 @@ export default function LeavePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.onLeaveNow}</p>
-              <p className="text-sm text-muted-foreground">Сейчас в отпуске</p>
+              <p className="text-sm text-muted-foreground">
+                {tl("statsOnLeaveNow")}
+              </p>
             </div>
           </div>
         </div>
@@ -293,20 +300,20 @@ export default function LeavePage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <Filter className="w-4 h-4 mr-2" />
-                Статус
+                {tl("filterStatus")}
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-                Все статусы
+                {tl("allStatuses")}
               </DropdownMenuItem>
-              {Object.entries(leaveStatusLabels).map(([value, label]) => (
+              {LEAVE_STATUSES.map((value) => (
                 <DropdownMenuItem
                   key={value}
                   onClick={() => setStatusFilter(value)}
                 >
-                  {label}
+                  {tl(`status_${value}`)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -315,20 +322,20 @@ export default function LeavePage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <CalendarDays className="w-4 h-4 mr-2" />
-                Тип отпуска
+                {tl("filterLeaveType")}
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-                Все типы
+                {tl("allTypes")}
               </DropdownMenuItem>
-              {Object.entries(leaveTypeLabels).map(([value, label]) => (
+              {LEAVE_TYPES.map((value) => (
                 <DropdownMenuItem
                   key={value}
                   onClick={() => setTypeFilter(value)}
                 >
-                  {label}
+                  {tl(`type_${value}`)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -338,12 +345,12 @@ export default function LeavePage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Создать заявку
+              {tl("createRequest")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Новая заявка на отпуск</DialogTitle>
+              <DialogTitle>{tl("newRequestTitle")}</DialogTitle>
             </DialogHeader>
             <LeaveRequestForm
               employees={employees || []}
@@ -368,16 +375,18 @@ export default function LeavePage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Отклонить заявку</DialogTitle>
+            <DialogTitle>{tl("rejectRequestTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Причина отклонения</label>
+              <label className="text-sm font-medium">
+                {tl("rejectReasonLabel")}
+              </label>
               <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm min-h-[80px] resize-none"
-                placeholder="Укажите причину отклонения"
+                placeholder={tl("rejectReasonPlaceholder")}
                 required
               />
             </div>
@@ -389,7 +398,7 @@ export default function LeavePage() {
                   setRejectReason("");
                 }}
               >
-                Отмена
+                {tl("cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -402,7 +411,7 @@ export default function LeavePage() {
                   })
                 }
               >
-                {rejectMutation.isPending ? "Отклонение..." : "Отклонить"}
+                {rejectMutation.isPending ? tl("rejecting") : tl("reject")}
               </Button>
             </div>
           </div>
@@ -414,13 +423,13 @@ export default function LeavePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Сотрудник</TableHead>
-              <TableHead>Тип</TableHead>
-              <TableHead>Период</TableHead>
-              <TableHead>Дней</TableHead>
-              <TableHead>Причина</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Действия</TableHead>
+              <TableHead>{tl("colEmployee")}</TableHead>
+              <TableHead>{tl("colType")}</TableHead>
+              <TableHead>{tl("colPeriod")}</TableHead>
+              <TableHead>{tl("colDays")}</TableHead>
+              <TableHead>{tl("colReason")}</TableHead>
+              <TableHead>{tl("colStatus")}</TableHead>
+              <TableHead>{tl("colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -456,8 +465,11 @@ export default function LeavePage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {leaveTypeLabels[request.leave_type] ||
-                        request.leave_type}
+                      {tl(
+                        `type_${request.leave_type}` as Parameters<
+                          typeof tl
+                        >[0],
+                      ) || request.leave_type}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -482,7 +494,9 @@ export default function LeavePage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {leaveStatusLabels[request.status] || request.status}
+                      {tl(
+                        `status_${request.status}` as Parameters<typeof tl>[0],
+                      ) || request.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -495,7 +509,7 @@ export default function LeavePage() {
                             className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                             onClick={() => approveMutation.mutate(request.id)}
                             disabled={approveMutation.isPending}
-                            title="Одобрить"
+                            title={tl("approve")}
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -504,7 +518,7 @@ export default function LeavePage() {
                             size="icon"
                             className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => setRejectDialogId(request.id)}
-                            title="Отклонить"
+                            title={tl("reject")}
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -518,7 +532,7 @@ export default function LeavePage() {
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => cancelMutation.mutate(request.id)}
                           disabled={cancelMutation.isPending}
-                          title="Отменить"
+                          title={tl("cancelRequest")}
                         >
                           <Ban className="w-4 h-4" />
                         </Button>
@@ -531,9 +545,7 @@ export default function LeavePage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <CalendarDays className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">
-                    Заявки на отпуск не найдены
-                  </p>
+                  <p className="text-muted-foreground">{tl("noRequests")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -551,6 +563,7 @@ function LeaveRequestForm({
   employees: Employee[];
   onSuccess: () => void;
 }) {
+  const tl = useTranslations("leave");
   const [formData, setFormData] = useState({
     employee_id: "",
     leave_type: "",
@@ -564,11 +577,11 @@ function LeaveRequestForm({
       return api.post("/employees/leave", data);
     },
     onSuccess: () => {
-      toast.success("Заявка создана");
+      toast.success(tl("requestCreated"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось создать заявку");
+      toast.error(tl("createFailed"));
     },
   });
 
@@ -589,7 +602,7 @@ function LeaveRequestForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Сотрудник</label>
+        <label className="text-sm font-medium">{tl("formEmployee")}</label>
         <Select
           value={formData.employee_id}
           onValueChange={(value) =>
@@ -597,7 +610,7 @@ function LeaveRequestForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите сотрудника" />
+            <SelectValue placeholder={tl("formEmployeePlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -609,7 +622,7 @@ function LeaveRequestForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Тип отпуска</label>
+        <label className="text-sm font-medium">{tl("formLeaveType")}</label>
         <Select
           value={formData.leave_type}
           onValueChange={(value) =>
@@ -617,12 +630,12 @@ function LeaveRequestForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите тип" />
+            <SelectValue placeholder={tl("formLeaveTypePlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(leaveTypeLabels).map(([value, label]) => (
+            {LEAVE_TYPES.map((value) => (
               <SelectItem key={value} value={value}>
-                {label}
+                {tl(`type_${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -630,7 +643,7 @@ function LeaveRequestForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Дата начала</label>
+          <label className="text-sm font-medium">{tl("formStartDate")}</label>
           <Input
             type="date"
             value={formData.start_date}
@@ -641,7 +654,7 @@ function LeaveRequestForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Дата окончания</label>
+          <label className="text-sm font-medium">{tl("formEndDate")}</label>
           <Input
             type="date"
             value={formData.end_date}
@@ -655,17 +668,17 @@ function LeaveRequestForm({
       </div>
       {totalDays > 0 && (
         <p className="text-sm text-muted-foreground">
-          Итого дней:{" "}
+          {tl("formTotalDays")}{" "}
           <span className="font-semibold text-foreground">{totalDays}</span>
         </p>
       )}
       <div>
-        <label className="text-sm font-medium">Причина</label>
+        <label className="text-sm font-medium">{tl("formReason")}</label>
         <Textarea
           value={formData.reason}
           onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
           className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm min-h-[80px] resize-none"
-          placeholder="Причина отпуска"
+          placeholder={tl("formReasonPlaceholder")}
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
@@ -679,7 +692,7 @@ function LeaveRequestForm({
             !formData.end_date
           }
         >
-          {mutation.isPending ? "Создание..." : "Создать заявку"}
+          {mutation.isPending ? tl("creating") : tl("createRequest")}
         </Button>
       </div>
     </form>

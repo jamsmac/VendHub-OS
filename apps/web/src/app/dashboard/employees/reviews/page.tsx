@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ClipboardCheck,
   Plus,
@@ -44,15 +45,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface Review {
   id: string;
   employee_id: string;
@@ -76,11 +68,11 @@ interface Employee {
   lastName: string;
 }
 
-const periodTypeLabels: Record<string, string> = {
-  MONTHLY: "Ежемесячно",
-  QUARTERLY: "Ежеквартально",
-  SEMI_ANNUAL: "Полугодовой",
-  ANNUAL: "Ежегодный",
+const periodTypeKeys: Record<string, string> = {
+  MONTHLY: "periodMonthly",
+  QUARTERLY: "periodQuarterly",
+  SEMI_ANNUAL: "periodSemiAnnual",
+  ANNUAL: "periodAnnual",
 };
 
 const periodTypeColors: Record<string, string> = {
@@ -90,11 +82,11 @@ const periodTypeColors: Record<string, string> = {
   ANNUAL: "bg-violet-500/10 text-violet-500",
 };
 
-const reviewStatusLabels: Record<string, string> = {
-  SCHEDULED: "Запланировано",
-  IN_PROGRESS: "В процессе",
-  COMPLETED: "Завершено",
-  CANCELLED: "Отменено",
+const reviewStatusKeys: Record<string, string> = {
+  SCHEDULED: "statusScheduled",
+  IN_PROGRESS: "statusInProgress",
+  COMPLETED: "statusCompleted",
+  CANCELLED: "statusCancelled",
 };
 
 const reviewStatusColors: Record<string, string> = {
@@ -104,7 +96,23 @@ const reviewStatusColors: Record<string, string> = {
   CANCELLED: "bg-red-500/10 text-red-500",
 };
 
-function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
+const ratingCategoryKeys = [
+  "catWorkQuality",
+  "catProductivity",
+  "catCommunication",
+  "catInitiative",
+  "catPunctuality",
+];
+
+function StarRating({
+  rating,
+  max = 5,
+  label,
+}: {
+  rating: number;
+  max?: number;
+  label: string;
+}) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: max }).map((_, i) => (
@@ -117,9 +125,7 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
           }`}
         />
       ))}
-      <span className="ml-1 text-sm font-medium">
-        {rating}/{max}
-      </span>
+      <span className="ml-1 text-sm font-medium">{label}</span>
     </div>
   );
 }
@@ -128,10 +134,14 @@ function StarInput({
   value,
   onChange,
   max = 5,
+  labelRated,
+  labelNotRated,
 }: {
   value: number;
   onChange: (v: number) => void;
   max?: number;
+  labelRated: string;
+  labelNotRated: string;
 }) {
   const [hover, setHover] = useState(0);
 
@@ -156,7 +166,7 @@ function StarInput({
         </button>
       ))}
       <span className="ml-2 text-sm text-muted-foreground">
-        {value > 0 ? `${value} из ${max}` : "Не оценено"}
+        {value > 0 ? labelRated : labelNotRated}
       </span>
     </div>
   );
@@ -165,6 +175,8 @@ function StarInput({
 export default function ReviewsPage() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const t = useTranslations("reviews");
+  const tEmp = useTranslations("employees");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [submitReviewId, setSubmitReviewId] = useState<string | null>(null);
   const [detailReview, setDetailReview] = useState<Review | null>(null);
@@ -203,15 +215,22 @@ export default function ReviewsPage() {
     }).length,
   };
 
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: tEmp("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: tEmp("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: tEmp("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: tEmp("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: tEmp("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: tEmp("tabReviews") },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{tEmp("title")}</h1>
+          <p className="text-muted-foreground">{tEmp("subtitle")}</p>
         </div>
       </div>
 
@@ -241,7 +260,7 @@ export default function ReviewsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего оценок</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -252,7 +271,9 @@ export default function ReviewsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.scheduled}</p>
-              <p className="text-sm text-muted-foreground">Запланировано</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsScheduled")}
+              </p>
             </div>
           </div>
         </div>
@@ -263,7 +284,9 @@ export default function ReviewsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inProgress}</p>
-              <p className="text-sm text-muted-foreground">В процессе</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsInProgress")}
+              </p>
             </div>
           </div>
         </div>
@@ -275,7 +298,7 @@ export default function ReviewsPage() {
             <div>
               <p className="text-2xl font-bold">{stats.completedThisQuarter}</p>
               <p className="text-sm text-muted-foreground">
-                Завершено в этом квартале
+                {t("statsCompletedThisQuarter")}
               </p>
             </div>
           </div>
@@ -288,12 +311,12 @@ export default function ReviewsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Создать оценку
+              {t("createReview")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Новая оценка сотрудника</DialogTitle>
+              <DialogTitle>{t("newReviewTitle")}</DialogTitle>
             </DialogHeader>
             <CreateReviewForm
               employees={employees || []}
@@ -313,7 +336,7 @@ export default function ReviewsPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Заполнить оценку</DialogTitle>
+            <DialogTitle>{t("fillReviewTitle")}</DialogTitle>
           </DialogHeader>
           {submitReviewId && (
             <SubmitReviewForm
@@ -334,7 +357,7 @@ export default function ReviewsPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Детали оценки</DialogTitle>
+            <DialogTitle>{t("detailTitle")}</DialogTitle>
           </DialogHeader>
           {detailReview && (
             <div className="space-y-4">
@@ -351,26 +374,36 @@ export default function ReviewsPage() {
                     {detailReview.employee?.lastName}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Оценщик: {detailReview.reviewer?.firstName}{" "}
+                    {t("reviewer")}: {detailReview.reviewer?.firstName}{" "}
                     {detailReview.reviewer?.lastName}
                   </p>
                 </div>
                 <Badge
                   className={`ml-auto ${reviewStatusColors[detailReview.status]}`}
                 >
-                  {reviewStatusLabels[detailReview.status]}
+                  {t(
+                    reviewStatusKeys[detailReview.status] ??
+                      detailReview.status,
+                  )}
                 </Badge>
               </div>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Тип периода</span>
+                  <span className="text-muted-foreground">
+                    {t("periodType")}
+                  </span>
                   <Badge className={periodTypeColors[detailReview.period_type]}>
-                    {periodTypeLabels[detailReview.period_type]}
+                    {t(
+                      periodTypeKeys[detailReview.period_type] ??
+                        detailReview.period_type,
+                    )}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Дата оценки</span>
+                  <span className="text-muted-foreground">
+                    {t("reviewDate")}
+                  </span>
                   <span>
                     {new Date(detailReview.review_date).toLocaleDateString(
                       "ru-RU",
@@ -381,9 +414,15 @@ export default function ReviewsPage() {
                   detailReview.overall_rating !== null && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">
-                        Общая оценка
+                        {t("overallRating")}
                       </span>
-                      <StarRating rating={detailReview.overall_rating} />
+                      <StarRating
+                        rating={detailReview.overall_rating}
+                        label={t("ratingOf", {
+                          value: detailReview.overall_rating,
+                          max: 5,
+                        })}
+                      />
                     </div>
                   )}
               </div>
@@ -391,7 +430,9 @@ export default function ReviewsPage() {
               {detailReview.ratings &&
                 Object.keys(detailReview.ratings).length > 0 && (
                   <div className="pt-2 border-t space-y-2">
-                    <p className="font-medium text-sm">Оценки по категориям</p>
+                    <p className="font-medium text-sm">
+                      {t("categoryRatings")}
+                    </p>
                     {Object.entries(detailReview.ratings).map(
                       ([category, rating]) => (
                         <div
@@ -401,7 +442,10 @@ export default function ReviewsPage() {
                           <span className="text-muted-foreground">
                             {category}
                           </span>
-                          <StarRating rating={rating as number} />
+                          <StarRating
+                            rating={rating as number}
+                            label={t("ratingOf", { value: rating, max: 5 })}
+                          />
                         </div>
                       ),
                     )}
@@ -410,7 +454,7 @@ export default function ReviewsPage() {
 
               {detailReview.strengths && (
                 <div className="pt-2 border-t">
-                  <p className="font-medium text-sm mb-1">Сильные стороны</p>
+                  <p className="font-medium text-sm mb-1">{t("strengths")}</p>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
                     {detailReview.strengths}
                   </p>
@@ -420,7 +464,7 @@ export default function ReviewsPage() {
               {detailReview.improvements && (
                 <div className="pt-2 border-t">
                   <p className="font-medium text-sm mb-1">
-                    Области для улучшения
+                    {t("improvements")}
                   </p>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
                     {detailReview.improvements}
@@ -430,7 +474,7 @@ export default function ReviewsPage() {
 
               {detailReview.goals && (
                 <div className="pt-2 border-t">
-                  <p className="font-medium text-sm mb-1">Цели</p>
+                  <p className="font-medium text-sm mb-1">{t("goals")}</p>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
                     {detailReview.goals}
                   </p>
@@ -446,13 +490,13 @@ export default function ReviewsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Сотрудник</TableHead>
-              <TableHead>Оценщик</TableHead>
-              <TableHead>Тип периода</TableHead>
-              <TableHead>Дата оценки</TableHead>
-              <TableHead>Общая оценка</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Действия</TableHead>
+              <TableHead>{t("colEmployee")}</TableHead>
+              <TableHead>{t("colReviewer")}</TableHead>
+              <TableHead>{t("colPeriodType")}</TableHead>
+              <TableHead>{t("colReviewDate")}</TableHead>
+              <TableHead>{t("colOverallRating")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -492,8 +536,10 @@ export default function ReviewsPage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {periodTypeLabels[review.period_type] ||
-                        review.period_type}
+                      {t(
+                        periodTypeKeys[review.period_type] ??
+                          review.period_type,
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -502,10 +548,16 @@ export default function ReviewsPage() {
                   <TableCell>
                     {review.overall_rating !== undefined &&
                     review.overall_rating !== null ? (
-                      <StarRating rating={review.overall_rating} />
+                      <StarRating
+                        rating={review.overall_rating}
+                        label={t("ratingOf", {
+                          value: review.overall_rating,
+                          max: 5,
+                        })}
+                      />
                     ) : (
                       <span className="text-muted-foreground text-sm">
-                        Не оценено
+                        {t("notRated")}
                       </span>
                     )}
                   </TableCell>
@@ -516,7 +568,7 @@ export default function ReviewsPage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {reviewStatusLabels[review.status] || review.status}
+                      {t(reviewStatusKeys[review.status] ?? review.status)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -526,7 +578,7 @@ export default function ReviewsPage() {
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => setDetailReview(review)}
-                        title="Подробнее"
+                        title={t("actionDetails")}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -537,7 +589,7 @@ export default function ReviewsPage() {
                           size="icon"
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => setSubmitReviewId(review.id)}
-                          title="Заполнить оценку"
+                          title={t("actionFillReview")}
                         >
                           <Send className="w-4 h-4" />
                         </Button>
@@ -550,7 +602,7 @@ export default function ReviewsPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <ClipboardCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Оценки не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -568,6 +620,7 @@ function CreateReviewForm({
   employees: Employee[];
   onSuccess: () => void;
 }) {
+  const t = useTranslations("reviews");
   const [formData, setFormData] = useState({
     employee_id: "",
     reviewer_id: "",
@@ -580,11 +633,11 @@ function CreateReviewForm({
       return api.post("/employees/reviews", data);
     },
     onSuccess: () => {
-      toast.success("Оценка создана");
+      toast.success(t("toastCreated"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось создать оценку");
+      toast.error(t("toastCreateError"));
     },
   });
 
@@ -593,10 +646,17 @@ function CreateReviewForm({
     mutation.mutate(formData);
   };
 
+  const periodTypeEntries: Array<[string, string]> = [
+    ["MONTHLY", t("periodMonthly")],
+    ["QUARTERLY", t("periodQuarterly")],
+    ["SEMI_ANNUAL", t("periodSemiAnnual")],
+    ["ANNUAL", t("periodAnnual")],
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Сотрудник</label>
+        <label className="text-sm font-medium">{t("colEmployee")}</label>
         <Select
           value={formData.employee_id}
           onValueChange={(value) =>
@@ -604,7 +664,7 @@ function CreateReviewForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите сотрудника" />
+            <SelectValue placeholder={t("selectEmployee")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -616,7 +676,7 @@ function CreateReviewForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Оценщик</label>
+        <label className="text-sm font-medium">{t("colReviewer")}</label>
         <Select
           value={formData.reviewer_id}
           onValueChange={(value) =>
@@ -624,7 +684,7 @@ function CreateReviewForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите оценщика" />
+            <SelectValue placeholder={t("selectReviewer")} />
           </SelectTrigger>
           <SelectContent>
             {employees.map((emp) => (
@@ -636,7 +696,7 @@ function CreateReviewForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Тип периода</label>
+        <label className="text-sm font-medium">{t("periodType")}</label>
         <Select
           value={formData.period_type}
           onValueChange={(value) =>
@@ -644,10 +704,10 @@ function CreateReviewForm({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите тип" />
+            <SelectValue placeholder={t("selectPeriodType")} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(periodTypeLabels).map(([value, label]) => (
+            {periodTypeEntries.map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
               </SelectItem>
@@ -656,7 +716,7 @@ function CreateReviewForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Дата оценки</label>
+        <label className="text-sm font-medium">{t("reviewDate")}</label>
         <Input
           type="date"
           value={formData.review_date}
@@ -676,7 +736,7 @@ function CreateReviewForm({
             !formData.period_type
           }
         >
-          {mutation.isPending ? "Создание..." : "Создать оценку"}
+          {mutation.isPending ? t("creating") : t("createReview")}
         </Button>
       </div>
     </form>
@@ -690,15 +750,12 @@ function SubmitReviewForm({
   reviewId: string;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("reviews");
   const [formData, setFormData] = useState({
     overall_rating: 0,
-    ratings: {
-      "Качество работы": 0,
-      Продуктивность: 0,
-      Коммуникация: 0,
-      Инициативность: 0,
-      Пунктуальность: 0,
-    } as Record<string, number>,
+    ratings: Object.fromEntries(
+      ratingCategoryKeys.map((key) => [key, 0]),
+    ) as Record<string, number>,
     strengths: "",
     improvements: "",
     goals: "",
@@ -706,14 +763,21 @@ function SubmitReviewForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post(`/employees/reviews/${reviewId}/submit`, data);
+      const translatedRatings: Record<string, number> = {};
+      for (const [key, value] of Object.entries(data.ratings)) {
+        translatedRatings[t(key)] = value;
+      }
+      return api.post(`/employees/reviews/${reviewId}/submit`, {
+        ...data,
+        ratings: translatedRatings,
+      });
     },
     onSuccess: () => {
-      toast.success("Оценка отправлена");
+      toast.success(t("toastSubmitted"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Не удалось отправить оценку");
+      toast.error(t("toastSubmitError"));
     },
   });
 
@@ -732,57 +796,63 @@ function SubmitReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm font-medium mb-2 block">Общая оценка</label>
+        <label className="text-sm font-medium mb-2 block">
+          {t("overallRating")}
+        </label>
         <StarInput
           value={formData.overall_rating}
           onChange={(v) => setFormData({ ...formData, overall_rating: v })}
+          labelRated={t("ratingOf", { value: formData.overall_rating, max: 5 })}
+          labelNotRated={t("notRated")}
         />
       </div>
 
       <div className="space-y-3 pt-2 border-t">
-        <p className="text-sm font-medium">Оценки по категориям</p>
+        <p className="text-sm font-medium">{t("categoryRatings")}</p>
         {Object.entries(formData.ratings).map(([category, rating]) => (
           <div key={category}>
             <label className="text-sm text-muted-foreground mb-1 block">
-              {category}
+              {t(category)}
             </label>
             <StarInput
               value={rating}
               onChange={(v) => updateCategoryRating(category, v)}
+              labelRated={t("ratingOf", { value: rating, max: 5 })}
+              labelNotRated={t("notRated")}
             />
           </div>
         ))}
       </div>
 
       <div>
-        <label className="text-sm font-medium">Сильные стороны</label>
+        <label className="text-sm font-medium">{t("strengths")}</label>
         <Textarea
           value={formData.strengths}
           onChange={(e) =>
             setFormData({ ...formData, strengths: e.target.value })
           }
           className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm min-h-[70px] resize-none"
-          placeholder="Опишите сильные стороны сотрудника"
+          placeholder={t("strengthsPlaceholder")}
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Области для улучшения</label>
+        <label className="text-sm font-medium">{t("improvements")}</label>
         <Textarea
           value={formData.improvements}
           onChange={(e) =>
             setFormData({ ...formData, improvements: e.target.value })
           }
           className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm min-h-[70px] resize-none"
-          placeholder="Что можно улучшить"
+          placeholder={t("improvementsPlaceholder")}
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Цели</label>
+        <label className="text-sm font-medium">{t("goals")}</label>
         <Textarea
           value={formData.goals}
           onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
           className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm min-h-[70px] resize-none"
-          placeholder="Цели на следующий период"
+          placeholder={t("goalsPlaceholder")}
         />
       </div>
       <div className="flex justify-end gap-3 pt-4">
@@ -790,7 +860,7 @@ function SubmitReviewForm({
           type="submit"
           disabled={mutation.isPending || formData.overall_rating === 0}
         >
-          {mutation.isPending ? "Отправка..." : "Отправить оценку"}
+          {mutation.isPending ? t("submitting") : t("submitReview")}
         </Button>
       </div>
     </form>

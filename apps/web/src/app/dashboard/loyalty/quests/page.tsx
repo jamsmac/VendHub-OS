@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Target,
@@ -74,62 +75,49 @@ interface Quest {
 // Constants
 // ============================================================================
 
+const PERIOD_KEYS = [
+  "daily",
+  "weekly",
+  "monthly",
+  "one_time",
+  "special",
+] as const;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PERIOD_LABELS: Record<
-  string,
-  { label: string; color: string; icon: any }
-> = {
-  daily: {
-    label: "Ежедневный",
-    color: "bg-blue-100 text-blue-700",
-    icon: Clock,
-  },
-  weekly: {
-    label: "Еженедельный",
-    color: "bg-green-100 text-green-700",
-    icon: Calendar,
-  },
-  monthly: {
-    label: "Ежемесячный",
-    color: "bg-purple-100 text-purple-700",
-    icon: Calendar,
-  },
-  one_time: {
-    label: "Одноразовый",
-    color: "bg-orange-100 text-orange-700",
-    icon: Zap,
-  },
-  special: {
-    label: "Специальный",
-    color: "bg-pink-100 text-pink-700",
-    icon: Target,
-  },
+const PERIOD_CONFIG: Record<string, { color: string; icon: any }> = {
+  daily: { color: "bg-blue-100 text-blue-700", icon: Clock },
+  weekly: { color: "bg-green-100 text-green-700", icon: Calendar },
+  monthly: { color: "bg-purple-100 text-purple-700", icon: Calendar },
+  one_time: { color: "bg-orange-100 text-orange-700", icon: Zap },
+  special: { color: "bg-pink-100 text-pink-700", icon: Target },
 };
 
-const DIFFICULTY_LABELS: Record<string, { label: string; color: string }> = {
-  easy: { label: "Лёгкий", color: "text-green-600" },
-  medium: { label: "Средний", color: "text-yellow-600" },
-  hard: { label: "Сложный", color: "text-orange-600" },
-  expert: { label: "Эксперт", color: "text-red-600" },
+const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: "text-green-600",
+  medium: "text-yellow-600",
+  hard: "text-orange-600",
+  expert: "text-red-600",
 };
 
-const QUEST_TYPE_LABELS: Record<string, string> = {
-  make_orders: "Сделать заказов",
-  spend_amount: "Потратить сумму",
-  try_new_product: "Попробовать новый товар",
-  try_new_machine: "Посетить новый автомат",
-  order_specific_product: "Заказать конкретный товар",
-  order_from_category: "Заказ из категории",
-  morning_order: "Утренний заказ",
-  evening_order: "Вечерний заказ",
-  consecutive_days: "Подряд дней",
-  invite_friend: "Пригласить друга",
-  leave_review: "Оставить отзыв",
-  use_promo: "Использовать промокод",
-  reach_streak: "Достичь серии",
-  visit_locations: "Посетить локации",
-  collect_points: "Собрать баллы",
-};
+const DIFFICULTY_KEYS = ["easy", "medium", "hard", "expert"] as const;
+
+const QUEST_TYPE_KEYS = [
+  "make_orders",
+  "spend_amount",
+  "try_new_product",
+  "try_new_machine",
+  "order_specific_product",
+  "order_from_category",
+  "morning_order",
+  "evening_order",
+  "consecutive_days",
+  "invite_friend",
+  "leave_review",
+  "use_promo",
+  "reach_streak",
+  "visit_locations",
+  "collect_points",
+] as const;
 
 const EMPTY_FORM = {
   title: "",
@@ -152,6 +140,7 @@ const EMPTY_FORM = {
 
 export default function QuestsPage() {
   const queryClient = useQueryClient();
+  const t = useTranslations("quests");
   const [search, setSearch] = useState("");
   const [periodFilter, setPeriodFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -267,10 +256,8 @@ export default function QuestsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Квесты</h1>
-            <p className="text-muted-foreground">
-              Ежедневные и недельные задания
-            </p>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
         <Button
@@ -281,7 +268,7 @@ export default function QuestsPage() {
           }}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Новый квест
+          {t("newQuest")}
         </Button>
       </div>
 
@@ -293,7 +280,7 @@ export default function QuestsPage() {
               <Target className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Всего квестов</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
               <p className="text-xl font-bold">{quests.length}</p>
             </div>
           </CardContent>
@@ -304,7 +291,7 @@ export default function QuestsPage() {
               <Clock className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Ежедневных</p>
+              <p className="text-sm text-muted-foreground">{t("statsDaily")}</p>
               <p className="text-xl font-bold">
                 {quests.filter((q) => q.period === "daily").length}
               </p>
@@ -317,7 +304,9 @@ export default function QuestsPage() {
               <Calendar className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Еженедельных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsWeekly")}
+              </p>
               <p className="text-xl font-bold">
                 {quests.filter((q) => q.period === "weekly").length}
               </p>
@@ -330,7 +319,9 @@ export default function QuestsPage() {
               <Users className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Выполнено всего</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsCompleted")}
+              </p>
               <p className="text-xl font-bold">
                 {statsData?.totalCompleted?.toLocaleString() || "—"}
               </p>
@@ -344,7 +335,7 @@ export default function QuestsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск квестов..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -352,13 +343,13 @@ export default function QuestsPage() {
         </div>
         <Select value={periodFilter} onValueChange={setPeriodFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Период" />
+            <SelectValue placeholder={t("filterPeriod")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Все периоды</SelectItem>
-            {Object.entries(PERIOD_LABELS).map(([k, v]) => (
+            <SelectItem value="all">{t("allPeriods")}</SelectItem>
+            {PERIOD_KEYS.map((k) => (
               <SelectItem key={k} value={k}>
-                {v.label}
+                {t(`period_${k}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -376,30 +367,31 @@ export default function QuestsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Target className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-lg font-medium">Нет квестов</p>
+            <p className="text-lg font-medium">{t("noQuests")}</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Создайте первый квест для пользователей
+              {t("noQuestsHint")}
             </p>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Создать квест
+              {t("createQuest")}
             </Button>
           </CardContent>
         </Card>
       ) : (
         Object.entries(grouped).map(([period, items]) => {
-          const periodConfig = PERIOD_LABELS[period] || PERIOD_LABELS.daily;
+          const periodConfig = PERIOD_CONFIG[period] || PERIOD_CONFIG.daily;
           return (
             <div key={period} className="space-y-3">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase flex items-center gap-2">
                 <periodConfig.icon className="h-4 w-4" />
-                {periodConfig.label} ({items.length})
+                {t(`period_${period}` as Parameters<typeof t>[0])} (
+                {items.length})
               </h3>
               <div className="space-y-2">
                 {items.map((quest) => {
-                  const diffConfig =
-                    DIFFICULTY_LABELS[quest.difficulty] ||
-                    DIFFICULTY_LABELS.easy;
+                  const diffColor =
+                    DIFFICULTY_COLORS[quest.difficulty] ||
+                    DIFFICULTY_COLORS.easy;
                   return (
                     <Card
                       key={quest.id}
@@ -414,7 +406,7 @@ export default function QuestsPage() {
                             </p>
                             {!quest.isActive && (
                               <Badge variant="destructive" className="text-xs">
-                                Неактивен
+                                {t("inactive")}
                               </Badge>
                             )}
                           </div>
@@ -423,14 +415,22 @@ export default function QuestsPage() {
                           </p>
                           <div className="flex gap-1.5 mt-1.5">
                             <Badge variant="outline" className="text-xs">
-                              {QUEST_TYPE_LABELS[quest.type] || quest.type}:{" "}
-                              {quest.targetValue}
+                              {t(
+                                `questType_${quest.type}` as Parameters<
+                                  typeof t
+                                >[0],
+                              ) || quest.type}
+                              : {quest.targetValue}
                             </Badge>
                             <Badge
                               variant="secondary"
-                              className={`text-xs ${diffConfig.color}`}
+                              className={`text-xs ${diffColor}`}
                             >
-                              {diffConfig.label}
+                              {t(
+                                `difficulty_${quest.difficulty}` as Parameters<
+                                  typeof t
+                                >[0],
+                              )}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               🎁 {quest.pointsReward}
@@ -470,14 +470,14 @@ export default function QuestsPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "Редактировать" : "Новый"} квест
+              {editingId ? t("editQuest") : t("newQuest")}
             </DialogTitle>
-            <DialogDescription>Заполните данные квеста</DialogDescription>
+            <DialogDescription>{t("formDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-[60px_1fr] gap-3">
               <div className="space-y-2">
-                <Label>Иконка</Label>
+                <Label>{t("formIcon")}</Label>
                 <Input
                   value={form.icon}
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
@@ -485,7 +485,7 @@ export default function QuestsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Название (RU)</Label>
+                <Label>{t("formTitleRu")}</Label>
                 <Input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -493,14 +493,14 @@ export default function QuestsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Название (UZ)</Label>
+              <Label>{t("formTitleUz")}</Label>
               <Input
                 value={form.titleUz}
                 onChange={(e) => setForm({ ...form, titleUz: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>Описание (RU)</Label>
+              <Label>{t("formDescriptionRu")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) =>
@@ -509,7 +509,7 @@ export default function QuestsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Описание (UZ)</Label>
+              <Label>{t("formDescriptionUz")}</Label>
               <Textarea
                 value={form.descriptionUz}
                 onChange={(e) =>
@@ -519,7 +519,7 @@ export default function QuestsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Период</Label>
+                <Label>{t("formPeriod")}</Label>
                 <Select
                   value={form.period}
                   onValueChange={(v) => setForm({ ...form, period: v })}
@@ -528,16 +528,16 @@ export default function QuestsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(PERIOD_LABELS).map(([k, v]) => (
+                    {PERIOD_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v.label}
+                        {t(`period_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Сложность</Label>
+                <Label>{t("formDifficulty")}</Label>
                 <Select
                   value={form.difficulty}
                   onValueChange={(v) => setForm({ ...form, difficulty: v })}
@@ -546,9 +546,9 @@ export default function QuestsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(DIFFICULTY_LABELS).map(([k, v]) => (
+                    {DIFFICULTY_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v.label}
+                        {t(`difficulty_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -557,7 +557,7 @@ export default function QuestsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Тип задания</Label>
+                <Label>{t("formQuestType")}</Label>
                 <Select
                   value={form.type}
                   onValueChange={(v) => setForm({ ...form, type: v })}
@@ -566,16 +566,16 @@ export default function QuestsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(QUEST_TYPE_LABELS).map(([k, v]) => (
+                    {QUEST_TYPE_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v}
+                        {t(`questType_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Цель</Label>
+                <Label>{t("formTarget")}</Label>
                 <Input
                   type="number"
                   value={form.targetValue}
@@ -587,7 +587,7 @@ export default function QuestsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Награда (баллы)</Label>
+                <Label>{t("formReward")}</Label>
                 <Input
                   type="number"
                   value={form.pointsReward}
@@ -597,7 +597,7 @@ export default function QuestsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Порядок</Label>
+                <Label>{t("formSortOrder")}</Label>
                 <Input
                   type="number"
                   value={form.sortOrder}
@@ -608,7 +608,7 @@ export default function QuestsPage() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <Label>Активен</Label>
+              <Label>{t("formActive")}</Label>
               <Switch
                 checked={form.isActive}
                 onCheckedChange={(v) => setForm({ ...form, isActive: v })}
@@ -617,7 +617,7 @@ export default function QuestsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeForm}>
-              Отмена
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleSave}
@@ -628,8 +628,8 @@ export default function QuestsPage() {
               }
             >
               {createMutation.isPending || updateMutation.isPending
-                ? "Сохранение..."
-                : "Сохранить"}
+                ? t("saving")
+                : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -642,18 +642,18 @@ export default function QuestsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить квест?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Квест будет деактивирован. Прогресс пользователей сохранится.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground"
             >
-              Удалить
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

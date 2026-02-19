@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Trophy,
@@ -74,45 +75,46 @@ interface Achievement {
 // Constants
 // ============================================================================
 
-const CATEGORY_LABELS: Record<string, string> = {
-  beginner: "Новичок",
-  explorer: "Исследователь",
-  loyal: "Лояльный",
-  social: "Социальный",
-  collector: "Коллекционер",
-  special: "Специальный",
+const CATEGORY_KEYS = [
+  "beginner",
+  "explorer",
+  "loyal",
+  "social",
+  "collector",
+  "special",
+] as const;
+
+const RARITY_KEYS = [
+  "common",
+  "uncommon",
+  "rare",
+  "epic",
+  "legendary",
+] as const;
+
+const RARITY_STYLE: Record<string, { color: string; badge: string }> = {
+  common: { color: "text-gray-600", badge: "secondary" },
+  uncommon: { color: "text-green-600", badge: "default" },
+  rare: { color: "text-blue-600", badge: "default" },
+  epic: { color: "text-purple-600", badge: "default" },
+  legendary: { color: "text-yellow-600", badge: "destructive" },
 };
 
-const RARITY_CONFIG: Record<
-  string,
-  { label: string; color: string; badge: string }
-> = {
-  common: { label: "Обычная", color: "text-gray-600", badge: "secondary" },
-  uncommon: { label: "Необычная", color: "text-green-600", badge: "default" },
-  rare: { label: "Редкая", color: "text-blue-600", badge: "default" },
-  epic: { label: "Эпическая", color: "text-purple-600", badge: "default" },
-  legendary: {
-    label: "Легендарная",
-    color: "text-yellow-600",
-    badge: "destructive",
-  },
-};
-
-const CONDITION_LABELS: Record<string, string> = {
-  total_orders: "Всего заказов",
-  total_spent: "Всего потрачено",
-  total_points_earned: "Баллов заработано",
-  streak_days: "Серия дней",
-  unique_machines: "Уникальных автоматов",
-  unique_products: "Уникальных товаров",
-  referrals_count: "Приглашённых друзей",
-  reviews_count: "Написано отзывов",
-  quests_completed: "Квестов выполнено",
-  level_reached: "Достигнут уровень",
-  first_order: "Первый заказ",
-  night_order: "Ночной заказ",
-  weekend_order: "Заказ в выходные",
-};
+const CONDITION_KEYS = [
+  "total_orders",
+  "total_spent",
+  "total_points_earned",
+  "streak_days",
+  "unique_machines",
+  "unique_products",
+  "referrals_count",
+  "reviews_count",
+  "quests_completed",
+  "level_reached",
+  "first_order",
+  "night_order",
+  "weekend_order",
+] as const;
 
 const EMPTY_FORM = {
   title: "",
@@ -134,6 +136,7 @@ const EMPTY_FORM = {
 // ============================================================================
 
 export default function AchievementsPage() {
+  const t = useTranslations("achievements");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -251,10 +254,8 @@ export default function AchievementsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Достижения</h1>
-            <p className="text-muted-foreground">
-              Управление ачивками и бейджами
-            </p>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -264,7 +265,7 @@ export default function AchievementsPage() {
             disabled={seedMutation.isPending}
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            Создать базовые
+            {t("seedBasic")}
           </Button>
           <Button
             onClick={() => {
@@ -274,7 +275,7 @@ export default function AchievementsPage() {
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Новое достижение
+            {t("newAchievement")}
           </Button>
         </div>
       </div>
@@ -287,7 +288,9 @@ export default function AchievementsPage() {
               <Trophy className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Всего достижений</p>
+              <p className="text-sm text-muted-foreground">
+                {t("totalAchievements")}
+              </p>
               <p className="text-xl font-bold">{achievements.length}</p>
             </div>
           </CardContent>
@@ -299,10 +302,10 @@ export default function AchievementsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
-                Разблокировано всего
+                {t("totalUnlocked")}
               </p>
               <p className="text-xl font-bold">
-                {statsData?.totalUnlocked?.toLocaleString() || "—"}
+                {statsData?.totalUnlocked?.toLocaleString() || "\u2014"}
               </p>
             </div>
           </CardContent>
@@ -313,9 +316,11 @@ export default function AchievementsPage() {
               <Star className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Выдано наград</p>
+              <p className="text-sm text-muted-foreground">
+                {t("rewardsGiven")}
+              </p>
               <p className="text-xl font-bold">
-                {statsData?.totalRewardsClaimed?.toLocaleString() || "—"}
+                {statsData?.totalRewardsClaimed?.toLocaleString() || "\u2014"}
               </p>
             </div>
           </CardContent>
@@ -327,7 +332,7 @@ export default function AchievementsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск достижений..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -335,13 +340,13 @@ export default function AchievementsPage() {
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Категория" />
+            <SelectValue placeholder={t("categoryPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Все категории</SelectItem>
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+            <SelectItem value="all">{t("allCategories")}</SelectItem>
+            {CATEGORY_KEYS.map((key) => (
               <SelectItem key={key} value={key}>
-                {label}
+                {t(`category_${key}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -363,18 +368,18 @@ export default function AchievementsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-lg font-medium">Нет достижений</p>
+            <p className="text-lg font-medium">{t("emptyTitle")}</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Создайте первое достижение или загрузите базовые
+              {t("emptyDescription")}
             </p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => seedMutation.mutate()}>
                 <Sparkles className="h-4 w-4 mr-2" />
-                Создать базовые
+                {t("seedBasic")}
               </Button>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Создать
+                {t("create")}
               </Button>
             </div>
           </CardContent>
@@ -382,8 +387,7 @@ export default function AchievementsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {achievements.map((ach) => {
-            const rarityConfig =
-              RARITY_CONFIG[ach.rarity] || RARITY_CONFIG.common;
+            const rarityStyle = RARITY_STYLE[ach.rarity] || RARITY_STYLE.common;
             return (
               <Card
                 key={ach.id}
@@ -424,27 +428,27 @@ export default function AchievementsPage() {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     <Badge variant="secondary" className="text-xs">
-                      {CATEGORY_LABELS[ach.category] || ach.category}
+                      {t(`category_${ach.category}`)}
                     </Badge>
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     <Badge
-                      variant={rarityConfig.badge as any}
-                      className={`text-xs ${rarityConfig.color}`}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      variant={rarityStyle.badge as any}
+                      className={`text-xs ${rarityStyle.color}`}
                     >
-                      {rarityConfig.label}
+                      {t(`rarity_${ach.rarity}`)}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      🎁 {ach.pointsReward} баллов
+                      {t("pointsBadge", { points: ach.pointsReward })}
                     </Badge>
                   </div>
                   <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
                     <span>
-                      {CONDITION_LABELS[ach.conditionType] || ach.conditionType}
-                      : {ach.conditionValue}
+                      {t(`condition_${ach.conditionType}`)}:{" "}
+                      {ach.conditionValue}
                     </span>
                     {!ach.isActive && (
                       <Badge variant="destructive" className="text-xs">
-                        Неактивно
+                        {t("inactive")}
                       </Badge>
                     )}
                   </div>
@@ -460,14 +464,14 @@ export default function AchievementsPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "Редактировать" : "Новое"} достижение
+              {editingId ? t("dialogTitleEdit") : t("dialogTitleNew")}
             </DialogTitle>
-            <DialogDescription>Заполните данные достижения</DialogDescription>
+            <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-[60px_1fr] gap-3">
               <div className="space-y-2">
-                <Label>Иконка</Label>
+                <Label>{t("labelIcon")}</Label>
                 <Input
                   value={form.icon}
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
@@ -475,7 +479,7 @@ export default function AchievementsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Название (RU)</Label>
+                <Label>{t("labelTitleRu")}</Label>
                 <Input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -483,14 +487,14 @@ export default function AchievementsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Название (UZ)</Label>
+              <Label>{t("labelTitleUz")}</Label>
               <Input
                 value={form.titleUz}
                 onChange={(e) => setForm({ ...form, titleUz: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>Описание (RU)</Label>
+              <Label>{t("labelDescriptionRu")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) =>
@@ -499,7 +503,7 @@ export default function AchievementsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Описание (UZ)</Label>
+              <Label>{t("labelDescriptionUz")}</Label>
               <Textarea
                 value={form.descriptionUz}
                 onChange={(e) =>
@@ -509,7 +513,7 @@ export default function AchievementsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Категория</Label>
+                <Label>{t("labelCategory")}</Label>
                 <Select
                   value={form.category}
                   onValueChange={(v) => setForm({ ...form, category: v })}
@@ -518,16 +522,16 @@ export default function AchievementsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                    {CATEGORY_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v}
+                        {t(`category_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Редкость</Label>
+                <Label>{t("labelRarity")}</Label>
                 <Select
                   value={form.rarity}
                   onValueChange={(v) => setForm({ ...form, rarity: v })}
@@ -536,9 +540,9 @@ export default function AchievementsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(RARITY_CONFIG).map(([k, v]) => (
+                    {RARITY_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v.label}
+                        {t(`rarity_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -547,7 +551,7 @@ export default function AchievementsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Условие</Label>
+                <Label>{t("labelCondition")}</Label>
                 <Select
                   value={form.conditionType}
                   onValueChange={(v) => setForm({ ...form, conditionType: v })}
@@ -556,16 +560,16 @@ export default function AchievementsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(CONDITION_LABELS).map(([k, v]) => (
+                    {CONDITION_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {v}
+                        {t(`condition_${k}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Значение условия</Label>
+                <Label>{t("labelConditionValue")}</Label>
                 <Input
                   type="number"
                   value={form.conditionValue}
@@ -577,7 +581,7 @@ export default function AchievementsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Награда (баллы)</Label>
+                <Label>{t("labelReward")}</Label>
                 <Input
                   type="number"
                   value={form.pointsReward}
@@ -587,7 +591,7 @@ export default function AchievementsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Порядок сортировки</Label>
+                <Label>{t("labelSortOrder")}</Label>
                 <Input
                   type="number"
                   value={form.sortOrder}
@@ -598,7 +602,7 @@ export default function AchievementsPage() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <Label>Активно</Label>
+              <Label>{t("labelActive")}</Label>
               <Switch
                 checked={form.isActive}
                 onCheckedChange={(v) => setForm({ ...form, isActive: v })}
@@ -607,7 +611,7 @@ export default function AchievementsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeForm}>
-              Отмена
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleSave}
@@ -618,8 +622,8 @@ export default function AchievementsPage() {
               }
             >
               {createMutation.isPending || updateMutation.isPending
-                ? "Сохранение..."
-                : "Сохранить"}
+                ? t("saving")
+                : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -632,18 +636,18 @@ export default function AchievementsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить достижение?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Достижение будет деактивировано. Уже выданные бейджи сохранятся.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground"
             >
-              Удалить
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
