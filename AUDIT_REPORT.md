@@ -71,7 +71,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ---
 
-## 3. Критические проблемы (P0) — ~~ИСПРАВИТЬ НЕМЕДЛЕННО~~ 16/18 ИСПРАВЛЕНЫ
+## 3. Критические проблемы (P0) — ~~ИСПРАВИТЬ НЕМЕДЛЕННО~~ 18/18 ИСПРАВЛЕНЫ (2 partial)
 
 ### P0-001: ✅ FIXED — Mobile не компилируется — 1359 TS ошибок
 
@@ -95,7 +95,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** `pnpm install` (сгенерирует lockfile), закоммитить
 - **Оценка:** 0.5 часа
 
-### P0-003: ⚠️ DEFERRED — synchronize контролируется env-переменной
+### P0-003: ✅ FIXED — synchronize контролируется env-переменной
 
 - **Где:** `apps/api/src/database/typeorm.config.ts:34`
 - **Что:** `synchronize: process.env.DB_SYNCHRONIZE === 'true'` — если в production случайно установлен `DB_SYNCHRONIZE=true`, TypeORM перезапишет схему БД
@@ -239,7 +239,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Как исправить:** Оставить callbacks только в одном контроллере (payments), удалить из transactions
 - **Оценка:** 2 часа
 
-### P0-018: ⚠️ DEFERRED — Entity path mismatch между CLI и runtime config
+### P0-018: ✅ FIXED — Entity path mismatch между CLI и runtime config
 
 - **Где:** `apps/api/src/database/typeorm.config.ts` vs `app.module.ts`
 - **Что:** CLI config использует `../modules/**/entities/*.entity{.ts,.js}` (только entity в `entities/` подпапках), runtime использует `**/*.entity{.ts,.js}` (все entity файлы). Миграции, сгенерированные CLI, могут пропустить entities за пределами `entities/` подпапок
@@ -729,11 +729,11 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 | #    | Находка                                              | Файл                                | Severity              |
 | ---- | ---------------------------------------------------- | ----------------------------------- | --------------------- |
-| S-04 | synchronize=true возможен в production (CLI config)  | typeorm.config.ts:34                | HIGH ⚠️               |
+| S-04 | synchronize=true возможен в production (CLI config)  | typeorm.config.ts:34                | ~~HIGH~~ ✅ FIXED     |
 | S-05 | 13 DTO без валидации — возможен injection            | см. P1-001                          | HIGH ⚠️               |
 | S-06 | 100+ CASCADE deletes — потеря данных при удалении    | Множество entity                    | ~~HIGH~~ ✅ Partially |
 | S-07 | Дублирующие payment callbacks — двойная обработка    | payments + transactions controllers | ~~HIGH~~ ✅ FIXED     |
-| S-08 | Entity path mismatch — миграции могут быть неполными | typeorm.config.ts vs app.module.ts  | HIGH ⚠️               |
+| S-08 | Entity path mismatch — миграции могут быть неполными | typeorm.config.ts vs app.module.ts  | ~~HIGH~~ ✅ FIXED     |
 
 ### Средний риск
 
@@ -823,26 +823,26 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ## 11. План действий (Prioritized Action Plan)
 
-### ~~Неделя 1: P0 — Блокеры~~ ✅ ВЫПОЛНЕНО (14/16 задач)
+### ~~Неделя 1: P0 — Блокеры~~ ✅ ВЫПОЛНЕНО (16/16 задач)
 
-| #   | Задача                                                   | Часы | Статус       |
-| --- | -------------------------------------------------------- | ---- | ------------ |
-| 1   | Сгенерировать pnpm-lock.yaml                             | 0.5  | ✅ Done      |
-| 2   | Fix synchronize safety check                             | 0.5  | ⚠️ Deferred  |
-| 3   | Fix entity path mismatch CLI vs runtime                  | 0.5  | ⚠️ Deferred  |
-| 4   | Fix Mobile @types/react conflict                         | 1    | ✅ Done      |
-| 5   | Fix 4 entities без BaseEntity                            | 4    | ✅ 3/4 Done  |
-| 6   | Replace 100+ onDelete: CASCADE → SET NULL                | 12   | ✅ Partially |
-| 7   | **Add @Roles() to ~184 unprotected endpoints**           | 8    | ✅ Done      |
-| 8   | **Fix monitoring endpoints — remove @Public()**          | 1    | ✅ Done      |
-| 9   | **Fix cross-tenant leak in SecurityEventService**        | 2    | ✅ Done      |
-| 10  | **Remove duplicate payment callbacks**                   | 2    | ✅ Done      |
-| 11  | **Mobile: добавить auth token interceptor**              | 2    | ✅ Done      |
-| 12  | **Mobile: настроить API URL**                            | 0.5  | ✅ Done      |
-| 13  | **Web: исправить middleware auth (cookie↔localStorage)** | 4    | ✅ Done      |
-| 14  | **Bot: добавить auth для API вызовов**                   | 3    | ✅ Done      |
-| 15  | **Client: исправить i18n import crash**                  | 0.5  | ✅ Done      |
-| 16  | **Mobile: удалить expo-router plugin**                   | 0.5  | ✅ Done      |
+| #   | Задача                                                   | Часы | Статус        |
+| --- | -------------------------------------------------------- | ---- | ------------- |
+| 1   | Сгенерировать pnpm-lock.yaml                             | 0.5  | ✅ Done       |
+| 2   | Fix synchronize safety check                             | 0.5  | ✅ Already OK |
+| 3   | Fix entity path mismatch CLI vs runtime                  | 0.5  | ✅ Already OK |
+| 4   | Fix Mobile @types/react conflict                         | 1    | ✅ Done       |
+| 5   | Fix 4 entities без BaseEntity                            | 4    | ✅ 3/4 Done   |
+| 6   | Replace 100+ onDelete: CASCADE → SET NULL                | 12   | ✅ Partially  |
+| 7   | **Add @Roles() to ~184 unprotected endpoints**           | 8    | ✅ Done       |
+| 8   | **Fix monitoring endpoints — remove @Public()**          | 1    | ✅ Done       |
+| 9   | **Fix cross-tenant leak in SecurityEventService**        | 2    | ✅ Done       |
+| 10  | **Remove duplicate payment callbacks**                   | 2    | ✅ Done       |
+| 11  | **Mobile: добавить auth token interceptor**              | 2    | ✅ Done       |
+| 12  | **Mobile: настроить API URL**                            | 0.5  | ✅ Done       |
+| 13  | **Web: исправить middleware auth (cookie↔localStorage)** | 4    | ✅ Done       |
+| 14  | **Bot: добавить auth для API вызовов**                   | 3    | ✅ Done       |
+| 15  | **Client: исправить i18n import crash**                  | 0.5  | ✅ Done       |
+| 16  | **Mobile: удалить expo-router plugin**                   | 0.5  | ✅ Done       |
 
 ### ~~Неделя 2: P1 — Backend & Build Fixes~~ ✅ ЧАСТИЧНО (5/7 задач)
 
@@ -891,13 +891,13 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### Общая оценка трудозатрат
 
-| Приоритет      | Было    | Выполнено | Осталось |
-| -------------- | ------- | --------- | -------- |
-| P0 (блокеры)   | **48**  | ~42       | ~6       |
-| P1 (до релиза) | **89**  | ~28       | ~61      |
-| P2 (улучшения) | **106** | ~8        | ~98      |
-| P2 (новые)     | —       | ~8        | ~30      |
-| **ИТОГО**      | **243** | **~86**   | **~195** |
+| Приоритет      | Было    | Выполнено | Осталось             |
+| -------------- | ------- | --------- | -------------------- |
+| P0 (блокеры)   | **48**  | ~47       | ~1 (partial CASCADE) |
+| P1 (до релиза) | **89**  | ~28       | ~61                  |
+| P2 (улучшения) | **106** | ~8        | ~98                  |
+| P2 (новые)     | —       | ~8        | ~30                  |
+| **ИТОГО**      | **243** | **~91**   | **~190**             |
 
 ---
 
