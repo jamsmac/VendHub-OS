@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   CreditCard,
   MoreVertical,
@@ -145,68 +146,80 @@ const providerConfig: Record<
   },
 };
 
-const statusConfig: Record<
+const statusStyleConfig: Record<
   PaymentStatus,
-  { label: string; color: string; bgColor: string }
+  { color: string; bgColor: string }
 > = {
   PENDING: {
-    label: "В обработке",
     color: "text-amber-700",
     bgColor: "bg-amber-100",
   },
   PROCESSING: {
-    label: "Обрабатывается",
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
   COMPLETED: {
-    label: "Завершён",
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
-  FAILED: { label: "Ошибка", color: "text-red-700", bgColor: "bg-red-100" },
+  FAILED: { color: "text-red-700", bgColor: "bg-red-100" },
   CANCELLED: {
-    label: "Отменён",
     color: "text-muted-foreground",
     bgColor: "bg-muted",
   },
   REFUNDED: {
-    label: "Возвращён",
     color: "text-violet-700",
     bgColor: "bg-violet-100",
   },
 };
 
-const providerOptions = [
-  { value: "ALL", label: "Все провайдеры" },
+const statusKeys: Record<PaymentStatus, string> = {
+  PENDING: "statusPending",
+  PROCESSING: "statusProcessing",
+  COMPLETED: "statusCompleted",
+  FAILED: "statusFailed",
+  CANCELLED: "statusCancelled",
+  REFUNDED: "statusRefunded",
+};
+
+const providerOptionValues: {
+  value: string;
+  labelKey?: string;
+  label?: string;
+}[] = [
+  { value: "ALL", labelKey: "allProviders" },
   { value: "PAYME", label: "Payme" },
   { value: "CLICK", label: "Click" },
   { value: "UZUM", label: "Uzum Bank" },
   { value: "TELEGRAM_STARS", label: "Telegram Stars" },
 ];
 
-const statusOptions = [
-  { value: "ALL", label: "Все статусы" },
-  { value: "PENDING", label: "В обработке" },
-  { value: "PROCESSING", label: "Обрабатывается" },
-  { value: "COMPLETED", label: "Завершён" },
-  { value: "FAILED", label: "Ошибка" },
-  { value: "CANCELLED", label: "Отменён" },
-  { value: "REFUNDED", label: "Возвращён" },
+const statusOptionValues: { value: string; labelKey: string }[] = [
+  { value: "ALL", labelKey: "allStatuses" },
+  { value: "PENDING", labelKey: "statusPending" },
+  { value: "PROCESSING", labelKey: "statusProcessing" },
+  { value: "COMPLETED", labelKey: "statusCompleted" },
+  { value: "FAILED", labelKey: "statusFailed" },
+  { value: "CANCELLED", labelKey: "statusCancelled" },
+  { value: "REFUNDED", labelKey: "statusRefunded" },
 ];
 
-const refundReasons = [
-  { value: "CUSTOMER_REQUEST", label: "Запрос клиента" },
-  { value: "PRODUCT_NOT_DISPENSED", label: "Товар не выдан" },
-  { value: "WRONG_AMOUNT", label: "Неверная сумма" },
-  { value: "DUPLICATE_CHARGE", label: "Двойное списание" },
-  { value: "TECHNICAL_ERROR", label: "Техническая ошибка" },
-  { value: "OTHER", label: "Другое" },
+const refundReasonKeys: { value: string; labelKey: string }[] = [
+  { value: "CUSTOMER_REQUEST", labelKey: "refundReasonCustomerRequest" },
+  {
+    value: "PRODUCT_NOT_DISPENSED",
+    labelKey: "refundReasonProductNotDispensed",
+  },
+  { value: "WRONG_AMOUNT", labelKey: "refundReasonWrongAmount" },
+  { value: "DUPLICATE_CHARGE", labelKey: "refundReasonDuplicateCharge" },
+  { value: "TECHNICAL_ERROR", labelKey: "refundReasonTechnicalError" },
+  { value: "OTHER", labelKey: "refundReasonOther" },
 ];
 
 const PAGE_SIZE = 20;
 
 export default function PaymentsPage() {
+  const t = useTranslations("payments");
   const [provider, setProvider] = useState("ALL");
   const [status, setStatus] = useState("ALL");
   const [dateFrom, setDateFrom] = useState("");
@@ -274,7 +287,7 @@ export default function PaymentsPage() {
       reason: string;
     }) => paymentsApi.initiateRefund(data),
     onSuccess: () => {
-      toast.success("Возврат инициирован успешно");
+      toast.success(t("refundSuccess"));
       setRefundOpen(false);
       setSelectedTransaction(null);
       setDetailOpen(false);
@@ -284,7 +297,7 @@ export default function PaymentsPage() {
       queryClient.invalidateQueries({ queryKey: ["payment-stats"] });
     },
     onError: () => {
-      toast.error("Ошибка при инициации возврата");
+      toast.error(t("refundError"));
     },
   });
 
@@ -307,7 +320,7 @@ export default function PaymentsPage() {
 
   const handleSubmitRefund = () => {
     if (!selectedTransaction || !refundReason || !refundAmount) {
-      toast.error("Заполните все поля");
+      toast.error(t("refundFillAll"));
       return;
     }
     refundMutation.mutate({
@@ -339,14 +352,12 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Платежи</h1>
-          <p className="text-muted-foreground">
-            Управление платежными транзакциями и возвратами
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button variant="outline">
           <Download className="h-4 w-4 mr-2" />
-          Экспорт
+          {t("export")}
         </Button>
       </div>
 
@@ -356,7 +367,9 @@ export default function PaymentsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Общая выручка</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsTotalRevenue")}
+                </p>
                 <p className="text-2xl font-bold">
                   {formatPrice(txStats.total_revenue)}
                 </p>
@@ -370,7 +383,7 @@ export default function PaymentsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Транзакций сегодня
+                  {t("statsTransactionsToday")}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {txStats.transactions_today}
@@ -385,7 +398,7 @@ export default function PaymentsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Процент возвратов
+                  {t("statsRefundRate")}
                 </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {txStats.refund_rate.toFixed(1)}%
@@ -399,7 +412,9 @@ export default function PaymentsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Средняя сумма</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsAverageAmount")}
+                </p>
                 <p className="text-2xl font-bold text-purple-600">
                   {formatPrice(txStats.average_amount)}
                 </p>
@@ -427,16 +442,20 @@ export default function PaymentsPage() {
                     <h3 className="font-medium">{cfg.label}</h3>
                   </div>
                   <Badge className={`${cfg.bgColor} ${cfg.color} border-0`}>
-                    Активен
+                    {t("providerActive")}
                   </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Транзакций</p>
+                    <p className="text-muted-foreground">
+                      {t("providerTransactions")}
+                    </p>
                     <p className="font-medium">{provStats.count}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Выручка</p>
+                    <p className="text-muted-foreground">
+                      {t("providerRevenue")}
+                    </p>
                     <p className="font-medium">
                       {formatPrice(provStats.revenue)}
                     </p>
@@ -459,7 +478,7 @@ export default function PaymentsPage() {
               setPage(1);
             }}
             className="w-[160px]"
-            placeholder="Дата от"
+            placeholder={t("filterDateFrom")}
           />
           <Input
             type="date"
@@ -469,7 +488,7 @@ export default function PaymentsPage() {
               setPage(1);
             }}
             className="w-[160px]"
-            placeholder="Дата до"
+            placeholder={t("filterDateTo")}
           />
           <Select
             value={provider}
@@ -479,12 +498,14 @@ export default function PaymentsPage() {
             }}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Провайдер" />
+              <SelectValue placeholder={t("filterProvider")} />
             </SelectTrigger>
             <SelectContent>
-              {providerOptions.map((opt) => (
+              {providerOptionValues.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.labelKey
+                    ? t(opt.labelKey as Parameters<typeof t>[0])
+                    : opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -497,12 +518,12 @@ export default function PaymentsPage() {
             }}
           >
             <SelectTrigger className="w-[170px]">
-              <SelectValue placeholder="Статус" />
+              <SelectValue placeholder={t("filterStatus")} />
             </SelectTrigger>
             <SelectContent>
-              {statusOptions.map((opt) => (
+              {statusOptionValues.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.labelKey as Parameters<typeof t>[0])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -517,12 +538,14 @@ export default function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Дата</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Провайдер</TableHead>
-                  <TableHead className="text-right">Сумма</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead>{t("colDate")}</TableHead>
+                  <TableHead>{t("colId")}</TableHead>
+                  <TableHead>{t("colProvider")}</TableHead>
+                  <TableHead className="text-right">{t("colAmount")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("colActions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -556,10 +579,8 @@ export default function PaymentsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Транзакции не найдены</p>
-            <p className="text-muted-foreground">
-              Попробуйте изменить параметры фильтрации
-            </p>
+            <p className="text-lg font-medium">{t("notFound")}</p>
+            <p className="text-muted-foreground">{t("notFoundHint")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -568,17 +589,20 @@ export default function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID / Провайдер</TableHead>
-                  <TableHead className="text-right">Сумма</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Заказ</TableHead>
-                  <TableHead>Дата</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead>{t("colIdProvider")}</TableHead>
+                  <TableHead className="text-right">{t("colAmount")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead>{t("colOrder")}</TableHead>
+                  <TableHead>{t("colDate")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("colActions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => {
-                  const stCfg = statusConfig[tx.status] || statusConfig.PENDING;
+                  const stCfg =
+                    statusStyleConfig[tx.status] || statusStyleConfig.PENDING;
                   const provCfg =
                     providerConfig[tx.provider] || providerConfig.PAYME;
 
@@ -607,7 +631,7 @@ export default function PaymentsPage() {
                         <Badge
                           className={`${stCfg.bgColor} ${stCfg.color} border-0`}
                         >
-                          {stCfg.label}
+                          {t(statusKeys[tx.status] as Parameters<typeof t>[0])}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground font-mono">
@@ -628,7 +652,7 @@ export default function PaymentsPage() {
                             >
                               <MoreVertical
                                 className="h-4 w-4"
-                                aria-label="Действия"
+                                aria-label={t("actionsLabel")}
                               />
                             </Button>
                           </DropdownMenuTrigger>
@@ -640,7 +664,7 @@ export default function PaymentsPage() {
                               }}
                             >
                               <Eye className="h-4 w-4 mr-2" />
-                              Просмотр
+                              {t("actionView")}
                             </DropdownMenuItem>
                             {tx.status === "COMPLETED" && (
                               <DropdownMenuItem
@@ -653,7 +677,7 @@ export default function PaymentsPage() {
                                 }}
                               >
                                 <RotateCcw className="h-4 w-4 mr-2" />
-                                Возврат
+                                {t("actionRefund")}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -669,9 +693,9 @@ export default function PaymentsPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Показано {(meta.page - 1) * meta.limit + 1} -{" "}
-              {Math.min(meta.page * meta.limit, meta.total)} из {meta.total}{" "}
-              транзакций
+              {t("paginationShowing")} {(meta.page - 1) * meta.limit + 1} -{" "}
+              {Math.min(meta.page * meta.limit, meta.total)} {t("paginationOf")}{" "}
+              {meta.total} {t("paginationTransactions")}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -681,7 +705,7 @@ export default function PaymentsPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Назад
+                {t("paginationBack")}
               </Button>
               <span className="text-sm text-muted-foreground px-2">
                 {meta.page} / {meta.totalPages}
@@ -692,7 +716,7 @@ export default function PaymentsPage() {
                 disabled={page >= meta.totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Вперед
+                {t("paginationForward")}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
@@ -704,18 +728,22 @@ export default function PaymentsPage() {
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Детали транзакции</DialogTitle>
+            <DialogTitle>{t("detailTitle")}</DialogTitle>
           </DialogHeader>
           {selectedTransaction && (
             <div className="space-y-6">
               {/* Main Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">ID транзакции</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailTransactionId")}
+                  </p>
                   <p className="font-mono text-sm">{selectedTransaction.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Провайдер</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailProvider")}
+                  </p>
                   <div className="flex items-center gap-2 mt-1">
                     {getProviderIcon(selectedTransaction.provider)}
                     <span className="font-medium">
@@ -725,42 +753,55 @@ export default function PaymentsPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Сумма</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailAmount")}
+                  </p>
                   <p className="text-lg font-bold">
                     {formatPrice(selectedTransaction.amount)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Статус</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailStatus")}
+                  </p>
                   <Badge
-                    className={`mt-1 ${statusConfig[selectedTransaction.status]?.bgColor} ${statusConfig[selectedTransaction.status]?.color} border-0`}
+                    className={`mt-1 ${statusStyleConfig[selectedTransaction.status]?.bgColor} ${statusStyleConfig[selectedTransaction.status]?.color} border-0`}
                   >
-                    {statusConfig[selectedTransaction.status]?.label ||
-                      selectedTransaction.status}
+                    {t(
+                      statusKeys[selectedTransaction.status] as Parameters<
+                        typeof t
+                      >[0],
+                    )}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">ID заказа</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailOrderId")}
+                  </p>
                   <p className="font-mono text-sm">
                     {selectedTransaction.order_id || "-"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    ID у провайдера
+                    {t("detailProviderTxId")}
                   </p>
                   <p className="font-mono text-sm">
                     {selectedTransaction.provider_transaction_id || "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Создана</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailCreated")}
+                  </p>
                   <p className="text-sm">
                     {formatDateTime(selectedTransaction.created_at)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Обновлена</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("detailUpdated")}
+                  </p>
                   <p className="text-sm">
                     {formatDateTime(selectedTransaction.updated_at)}
                   </p>
@@ -772,7 +813,9 @@ export default function PaymentsPage() {
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200">
                   <div className="flex items-center gap-2 mb-1">
                     <AlertCircle className="h-4 w-4 text-red-600" />
-                    <p className="text-sm font-medium text-red-700">Ошибка</p>
+                    <p className="text-sm font-medium text-red-700">
+                      {t("detailError")}
+                    </p>
                   </div>
                   <p className="text-sm text-red-600">
                     {selectedTransaction.error_message}
@@ -787,13 +830,13 @@ export default function PaymentsPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <RotateCcw className="h-4 w-4 text-violet-600" />
                       <p className="text-sm font-medium text-violet-700">
-                        Возврат
+                        {t("detailRefund")}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">
-                          Сумма возврата:{" "}
+                          {t("detailRefundAmount")}:{" "}
                         </span>
                         <span className="font-medium">
                           {formatPrice(selectedTransaction.refund_amount)}
@@ -802,7 +845,7 @@ export default function PaymentsPage() {
                       {selectedTransaction.refund_reason && (
                         <div>
                           <span className="text-muted-foreground">
-                            Причина:{" "}
+                            {t("detailRefundReason")}:{" "}
                           </span>
                           <span className="font-medium">
                             {selectedTransaction.refund_reason}
@@ -819,7 +862,9 @@ export default function PaymentsPage() {
                   className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
                   onClick={() => setShowRequest(!showRequest)}
                 >
-                  <span className="text-sm font-medium">Запрос (Request)</span>
+                  <span className="text-sm font-medium">
+                    {t("detailRequest")}
+                  </span>
                   {showRequest ? (
                     <ChevronUp className="h-4 w-4 text-muted-foreground" />
                   ) : (
@@ -835,7 +880,7 @@ export default function PaymentsPage() {
                             null,
                             2,
                           )
-                        : "Нет данных"}
+                        : t("detailNoData")}
                     </pre>
                   </div>
                 )}
@@ -847,7 +892,9 @@ export default function PaymentsPage() {
                   className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
                   onClick={() => setShowResponse(!showResponse)}
                 >
-                  <span className="text-sm font-medium">Ответ (Response)</span>
+                  <span className="text-sm font-medium">
+                    {t("detailResponse")}
+                  </span>
                   {showResponse ? (
                     <ChevronUp className="h-4 w-4 text-muted-foreground" />
                   ) : (
@@ -863,7 +910,7 @@ export default function PaymentsPage() {
                             null,
                             2,
                           )
-                        : "Нет данных"}
+                        : t("detailNoData")}
                     </pre>
                   </div>
                 )}
@@ -874,7 +921,7 @@ export default function PaymentsPage() {
                 <div className="flex justify-end">
                   <Button variant="outline" onClick={handleOpenRefund}>
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Инициировать возврат
+                    {t("detailInitiateRefund")}
                   </Button>
                 </div>
               )}
@@ -887,20 +934,22 @@ export default function PaymentsPage() {
       <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Возврат средств</DialogTitle>
+            <DialogTitle>{t("refundTitle")}</DialogTitle>
           </DialogHeader>
           {selectedTransaction && (
             <div className="space-y-4">
               <div className="p-3 rounded-lg bg-muted/50 text-sm">
                 <div className="flex justify-between mb-1">
-                  <span className="text-muted-foreground">Транзакция:</span>
+                  <span className="text-muted-foreground">
+                    {t("refundTransaction")}
+                  </span>
                   <span className="font-mono">
                     {selectedTransaction.id.substring(0, 12)}...
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Сумма транзакции:
+                    {t("refundTxAmount")}
                   </span>
                   <span className="font-medium">
                     {formatPrice(selectedTransaction.amount)}
@@ -910,16 +959,16 @@ export default function PaymentsPage() {
 
               <div>
                 <label className="text-sm font-medium mb-1.5 block">
-                  Причина возврата
+                  {t("refundReasonLabel")}
                 </label>
                 <Select value={refundReason} onValueChange={setRefundReason}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите причину" />
+                    <SelectValue placeholder={t("refundReasonPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {refundReasons.map((r) => (
+                    {refundReasonKeys.map((r) => (
                       <SelectItem key={r.value} value={r.value}>
-                        {r.label}
+                        {t(r.labelKey as Parameters<typeof t>[0])}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -928,7 +977,7 @@ export default function PaymentsPage() {
 
               <div>
                 <label className="text-sm font-medium mb-1.5 block">
-                  Сумма возврата (UZS)
+                  {t("refundAmountLabel")}
                 </label>
                 <Input
                   type="number"
@@ -936,16 +985,16 @@ export default function PaymentsPage() {
                   onChange={(e) => setRefundAmount(e.target.value)}
                   max={selectedTransaction.amount}
                   min={1}
-                  placeholder="Введите сумму"
+                  placeholder={t("refundAmountPlaceholder")}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Максимум: {formatPrice(selectedTransaction.amount)}
+                  {t("refundMax")} {formatPrice(selectedTransaction.amount)}
                 </p>
               </div>
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setRefundOpen(false)}>
-                  Отмена
+                  {t("refundCancel")}
                 </Button>
                 <Button
                   onClick={handleSubmitRefund}
@@ -954,8 +1003,8 @@ export default function PaymentsPage() {
                   }
                 >
                   {refundMutation.isPending
-                    ? "Обработка..."
-                    : "Подтвердить возврат"}
+                    ? t("refundProcessing")
+                    : t("refundConfirm")}
                 </Button>
               </div>
             </div>

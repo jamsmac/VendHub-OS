@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   BarChart3,
   TrendingUp,
@@ -15,18 +16,18 @@ import {
   Download,
   RefreshCw,
   AlertTriangle,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { reportsApi } from '@/lib/api';
+} from "@/components/ui/dropdown-menu";
+import { reportsApi } from "@/lib/api";
 
 interface SalesData {
   date: string;
@@ -48,7 +49,7 @@ interface TopMachine {
   transactions: number;
 }
 
-type PeriodType = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
+type PeriodType = "today" | "week" | "month" | "quarter" | "year" | "custom";
 
 function StatsCardSkeleton() {
   return (
@@ -71,7 +72,11 @@ function ChartSkeleton() {
   return (
     <div className="h-64 flex items-end justify-between gap-1">
       {Array.from({ length: 14 }).map((_, i) => (
-        <Skeleton key={i} className="flex-1 rounded-t" style={{ height: `${20 + Math.random() * 60}%` }} />
+        <Skeleton
+          key={i}
+          className="flex-1 rounded-t"
+          style={{ height: `${20 + Math.random() * 60}%` }}
+        />
       ))}
     </div>
   );
@@ -93,37 +98,52 @@ function TableSkeleton() {
 }
 
 export default function ReportsPage() {
-  const [period, setPeriod] = useState<PeriodType>('month');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const t = useTranslations("reports");
+  const [period, setPeriod] = useState<PeriodType>("month");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: dashboard, isLoading: dashboardLoading, isError: dashboardError, isFetching } = useQuery({
-    queryKey: ['reports', 'dashboard', period],
+  const {
+    data: dashboard,
+    isLoading: dashboardLoading,
+    isError: dashboardError,
+    isFetching,
+  } = useQuery({
+    queryKey: ["reports", "dashboard", period],
     queryFn: () => reportsApi.getDashboard().then((res) => res.data.data),
   });
 
-  const { data: sales, isLoading: salesLoading, isError: salesError } = useQuery({
-    queryKey: ['reports', 'sales', period, startDate, endDate],
+  const {
+    data: sales,
+    isLoading: salesLoading,
+    isError: salesError,
+  } = useQuery({
+    queryKey: ["reports", "sales", period, startDate, endDate],
     queryFn: () =>
-      reportsApi.getSales({ period, startDate, endDate }).then((res) => res.data.data),
+      reportsApi
+        .getSales({ period, startDate, endDate })
+        .then((res) => res.data.data),
   });
 
   const periodLabels: Record<PeriodType, string> = {
-    today: 'Сегодня',
-    week: 'Неделя',
-    month: 'Месяц',
-    quarter: 'Квартал',
-    year: 'Год',
-    custom: 'Произвольный',
+    today: t("periodToday"),
+    week: t("periodWeek"),
+    month: t("periodMonth"),
+    quarter: t("periodQuarter"),
+    year: t("periodYear"),
+    custom: t("periodCustom"),
   };
 
-  const totals = useMemo(() => ({
-    revenue: dashboard?.totalRevenue || 0,
-    transactions: dashboard?.totalTransactions || 0,
-    averageCheck: dashboard?.averageCheck || 0,
-    revenueChange: dashboard?.revenueChange || 0,
-  }), [dashboard]);
+  const totals = useMemo(
+    () => ({
+      revenue: dashboard?.totalRevenue || 0,
+      transactions: dashboard?.totalTransactions || 0,
+      averageCheck: dashboard?.averageCheck || 0,
+      revenueChange: dashboard?.revenueChange || 0,
+    }),
+    [dashboard],
+  );
 
   const isLoading = dashboardLoading || salesLoading;
   const isError = dashboardError || salesError;
@@ -132,10 +152,16 @@ export default function ReportsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить данные отчётов</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['reports'] })}>
-          Повторить
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">
+          {t("loadErrorDescription")}
+        </p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["reports"] })
+          }
+        >
+          {t("retry")}
         </Button>
       </div>
     );
@@ -146,29 +172,29 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Отчёты</h1>
-          <p className="text-muted-foreground">
-            Аналитика и статистика продаж
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             disabled={isFetching}
             onClick={() => {
-              queryClient.invalidateQueries({ queryKey: ['reports'] });
-              toast.success('Данные обновлены');
+              queryClient.invalidateQueries({ queryKey: ["reports"] });
+              toast.success(t("refreshed"));
             }}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-            Обновить
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
+            />
+            {t("refresh")}
           </Button>
           <Button
             variant="outline"
-            onClick={() => toast.success('Экспорт будет доступен в следующей версии')}
+            onClick={() => toast.success(t("exportNotReady"))}
           >
             <Download className="h-4 w-4 mr-2" />
-            Экспорт
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -194,21 +220,21 @@ export default function ReportsPage() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {period === 'custom' && (
+        {period === "custom" && (
           <>
             <Input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="w-auto"
-              aria-label="Дата начала"
+              aria-label={t("dateStart")}
             />
             <Input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="w-auto"
-              aria-label="Дата окончания"
+              aria-label={t("dateEnd")}
             />
           </>
         )}
@@ -224,17 +250,25 @@ export default function ReportsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Выручка</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("revenue")}
+                    </p>
                     <p className="text-2xl font-bold">
                       {totals.revenue.toLocaleString()} ₛ
                     </p>
-                    <div className={`flex items-center gap-1 text-sm ${totals.revenueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div
+                      className={`flex items-center gap-1 text-sm ${totals.revenueChange >= 0 ? "text-green-600" : "text-red-600"}`}
+                    >
                       {totals.revenueChange >= 0 ? (
                         <TrendingUp className="h-4 w-4" />
                       ) : (
                         <TrendingDown className="h-4 w-4" />
                       )}
-                      <span>{Math.abs(totals.revenueChange)}% vs прошлый период</span>
+                      <span>
+                        {t("vsPreviousPeriod", {
+                          value: Math.abs(totals.revenueChange),
+                        })}
+                      </span>
                     </div>
                   </div>
                   <DollarSign className="h-8 w-8 text-green-600" />
@@ -246,8 +280,12 @@ export default function ReportsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Транзакций</p>
-                    <p className="text-2xl font-bold">{totals.transactions.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("transactionsCount")}
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {totals.transactions.toLocaleString()}
+                    </p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-blue-600" />
                 </div>
@@ -258,8 +296,12 @@ export default function ReportsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Средний чек</p>
-                    <p className="text-2xl font-bold">{totals.averageCheck.toLocaleString()} ₛ</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("averageCheck")}
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {totals.averageCheck.toLocaleString()} ₛ
+                    </p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
                 </div>
@@ -270,8 +312,12 @@ export default function ReportsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Активных автоматов</p>
-                    <p className="text-2xl font-bold">{dashboard?.activeMachines || 0}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("activeMachines")}
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {dashboard?.activeMachines || 0}
+                    </p>
                   </div>
                   <Coffee className="h-8 w-8 text-orange-600" />
                 </div>
@@ -288,7 +334,7 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Динамика продаж
+              {t("salesDynamics")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -297,27 +343,35 @@ export default function ReportsPage() {
             ) : sales?.chartData?.length > 0 ? (
               <div className="h-64">
                 <div className="flex items-end justify-between h-full gap-1">
-                  {sales.chartData.slice(-14).map((item: SalesData, index: number) => {
-                    const maxRevenue = Math.max(...sales.chartData.map((d: SalesData) => d.revenue));
-                    const height = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
-                    return (
-                      <div key={index} className="flex-1 flex flex-col items-center">
+                  {sales.chartData
+                    .slice(-14)
+                    .map((item: SalesData, index: number) => {
+                      const maxRevenue = Math.max(
+                        ...sales.chartData.map((d: SalesData) => d.revenue),
+                      );
+                      const height =
+                        maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+                      return (
                         <div
-                          className="w-full bg-primary rounded-t"
-                          style={{ height: `${height}%` }}
-                          title={`${new Date(item.date).toLocaleDateString('ru-RU')}: ${item.revenue.toLocaleString()} ₛ`}
-                        />
-                        <span className="text-xs text-muted-foreground mt-1 rotate-45 origin-left">
-                          {new Date(item.date).getDate()}
-                        </span>
-                      </div>
-                    );
-                  })}
+                          key={index}
+                          className="flex-1 flex flex-col items-center"
+                        >
+                          <div
+                            className="w-full bg-primary rounded-t"
+                            style={{ height: `${height}%` }}
+                            title={`${new Date(item.date).toLocaleDateString("ru-RU")}: ${item.revenue.toLocaleString()} ₛ`}
+                          />
+                          <span className="text-xs text-muted-foreground mt-1 rotate-45 origin-left">
+                            {new Date(item.date).getDate()}
+                          </span>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             ) : (
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                Нет данных за выбранный период
+                {t("noDataForPeriod")}
               </div>
             )}
           </CardContent>
@@ -328,7 +382,7 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Топ товаров
+              {t("topProducts")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -336,26 +390,35 @@ export default function ReportsPage() {
               <TableSkeleton />
             ) : sales?.topProducts?.length > 0 ? (
               <div className="space-y-4">
-                {sales.topProducts.slice(0, 5).map((product: TopProduct, index: number) => (
-                  <div key={product.productId} className="flex items-center gap-4">
-                    <span className="text-lg font-bold text-muted-foreground w-6">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{product.productName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {product.quantity} шт
-                      </p>
+                {sales.topProducts
+                  .slice(0, 5)
+                  .map((product: TopProduct, index: number) => (
+                    <div
+                      key={product.productId}
+                      className="flex items-center gap-4"
+                    >
+                      <span className="text-lg font-bold text-muted-foreground w-6">
+                        {index + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {product.productName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("pcsUnit", { count: product.quantity })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          {product.revenue.toLocaleString()} ₛ
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{product.revenue.toLocaleString()} ₛ</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                Нет данных
+                {t("noData")}
               </div>
             )}
           </CardContent>
@@ -367,7 +430,7 @@ export default function ReportsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Coffee className="h-5 w-5" />
-            Топ автоматов по выручке
+            {t("topMachinesByRevenue")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -378,40 +441,60 @@ export default function ReportsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">#</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Автомат</th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">Транзакций</th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">Выручка</th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">Ср. чек</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      {t("columnNumber")}
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      {t("columnMachine")}
+                    </th>
+                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                      {t("columnTransactions")}
+                    </th>
+                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                      {t("columnRevenue")}
+                    </th>
+                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                      {t("columnAvgCheck")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sales.topMachines.slice(0, 10).map((machine: TopMachine, index: number) => (
-                    <tr key={machine.machineId} className="border-b hover:bg-muted/50">
-                      <td className="py-3 px-4 font-medium">{index + 1}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <Coffee className="h-4 w-4 text-muted-foreground" />
-                          <span>{machine.machineName}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">{machine.transactions}</td>
-                      <td className="py-3 px-4 text-right font-medium">
-                        {machine.revenue.toLocaleString()} ₛ
-                      </td>
-                      <td className="py-3 px-4 text-right text-muted-foreground">
-                        {machine.transactions > 0
-                          ? Math.round(machine.revenue / machine.transactions).toLocaleString()
-                          : 0} ₛ
-                      </td>
-                    </tr>
-                  ))}
+                  {sales.topMachines
+                    .slice(0, 10)
+                    .map((machine: TopMachine, index: number) => (
+                      <tr
+                        key={machine.machineId}
+                        className="border-b hover:bg-muted/50"
+                      >
+                        <td className="py-3 px-4 font-medium">{index + 1}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Coffee className="h-4 w-4 text-muted-foreground" />
+                            <span>{machine.machineName}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          {machine.transactions}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium">
+                          {machine.revenue.toLocaleString()} ₛ
+                        </td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">
+                          {machine.transactions > 0
+                            ? Math.round(
+                                machine.revenue / machine.transactions,
+                              ).toLocaleString()
+                            : 0}{" "}
+                          ₛ
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Нет данных за выбранный период
+              {t("noDataForPeriod")}
             </div>
           )}
         </CardContent>
@@ -425,8 +508,10 @@ export default function ReportsPage() {
               <BarChart3 className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-medium">Отчёт по продажам</h3>
-              <p className="text-sm text-muted-foreground">Детальная аналитика</p>
+              <h3 className="font-medium">{t("salesReport")}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t("salesReportDescription")}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -437,8 +522,10 @@ export default function ReportsPage() {
               <Package className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <h3 className="font-medium">Отчёт по складу</h3>
-              <p className="text-sm text-muted-foreground">Остатки и движения</p>
+              <h3 className="font-medium">{t("warehouseReport")}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t("warehouseReportDescription")}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -449,8 +536,10 @@ export default function ReportsPage() {
               <Users className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-medium">Отчёт по сотрудникам</h3>
-              <p className="text-sm text-muted-foreground">Эффективность работы</p>
+              <h3 className="font-medium">{t("employeesReport")}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t("employeesReportDescription")}
+              </p>
             </div>
           </CardContent>
         </Card>

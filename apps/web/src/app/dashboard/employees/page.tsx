@@ -21,6 +21,7 @@ import {
   ChevronDown,
   AlertTriangle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,15 +57,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-const employeeTabs = [
-  { href: "/dashboard/employees", label: "Сотрудники" },
-  { href: "/dashboard/employees/departments", label: "Отделы" },
-  { href: "/dashboard/employees/attendance", label: "Посещаемость" },
-  { href: "/dashboard/employees/leave", label: "Отпуска" },
-  { href: "/dashboard/employees/payroll", label: "Зарплата" },
-  { href: "/dashboard/employees/reviews", label: "Оценки" },
-];
-
 interface Employee {
   id: string;
   firstName: string;
@@ -82,18 +74,18 @@ interface Employee {
   createdAt: string;
 }
 
-const roleLabels: Record<string, string> = {
-  admin: "Администратор",
-  manager: "Менеджер",
-  operator: "Оператор",
-  warehouse: "Кладовщик",
-  accountant: "Бухгалтер",
+const roleLabelKeys: Record<string, string> = {
+  admin: "roleAdmin",
+  manager: "roleManager",
+  operator: "roleOperator",
+  warehouse: "roleWarehouse",
+  accountant: "roleAccountant",
 };
 
-const statusLabels: Record<string, string> = {
-  active: "Активный",
-  inactive: "Неактивный",
-  on_leave: "В отпуске",
+const statusLabelKeys: Record<string, string> = {
+  active: "statusActiveLabel",
+  inactive: "statusInactiveLabel",
+  on_leave: "statusOnLeaveLabel",
 };
 
 const statusColors: Record<string, string> = {
@@ -103,6 +95,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function EmployeesPage() {
+  const t = useTranslations("employees");
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -110,6 +103,15 @@ export default function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  const employeeTabs = [
+    { href: "/dashboard/employees", label: t("tabEmployees") },
+    { href: "/dashboard/employees/departments", label: t("tabDepartments") },
+    { href: "/dashboard/employees/attendance", label: t("tabAttendance") },
+    { href: "/dashboard/employees/leave", label: t("tabLeave") },
+    { href: "/dashboard/employees/payroll", label: t("tabPayroll") },
+    { href: "/dashboard/employees/reviews", label: t("tabReviews") },
+  ];
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -140,10 +142,10 @@ export default function EmployeesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("Сотрудник удалён");
+      toast.success(t("deleted"));
     },
     onError: () => {
-      toast.error("Не удалось удалить сотрудника");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -161,16 +163,14 @@ export default function EmployeesPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">
-          Не удалось загрузить сотрудников
-        </p>
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
         <Button
           onClick={() =>
             queryClient.invalidateQueries({ queryKey: ["employees"] })
           }
         >
-          Повторить
+          {t("retry")}
         </Button>
       </div>
     );
@@ -181,21 +181,19 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Сотрудники</h1>
-          <p className="text-muted-foreground">
-            Управление персоналом организации
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Добавить сотрудника
+              {t("addEmployee")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Новый сотрудник</DialogTitle>
+              <DialogTitle>{t("newEmployee")}</DialogTitle>
             </DialogHeader>
             <EmployeeForm
               onSuccess={() => {
@@ -233,7 +231,7 @@ export default function EmployeesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -244,7 +242,9 @@ export default function EmployeesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-sm text-muted-foreground">Активных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsActive")}
+              </p>
             </div>
           </div>
         </div>
@@ -255,7 +255,9 @@ export default function EmployeesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.onLeave}</p>
-              <p className="text-sm text-muted-foreground">В отпуске</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsOnLeave")}
+              </p>
             </div>
           </div>
         </div>
@@ -266,7 +268,9 @@ export default function EmployeesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inactive}</p>
-              <p className="text-sm text-muted-foreground">Неактивных</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsInactive")}
+              </p>
             </div>
           </div>
         </div>
@@ -277,7 +281,7 @@ export default function EmployeesPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск сотрудников..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -287,22 +291,22 @@ export default function EmployeesPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              Статус
+              {t("filterStatus")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              Все статусы
+              {t("allStatuses")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("active")}>
-              Активные
+              {t("statusActive")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("on_leave")}>
-              В отпуске
+              {t("statusOnLeave")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("inactive")}>
-              Неактивные
+              {t("statusInactive")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -310,20 +314,20 @@ export default function EmployeesPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Briefcase className="w-4 h-4 mr-2" />
-              Роль
+              {t("filterRole")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setRoleFilter("all")}>
-              Все роли
+              {t("allRoles")}
             </DropdownMenuItem>
-            {Object.entries(roleLabels).map(([value, label]) => (
+            {Object.entries(roleLabelKeys).map(([value, key]) => (
               <DropdownMenuItem
                 key={value}
                 onClick={() => setRoleFilter(value)}
               >
-                {label}
+                {t(key as Parameters<typeof t>[0])}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -335,12 +339,12 @@ export default function EmployeesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Сотрудник</TableHead>
-              <TableHead>Должность</TableHead>
-              <TableHead>Роль</TableHead>
-              <TableHead>Контакты</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Дата найма</TableHead>
+              <TableHead>{t("colEmployee")}</TableHead>
+              <TableHead>{t("colPosition")}</TableHead>
+              <TableHead>{t("colRole")}</TableHead>
+              <TableHead>{t("colContacts")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colHireDate")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -384,7 +388,11 @@ export default function EmployeesPage() {
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{roleLabels[employee.role]}</Badge>
+                    <Badge variant="outline">
+                      {t(
+                        roleLabelKeys[employee.role] as Parameters<typeof t>[0],
+                      )}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -400,7 +408,11 @@ export default function EmployeesPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[employee.status]}>
-                      {statusLabels[employee.status]}
+                      {t(
+                        statusLabelKeys[employee.status] as Parameters<
+                          typeof t
+                        >[0],
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -412,7 +424,7 @@ export default function EmployeesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Действия"
+                          aria-label={t("actionsLabel")}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -420,14 +432,14 @@ export default function EmployeesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Edit className="w-4 h-4 mr-2" />
-                          Редактировать
+                          {t("edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => deleteMutation.mutate(employee.id)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Удалить
+                          {t("deleteAction")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -438,7 +450,7 @@ export default function EmployeesPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <UserCog className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Сотрудники не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -457,6 +469,7 @@ function EmployeeForm({
   employee?: Employee;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("employees");
   const [formData, setFormData] = useState({
     firstName: employee?.firstName || "",
     lastName: employee?.lastName || "",
@@ -478,11 +491,11 @@ function EmployeeForm({
       return api.post("/employees", data);
     },
     onSuccess: () => {
-      toast.success(employee ? "Сотрудник обновлён" : "Сотрудник добавлен");
+      toast.success(employee ? t("updated") : t("added"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка сохранения");
+      toast.error(t("saveFailed"));
     },
   });
 
@@ -495,7 +508,7 @@ function EmployeeForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Имя</label>
+          <label className="text-sm font-medium">{t("formFirstName")}</label>
           <Input
             value={formData.firstName}
             onChange={(e) =>
@@ -505,7 +518,7 @@ function EmployeeForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Фамилия</label>
+          <label className="text-sm font-medium">{t("formLastName")}</label>
           <Input
             value={formData.lastName}
             onChange={(e) =>
@@ -517,7 +530,7 @@ function EmployeeForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Email</label>
+          <label className="text-sm font-medium">{t("formEmail")}</label>
           <Input
             type="email"
             value={formData.email}
@@ -528,7 +541,7 @@ function EmployeeForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Телефон</label>
+          <label className="text-sm font-medium">{t("formPhone")}</label>
           <Input
             value={formData.phone}
             onChange={(e) =>
@@ -540,7 +553,7 @@ function EmployeeForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Должность</label>
+          <label className="text-sm font-medium">{t("formPosition")}</label>
           <Input
             value={formData.position}
             onChange={(e) =>
@@ -550,7 +563,7 @@ function EmployeeForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Отдел</label>
+          <label className="text-sm font-medium">{t("formDepartment")}</label>
           <Input
             value={formData.department}
             onChange={(e) =>
@@ -562,28 +575,27 @@ function EmployeeForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Роль</label>
+          <label className="text-sm font-medium">{t("formRole")}</label>
           <Select
             value={formData.role}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onValueChange={(value) =>
-              setFormData({ ...formData, role: value as any })
+            onValueChange={(value: string) =>
+              setFormData({ ...formData, role: value as typeof formData.role })
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Выберите роль" />
+              <SelectValue placeholder={t("formRolePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(roleLabels).map(([value, label]) => (
+              {Object.entries(roleLabelKeys).map(([value, key]) => (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(key as Parameters<typeof t>[0])}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Дата найма</label>
+          <label className="text-sm font-medium">{t("formHireDate")}</label>
           <Input
             type="date"
             value={formData.hireDate}
@@ -595,7 +607,7 @@ function EmployeeForm({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium">Адрес</label>
+        <label className="text-sm font-medium">{t("formAddress")}</label>
         <Input
           value={formData.address}
           onChange={(e) =>
@@ -606,10 +618,10 @@ function EmployeeForm({
       <div className="flex justify-end gap-3 pt-4">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending
-            ? "Сохранение..."
+            ? t("formSaving")
             : employee
-              ? "Обновить"
-              : "Добавить"}
+              ? t("formUpdate")
+              : t("formAdd")}
         </Button>
       </div>
     </form>

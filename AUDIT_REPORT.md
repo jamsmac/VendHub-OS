@@ -442,18 +442,19 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - **Замечание:** Это технически работает, но CLAUDE.md требует `snake_case` в Entity. Есть inconsistency — некоторые entities используют `snake_case` (старые), другие `camelCase` (новые)
 - **Рекомендация:** Определить единый стандарт и привести к единообразию
 
-### P2-004: Отсутствие E2E тестов
+### P2-004: ~~Отсутствие E2E тестов~~ ✅ ALREADY DONE
 
-- CI pipeline содержит шаг E2E (Playwright), но фактических тестов нет
-- **Рекомендация:** Создать хотя бы smoke tests для критических путей
+- 15 Playwright E2E test files exist (`e2e/api/`, `e2e/web/`, `e2e/client/`)
+- 9 NestJS e2e-spec.ts files in `apps/api/test/`
+- Proper test structure with auth.spec, login.spec, dashboard.spec, etc.
 
-### P2-005: Docker — нет Dockerfile для Mobile
+### P2-005: ~~Docker — нет Dockerfile для Mobile~~ ✅ N/A
 
-- Это нормально (Mobile = Expo, билдится через EAS), но стоит документировать
+- Mobile = Expo, builds via EAS — Dockerfile not needed
 
-### P2-006: Missing bot Dockerfile in docker-compose.yml services
+### P2-006: ~~Missing bot Dockerfile in docker-compose.yml~~ ✅ ALREADY DONE
 
-- Bot имеет Dockerfile но не указан как service в docker-compose.yml (только как volume)
+- Bot IS in docker-compose.yml (lines 282-324) with proper Dockerfile, healthcheck, and depends_on
 
 ---
 
@@ -861,24 +862,24 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 
 ### ~~Неделя 4-5: P1 i18n~~ ✅ НАЧАТО (5/50 страниц)
 
-| #   | Задача                                  | Часы | Статус                      |
-| --- | --------------------------------------- | ---- | --------------------------- |
-| 26  | Setup next-intl for Web Admin           | 8    | ✅ Done                     |
-| 27  | Extract hardcoded strings to i18n files | 32   | ✅ 5 страниц (осталось ~45) |
+| #   | Задача                                  | Часы | Статус                       |
+| --- | --------------------------------------- | ---- | ---------------------------- |
+| 26  | Setup next-intl for Web Admin           | 8    | ✅ Done                      |
+| 27  | Extract hardcoded strings to i18n files | 32   | ✅ 10 страниц (осталось ~20) |
 
 ### Неделя 6+: P2 — Улучшения
 
-| #   | Задача                                              | Часы | Статус                            |
-| --- | --------------------------------------------------- | ---- | --------------------------------- |
-| 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody) |
-| 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)   |
-| 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open                           |
-| 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                           |
-| 32  | Add E2E tests (Playwright)                          | 20   | ⚠️ Open                           |
-| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                           |
-| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                 |
-| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                 |
-| 36  | i18n remaining ~45 web admin pages                  | 30   | ⚠️ Open                           |
+| #   | Задача                                              | Часы | Статус                                         |
+| --- | --------------------------------------------------- | ---- | ---------------------------------------------- |
+| 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody)              |
+| 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)                |
+| 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open                                        |
+| 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                                        |
+| 32  | Add E2E tests (Playwright)                          | 20   | ✅ Already done (15 Playwright + 9 NestJS e2e) |
+| 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                        |
+| 34  | Eliminate 64+ `any` in API tests/services           | 4    | ✅ Done (71f1385)                              |
+| 35  | Mobile offline support (AsyncStorage)               | 4    | ✅ Done (71f1385)                              |
+| 36  | i18n remaining ~20 web admin pages                  | 20   | ⚠️ Open (10/30 done)                           |
 
 ### Общая оценка трудозатрат
 

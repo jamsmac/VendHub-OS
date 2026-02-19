@@ -14,6 +14,7 @@ import {
   TrendingUp,
   ArrowRight,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ interface Movement {
 type TabType = "warehouse" | "operator" | "machine" | "low-stock" | "movements";
 
 export default function InventoryPage() {
+  const t = useTranslations("inventory");
   const [activeTab, setActiveTab] = useState<TabType>("warehouse");
   const [search, setSearch] = useState("");
   const [_debouncedSearch, setDebouncedSearch] = useState("");
@@ -86,16 +88,16 @@ export default function InventoryPage() {
   );
 
   const tabs = [
-    { id: "warehouse" as const, label: "Склад", icon: Warehouse },
-    { id: "operator" as const, label: "У операторов", icon: User },
-    { id: "machine" as const, label: "В автоматах", icon: Coffee },
+    { id: "warehouse" as const, label: t("tabWarehouse"), icon: Warehouse },
+    { id: "operator" as const, label: t("tabOperator"), icon: User },
+    { id: "machine" as const, label: t("tabMachine"), icon: Coffee },
     {
       id: "low-stock" as const,
-      label: "Низкий запас",
+      label: t("tabLowStock"),
       icon: AlertTriangle,
       count: stats.lowStockCount,
     },
-    { id: "movements" as const, label: "Движения", icon: ArrowUpDown },
+    { id: "movements" as const, label: t("tabMovements"), icon: ArrowUpDown },
   ];
 
   const isLoading = warehouseLoading || lowStockLoading || movementsLoading;
@@ -111,23 +113,23 @@ export default function InventoryPage() {
           <thead>
             <tr className="border-b">
               <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                Товар
+                {t("colProduct")}
               </th>
               <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                SKU
+                {t("colSku")}
               </th>
               <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                Количество
+                {t("colQuantity")}
               </th>
               <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                Мин.
+                {t("colMin")}
               </th>
               <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                Статус
+                {t("colStatus")}
               </th>
               {activeTab !== "warehouse" && (
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                  Локация
+                  {t("colLocation")}
                 </th>
               )}
             </tr>
@@ -159,11 +161,11 @@ export default function InventoryPage() {
                       {isLow ? (
                         <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600">
                           <AlertTriangle className="h-3 w-3" />
-                          Низкий
+                          {t("statusLow")}
                         </span>
                       ) : (
                         <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-600">
-                          OK
+                          {t("statusOk")}
                         </span>
                       )}
                     </div>
@@ -180,7 +182,7 @@ export default function InventoryPage() {
         </table>
         {filtered?.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            Товары не найдены
+            {t("notFound")}
           </div>
         )}
       </div>
@@ -191,20 +193,31 @@ export default function InventoryPage() {
     return (
       <div className="space-y-4">
         {movements?.map((movement: Movement) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const typeConfig: Record<
             string,
-            { label: string; icon: any; color: string }
+            {
+              label: string;
+              icon: React.ComponentType<{ className?: string }>;
+              color: string;
+            }
           > = {
-            in: { label: "Приход", icon: TrendingUp, color: "text-green-600" },
-            out: { label: "Расход", icon: TrendingDown, color: "text-red-600" },
+            in: {
+              label: t("movementIn"),
+              icon: TrendingUp,
+              color: "text-green-600",
+            },
+            out: {
+              label: t("movementOut"),
+              icon: TrendingDown,
+              color: "text-red-600",
+            },
             transfer: {
-              label: "Перемещение",
+              label: t("movementTransfer"),
               icon: ArrowRight,
               color: "text-blue-600",
             },
             adjustment: {
-              label: "Корректировка",
+              label: t("movementAdjustment"),
               icon: ArrowUpDown,
               color: "text-yellow-600",
             },
@@ -253,7 +266,7 @@ export default function InventoryPage() {
         })}
         {movements?.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            Нет движений за выбранный период
+            {t("noMovements")}
           </div>
         )}
       </div>
@@ -265,15 +278,13 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Склад</h1>
-          <p className="text-muted-foreground">
-            3-уровневая система учёта: Склад → Оператор → Автомат
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link href="/dashboard/inventory/transfer">
           <Button>
             <ArrowUpDown className="h-4 w-4 mr-2" />
-            Перемещение
+            {t("transfer")}
           </Button>
         </Link>
       </div>
@@ -285,7 +296,7 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Товаров на складе
+                  {t("statsProducts")}
                 </p>
                 <p className="text-2xl font-bold">{stats.totalProducts}</p>
               </div>
@@ -297,7 +308,9 @@ export default function InventoryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Низкий запас</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("statsLowStock")}
+                </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {stats.lowStockCount}
                 </p>
@@ -311,7 +324,7 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Движений сегодня
+                  {t("statsMovements")}
                 </p>
                 <p className="text-2xl font-bold">{movements?.length || 0}</p>
               </div>
@@ -344,7 +357,7 @@ export default function InventoryPage() {
       {/* Search */}
       {activeTab !== "movements" && (
         <Input
-          placeholder="Поиск товара..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-md"

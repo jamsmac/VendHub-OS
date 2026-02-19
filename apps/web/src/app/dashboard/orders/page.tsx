@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   ShoppingCart,
   Search,
@@ -17,9 +18,9 @@ import {
   Download,
   RefreshCw,
   AlertTriangle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,22 +28,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/lib/api";
 
 interface Order {
   id: string;
@@ -70,58 +71,65 @@ interface Order {
     price: number;
   }[];
   totalAmount: number;
-  paymentMethod: 'payme' | 'click' | 'uzum' | 'telegram_stars' | 'cash';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  status: 'pending' | 'confirmed' | 'processing' | 'ready' | 'completed' | 'cancelled';
+  paymentMethod: "payme" | "click" | "uzum" | "telegram_stars" | "cash";
+  paymentStatus: "pending" | "paid" | "failed" | "refunded";
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "ready"
+    | "completed"
+    | "cancelled";
   createdAt: string;
   completedAt?: string;
 }
 
-const paymentMethodLabels: Record<string, string> = {
-  payme: 'Payme',
-  click: 'Click',
-  uzum: 'Uzum Bank',
-  telegram_stars: 'Telegram Stars',
-  cash: 'Наличные',
+const paymentMethodKeys: Record<string, string> = {
+  payme: "payMethodPayme",
+  click: "payMethodClick",
+  uzum: "payMethodUzum",
+  telegram_stars: "payMethodTelegramStars",
+  cash: "payMethodCash",
 };
 
-const paymentStatusLabels: Record<string, string> = {
-  pending: 'Ожидает',
-  paid: 'Оплачен',
-  failed: 'Ошибка',
-  refunded: 'Возвращён',
+const paymentStatusKeys: Record<string, string> = {
+  pending: "payStatusPending",
+  paid: "payStatusPaid",
+  failed: "payStatusFailed",
+  refunded: "payStatusRefunded",
 };
 
 const paymentStatusColors: Record<string, string> = {
-  pending: 'bg-amber-500/10 text-amber-500',
-  paid: 'bg-green-500/10 text-green-500',
-  failed: 'bg-red-500/10 text-red-500',
-  refunded: 'bg-purple-500/10 text-purple-500',
+  pending: "bg-amber-500/10 text-amber-500",
+  paid: "bg-green-500/10 text-green-500",
+  failed: "bg-red-500/10 text-red-500",
+  refunded: "bg-purple-500/10 text-purple-500",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: 'Ожидает',
-  confirmed: 'Подтверждён',
-  processing: 'Готовится',
-  ready: 'Готов',
-  completed: 'Завершён',
-  cancelled: 'Отменён',
+const statusKeys: Record<string, string> = {
+  pending: "statusPending",
+  confirmed: "statusConfirmed",
+  processing: "statusProcessing",
+  ready: "statusReady",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
 };
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-amber-500/10 text-amber-500',
-  confirmed: 'bg-blue-500/10 text-blue-500',
-  processing: 'bg-purple-500/10 text-purple-500',
-  ready: 'bg-green-500/10 text-green-500',
-  completed: 'bg-emerald-500/10 text-emerald-500',
-  cancelled: 'bg-red-500/10 text-red-500',
+  pending: "bg-amber-500/10 text-amber-500",
+  confirmed: "bg-blue-500/10 text-blue-500",
+  processing: "bg-purple-500/10 text-purple-500",
+  ready: "bg-green-500/10 text-green-500",
+  completed: "bg-emerald-500/10 text-emerald-500",
+  cancelled: "bg-red-500/10 text-red-500",
 };
 
 export default function OrdersPage() {
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const t = useTranslations("orders");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const queryClient = useQueryClient();
 
@@ -131,37 +139,53 @@ export default function OrdersPage() {
   }, [search]);
 
   // Fetch orders
-  const { data: orders, isLoading, isError, refetch } = useQuery<Order[]>({
-    queryKey: ['orders', debouncedSearch, statusFilter, paymentFilter],
+  const {
+    data: orders,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery<Order[]>({
+    queryKey: ["orders", debouncedSearch, statusFilter, paymentFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (paymentFilter !== 'all') params.append('paymentStatus', paymentFilter);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (paymentFilter !== "all")
+        params.append("paymentStatus", paymentFilter);
       const res = await api.get(`/orders?${params}`);
       return res.data;
     },
   });
 
-  const stats = useMemo(() => ({
-    total: orders?.length || 0,
-    pending: orders?.filter((o) => o.status === 'pending').length || 0,
-    completed: orders?.filter((o) => o.status === 'completed').length || 0,
-    totalRevenue: orders?.filter((o) => o.paymentStatus === 'paid').reduce((sum, o) => sum + o.totalAmount, 0) || 0,
-  }), [orders]);
+  const stats = useMemo(
+    () => ({
+      total: orders?.length || 0,
+      pending: orders?.filter((o) => o.status === "pending").length || 0,
+      completed: orders?.filter((o) => o.status === "completed").length || 0,
+      totalRevenue:
+        orders
+          ?.filter((o) => o.paymentStatus === "paid")
+          .reduce((sum, o) => sum + o.totalAmount, 0) || 0,
+    }),
+    [orders],
+  );
 
   const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU').format(amount) + ' UZS';
+    return new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
   };
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-lg font-medium">Ошибка загрузки</p>
-        <p className="text-muted-foreground mb-4">Не удалось загрузить заказы</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['orders'] })}>
-          Повторить
+        <p className="text-lg font-medium">{t("loadError")}</p>
+        <p className="text-muted-foreground mb-4">{t("loadFailed")}</p>
+        <Button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["orders"] })
+          }
+        >
+          {t("retry")}
         </Button>
       </div>
     );
@@ -172,19 +196,17 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Заказы</h1>
-          <p className="text-muted-foreground">
-            Управление заказами из Mini App
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => refetch()}>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Обновить
+            {t("refresh")}
           </Button>
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Экспорт
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -198,7 +220,7 @@ export default function OrdersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Всего заказов</p>
+              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
             </div>
           </div>
         </div>
@@ -209,7 +231,9 @@ export default function OrdersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.pending}</p>
-              <p className="text-sm text-muted-foreground">Ожидают</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsPending")}
+              </p>
             </div>
           </div>
         </div>
@@ -220,7 +244,9 @@ export default function OrdersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.completed}</p>
-              <p className="text-sm text-muted-foreground">Завершено</p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsCompleted")}
+              </p>
             </div>
           </div>
         </div>
@@ -230,8 +256,12 @@ export default function OrdersPage() {
               <CreditCard className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{formatMoney(stats.totalRevenue)}</p>
-              <p className="text-sm text-muted-foreground">Выручка</p>
+              <p className="text-2xl font-bold">
+                {formatMoney(stats.totalRevenue)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t("statsRevenue")}
+              </p>
             </div>
           </div>
         </div>
@@ -242,7 +272,7 @@ export default function OrdersPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по номеру заказа..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -252,17 +282,20 @@ export default function OrdersPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              Статус
+              {t("filterStatus")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-              Все статусы
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+              {t("allStatuses")}
             </DropdownMenuItem>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
-                {label}
+            {Object.entries(statusKeys).map(([value, key]) => (
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setStatusFilter(value)}
+              >
+                {t(key as Parameters<typeof t>[0])}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -271,17 +304,20 @@ export default function OrdersPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <CreditCard className="w-4 h-4 mr-2" />
-              Оплата
+              {t("filterPayment")}
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setPaymentFilter('all')}>
-              Все статусы
+            <DropdownMenuItem onClick={() => setPaymentFilter("all")}>
+              {t("allPaymentStatuses")}
             </DropdownMenuItem>
-            {Object.entries(paymentStatusLabels).map(([value, label]) => (
-              <DropdownMenuItem key={value} onClick={() => setPaymentFilter(value)}>
-                {label}
+            {Object.entries(paymentStatusKeys).map(([value, key]) => (
+              <DropdownMenuItem
+                key={value}
+                onClick={() => setPaymentFilter(value)}
+              >
+                {t(key as Parameters<typeof t>[0])}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -293,13 +329,13 @@ export default function OrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Заказ</TableHead>
-              <TableHead>Клиент</TableHead>
-              <TableHead>Автомат</TableHead>
-              <TableHead>Сумма</TableHead>
-              <TableHead>Оплата</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Дата</TableHead>
+              <TableHead>{t("colOrder")}</TableHead>
+              <TableHead>{t("colCustomer")}</TableHead>
+              <TableHead>{t("colMachine")}</TableHead>
+              <TableHead>{t("colAmount")}</TableHead>
+              <TableHead>{t("colPayment")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colDate")}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -319,7 +355,7 @@ export default function OrdersPage() {
                     <div>
                       <p className="font-medium">#{order.orderNumber}</p>
                       <p className="text-sm text-muted-foreground">
-                        {order.items.length} товаров
+                        {order.items.length} {t("itemsCount")}
                       </p>
                     </div>
                   </TableCell>
@@ -328,7 +364,7 @@ export default function OrdersPage() {
                       <User className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="font-medium">
-                          {order.customer.firstName || 'Гость'}
+                          {order.customer.firstName || t("guest")}
                         </p>
                         {order.customer.phone && (
                           <p className="text-sm text-muted-foreground">
@@ -342,7 +378,9 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-2">
                       <Coffee className="w-4 h-4 text-muted-foreground" />
                       <div>
-                        <p className="font-medium line-clamp-1">{order.machine.name}</p>
+                        <p className="font-medium line-clamp-1">
+                          {order.machine.name}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           {order.machine.serialNumber}
                         </p>
@@ -350,31 +388,43 @@ export default function OrdersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p className="font-semibold">{formatMoney(order.totalAmount)}</p>
+                    <p className="font-semibold">
+                      {formatMoney(order.totalAmount)}
+                    </p>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <Badge className={paymentStatusColors[order.paymentStatus]}>
-                        {paymentStatusLabels[order.paymentStatus]}
+                      <Badge
+                        className={paymentStatusColors[order.paymentStatus]}
+                      >
+                        {t(
+                          paymentStatusKeys[order.paymentStatus] as Parameters<
+                            typeof t
+                          >[0],
+                        )}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        {paymentMethodLabels[order.paymentMethod]}
+                        {t(
+                          paymentMethodKeys[order.paymentMethod] as Parameters<
+                            typeof t
+                          >[0],
+                        )}
                       </p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[order.status]}>
-                      {statusLabels[order.status]}
+                      {t(statusKeys[order.status] as Parameters<typeof t>[0])}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <p className="text-sm">
-                      {new Date(order.createdAt).toLocaleDateString('ru-RU')}
+                      {new Date(order.createdAt).toLocaleDateString("ru-RU")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleTimeString('ru-RU', {
-                        hour: '2-digit',
-                        minute: '2-digit',
+                      {new Date(order.createdAt).toLocaleTimeString("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </TableCell>
@@ -393,7 +443,7 @@ export default function OrdersPage() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8">
                   <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">Заказы не найдены</p>
+                  <p className="text-muted-foreground">{t("notFound")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -402,28 +452,43 @@ export default function OrdersPage() {
       </div>
 
       {/* Order Details Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog
+        open={!!selectedOrder}
+        onOpenChange={() => setSelectedOrder(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Заказ #{selectedOrder?.orderNumber}</DialogTitle>
+            <DialogTitle>
+              {t("dialogTitle")} #{selectedOrder?.orderNumber}
+            </DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
               {/* Status */}
               <div className="flex items-center justify-between">
                 <Badge className={statusColors[selectedOrder.status]}>
-                  {statusLabels[selectedOrder.status]}
+                  {t(
+                    statusKeys[selectedOrder.status] as Parameters<typeof t>[0],
+                  )}
                 </Badge>
-                <Badge className={paymentStatusColors[selectedOrder.paymentStatus]}>
-                  {paymentStatusLabels[selectedOrder.paymentStatus]}
+                <Badge
+                  className={paymentStatusColors[selectedOrder.paymentStatus]}
+                >
+                  {t(
+                    paymentStatusKeys[
+                      selectedOrder.paymentStatus
+                    ] as Parameters<typeof t>[0],
+                  )}
                 </Badge>
               </div>
 
               {/* Customer */}
               <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Клиент</h4>
+                <h4 className="text-sm font-medium mb-2">
+                  {t("dialogCustomer")}
+                </h4>
                 <p className="font-medium">
-                  {selectedOrder.customer.firstName || 'Гость'}
+                  {selectedOrder.customer.firstName || t("guest")}
                 </p>
                 {selectedOrder.customer.phone && (
                   <p className="text-sm text-muted-foreground">
@@ -434,7 +499,9 @@ export default function OrdersPage() {
 
               {/* Machine */}
               <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Автомат</h4>
+                <h4 className="text-sm font-medium mb-2">
+                  {t("dialogMachine")}
+                </h4>
                 <p className="font-medium">{selectedOrder.machine.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {selectedOrder.machine.address}
@@ -443,7 +510,7 @@ export default function OrdersPage() {
 
               {/* Items */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Товары</h4>
+                <h4 className="text-sm font-medium">{t("dialogItems")}</h4>
                 {selectedOrder.items.map((item) => (
                   <div
                     key={item.id}
@@ -469,7 +536,7 @@ export default function OrdersPage() {
 
               {/* Total */}
               <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/10">
-                <span className="font-medium">Итого</span>
+                <span className="font-medium">{t("dialogTotal")}</span>
                 <span className="text-xl font-bold text-primary">
                   {formatMoney(selectedOrder.totalAmount)}
                 </span>
@@ -477,15 +544,24 @@ export default function OrdersPage() {
 
               {/* Payment Info */}
               <div className="text-sm text-muted-foreground">
-                <p>Способ оплаты: {paymentMethodLabels[selectedOrder.paymentMethod]}</p>
                 <p>
-                  Создан:{' '}
-                  {new Date(selectedOrder.createdAt).toLocaleString('ru-RU')}
+                  {t("dialogPaymentMethod")}:{" "}
+                  {t(
+                    paymentMethodKeys[
+                      selectedOrder.paymentMethod
+                    ] as Parameters<typeof t>[0],
+                  )}
+                </p>
+                <p>
+                  {t("dialogCreated")}:{" "}
+                  {new Date(selectedOrder.createdAt).toLocaleString("ru-RU")}
                 </p>
                 {selectedOrder.completedAt && (
                   <p>
-                    Завершён:{' '}
-                    {new Date(selectedOrder.completedAt).toLocaleString('ru-RU')}
+                    {t("dialogCompleted")}:{" "}
+                    {new Date(selectedOrder.completedAt).toLocaleString(
+                      "ru-RU",
+                    )}
                   </p>
                 )}
               </div>
