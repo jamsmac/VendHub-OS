@@ -422,19 +422,22 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 - `orders ↔ promo-codes`
 - **Рекомендация:** Вынести общие интерфейсы в shared module или использовать events
 
-### P2-002: Гигантские файлы (>1000 строк)
+### P2-002: ✅ DONE — Гигантские файлы (>1000 строк)
 
-| Файл                                                 | Строки | Рекомендация                        |
-| ---------------------------------------------------- | ------ | ----------------------------------- |
-| `web/dashboard/notifications/page.tsx`               | 1997   | Разбить на компоненты               |
-| `api/telegram-bot/telegram-bot.service.ts`           | 1778   | Разбить на handlers                 |
-| `api/employees/employees.service.ts`                 | 1751   | Выделить sub-services               |
-| `api/import/import.service.ts`                       | 1730   | Strategy pattern                    |
-| `api/database/migrations/CreateDirectoriesSystem.ts` | 1687   | Разбить на несколько миграций       |
-| `api/inventory/inventory.service.ts`                 | 1631   | Выделить sub-services               |
-| `client/i18n.ts`                                     | 1378   | Вынести в JSON файлы                |
-| `api/locations/entities/location.entity.ts`          | 1365   | Слишком много полей — нормализовать |
-| `api/directories/directories.service.ts`             | 1351   | Выделить sub-services               |
+Все 9 файлов разбиты (migration excluded — immutable). Commits: `1dd60a1`, `75cb039`, `fc88d5a`.
+
+| Файл                                                 | Было | Стало | Куда                          |
+| ---------------------------------------------------- | ---- | ----- | ----------------------------- |
+| `web/dashboard/notifications/page.tsx`               | 2281 | 1700  | 5 `_components/` files        |
+| `api/telegram-bot/telegram-bot.service.ts`           | 2018 | 277   | 7 sub-service files           |
+| `api/import/import.service.ts`                       | 2016 | 464   | 4 sub-services                |
+| `web/dashboard/import/page.tsx`                      | 1892 | 250   | 4 `_components/` files        |
+| `api/employees/employees.service.ts`                 | 1835 | 783   | 6 sub-services                |
+| `api/inventory/inventory.service.ts`                 | 1730 | 615   | 3 sub-services                |
+| `api/directories/directories.service.ts`             | 1490 | 661   | 3 sub-services                |
+| `api/locations/entities/location.entity.ts`          | 1427 | 270   | 8 entity/type files           |
+| `client/i18n.ts`                                     | 1378 | 30    | 3 locale files + index        |
+| `api/database/migrations/CreateDirectoriesSystem.ts` | 1687 | —     | Skipped (immutable migration) |
 
 ### P2-003: camelCase в entity property names
 
@@ -873,7 +876,7 @@ VendHub OS — зрелый монорепозиторий с **272,509 стро
 | --- | --------------------------------------------------- | ---- | ---------------------------------------------- |
 | 28  | Web: типизировать весь API client (packages/shared) | 14   | ✅ Done (QueryParams+RequestBody)              |
 | 29  | Resolve 4 circular dependencies                     | 8    | ✅ Non-issue (entity relations)                |
-| 30  | Split 9 giant files (>1000 lines)                   | 16   | ⚠️ Open                                        |
+| 30  | Split 9 giant files (>1000 lines)                   | 16   | ✅ Done (1dd60a1, 75cb039, fc88d5a)            |
 | 31  | Add 10 missing Web Admin pages                      | 40   | ⚠️ Open                                        |
 | 32  | Add E2E tests (Playwright)                          | 20   | ✅ Already done (15 Playwright + 9 NestJS e2e) |
 | 33  | Standardize entity property naming                  | 8    | ⚠️ Open                                        |
