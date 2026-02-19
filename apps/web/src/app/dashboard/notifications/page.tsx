@@ -15,10 +15,6 @@ import {
   Eye,
   Trash2,
   CheckCheck,
-  ClipboardList,
-  Package,
-  CreditCard,
-  Wrench,
   Plus,
   FileText,
   Zap,
@@ -34,7 +30,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -68,153 +63,26 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-// ─── Types ────────────────────────────────────────────────────
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "system" | "task" | "inventory" | "payment" | "alert" | "maintenance";
-  channels: ("push" | "email" | "sms" | "telegram" | "in_app")[];
-  priority: "high" | "medium" | "low";
-  status: "read" | "unread";
-  related_entity_type?: string;
-  related_entity_id?: string;
-  created_at: string;
-  read_at?: string;
-}
-
-interface NotificationTemplate {
-  id: string;
-  name: string;
-  type: "system" | "task" | "inventory" | "payment" | "alert" | "maintenance";
-  channels: ("push" | "email" | "sms" | "telegram")[];
-  subject: string;
-  body: string;
-  variables: string[];
-  is_active: boolean;
-  created_at: string;
-}
-
-interface NotificationRule {
-  id: string;
-  name: string;
-  event: string;
-  conditions: string;
-  recipients: string;
-  channels: ("push" | "email" | "sms" | "telegram")[];
-  is_active: boolean;
-  created_at: string;
-}
-
-interface NotificationCampaign {
-  id: string;
-  name: string;
-  message: string;
-  audience_count: number;
-  channels: ("push" | "email" | "sms" | "telegram")[];
-  status: "draft" | "scheduled" | "sent" | "cancelled";
-  sent_count: number;
-  delivered_count: number;
-  failed_count: number;
-  scheduled_at?: string;
-  created_at: string;
-}
-
-interface ChannelSettings {
-  push: boolean;
-  email: boolean;
-  sms: boolean;
-  telegram: boolean;
-  in_app: boolean;
-  sound: boolean;
-}
-
-interface TypeChannelPreferences {
-  [type: string]: {
-    push: boolean;
-    email: boolean;
-    sms: boolean;
-    telegram: boolean;
-  };
-}
-
-// ─── Constants / Mappings ─────────────────────────────────────
-
-const typeIcons: Record<string, React.ReactNode> = {
-  system: <Bell className="w-4 h-4" />,
-  task: <ClipboardList className="w-4 h-4" />,
-  inventory: <Package className="w-4 h-4" />,
-  payment: <CreditCard className="w-4 h-4" />,
-  alert: <AlertTriangle className="w-4 h-4" />,
-  maintenance: <Wrench className="w-4 h-4" />,
-};
-
-const typeColors: Record<string, string> = {
-  system: "bg-blue-500/10 text-blue-500",
-  task: "bg-violet-500/10 text-violet-500",
-  inventory: "bg-orange-500/10 text-orange-500",
-  payment: "bg-emerald-500/10 text-emerald-500",
-  alert: "bg-red-500/10 text-red-500",
-  maintenance: "bg-amber-500/10 text-amber-500",
-};
-
-const channelColors: Record<string, string> = {
-  push: "bg-blue-500/10 text-blue-600",
-  email: "bg-green-500/10 text-green-600",
-  sms: "bg-purple-500/10 text-purple-600",
-  telegram: "bg-sky-500/10 text-sky-600",
-  in_app: "bg-muted text-muted-foreground",
-};
-
-const priorityColors: Record<string, string> = {
-  high: "bg-red-500/10 text-red-500",
-  medium: "bg-amber-500/10 text-amber-500",
-  low: "bg-green-500/10 text-green-500",
-};
-
-const campaignStatusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  scheduled: "bg-blue-500/10 text-blue-500",
-  sent: "bg-green-500/10 text-green-500",
-  cancelled: "bg-red-500/10 text-red-500",
-};
-
-const typeKeys = [
-  "system",
-  "task",
-  "inventory",
-  "payment",
-  "alert",
-  "maintenance",
-] as const;
-
-const eventKeys = [
-  "machine.offline",
-  "machine.error",
-  "inventory.low",
-  "inventory.empty",
-  "task.created",
-  "task.assigned",
-  "task.completed",
-  "task.overdue",
-  "payment.received",
-  "payment.failed",
-  "maintenance.due",
-  "alert.critical",
-] as const;
-
-const recipientKeys = [
-  "all_admins",
-  "all_managers",
-  "all_operators",
-  "machine_owner",
-  "assigned_operator",
-  "warehouse_staff",
-  "accountants",
-] as const;
-
-const channelKeys = ["push", "email", "sms", "telegram", "in_app"] as const;
+import type {
+  Notification,
+  NotificationTemplate,
+  NotificationRule,
+  NotificationCampaign,
+  ChannelSettings,
+  TypeChannelPreferences,
+} from "./_components/notification-types";
+import {
+  typeIcons,
+  typeColors,
+  channelColors,
+  priorityColors,
+  campaignStatusColors,
+  typeKeys,
+  channelKeys,
+} from "./_components/notification-constants";
+import { TemplateForm } from "./_components/template-form";
+import { RuleForm } from "./_components/rule-form";
+import { CampaignForm } from "./_components/campaign-form";
 
 // ─── Main Page Component ──────────────────────────────────────
 
@@ -617,7 +485,7 @@ export default function NotificationsPage() {
           <TabsTrigger value="settings">{t("tab_settings")}</TabsTrigger>
         </TabsList>
 
-        {/* ═══════════ TAB 1: ALL NOTIFICATIONS ═══════════ */}
+        {/* TAB 1: ALL NOTIFICATIONS */}
         <TabsContent value="all" className="space-y-6">
           {/* Stats Row */}
           <div className="grid grid-cols-4 gap-4">
@@ -890,7 +758,7 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══════════ TAB 2: TEMPLATES ═══════════ */}
+        {/* TAB 2: TEMPLATES */}
         <TabsContent value="templates" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -1034,7 +902,7 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══════════ TAB 3: RULES ═══════════ */}
+        {/* TAB 3: RULES */}
         <TabsContent value="rules" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -1177,7 +1045,7 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══════════ TAB 4: CAMPAIGNS ═══════════ */}
+        {/* TAB 4: CAMPAIGNS */}
         <TabsContent value="campaigns" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -1327,7 +1195,7 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══════════ TAB 5: SETTINGS ═══════════ */}
+        {/* TAB 5: SETTINGS */}
         <TabsContent value="settings" className="space-y-6">
           <div>
             <h2 className="text-lg font-semibold">
@@ -1649,7 +1517,7 @@ export default function NotificationsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* ═══════════ DIALOGS ═══════════ */}
+      {/* DIALOGS */}
 
       {/* Notification Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -1828,454 +1696,5 @@ export default function NotificationsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-// ─── Template Form Component ──────────────────────────────────
-
-function TemplateForm({
-  template,
-  onSubmit,
-  isPending,
-}: {
-  template: NotificationTemplate | null;
-  onSubmit: (data: Partial<NotificationTemplate>) => void;
-  isPending: boolean;
-}) {
-  const t = useTranslations("notifications");
-  const [formData, setFormData] = useState({
-    name: template?.name || "",
-    type: template?.type || "system",
-    channels: template?.channels || ([] as string[]),
-    subject: template?.subject || "",
-    body: template?.body || "",
-    variables: template?.variables?.join(", ") || "",
-    is_active: template?.is_active ?? true,
-  });
-
-  const toggleChannel = (ch: string) => {
-    setFormData({
-      ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
-        ? formData.channels.filter((c) => c !== ch)
-        : [...formData.channels, ch],
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      ...formData,
-      variables: formData.variables
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">{t("form_template_name")}</label>
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("form_template_name_placeholder")}
-          required
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">{t("form_type")}</label>
-          <Select
-            value={formData.type}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onValueChange={(v) => setFormData({ ...formData, type: v as any })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {typeKeys.map((key) => (
-                <SelectItem key={key} value={key}>
-                  {t(`type_${key}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">
-            {t("form_delivery_channels")}
-          </label>
-          <div className="flex flex-wrap gap-2 mt-1.5">
-            {(["push", "email", "sms", "telegram"] as const).map((ch) => (
-              <button
-                key={ch}
-                type="button"
-                onClick={() => toggleChannel(ch)}
-                className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                  formData.channels.includes(ch)
-                    ? "bg-primary text-white border-primary"
-                    : "bg-background border-input hover:bg-muted"
-                }`}
-              >
-                {t(`channel_${ch}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium">{t("form_subject")}</label>
-        <Input
-          value={formData.subject}
-          onChange={(e) =>
-            setFormData({ ...formData, subject: e.target.value })
-          }
-          placeholder={t("form_subject_placeholder")}
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium">{t("form_message_body")}</label>
-        <Textarea
-          value={formData.body}
-          onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-          placeholder={t("form_message_body_placeholder")}
-          rows={4}
-          required
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          {t("form_available_variables")}
-        </p>
-      </div>
-      <div>
-        <label className="text-sm font-medium">
-          {t("form_variables_comma")}
-        </label>
-        <Input
-          value={formData.variables}
-          onChange={(e) =>
-            setFormData({ ...formData, variables: e.target.value })
-          }
-          placeholder="user_name, machine_name, quantity"
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <label className="flex items-center gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() =>
-              setFormData({ ...formData, is_active: !formData.is_active })
-            }
-            className={`relative w-10 h-5 rounded-full transition-colors ${
-              formData.is_active ? "bg-green-500" : "bg-input"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                formData.is_active ? "translate-x-5" : "translate-x-0.5"
-              }`}
-            />
-          </button>
-          <span>{formData.is_active ? t("active") : t("inactive")}</span>
-        </label>
-        <Button type="submit" disabled={isPending}>
-          {isPending
-            ? t("saving")
-            : template
-              ? t("btn_update")
-              : t("btn_create")}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-// ─── Rule Form Component ──────────────────────────────────────
-
-function RuleForm({
-  rule,
-  onSubmit,
-  isPending,
-}: {
-  rule: NotificationRule | null;
-  onSubmit: (data: Partial<NotificationRule>) => void;
-  isPending: boolean;
-}) {
-  const t = useTranslations("notifications");
-  const [formData, setFormData] = useState({
-    name: rule?.name || "",
-    event: rule?.event || "",
-    conditions: rule?.conditions || "",
-    recipients: rule?.recipients || "",
-    channels: rule?.channels || ([] as string[]),
-    is_active: rule?.is_active ?? true,
-  });
-
-  const toggleChannel = (ch: string) => {
-    setFormData({
-      ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
-        ? formData.channels.filter((c) => c !== ch)
-        : [...formData.channels, ch],
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onSubmit(formData as any);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">{t("form_rule_name")}</label>
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("form_rule_name_placeholder")}
-          required
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">
-            {t("form_trigger_event")}
-          </label>
-          <Select
-            value={formData.event}
-            onValueChange={(v) => setFormData({ ...formData, event: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("form_select_event")} />
-            </SelectTrigger>
-            <SelectContent>
-              {eventKeys.map((key) => (
-                <SelectItem key={key} value={key}>
-                  {t(`event_${key.replace(".", "_")}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">{t("form_recipients")}</label>
-          <Select
-            value={formData.recipients}
-            onValueChange={(v) => setFormData({ ...formData, recipients: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("form_select_recipients")} />
-            </SelectTrigger>
-            <SelectContent>
-              {recipientKeys.map((key) => (
-                <SelectItem key={key} value={key}>
-                  {t(`recipient_${key}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium">{t("form_conditions")}</label>
-        <Input
-          value={formData.conditions}
-          onChange={(e) =>
-            setFormData({ ...formData, conditions: e.target.value })
-          }
-          placeholder={t("form_conditions_placeholder")}
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          {t("form_conditions_hint")}
-        </p>
-      </div>
-      <div>
-        <label className="text-sm font-medium">
-          {t("form_delivery_channels")}
-        </label>
-        <div className="flex flex-wrap gap-2 mt-1.5">
-          {(["push", "email", "sms", "telegram"] as const).map((ch) => (
-            <button
-              key={ch}
-              type="button"
-              onClick={() => toggleChannel(ch)}
-              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                formData.channels.includes(ch)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-background border-input hover:bg-muted"
-              }`}
-            >
-              {t(`channel_${ch}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <label className="flex items-center gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() =>
-              setFormData({ ...formData, is_active: !formData.is_active })
-            }
-            className={`relative w-10 h-5 rounded-full transition-colors ${
-              formData.is_active ? "bg-green-500" : "bg-input"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                formData.is_active ? "translate-x-5" : "translate-x-0.5"
-              }`}
-            />
-          </button>
-          <span>{formData.is_active ? t("active") : t("inactive")}</span>
-        </label>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? t("saving") : rule ? t("btn_update") : t("btn_create")}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-// ─── Campaign Form Component ──────────────────────────────────
-
-function CampaignForm({
-  campaign,
-  onSubmit,
-  isPending,
-}: {
-  campaign: NotificationCampaign | null;
-  onSubmit: (data: Partial<NotificationCampaign>) => void;
-  isPending: boolean;
-}) {
-  const t = useTranslations("notifications");
-  const [formData, setFormData] = useState({
-    name: campaign?.name || "",
-    message: campaign?.message || "",
-    audience_filter: "all",
-    channels: campaign?.channels || ([] as string[]),
-    scheduled_at: campaign?.scheduled_at || "",
-  });
-
-  const toggleChannel = (ch: string) => {
-    setFormData({
-      ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
-        ? formData.channels.filter((c) => c !== ch)
-        : [...formData.channels, ch],
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onSubmit(formData as any);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">{t("form_campaign_name")}</label>
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("form_campaign_name_placeholder")}
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium">{t("form_message")}</label>
-        <Textarea
-          value={formData.message}
-          onChange={(e) =>
-            setFormData({ ...formData, message: e.target.value })
-          }
-          placeholder={t("form_campaign_message_placeholder")}
-          rows={4}
-          required
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">
-            {t("form_target_audience")}
-          </label>
-          <Select
-            value={formData.audience_filter}
-            onValueChange={(v) =>
-              setFormData({ ...formData, audience_filter: v })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("audience_all")}</SelectItem>
-              <SelectItem value="admins">{t("audience_admins")}</SelectItem>
-              <SelectItem value="managers">{t("audience_managers")}</SelectItem>
-              <SelectItem value="operators">
-                {t("audience_operators")}
-              </SelectItem>
-              <SelectItem value="warehouse">
-                {t("audience_warehouse")}
-              </SelectItem>
-              <SelectItem value="accountants">
-                {t("audience_accountants")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">
-            {t("form_schedule_optional")}
-          </label>
-          <Input
-            type="datetime-local"
-            value={formData.scheduled_at}
-            onChange={(e) =>
-              setFormData({ ...formData, scheduled_at: e.target.value })
-            }
-          />
-        </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium">
-          {t("form_delivery_channels")}
-        </label>
-        <div className="flex flex-wrap gap-2 mt-1.5">
-          {(["push", "email", "sms", "telegram"] as const).map((ch) => (
-            <button
-              key={ch}
-              type="button"
-              onClick={() => toggleChannel(ch)}
-              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                formData.channels.includes(ch)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-background border-input hover:bg-muted"
-              }`}
-            >
-              {t(`channel_${ch}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="flex justify-end gap-3 pt-2">
-        <Button type="submit" disabled={isPending}>
-          {isPending
-            ? t("saving")
-            : campaign
-              ? t("btn_update")
-              : t("btn_create")}
-        </Button>
-      </div>
-    </form>
   );
 }
