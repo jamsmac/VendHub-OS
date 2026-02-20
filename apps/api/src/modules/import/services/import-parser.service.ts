@@ -4,7 +4,7 @@
  */
 
 import { Injectable, BadRequestException } from "@nestjs/common";
-import * as XLSX from "xlsx";
+import * as ExcelJS from "exceljs";
 import * as Papa from "papaparse";
 
 @Injectable()
@@ -51,38 +51,39 @@ export class ImportParserService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
     try {
-      const workbook = XLSX.read(buffer, { type: "buffer" });
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
 
-      const sheetName = options?.sheetName || workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
+      const sheet = options?.sheetName
+        ? workbook.getWorksheet(options.sheetName)
+        : workbook.worksheets[0];
 
       if (!sheet) {
-        throw new BadRequestException(`Sheet "${sheetName}" not found`);
+        throw new BadRequestException(
+          `Sheet "${options?.sheetName || "first"}" not found`,
+        );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
-        header: 1,
-        defval: "",
+      const headerRowIndex = options?.headerRow || 1;
+      const startRowIndex = options?.startRow || 2;
+
+      const headerRow = sheet.getRow(headerRowIndex);
+      const headers: string[] = [];
+      headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        headers[colNumber - 1] = String(cell.value ?? "").trim();
       });
 
-      const headerRowIndex = (options?.headerRow || 1) - 1;
-      const startRowIndex = (options?.startRow || 2) - 1;
-
-      const headers = (rawData[headerRowIndex] as string[]).map((h) =>
-        String(h).trim(),
-      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rows: Record<string, any>[] = [];
 
-      for (let i = startRowIndex; i < rawData.length; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const rowData = rawData[i] as any[];
+      for (let i = startRowIndex; i <= sheet.rowCount; i++) {
+        const excelRow = sheet.getRow(i);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const row: Record<string, any> = {};
 
         headers.forEach((header, idx) => {
-          row[header] = rowData[idx] ?? "";
+          const cell = excelRow.getCell(idx + 1);
+          row[header] = cell.value ?? "";
         });
 
         // Skip empty rows
@@ -93,6 +94,7 @@ export class ImportParserService {
 
       return { headers, rows };
     } catch (error: unknown) {
+      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
         `Excel parse error: ${error instanceof Error ? error.message : String(error)}`,
       );

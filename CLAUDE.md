@@ -33,10 +33,10 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 
 ## Project Structure
 
-```
-vendhub-unified/
+```text
+./
 ├── apps/
-│   ├── api/              # NestJS backend (37+ modules)
+│   ├── api/              # NestJS backend (57 modules)
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
 │   ├── bot/              # Telegram bot (Telegraf)
@@ -290,6 +290,77 @@ See [MIGRATION_PLAN_v4.md](MIGRATION_PLAN_v4.md) and [MASTER_PROMPT.md](MASTER_P
 - Tax: OFD/Soliq.uz fiscal integration
 - Locale: uz-UZ, ru-RU; timezone Asia/Tashkent
 
+## Mandatory Workflow — Tool Usage Rules
+
+**CRITICAL:** These rules are MANDATORY. Every task MUST route through the appropriate tools. Do NOT skip tool usage to "save time".
+
+### Before ANY Code Change
+
+1. **Read CLAUDE.md rules** — verify you're following all 8 mandatory code rules
+2. **Check hookify rules** — `.claude/hookify.local.md` has 10 blocking/warning rules
+3. **Use Serena** for symbol-level code navigation — `find_symbol`, `get_symbols_overview`, `find_referencing_symbols` before editing
+
+### Task → Tool Routing Table
+
+| Task Type                     | MUST Use (Skills/Plugins/Agents)                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **New API module/endpoint**   | `/vhm24-api-generator` skill → `vhm24-db-expert` for entities → `build-verifier` agent after               |
+| **New UI page/component**     | `/vhm24-ux-spec` first → `/vhm24-ui-generator` or `/frontend-design` → `vercel-react-best-practices` skill |
+| **New form**                  | `/vhm24-forms` skill (React Hook Form + Zod)                                                               |
+| **Charts/dashboard**          | `/vhm24-charts` skill (Recharts)                                                                           |
+| **Auth/RBAC changes**         | `/vhm24-auth-rbac` skill                                                                                   |
+| **Database schema/migration** | `/vhm24-db-expert` skill → `db-migration-helper` agent                                                     |
+| **Payment integration**       | `/vhm24-payments` skill                                                                                    |
+| **Real-time/WebSocket**       | `/vhm24-realtime` skill                                                                                    |
+| **Mobile (Expo)**             | `/vhm24-mobile` skill + `vercel-react-native-skills`                                                       |
+| **i18n/localization**         | `/vhm24-i18n` skill                                                                                        |
+| **Docker/K8s/CI**             | `/vhm24-devops` skill                                                                                      |
+| **Monitoring/logging**        | `/vhm24-monitoring` skill                                                                                  |
+| **Security hardening**        | `/vhm24-security-hardening` skill + `security-guidance` plugin                                             |
+| **Testing**                   | `/vhm24-testing` skill                                                                                     |
+| **Documentation**             | `/vhm24-docs-generator` skill                                                                              |
+| **Module migration**          | `/vhm24-migration` skill → `module-migrator` agent                                                         |
+| **Component library**         | `/vhm24-component-lib` skill + `web-design-guidelines`                                                     |
+| **Multi-step/complex task**   | `/vhm24-orchestrator` skill to coordinate                                                                  |
+| **Code review**               | `/vhm24-qa-review` skill → `code-review` plugin → `pr-review-toolkit`                                      |
+| **Git commit**                | `/commit` (commit-commands plugin)                                                                         |
+| **Create PR**                 | `/commit-push-pr` (commit-commands plugin)                                                                 |
+| **Feature development**       | `/feature-dev` plugin (guided flow)                                                                        |
+| **Bug investigation**         | `systematic-debugging` superpowers skill                                                                   |
+| **Health check/diagnostics**  | `/vhm24-health-check` skill → `health-check` agent                                                         |
+
+### After ANY Code Change
+
+1. **Build verification** — run `build-verifier` agent (checks all 6 apps compile)
+2. **Code review** — run `code-review` plugin or `pr-review-toolkit` for PR
+3. **Simplification** — run `code-simplifier` plugin on changed files
+
+### Quality Gates (Automatic)
+
+- Before committing: `verification-before-completion` superpowers skill
+- Before PR: `pr-review-toolkit` plugin (code-reviewer + silent-failure-hunter + type-design-analyzer)
+- Before deploy: `production-quality-guardian` agent (8-phase audit)
+- Dependency changes: `dependency-audit` agent
+
+### MCP Servers (Always Available)
+
+| Server         | Use For                                      |
+| -------------- | -------------------------------------------- |
+| **Serena**     | Symbol navigation, code editing, refactoring |
+| **Context7**   | Library documentation lookup                 |
+| **Playwright** | Browser testing and UI verification          |
+| **Firebase**   | Firebase project management                  |
+| **Greptile**   | PR review, code search, custom context       |
+| **Sonatype**   | Dependency security analysis                 |
+
+### Parallel Agent Dispatch
+
+For complex tasks, launch multiple agents in parallel:
+
+- `build-verifier` + `code-review` after implementation
+- `dependency-audit` + `production-quality-guardian` before release
+- Multiple `Explore` agents for cross-app investigation
+
 ## Pre-Commit Checks
 
 ```bash
@@ -300,16 +371,16 @@ npx jest --passWithNoTests          # Tests pass
 
 ## Key Files
 
-| What           | Path                                                          |
-| -------------- | ------------------------------------------------------------- |
-| Master Prompt  | `MASTER_PROMPT.md`                                            |
-| Migration Plan | `MIGRATION_PLAN_v4.md`                                        |
-| UI/UX Spec     | `UI_UX_SPECIFICATION.md`                                      |
-| TypeORM Config | `vendhub-unified/apps/api/src/database/typeorm.config.ts`     |
-| API Modules    | `vendhub-unified/apps/api/src/modules/`                       |
-| Base Entity    | `vendhub-unified/apps/api/src/common/entities/base.entity.ts` |
-| App Module     | `vendhub-unified/apps/api/src/app.module.ts`                  |
-| Skills         | `.claude/commands/`                                           |
-| Docker Compose | `vendhub-unified/docker-compose.yml`                          |
-| Turbo Config   | `vendhub-unified/turbo.json`                                  |
-| CI Pipeline    | `vendhub-unified/.github/workflows/ci.yml`                    |
+| What           | Path                                          |
+| -------------- | --------------------------------------------- |
+| Master Prompt  | `MASTER_PROMPT.md`                            |
+| Migration Plan | `MIGRATION_PLAN_v4.md`                        |
+| UI/UX Spec     | `UI_UX_SPECIFICATION.md`                      |
+| TypeORM Config | `apps/api/src/database/typeorm.config.ts`     |
+| API Modules    | `apps/api/src/modules/`                       |
+| Base Entity    | `apps/api/src/common/entities/base.entity.ts` |
+| App Module     | `apps/api/src/app.module.ts`                  |
+| Skills         | `.claude/commands/`                           |
+| Docker Compose | `docker-compose.yml`                          |
+| Turbo Config   | `turbo.json`                                  |
+| CI Pipeline    | `.github/workflows/ci.yml`                    |

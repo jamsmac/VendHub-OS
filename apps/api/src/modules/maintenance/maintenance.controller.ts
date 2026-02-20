@@ -15,6 +15,7 @@ import {
   ParseUUIDPipe,
   HttpStatus,
   HttpCode,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -56,10 +57,13 @@ import {
   CurrentOrganizationId,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards";
 
 @ApiTags("Maintenance")
 @ApiBearerAuth()
 @Controller("maintenance")
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class MaintenanceController {
   constructor(private readonly maintenanceService: MaintenanceService) {}
 
