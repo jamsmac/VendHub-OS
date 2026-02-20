@@ -801,3 +801,155 @@ export class InventoryCountItem extends BaseEntity {
   @Column({ type: "boolean", default: false })
   isVerified: boolean;
 }
+
+// ============================================================================
+// INVENTORY DIFFERENCE THRESHOLD
+// ============================================================================
+
+export enum ThresholdType {
+  NOMENCLATURE = "NOMENCLATURE",
+  CATEGORY = "CATEGORY",
+  LOCATION = "LOCATION",
+  MACHINE = "MACHINE",
+  OPERATOR = "OPERATOR",
+  GLOBAL = "GLOBAL",
+}
+
+export enum SeverityLevel {
+  INFO = "INFO",
+  WARNING = "WARNING",
+  CRITICAL = "CRITICAL",
+}
+
+/**
+ * Inventory Difference Threshold
+ * Configurable thresholds for inventory discrepancies
+ */
+@Entity("inventory_difference_thresholds")
+@Index(["organizationId"])
+@Index(["thresholdType"])
+@Index(["referenceId"])
+@Index(["isActive"])
+@Index(["priority", "isActive"])
+export class InventoryDifferenceThreshold extends BaseEntity {
+  @ApiProperty({ description: "Organization ID" })
+  @Column({ type: "uuid" })
+  organizationId: string;
+
+  @ApiProperty({ enum: ThresholdType })
+  @Column({ type: "enum", enum: ThresholdType })
+  thresholdType: ThresholdType;
+
+  @ApiPropertyOptional({
+    description:
+      "Reference ID (nomenclature, location, machine, operator) or NULL for GLOBAL",
+  })
+  @Column({ type: "uuid", nullable: true })
+  referenceId: string | null;
+
+  @ApiProperty({ description: "Threshold rule name" })
+  @Column({ type: "varchar", length: 200 })
+  name: string;
+
+  @ApiPropertyOptional({ description: "Absolute threshold value" })
+  @Column({ type: "decimal", precision: 15, scale: 3, nullable: true })
+  thresholdAbs: number | null;
+
+  @ApiPropertyOptional({ description: "Relative threshold percentage" })
+  @Column({ type: "decimal", precision: 5, scale: 2, nullable: true })
+  thresholdRel: number | null;
+
+  @ApiProperty({ enum: SeverityLevel })
+  @Column({
+    type: "enum",
+    enum: SeverityLevel,
+    default: SeverityLevel.WARNING,
+  })
+  severityLevel: SeverityLevel;
+
+  @ApiProperty({ description: "Create incident on threshold breach" })
+  @Column({ type: "boolean", default: false })
+  createIncident: boolean;
+
+  @ApiProperty({ description: "Create task on threshold breach" })
+  @Column({ type: "boolean", default: false })
+  createTask: boolean;
+
+  @ApiPropertyOptional({ description: "User IDs to notify" })
+  @Column({ type: "jsonb", nullable: true })
+  notifyUsers: string[] | null;
+
+  @ApiPropertyOptional({ description: "Roles to notify" })
+  @Column({ type: "jsonb", nullable: true })
+  notifyRoles: string[] | null;
+
+  @ApiProperty({ description: "Is threshold active" })
+  @Column({ type: "boolean", default: true })
+  isActive: boolean;
+
+  @ApiProperty({ description: "Priority (higher = higher priority)" })
+  @Column({ type: "integer", default: 0 })
+  priority: number;
+
+  @ApiPropertyOptional({ description: "Rule description" })
+  @Column({ type: "text", nullable: true })
+  description: string | null;
+}
+
+// ============================================================================
+// INVENTORY REPORT PRESET
+// ============================================================================
+
+/**
+ * Inventory Report Preset
+ * Saved filter presets for inventory reports
+ */
+@Entity("inventory_report_presets")
+@Index(["organizationId"])
+@Index(["userId", "isDefault"])
+@Index(["userId", "isShared"])
+export class InventoryReportPreset extends BaseEntity {
+  @ApiProperty({ description: "Organization ID" })
+  @Column({ type: "uuid" })
+  organizationId: string;
+
+  @ApiProperty({ description: "Preset name" })
+  @Column({ type: "varchar", length: 255 })
+  name: string;
+
+  @ApiPropertyOptional({ description: "Preset description" })
+  @Column({ type: "text", nullable: true })
+  description: string | null;
+
+  @ApiProperty({ description: "User who created the preset" })
+  @Column({ type: "uuid" })
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: User;
+
+  @ApiProperty({ description: "Saved report filters" })
+  @Column({ type: "jsonb" })
+  filters: {
+    levelType?: string;
+    levelRefId?: string;
+    nomenclatureId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    severity?: string;
+    thresholdExceededOnly?: boolean;
+  };
+
+  @ApiProperty({ description: "Is default preset for user" })
+  @Column({ type: "boolean", default: false })
+  isDefault: boolean;
+
+  @ApiProperty({ description: "Is shared with all users" })
+  @Column({ type: "boolean", default: false })
+  isShared: boolean;
+
+  @ApiProperty({ description: "Sort order" })
+  @Column({ type: "integer", default: 0 })
+  sortOrder: number;
+}

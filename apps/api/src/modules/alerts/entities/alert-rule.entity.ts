@@ -54,6 +54,8 @@ export enum AlertHistoryStatus {
   ACTIVE = "active",
   ACKNOWLEDGED = "acknowledged",
   RESOLVED = "resolved",
+  ESCALATED = "escalated",
+  EXPIRED = "expired",
   DISMISSED = "dismissed",
 }
 
@@ -167,6 +169,16 @@ export class AlertHistory extends BaseEntity {
   @Column({ type: "uuid", nullable: true })
   machineId: string | null;
 
+  @ApiPropertyOptional({
+    description: "Location ID if alert is location-specific",
+  })
+  @Column({ type: "uuid", nullable: true })
+  locationId: string | null;
+
+  @ApiPropertyOptional({ description: "Alert title" })
+  @Column({ type: "varchar", length: 255, nullable: true })
+  title: string | null;
+
   @ApiProperty({ description: "When the alert was triggered" })
   @Column({
     type: "timestamp with time zone",
@@ -208,9 +220,46 @@ export class AlertHistory extends BaseEntity {
   @Column({ type: "timestamp with time zone", nullable: true })
   acknowledgedAt: Date | null;
 
+  @ApiPropertyOptional({ description: "Acknowledgement note" })
+  @Column({ type: "text", nullable: true })
+  acknowledgementNote: string | null;
+
   @ApiPropertyOptional({ description: "When the alert was resolved" })
   @Column({ type: "timestamp with time zone", nullable: true })
   resolvedAt: Date | null;
+
+  @ApiPropertyOptional({ description: "User who resolved the alert" })
+  @Column({ type: "uuid", nullable: true })
+  resolvedByUserId: string | null;
+
+  @ApiPropertyOptional({ description: "Resolution note" })
+  @Column({ type: "text", nullable: true })
+  resolutionNote: string | null;
+
+  @ApiPropertyOptional({ description: "When the alert was escalated" })
+  @Column({ type: "timestamp with time zone", nullable: true })
+  escalatedAt: Date | null;
+
+  @ApiProperty({ description: "Current escalation level", default: 0 })
+  @Column({ type: "integer", default: 0 })
+  escalationLevel: number;
+
+  @ApiPropertyOptional({ description: "Metric snapshot at trigger time" })
+  @Column({ type: "jsonb", nullable: true })
+  metricSnapshot: {
+    currentValue: number;
+    threshold: number;
+    metric: string;
+    additionalData?: Record<string, unknown>;
+  } | null;
+
+  @ApiPropertyOptional({ description: "Notification IDs sent for this alert" })
+  @Column({ type: "jsonb", nullable: true })
+  notificationIds: string[] | null;
+
+  @ApiPropertyOptional({ description: "Auto-created task ID from escalation" })
+  @Column({ type: "uuid", nullable: true })
+  autoCreatedTaskId: string | null;
 
   @ApiPropertyOptional({ description: "Alert message" })
   @Column({ type: "text", nullable: true })

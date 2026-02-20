@@ -90,6 +90,7 @@ import { AchievementsModule } from "./modules/achievements/achievements.module";
 import { SmsModule } from "./modules/sms/sms.module";
 import { EmailModule } from "./modules/email/email.module";
 import { ContainersModule } from "./modules/containers/containers.module";
+import { AnalyticsModule } from "./modules/analytics/analytics.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -517,6 +518,9 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Container Management (Hoppers/Bunkers)
     ContainersModule,
+
+    // Analytics (Daily Stats, Dashboards, Snapshots, Reports)
+    AnalyticsModule,
   ],
   providers: [
     // ============================================

@@ -1,13 +1,16 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { WarehouseService } from './warehouse.service';
-import { StockTakeService } from './stock-take.service';
-import { WarehouseController } from './warehouse.controller';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { WarehouseService } from "./warehouse.service";
+import { StockTakeService } from "./stock-take.service";
+import { WarehouseController } from "./warehouse.controller";
 import {
   Warehouse,
   StockMovement,
   InventoryBatch,
-} from './entities/warehouse.entity';
+  WarehouseZone,
+  StockTake,
+  StockReservation,
+} from "./entities/warehouse.entity";
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import {
       Warehouse,
       StockMovement,
       InventoryBatch,
+      WarehouseZone,
+      StockTake,
+      StockReservation,
     ]),
   ],
   controllers: [WarehouseController],

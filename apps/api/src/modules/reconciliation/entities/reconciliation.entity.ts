@@ -103,6 +103,18 @@ export class ReconciliationRun extends BaseEntity {
     mismatched: number;
     missing: number;
     matchRate: number;
+    scoreDistribution?: Record<string, number>;
+    totalRevenue?: number;
+    matchedRevenue?: number;
+    discrepancyAmount?: number;
+    bySource?: Record<string, { found: number; missing: number }>;
+    byMachine?: Array<{
+      machineId: string;
+      machineName: string;
+      matched: number;
+      unmatched: number;
+      revenue: number;
+    }>;
   } | null;
 
   @Column({ type: "text", nullable: true })

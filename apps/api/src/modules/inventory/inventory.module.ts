@@ -16,6 +16,8 @@ import {
   InventoryAdjustment,
   InventoryCount,
   InventoryCountItem,
+  InventoryDifferenceThreshold,
+  InventoryReportPreset,
 } from "./entities/inventory.entity";
 
 @Module({
@@ -36,6 +38,10 @@ import {
       // Counting/Stocktake
       InventoryCount,
       InventoryCountItem,
+
+      // Thresholds & Reports
+      InventoryDifferenceThreshold,
+      InventoryReportPreset,
     ]),
   ],
   controllers: [InventoryController],

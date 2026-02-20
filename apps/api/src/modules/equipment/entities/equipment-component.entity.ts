@@ -59,6 +59,38 @@ export enum ComponentMaintenanceType {
   REPAIR = "repair",
   REPLACEMENT = "replacement",
   INSPECTION = "inspection",
+  SOFTWARE_UPDATE = "software_update",
+  PREVENTIVE = "preventive",
+  OTHER = "other",
+}
+
+/**
+ * Component Location Type (from VHM24-repo)
+ * Tracks where a component currently is in the lifecycle
+ */
+export enum ComponentLocationType {
+  MACHINE = "machine",
+  WAREHOUSE = "warehouse",
+  WASHING = "washing",
+  DRYING = "drying",
+  REPAIR = "repair",
+}
+
+/**
+ * Component Movement Type (from VHM24-repo)
+ * Describes what kind of movement occurred
+ */
+export enum ComponentMovementType {
+  INSTALL = "install",
+  REMOVE = "remove",
+  SEND_TO_WASH = "send_to_wash",
+  RETURN_FROM_WASH = "return_from_wash",
+  SEND_TO_DRYING = "send_to_drying",
+  RETURN_FROM_DRYING = "return_from_drying",
+  MOVE_TO_WAREHOUSE = "move_to_warehouse",
+  MOVE_TO_MACHINE = "move_to_machine",
+  SEND_TO_REPAIR = "send_to_repair",
+  RETURN_FROM_REPAIR = "return_from_repair",
 }
 
 // ============================================================================
@@ -154,6 +186,44 @@ export class EquipmentComponent extends BaseEntity {
   @ApiPropertyOptional({ description: "Scheduled next maintenance date" })
   @Column({ type: "date", nullable: true })
   nextMaintenanceDate: Date | null;
+
+  // Location tracking (from VHM24-repo)
+  @ApiProperty({
+    enum: ComponentLocationType,
+    description: "Current physical location type",
+    default: ComponentLocationType.WAREHOUSE,
+  })
+  @Column({
+    type: "enum",
+    enum: ComponentLocationType,
+    default: ComponentLocationType.WAREHOUSE,
+  })
+  currentLocationType: ComponentLocationType;
+
+  @ApiPropertyOptional({
+    description: "Location reference (warehouse name, etc.)",
+  })
+  @Column({ type: "varchar", length: 100, nullable: true })
+  currentLocationRef: string | null;
+
+  @ApiPropertyOptional({ description: "Maintenance interval in days" })
+  @Column({ type: "integer", nullable: true })
+  maintenanceIntervalDays: number | null;
+
+  // Replacement tracking (from VHM24-repo)
+  @ApiPropertyOptional({ description: "Date when replaced" })
+  @Column({ type: "date", nullable: true })
+  replacementDate: Date | null;
+
+  @ApiPropertyOptional({
+    description: "ID of component that replaced this one",
+  })
+  @Column({ type: "uuid", nullable: true })
+  replacedByComponentId: string | null;
+
+  @ApiPropertyOptional({ description: "ID of component this one replaces" })
+  @Column({ type: "uuid", nullable: true })
+  replacesComponentId: string | null;
 
   @ApiPropertyOptional({ description: "Additional notes" })
   @Column({ type: "text", nullable: true })
@@ -310,9 +380,18 @@ export class ComponentMaintenance extends BaseEntity {
   @Column({ type: "text", nullable: true })
   description: string | null;
 
-  @ApiPropertyOptional({ description: "Cost of maintenance in UZS" })
-  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
-  cost: number | null;
+  // Cost breakdown (from VHM24-repo)
+  @ApiProperty({ description: "Labor cost in UZS", default: 0 })
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  laborCost: number;
+
+  @ApiProperty({ description: "Parts cost in UZS", default: 0 })
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  partsCost: number;
+
+  @ApiProperty({ description: "Total cost in UZS", default: 0 })
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  totalCost: number;
 
   @ApiProperty({ description: "User who performed the maintenance" })
   @Column({ type: "uuid" })
@@ -325,12 +404,50 @@ export class ComponentMaintenance extends BaseEntity {
   })
   performedAt: Date;
 
+  @ApiPropertyOptional({ description: "Duration of work in minutes" })
+  @Column({ type: "integer", nullable: true })
+  durationMinutes: number | null;
+
   @ApiProperty({
     description: "Spare parts used during maintenance",
     default: [],
   })
   @Column({ type: "jsonb", default: [] })
-  partsUsed: { sparePartId: string; quantity: number }[];
+  partsUsed: {
+    sparePartId: string;
+    quantity: number;
+    partNumber?: string;
+    name?: string;
+  }[];
+
+  // Result and follow-up (from VHM24-repo)
+  @ApiPropertyOptional({ description: "Result of maintenance work" })
+  @Column({ type: "text", nullable: true })
+  result: string | null;
+
+  @ApiProperty({
+    description: "Whether maintenance was successful",
+    default: true,
+  })
+  @Column({ type: "boolean", default: true })
+  isSuccessful: boolean;
+
+  @ApiPropertyOptional({ description: "Recommended next maintenance date" })
+  @Column({ type: "date", nullable: true })
+  nextMaintenanceDate: Date | null;
+
+  // Documentation (from VHM24-repo)
+  @ApiPropertyOptional({ description: "Photo URLs" })
+  @Column({ type: "simple-array", nullable: true })
+  photoUrls: string[] | null;
+
+  @ApiPropertyOptional({ description: "Document URLs (reports, receipts)" })
+  @Column({ type: "simple-array", nullable: true })
+  documentUrls: string[] | null;
+
+  @ApiPropertyOptional({ description: "Related task ID" })
+  @Column({ type: "uuid", nullable: true })
+  taskId: string | null;
 
   @ApiPropertyOptional({ description: "Additional notes" })
   @Column({ type: "text", nullable: true })
@@ -347,12 +464,14 @@ export class ComponentMaintenance extends BaseEntity {
 
 /**
  * Component Movement Entity
- * Tracks movement of components between machines
+ * Tracks movement of components between locations (machines, warehouse, washing, repair)
  */
 @Entity("component_movements")
 @Index(["componentId"])
 @Index(["organizationId"])
 @Index(["movedAt"])
+@Index(["movementType"])
+@Index(["relatedMachineId"])
 export class ComponentMovement extends BaseEntity {
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
@@ -366,6 +485,38 @@ export class ComponentMovement extends BaseEntity {
   @JoinColumn({ name: "component_id" })
   component: EquipmentComponent;
 
+  // Movement type (from VHM24-repo)
+  @ApiPropertyOptional({
+    enum: ComponentMovementType,
+    description: "Type of movement",
+  })
+  @Column({ type: "enum", enum: ComponentMovementType, nullable: true })
+  movementType: ComponentMovementType | null;
+
+  // Location-based tracking (from VHM24-repo)
+  @ApiPropertyOptional({
+    enum: ComponentLocationType,
+    description: "Source location type",
+  })
+  @Column({ type: "enum", enum: ComponentLocationType, nullable: true })
+  fromLocationType: ComponentLocationType | null;
+
+  @ApiPropertyOptional({ description: "Source location reference" })
+  @Column({ type: "varchar", length: 100, nullable: true })
+  fromLocationRef: string | null;
+
+  @ApiPropertyOptional({
+    enum: ComponentLocationType,
+    description: "Destination location type",
+  })
+  @Column({ type: "enum", enum: ComponentLocationType, nullable: true })
+  toLocationType: ComponentLocationType | null;
+
+  @ApiPropertyOptional({ description: "Destination location reference" })
+  @Column({ type: "varchar", length: 100, nullable: true })
+  toLocationRef: string | null;
+
+  // Legacy machine-to-machine fields (kept for backward compatibility)
   @ApiPropertyOptional({ description: "Source machine ID" })
   @Column({ type: "uuid", nullable: true })
   fromMachineId: string | null;
@@ -373,6 +524,15 @@ export class ComponentMovement extends BaseEntity {
   @ApiPropertyOptional({ description: "Destination machine ID" })
   @Column({ type: "uuid", nullable: true })
   toMachineId: string | null;
+
+  // Related machine (from VHM24-repo)
+  @ApiPropertyOptional({ description: "Related machine ID" })
+  @Column({ type: "uuid", nullable: true })
+  relatedMachineId: string | null;
+
+  @ApiPropertyOptional({ description: "Related task ID" })
+  @Column({ type: "uuid", nullable: true })
+  taskId: string | null;
 
   @ApiProperty({ description: "User who moved the component" })
   @Column({ type: "uuid" })
@@ -385,7 +545,7 @@ export class ComponentMovement extends BaseEntity {
   })
   movedAt: Date;
 
-  @ApiPropertyOptional({ description: "Reason for movement" })
+  @ApiPropertyOptional({ description: "Comment about the movement" })
   @Column({ type: "text", nullable: true })
   reason: string | null;
 
