@@ -24,6 +24,7 @@ import {
   HttpMethod,
   FieldType,
   PaymentMethod,
+  ParamLocation,
 } from "../types/integration.types";
 
 @Injectable()
@@ -329,22 +330,22 @@ export class AIParserService {
     const $ = cheerio.load(html);
 
     // Remove scripts, styles, and other non-content elements
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+    // Cheerio type definitions don't expose .remove() / .first() on multi-selector results
     (
       $(
         "script, style, nav, footer, header, aside, .sidebar, .navigation",
       ) as any
-    ).remove();
+    ) // eslint-disable-line @typescript-eslint/no-explicit-any -- Cheerio type limitation
+      .remove();
 
     // Extract main content
     const mainContent = (
       $(
         "main, article, .content, .documentation, .docs, #content, #docs",
       ) as any
-    )
+    ) // eslint-disable-line @typescript-eslint/no-explicit-any -- Cheerio type limitation
       .first()
       .text();
-    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     if (mainContent?.trim()) {
       return mainContent.replace(/\s+/g, " ").trim();
@@ -620,8 +621,7 @@ What would you like to configure first? You can also paste API documentation or 
         type: AuthType.API_KEY,
         config: {
           keyName: "Authorization",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          keyLocation: "header" as any,
+          keyLocation: ParamLocation.HEADER,
         },
       },
       credentials: [

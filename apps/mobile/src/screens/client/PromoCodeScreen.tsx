@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -42,6 +43,7 @@ interface PromoResult {
 }
 
 export function PromoCodeScreen() {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<PromoResult | null>(null);
 
@@ -55,14 +57,14 @@ export function PromoCodeScreen() {
     },
     onError: () => {
       setResult(null);
-      Alert.alert("Ошибка", "Промокод не найден или недействителен");
+      Alert.alert(t("common.error"), t("client.promoCode.notFoundError"));
     },
   });
 
   const handleValidate = () => {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
-      Alert.alert("Ошибка", "Введите промокод");
+      Alert.alert(t("common.error"), t("client.promoCode.enterCode"));
       return;
     }
     validateMutation.mutate(trimmed);
@@ -79,9 +81,9 @@ export function PromoCodeScreen() {
           <View style={styles.heroIcon}>
             <Ionicons name="ticket" size={48} color={COLORS.primary} />
           </View>
-          <Text style={styles.heroTitle}>Промокод</Text>
+          <Text style={styles.heroTitle}>{t("client.promoCode.title")}</Text>
           <Text style={styles.heroSubtitle}>
-            Введите промокод для получения скидки на следующий заказ
+            {t("client.promoCode.subtitle")}
           </Text>
         </View>
 
@@ -91,7 +93,7 @@ export function PromoCodeScreen() {
             <Ionicons name="pricetag-outline" size={20} color={COLORS.muted} />
             <TextInput
               style={styles.input}
-              placeholder="Введите промокод"
+              placeholder={t("client.promoCode.placeholder")}
               placeholderTextColor={COLORS.muted}
               value={code}
               onChangeText={setCode}
@@ -124,7 +126,9 @@ export function PromoCodeScreen() {
             {validateMutation.isPending ? (
               <ActivityIndicator color={COLORS.card} size="small" />
             ) : (
-              <Text style={styles.validateButtonText}>Применить</Text>
+              <Text style={styles.validateButtonText}>
+                {t("client.promoCode.apply")}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -150,15 +154,17 @@ export function PromoCodeScreen() {
                 ]}
               >
                 {result.valid
-                  ? "Промокод действителен!"
-                  : "Недействительный промокод"}
+                  ? t("client.promoCode.valid")
+                  : t("client.promoCode.invalid")}
               </Text>
             </View>
 
             {result.valid && (
               <View style={styles.resultDetails}>
                 <View style={styles.discountRow}>
-                  <Text style={styles.discountLabel}>Скидка:</Text>
+                  <Text style={styles.discountLabel}>
+                    {t("client.promoCode.discount")}
+                  </Text>
                   <Text style={styles.discountValue}>
                     {result.discount_type === "percentage"
                       ? `${result.discount_value}%`
@@ -174,14 +180,14 @@ export function PromoCodeScreen() {
 
                 {result.min_order_amount && (
                   <Text style={styles.resultNote}>
-                    Мин. сумма заказа:{" "}
+                    {t("client.promoCode.minOrder")}{" "}
                     {result.min_order_amount.toLocaleString()} so'm
                   </Text>
                 )}
 
                 {result.expires_at && (
                   <Text style={styles.resultNote}>
-                    Действует до:{" "}
+                    {t("client.promoCode.expiresAt")}{" "}
                     {new Date(result.expires_at).toLocaleDateString("ru-RU")}
                   </Text>
                 )}
@@ -197,10 +203,7 @@ export function PromoCodeScreen() {
             size={20}
             color={COLORS.primary}
           />
-          <Text style={styles.infoText}>
-            Промокоды можно получить в рассылках, у партнёров или в рамках акций
-            VendHub
-          </Text>
+          <Text style={styles.infoText}>{t("client.promoCode.infoText")}</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

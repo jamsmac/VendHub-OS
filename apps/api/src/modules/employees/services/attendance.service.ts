@@ -51,7 +51,7 @@ export class AttendanceService {
       where: {
         employeeId: dto.employeeId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any,
+        date: new Date(dateStr) as any, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
         organizationId,
       },
     });
@@ -102,7 +102,7 @@ export class AttendanceService {
       where: {
         employeeId: dto.employeeId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any,
+        date: new Date(dateStr) as any, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
         organizationId,
       },
     });
@@ -206,7 +206,7 @@ export class AttendanceService {
 
     const records = await this.attendanceRepo.find({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { organizationId, date: new Date(date) as any },
+      where: { organizationId, date: new Date(date) as any }, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
     });
 
     const totalEmployees = await this.employeeRepo.count({
@@ -267,7 +267,7 @@ export class AttendanceService {
         organizationId,
         employeeId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: Between(startDate, endDate) as any,
+        date: Between(startDate, endDate) as any, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
       },
       order: { date: "ASC" },
     });

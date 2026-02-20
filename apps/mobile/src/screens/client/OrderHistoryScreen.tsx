@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -31,22 +32,38 @@ const COLORS = {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; icon: string }
+  { key: string; color: string; icon: string }
 > = {
-  pending: { label: "Ожидает", color: COLORS.amber, icon: "time-outline" },
+  pending: {
+    key: "client.orders.status.pending",
+    color: COLORS.amber,
+    icon: "time-outline",
+  },
   processing: {
-    label: "Готовится",
+    key: "client.orders.status.preparing",
     color: COLORS.blue,
     icon: "hourglass-outline",
   },
-  ready: { label: "Готов", color: COLORS.green, icon: "checkmark-circle" },
+  ready: {
+    key: "client.orders.status.ready",
+    color: COLORS.green,
+    icon: "checkmark-circle",
+  },
   completed: {
-    label: "Завершён",
+    key: "client.orders.status.completed",
     color: COLORS.green,
     icon: "checkmark-done",
   },
-  cancelled: { label: "Отменён", color: COLORS.red, icon: "close-circle" },
-  failed: { label: "Ошибка", color: COLORS.red, icon: "alert-circle" },
+  cancelled: {
+    key: "client.orders.status.cancelled",
+    color: COLORS.red,
+    icon: "close-circle",
+  },
+  failed: {
+    key: "client.orders.status.error",
+    color: COLORS.red,
+    icon: "alert-circle",
+  },
 };
 
 interface Order {
@@ -61,6 +78,7 @@ interface Order {
 }
 
 export function OrderHistoryScreen() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -96,7 +114,7 @@ export function OrderHistoryScreen() {
                 color={status.color}
               />
               <Text style={[styles.statusText, { color: status.color }]}>
-                {status.label}
+                {t(status.key)}
               </Text>
             </View>
           </View>
@@ -119,7 +137,10 @@ export function OrderHistoryScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="cart-outline" size={16} color={COLORS.muted} />
             <Text style={styles.detailText}>
-              {item.items_count} {item.items_count === 1 ? "товар" : "товаров"}
+              {item.items_count}{" "}
+              {item.items_count === 1
+                ? t("client.orders.item")
+                : t("client.orders.items")}
             </Text>
           </View>
           <View style={styles.detailRow}>
@@ -131,7 +152,7 @@ export function OrderHistoryScreen() {
         </View>
 
         <View style={styles.orderFooter}>
-          <Text style={styles.totalLabel}>Итого</Text>
+          <Text style={styles.totalLabel}>{t("client.orders.total")}</Text>
           <Text style={styles.totalAmount}>
             {item.total_amount.toLocaleString()} so'm
           </Text>
@@ -143,7 +164,7 @@ export function OrderHistoryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Мои заказы</Text>
+        <Text style={styles.headerTitle}>{t("client.orders.title")}</Text>
       </View>
 
       {isLoading ? (
@@ -153,9 +174,9 @@ export function OrderHistoryScreen() {
       ) : orders.length === 0 ? (
         <View style={styles.centered}>
           <Ionicons name="receipt-outline" size={64} color={COLORS.muted} />
-          <Text style={styles.emptyText}>Заказов пока нет</Text>
+          <Text style={styles.emptyText}>{t("client.orders.empty")}</Text>
           <Text style={styles.emptySubtext}>
-            Ваши заказы появятся здесь после первой покупки
+            {t("client.orders.emptySubtitle")}
           </Text>
         </View>
       ) : (

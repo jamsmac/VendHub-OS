@@ -14,6 +14,7 @@ import {
   IngredientBatchStatus,
   ProductPriceHistory,
   Supplier,
+  UnitOfMeasure,
 } from "./entities/product.entity";
 import {
   CreateRecipeDto,
@@ -341,8 +342,7 @@ export class ProductsService {
       recipeId,
       ingredientId,
       quantity,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      unitOfMeasure: unitOfMeasure as any,
+      unitOfMeasure: unitOfMeasure as UnitOfMeasure,
       sortOrder: sortOrder ?? 1,
       isOptional: isOptional ?? false,
       createdById: userId,

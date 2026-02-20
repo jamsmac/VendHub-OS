@@ -14,6 +14,9 @@ import {
   IntegrationCategory,
   IntegrationStatus,
   PaymentIntegrationConfig,
+  AuthType,
+  ParamLocation,
+  HttpMethod,
 } from "../types/integration.types";
 
 @Injectable()
@@ -313,12 +316,10 @@ export class IntegrationService {
       sandboxMode: true,
       baseUrl: "",
       auth: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        type: "api_key" as any,
+        type: AuthType.API_KEY,
         config: {
           keyName: "Authorization",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          keyLocation: "header" as any,
+          keyLocation: ParamLocation.HEADER,
         },
       },
       credentials: [],
@@ -329,16 +330,14 @@ export class IntegrationService {
           id: "create_payment",
           name: "Create Payment",
           description: "Create a new payment",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          method: "POST" as any,
+          method: HttpMethod.POST,
           path: "/payments",
         },
         checkStatus: {
           id: "check_status",
           name: "Check Status",
           description: "Check payment status",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          method: "GET" as any,
+          method: HttpMethod.GET,
           path: "/payments/{id}",
         },
       },

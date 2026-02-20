@@ -16,6 +16,8 @@ import {
   ComponentStatus,
   MaintenanceStatus,
   MoveReason,
+  ErrorSeverity,
+  MaintenanceType,
 } from "./entities/machine.entity";
 import {
   CreateMachineSlotDto,
@@ -377,7 +379,7 @@ export class MachinesService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await this.machineRepository.update(machineId, updateData as any);
+    await this.machineRepository.update(machineId, updateData as any); // TypeORM QueryDeepPartialEntity vs Partial<Machine> mismatch for entity with jsonb columns
 
     return savedHistory;
   }
@@ -472,8 +474,7 @@ export class MachinesService {
       machineId,
       errorCode: dto.errorCode,
       message: dto.message,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      severity: (dto.severity as any) ?? "error",
+      severity: (dto.severity as ErrorSeverity) ?? ErrorSeverity.ERROR,
       context: dto.context ?? {},
       occurredAt: new Date(),
       createdById: userId,
@@ -518,8 +519,7 @@ export class MachinesService {
     const unresolvedCount = await this.errorLogRepository.count({
       where: {
         machineId: errorLog.machineId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolvedAt: null as any,
+        resolvedAt: null as unknown as Date, // TypeORM FindOptionsWhere: null check for nullable Date column
       },
     });
 
@@ -569,8 +569,7 @@ export class MachinesService {
 
     const schedule = this.maintenanceRepository.create({
       machineId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      maintenanceType: dto.maintenanceType as any,
+      maintenanceType: dto.maintenanceType as MaintenanceType,
       scheduledDate: dto.scheduledDate,
       assignedToUserId: dto.assignedToUserId,
       description: dto.description,

@@ -743,7 +743,7 @@ export class QuestsService {
     let quests = await this.questRepo.find({
       where: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]),
+        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         period,
         isActive: true,
       },
@@ -796,7 +796,7 @@ export class QuestsService {
     let achievements = await this.questRepo.find({
       where: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]),
+        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         period: QuestPeriod.ONE_TIME,
         isActive: true,
       },
@@ -852,8 +852,7 @@ export class QuestsService {
 
     for (const template of templates) {
       const quest = this.questRepo.create({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: undefined as any, // Global
+        organizationId: undefined as unknown as string, // Global quest, null in DB
         title: template.title,
         titleUz: template.titleUz,
         description: template.description,
@@ -863,8 +862,8 @@ export class QuestsService {
         difficulty: QuestDifficulty.MEDIUM,
         targetValue: template.targetValue,
         rewardPoints: template.baseReward,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        metadata: (template as any).metadata || {},
+        metadata:
+          (template as { metadata?: Record<string, unknown> }).metadata || {},
         isActive: true,
       });
 
@@ -889,8 +888,7 @@ export class QuestsService {
       );
 
       const quest = this.questRepo.create({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: undefined as any, // Global
+        organizationId: undefined as unknown as string, // Global quest, null in DB
         title: template.title,
         titleUz: template.titleUz,
         description: template.description,
@@ -900,8 +898,8 @@ export class QuestsService {
         difficulty: template.difficulty,
         targetValue: template.targetValue,
         rewardPoints: reward,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        metadata: (template as any).metadata || {},
+        metadata:
+          (template as { metadata?: Record<string, unknown> }).metadata || {},
         isActive: true,
       });
 
@@ -977,13 +975,13 @@ export class QuestsService {
   ): Promise<QuestStatsDto> {
     const totalQuests = await this.questRepo.count({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { organizationId: In([organizationId, null as any]) },
+      where: { organizationId: In([organizationId, null as any]) }, // TypeORM In() null for global+org queries
     });
 
     const activeQuests = await this.questRepo.count({
       where: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]),
+        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         isActive: true,
       },
     });

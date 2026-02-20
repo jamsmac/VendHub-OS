@@ -26,6 +26,7 @@ import {
   ComplaintSource,
   ComplaintActionType,
   RefundStatus,
+  SatisfactionRating,
   DEFAULT_SLA_CONFIG,
 } from "./entities/complaint.entity";
 
@@ -824,8 +825,7 @@ export class ComplaintsService {
       throw new BadRequestException("Оценка должна быть от 1 до 5");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    complaint.satisfactionRating = rating as any;
+    complaint.satisfactionRating = rating as SatisfactionRating;
     if (comment) {
       complaint.satisfactionFeedback = comment;
     }
@@ -926,8 +926,9 @@ export class ComplaintsService {
       // Check conditions from JSONB
       let matches = true;
       for (const condition of rule.conditions || []) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const value = (dto as any)[condition.field];
+        const value = (dto as unknown as Record<string, unknown>)[
+          condition.field
+        ];
         switch (condition.operator) {
           case "equals":
             matches = value === condition.value;

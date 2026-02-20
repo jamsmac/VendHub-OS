@@ -54,9 +54,10 @@ export class DatabaseHealthIndicator extends HealthIndicator {
 
   private getPoolInfo(): Record<string, unknown> {
     try {
-      // TypeORM with pg driver pool stats
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const driver = this.dataSource.driver as any;
+      // TypeORM with pg driver pool stats (internal API, not in public types)
+      const driver = this.dataSource.driver as {
+        pool?: { totalCount: number; idleCount: number; waitingCount: number };
+      };
 
       if (driver?.pool) {
         return {

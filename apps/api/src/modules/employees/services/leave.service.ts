@@ -274,9 +274,9 @@ export class LeaveService {
         employeeId,
         status: LeaveStatus.APPROVED,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        startDate: MoreThanOrEqual(startOfYear) as any,
+        startDate: MoreThanOrEqual(startOfYear) as any, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        endDate: LessThanOrEqual(endOfYear) as any,
+        endDate: LessThanOrEqual(endOfYear) as any, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
       },
     });
 

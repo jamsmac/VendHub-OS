@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -32,11 +33,11 @@ const COLORS = {
   muted: "#6B7280",
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  pending: { label: "Ожидает", color: COLORS.amber },
-  activated: { label: "Активирован", color: COLORS.green },
-  expired: { label: "Истёк", color: COLORS.red },
-  rewarded: { label: "Награждён", color: COLORS.blue },
+const STATUS_CONFIG: Record<string, { key: string; color: string }> = {
+  pending: { key: "client.referral.status.pending", color: COLORS.amber },
+  activated: { key: "client.referral.status.activated", color: COLORS.green },
+  expired: { key: "client.referral.status.expired", color: COLORS.red },
+  rewarded: { key: "client.referral.status.rewarded", color: COLORS.blue },
 };
 
 interface ReferralInfo {
@@ -58,6 +59,7 @@ interface ReferralStats {
 }
 
 export function ReferralScreen() {
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: statsData, refetch: refetchStats } = useQuery({
@@ -97,10 +99,12 @@ export function ReferralScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Присоединяйся к VendHub! Используй мой код ${stats.referral_code} и получи бонусные баллы. https://vendhub.uz/ref/${stats.referral_code}`,
+        message: t("client.referral.shareMessage", {
+          code: stats.referral_code,
+        }),
       });
     } catch {
-      Alert.alert("Ошибка", "Не удалось поделиться");
+      Alert.alert(t("common.error"), t("client.referral.shareFailed"));
     }
   };
 
@@ -113,14 +117,14 @@ export function ReferralScreen() {
     >
       {/* Referral Code Card */}
       <View style={styles.codeCard}>
-        <Text style={styles.codeLabel}>Ваш реферальный код</Text>
+        <Text style={styles.codeLabel}>{t("client.referral.codeLabel")}</Text>
         <Text style={styles.codeValue}>{stats.referral_code}</Text>
-        <Text style={styles.codeHint}>
-          Поделитесь кодом с друзьями и получайте бонусы
-        </Text>
+        <Text style={styles.codeHint}>{t("client.referral.codeHint")}</Text>
         <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
           <Ionicons name="share-social" size={20} color={COLORS.card} />
-          <Text style={styles.shareButtonText}>Поделиться</Text>
+          <Text style={styles.shareButtonText}>
+            {t("client.referral.share")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -128,19 +132,19 @@ export function ReferralScreen() {
       <View style={styles.statsRow}>
         <StatCard
           icon="people"
-          label="Приглашено"
+          label={t("client.referral.invited")}
           value={stats.total_invited}
           color={COLORS.blue}
         />
         <StatCard
           icon="checkmark-circle"
-          label="Активных"
+          label={t("client.referral.activated")}
           value={stats.total_activated}
           color={COLORS.green}
         />
         <StatCard
           icon="star"
-          label="Заработано"
+          label={t("client.referral.earned")}
           value={stats.total_earned}
           color={COLORS.amber}
         />
@@ -148,29 +152,33 @@ export function ReferralScreen() {
 
       {/* How it works */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Как это работает</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.referral.howItWorks")}
+        </Text>
         <View style={styles.stepsCard}>
           <StepItem
             step={1}
-            title="Поделитесь кодом"
-            desc="Отправьте реферальный код другу"
+            title={t("client.referral.step1Title")}
+            desc={t("client.referral.step1Desc")}
           />
           <StepItem
             step={2}
-            title="Друг регистрируется"
-            desc="Друг использует код при регистрации"
+            title={t("client.referral.step2Title")}
+            desc={t("client.referral.step2Desc")}
           />
           <StepItem
             step={3}
-            title="Получите бонусы"
-            desc="Оба получают бонусные баллы"
+            title={t("client.referral.step3Title")}
+            desc={t("client.referral.step3Desc")}
           />
         </View>
       </View>
 
       {/* Referral List */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Мои рефералы</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.referral.myReferrals")}
+        </Text>
 
         {isLoading ? (
           <View style={styles.centered}>
@@ -179,7 +187,9 @@ export function ReferralScreen() {
         ) : referrals.length === 0 ? (
           <View style={styles.emptyCard}>
             <Ionicons name="people-outline" size={48} color={COLORS.muted} />
-            <Text style={styles.emptyText}>Пока нет приглашённых друзей</Text>
+            <Text style={styles.emptyText}>
+              {t("client.referral.noReferrals")}
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -243,6 +253,7 @@ function StepItem({
 }
 
 function ReferralItem({ item }: { item: ReferralInfo }) {
+  const { t } = useTranslation();
   const status = STATUS_CONFIG[item.status] || STATUS_CONFIG.pending;
 
   return (
@@ -261,7 +272,7 @@ function ReferralItem({ item }: { item: ReferralInfo }) {
           style={[styles.statusBadge, { backgroundColor: status.color + "20" }]}
         >
           <Text style={[styles.statusText, { color: status.color }]}>
-            {status.label}
+            {t(status.key)}
           </Text>
         </View>
         {item.referrerRewardPaid && (

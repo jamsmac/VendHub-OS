@@ -24,6 +24,7 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
+import { IsNull } from "typeorm";
 import { TelegramBotService } from "./telegram-bot.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
@@ -253,8 +254,7 @@ export class TelegramBotController {
   async getSettings() {
     // Return all settings (staff_bot and customer_bot)
     return this.telegramBotService["settingsRepo"].find({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { deletedAt: null as any },
+      where: { deletedAt: IsNull() },
       order: { settingKey: "ASC" },
     });
   }

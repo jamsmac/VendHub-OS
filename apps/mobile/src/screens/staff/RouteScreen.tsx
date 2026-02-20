@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { tasksApi, machinesApi } from "../../services/api";
 
 const COLORS = {
@@ -52,6 +53,7 @@ interface RouteStop {
 }
 
 export function RouteScreen() {
+  const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   useQueryClient();
@@ -84,15 +86,15 @@ export function RouteScreen() {
           if (!machineId) return;
 
           if (!machineMap.has(machineId)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const machine =
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               machines.find((m: any) => m.id === machineId) || task.machine;
             machineMap.set(machineId, {
               id: machineId,
               order: order++,
               machine: {
                 id: machineId,
-                name: machine?.name || "Автомат",
+                name: machine?.name || t("home.machine"),
                 machineNumber: machine?.machineNumber || "",
                 address: machine?.address || machine?.location?.address || "",
                 latitude: machine?.latitude,
@@ -128,14 +130,9 @@ export function RouteScreen() {
   const totalTime = route?.reduce((sum, s) => sum + s.estimatedTime, 0) || 0;
 
   const getTaskTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      refill: "Пополнение",
-      collection: "Инкассация",
-      cleaning: "Чистка",
-      repair: "Ремонт",
-      audit: "Аудит",
-    };
-    return labels[type] || type;
+    const key = `route.taskTypes.${type}`;
+    const translated = t(key);
+    return translated !== key ? translated : type;
   };
 
   const getTaskIcon = (type: string): keyof typeof Ionicons.glyphMap => {
@@ -169,24 +166,24 @@ export function RouteScreen() {
     >
       {/* Route Summary */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Маршрут на сегодня</Text>
+        <Text style={styles.summaryTitle}>{t("route.title")}</Text>
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <Ionicons name="location" size={20} color={COLORS.primary} />
             <Text style={styles.summaryValue}>{totalCount}</Text>
-            <Text style={styles.summaryLabel}>точек</Text>
+            <Text style={styles.summaryLabel}>{t("route.stops")}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
             <Text style={styles.summaryValue}>{completedCount}</Text>
-            <Text style={styles.summaryLabel}>готово</Text>
+            <Text style={styles.summaryLabel}>{t("route.done")}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Ionicons name="time" size={20} color={COLORS.amber} />
             <Text style={styles.summaryValue}>
               {Math.round(totalTime / 60)}ч {totalTime % 60}м
             </Text>
-            <Text style={styles.summaryLabel}>всего</Text>
+            <Text style={styles.summaryLabel}>{t("route.totalTime")}</Text>
           </View>
         </View>
         {/* Progress bar */}
@@ -241,7 +238,9 @@ export function RouteScreen() {
             <View style={styles.stopMeta}>
               <View style={styles.metaItem}>
                 <Ionicons name="time-outline" size={14} color={COLORS.muted} />
-                <Text style={styles.metaText}>~{stop.estimatedTime} мин</Text>
+                <Text style={styles.metaText}>
+                  ~{stop.estimatedTime} {t("route.minutes")}
+                </Text>
               </View>
               <View style={styles.metaItem}>
                 <Ionicons
@@ -249,7 +248,9 @@ export function RouteScreen() {
                   size={14}
                   color={COLORS.muted}
                 />
-                <Text style={styles.metaText}>{stop.tasks.length} задач</Text>
+                <Text style={styles.metaText}>
+                  {stop.tasks.length} {t("route.tasksCount")}
+                </Text>
               </View>
             </View>
 
@@ -294,10 +295,8 @@ export function RouteScreen() {
       {(!route || route.length === 0) && !isLoading && (
         <View style={styles.emptyState}>
           <Ionicons name="navigate-outline" size={48} color={COLORS.green} />
-          <Text style={styles.emptyText}>Маршрут пуст</Text>
-          <Text style={styles.emptySubtext}>
-            Нет назначенных задач на сегодня
-          </Text>
+          <Text style={styles.emptyText}>{t("route.empty")}</Text>
+          <Text style={styles.emptySubtext}>{t("route.emptySubtitle")}</Text>
         </View>
       )}
 

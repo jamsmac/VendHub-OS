@@ -55,7 +55,7 @@ export class PayrollService {
       where: {
         employeeId: dto.employeeId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        periodStart: periodStart as any,
+        periodStart: periodStart as any, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
         organizationId,
       },
     });
@@ -70,7 +70,7 @@ export class PayrollService {
         employeeId: dto.employeeId,
         organizationId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: Between(periodStart, periodEnd) as any,
+        date: Between(periodStart, periodEnd) as any, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
       },
     });
 

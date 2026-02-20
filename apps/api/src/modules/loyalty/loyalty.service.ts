@@ -431,8 +431,7 @@ export class LoyaltyService {
       adminReason: reason,
       expiresAt: amount > 0 ? calculateExpiryDate() : undefined,
       remainingAmount: amount > 0 ? amount : undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as Partial<PointsTransaction>);
 
     await this.pointsTransactionRepo.save(transaction);
 
@@ -460,8 +459,7 @@ export class LoyaltyService {
         spent: Math.abs(amount),
         newBalance,
         discountAmount: 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        transactionId: (transaction as any).id,
+        transactionId: transaction.id,
       };
     }
   }
@@ -939,8 +937,7 @@ export class LoyaltyService {
             pointsBalance: user.pointsBalance || 0,
             pointsEarned: userEarned,
             currentStreak: user.currentStreak || 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            avatarUrl: (user as any).avatarUrl || null,
+            avatarUrl: user.avatar || null,
           };
         }
       }

@@ -9,6 +9,8 @@ import {
   EndpointConfig,
   AuthType,
   AuthConfig,
+  ApiKeyAuthConfig,
+  BasicAuthConfig,
   HmacAuthConfig,
   HttpMethod,
 } from "../types/integration.types";
@@ -386,8 +388,7 @@ export class PaymentExecutorService {
     const params = this.buildQueryParams(endpoint, bodyData);
 
     const axiosConfig: AxiosRequestConfig = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      method: endpoint.method as any,
+      method: endpoint.method.toLowerCase() as AxiosRequestConfig["method"],
       url: `${baseUrl}${path}`,
       headers,
       timeout: endpoint.timeout || 30000,
@@ -412,8 +413,7 @@ export class PaymentExecutorService {
   ): Promise<void> {
     switch (auth.type) {
       case AuthType.API_KEY: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const config = auth.config as any;
+        const config = auth.config as ApiKeyAuthConfig;
         const key = credentials[config.keyName] || credentials["api_key"];
         const value = config.prefix ? `${config.prefix} ${key}` : key;
 
@@ -432,8 +432,7 @@ export class PaymentExecutorService {
       }
 
       case AuthType.BASIC: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const config = auth.config as any;
+        const config = auth.config as BasicAuthConfig;
         const username = credentials[config.usernameField || "username"];
         const password = credentials[config.passwordField || "password"];
         const encoded = Buffer.from(`${username}:${password}`).toString(

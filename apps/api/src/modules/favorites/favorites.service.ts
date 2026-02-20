@@ -10,7 +10,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In } from "typeorm";
+import { Repository, In, IsNull } from "typeorm";
 import { Favorite, FavoriteType } from "./entities/favorite.entity";
 import { Product } from "../products/entities/product.entity";
 import { Machine } from "../machines/entities/machine.entity";
@@ -86,10 +86,8 @@ export class FavoritesService {
       where: {
         userId,
         type: dto.type,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        productId: dto.productId || (null as any),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        machineId: dto.machineId || (null as any),
+        productId: dto.productId || IsNull(),
+        machineId: dto.machineId || IsNull(),
       },
     });
 
@@ -117,8 +115,7 @@ export class FavoritesService {
       machineId: dto.type === FavoriteType.MACHINE ? dto.machineId : undefined,
       notes: dto.notes,
       sortOrder: (maxSort?.max || 0) + 1,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as Partial<Favorite>);
 
     const saved = await this.favoriteRepo.save(favorite);
 
@@ -127,8 +124,7 @@ export class FavoritesService {
     return {
       success: true,
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      id: Array.isArray(saved) ? (saved as any)[0].id : (saved as any).id,
+      id: Array.isArray(saved) ? (saved as Favorite[])[0].id : saved.id,
       message: "Added to favorites",
       alreadyExists: false,
     };
@@ -339,8 +335,7 @@ export class FavoritesService {
             nameUz: fav.product.nameUz,
             price: fav.product.sellingPrice,
             imageUrl: fav.product.imageUrl,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            categoryName: (fav.product.category as any)?.name || "",
+            categoryName: fav.product.category || "",
             isAvailable: fav.product.isActive,
           },
         });

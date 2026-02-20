@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -28,11 +29,14 @@ const COLORS = {
   muted: "#6B7280",
 };
 
-const RARITY_CONFIG: Record<string, { label: string; color: string }> = {
-  common: { label: "Обычное", color: COLORS.muted },
-  rare: { label: "Редкое", color: COLORS.blue },
-  epic: { label: "Эпическое", color: "#8B5CF6" },
-  legendary: { label: "Легендарное", color: COLORS.amber },
+const RARITY_CONFIG: Record<string, { key: string; color: string }> = {
+  common: { key: "client.achievements.rarity.common", color: COLORS.muted },
+  rare: { key: "client.achievements.rarity.rare", color: COLORS.blue },
+  epic: { key: "client.achievements.rarity.epic", color: "#8B5CF6" },
+  legendary: {
+    key: "client.achievements.rarity.legendary",
+    color: COLORS.amber,
+  },
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -66,6 +70,7 @@ interface UserAchievement {
 }
 
 export function AchievementsScreen() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<"all" | "unlocked" | "locked">("all");
 
   const {
@@ -137,7 +142,7 @@ export function AchievementsScreen() {
                 ]}
               >
                 <Text style={[styles.rarityText, { color: rarity.color }]}>
-                  {rarity.label}
+                  {t(rarity.key)}
                 </Text>
               </View>
               {achievement.bonus_points > 0 && (
@@ -169,7 +174,7 @@ export function AchievementsScreen() {
           </View>
           <Text style={styles.progressText}>
             {item.is_unlocked
-              ? "Получено"
+              ? t("client.achievements.earned")
               : `${item.current_value} / ${item.target_value}`}
           </Text>
         </View>
@@ -180,9 +185,10 @@ export function AchievementsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Достижения</Text>
+        <Text style={styles.headerTitle}>{t("client.achievements.title")}</Text>
         <Text style={styles.headerSubtitle}>
-          {unlockedCount} / {items.length} получено
+          {unlockedCount} / {items.length}{" "}
+          {t("client.achievements.earned").toLowerCase()}
         </Text>
       </View>
 
@@ -192,7 +198,11 @@ export function AchievementsScreen() {
           <FilterTab
             key={f}
             label={
-              f === "all" ? "Все" : f === "unlocked" ? "Получено" : "В процессе"
+              f === "all"
+                ? t("client.achievements.all")
+                : f === "unlocked"
+                  ? t("client.achievements.earned")
+                  : t("client.achievements.inProgress")
             }
             active={filter === f}
             onPress={() => setFilter(f)}
@@ -207,7 +217,7 @@ export function AchievementsScreen() {
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
           <Ionicons name="trophy-outline" size={64} color={COLORS.muted} />
-          <Text style={styles.emptyText}>Нет достижений</Text>
+          <Text style={styles.emptyText}>{t("client.achievements.empty")}</Text>
         </View>
       ) : (
         <FlatList

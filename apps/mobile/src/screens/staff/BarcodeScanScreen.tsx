@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
@@ -33,6 +34,7 @@ const { width } = Dimensions.get("window");
 const SCAN_SIZE = width * 0.7;
 
 export function BarcodeScanScreen() {
+  const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [permission, requestPermission] = useCameraPermissions();
@@ -86,18 +88,28 @@ export function BarcodeScanScreen() {
           await api.get(`/machines/${machineId}`);
           navigation.navigate("MachineDetail", { machineId });
         } catch {
-          Alert.alert("Не найдено", `Автомат с кодом "${data}" не найден`, [
-            { text: "Сканировать ещё", onPress: () => setScanned(false) },
-          ]);
+          Alert.alert(
+            t("barcodeScan.notFound"),
+            t("barcodeScan.notFoundCode", { code: data }),
+            [
+              {
+                text: t("barcodeScan.scanAgain"),
+                onPress: () => setScanned(false),
+              },
+            ],
+          );
         }
       } else {
-        Alert.alert("Не найдено", "Не удалось распознать код автомата", [
-          { text: "Сканировать ещё", onPress: () => setScanned(false) },
+        Alert.alert(t("barcodeScan.notFound"), t("barcodeScan.notRecognized"), [
+          {
+            text: t("barcodeScan.scanAgain"),
+            onPress: () => setScanned(false),
+          },
         ]);
       }
     } catch (_error) {
-      Alert.alert("Ошибка", "Не удалось обработать код", [
-        { text: "Повторить", onPress: () => setScanned(false) },
+      Alert.alert(t("common.error"), t("barcodeScan.processFailed"), [
+        { text: t("common.retry"), onPress: () => setScanned(false) },
       ]);
     } finally {
       setIsLoading(false);
@@ -108,7 +120,9 @@ export function BarcodeScanScreen() {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.permissionText}>Запрос доступа к камере...</Text>
+        <Text style={styles.permissionText}>
+          {t("barcodeScan.requestingAccess")}
+        </Text>
       </View>
     );
   }
@@ -117,16 +131,13 @@ export function BarcodeScanScreen() {
     return (
       <View style={styles.centerContainer}>
         <Ionicons name="camera-outline" size={64} color={COLORS.muted} />
-        <Text style={styles.permissionTitle}>Нет доступа к камере</Text>
-        <Text style={styles.permissionText}>
-          Разрешите доступ к камере в настройках устройства для сканирования
-          QR-кодов
-        </Text>
+        <Text style={styles.permissionTitle}>{t("barcodeScan.noAccess")}</Text>
+        <Text style={styles.permissionText}>{t("barcodeScan.accessHint")}</Text>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>Назад</Text>
+          <Text style={styles.backButtonText}>{t("common.back")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -171,8 +182,8 @@ export function BarcodeScanScreen() {
         >
           <Text style={styles.instructionText}>
             {isLoading
-              ? "Поиск автомата..."
-              : "Наведите камеру на QR-код автомата"}
+              ? t("barcodeScan.searching")
+              : t("barcodeScan.instruction")}
           </Text>
 
           {isLoading && (
@@ -194,7 +205,7 @@ export function BarcodeScanScreen() {
                 size={24}
                 color="#fff"
               />
-              <Text style={styles.actionText}>Вспышка</Text>
+              <Text style={styles.actionText}>{t("barcodeScan.flash")}</Text>
             </TouchableOpacity>
 
             {scanned && !isLoading && (
@@ -203,7 +214,7 @@ export function BarcodeScanScreen() {
                 onPress={() => setScanned(false)}
               >
                 <Ionicons name="refresh" size={24} color="#fff" />
-                <Text style={styles.actionText}>Повторить</Text>
+                <Text style={styles.actionText}>{t("common.retry")}</Text>
               </TouchableOpacity>
             )}
           </View>

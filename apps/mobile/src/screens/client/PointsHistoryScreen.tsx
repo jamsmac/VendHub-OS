@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 const COLORS = {
@@ -54,6 +55,7 @@ interface PointsTransaction {
 }
 
 export function PointsHistoryScreen() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(1);
 
@@ -105,7 +107,8 @@ export function PointsHistoryScreen() {
             })}
           </Text>
           <Text style={styles.txBalance}>
-            Баланс: {item.balance_after.toLocaleString()}
+            {t("client.pointsHistory.balance")}{" "}
+            {item.balance_after.toLocaleString()}
           </Text>
         </View>
 
@@ -128,11 +131,11 @@ export function PointsHistoryScreen() {
       <View style={styles.filters}>
         {(
           [
-            { key: "all", label: "Все" },
-            { key: "earn", label: "Начисления" },
-            { key: "redeem", label: "Списания" },
+            { key: "all", labelKey: "client.pointsHistory.all" },
+            { key: "earn", labelKey: "client.pointsHistory.earned" },
+            { key: "redeem", labelKey: "client.pointsHistory.spent" },
           ] as const
-        ).map(({ key, label }) => (
+        ).map(({ key, labelKey }) => (
           <TouchableOpacity
             key={key}
             style={[styles.filterTab, filter === key && styles.filterTabActive]}
@@ -147,7 +150,7 @@ export function PointsHistoryScreen() {
                 filter === key && styles.filterTextActive,
               ]}
             >
-              {label}
+              {t(labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -160,13 +163,15 @@ export function PointsHistoryScreen() {
       ) : transactions.length === 0 ? (
         <View style={styles.centered}>
           <Ionicons name="time-outline" size={64} color={COLORS.muted} />
-          <Text style={styles.emptyText}>Нет операций</Text>
+          <Text style={styles.emptyText}>
+            {t("client.pointsHistory.empty")}
+          </Text>
           <Text style={styles.emptySubtext}>
             {filter === "earn"
-              ? "Зарабатывайте баллы за покупки и квесты"
+              ? t("client.pointsHistory.emptyEarn")
               : filter === "redeem"
-                ? "Вы ещё не использовали баллы"
-                : "История операций появится после первой транзакции"}
+                ? t("client.pointsHistory.emptyRedeem")
+                : t("client.pointsHistory.emptyAll")}
           </Text>
         </View>
       ) : (

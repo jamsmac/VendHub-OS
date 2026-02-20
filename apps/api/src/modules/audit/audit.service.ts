@@ -13,6 +13,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between, LessThan, MoreThan } from "typeorm";
 import { NotificationsService } from "../notifications/notifications.service";
 import {
+  NotificationType,
+  NotificationChannel,
+  NotificationPriority,
+} from "../notifications/entities/notification.entity";
+import {
   AuditLog,
   AuditSnapshot,
   AuditRetentionPolicy,
@@ -788,16 +793,13 @@ export class AuditService {
         await this.notificationsService.create({
           organizationId: log.organizationId,
           userId: log.userId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          type: "system" as any,
+          type: NotificationType.SYSTEM,
           title: `Audit Alert: ${alert.name}`,
           body: `Triggered by ${log.action} on ${log.entityType}. ${history.triggerReason}`,
           titleUz: `Audit Ogohlantirish: ${alert.name}`,
           bodyUz: `${log.action} harakati ${log.entityType} da amalga oshirildi`,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          channels: ["in_app", "push"] as any[],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          priority: "high" as any,
+          channels: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
+          priority: NotificationPriority.HIGH,
           actionUrl: `/dashboard/audit?alertId=${alert.id}`,
           data: {
             alertId: alert.id,

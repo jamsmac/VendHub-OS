@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, ObjectLiteral } from "typeorm";
 import {
@@ -72,6 +73,15 @@ describe("RecommendationsService", () => {
         { provide: getRepositoryToken(Order), useValue: orderRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(Machine), useValue: machineRepo },
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+            reset: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -378,19 +388,12 @@ describe("RecommendationsService", () => {
   // ==========================================================================
 
   describe("updatePopularProductsCache", () => {
-    it("should clear the caches", async () => {
-      // Access the private cache via any-cast to set up test data
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).popularProductsCache.set("org-1", [{ id: "p-1" }]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).trendingProductsCache.set("org-1", [{ id: "p-2" }]);
-
+    it("should rely on TTL-based cache expiry (Redis-backed)", async () => {
+      // With Redis CACHE_MANAGER, caches are TTL-based (300s).
+      // The cron job no longer explicitly clears caches.
+      // Verify the method runs without error.
       await service.updatePopularProductsCache();
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((service as any).popularProductsCache.size).toBe(0);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((service as any).trendingProductsCache.size).toBe(0);
+      // No assertion needed — TTL handles expiry automatically
     });
   });
 

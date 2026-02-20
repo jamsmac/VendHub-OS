@@ -17,6 +17,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { machinesApi, api } from "../../services/api";
 
 const COLORS = {
@@ -33,7 +34,7 @@ const COLORS = {
 
 interface ChecklistItem {
   id: string;
-  label: string;
+  labelKey: string;
   category: string;
   isRequired: boolean;
   checked: boolean;
@@ -42,63 +43,73 @@ interface ChecklistItem {
 const DEFAULT_CHECKLIST: Omit<ChecklistItem, "checked">[] = [
   {
     id: "1",
-    label: "Внешний осмотр корпуса",
+    labelKey: "maintenance.checklist.visualInspection",
     category: "visual",
     isRequired: true,
   },
-  { id: "2", label: "Проверка дисплея", category: "visual", isRequired: true },
+  {
+    id: "2",
+    labelKey: "maintenance.checklist.checkDisplay",
+    category: "visual",
+    isRequired: true,
+  },
   {
     id: "3",
-    label: "Проверка платёжного терминала",
+    labelKey: "maintenance.checklist.checkPayment",
     category: "payment",
     isRequired: true,
   },
   {
     id: "4",
-    label: "Проверка сдачи монет",
+    labelKey: "maintenance.checklist.checkChange",
     category: "payment",
     isRequired: false,
   },
   {
     id: "5",
-    label: "Чистка дозаторов",
+    labelKey: "maintenance.checklist.cleanDispensers",
     category: "cleaning",
     isRequired: true,
   },
-  { id: "6", label: "Чистка поддона", category: "cleaning", isRequired: true },
+  {
+    id: "6",
+    labelKey: "maintenance.checklist.cleanTray",
+    category: "cleaning",
+    isRequired: true,
+  },
   {
     id: "7",
-    label: "Проверка температуры",
+    labelKey: "maintenance.checklist.checkTemperature",
     category: "tech",
     isRequired: true,
   },
   {
     id: "8",
-    label: "Проверка давления воды",
+    labelKey: "maintenance.checklist.checkWaterPressure",
     category: "tech",
     isRequired: false,
   },
   {
     id: "9",
-    label: "Обновление прошивки",
+    labelKey: "maintenance.checklist.updateFirmware",
     category: "tech",
     isRequired: false,
   },
   {
     id: "10",
-    label: "Проверка уровня ингредиентов",
+    labelKey: "maintenance.checklist.checkIngredients",
     category: "inventory",
     isRequired: true,
   },
   {
     id: "11",
-    label: "Пополнение стаканчиков",
+    labelKey: "maintenance.checklist.refillCups",
     category: "inventory",
     isRequired: true,
   },
   {
     id: "12",
-    label: "Замена фильтра воды",
+    labelKey: "maintenance.checklist.replaceFilter",
     category: "maintenance",
     isRequired: false,
   },
@@ -106,17 +117,42 @@ const DEFAULT_CHECKLIST: Omit<ChecklistItem, "checked">[] = [
 
 const CATEGORIES: Record<
   string,
-  { label: string; icon: keyof typeof Ionicons.glyphMap; color: string }
+  { key: string; icon: keyof typeof Ionicons.glyphMap; color: string }
 > = {
-  visual: { label: "Визуальный осмотр", icon: "eye", color: COLORS.blue },
-  payment: { label: "Платежи", icon: "card", color: COLORS.green },
-  cleaning: { label: "Чистка", icon: "sparkles", color: COLORS.amber },
-  tech: { label: "Техническое", icon: "settings", color: COLORS.primary },
-  inventory: { label: "Запасы", icon: "cube", color: "#8B5CF6" },
-  maintenance: { label: "Обслуживание", icon: "construct", color: COLORS.red },
+  visual: {
+    key: "maintenance.categories.visual",
+    icon: "eye",
+    color: COLORS.blue,
+  },
+  payment: {
+    key: "maintenance.categories.payment",
+    icon: "card",
+    color: COLORS.green,
+  },
+  cleaning: {
+    key: "maintenance.categories.cleaning",
+    icon: "sparkles",
+    color: COLORS.amber,
+  },
+  tech: {
+    key: "maintenance.categories.tech",
+    icon: "settings",
+    color: COLORS.primary,
+  },
+  inventory: {
+    key: "maintenance.categories.inventory",
+    icon: "cube",
+    color: "#8B5CF6",
+  },
+  maintenance: {
+    key: "maintenance.categories.maintenance",
+    icon: "construct",
+    color: COLORS.red,
+  },
 };
 
 export function MaintenanceScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const route = useRoute<any>();
@@ -141,11 +177,12 @@ export function MaintenanceScreen() {
     mutationFn: (data: any) => api.post("/maintenance/reports", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
-      Alert.alert("Готово", "Отчёт отправлен", [
-        { text: "OK", onPress: () => navigation.goBack() },
+      Alert.alert(t("common.done"), t("maintenance.reportSent"), [
+        { text: t("common.ok"), onPress: () => navigation.goBack() },
       ]);
     },
-    onError: () => Alert.alert("Ошибка", "Не удалось отправить отчёт"),
+    onError: () =>
+      Alert.alert(t("common.error"), t("maintenance.reportFailed")),
   });
 
   const toggleCheck = (id: string) => {
@@ -165,7 +202,7 @@ export function MaintenanceScreen() {
 
   const handleSubmit = () => {
     if (!canSubmit) {
-      Alert.alert("Внимание", "Выполните все обязательные пункты");
+      Alert.alert(t("common.error"), t("maintenance.completeRequired"));
       return;
     }
 
@@ -173,7 +210,7 @@ export function MaintenanceScreen() {
       machineId,
       checklist: checklist.map((i) => ({
         id: i.id,
-        label: i.label,
+        label: t(i.labelKey),
         checked: i.checked,
       })),
       notes,
@@ -203,8 +240,12 @@ export function MaintenanceScreen() {
       {/* Progress */}
       <View style={styles.progressCard}>
         <Text style={styles.progressText}>
-          Выполнено: {totalChecked}/{checklist.length} ({checkedRequired}/
-          {requiredCount} обязательных)
+          {t("maintenance.progress", {
+            done: totalChecked,
+            total: checklist.length,
+            doneRequired: checkedRequired,
+            totalRequired: requiredCount,
+          })}
         </Text>
         <View style={styles.progressBar}>
           <View
@@ -225,7 +266,7 @@ export function MaintenanceScreen() {
           <View key={cat} style={styles.categorySection}>
             <View style={styles.categoryHeader}>
               <Ionicons name={catInfo.icon} size={18} color={catInfo.color} />
-              <Text style={styles.categoryTitle}>{catInfo.label}</Text>
+              <Text style={styles.categoryTitle}>{t(catInfo.key)}</Text>
             </View>
             {items.map((item) => (
               <TouchableOpacity
@@ -244,7 +285,7 @@ export function MaintenanceScreen() {
                     item.checked && styles.checkLabelDone,
                   ]}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </Text>
                 {item.isRequired && <Text style={styles.requiredBadge}>*</Text>}
               </TouchableOpacity>
@@ -255,12 +296,12 @@ export function MaintenanceScreen() {
 
       {/* Issues */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Обнаруженные проблемы</Text>
+        <Text style={styles.sectionTitle}>{t("maintenance.issuesTitle")}</Text>
         <TextInput
           style={styles.textArea}
           value={issues}
           onChangeText={setIssues}
-          placeholder="Опишите если есть проблемы..."
+          placeholder={t("maintenance.issuesPlaceholder")}
           multiline
           numberOfLines={3}
           textAlignVertical="top"
@@ -269,12 +310,12 @@ export function MaintenanceScreen() {
 
       {/* Notes */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Заметки</Text>
+        <Text style={styles.sectionTitle}>{t("maintenance.notesTitle")}</Text>
         <TextInput
           style={styles.textArea}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Дополнительные комментарии..."
+          placeholder={t("maintenance.notesPlaceholder")}
           multiline
           numberOfLines={3}
           textAlignVertical="top"
@@ -292,7 +333,9 @@ export function MaintenanceScreen() {
         ) : (
           <>
             <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={styles.submitText}>Отправить отчёт</Text>
+            <Text style={styles.submitText}>
+              {t("maintenance.submitReport")}
+            </Text>
           </>
         )}
       </TouchableOpacity>

@@ -267,27 +267,18 @@ export function QuestsScreen() {
 
       {/* Quest Tips */}
       <View style={styles.tipsSection}>
-        <Text style={styles.tipsTitle}>Quest Tips</Text>
+        <Text style={styles.tipsTitle}>{t("client.quests.tips")}</Text>
         <View style={styles.tipCard}>
           <Ionicons name="bulb-outline" size={20} color={COLORS.amber} />
-          <Text style={styles.tipText}>
-            Complete daily quests every day to maintain your streak and earn
-            bonus multipliers
-          </Text>
+          <Text style={styles.tipText}>{t("client.quests.tip1")}</Text>
         </View>
         <View style={styles.tipCard}>
           <Ionicons name="star-outline" size={20} color={COLORS.primary} />
-          <Text style={styles.tipText}>
-            Weekly and monthly quests offer larger rewards for completing
-            specific tasks
-          </Text>
+          <Text style={styles.tipText}>{t("client.quests.tip2")}</Text>
         </View>
         <View style={styles.tipCard}>
           <Ionicons name="rocket-outline" size={20} color={COLORS.green} />
-          <Text style={styles.tipText}>
-            Claims rewards immediately after completing a quest to add to your
-            balance
-          </Text>
+          <Text style={styles.tipText}>{t("client.quests.tip3")}</Text>
         </View>
       </View>
     </ScrollView>
