@@ -11,7 +11,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, FindOptionsWhere } from "typeorm";
 import {
   MachineAccess,
   AccessTemplate,
@@ -133,8 +133,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<MachineAccess[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+    const where: FindOptionsWhere<MachineAccess> = {
       machineId,
       organizationId,
     };
@@ -157,8 +156,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<MachineAccess[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+    const where: FindOptionsWhere<MachineAccess> = {
       userId,
       organizationId,
     };
@@ -352,8 +350,7 @@ export class MachineAccessService {
     organizationId: string,
     includeInactive = false,
   ): Promise<AccessTemplate[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { organizationId };
+    const where: FindOptionsWhere<MachineAccess> = { organizationId };
     if (!includeInactive) {
       where.isActive = true;
     }

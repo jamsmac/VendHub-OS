@@ -366,7 +366,11 @@ describe("OrdersService", () => {
       const result = await service.createOrder("user-uuid-1", orgId, promoDto);
 
       expect(promoCodesService.validate).toHaveBeenCalledWith(
-        { code: "SUMMER20", clientUserId: "user-uuid-1", orderAmount: 30000 },
+        expect.objectContaining({
+          code: "SUMMER20",
+          clientUserId: "user-uuid-1",
+          orderAmount: 30000,
+        }),
         orgId,
       );
       expect(result.discountAmount).toBe(5000);

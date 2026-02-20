@@ -358,12 +358,16 @@ describe("WebSocketService", () => {
 
   describe("emitBroadcastNotification", () => {
     it("should emit broadcast notification to organization", () => {
-      service.emitBroadcastNotification(orgId, { title: "Maintenance" });
-
-      expect(mockServer.to).toHaveBeenCalledWith(`org:${orgId}`);
-      expect(mockRoomEmit).toHaveBeenCalledWith("notification:broadcast", {
+      service.emitBroadcastNotification(orgId, {
+        id: "notif-broadcast",
         title: "Maintenance",
       });
+
+      expect(mockServer.to).toHaveBeenCalledWith(`org:${orgId}`);
+      expect(mockRoomEmit).toHaveBeenCalledWith(
+        "notification:broadcast",
+        expect.objectContaining({ title: "Maintenance" }),
+      );
     });
   });
 

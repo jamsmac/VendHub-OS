@@ -187,9 +187,11 @@ services:
     restart: unless-stopped
     environment:
       - REDIS_ADDR=redis://redis:6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-vendhub_redis}
     ports:
       - "9121:9121"
+    depends_on:
+      - redis
     networks:
       - vendhub-network
 

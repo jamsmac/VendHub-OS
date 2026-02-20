@@ -9,6 +9,29 @@ export interface WebSocketUser {
   rooms: Set<string>;
 }
 
+/** Minimal order shape for WebSocket event emission */
+interface OrderEventPayload {
+  id: string;
+  orderNumber?: string;
+  status?: string;
+  previousStatus?: string;
+  totalAmount?: number;
+  machineId?: string;
+  userId?: string;
+  organizationId?: string;
+  items?: unknown[];
+}
+
+/** Minimal notification shape for WebSocket event emission */
+interface NotificationEventPayload {
+  id: string;
+  type?: string;
+  title?: string;
+  message?: string;
+  data?: Record<string, unknown>;
+  createdAt?: Date;
+}
+
 @Injectable()
 export class WebSocketService {
   private readonly logger = new Logger(WebSocketService.name);
@@ -84,32 +107,27 @@ export class WebSocketService {
   // ============================================
 
   // Emit to all connected clients
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitToAll(event: string, data: any) {
+  emitToAll(event: string, data: unknown) {
     this.server?.emit(event, data);
   }
 
   // Emit to specific room
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitToRoom(room: string, event: string, data: any) {
+  emitToRoom(room: string, event: string, data: unknown) {
     this.server?.to(room).emit(event, data);
   }
 
   // Emit to specific client
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitToClient(clientId: string, event: string, data: any) {
+  emitToClient(clientId: string, event: string, data: unknown) {
     this.server?.to(clientId).emit(event, data);
   }
 
   // Emit to organization room
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitToOrganization(organizationId: string, event: string, data: any) {
+  emitToOrganization(organizationId: string, event: string, data: unknown) {
     this.emitToRoom(`org:${organizationId}`, event, data);
   }
 
   // Emit to user
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitToUser(userId: string, event: string, data: any) {
+  emitToUser(userId: string, event: string, data: unknown) {
     this.emitToRoom(`user:${userId}`, event, data);
   }
 
@@ -170,8 +188,7 @@ export class WebSocketService {
   // Order Events
   // ============================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitOrderCreated(order: any) {
+  emitOrderCreated(order: OrderEventPayload) {
     const event = "order:created";
     const data = {
       orderId: order.id,
@@ -196,8 +213,7 @@ export class WebSocketService {
     this.emitToRoom(`machine:${order.machineId}`, event, data);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitOrderStatusChange(order: any) {
+  emitOrderStatusChange(order: OrderEventPayload) {
     const event = "order:status";
     const data = {
       orderId: order.id,
@@ -216,14 +232,13 @@ export class WebSocketService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitOrderDispensed(order: any, itemIndex: number) {
+  emitOrderDispensed(order: OrderEventPayload, itemIndex: number) {
     const event = "order:dispensed";
     const data = {
       orderId: order.id,
       orderNumber: order.orderNumber,
       itemIndex,
-      totalItems: order.items.length,
+      totalItems: order.items?.length ?? 0,
       timestamp: new Date().toISOString(),
     };
 
@@ -236,8 +251,7 @@ export class WebSocketService {
   // Notification Events
   // ============================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitNotification(userId: string, notification: any) {
+  emitNotification(userId: string, notification: NotificationEventPayload) {
     this.emitToUser(userId, "notification", {
       id: notification.id,
       type: notification.type,
@@ -248,8 +262,10 @@ export class WebSocketService {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitBroadcastNotification(organizationId: string, notification: any) {
+  emitBroadcastNotification(
+    organizationId: string,
+    notification: NotificationEventPayload,
+  ) {
     this.emitToOrganization(
       organizationId,
       "notification:broadcast",
