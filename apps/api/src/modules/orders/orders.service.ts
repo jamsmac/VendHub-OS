@@ -63,7 +63,7 @@ export class OrdersService {
     private readonly eventEmitter: EventEmitter2,
     private readonly promoCodesService: PromoCodesService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   // ============================================================================
   // CREATE ORDER
@@ -470,7 +470,7 @@ export class OrdersService {
 
     // Initialize payment method stats
     for (const method of Object.values(PaymentMethod)) {
-      stats.byPaymentMethod[method] = { count: 0, amount: 0 };
+      stats.byPaymentMethod[method as string] = { count: 0, amount: 0 };
     }
 
     // Process status counts
