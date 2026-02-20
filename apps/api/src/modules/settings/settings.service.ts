@@ -49,7 +49,7 @@ export class SettingsService {
 
     @InjectRepository(AiProviderKey)
     private readonly aiProviderKeyRepository: Repository<AiProviderKey>,
-  ) {}
+  ) { }
 
   // ============================================================================
   // SYSTEM SETTINGS
@@ -245,9 +245,9 @@ export class SettingsService {
    * Get a single AI provider key by ID.
    * API key is masked in the response.
    */
-  async getAiProviderKey(id: string): Promise<AiProviderKey> {
+  async getAiProviderKey(id: string, organizationId: string): Promise<AiProviderKey> {
     const providerKey = await this.aiProviderKeyRepository.findOne({
-      where: { id },
+      where: { id, organizationId },
     });
 
     if (!providerKey) {
@@ -309,10 +309,11 @@ export class SettingsService {
    */
   async updateAiProviderKey(
     id: string,
+    organizationId: string,
     dto: UpdateAiProviderKeyDto,
   ): Promise<AiProviderKey> {
     const providerKey = await this.aiProviderKeyRepository.findOne({
-      where: { id },
+      where: { id, organizationId },
     });
 
     if (!providerKey) {
@@ -351,9 +352,9 @@ export class SettingsService {
   /**
    * Soft-delete an AI provider key.
    */
-  async deleteAiProviderKey(id: string): Promise<void> {
+  async deleteAiProviderKey(id: string, organizationId: string): Promise<void> {
     const providerKey = await this.aiProviderKeyRepository.findOne({
-      where: { id },
+      where: { id, organizationId },
     });
 
     if (!providerKey) {

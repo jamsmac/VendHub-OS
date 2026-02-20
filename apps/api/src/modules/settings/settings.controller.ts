@@ -60,7 +60,7 @@ import {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SettingsController {
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(private readonly settingsService: SettingsService) { }
 
   // ============================================================================
   // SYSTEM SETTINGS
@@ -107,8 +107,11 @@ export class SettingsController {
   })
   @ApiResponse({ status: 404, description: "AI provider key not found" })
   @ApiParam({ name: "id", type: String, description: "AI provider key UUID" })
-  async getAiProviderKey(@Param("id", ParseUUIDPipe) id: string) {
-    return this.settingsService.getAiProviderKey(id);
+  async getAiProviderKey(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.settingsService.getAiProviderKey(id, organizationId);
   }
 
   @Get(":key")
@@ -153,9 +156,10 @@ export class SettingsController {
   @ApiParam({ name: "id", type: String, description: "AI provider key UUID" })
   async updateAiProviderKey(
     @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() organizationId: string,
     @Body() dto: UpdateAiProviderKeyDto,
   ) {
-    return this.settingsService.updateAiProviderKey(id, dto);
+    return this.settingsService.updateAiProviderKey(id, organizationId, dto);
   }
 
   @Delete("ai-providers/:id")
@@ -165,8 +169,11 @@ export class SettingsController {
   @ApiResponse({ status: 204, description: "AI provider key deleted" })
   @ApiResponse({ status: 404, description: "AI provider key not found" })
   @ApiParam({ name: "id", type: String, description: "AI provider key UUID" })
-  async deleteAiProviderKey(@Param("id", ParseUUIDPipe) id: string) {
-    return this.settingsService.deleteAiProviderKey(id);
+  async deleteAiProviderKey(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.settingsService.deleteAiProviderKey(id, organizationId);
   }
 
   @Patch(":key")

@@ -166,17 +166,6 @@ describe("ReportsService", () => {
       });
     });
 
-    it("should return a definition by id without org filter", async () => {
-      const definition = { id: "def-1", name: "Sales Report" };
-      definitionRepo.findOne!.mockResolvedValue(definition);
-
-      const result = await service.getDefinition("def-1");
-
-      expect(result).toEqual(definition);
-      expect(definitionRepo.findOne).toHaveBeenCalledWith({
-        where: [{ id: "def-1" }],
-      });
-    });
 
     it("should throw NotFoundException when definition not found", async () => {
       definitionRepo.findOne!.mockResolvedValue(null);
@@ -297,7 +286,10 @@ describe("ReportsService", () => {
       const result = await service.generate(dto);
 
       expect(definitionRepo.findOne).toHaveBeenCalledWith({
-        where: [{ id: "def-1" }],
+        where: [
+          { id: "def-1", organizationId: "org-1" },
+          { id: "def-1", isSystem: true },
+        ],
       });
       expect(result).toBeDefined();
     });
@@ -578,19 +570,6 @@ describe("ReportsService", () => {
       );
     });
 
-    it("should return a dashboard without org filter", async () => {
-      const dashboard = { id: "d1", name: "Main", widgets: [] };
-      dashboardRepo.findOne!.mockResolvedValue(dashboard);
-      dashboardRepo.increment!.mockResolvedValue(undefined);
-
-      const result = await service.getDashboard("d1");
-
-      expect(result).toEqual(dashboard);
-      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "d1" },
-        relations: ["widgets"],
-      });
-    });
 
     it("should throw NotFoundException when dashboard not found", async () => {
       dashboardRepo.findOne!.mockResolvedValue(null);

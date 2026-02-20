@@ -327,16 +327,19 @@ describe('SettingsService', () => {
       const key = { id: 'k1', provider: AiProvider.ANTHROPIC, apiKey: 'sk-ant-1234567890abcdef' };
       aiProviderKeyRepo.findOne!.mockResolvedValue(key);
 
-      const result = await service.getAiProviderKey('k1');
+      const result = await service.getAiProviderKey('k1', 'org-1');
 
       expect(result.apiKey).toContain('****');
       expect(result.apiKey).not.toBe('sk-ant-1234567890abcdef');
+      expect(aiProviderKeyRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'k1', organizationId: 'org-1' },
+      });
     });
 
     it('should throw NotFoundException when key not found', async () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.getAiProviderKey('non-existent'))
+      await expect(service.getAiProviderKey('non-existent', 'org-1'))
         .rejects.toThrow(NotFoundException);
     });
   });
@@ -389,7 +392,7 @@ describe('SettingsService', () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(existing);
       aiProviderKeyRepo.save!.mockImplementation((e) => Promise.resolve(e));
 
-      const result = await service.updateAiProviderKey('k1', {
+      const result = await service.updateAiProviderKey('k1', 'org-1', {
         name: 'New Name',
         model: 'gpt-4o-mini',
       });
@@ -397,12 +400,15 @@ describe('SettingsService', () => {
       expect(result.name).toBe('New Name');
       expect(result.model).toBe('gpt-4o-mini');
       expect(result.apiKey).toContain('****');
+      expect(aiProviderKeyRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'k1', organizationId: 'org-1' },
+      });
     });
 
     it('should throw NotFoundException when key not found', async () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.updateAiProviderKey('non-existent', { name: 'X' }))
+      await expect(service.updateAiProviderKey('non-existent', 'org-1', { name: 'X' }))
         .rejects.toThrow(NotFoundException);
     });
 
@@ -414,7 +420,7 @@ describe('SettingsService', () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(existing);
       aiProviderKeyRepo.save!.mockImplementation((e) => Promise.resolve(e));
 
-      await service.updateAiProviderKey('k1', { apiKey: 'sk-new-key-also-long-enough-for-test' });
+      await service.updateAiProviderKey('k1', 'org-1', { apiKey: 'sk-new-key-also-long-enough-for-test' });
 
       expect(existing.apiKey).toBe('sk-new-key-also-long-enough-for-test');
     });
@@ -426,15 +432,18 @@ describe('SettingsService', () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(key);
       aiProviderKeyRepo.softDelete!.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] });
 
-      await service.deleteAiProviderKey('k1');
+      await service.deleteAiProviderKey('k1', 'org-1');
 
       expect(aiProviderKeyRepo.softDelete).toHaveBeenCalledWith('k1');
+      expect(aiProviderKeyRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'k1', organizationId: 'org-1' },
+      });
     });
 
     it('should throw NotFoundException when key not found', async () => {
       aiProviderKeyRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.deleteAiProviderKey('non-existent'))
+      await expect(service.deleteAiProviderKey('non-existent', 'org-1'))
         .rejects.toThrow(NotFoundException);
     });
   });

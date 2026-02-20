@@ -141,14 +141,12 @@ export class ReportsService {
 
   async getDefinition(
     id: string,
-    organizationId?: string,
+    organizationId: string,
   ): Promise<ReportDefinition> {
-    const where = organizationId
-      ? [
-          { id, organizationId },
-          { id, isSystem: true },
-        ]
-      : [{ id }];
+    const where = [
+      { id, organizationId },
+      { id, isSystem: true },
+    ];
     const definition = await this.definitionRepo.findOne({ where });
     if (!definition) {
       throw new NotFoundException(`Определение отчёта ${id} не найдено`);
@@ -189,7 +187,7 @@ export class ReportsService {
     // Get definition if provided
     let definition: ReportDefinition | null = null;
     if (dto.reportDefinitionId) {
-      definition = await this.getDefinition(dto.reportDefinitionId);
+      definition = await this.getDefinition(dto.reportDefinitionId, dto.organizationId);
     }
 
     const reportType = dto.type || definition?.type || ReportType.CUSTOM;
@@ -827,8 +825,8 @@ export class ReportsService {
     });
   }
 
-  async getDashboard(id: string, organizationId?: string): Promise<Dashboard> {
-    const where = organizationId ? { id, organizationId } : { id };
+  async getDashboard(id: string, organizationId: string): Promise<Dashboard> {
+    const where = { id, organizationId };
     const dashboard = await this.dashboardRepo.findOne({
       where,
       relations: ["widgets"],
