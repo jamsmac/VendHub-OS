@@ -20,7 +20,7 @@ export enum PaymentProviderType {
  */
 @Entity("payment_providers")
 @Index("IDX_payment_providers_code", ["code"], { unique: true })
-@Index("IDX_payment_providers_is_active", ["is_active"])
+@Index("IDX_payment_providers_is_active", ["isActive"])
 @Index("IDX_payment_providers_type", ["type"])
 export class PaymentProvider extends BaseEntity {
   @Column({ type: "varchar", length: 50, unique: true })
@@ -30,35 +30,35 @@ export class PaymentProvider extends BaseEntity {
   name: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  name_ru: string | null;
+  nameRu: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  name_uz: string | null;
+  nameUz: string | null;
 
   @Column({ type: "enum", enum: PaymentProviderType })
   type: PaymentProviderType;
 
   @Column({ type: "text", nullable: true })
-  logo_url: string | null;
+  logoUrl: string | null;
 
   @Column({ type: "text", nullable: true })
-  website_url: string | null;
+  websiteUrl: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "boolean", default: false })
-  is_default: boolean;
+  isDefault: boolean;
 
   @Column({ type: "decimal", precision: 5, scale: 2, default: 0 })
-  commission_rate: number; // provider commission %
+  commissionRate: number; // provider commission %
 
   @Column({ type: "jsonb", nullable: true })
   settings: Record<string, unknown> | null; // provider-specific settings schema
 
   @Column({ type: "jsonb", nullable: true })
-  supported_currencies: string[] | null; // ['UZS']
+  supportedCurrencies: string[] | null; // ['UZS']
 
   @Column({ type: "int", default: 0 })
-  sort_order: number;
+  sortOrder: number;
 }

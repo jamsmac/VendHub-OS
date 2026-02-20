@@ -74,30 +74,30 @@ describe("ReferencesService", () => {
   const mockClassifier: Partial<GoodsClassifier> = {
     id: "gc-uuid-1",
     code: "10710001001000000",
-    name_ru: "Шоколад",
-    is_active: true,
+    nameRu: "Шоколад",
+    isActive: true,
   } as Partial<GoodsClassifier>;
 
   const mockIkpu: Partial<IkpuCode> = {
     id: "ikpu-uuid-1",
     code: "10710001001000001",
-    name_ru: "Шоколад молочный",
-    is_active: true,
+    nameRu: "Шоколад молочный",
+    isActive: true,
   } as Partial<IkpuCode>;
 
   const mockVatRate: Partial<VatRate> = {
     id: "vat-uuid-1",
     code: "VAT12",
     rate: 12,
-    is_active: true,
-    is_default: true,
+    isActive: true,
+    isDefault: true,
   } as Partial<VatRate>;
 
   const mockPackageType: Partial<PackageType> = {
     id: "pt-uuid-1",
     code: "BOX",
-    name_ru: "Коробка",
-    is_active: true,
+    nameRu: "Коробка",
+    isActive: true,
   } as Partial<PackageType>;
 
   const mockPaymentProvider: Partial<PaymentProvider> = {
@@ -105,7 +105,7 @@ describe("ReferencesService", () => {
     code: "payme",
     name: "Payme",
     type: PaymentProviderType.CARD,
-    is_active: true,
+    isActive: true,
   } as Partial<PaymentProvider>;
 
   beforeEach(async () => {
@@ -159,7 +159,7 @@ describe("ReferencesService", () => {
 
       expect(result.data).toEqual([mockClassifier]);
       expect(result.total).toBe(1);
-      expect(result.total_pages).toBe(1);
+      expect(result.totalPages).toBe(1);
     });
 
     it("should apply search filter", async () => {
@@ -208,7 +208,7 @@ describe("ReferencesService", () => {
 
       const result = await service.createGoodsClassifier({
         code: "10710001001000000",
-        name_ru: "Шоколад",
+        nameRu: "Шоколад",
       } as CreateGoodsClassifierDto);
 
       expect(result).toEqual(mockClassifier);
@@ -231,10 +231,10 @@ describe("ReferencesService", () => {
       goodsClassifierRepo.save!.mockImplementation(async (entity) => entity);
 
       const result = await service.updateGoodsClassifier("gc-uuid-1", {
-        name_ru: "Updated",
+        nameRu: "Updated",
       } as UpdateGoodsClassifierDto);
 
-      expect(result.name_ru).toBe("Updated");
+      expect(result.nameRu).toBe("Updated");
     });
 
     it("should throw NotFoundException when not found", async () => {
@@ -311,9 +311,9 @@ describe("ReferencesService", () => {
       ikpuCodeRepo.save!.mockImplementation(async (entity) => entity);
 
       const result = await service.updateIkpuCode("ikpu-uuid-1", {
-        name_ru: "New name",
+        nameRu: "New name",
       } as UpdateIkpuCodeDto);
-      expect(result.name_ru).toBe("New name");
+      expect(result.nameRu).toBe("New name");
     });
 
     it("should throw NotFoundException when not found", async () => {
@@ -470,7 +470,7 @@ describe("ReferencesService", () => {
 
       const result = await service.createPackageType({
         code: "BOX",
-        name_ru: "Коробка",
+        nameRu: "Коробка",
       } as CreatePackageTypeDto);
       expect(result).toEqual(mockPackageType);
     });

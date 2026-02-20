@@ -19,17 +19,17 @@ export class CreateMachineAccessDto {
   @ApiProperty({ description: "Organization ID", example: "uuid" })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
   @ApiProperty({ description: "Machine ID" })
   @IsUUID()
   @IsNotEmpty()
-  machine_id: string;
+  machineId: string;
 
   @ApiProperty({ description: "User ID to grant access to" })
   @IsUUID()
   @IsNotEmpty()
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
     description: "Access role",
@@ -43,12 +43,12 @@ export class CreateMachineAccessDto {
   @ApiPropertyOptional({ description: "Start date for access validity" })
   @IsOptional()
   @IsDateString()
-  valid_from?: string;
+  validFrom?: string;
 
   @ApiPropertyOptional({ description: "End date for access validity" })
   @IsOptional()
   @IsDateString()
-  valid_to?: string;
+  validTo?: string;
 
   @ApiPropertyOptional({ description: "Notes about this access grant" })
   @IsOptional()
@@ -66,7 +66,7 @@ export class RevokeMachineAccessDto {
   @ApiProperty({ description: "Machine access record ID to revoke" })
   @IsUUID()
   @IsNotEmpty()
-  access_id: string;
+  accessId: string;
 
   @ApiPropertyOptional({ description: "Reason for revoking access" })
   @IsOptional()
@@ -79,12 +79,12 @@ export class BulkGrantAccessDto {
   @ApiProperty({ description: "Machine ID" })
   @IsUUID()
   @IsNotEmpty()
-  machine_id: string;
+  machineId: string;
 
   @ApiProperty({ description: "User IDs to grant access to", type: [String] })
   @IsUUID("4", { each: true })
   @IsNotEmpty()
-  user_ids: string[];
+  userIds: string[];
 
   @ApiProperty({
     description: "Access role",
@@ -98,10 +98,10 @@ export class BulkGrantAccessDto {
   @ApiPropertyOptional({ description: "Start date for access validity" })
   @IsOptional()
   @IsDateString()
-  valid_from?: string;
+  validFrom?: string;
 
   @ApiPropertyOptional({ description: "End date for access validity" })
   @IsOptional()
   @IsDateString()
-  valid_to?: string;
+  validTo?: string;
 }

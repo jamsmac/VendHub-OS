@@ -66,8 +66,8 @@ export class MachineAccessController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && dto.organization_id
-        ? dto.organization_id
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
         : orgId;
     return this.machineAccessService.grantAccess(dto, userId, organizationId);
   }
@@ -181,8 +181,8 @@ export class MachineAccessController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && dto.organization_id
-        ? dto.organization_id
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
         : orgId;
     return this.machineAccessService.createTemplate(dto, organizationId);
   }
@@ -249,9 +249,9 @@ export class MachineAccessController {
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.machineAccessService.applyTemplate(
-      dto.template_id,
-      dto.machine_id,
-      dto.user_ids,
+      dto.templateId,
+      dto.machineId,
+      dto.userIds,
       userId,
       orgId,
     );

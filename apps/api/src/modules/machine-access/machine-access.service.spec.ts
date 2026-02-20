@@ -77,14 +77,14 @@ describe("MachineAccessService", () => {
 
   const mockAccess: Partial<MachineAccess> = {
     id: "access-uuid-1",
-    organization_id: ORG_ID,
-    machine_id: MACHINE_ID,
-    user_id: USER_ID,
+    organizationId: ORG_ID,
+    machineId: MACHINE_ID,
+    userId: USER_ID,
     role: MachineAccessRole.REFILL,
-    granted_by_user_id: GRANTER_ID,
-    is_active: true,
-    valid_from: null,
-    valid_to: null,
+    grantedByUserId: GRANTER_ID,
+    isActive: true,
+    validFrom: null,
+    validTo: null,
     notes: null,
     metadata: {},
     createdAt: new Date("2025-01-15T10:00:00Z"),
@@ -93,21 +93,21 @@ describe("MachineAccessService", () => {
   const mockRevokedAccess: Partial<MachineAccess> = {
     ...mockAccess,
     id: "access-uuid-2",
-    is_active: false,
+    isActive: false,
     notes: "Revoked: Employee left",
   };
 
   const mockTemplate: Partial<AccessTemplate> = {
     id: "template-uuid-1",
-    organization_id: ORG_ID,
+    organizationId: ORG_ID,
     name: "Operator Standard",
     description: "Default operator access",
-    is_active: true,
+    isActive: true,
     metadata: {},
     rows: [
       {
         id: "row-uuid-1",
-        template_id: "template-uuid-1",
+        templateId: "template-uuid-1",
         role: MachineAccessRole.REFILL,
         permissions: { canRefill: true },
         template: null as unknown as AccessTemplate,
@@ -124,7 +124,7 @@ describe("MachineAccessService", () => {
     ...mockTemplate,
     id: "template-uuid-2",
     name: "Inactive Template",
-    is_active: false,
+    isActive: false,
   };
 
   beforeEach(async () => {
@@ -166,8 +166,8 @@ describe("MachineAccessService", () => {
       accessRepo.save!.mockResolvedValue(mockAccess);
 
       const dto = {
-        machine_id: MACHINE_ID,
-        user_id: USER_ID,
+        machineId: MACHINE_ID,
+        userId: USER_ID,
         role: MachineAccessRole.REFILL,
       };
 
@@ -179,20 +179,20 @@ describe("MachineAccessService", () => {
 
       expect(accessRepo.findOne).toHaveBeenCalledWith({
         where: {
-          organization_id: ORG_ID,
-          machine_id: MACHINE_ID,
-          user_id: USER_ID,
-          is_active: true,
+          organizationId: ORG_ID,
+          machineId: MACHINE_ID,
+          userId: USER_ID,
+          isActive: true,
         },
       });
       expect(accessRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organization_id: ORG_ID,
-          machine_id: MACHINE_ID,
-          user_id: USER_ID,
+          organizationId: ORG_ID,
+          machineId: MACHINE_ID,
+          userId: USER_ID,
           role: MachineAccessRole.REFILL,
-          granted_by_user_id: GRANTER_ID,
-          is_active: true,
+          grantedByUserId: GRANTER_ID,
+          isActive: true,
         }),
       );
       expect(result).toEqual(mockAccess);
@@ -202,8 +202,8 @@ describe("MachineAccessService", () => {
       accessRepo.findOne!.mockResolvedValue(mockAccess);
 
       const dto = {
-        machine_id: MACHINE_ID,
-        user_id: USER_ID,
+        machineId: MACHINE_ID,
+        userId: USER_ID,
         role: MachineAccessRole.REFILL,
       };
 
@@ -212,17 +212,17 @@ describe("MachineAccessService", () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it("should set valid_from and valid_to when provided", async () => {
+    it("should set validFrom and validTo when provided", async () => {
       accessRepo.findOne!.mockResolvedValue(null);
       accessRepo.create!.mockReturnValue(mockAccess);
       accessRepo.save!.mockResolvedValue(mockAccess);
 
       const dto = {
-        machine_id: MACHINE_ID,
-        user_id: USER_ID,
+        machineId: MACHINE_ID,
+        userId: USER_ID,
         role: MachineAccessRole.VIEW,
-        valid_from: "2025-02-01T00:00:00Z",
-        valid_to: "2025-12-31T23:59:59Z",
+        validFrom: "2025-02-01T00:00:00Z",
+        validTo: "2025-12-31T23:59:59Z",
       };
 
       await service.grantAccess(
@@ -233,8 +233,8 @@ describe("MachineAccessService", () => {
 
       expect(accessRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          valid_from: expect.any(Date),
-          valid_to: expect.any(Date),
+          validFrom: expect.any(Date),
+          validTo: expect.any(Date),
         }),
       );
     });
@@ -249,14 +249,14 @@ describe("MachineAccessService", () => {
       accessRepo.findOne!.mockResolvedValue({ ...mockAccess });
       accessRepo.save!.mockImplementation((entity) => Promise.resolve(entity));
 
-      const dto = { access_id: "access-uuid-1", reason: "No longer needed" };
+      const dto = { accessId: "access-uuid-1", reason: "No longer needed" };
       const result = await service.revokeAccess(
         dto as RevokeMachineAccessDto,
         USER_ID,
         ORG_ID,
       );
 
-      expect(result.is_active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(result.notes).toContain("Revoked: No longer needed");
       expect(result.updatedById).toBe(USER_ID);
     });
@@ -266,7 +266,7 @@ describe("MachineAccessService", () => {
 
       await expect(
         service.revokeAccess(
-          { access_id: "nonexistent" } as RevokeMachineAccessDto,
+          { accessId: "nonexistent" } as RevokeMachineAccessDto,
           USER_ID,
           ORG_ID,
         ),
@@ -278,7 +278,7 @@ describe("MachineAccessService", () => {
 
       await expect(
         service.revokeAccess(
-          { access_id: "access-uuid-2" } as RevokeMachineAccessDto,
+          { accessId: "access-uuid-2" } as RevokeMachineAccessDto,
           USER_ID,
           ORG_ID,
         ),
@@ -298,9 +298,9 @@ describe("MachineAccessService", () => {
 
       expect(accessRepo.find).toHaveBeenCalledWith({
         where: {
-          machine_id: MACHINE_ID,
-          organization_id: ORG_ID,
-          is_active: true,
+          machineId: MACHINE_ID,
+          organizationId: ORG_ID,
+          isActive: true,
         },
         order: { createdAt: "DESC" },
       });
@@ -314,8 +314,8 @@ describe("MachineAccessService", () => {
 
       expect(accessRepo.find).toHaveBeenCalledWith({
         where: {
-          machine_id: MACHINE_ID,
-          organization_id: ORG_ID,
+          machineId: MACHINE_ID,
+          organizationId: ORG_ID,
         },
         order: { createdAt: "DESC" },
       });
@@ -334,7 +334,7 @@ describe("MachineAccessService", () => {
       const result = await service.getAccessByUser(USER_ID, ORG_ID);
 
       expect(accessRepo.find).toHaveBeenCalledWith({
-        where: { user_id: USER_ID, organization_id: ORG_ID, is_active: true },
+        where: { userId: USER_ID, organizationId: ORG_ID, isActive: true },
         order: { createdAt: "DESC" },
       });
       expect(result).toHaveLength(1);
@@ -387,7 +387,7 @@ describe("MachineAccessService", () => {
       await service.findAll(ORG_ID, { machineId: MACHINE_ID });
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        "ma.machine_id = :machineId",
+        "ma.machineId = :machineId",
         { machineId: MACHINE_ID },
       );
     });
@@ -398,7 +398,7 @@ describe("MachineAccessService", () => {
 
       await service.findAll(ORG_ID, { userId: USER_ID });
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith("ma.user_id = :userId", {
+      expect(mockQb.andWhere).toHaveBeenCalledWith("ma.userId = :userId", {
         userId: USER_ID,
       });
     });
@@ -454,7 +454,7 @@ describe("MachineAccessService", () => {
 
       expect(templateRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organization_id: ORG_ID,
+          organizationId: ORG_ID,
           name: "Operator Standard",
         }),
       );
@@ -487,7 +487,7 @@ describe("MachineAccessService", () => {
       const result = await service.findTemplateById("template-uuid-1", ORG_ID);
 
       expect(templateRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "template-uuid-1", organization_id: ORG_ID },
+        where: { id: "template-uuid-1", organizationId: ORG_ID },
         relations: ["rows"],
       });
       expect(result).toEqual(mockTemplate);
@@ -513,7 +513,7 @@ describe("MachineAccessService", () => {
       const result = await service.findAllTemplates(ORG_ID);
 
       expect(templateRepo.find).toHaveBeenCalledWith({
-        where: { organization_id: ORG_ID, is_active: true },
+        where: { organizationId: ORG_ID, isActive: true },
         relations: ["rows"],
         order: { name: "ASC" },
       });
@@ -529,7 +529,7 @@ describe("MachineAccessService", () => {
       const result = await service.findAllTemplates(ORG_ID, true);
 
       expect(templateRepo.find).toHaveBeenCalledWith({
-        where: { organization_id: ORG_ID },
+        where: { organizationId: ORG_ID },
         relations: ["rows"],
         order: { name: "ASC" },
       });
@@ -559,8 +559,8 @@ describe("MachineAccessService", () => {
       expect(result).toHaveLength(1);
       expect(accessRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          machine_id: MACHINE_ID,
-          user_id: USER_ID,
+          machineId: MACHINE_ID,
+          userId: USER_ID,
           metadata: expect.objectContaining({
             applied_from_template: "template-uuid-1",
           }),

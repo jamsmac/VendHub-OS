@@ -85,14 +85,14 @@ describe("ImportService", () => {
 
   const mockSession: Partial<ImportSession> = {
     id: sessionId,
-    organization_id: orgId,
+    organizationId: orgId,
     domain: DomainType.PRODUCTS,
     status: ImportSessionStatus.UPLOADED,
-    approval_status: ApprovalStatus.PENDING,
-    file_name: "products.csv",
-    file_size: 1024,
-    file_type: "csv",
-    file_metadata: {
+    approvalStatus: ApprovalStatus.PENDING,
+    fileName: "products.csv",
+    fileSize: 1024,
+    fileType: "csv",
+    fileMetadata: {
       rows: 10,
       columns: 3,
       headers: ["name", "price", "category"],
@@ -101,9 +101,9 @@ describe("ImportService", () => {
         { name: "Snickers", price: 8000, category: "snack" },
       ],
     },
-    column_mapping: null,
-    classification_confidence: null,
-    uploaded_by_user_id: userId,
+    columnMapping: null,
+    classificationConfidence: null,
+    uploadedByUserId: userId,
   };
 
   const mockTemplate = {
@@ -583,7 +583,7 @@ describe("ImportService", () => {
       sessionService.submitForApproval.mockResolvedValue({
         ...mockSession,
         status: ImportSessionStatus.APPROVED,
-        approval_status: ApprovalStatus.AUTO_APPROVED,
+        approvalStatus: ApprovalStatus.AUTO_APPROVED,
       });
 
       const result = await service.submitForApproval(sessionId, orgId);
@@ -592,7 +592,7 @@ describe("ImportService", () => {
         sessionId,
         orgId,
       );
-      expect(result.approval_status).toBe(ApprovalStatus.AUTO_APPROVED);
+      expect(result.approvalStatus).toBe(ApprovalStatus.AUTO_APPROVED);
     });
 
     it("should propagate BadRequestException from sessionService", async () => {
@@ -614,8 +614,8 @@ describe("ImportService", () => {
     it("should delegate to sessionService", async () => {
       sessionService.approveSession.mockResolvedValue({
         ...mockSession,
-        approval_status: ApprovalStatus.APPROVED,
-        approved_by_user_id: userId,
+        approvalStatus: ApprovalStatus.APPROVED,
+        approvedByUserId: userId,
       });
 
       const result = await service.approveSession(
@@ -625,8 +625,8 @@ describe("ImportService", () => {
         orgId,
       );
 
-      expect(result.approval_status).toBe(ApprovalStatus.APPROVED);
-      expect(result.approved_by_user_id).toBe(userId);
+      expect(result.approvalStatus).toBe(ApprovalStatus.APPROVED);
+      expect(result.approvedByUserId).toBe(userId);
     });
 
     it("should propagate BadRequestException from sessionService", async () => {
@@ -648,8 +648,8 @@ describe("ImportService", () => {
     it("should delegate to sessionService", async () => {
       sessionService.rejectSession.mockResolvedValue({
         ...mockSession,
-        approval_status: ApprovalStatus.REJECTED,
-        rejection_reason: "Bad data",
+        approvalStatus: ApprovalStatus.REJECTED,
+        rejectionReason: "Bad data",
         status: ImportSessionStatus.REJECTED,
       });
 
@@ -660,8 +660,8 @@ describe("ImportService", () => {
         orgId,
       );
 
-      expect(result.approval_status).toBe(ApprovalStatus.REJECTED);
-      expect(result.rejection_reason).toBe("Bad data");
+      expect(result.approvalStatus).toBe(ApprovalStatus.REJECTED);
+      expect(result.rejectionReason).toBe("Bad data");
     });
   });
 
@@ -671,7 +671,7 @@ describe("ImportService", () => {
 
   describe("getSchemaDefinitions", () => {
     it("should delegate to sessionService", async () => {
-      const schemaDef = { domain: DomainType.PRODUCTS, is_active: true };
+      const schemaDef = { domain: DomainType.PRODUCTS, isActive: true };
       sessionService.getSchemaDefinitions.mockResolvedValue([schemaDef]);
 
       const result = await service.getSchemaDefinitions();

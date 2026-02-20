@@ -65,7 +65,7 @@ export interface FieldDefinition {
  * to target fields during classification.
  */
 @Entity("schema_definitions")
-@Index(["domain", "table_name"], { unique: true })
+@Index(["domain", "tableName"], { unique: true })
 export class SchemaDefinition extends BaseEntity {
   @ApiProperty({ enum: DomainType, description: "Target domain" })
   @Column({ type: "enum", enum: DomainType })
@@ -73,11 +73,11 @@ export class SchemaDefinition extends BaseEntity {
 
   @ApiProperty({ description: "Database table name" })
   @Column({ type: "varchar", length: 100 })
-  table_name: string;
+  tableName: string;
 
   @ApiProperty({ description: "Human-readable display name" })
   @Column({ type: "varchar", length: 100 })
-  display_name: string;
+  displayName: string;
 
   @ApiPropertyOptional({ description: "Schema description" })
   @Column({ type: "text", nullable: true })
@@ -87,7 +87,7 @@ export class SchemaDefinition extends BaseEntity {
     description: "Field definitions with types, synonyms, and validation",
   })
   @Column({ type: "jsonb" })
-  field_definitions: FieldDefinition[];
+  fieldDefinitions: FieldDefinition[];
 
   @ApiPropertyOptional({ description: "Table relationships" })
   @Column({ type: "jsonb", nullable: true })
@@ -96,11 +96,11 @@ export class SchemaDefinition extends BaseEntity {
 
   @ApiProperty({ description: "Required field names" })
   @Column({ type: "jsonb" })
-  required_fields: string[];
+  requiredFields: string[];
 
   @ApiProperty({ description: "Unique field names" })
   @Column({ type: "jsonb" })
-  unique_fields: string[];
+  uniqueFields: string[];
 
   @ApiProperty({ description: "Schema version", default: "1.0" })
   @Column({ type: "varchar", length: 20, default: "1.0" })
@@ -108,5 +108,5 @@ export class SchemaDefinition extends BaseEntity {
 
   @ApiProperty({ description: "Whether the schema is active", default: true })
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 }

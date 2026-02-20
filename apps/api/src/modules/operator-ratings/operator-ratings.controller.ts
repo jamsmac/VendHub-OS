@@ -61,8 +61,8 @@ export class OperatorRatingsController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && dto.organization_id
-        ? dto.organization_id
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
         : orgId;
     return this.operatorRatingsService.calculateRating(dto, organizationId);
   }
@@ -81,8 +81,8 @@ export class OperatorRatingsController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && dto.organization_id
-        ? dto.organization_id
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
         : orgId;
     return this.operatorRatingsService.recalculateRating(
       id,
@@ -97,14 +97,14 @@ export class OperatorRatingsController {
 
   @Get()
   @ApiOperation({ summary: "Query operator ratings with filters" })
-  @ApiQuery({ name: "user_id", required: false, type: String })
-  @ApiQuery({ name: "period_start", required: false, type: String })
-  @ApiQuery({ name: "period_end", required: false, type: String })
+  @ApiQuery({ name: "userId", required: false, type: String })
+  @ApiQuery({ name: "periodStart", required: false, type: String })
+  @ApiQuery({ name: "periodEnd", required: false, type: String })
   @ApiQuery({ name: "grade", required: false, type: String })
-  @ApiQuery({ name: "min_score", required: false, type: Number })
-  @ApiQuery({ name: "max_score", required: false, type: Number })
-  @ApiQuery({ name: "sort_by", required: false, enum: RatingSortBy })
-  @ApiQuery({ name: "sort_order", required: false, enum: ["ASC", "DESC"] })
+  @ApiQuery({ name: "minScore", required: false, type: Number })
+  @ApiQuery({ name: "maxScore", required: false, type: Number })
+  @ApiQuery({ name: "sortBy", required: false, enum: RatingSortBy })
+  @ApiQuery({ name: "sortOrder", required: false, enum: ["ASC", "DESC"] })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @Roles("owner", "admin", "manager")
@@ -115,22 +115,22 @@ export class OperatorRatingsController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && query.organization_id
-        ? query.organization_id
+      user.role === UserRole.OWNER && query.organizationId
+        ? query.organizationId
         : orgId;
     return this.operatorRatingsService.query(query, organizationId);
   }
 
   @Get("leaderboard")
   @ApiOperation({ summary: "Get top-N operators leaderboard for a period" })
-  @ApiQuery({ name: "period_start", required: true, type: String })
-  @ApiQuery({ name: "period_end", required: true, type: String })
+  @ApiQuery({ name: "periodStart", required: true, type: String })
+  @ApiQuery({ name: "periodEnd", required: true, type: String })
   @ApiQuery({ name: "top", required: false, type: Number })
   @Roles("owner", "admin", "manager")
   async getLeaderboard(
     @CurrentOrganizationId() orgId: string,
-    @Query("period_start") periodStart: string,
-    @Query("period_end") periodEnd: string,
+    @Query("periodStart") periodStart: string,
+    @Query("periodEnd") periodEnd: string,
     @Query("top") top?: number,
   ) {
     return this.operatorRatingsService.getLeaderboard(
@@ -145,13 +145,13 @@ export class OperatorRatingsController {
   @ApiOperation({
     summary: "Get organization-wide rating summary for a period",
   })
-  @ApiQuery({ name: "period_start", required: true, type: String })
-  @ApiQuery({ name: "period_end", required: true, type: String })
+  @ApiQuery({ name: "periodStart", required: true, type: String })
+  @ApiQuery({ name: "periodEnd", required: true, type: String })
   @Roles("owner", "admin", "manager")
   async getOrganizationSummary(
     @CurrentOrganizationId() orgId: string,
-    @Query("period_start") periodStart: string,
-    @Query("period_end") periodEnd: string,
+    @Query("periodStart") periodStart: string,
+    @Query("periodEnd") periodEnd: string,
   ) {
     return this.operatorRatingsService.getOrganizationSummary(
       orgId,

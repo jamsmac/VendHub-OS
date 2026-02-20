@@ -35,7 +35,7 @@ export class CreateIkpuCodeDto {
   })
   @IsString()
   @Length(1, 500)
-  name_ru: string;
+  nameRu: string;
 
   @ApiPropertyOptional({
     description: "Name in Uzbek",
@@ -45,7 +45,7 @@ export class CreateIkpuCodeDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  name_uz?: string;
+  nameUz?: string;
 
   @ApiPropertyOptional({
     description: "Related MXIK code (foreign key to goods_classifiers)",
@@ -55,7 +55,7 @@ export class CreateIkpuCodeDto {
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  mxik_code?: string;
+  mxikCode?: string;
 
   @ApiPropertyOptional({
     description: "VAT rate percentage",
@@ -68,7 +68,7 @@ export class CreateIkpuCodeDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   @Max(100)
-  vat_rate?: number;
+  vatRate?: number;
 
   @ApiPropertyOptional({
     description: "Whether this product requires mandatory marking",
@@ -76,7 +76,7 @@ export class CreateIkpuCodeDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_marked?: boolean;
+  isMarked?: boolean;
 
   @ApiPropertyOptional({
     description: "Package code reference",
@@ -86,7 +86,7 @@ export class CreateIkpuCodeDto {
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  package_code?: string;
+  packageCode?: string;
 
   @ApiPropertyOptional({
     description: "Whether this IKPU code is active",
@@ -94,7 +94,7 @@ export class CreateIkpuCodeDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 
   @ApiPropertyOptional({
     description: "Additional metadata",

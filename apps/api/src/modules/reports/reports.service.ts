@@ -664,6 +664,7 @@ export class ReportsService {
         isActive: true,
         nextRunAt: LessThan(new Date()),
       },
+      take: 10,
     });
 
     for (const scheduled of due) {

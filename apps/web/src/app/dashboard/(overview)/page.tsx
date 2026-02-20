@@ -99,8 +99,8 @@ const PIE_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#6b7280"];
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatUZS(amount: number): string {
-  return new Intl.NumberFormat("uz-UZ").format(amount) + " сум";
+function formatUZS(amount: number, currencyLabel = "UZS"): string {
+  return new Intl.NumberFormat("uz-UZ").format(amount) + " " + currencyLabel;
 }
 
 function formatShortUZS(amount: number): string {
@@ -121,14 +121,22 @@ interface TooltipProps {
   active?: boolean;
   payload?: Array<{ value: number; name?: string }>;
   label?: string;
+  currencyLabel?: string;
 }
 
-function RevenueTooltip({ active, payload, label }: TooltipProps) {
+function RevenueTooltip({
+  active,
+  payload,
+  label,
+  currencyLabel,
+}: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background p-3 shadow-sm">
       <p className="text-sm font-medium">{label}</p>
-      <p className="text-sm text-blue-500">{formatUZS(payload[0].value)}</p>
+      <p className="text-sm text-blue-500">
+        {formatUZS(payload[0].value, currencyLabel)}
+      </p>
     </div>
   );
 }
@@ -143,12 +151,14 @@ function PieTooltip({ active, payload }: TooltipProps) {
   );
 }
 
-function BarTooltip({ active, payload, label }: TooltipProps) {
+function BarTooltip({ active, payload, label, currencyLabel }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background p-3 shadow-sm">
       <p className="text-sm font-medium">{label}</p>
-      <p className="text-sm text-blue-500">{formatUZS(payload[0].value)}</p>
+      <p className="text-sm text-blue-500">
+        {formatUZS(payload[0].value, currencyLabel)}
+      </p>
     </div>
   );
 }
@@ -239,6 +249,8 @@ function StatusBadge({
 
 export default function DashboardOverviewPage() {
   const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
+  const currency = tCommon("currency");
 
   // Fetch real dashboard data from API
   const { data: apiResponse, isLoading } = useQuery({
@@ -314,7 +326,7 @@ export default function DashboardOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatUZS(dashboard.revenue.today)}
+              {formatUZS(dashboard.revenue.today, currency)}
             </div>
             <ChangeIndicator
               value={dashboard.revenue.changePercent}
@@ -424,7 +436,9 @@ export default function DashboardOverviewPage() {
                   tickFormatter={formatShortUZS}
                   width={50}
                 />
-                <Tooltip content={<RevenueTooltip />} />
+                <Tooltip
+                  content={<RevenueTooltip currencyLabel={currency} />}
+                />
                 <Line
                   type="monotone"
                   dataKey="revenue"
@@ -529,7 +543,7 @@ export default function DashboardOverviewPage() {
                     className="text-muted-foreground"
                     width={110}
                   />
-                  <Tooltip content={<BarTooltip />} />
+                  <Tooltip content={<BarTooltip currencyLabel={currency} />} />
                   <Bar
                     dataKey="revenue"
                     fill="#3b82f6"
@@ -579,7 +593,7 @@ export default function DashboardOverviewPage() {
                       {tx.machineName}
                     </TableCell>
                     <TableCell className="text-sm text-right">
-                      {formatUZS(tx.amount)}
+                      {formatUZS(tx.amount, currency)}
                     </TableCell>
                     <TableCell className="text-right">
                       <StatusBadge status={tx.status} labels={statusLabels} />

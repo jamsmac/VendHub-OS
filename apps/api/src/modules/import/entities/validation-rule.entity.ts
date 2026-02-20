@@ -48,8 +48,8 @@ export enum ValidationSeverity {
  * executed in priority order.
  */
 @Entity("validation_rules")
-@Index(["domain", "is_active"])
-@Index(["rule_type"])
+@Index(["domain", "isActive"])
+@Index(["ruleType"])
 export class ValidationRule extends BaseEntity {
   @ApiProperty({ enum: DomainType, description: "Target domain" })
   @Column({ type: "enum", enum: DomainType })
@@ -57,7 +57,7 @@ export class ValidationRule extends BaseEntity {
 
   @ApiProperty({ description: "Rule name" })
   @Column({ type: "varchar", length: 100 })
-  rule_name: string;
+  ruleName: string;
 
   @ApiPropertyOptional({ description: "Rule description" })
   @Column({ type: "text", nullable: true })
@@ -68,16 +68,16 @@ export class ValidationRule extends BaseEntity {
     description: "Type of validation rule",
   })
   @Column({ type: "enum", enum: ValidationRuleType })
-  rule_type: ValidationRuleType;
+  ruleType: ValidationRuleType;
 
   @ApiProperty({ description: "Target field name" })
   @Column({ type: "varchar", length: 100 })
-  field_name: string;
+  fieldName: string;
 
-  @ApiProperty({ description: "Rule definition (depends on rule_type)" })
+  @ApiProperty({ description: "Rule definition (depends on ruleType)" })
   @Column({ type: "jsonb" })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rule_definition: Record<string, any>;
+  ruleDefinition: Record<string, any>;
 
   @ApiProperty({
     enum: ValidationSeverity,
@@ -96,11 +96,11 @@ export class ValidationRule extends BaseEntity {
       "Error message template with {{field}}, {{value}} placeholders",
   })
   @Column({ type: "text", nullable: true })
-  error_message_template: string | null;
+  errorMessageTemplate: string | null;
 
   @ApiProperty({ description: "Whether the rule is active", default: true })
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @ApiProperty({
     description: "Execution priority (lower runs first)",

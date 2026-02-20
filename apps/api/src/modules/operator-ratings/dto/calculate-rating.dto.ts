@@ -23,12 +23,12 @@ export class CalculateRatingDto {
   })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
   @ApiProperty({ description: "Operator user ID" })
   @IsUUID()
   @IsNotEmpty()
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
     description: "Period start date (ISO date)",
@@ -36,7 +36,7 @@ export class CalculateRatingDto {
   })
   @IsDateString()
   @IsNotEmpty()
-  period_start: string;
+  periodStart: string;
 
   @ApiProperty({
     description: "Period end date (ISO date)",
@@ -44,7 +44,7 @@ export class CalculateRatingDto {
   })
   @IsDateString()
   @IsNotEmpty()
-  period_end: string;
+  periodEnd: string;
 
   // ===== Task Completion =====
 
@@ -52,25 +52,25 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_assigned?: number;
+  tasksAssigned?: number;
 
   @ApiPropertyOptional({ description: "Total tasks completed", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_completed?: number;
+  tasksCompleted?: number;
 
   @ApiPropertyOptional({ description: "Tasks completed on time", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_on_time?: number;
+  tasksOnTime?: number;
 
   @ApiPropertyOptional({ description: "Tasks completed late", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_late?: number;
+  tasksLate?: number;
 
   @ApiPropertyOptional({
     description: "Average completion time in hours",
@@ -79,7 +79,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  avg_completion_time_hours?: number;
+  avgCompletionTimeHours?: number;
 
   // ===== Photo compliance =====
 
@@ -87,19 +87,19 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_with_photos_before?: number;
+  tasksWithPhotosBefore?: number;
 
   @ApiPropertyOptional({ description: "Tasks with after-photos", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  tasks_with_photos_after?: number;
+  tasksWithPhotosAfter?: number;
 
   @ApiPropertyOptional({ description: "Total photos uploaded", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  total_photos_uploaded?: number;
+  totalPhotosUploaded?: number;
 
   @ApiPropertyOptional({
     description: "Photo quality score (0-100)",
@@ -109,7 +109,7 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  photo_quality_score?: number;
+  photoQualityScore?: number;
 
   // ===== Quality =====
 
@@ -121,7 +121,7 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  machine_cleanliness_score?: number;
+  machineCleanlinessScore?: number;
 
   @ApiPropertyOptional({
     description: "Stock accuracy score (0-100)",
@@ -131,7 +131,7 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  stock_accuracy_score?: number;
+  stockAccuracyScore?: number;
 
   // ===== Financial / Collection accuracy =====
 
@@ -143,7 +143,7 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  cash_collection_accuracy?: number;
+  cashCollectionAccuracy?: number;
 
   @ApiPropertyOptional({
     description: "Inventory loss rate (0-100, lower is better)",
@@ -153,7 +153,7 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  inventory_loss_rate?: number;
+  inventoryLossRate?: number;
 
   @ApiPropertyOptional({
     description: "Collections with cash variance",
@@ -162,7 +162,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  collections_with_variance?: number;
+  collectionsWithVariance?: number;
 
   @ApiPropertyOptional({
     description: "Average collection variance percent",
@@ -171,7 +171,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  avg_collection_variance_percent?: number;
+  avgCollectionVariancePercent?: number;
 
   @ApiPropertyOptional({
     description: "Inventory discrepancies found",
@@ -180,7 +180,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  inventory_discrepancies?: number;
+  inventoryDiscrepancies?: number;
 
   // ===== Attendance =====
 
@@ -188,19 +188,19 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  scheduled_shifts?: number;
+  scheduledShifts?: number;
 
   @ApiPropertyOptional({ description: "Completed shifts", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  completed_shifts?: number;
+  completedShifts?: number;
 
   @ApiPropertyOptional({ description: "Number of late arrivals", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  late_arrivals?: number;
+  lateArrivals?: number;
 
   // ===== Customer =====
 
@@ -211,7 +211,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  complaints_received?: number;
+  complaintsReceived?: number;
 
   @ApiPropertyOptional({
     description: "Number of complaints resolved",
@@ -220,7 +220,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  complaints_resolved?: number;
+  complaintsResolved?: number;
 
   @ApiPropertyOptional({
     description: "Average response time in minutes",
@@ -229,7 +229,7 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  average_response_time?: number;
+  averageResponseTime?: number;
 
   // ===== Customer (extra) =====
 
@@ -241,13 +241,13 @@ export class CalculateRatingDto {
   @IsNumber()
   @Min(0)
   @Max(5)
-  avg_customer_rating?: number;
+  avgCustomerRating?: number;
 
   @ApiPropertyOptional({ description: "Positive feedback count", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  positive_feedback_count?: number;
+  positiveFeedbackCount?: number;
 
   // ===== Discipline =====
 
@@ -255,19 +255,19 @@ export class CalculateRatingDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  checklist_items_completed?: number;
+  checklistItemsCompleted?: number;
 
   @ApiPropertyOptional({ description: "Total checklist items", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  checklist_items_total?: number;
+  checklistItemsTotal?: number;
 
   @ApiPropertyOptional({ description: "Comments/reports sent", default: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
-  comments_sent?: number;
+  commentsSent?: number;
 
   // ===== Notes =====
 

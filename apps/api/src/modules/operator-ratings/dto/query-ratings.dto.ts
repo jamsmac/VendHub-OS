@@ -12,92 +12,94 @@ import {
   Max,
   IsEnum,
   IsIn,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum RatingSortBy {
-  TOTAL_SCORE = 'total_score',
-  TASK_SCORE = 'task_score',
-  QUALITY_SCORE = 'quality_score',
-  FINANCIAL_SCORE = 'financial_score',
-  ATTENDANCE_SCORE = 'attendance_score',
-  CUSTOMER_SCORE = 'customer_score',
-  PHOTO_COMPLIANCE_RATE = 'photo_compliance_rate',
-  DISCIPLINE_SCORE = 'discipline_score',
-  TIMELINESS_SCORE = 'timeliness_score',
-  PERIOD_START = 'period_start',
-  CREATED_AT = 'created_at',
+  TOTAL_SCORE = "totalScore",
+  TASK_SCORE = "taskScore",
+  QUALITY_SCORE = "qualityScore",
+  FINANCIAL_SCORE = "financialScore",
+  ATTENDANCE_SCORE = "attendanceScore",
+  CUSTOMER_SCORE = "customerScore",
+  PHOTO_COMPLIANCE_RATE = "photoComplianceRate",
+  DISCIPLINE_SCORE = "disciplineScore",
+  TIMELINESS_SCORE = "timelinessScore",
+  PERIOD_START = "periodStart",
+  CREATED_AT = "createdAt",
 }
 
 export class QueryRatingsDto {
-  @ApiPropertyOptional({ description: 'Organization ID' })
+  @ApiPropertyOptional({ description: "Organization ID" })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by operator user ID' })
+  @ApiPropertyOptional({ description: "Filter by operator user ID" })
   @IsOptional()
   @IsUUID()
-  user_id?: string;
+  userId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by period start (ISO date)' })
+  @ApiPropertyOptional({ description: "Filter by period start (ISO date)" })
   @IsOptional()
   @IsDateString()
-  period_start?: string;
+  periodStart?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by period end (ISO date)' })
+  @ApiPropertyOptional({ description: "Filter by period end (ISO date)" })
   @IsOptional()
   @IsDateString()
-  period_end?: string;
+  periodEnd?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by grade (A+, A, B+, B, C+, C, D, F)' })
+  @ApiPropertyOptional({
+    description: "Filter by grade (A+, A, B+, B, C+, C, D, F)",
+  })
   @IsOptional()
   @IsString()
   grade?: string;
 
-  @ApiPropertyOptional({ description: 'Minimum total score filter' })
+  @ApiPropertyOptional({ description: "Minimum total score filter" })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   @Max(100)
-  min_score?: number;
+  minScore?: number;
 
-  @ApiPropertyOptional({ description: 'Maximum total score filter' })
+  @ApiPropertyOptional({ description: "Maximum total score filter" })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   @Max(100)
-  max_score?: number;
+  maxScore?: number;
 
   @ApiPropertyOptional({
-    description: 'Sort field',
+    description: "Sort field",
     enum: RatingSortBy,
     default: RatingSortBy.TOTAL_SCORE,
   })
   @IsOptional()
   @IsEnum(RatingSortBy)
-  sort_by?: RatingSortBy;
+  sortBy?: RatingSortBy;
 
   @ApiPropertyOptional({
-    description: 'Sort order',
-    enum: ['ASC', 'DESC'],
-    default: 'DESC',
+    description: "Sort order",
+    enum: ["ASC", "DESC"],
+    default: "DESC",
   })
   @IsOptional()
-  @IsIn(['ASC', 'DESC'])
-  sort_order?: 'ASC' | 'DESC';
+  @IsIn(["ASC", "DESC"])
+  sortOrder?: "ASC" | "DESC";
 
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

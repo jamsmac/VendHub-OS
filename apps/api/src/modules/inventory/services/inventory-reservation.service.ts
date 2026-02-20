@@ -450,6 +450,7 @@ export class InventoryReservationService {
         ]),
       },
       order: { createdAt: "DESC" },
+      take: 100,
     });
   }
 

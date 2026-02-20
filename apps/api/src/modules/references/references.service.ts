@@ -4,26 +4,47 @@
  * Provides CRUD and search for MXIK, IKPU, VAT rates, package types, and payment providers.
  */
 
-import { Injectable, Logger, NotFoundException, ConflictException, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { Repository } from 'typeorm';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+  Inject,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { Repository } from "typeorm";
 
-import { GoodsClassifier } from './entities/goods-classifier.entity';
-import { IkpuCode } from './entities/ikpu-code.entity';
-import { VatRate } from './entities/vat-rate.entity';
-import { PackageType } from './entities/package-type.entity';
-import { PaymentProvider } from './entities/payment-provider.entity';
+import { GoodsClassifier } from "./entities/goods-classifier.entity";
+import { IkpuCode } from "./entities/ikpu-code.entity";
+import { VatRate } from "./entities/vat-rate.entity";
+import { PackageType } from "./entities/package-type.entity";
+import { PaymentProvider } from "./entities/payment-provider.entity";
 
-import { CreateGoodsClassifierDto, UpdateGoodsClassifierDto } from './dto/create-goods-classifier.dto';
-import { CreateIkpuCodeDto, UpdateIkpuCodeDto } from './dto/create-ikpu-code.dto';
-import { CreateVatRateDto, UpdateVatRateDto } from './dto/create-vat-rate.dto';
-import { CreatePackageTypeDto, UpdatePackageTypeDto } from './dto/create-package-type.dto';
-import { CreatePaymentProviderDto, UpdatePaymentProviderDto } from './dto/create-payment-provider.dto';
-import { QueryGoodsClassifiersDto } from './dto/query-goods-classifiers.dto';
-import { QueryIkpuCodesDto } from './dto/query-ikpu-codes.dto';
-import { QueryReferencesDto, PaginatedResponseDto } from './dto/query-references.dto';
+import {
+  CreateGoodsClassifierDto,
+  UpdateGoodsClassifierDto,
+} from "./dto/create-goods-classifier.dto";
+import {
+  CreateIkpuCodeDto,
+  UpdateIkpuCodeDto,
+} from "./dto/create-ikpu-code.dto";
+import { CreateVatRateDto, UpdateVatRateDto } from "./dto/create-vat-rate.dto";
+import {
+  CreatePackageTypeDto,
+  UpdatePackageTypeDto,
+} from "./dto/create-package-type.dto";
+import {
+  CreatePaymentProviderDto,
+  UpdatePaymentProviderDto,
+} from "./dto/create-payment-provider.dto";
+import { QueryGoodsClassifiersDto } from "./dto/query-goods-classifiers.dto";
+import { QueryIkpuCodesDto } from "./dto/query-ikpu-codes.dto";
+import {
+  QueryReferencesDto,
+  PaginatedResponseDto,
+} from "./dto/query-references.dto";
 
 @Injectable()
 export class ReferencesService {
@@ -59,33 +80,41 @@ export class ReferencesService {
   async findAllGoodsClassifiers(
     query: QueryGoodsClassifiersDto,
   ): Promise<PaginatedResponseDto<GoodsClassifier>> {
-    const { search, is_active, group_code, parent_code, level, page = 1, limit = 50 } = query;
+    const {
+      search,
+      isActive,
+      groupCode,
+      parentCode,
+      level,
+      page = 1,
+      limit = 50,
+    } = query;
 
     const qb = this.goodsClassifierRepo
-      .createQueryBuilder('gc')
-      .orderBy('gc.code', 'ASC');
+      .createQueryBuilder("gc")
+      .orderBy("gc.code", "ASC");
 
     if (search) {
       qb.andWhere(
-        '(gc.code ILIKE :search OR gc.name_ru ILIKE :search OR gc.name_uz ILIKE :search OR gc.name_en ILIKE :search)',
+        "(gc.code ILIKE :search OR gc.nameRu ILIKE :search OR gc.nameUz ILIKE :search OR gc.nameEn ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
-    if (is_active !== undefined) {
-      qb.andWhere('gc.is_active = :is_active', { is_active });
+    if (isActive !== undefined) {
+      qb.andWhere("gc.isActive = :isActive", { isActive });
     }
 
-    if (group_code) {
-      qb.andWhere('gc.group_code = :group_code', { group_code });
+    if (groupCode) {
+      qb.andWhere("gc.groupCode = :groupCode", { groupCode });
     }
 
-    if (parent_code) {
-      qb.andWhere('gc.parent_code = :parent_code', { parent_code });
+    if (parentCode) {
+      qb.andWhere("gc.parentCode = :parentCode", { parentCode });
     }
 
     if (level !== undefined) {
-      qb.andWhere('gc.level = :level', { level });
+      qb.andWhere("gc.level = :level", { level });
     }
 
     const total = await qb.getCount();
@@ -97,22 +126,32 @@ export class ReferencesService {
       total,
       page,
       limit,
-      total_pages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
   async findGoodsClassifierByCode(code: string): Promise<GoodsClassifier> {
-    const classifier = await this.goodsClassifierRepo.findOne({ where: { code } });
+    const classifier = await this.goodsClassifierRepo.findOne({
+      where: { code },
+    });
     if (!classifier) {
-      throw new NotFoundException(`Goods classifier with code "${code}" not found`);
+      throw new NotFoundException(
+        `Goods classifier with code "${code}" not found`,
+      );
     }
     return classifier;
   }
 
-  async createGoodsClassifier(dto: CreateGoodsClassifierDto): Promise<GoodsClassifier> {
-    const existing = await this.goodsClassifierRepo.findOne({ where: { code: dto.code } });
+  async createGoodsClassifier(
+    dto: CreateGoodsClassifierDto,
+  ): Promise<GoodsClassifier> {
+    const existing = await this.goodsClassifierRepo.findOne({
+      where: { code: dto.code },
+    });
     if (existing) {
-      throw new ConflictException(`Goods classifier with code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `Goods classifier with code "${dto.code}" already exists`,
+      );
     }
 
     const entity = this.goodsClassifierRepo.create(dto);
@@ -121,7 +160,10 @@ export class ReferencesService {
     return saved;
   }
 
-  async updateGoodsClassifier(id: string, dto: UpdateGoodsClassifierDto): Promise<GoodsClassifier> {
+  async updateGoodsClassifier(
+    id: string,
+    dto: UpdateGoodsClassifierDto,
+  ): Promise<GoodsClassifier> {
     const entity = await this.goodsClassifierRepo.findOne({ where: { id } });
     if (!entity) {
       throw new NotFoundException(`Goods classifier with id "${id}" not found`);
@@ -140,29 +182,36 @@ export class ReferencesService {
   async findAllIkpuCodes(
     query: QueryIkpuCodesDto,
   ): Promise<PaginatedResponseDto<IkpuCode>> {
-    const { search, is_active, mxik_code, is_marked, page = 1, limit = 50 } = query;
+    const {
+      search,
+      isActive,
+      mxikCode,
+      isMarked,
+      page = 1,
+      limit = 50,
+    } = query;
 
     const qb = this.ikpuCodeRepo
-      .createQueryBuilder('ic')
-      .orderBy('ic.code', 'ASC');
+      .createQueryBuilder("ic")
+      .orderBy("ic.code", "ASC");
 
     if (search) {
       qb.andWhere(
-        '(ic.code ILIKE :search OR ic.name_ru ILIKE :search OR ic.name_uz ILIKE :search)',
+        "(ic.code ILIKE :search OR ic.nameRu ILIKE :search OR ic.nameUz ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
-    if (is_active !== undefined) {
-      qb.andWhere('ic.is_active = :is_active', { is_active });
+    if (isActive !== undefined) {
+      qb.andWhere("ic.isActive = :isActive", { isActive });
     }
 
-    if (mxik_code) {
-      qb.andWhere('ic.mxik_code = :mxik_code', { mxik_code });
+    if (mxikCode) {
+      qb.andWhere("ic.mxikCode = :mxikCode", { mxikCode });
     }
 
-    if (is_marked !== undefined) {
-      qb.andWhere('ic.is_marked = :is_marked', { is_marked });
+    if (isMarked !== undefined) {
+      qb.andWhere("ic.isMarked = :isMarked", { isMarked });
     }
 
     const total = await qb.getCount();
@@ -174,7 +223,7 @@ export class ReferencesService {
       total,
       page,
       limit,
-      total_pages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -187,7 +236,9 @@ export class ReferencesService {
   }
 
   async createIkpuCode(dto: CreateIkpuCodeDto): Promise<IkpuCode> {
-    const existing = await this.ikpuCodeRepo.findOne({ where: { code: dto.code } });
+    const existing = await this.ikpuCodeRepo.findOne({
+      where: { code: dto.code },
+    });
     if (existing) {
       throw new ConflictException(`IKPU code "${dto.code}" already exists`);
     }
@@ -217,22 +268,22 @@ export class ReferencesService {
   async findAllVatRates(
     query: QueryReferencesDto,
   ): Promise<PaginatedResponseDto<VatRate>> {
-    const { search, is_active, page = 1, limit = 50 } = query;
+    const { search, isActive, page = 1, limit = 50 } = query;
 
     const qb = this.vatRateRepo
-      .createQueryBuilder('vr')
-      .orderBy('vr.sort_order', 'ASC')
-      .addOrderBy('vr.code', 'ASC');
+      .createQueryBuilder("vr")
+      .orderBy("vr.sortOrder", "ASC")
+      .addOrderBy("vr.code", "ASC");
 
     if (search) {
       qb.andWhere(
-        '(vr.code ILIKE :search OR vr.name_ru ILIKE :search OR vr.name_uz ILIKE :search)',
+        "(vr.code ILIKE :search OR vr.nameRu ILIKE :search OR vr.nameUz ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
-    if (is_active !== undefined) {
-      qb.andWhere('vr.is_active = :is_active', { is_active });
+    if (isActive !== undefined) {
+      qb.andWhere("vr.isActive = :isActive", { isActive });
     }
 
     const total = await qb.getCount();
@@ -244,7 +295,7 @@ export class ReferencesService {
       total,
       page,
       limit,
-      total_pages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -257,15 +308,19 @@ export class ReferencesService {
   }
 
   async createVatRate(dto: CreateVatRateDto): Promise<VatRate> {
-    const existing = await this.vatRateRepo.findOne({ where: { code: dto.code } });
+    const existing = await this.vatRateRepo.findOne({
+      where: { code: dto.code },
+    });
     if (existing) {
-      throw new ConflictException(`VAT rate with code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `VAT rate with code "${dto.code}" already exists`,
+      );
     }
 
     const entity = this.vatRateRepo.create(dto);
     const saved = await this.vatRateRepo.save(entity);
     this.logger.log(`Created VAT rate: ${saved.code} (${saved.rate}%)`);
-    await this.cacheManager.del('ref:default_vat_rate');
+    await this.cacheManager.del("ref:default_vat_rate");
     return saved;
   }
 
@@ -278,7 +333,7 @@ export class ReferencesService {
     Object.assign(entity, dto);
     const saved = await this.vatRateRepo.save(entity);
     this.logger.log(`Updated VAT rate: ${saved.code} (${saved.rate}%)`);
-    await this.cacheManager.del('ref:default_vat_rate');
+    await this.cacheManager.del("ref:default_vat_rate");
     return saved;
   }
 
@@ -287,12 +342,12 @@ export class ReferencesService {
    * Returns 12 (standard Uzbekistan rate) if no default is configured.
    */
   async getDefaultVatRate(): Promise<number> {
-    const cacheKey = 'ref:default_vat_rate';
+    const cacheKey = "ref:default_vat_rate";
     const cached = await this.cacheManager.get<number>(cacheKey);
     if (cached !== undefined && cached !== null) return cached;
 
     const defaultRate = await this.vatRateRepo.findOne({
-      where: { is_default: true, is_active: true },
+      where: { isDefault: true, isActive: true },
     });
     const rate = defaultRate ? Number(defaultRate.rate) : 12;
     await this.cacheManager.set(cacheKey, rate, this.CACHE_TTL);
@@ -306,22 +361,22 @@ export class ReferencesService {
   async findAllPackageTypes(
     query: QueryReferencesDto,
   ): Promise<PaginatedResponseDto<PackageType>> {
-    const { search, is_active, page = 1, limit = 50 } = query;
+    const { search, isActive, page = 1, limit = 50 } = query;
 
     const qb = this.packageTypeRepo
-      .createQueryBuilder('pt')
-      .orderBy('pt.sort_order', 'ASC')
-      .addOrderBy('pt.code', 'ASC');
+      .createQueryBuilder("pt")
+      .orderBy("pt.sortOrder", "ASC")
+      .addOrderBy("pt.code", "ASC");
 
     if (search) {
       qb.andWhere(
-        '(pt.code ILIKE :search OR pt.name_ru ILIKE :search OR pt.name_uz ILIKE :search OR pt.name_en ILIKE :search)',
+        "(pt.code ILIKE :search OR pt.nameRu ILIKE :search OR pt.nameUz ILIKE :search OR pt.nameEn ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
-    if (is_active !== undefined) {
-      qb.andWhere('pt.is_active = :is_active', { is_active });
+    if (isActive !== undefined) {
+      qb.andWhere("pt.isActive = :isActive", { isActive });
     }
 
     const total = await qb.getCount();
@@ -333,7 +388,7 @@ export class ReferencesService {
       total,
       page,
       limit,
-      total_pages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -346,9 +401,13 @@ export class ReferencesService {
   }
 
   async createPackageType(dto: CreatePackageTypeDto): Promise<PackageType> {
-    const existing = await this.packageTypeRepo.findOne({ where: { code: dto.code } });
+    const existing = await this.packageTypeRepo.findOne({
+      where: { code: dto.code },
+    });
     if (existing) {
-      throw new ConflictException(`Package type with code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `Package type with code "${dto.code}" already exists`,
+      );
     }
 
     const entity = this.packageTypeRepo.create(dto);
@@ -357,7 +416,10 @@ export class ReferencesService {
     return saved;
   }
 
-  async updatePackageType(id: string, dto: UpdatePackageTypeDto): Promise<PackageType> {
+  async updatePackageType(
+    id: string,
+    dto: UpdatePackageTypeDto,
+  ): Promise<PackageType> {
     const entity = await this.packageTypeRepo.findOne({ where: { id } });
     if (!entity) {
       throw new NotFoundException(`Package type with id "${id}" not found`);
@@ -376,22 +438,22 @@ export class ReferencesService {
   async findAllPaymentProviders(
     query: QueryReferencesDto,
   ): Promise<PaginatedResponseDto<PaymentProvider>> {
-    const { search, is_active, page = 1, limit = 50 } = query;
+    const { search, isActive, page = 1, limit = 50 } = query;
 
     const qb = this.paymentProviderRepo
-      .createQueryBuilder('pp')
-      .orderBy('pp.sort_order', 'ASC')
-      .addOrderBy('pp.name', 'ASC');
+      .createQueryBuilder("pp")
+      .orderBy("pp.sortOrder", "ASC")
+      .addOrderBy("pp.name", "ASC");
 
     if (search) {
       qb.andWhere(
-        '(pp.code ILIKE :search OR pp.name ILIKE :search OR pp.name_ru ILIKE :search OR pp.name_uz ILIKE :search)',
+        "(pp.code ILIKE :search OR pp.name ILIKE :search OR pp.nameRu ILIKE :search OR pp.nameUz ILIKE :search)",
         { search: `%${search}%` },
       );
     }
 
-    if (is_active !== undefined) {
-      qb.andWhere('pp.is_active = :is_active', { is_active });
+    if (isActive !== undefined) {
+      qb.andWhere("pp.isActive = :isActive", { isActive });
     }
 
     const total = await qb.getCount();
@@ -403,22 +465,32 @@ export class ReferencesService {
       total,
       page,
       limit,
-      total_pages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
   async findPaymentProviderByCode(code: string): Promise<PaymentProvider> {
-    const provider = await this.paymentProviderRepo.findOne({ where: { code } });
+    const provider = await this.paymentProviderRepo.findOne({
+      where: { code },
+    });
     if (!provider) {
-      throw new NotFoundException(`Payment provider with code "${code}" not found`);
+      throw new NotFoundException(
+        `Payment provider with code "${code}" not found`,
+      );
     }
     return provider;
   }
 
-  async createPaymentProvider(dto: CreatePaymentProviderDto): Promise<PaymentProvider> {
-    const existing = await this.paymentProviderRepo.findOne({ where: { code: dto.code } });
+  async createPaymentProvider(
+    dto: CreatePaymentProviderDto,
+  ): Promise<PaymentProvider> {
+    const existing = await this.paymentProviderRepo.findOne({
+      where: { code: dto.code },
+    });
     if (existing) {
-      throw new ConflictException(`Payment provider with code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `Payment provider with code "${dto.code}" already exists`,
+      );
     }
 
     const entity = this.paymentProviderRepo.create(dto);
@@ -427,7 +499,10 @@ export class ReferencesService {
     return saved;
   }
 
-  async updatePaymentProvider(id: string, dto: UpdatePaymentProviderDto): Promise<PaymentProvider> {
+  async updatePaymentProvider(
+    id: string,
+    dto: UpdatePaymentProviderDto,
+  ): Promise<PaymentProvider> {
     const entity = await this.paymentProviderRepo.findOne({ where: { id } });
     if (!entity) {
       throw new NotFoundException(`Payment provider with id "${id}" not found`);
@@ -456,28 +531,28 @@ export class ReferencesService {
   }> {
     return [
       {
-        category: 'tobacco',
-        name_ru: 'Табачные изделия',
+        category: "tobacco",
+        name_ru: "Табачные изделия",
         required: true,
-        start_date: '2020-01-01',
+        start_date: "2020-01-01",
       },
       {
-        category: 'alcohol',
-        name_ru: 'Алкогольная продукция',
+        category: "alcohol",
+        name_ru: "Алкогольная продукция",
         required: true,
-        start_date: '2021-01-01',
+        start_date: "2021-01-01",
       },
       {
-        category: 'water',
-        name_ru: 'Питьевая вода (более 0.5л)',
+        category: "water",
+        name_ru: "Питьевая вода (более 0.5л)",
         required: true,
-        start_date: '2022-01-01',
+        start_date: "2022-01-01",
       },
       {
-        category: 'soft_drinks',
-        name_ru: 'Безалкогольные напитки',
+        category: "soft_drinks",
+        name_ru: "Безалкогольные напитки",
         required: false,
-        planned_date: '2025-01-01',
+        planned_date: "2025-01-01",
       },
     ];
   }
@@ -502,8 +577,8 @@ export class ReferencesService {
     is_default: boolean;
   }> {
     return [
-      { code: 'UZS', name: 'Узбекский сум', symbol: "so'm", is_default: true },
-      { code: 'USD', name: 'Доллар США', symbol: '$', is_default: false },
+      { code: "UZS", name: "Узбекский сум", symbol: "so'm", is_default: true },
+      { code: "USD", name: "Доллар США", symbol: "$", is_default: false },
     ];
   }
 
@@ -511,7 +586,7 @@ export class ReferencesService {
    * Get the default currency code.
    */
   getDefaultCurrency(): string {
-    return 'UZS';
+    return "UZS";
   }
 
   /**
@@ -519,20 +594,24 @@ export class ReferencesService {
    */
   getRegions(): Array<{ code: string; name_ru: string; name_uz: string }> {
     return [
-      { code: 'TAS', name_ru: 'Ташкент', name_uz: 'Toshkent' },
-      { code: 'TAS_REG', name_ru: 'Ташкентская область', name_uz: 'Toshkent viloyati' },
-      { code: 'SAM', name_ru: 'Самарканд', name_uz: 'Samarqand' },
-      { code: 'BUK', name_ru: 'Бухара', name_uz: 'Buxoro' },
-      { code: 'AND', name_ru: 'Андижан', name_uz: 'Andijon' },
-      { code: 'FER', name_ru: 'Фергана', name_uz: "Farg'ona" },
-      { code: 'NAM', name_ru: 'Наманган', name_uz: 'Namangan' },
-      { code: 'KAR', name_ru: 'Каракалпакстан', name_uz: "Qoraqalpog'iston" },
-      { code: 'XOR', name_ru: 'Хорезм', name_uz: 'Xorazm' },
-      { code: 'NAV', name_ru: 'Навои', name_uz: 'Navoiy' },
-      { code: 'KAS', name_ru: 'Кашкадарья', name_uz: 'Qashqadaryo' },
-      { code: 'SUR', name_ru: 'Сурхандарья', name_uz: 'Surxondaryo' },
-      { code: 'JIZ', name_ru: 'Джизак', name_uz: 'Jizzax' },
-      { code: 'SIR', name_ru: 'Сырдарья', name_uz: 'Sirdaryo' },
+      { code: "TAS", name_ru: "Ташкент", name_uz: "Toshkent" },
+      {
+        code: "TAS_REG",
+        name_ru: "Ташкентская область",
+        name_uz: "Toshkent viloyati",
+      },
+      { code: "SAM", name_ru: "Самарканд", name_uz: "Samarqand" },
+      { code: "BUK", name_ru: "Бухара", name_uz: "Buxoro" },
+      { code: "AND", name_ru: "Андижан", name_uz: "Andijon" },
+      { code: "FER", name_ru: "Фергана", name_uz: "Farg'ona" },
+      { code: "NAM", name_ru: "Наманган", name_uz: "Namangan" },
+      { code: "KAR", name_ru: "Каракалпакстан", name_uz: "Qoraqalpog'iston" },
+      { code: "XOR", name_ru: "Хорезм", name_uz: "Xorazm" },
+      { code: "NAV", name_ru: "Навои", name_uz: "Navoiy" },
+      { code: "KAS", name_ru: "Кашкадарья", name_uz: "Qashqadaryo" },
+      { code: "SUR", name_ru: "Сурхандарья", name_uz: "Surxondaryo" },
+      { code: "JIZ", name_ru: "Джизак", name_uz: "Jizzax" },
+      { code: "SIR", name_ru: "Сырдарья", name_uz: "Sirdaryo" },
     ];
   }
 }

@@ -22,9 +22,9 @@ import {
 import { UserAchievement } from "./user-achievement.entity";
 
 @Entity("achievements")
-@Index(["organization_id", "is_active"])
+@Index(["organizationId", "isActive"])
 @Index(["category", "rarity"])
-@Index(["condition_type"])
+@Index(["conditionType"])
 export class Achievement extends BaseEntity {
   // ===== Organization =====
 
@@ -33,7 +33,7 @@ export class Achievement extends BaseEntity {
   })
   @Column({ type: "uuid", nullable: true })
   @Index()
-  organization_id: string | null;
+  organizationId: string | null;
 
   @ManyToOne(() => Organization, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "organization_id" })
@@ -47,7 +47,7 @@ export class Achievement extends BaseEntity {
 
   @ApiProperty({ description: "Achievement name in Uzbek" })
   @Column({ type: "varchar", length: 100, nullable: true })
-  name_uz: string | null;
+  nameUz: string | null;
 
   @ApiProperty({ description: "Achievement description" })
   @Column({ type: "varchar", length: 500 })
@@ -55,7 +55,7 @@ export class Achievement extends BaseEntity {
 
   @ApiProperty({ description: "Achievement description in Uzbek" })
   @Column({ type: "varchar", length: 500, nullable: true })
-  description_uz: string | null;
+  descriptionUz: string | null;
 
   // ===== Condition =====
 
@@ -67,21 +67,21 @@ export class Achievement extends BaseEntity {
     type: "enum",
     enum: AchievementConditionType,
   })
-  condition_type: AchievementConditionType;
+  conditionType: AchievementConditionType;
 
   @ApiProperty({
     description: "Target value for condition (e.g. 10 orders, 5 machines)",
     example: 10,
   })
   @Column({ type: "int" })
-  condition_value: number;
+  conditionValue: number;
 
   @ApiProperty({
     description: "Additional condition metadata",
     nullable: true,
   })
   @Column({ type: "jsonb", nullable: true })
-  condition_metadata: {
+  conditionMetadata: {
     // Для LOYALTY_LEVEL
     required_level?: string;
     // Для ORDER_AMOUNT - минимальная сумма
@@ -103,7 +103,7 @@ export class Achievement extends BaseEntity {
     example: 100,
   })
   @Column({ type: "int", default: 0 })
-  bonus_points: number;
+  bonusPoints: number;
 
   // ===== Visual =====
 
@@ -113,7 +113,7 @@ export class Achievement extends BaseEntity {
 
   @ApiProperty({ description: "Achievement image URL", nullable: true })
   @Column({ type: "varchar", nullable: true })
-  image_url: string | null;
+  imageUrl: string | null;
 
   // ===== Classification =====
 
@@ -143,24 +143,24 @@ export class Achievement extends BaseEntity {
 
   @ApiProperty({ description: "Is achievement active" })
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @ApiProperty({ description: "Is achievement hidden until unlocked" })
   @Column({ type: "boolean", default: false })
-  is_hidden: boolean;
+  isHidden: boolean;
 
   @ApiProperty({ description: "Display order" })
   @Column({ type: "int", default: 0 })
-  display_order: number;
+  displayOrder: number;
 
   // ===== Statistics =====
 
   @ApiProperty({ description: "Total times unlocked by users" })
   @Column({ type: "int", default: 0 })
-  total_unlocked: number;
+  totalUnlocked: number;
 
   // ===== Relations =====
 
   @OneToMany(() => UserAchievement, (ua) => ua.achievement)
-  user_achievements: UserAchievement[];
+  userAchievements: UserAchievement[];
 }

@@ -16,14 +16,14 @@ export enum DeviceType {
 }
 
 @Entity("fcm_tokens")
-@Index(["user_id"])
+@Index(["userId"])
 @Index(["token"], { unique: true })
 export class FcmToken extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  userId: string;
 
   @Column({ type: "text", unique: true })
   token: string;
@@ -32,19 +32,19 @@ export class FcmToken extends BaseEntity {
     type: "enum",
     enum: DeviceType,
   })
-  device_type: DeviceType;
+  deviceType: DeviceType;
 
   @Column({ type: "varchar", length: 200, nullable: true })
-  device_name: string | null;
+  deviceName: string | null;
 
   @Column({ type: "varchar", length: 200, nullable: true })
-  device_id: string | null;
+  deviceId: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  last_used_at: Date | null;
+  lastUsedAt: Date | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

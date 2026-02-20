@@ -10,16 +10,16 @@ import { User } from "../../users/entities/user.entity";
 import { Achievement } from "./achievement.entity";
 
 @Entity("user_achievements")
-@Index(["user_id", "unlocked_at"])
-@Index(["achievement_id"])
-@Unique(["user_id", "achievement_id"])
+@Index(["userId", "unlockedAt"])
+@Index(["achievementId"])
+@Unique(["userId", "achievementId"])
 export class UserAchievement extends BaseEntity {
   // ===== User =====
 
   @ApiProperty({ description: "User ID" })
   @Column({ type: "uuid" })
   @Index()
-  user_id: string;
+  userId: string;
 
   @ManyToOne(() => User, { onDelete: "SET NULL" })
   @JoinColumn({ name: "user_id" })
@@ -30,9 +30,9 @@ export class UserAchievement extends BaseEntity {
   @ApiProperty({ description: "Achievement ID" })
   @Column({ type: "uuid" })
   @Index()
-  achievement_id: string;
+  achievementId: string;
 
-  @ManyToOne(() => Achievement, (a) => a.user_achievements, {
+  @ManyToOne(() => Achievement, (a) => a.userAchievements, {
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "achievement_id" })
@@ -45,38 +45,38 @@ export class UserAchievement extends BaseEntity {
     example: 3,
   })
   @Column({ type: "int", default: 0 })
-  current_value: number;
+  currentValue: number;
 
   @ApiProperty({
     description: "Target value (copied from achievement)",
     example: 10,
   })
   @Column({ type: "int" })
-  target_value: number;
+  targetValue: number;
 
   @ApiProperty({
     description: "Whether achievement is unlocked",
     default: false,
   })
   @Column({ type: "boolean", default: false })
-  is_unlocked: boolean;
+  isUnlocked: boolean;
 
   // ===== Timestamps =====
 
   @ApiProperty({ description: "When achievement was unlocked", nullable: true })
   @Column({ type: "timestamp with time zone", nullable: true })
-  unlocked_at: Date | null;
+  unlockedAt: Date | null;
 
   @ApiProperty({
     description: "When bonus points were claimed",
     nullable: true,
   })
   @Column({ type: "timestamp with time zone", nullable: true })
-  claimed_at: Date | null;
+  claimedAt: Date | null;
 
   @ApiProperty({ description: "Points claimed amount", nullable: true })
   @Column({ type: "int", nullable: true })
-  points_claimed: number | null;
+  pointsClaimed: number | null;
 
   // ===== Progress Details =====
 
@@ -85,7 +85,7 @@ export class UserAchievement extends BaseEntity {
     nullable: true,
   })
   @Column({ type: "jsonb", nullable: true })
-  progress_details: {
+  progressDetails: {
     // Для UNIQUE_PRODUCTS - список попробованных
     tried_products?: string[];
     // Для UNIQUE_MACHINES - посещенные автоматы
@@ -104,19 +104,19 @@ export class UserAchievement extends BaseEntity {
 
   // ===== Virtual =====
 
-  get progress_percent(): number {
-    if (this.target_value === 0) return 100;
+  get progressPercent(): number {
+    if (this.targetValue === 0) return 100;
     return Math.min(
       100,
-      Math.floor((this.current_value / this.target_value) * 100),
+      Math.floor((this.currentValue / this.targetValue) * 100),
     );
   }
 
   get remaining(): number {
-    return Math.max(0, this.target_value - this.current_value);
+    return Math.max(0, this.targetValue - this.currentValue);
   }
 
-  get can_claim(): boolean {
-    return this.is_unlocked && !this.claimed_at;
+  get canClaim(): boolean {
+    return this.isUnlocked && !this.claimedAt;
   }
 }

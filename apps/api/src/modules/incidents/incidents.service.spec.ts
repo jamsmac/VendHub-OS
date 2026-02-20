@@ -68,20 +68,20 @@ describe("IncidentsService", () => {
 
   const mockIncident: Partial<Incident> = {
     id: "incident-uuid-1",
-    organization_id: ORG_ID,
-    machine_id: MACHINE_ID,
+    organizationId: ORG_ID,
+    machineId: MACHINE_ID,
     type: IncidentType.MECHANICAL_FAILURE,
     status: IncidentStatus.REPORTED,
     priority: IncidentPriority.MEDIUM,
     title: "Machine jammed",
     description: "Product stuck in slot B3",
-    reported_by_user_id: USER_ID,
-    assigned_to_user_id: null,
-    reported_at: new Date("2025-01-15T10:00:00Z"),
-    resolved_at: null,
-    repair_cost: null,
-    insurance_claim: false,
-    insurance_claim_number: null,
+    reportedByUserId: USER_ID,
+    assignedToUserId: null,
+    reportedAt: new Date("2025-01-15T10:00:00Z"),
+    resolvedAt: null,
+    repairCost: null,
+    insuranceClaim: false,
+    insuranceClaimNumber: null,
     photos: [],
     resolution: null,
     metadata: {},
@@ -91,16 +91,16 @@ describe("IncidentsService", () => {
     ...mockIncident,
     id: "incident-uuid-2",
     status: IncidentStatus.RESOLVED,
-    resolved_at: new Date("2025-01-15T14:00:00Z"),
+    resolvedAt: new Date("2025-01-15T14:00:00Z"),
     resolution: "Cleared the jam and tested",
-    repair_cost: 50000,
+    repairCost: 50000,
   };
 
   const mockClosedIncident: Partial<Incident> = {
     ...mockIncident,
     id: "incident-uuid-3",
     status: IncidentStatus.CLOSED,
-    resolved_at: new Date("2025-01-15T14:00:00Z"),
+    resolvedAt: new Date("2025-01-15T14:00:00Z"),
     resolution: "Fixed",
   };
 
@@ -130,7 +130,7 @@ describe("IncidentsService", () => {
   describe("create", () => {
     it("should create an incident with default priority MEDIUM", async () => {
       const dto = {
-        machine_id: MACHINE_ID,
+        machineId: MACHINE_ID,
         type: IncidentType.MECHANICAL_FAILURE,
         title: "Machine jammed",
         description: "Product stuck in slot B3",
@@ -147,13 +147,13 @@ describe("IncidentsService", () => {
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          organization_id: ORG_ID,
-          machine_id: MACHINE_ID,
+          organizationId: ORG_ID,
+          machineId: MACHINE_ID,
           type: IncidentType.MECHANICAL_FAILURE,
           status: IncidentStatus.REPORTED,
           priority: IncidentPriority.MEDIUM,
           title: "Machine jammed",
-          reported_by_user_id: USER_ID,
+          reportedByUserId: USER_ID,
         }),
       );
       expect(incidentRepo.save).toHaveBeenCalledWith(mockIncident);
@@ -162,7 +162,7 @@ describe("IncidentsService", () => {
 
     it("should create an incident with explicit HIGH priority", async () => {
       const dto = {
-        machine_id: MACHINE_ID,
+        machineId: MACHINE_ID,
         type: IncidentType.VANDALISM,
         title: "Vandalized machine",
         priority: IncidentPriority.HIGH,
@@ -189,33 +189,33 @@ describe("IncidentsService", () => {
       expect(result.priority).toBe(IncidentPriority.HIGH);
     });
 
-    it("should set insurance_claim fields when provided", async () => {
+    it("should set insuranceClaim fields when provided", async () => {
       const dto = {
-        machine_id: MACHINE_ID,
+        machineId: MACHINE_ID,
         type: IncidentType.THEFT,
         title: "Cash box stolen",
-        insurance_claim: true,
-        insurance_claim_number: "INS-2025-001",
-        repair_cost: 5000000,
+        insuranceClaim: true,
+        insuranceClaimNumber: "INS-2025-001",
+        repairCost: 5000000,
       };
 
       incidentRepo.create!.mockReturnValue({
         ...mockIncident,
-        insurance_claim: true,
-        insurance_claim_number: "INS-2025-001",
+        insuranceClaim: true,
+        insuranceClaimNumber: "INS-2025-001",
       });
       incidentRepo.save!.mockResolvedValue({
         ...mockIncident,
-        insurance_claim: true,
-        insurance_claim_number: "INS-2025-001",
+        insuranceClaim: true,
+        insuranceClaimNumber: "INS-2025-001",
       });
 
       await service.create(dto as CreateIncidentDto, USER_ID, ORG_ID);
 
       expect(incidentRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          insurance_claim: true,
-          insurance_claim_number: "INS-2025-001",
+          insuranceClaim: true,
+          insuranceClaimNumber: "INS-2025-001",
         }),
       );
     });
@@ -232,7 +232,7 @@ describe("IncidentsService", () => {
       const result = await service.findById("incident-uuid-1", ORG_ID);
 
       expect(incidentRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "incident-uuid-1", organization_id: ORG_ID },
+        where: { id: "incident-uuid-1", organizationId: ORG_ID },
       });
       expect(result).toEqual(mockIncident);
     });
@@ -268,7 +268,7 @@ describe("IncidentsService", () => {
       const result = await service.query({} as QueryIncidentsDto, ORG_ID);
 
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
-        "i.organization_id = :organizationId",
+        "i.organizationId = :organizationId",
         { organizationId: ORG_ID },
       );
       expect(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
@@ -279,15 +279,15 @@ describe("IncidentsService", () => {
       expect(result.limit).toBe(20);
     });
 
-    it("should apply machine_id filter", async () => {
+    it("should apply machineId filter", async () => {
       await service.query(
-        { machine_id: MACHINE_ID } as QueryIncidentsDto,
+        { machineId: MACHINE_ID } as QueryIncidentsDto,
         ORG_ID,
       );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "i.machine_id = :machine_id",
-        { machine_id: MACHINE_ID },
+        "i.machineId = :machineId",
+        { machineId: MACHINE_ID },
       );
     });
 
@@ -313,16 +313,16 @@ describe("IncidentsService", () => {
     });
 
     it("should apply date range filters", async () => {
-      const dto = { date_from: "2025-01-01", date_to: "2025-01-31" };
+      const dto = { dateFrom: "2025-01-01", dateTo: "2025-01-31" };
       await service.query(dto as QueryIncidentsDto, ORG_ID);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "i.reported_at >= :date_from",
-        expect.objectContaining({ date_from: expect.any(Date) }),
+        "i.reportedAt >= :dateFrom",
+        expect.objectContaining({ dateFrom: expect.any(Date) }),
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "i.reported_at <= :date_to",
-        expect.objectContaining({ date_to: expect.any(Date) }),
+        "i.reportedAt <= :dateTo",
+        expect.objectContaining({ dateTo: expect.any(Date) }),
       );
     });
 
@@ -380,8 +380,8 @@ describe("IncidentsService", () => {
       );
 
       expect(result.status).toBe(IncidentStatus.RESOLVED);
-      expect(result.resolved_at).toBeInstanceOf(Date);
-      expect(result.resolved_by_user_id).toBe(USER_ID);
+      expect(result.resolvedAt).toBeInstanceOf(Date);
+      expect(result.resolvedByUserId).toBe(USER_ID);
     });
 
     it("should throw NotFoundException for missing incident", async () => {
@@ -412,7 +412,7 @@ describe("IncidentsService", () => {
       );
 
       expect(result.status).toBe(IncidentStatus.RESOLVED);
-      expect(result.resolved_at).toBeInstanceOf(Date);
+      expect(result.resolvedAt).toBeInstanceOf(Date);
     });
   });
 
@@ -461,7 +461,7 @@ describe("IncidentsService", () => {
         ORG_ID,
       );
 
-      expect(result.assigned_to_user_id).toBe(techId);
+      expect(result.assignedToUserId).toBe(techId);
       expect(result.status).toBe(IncidentStatus.INVESTIGATING);
       expect(result.updatedById).toBe(USER_ID);
     });
@@ -484,7 +484,7 @@ describe("IncidentsService", () => {
         ORG_ID,
       );
 
-      expect(result.assigned_to_user_id).toBe(techId);
+      expect(result.assignedToUserId).toBe(techId);
       expect(result.status).toBe(IncidentStatus.INVESTIGATING);
     });
   });
@@ -500,8 +500,8 @@ describe("IncidentsService", () => {
       const result = await service.findByMachine(MACHINE_ID, ORG_ID);
 
       expect(incidentRepo.find).toHaveBeenCalledWith({
-        where: { machine_id: MACHINE_ID, organization_id: ORG_ID },
-        order: { reported_at: "DESC" },
+        where: { machineId: MACHINE_ID, organizationId: ORG_ID },
+        order: { reportedAt: "DESC" },
         take: 20,
       });
       expect(result).toHaveLength(1);
@@ -538,19 +538,19 @@ describe("IncidentsService", () => {
           type: IncidentType.MECHANICAL_FAILURE,
           status: IncidentStatus.RESOLVED,
           priority: IncidentPriority.MEDIUM,
-          repair_cost: 50000,
-          insurance_claim: false,
-          reported_at: reportedAt,
-          resolved_at: resolvedAt,
+          repairCost: 50000,
+          insuranceClaim: false,
+          reportedAt: reportedAt,
+          resolvedAt: resolvedAt,
         },
         {
           type: IncidentType.VANDALISM,
           status: IncidentStatus.REPORTED,
           priority: IncidentPriority.HIGH,
-          repair_cost: null,
-          insurance_claim: true,
-          reported_at: new Date("2025-01-16T08:00:00Z"),
-          resolved_at: null,
+          repairCost: null,
+          insuranceClaim: true,
+          reportedAt: new Date("2025-01-16T08:00:00Z"),
+          resolvedAt: null,
         },
       ];
 

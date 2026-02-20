@@ -5,8 +5,8 @@ on:
     types: [published]
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
 
 jobs:
   # ========================================
@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -102,6 +102,32 @@ jobs:
           tags: |
             vendhub/client:${{ steps.version.outputs.VERSION }}
             vendhub/client:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Bot Image
+      - name: Build and push Bot image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/bot/Dockerfile
+          push: true
+          tags: |
+            vendhub/bot:${{ steps.version.outputs.VERSION }}
+            vendhub/bot:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Site Image
+      - name: Build and push Site image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/site/Dockerfile
+          push: true
+          tags: |
+            vendhub/site:${{ steps.version.outputs.VERSION }}
+            vendhub/site:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

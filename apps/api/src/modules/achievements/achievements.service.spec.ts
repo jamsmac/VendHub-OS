@@ -83,11 +83,11 @@ describe("AchievementsService", () => {
       const dto = {
         name: "Test Achievement",
         description: "Test Description",
-        condition_type: AchievementConditionType.ORDER_COUNT,
-        condition_value: 10,
-        bonus_points: 100,
+        conditionType: AchievementConditionType.ORDER_COUNT,
+        conditionValue: 10,
+        bonusPoints: 100,
       };
-      const created = { id: "uuid-1", ...dto, organization_id: "org-1" };
+      const created = { id: "uuid-1", ...dto, organizationId: "org-1" };
       mockAchievementRepo.create.mockReturnValue(created);
       mockAchievementRepo.save.mockResolvedValue(created);
 
@@ -95,7 +95,7 @@ describe("AchievementsService", () => {
       expect(result).toEqual(created);
       expect(mockAchievementRepo.create).toHaveBeenCalledWith({
         ...dto,
-        organization_id: "org-1",
+        organizationId: "org-1",
       });
     });
   });
@@ -104,7 +104,7 @@ describe("AchievementsService", () => {
     it("should soft delete an achievement", async () => {
       mockAchievementRepo.findOne.mockResolvedValue({
         id: "uuid-1",
-        organization_id: "org-1",
+        organizationId: "org-1",
       });
       mockAchievementRepo.softDelete.mockResolvedValue(undefined);
 
@@ -115,7 +115,7 @@ describe("AchievementsService", () => {
     it("should throw when deleting global achievement", async () => {
       mockAchievementRepo.findOne.mockResolvedValue({
         id: "uuid-1",
-        organization_id: null,
+        organizationId: null,
       });
 
       await expect(
@@ -132,17 +132,17 @@ describe("AchievementsService", () => {
       const result = await service.getUserAchievementsSummary("user-1");
       expect(result).toHaveProperty("total");
       expect(result).toHaveProperty("unlocked");
-      expect(result).toHaveProperty("by_category");
+      expect(result).toHaveProperty("byCategory");
     });
   });
 
   describe("getStats", () => {
     it("should return achievement stats", async () => {
       const result = await service.getStats("org-1");
-      expect(result).toHaveProperty("total_achievements");
-      expect(result).toHaveProperty("users_with_achievements");
-      expect(result).toHaveProperty("most_popular");
-      expect(result).toHaveProperty("total_points_distributed");
+      expect(result).toHaveProperty("totalAchievements");
+      expect(result).toHaveProperty("usersWithAchievements");
+      expect(result).toHaveProperty("mostPopular");
+      expect(result).toHaveProperty("totalPointsDistributed");
     });
   });
 });

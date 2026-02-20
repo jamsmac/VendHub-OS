@@ -7,14 +7,14 @@ import { Entity, Column, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 
 @Entity("push_subscriptions")
-@Index(["user_id"])
+@Index(["userId"])
 @Index(["endpoint"], { unique: true })
 export class PushSubscription extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  userId: string;
 
   @Column({ type: "text", unique: true })
   endpoint: string;
@@ -26,13 +26,13 @@ export class PushSubscription extends BaseEntity {
   auth: string;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  user_agent: string | null;
+  userAgent: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  last_used_at: Date | null;
+  lastUsedAt: Date | null;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

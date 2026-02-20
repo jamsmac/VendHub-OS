@@ -121,30 +121,30 @@ export class ImportSessionService {
     }
 
     const session = this.sessionRepo.create({
-      organization_id: organizationId,
+      organizationId,
       domain,
       status: ImportSessionStatus.UPLOADED,
-      template_id: dto.templateId || null,
-      file_name: file.originalname,
-      file_size: file.size,
-      file_type: fileType,
-      file_url: null,
-      file_metadata: fileMetadata,
-      classification_result: null,
-      classification_confidence: null,
-      column_mapping: null,
-      unmapped_columns: null,
-      validation_report: null,
-      action_plan: null,
-      approval_status: ApprovalStatus.PENDING,
-      approved_by_user_id: null,
-      approved_at: null,
-      rejection_reason: null,
-      execution_result: null,
-      uploaded_by_user_id: userId,
-      import_job_id: null,
-      started_at: new Date(),
-      completed_at: null,
+      templateId: dto.templateId || null,
+      fileName: file.originalname,
+      fileSize: file.size,
+      fileType,
+      fileUrl: null,
+      fileMetadata,
+      classificationResult: null,
+      classificationConfidence: null,
+      columnMapping: null,
+      unmappedColumns: null,
+      validationReport: null,
+      actionPlan: null,
+      approvalStatus: ApprovalStatus.PENDING,
+      approvedByUserId: null,
+      approvedAt: null,
+      rejectionReason: null,
+      executionResult: null,
+      uploadedByUserId: userId,
+      importJobId: null,
+      startedAt: new Date(),
+      completedAt: null,
       message: "File uploaded successfully. Ready for classification.",
     });
 
@@ -167,7 +167,7 @@ export class ImportSessionService {
     headers: string[],
   ): Promise<DomainType | undefined> {
     const schemas = await this.schemaDefRepo.find({
-      where: { is_active: true },
+      where: { isActive: true },
     });
 
     if (schemas.length === 0) {
@@ -180,7 +180,7 @@ export class ImportSessionService {
 
     for (const schema of schemas) {
       let matchCount = 0;
-      const fieldDefs = schema.field_definitions || [];
+      const fieldDefs = schema.fieldDefinitions || [];
 
       for (const fieldDef of fieldDefs) {
         const allNames = [
@@ -195,7 +195,7 @@ export class ImportSessionService {
         }
       }
 
-      const requiredCount = schema.required_fields.length || 1;
+      const requiredCount = schema.requiredFields.length || 1;
       const score = (matchCount / requiredCount) * 100;
 
       if (score > bestScore) {
@@ -214,7 +214,7 @@ export class ImportSessionService {
 
   /**
    * Classify session: match columns to SchemaDefinition using synonyms.
-   * Calculate confidence score and save classification_result and column_mapping.
+   * Calculate confidence score and save classificationResult and columnMapping.
    */
   async classifySession(
     sessionId: string,
@@ -243,17 +243,17 @@ export class ImportSessionService {
 
     // If manual column mapping is provided, use it directly
     if (dto?.columnMapping && Object.keys(dto.columnMapping).length > 0) {
-      session.column_mapping = dto.columnMapping;
-      session.classification_confidence = 100;
-      session.unmapped_columns = this.findUnmappedColumns(
-        session.file_metadata?.headers || [],
+      session.columnMapping = dto.columnMapping;
+      session.classificationConfidence = 100;
+      session.unmappedColumns = this.findUnmappedColumns(
+        session.fileMetadata?.headers || [],
         dto.columnMapping,
       );
-      session.classification_result = {
+      session.classificationResult = {
         detected_domain: domain,
         confidence: 100,
         column_mapping: dto.columnMapping,
-        unmapped_columns: session.unmapped_columns,
+        unmapped_columns: session.unmappedColumns,
         method: "manual",
       };
       session.status = ImportSessionStatus.CLASSIFIED;
@@ -264,7 +264,7 @@ export class ImportSessionService {
 
     // Auto-classify using SchemaDefinition
     const schemaDef = await this.schemaDefRepo.findOne({
-      where: { domain, is_active: true },
+      where: { domain, isActive: true },
     });
 
     if (!schemaDef) {
@@ -273,17 +273,17 @@ export class ImportSessionService {
       return this.sessionRepo.save(session);
     }
 
-    const headers: string[] = session.file_metadata?.headers || [];
+    const headers: string[] = session.fileMetadata?.headers || [];
     const { mapping, unmappedColumns, confidence } = this.matchColumns(
       headers,
-      schemaDef.field_definitions,
-      schemaDef.required_fields,
+      schemaDef.fieldDefinitions,
+      schemaDef.requiredFields,
     );
 
-    session.column_mapping = mapping;
-    session.unmapped_columns = unmappedColumns;
-    session.classification_confidence = confidence;
-    session.classification_result = {
+    session.columnMapping = mapping;
+    session.unmappedColumns = unmappedColumns;
+    session.classificationConfidence = confidence;
+    session.classificationResult = {
       detected_domain: domain,
       confidence,
       column_mapping: mapping,
@@ -308,7 +308,7 @@ export class ImportSessionService {
    * Match source column headers to schema field definitions using synonyms.
    *
    * Algorithm:
-   * 1. For each source column header, check against field_definitions synonyms
+   * 1. For each source column header, check against fieldDefinitions synonyms
    * 2. Match is case-insensitive, trimmed, normalized
    * 3. Calculate confidence = matched_required_columns / total_required_columns * 100
    * 4. Return mapping and unmapped columns
@@ -386,7 +386,7 @@ export class ImportSessionService {
 
   /**
    * Validate session: run ValidationRules against data.
-   * Generate validation_report with errors/warnings per row.
+   * Generate validationReport with errors/warnings per row.
    */
   async validateSession(
     sessionId: string,
@@ -412,12 +412,12 @@ export class ImportSessionService {
       session.domain,
     );
 
-    // Get the data rows from file_metadata
+    // Get the data rows from fileMetadata
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allRows: Record<string, any>[] =
-      session.file_metadata?.sampleData || [];
-    const columnMapping = session.column_mapping || {};
-    const totalRows = session.file_metadata?.rows || allRows.length;
+      session.fileMetadata?.sampleData || [];
+    const columnMapping = session.columnMapping || {};
+    const totalRows = session.fileMetadata?.rows || allRows.length;
 
     let validRows = 0;
     let invalidRows = 0;
@@ -446,7 +446,7 @@ export class ImportSessionService {
 
       // Apply each validation rule
       for (const rule of rules) {
-        const fieldValue = mappedRow[rule.field_name];
+        const fieldValue = mappedRow[rule.fieldName];
         const validationResult = this.validatorService.applyValidationRule(
           rule,
           fieldValue,
@@ -459,14 +459,14 @@ export class ImportSessionService {
             rowHasError = true;
             errors.push({
               row: rowNumber,
-              field: rule.field_name,
+              field: rule.fieldName,
               message: validationResult.message,
               severity: "error",
             });
           } else if (rule.severity === ValidationSeverity.WARNING) {
             warnings.push({
               row: rowNumber,
-              field: rule.field_name,
+              field: rule.fieldName,
               message: validationResult.message,
             });
           }
@@ -490,10 +490,10 @@ export class ImportSessionService {
       rules_applied: rules.length,
     };
 
-    session.validation_report = validationReport;
+    session.validationReport = validationReport;
 
     // Generate action plan
-    session.action_plan = {
+    session.actionPlan = {
       inserts: validRows,
       updates: 0,
       skips: invalidRows,
@@ -539,13 +539,13 @@ export class ImportSessionService {
       );
     }
 
-    const hasErrors = (session.validation_report?.errors?.length || 0) > 0;
-    const confidence = session.classification_confidence || 0;
+    const hasErrors = (session.validationReport?.errors?.length || 0) > 0;
+    const confidence = session.classificationConfidence || 0;
 
     // Auto-approve if confidence >= 95% and no errors
     if (confidence >= 95 && !hasErrors) {
-      session.approval_status = ApprovalStatus.AUTO_APPROVED;
-      session.approved_at = new Date();
+      session.approvalStatus = ApprovalStatus.AUTO_APPROVED;
+      session.approvedAt = new Date();
       session.status = ImportSessionStatus.APPROVED;
       session.message = `Auto-approved: confidence ${confidence.toFixed(1)}%, no validation errors.`;
 
@@ -555,7 +555,7 @@ export class ImportSessionService {
       );
     } else {
       session.status = ImportSessionStatus.AWAITING_APPROVAL;
-      session.message = `Awaiting manual approval. Confidence: ${confidence.toFixed(1)}%, errors: ${session.validation_report?.errors?.length || 0}.`;
+      session.message = `Awaiting manual approval. Confidence: ${confidence.toFixed(1)}%, errors: ${session.validationReport?.errors?.length || 0}.`;
 
       this.eventEmitter.emit("import.session.awaiting_approval", { session });
       this.logger.log(`Session ${sessionId} submitted for approval`);
@@ -581,9 +581,9 @@ export class ImportSessionService {
       );
     }
 
-    session.approval_status = ApprovalStatus.APPROVED;
-    session.approved_by_user_id = userId;
-    session.approved_at = new Date();
+    session.approvalStatus = ApprovalStatus.APPROVED;
+    session.approvedByUserId = userId;
+    session.approvedAt = new Date();
     session.status = ImportSessionStatus.APPROVED;
     session.message = "Session approved.";
 
@@ -620,10 +620,10 @@ export class ImportSessionService {
       );
     }
 
-    session.approval_status = ApprovalStatus.REJECTED;
-    session.approved_by_user_id = userId;
-    session.approved_at = new Date();
-    session.rejection_reason = dto.reason;
+    session.approvalStatus = ApprovalStatus.REJECTED;
+    session.approvedByUserId = userId;
+    session.approvedAt = new Date();
+    session.rejectionReason = dto.reason;
     session.status = ImportSessionStatus.REJECTED;
     session.message = `Session rejected: ${dto.reason}`;
 
@@ -648,7 +648,7 @@ export class ImportSessionService {
   /**
    * Execute import session: perform actual data INSERT/UPDATE operations.
    * Creates ImportAuditLog entries for every row operation.
-   * Updates execution_result on the session.
+   * Updates executionResult on the session.
    */
   async executeImportSession(
     sessionId: string,
@@ -659,7 +659,7 @@ export class ImportSessionService {
 
     if (
       session.status !== ImportSessionStatus.APPROVED &&
-      session.approval_status !== ApprovalStatus.AUTO_APPROVED
+      session.approvalStatus !== ApprovalStatus.AUTO_APPROVED
     ) {
       throw new BadRequestException(
         `Cannot execute session in status: ${session.status}. Session must be APPROVED.`,
@@ -671,10 +671,10 @@ export class ImportSessionService {
     await this.sessionRepo.save(session);
 
     const startTime = Date.now();
-    const columnMapping = session.column_mapping || {};
+    const columnMapping = session.columnMapping || {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allRows: Record<string, any>[] =
-      session.file_metadata?.sampleData || [];
+      session.fileMetadata?.sampleData || [];
 
     let successful = 0;
     let failed = 0;
@@ -682,9 +682,9 @@ export class ImportSessionService {
 
     // Get schema for table name
     const schemaDef = await this.schemaDefRepo.findOne({
-      where: { domain: session.domain, is_active: true },
+      where: { domain: session.domain, isActive: true },
     });
-    const tableName = schemaDef?.table_name || session.domain;
+    const tableName = schemaDef?.tableName || session.domain;
 
     // SECURITY: Validate table name to prevent SQL injection.
     // Only allow lowercase alphanumeric characters and underscores.
@@ -713,7 +713,7 @@ export class ImportSessionService {
           }
         }
 
-        // Add organization_id to the mapped data
+        // Add organization_id to the mapped data (DB column name, not entity property)
         mappedRow["organization_id"] = organizationId;
 
         try {
@@ -741,18 +741,18 @@ export class ImportSessionService {
 
           // Create audit log for successful insert
           const auditLog = this.auditLogRepo.create({
-            session_id: sessionId,
-            organization_id: organizationId,
-            action_type: AuditActionType.INSERT,
-            table_name: tableName,
-            record_id: newRecordId,
-            before_state: null,
-            after_state: mappedRow,
-            field_changes: null,
-            row_number: rowNumber,
-            executed_at: new Date(),
-            executed_by_user_id: userId,
-            error_message: null,
+            sessionId,
+            organizationId,
+            actionType: AuditActionType.INSERT,
+            tableName,
+            recordId: newRecordId,
+            beforeState: null,
+            afterState: mappedRow,
+            fieldChanges: null,
+            rowNumber,
+            executedAt: new Date(),
+            executedByUserId: userId,
+            errorMessage: null,
             success: true,
           });
           await queryRunner.manager.save(ImportAuditLog, auditLog);
@@ -762,18 +762,18 @@ export class ImportSessionService {
         } catch (rowError: any) {
           // Create audit log for failed row
           const auditLog = this.auditLogRepo.create({
-            session_id: sessionId,
-            organization_id: organizationId,
-            action_type: AuditActionType.INSERT,
-            table_name: tableName,
-            record_id: null,
-            before_state: null,
-            after_state: mappedRow,
-            field_changes: null,
-            row_number: rowNumber,
-            executed_at: new Date(),
-            executed_by_user_id: userId,
-            error_message: rowError.message,
+            sessionId,
+            organizationId,
+            actionType: AuditActionType.INSERT,
+            tableName,
+            recordId: null,
+            beforeState: null,
+            afterState: mappedRow,
+            fieldChanges: null,
+            rowNumber,
+            executedAt: new Date(),
+            executedByUserId: userId,
+            errorMessage: rowError.message,
             success: false,
           });
           await queryRunner.manager.save(ImportAuditLog, auditLog);
@@ -789,9 +789,9 @@ export class ImportSessionService {
       await queryRunner.rollbackTransaction();
       session.status = ImportSessionStatus.FAILED;
       session.message = `Import execution failed: ${error.message}`;
-      session.completed_at = new Date();
+      session.completedAt = new Date();
 
-      session.execution_result = {
+      session.executionResult = {
         total: allRows.length,
         successful: 0,
         failed: allRows.length,
@@ -813,7 +813,7 @@ export class ImportSessionService {
 
     const durationMs = Date.now() - startTime;
 
-    session.execution_result = {
+    session.executionResult = {
       total: allRows.length,
       successful,
       failed,
@@ -821,7 +821,7 @@ export class ImportSessionService {
       duration_ms: durationMs,
     };
 
-    session.completed_at = new Date();
+    session.completedAt = new Date();
 
     if (failed > 0 && successful > 0) {
       session.status = ImportSessionStatus.COMPLETED_WITH_ERRORS;
@@ -865,7 +865,7 @@ export class ImportSessionService {
 
     const qb = this.sessionRepo
       .createQueryBuilder("s")
-      .where("s.organization_id = :organizationId", { organizationId });
+      .where("s.organizationId = :organizationId", { organizationId });
 
     if (query.domain) {
       qb.andWhere("s.domain = :domain", { domain: query.domain });
@@ -874,7 +874,7 @@ export class ImportSessionService {
       qb.andWhere("s.status = :status", { status: query.status });
     }
     if (query.approvalStatus) {
-      qb.andWhere("s.approval_status = :approvalStatus", {
+      qb.andWhere("s.approvalStatus = :approvalStatus", {
         approvalStatus: query.approvalStatus,
       });
     }
@@ -902,7 +902,7 @@ export class ImportSessionService {
     organizationId: string,
   ): Promise<ImportSession> {
     const session = await this.sessionRepo.findOne({
-      where: { id: sessionId, organization_id: organizationId },
+      where: { id: sessionId, organizationId },
     });
 
     if (!session) {
@@ -933,20 +933,20 @@ export class ImportSessionService {
 
     const qb = this.auditLogRepo
       .createQueryBuilder("al")
-      .where("al.session_id = :sessionId", { sessionId })
-      .andWhere("al.organization_id = :organizationId", { organizationId });
+      .where("al.sessionId = :sessionId", { sessionId })
+      .andWhere("al.organizationId = :organizationId", { organizationId });
 
     if (query.actionType) {
-      qb.andWhere("al.action_type = :actionType", {
+      qb.andWhere("al.actionType = :actionType", {
         actionType: query.actionType,
       });
     }
     if (query.tableName) {
-      qb.andWhere("al.table_name = :tableName", { tableName: query.tableName });
+      qb.andWhere("al.tableName = :tableName", { tableName: query.tableName });
     }
 
     const [data, total] = await qb
-      .orderBy("al.executed_at", "ASC")
+      .orderBy("al.executedAt", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -963,14 +963,14 @@ export class ImportSessionService {
    */
   async getSchemaDefinitions(domain?: DomainType): Promise<SchemaDefinition[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { is_active: true };
+    const where: any = { isActive: true };
     if (domain) {
       where.domain = domain;
     }
 
     return this.schemaDefRepo.find({
       where,
-      order: { domain: "ASC", table_name: "ASC" },
+      order: { domain: "ASC", tableName: "ASC" },
     });
   }
 }

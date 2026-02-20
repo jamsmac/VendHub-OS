@@ -181,6 +181,7 @@ export class InventoryService {
       .where("wi.organizationId = :organizationId", { organizationId })
       .andWhere("wi.currentQuantity <= wi.minStockLevel")
       .orderBy("wi.currentQuantity", "ASC")
+      .take(100)
       .getMany();
   }
 
@@ -245,6 +246,7 @@ export class InventoryService {
     return this.machineRepo.find({
       where: { organizationId, machineId },
       order: { slotNumber: "ASC" },
+      take: 100,
     });
   }
 
@@ -259,6 +261,7 @@ export class InventoryService {
       .where("mi.organizationId = :organizationId", { organizationId })
       .andWhere("mi.currentQuantity <= mi.minStockLevel")
       .orderBy("mi.currentQuantity", "ASC")
+      .take(100)
       .getMany();
   }
 

@@ -8,42 +8,42 @@ import { BaseEntity } from "../../../common/entities/base.entity";
  */
 @Entity("goods_classifiers")
 @Index("IDX_goods_classifiers_code", ["code"], { unique: true })
-@Index("IDX_goods_classifiers_group_code", ["group_code"])
-@Index("IDX_goods_classifiers_parent_code", ["parent_code"])
-@Index("IDX_goods_classifiers_is_active", ["is_active"])
+@Index("IDX_goods_classifiers_group_code", ["groupCode"])
+@Index("IDX_goods_classifiers_parent_code", ["parentCode"])
+@Index("IDX_goods_classifiers_is_active", ["isActive"])
 export class GoodsClassifier extends BaseEntity {
   @Column({ type: "varchar", length: 20, unique: true })
   code: string; // MXIK code like '10820001001000000'
 
   @Column({ type: "varchar", length: 500 })
-  name_ru: string;
+  nameRu: string;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  name_uz: string | null;
+  nameUz: string | null;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  name_en: string | null;
+  nameEn: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  group_code: string | null; // e.g. '108'
+  groupCode: string | null; // e.g. '108'
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  group_name: string | null;
+  groupName: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  subgroup_code: string | null;
+  subgroupCode: string | null;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  subgroup_name: string | null;
+  subgroupName: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  parent_code: string | null; // parent MXIK code for hierarchy
+  parentCode: string | null; // parent MXIK code for hierarchy
 
   @Column({ type: "int", default: 0 })
   level: number; // hierarchy depth (1-5)
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null; // extra info from Soliq.uz

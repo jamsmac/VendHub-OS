@@ -61,24 +61,24 @@ export class UpdateIncidentDto {
   @ApiPropertyOptional({ description: "Assign to user" })
   @IsOptional()
   @IsUUID()
-  assigned_to_user_id?: string;
+  assignedToUserId?: string;
 
   @ApiPropertyOptional({ description: "Updated repair cost in UZS" })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  repair_cost?: number;
+  repairCost?: number;
 
   @ApiPropertyOptional({ description: "Insurance claim flag" })
   @IsOptional()
   @IsBoolean()
-  insurance_claim?: boolean;
+  insuranceClaim?: boolean;
 
   @ApiPropertyOptional({ description: "Insurance claim reference number" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  insurance_claim_number?: string;
+  insuranceClaimNumber?: string;
 
   @ApiPropertyOptional({ description: "Photo URLs", type: [String] })
   @IsOptional()
@@ -104,12 +104,12 @@ export class QueryIncidentsDto {
   @ApiPropertyOptional({ description: "Organization ID" })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
   @ApiPropertyOptional({ description: "Machine ID filter" })
   @IsOptional()
   @IsUUID()
-  machine_id?: string;
+  machineId?: string;
 
   @ApiPropertyOptional({ description: "Status filter", enum: IncidentStatus })
   @IsOptional()
@@ -132,7 +132,7 @@ export class QueryIncidentsDto {
   @ApiPropertyOptional({ description: "Assigned user ID filter" })
   @IsOptional()
   @IsUUID()
-  assigned_to_user_id?: string;
+  assignedToUserId?: string;
 
   @ApiPropertyOptional({ description: "Search by title or description" })
   @IsOptional()
@@ -142,12 +142,12 @@ export class QueryIncidentsDto {
   @ApiPropertyOptional({ description: "Filter from date (ISO)" })
   @IsOptional()
   @IsString()
-  date_from?: string;
+  dateFrom?: string;
 
   @ApiPropertyOptional({ description: "Filter to date (ISO)" })
   @IsOptional()
   @IsString()
-  date_to?: string;
+  dateTo?: string;
 
   @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()

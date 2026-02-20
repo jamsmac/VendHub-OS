@@ -17,52 +17,52 @@ describe("OperatorRatingsService", () => {
 
   const mockRating = {
     id: "rating-uuid-1",
-    organization_id: ORG_ID,
-    user_id: USER_ID,
-    period_start: new Date("2024-01-01"),
-    period_end: new Date("2024-01-31"),
-    total_score: 78.5,
+    organizationId: ORG_ID,
+    userId: USER_ID,
+    periodStart: new Date("2024-01-01"),
+    periodEnd: new Date("2024-01-31"),
+    totalScore: 78.5,
     grade: "B+",
     rank: 1,
-    task_score: 85,
-    photo_compliance_rate: 90,
-    quality_score: 70,
-    financial_score: 75,
-    attendance_score: 80,
-    customer_score: 65,
-    discipline_score: 72,
-    tasks_assigned: 20,
-    tasks_completed: 18,
-    tasks_on_time: 15,
-    tasks_late: 3,
-    avg_completion_time_hours: 2.5,
-    task_completion_rate: 90,
-    task_on_time_rate: 83.33,
-    timeliness_score: 83.33,
-    tasks_with_photos_before: 16,
-    tasks_with_photos_after: 14,
-    total_photos_uploaded: 40,
-    photo_quality_score: 80,
-    machine_cleanliness_score: 70,
-    stock_accuracy_score: 70,
-    cash_collection_accuracy: 95,
-    inventory_loss_rate: 2,
-    collections_with_variance: 1,
-    avg_collection_variance_percent: 0.5,
-    inventory_discrepancies: 2,
-    scheduled_shifts: 22,
-    completed_shifts: 20,
-    late_arrivals: 2,
-    attendance_rate: 90.91,
-    complaints_received: 3,
-    complaints_resolved: 2,
-    average_response_time: 45,
-    avg_customer_rating: 4.2,
-    positive_feedback_count: 5,
-    checklist_items_completed: 45,
-    checklist_items_total: 50,
-    checklist_completion_rate: 90,
-    comments_sent: 8,
+    taskScore: 85,
+    photoComplianceRate: 90,
+    qualityScore: 70,
+    financialScore: 75,
+    attendanceScore: 80,
+    customerScore: 65,
+    disciplineScore: 72,
+    tasksAssigned: 20,
+    tasksCompleted: 18,
+    tasksOnTime: 15,
+    tasksLate: 3,
+    avgCompletionTimeHours: 2.5,
+    taskCompletionRate: 90,
+    taskOnTimeRate: 83.33,
+    timelinessScore: 83.33,
+    tasksWithPhotosBefore: 16,
+    tasksWithPhotosAfter: 14,
+    totalPhotosUploaded: 40,
+    photoQualityScore: 80,
+    machineCleanlinessScore: 70,
+    stockAccuracyScore: 70,
+    cashCollectionAccuracy: 95,
+    inventoryLossRate: 2,
+    collectionsWithVariance: 1,
+    avgCollectionVariancePercent: 0.5,
+    inventoryDiscrepancies: 2,
+    scheduledShifts: 22,
+    completedShifts: 20,
+    lateArrivals: 2,
+    attendanceRate: 90.91,
+    complaintsReceived: 3,
+    complaintsResolved: 2,
+    averageResponseTime: 45,
+    avgCustomerRating: 4.2,
+    positiveFeedbackCount: 5,
+    checklistItemsCompleted: 45,
+    checklistItemsTotal: 50,
+    checklistCompletionRate: 90,
+    commentsSent: 8,
     notes: null,
     metadata: {},
     createdAt: new Date(),
@@ -72,8 +72,8 @@ describe("OperatorRatingsService", () => {
   const mockRating2 = {
     ...mockRating,
     id: "rating-uuid-2",
-    user_id: "user-uuid-2",
-    total_score: 65,
+    userId: "user-uuid-2",
+    totalScore: 65,
     grade: "B",
     rank: 2,
   } as unknown as OperatorRating;
@@ -120,36 +120,36 @@ describe("OperatorRatingsService", () => {
 
   describe("calculateRating", () => {
     const baseDto = {
-      user_id: USER_ID,
-      period_start: "2024-02-01",
-      period_end: "2024-02-29",
-      tasks_assigned: 20,
-      tasks_completed: 18,
-      tasks_on_time: 15,
-      tasks_late: 3,
-      avg_completion_time_hours: 2.5,
-      tasks_with_photos_before: 16,
-      tasks_with_photos_after: 14,
-      total_photos_uploaded: 40,
-      photo_quality_score: 80,
-      machine_cleanliness_score: 70,
-      stock_accuracy_score: 70,
-      cash_collection_accuracy: 95,
-      inventory_loss_rate: 2,
-      collections_with_variance: 1,
-      avg_collection_variance_percent: 0.5,
-      inventory_discrepancies: 2,
-      scheduled_shifts: 22,
-      completed_shifts: 20,
-      late_arrivals: 2,
-      complaints_received: 3,
-      complaints_resolved: 2,
-      average_response_time: 45,
-      avg_customer_rating: 4.2,
-      positive_feedback_count: 5,
-      checklist_items_completed: 45,
-      checklist_items_total: 50,
-      comments_sent: 8,
+      userId: USER_ID,
+      periodStart: "2024-02-01",
+      periodEnd: "2024-02-29",
+      tasksAssigned: 20,
+      tasksCompleted: 18,
+      tasksOnTime: 15,
+      tasksLate: 3,
+      avgCompletionTimeHours: 2.5,
+      tasksWithPhotosBefore: 16,
+      tasksWithPhotosAfter: 14,
+      totalPhotosUploaded: 40,
+      photoQualityScore: 80,
+      machineCleanlinessScore: 70,
+      stockAccuracyScore: 70,
+      cashCollectionAccuracy: 95,
+      inventoryLossRate: 2,
+      collectionsWithVariance: 1,
+      avgCollectionVariancePercent: 0.5,
+      inventoryDiscrepancies: 2,
+      scheduledShifts: 22,
+      completedShifts: 20,
+      lateArrivals: 2,
+      complaintsReceived: 3,
+      complaintsResolved: 2,
+      averageResponseTime: 45,
+      avgCustomerRating: 4.2,
+      positiveFeedbackCount: 5,
+      checklistItemsCompleted: 45,
+      checklistItemsTotal: 50,
+      commentsSent: 8,
     };
 
     it("should calculate and save a new rating with weighted scores", async () => {
@@ -182,27 +182,27 @@ describe("OperatorRatingsService", () => {
       // We test the private calculateGrade method indirectly through calculateRating
       const highDto = {
         ...baseDto,
-        tasks_assigned: 20,
-        tasks_completed: 20,
-        tasks_on_time: 20,
-        tasks_late: 0,
-        tasks_with_photos_before: 20,
-        tasks_with_photos_after: 20,
-        total_photos_uploaded: 60,
-        photo_quality_score: 100,
-        machine_cleanliness_score: 100,
-        stock_accuracy_score: 100,
-        cash_collection_accuracy: 100,
-        inventory_loss_rate: 0,
-        avg_collection_variance_percent: 0,
-        scheduled_shifts: 22,
-        completed_shifts: 22,
-        late_arrivals: 0,
-        complaints_received: 0,
-        avg_customer_rating: 5,
-        checklist_items_completed: 50,
-        checklist_items_total: 50,
-        comments_sent: 10,
+        tasksAssigned: 20,
+        tasksCompleted: 20,
+        tasksOnTime: 20,
+        tasksLate: 0,
+        tasksWithPhotosBefore: 20,
+        tasksWithPhotosAfter: 20,
+        totalPhotosUploaded: 60,
+        photoQualityScore: 100,
+        machineCleanlinessScore: 100,
+        stockAccuracyScore: 100,
+        cashCollectionAccuracy: 100,
+        inventoryLossRate: 0,
+        avgCollectionVariancePercent: 0,
+        scheduledShifts: 22,
+        completedShifts: 22,
+        lateArrivals: 0,
+        complaintsReceived: 0,
+        avgCustomerRating: 5,
+        checklistItemsCompleted: 50,
+        checklistItemsTotal: 50,
+        commentsSent: 10,
       };
 
       ratingRepo.findOne
@@ -221,7 +221,7 @@ describe("OperatorRatingsService", () => {
       expect(ratingRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           grade: expect.any(String),
-          total_score: expect.any(Number),
+          totalScore: expect.any(Number),
         }),
       );
     });
@@ -229,15 +229,15 @@ describe("OperatorRatingsService", () => {
     it("should handle zero tasks without division errors", async () => {
       const zeroDto = {
         ...baseDto,
-        tasks_assigned: 0,
-        tasks_completed: 0,
-        tasks_on_time: 0,
-        tasks_late: 0,
-        scheduled_shifts: 0,
-        completed_shifts: 0,
-        complaints_received: 0,
-        checklist_items_total: 0,
-        checklist_items_completed: 0,
+        tasksAssigned: 0,
+        tasksCompleted: 0,
+        tasksOnTime: 0,
+        tasksLate: 0,
+        scheduledShifts: 0,
+        completedShifts: 0,
+        complaintsReceived: 0,
+        checklistItemsTotal: 0,
+        checklistItemsCompleted: 0,
       };
 
       ratingRepo.findOne
@@ -276,11 +276,11 @@ describe("OperatorRatingsService", () => {
       ratingRepo.find.mockResolvedValue([mockRating]);
 
       const dto = {
-        user_id: USER_ID,
-        period_start: "2024-01-01",
-        period_end: "2024-01-31",
-        tasks_assigned: 10,
-        tasks_completed: 8,
+        userId: USER_ID,
+        periodStart: "2024-01-01",
+        periodEnd: "2024-01-31",
+        tasksAssigned: 10,
+        tasksCompleted: 8,
       };
 
       const result = await service.recalculateRating(
@@ -318,7 +318,7 @@ describe("OperatorRatingsService", () => {
 
       expect(result).toEqual(mockRating);
       expect(ratingRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "rating-uuid-1", organization_id: ORG_ID },
+        where: { id: "rating-uuid-1", organizationId: ORG_ID },
       });
     });
 
@@ -348,15 +348,15 @@ describe("OperatorRatingsService", () => {
       expect(result).toHaveProperty("totalPages", 1);
     });
 
-    it("should filter by user_id", async () => {
+    it("should filter by userId", async () => {
       await service.query(
-        { user_id: USER_ID, page: 1, limit: 20 } as QueryRatingsDto,
+        { userId: USER_ID, page: 1, limit: 20 } as QueryRatingsDto,
         ORG_ID,
       );
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "r.user_id = :user_id",
-        { user_id: USER_ID },
+        "r.userId = :userId",
+        { userId: USER_ID },
       );
     });
 
@@ -378,7 +378,7 @@ describe("OperatorRatingsService", () => {
   // ============================================================================
 
   describe("getLeaderboard", () => {
-    it("should return top N ratings sorted by total_score", async () => {
+    it("should return top N ratings sorted by totalScore", async () => {
       ratingRepo.find.mockResolvedValue([mockRating, mockRating2]);
 
       const result = await service.getLeaderboard(
@@ -391,11 +391,11 @@ describe("OperatorRatingsService", () => {
       expect(result).toHaveLength(2);
       expect(ratingRepo.find).toHaveBeenCalledWith({
         where: {
-          organization_id: ORG_ID,
-          period_start: new Date("2024-01-01"),
-          period_end: new Date("2024-01-31"),
+          organizationId: ORG_ID,
+          periodStart: new Date("2024-01-01"),
+          periodEnd: new Date("2024-01-31"),
         },
-        order: { total_score: "DESC" },
+        order: { totalScore: "DESC" },
         take: 10,
       });
     });

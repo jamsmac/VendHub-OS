@@ -44,20 +44,20 @@ export class IncidentsService {
     organizationId: string,
   ): Promise<Incident> {
     const incident = this.incidentRepo.create({
-      organization_id: organizationId,
-      machine_id: dto.machine_id,
+      organizationId,
+      machineId: dto.machineId,
       type: dto.type,
       status: IncidentStatus.REPORTED,
       priority: dto.priority || IncidentPriority.MEDIUM,
       title: dto.title,
       description: dto.description || null,
-      reported_by_user_id: reportedByUserId,
-      assigned_to_user_id: dto.assigned_to_user_id || null,
-      reported_at: new Date(),
-      resolved_at: null,
-      repair_cost: dto.repair_cost ?? null,
-      insurance_claim: dto.insurance_claim || false,
-      insurance_claim_number: dto.insurance_claim_number || null,
+      reportedByUserId,
+      assignedToUserId: dto.assignedToUserId || null,
+      reportedAt: new Date(),
+      resolvedAt: null,
+      repairCost: dto.repairCost ?? null,
+      insuranceClaim: dto.insuranceClaim || false,
+      insuranceClaimNumber: dto.insuranceClaimNumber || null,
       photos: dto.photos || [],
       resolution: null,
       metadata: dto.metadata || {},
@@ -65,7 +65,7 @@ export class IncidentsService {
 
     const saved = await this.incidentRepo.save(incident);
     this.logger.log(
-      `Incident created: id=${saved.id} type=${dto.type} machine=${dto.machine_id}`,
+      `Incident created: id=${saved.id} type=${dto.type} machine=${dto.machineId}`,
     );
 
     return saved;
@@ -76,7 +76,7 @@ export class IncidentsService {
    */
   async findById(id: string, organizationId: string): Promise<Incident> {
     const incident = await this.incidentRepo.findOne({
-      where: { id, organization_id: organizationId },
+      where: { id, organizationId },
     });
 
     if (!incident) {
@@ -91,23 +91,23 @@ export class IncidentsService {
    */
   async query(query: QueryIncidentsDto, organizationId: string) {
     const {
-      machine_id,
+      machineId,
       status,
       type,
       priority,
-      assigned_to_user_id,
+      assignedToUserId,
       search,
-      date_from,
-      date_to,
+      dateFrom,
+      dateTo,
       page = 1,
       limit = 20,
     } = query;
 
     const qb = this.incidentRepo.createQueryBuilder("i");
-    qb.where("i.organization_id = :organizationId", { organizationId });
+    qb.where("i.organizationId = :organizationId", { organizationId });
 
-    if (machine_id) {
-      qb.andWhere("i.machine_id = :machine_id", { machine_id });
+    if (machineId) {
+      qb.andWhere("i.machineId = :machineId", { machineId });
     }
 
     if (status) {
@@ -122,9 +122,9 @@ export class IncidentsService {
       qb.andWhere("i.priority = :priority", { priority });
     }
 
-    if (assigned_to_user_id) {
-      qb.andWhere("i.assigned_to_user_id = :assigned_to_user_id", {
-        assigned_to_user_id,
+    if (assignedToUserId) {
+      qb.andWhere("i.assignedToUserId = :assignedToUserId", {
+        assignedToUserId,
       });
     }
 
@@ -134,19 +134,19 @@ export class IncidentsService {
       });
     }
 
-    if (date_from) {
-      qb.andWhere("i.reported_at >= :date_from", {
-        date_from: new Date(date_from),
+    if (dateFrom) {
+      qb.andWhere("i.reportedAt >= :dateFrom", {
+        dateFrom: new Date(dateFrom),
       });
     }
 
-    if (date_to) {
-      qb.andWhere("i.reported_at <= :date_to", { date_to: new Date(date_to) });
+    if (dateTo) {
+      qb.andWhere("i.reportedAt <= :dateTo", { dateTo: new Date(dateTo) });
     }
 
     const total = await qb.getCount();
 
-    qb.orderBy("i.reported_at", "DESC");
+    qb.orderBy("i.reportedAt", "DESC");
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -180,14 +180,14 @@ export class IncidentsService {
     if (dto.title !== undefined) incident.title = dto.title;
     if (dto.description !== undefined)
       incident.description = dto.description || null;
-    if (dto.assigned_to_user_id !== undefined)
-      incident.assigned_to_user_id = dto.assigned_to_user_id || null;
-    if (dto.repair_cost !== undefined)
-      incident.repair_cost = dto.repair_cost ?? null;
-    if (dto.insurance_claim !== undefined)
-      incident.insurance_claim = dto.insurance_claim;
-    if (dto.insurance_claim_number !== undefined)
-      incident.insurance_claim_number = dto.insurance_claim_number || null;
+    if (dto.assignedToUserId !== undefined)
+      incident.assignedToUserId = dto.assignedToUserId || null;
+    if (dto.repairCost !== undefined)
+      incident.repairCost = dto.repairCost ?? null;
+    if (dto.insuranceClaim !== undefined)
+      incident.insuranceClaim = dto.insuranceClaim;
+    if (dto.insuranceClaimNumber !== undefined)
+      incident.insuranceClaimNumber = dto.insuranceClaimNumber || null;
     if (dto.photos !== undefined) incident.photos = dto.photos;
     if (dto.resolution !== undefined)
       incident.resolution = dto.resolution || null;
@@ -196,8 +196,8 @@ export class IncidentsService {
     // Handle status transitions
     if (dto.status && dto.status !== oldStatus) {
       if (dto.status === IncidentStatus.RESOLVED) {
-        incident.resolved_at = new Date();
-        incident.resolved_by_user_id = userId;
+        incident.resolvedAt = new Date();
+        incident.resolvedByUserId = userId;
 
         if (!incident.resolution && dto.resolution) {
           incident.resolution = dto.resolution;
@@ -268,7 +268,7 @@ export class IncidentsService {
   ): Promise<Incident> {
     const incident = await this.findById(id, organizationId);
 
-    incident.assigned_to_user_id = assignedToUserId;
+    incident.assignedToUserId = assignedToUserId;
 
     if (incident.status === IncidentStatus.REPORTED) {
       incident.status = IncidentStatus.INVESTIGATING;
@@ -294,10 +294,10 @@ export class IncidentsService {
   ): Promise<Incident[]> {
     return this.incidentRepo.find({
       where: {
-        machine_id: machineId,
-        organization_id: organizationId,
+        machineId,
+        organizationId,
       },
-      order: { reported_at: "DESC" },
+      order: { reportedAt: "DESC" },
       take: limit,
     });
   }
@@ -307,8 +307,8 @@ export class IncidentsService {
    */
   async getStatistics(organizationId: string, dateFrom: Date, dateTo: Date) {
     const qb = this.incidentRepo.createQueryBuilder("i");
-    qb.where("i.organization_id = :organizationId", { organizationId });
-    qb.andWhere("i.reported_at BETWEEN :dateFrom AND :dateTo", {
+    qb.where("i.organizationId = :organizationId", { organizationId });
+    qb.andWhere("i.reportedAt BETWEEN :dateFrom AND :dateTo", {
       dateFrom,
       dateTo,
     });
@@ -328,14 +328,14 @@ export class IncidentsService {
       byStatus[incident.status] = (byStatus[incident.status] || 0) + 1;
       byPriority[incident.priority] = (byPriority[incident.priority] || 0) + 1;
 
-      if (incident.repair_cost) {
-        totalRepairCost += Number(incident.repair_cost);
+      if (incident.repairCost) {
+        totalRepairCost += Number(incident.repairCost);
       }
 
-      if (incident.resolved_at) {
+      if (incident.resolvedAt) {
         resolvedCount++;
         totalResolutionTimeMs +=
-          incident.resolved_at.getTime() - incident.reported_at.getTime();
+          incident.resolvedAt.getTime() - incident.reportedAt.getTime();
       }
     }
 
@@ -349,7 +349,7 @@ export class IncidentsService {
         resolvedCount > 0
           ? totalResolutionTimeMs / resolvedCount / (1000 * 60 * 60)
           : 0,
-      insuranceClaims: incidents.filter((i) => i.insurance_claim).length,
+      insuranceClaims: incidents.filter((i) => i.insuranceClaim).length,
     };
   }
 

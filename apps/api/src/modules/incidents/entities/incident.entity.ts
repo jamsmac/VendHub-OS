@@ -50,17 +50,17 @@ export enum IncidentPriority {
  * Инцидент
  */
 @Entity("incidents")
-@Index(["organization_id"])
-@Index(["machine_id"])
+@Index(["organizationId"])
+@Index(["machineId"])
 @Index(["status"])
 @Index(["type"])
-@Index(["reported_at"])
+@Index(["reportedAt"])
 export class Incident extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "uuid" })
-  machine_id: string;
+  machineId: string;
 
   @Column({
     type: "enum",
@@ -90,31 +90,31 @@ export class Incident extends BaseEntity {
   description: string | null;
 
   @Column({ type: "uuid" })
-  reported_by_user_id: string;
+  reportedByUserId: string;
 
   @Column({ type: "uuid", nullable: true })
-  assigned_to_user_id: string | null;
+  assignedToUserId: string | null;
 
   @Column({ type: "uuid", nullable: true })
-  resolved_by_user_id: string | null;
+  resolvedByUserId: string | null;
 
   @Column({
     type: "timestamp with time zone",
     default: () => "CURRENT_TIMESTAMP",
   })
-  reported_at: Date;
+  reportedAt: Date;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  resolved_at: Date | null;
+  resolvedAt: Date | null;
 
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
-  repair_cost: number | null;
+  repairCost: number | null;
 
   @Column({ type: "boolean", default: false })
-  insurance_claim: boolean;
+  insuranceClaim: boolean;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  insurance_claim_number: string | null;
+  insuranceClaimNumber: string | null;
 
   @Column({ type: "jsonb", default: [] })
   photos: string[];

@@ -42,7 +42,7 @@ export class CreateAccessTemplateDto {
   @ApiPropertyOptional({ description: "Organization ID" })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
   @ApiProperty({
     description: "Template name",
@@ -68,7 +68,7 @@ export class CreateAccessTemplateDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 
   @ApiProperty({
     description: "Template rows defining roles and permissions",
@@ -94,12 +94,12 @@ export class ApplyTemplateDto {
   @ApiProperty({ description: "Template ID to apply" })
   @IsUUID()
   @IsNotEmpty()
-  template_id: string;
+  templateId: string;
 
   @ApiProperty({ description: "Machine ID to apply template to" })
   @IsUUID()
   @IsNotEmpty()
-  machine_id: string;
+  machineId: string;
 
   @ApiProperty({
     description: "User IDs to apply template for",
@@ -107,5 +107,5 @@ export class ApplyTemplateDto {
   })
   @IsUUID("4", { each: true })
   @IsNotEmpty()
-  user_ids: string[];
+  userIds: string[];
 }

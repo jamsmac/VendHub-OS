@@ -44,3 +44,5 @@ datasources:
     type: redis-datasource
     url: redis:6379
     editable: false
+    secureJsonData:
+      password: ${REDIS_PASSWORD}

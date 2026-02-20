@@ -35,7 +35,7 @@ export class CreateGoodsClassifierDto {
   })
   @IsString()
   @Length(1, 500)
-  name_ru: string;
+  nameRu: string;
 
   @ApiPropertyOptional({
     description: "Name in Uzbek",
@@ -45,7 +45,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  name_uz?: string;
+  nameUz?: string;
 
   @ApiPropertyOptional({
     description: "Name in English",
@@ -55,7 +55,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  name_en?: string;
+  nameEn?: string;
 
   @ApiPropertyOptional({
     description: "Group code from MXIK hierarchy",
@@ -65,7 +65,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  group_code?: string;
+  groupCode?: string;
 
   @ApiPropertyOptional({
     description: "Group name",
@@ -75,7 +75,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  group_name?: string;
+  groupName?: string;
 
   @ApiPropertyOptional({
     description: "Subgroup code",
@@ -85,7 +85,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  subgroup_code?: string;
+  subgroupCode?: string;
 
   @ApiPropertyOptional({
     description: "Subgroup name",
@@ -94,7 +94,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  subgroup_name?: string;
+  subgroupName?: string;
 
   @ApiPropertyOptional({
     description: "Parent MXIK code for hierarchy navigation",
@@ -104,7 +104,7 @@ export class CreateGoodsClassifierDto {
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  parent_code?: string;
+  parentCode?: string;
 
   @ApiPropertyOptional({
     description: "Hierarchy depth level (1-5)",
@@ -124,7 +124,7 @@ export class CreateGoodsClassifierDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 
   @ApiPropertyOptional({
     description: "Additional metadata from Soliq.uz",

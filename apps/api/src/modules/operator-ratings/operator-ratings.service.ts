@@ -68,54 +68,53 @@ export class OperatorRatingsService {
     // Check for existing rating for this user + period
     const existing = await this.ratingRepo.findOne({
       where: {
-        organization_id: organizationId,
-        user_id: dto.user_id,
-        period_start: new Date(dto.period_start),
-        period_end: new Date(dto.period_end),
+        organizationId,
+        userId: dto.userId,
+        periodStart: new Date(dto.periodStart),
+        periodEnd: new Date(dto.periodEnd),
       },
     });
 
     if (existing) {
       throw new ConflictException(
-        `Rating for user ${dto.user_id} already exists for period ${dto.period_start} to ${dto.period_end}`,
+        `Rating for user ${dto.userId} already exists for period ${dto.periodStart} to ${dto.periodEnd}`,
       );
     }
 
     // ===== Input values =====
-    const tasksAssigned = dto.tasks_assigned || 0;
-    const tasksCompleted = dto.tasks_completed || 0;
-    const tasksOnTime = dto.tasks_on_time || 0;
-    const tasksLate = dto.tasks_late || 0;
-    const avgCompletionTimeHours = dto.avg_completion_time_hours || 0;
+    const tasksAssigned = dto.tasksAssigned || 0;
+    const tasksCompleted = dto.tasksCompleted || 0;
+    const tasksOnTime = dto.tasksOnTime || 0;
+    const tasksLate = dto.tasksLate || 0;
+    const avgCompletionTimeHours = dto.avgCompletionTimeHours || 0;
 
-    const tasksWithPhotosBefore = dto.tasks_with_photos_before || 0;
-    const tasksWithPhotosAfter = dto.tasks_with_photos_after || 0;
-    const totalPhotosUploaded = dto.total_photos_uploaded || 0;
-    const photoQualityScore = dto.photo_quality_score || 0;
+    const tasksWithPhotosBefore = dto.tasksWithPhotosBefore || 0;
+    const tasksWithPhotosAfter = dto.tasksWithPhotosAfter || 0;
+    const totalPhotosUploaded = dto.totalPhotosUploaded || 0;
+    const photoQualityScore = dto.photoQualityScore || 0;
 
-    const machineCleanlinessScore = dto.machine_cleanliness_score || 0;
-    const stockAccuracyScore = dto.stock_accuracy_score || 0;
+    const machineCleanlinessScore = dto.machineCleanlinessScore || 0;
+    const stockAccuracyScore = dto.stockAccuracyScore || 0;
 
-    const cashCollectionAccuracy = dto.cash_collection_accuracy || 0;
-    const inventoryLossRate = dto.inventory_loss_rate || 0;
-    const collectionsWithVariance = dto.collections_with_variance || 0;
-    const avgCollectionVariancePercent =
-      dto.avg_collection_variance_percent || 0;
-    const inventoryDiscrepancies = dto.inventory_discrepancies || 0;
+    const cashCollectionAccuracy = dto.cashCollectionAccuracy || 0;
+    const inventoryLossRate = dto.inventoryLossRate || 0;
+    const collectionsWithVariance = dto.collectionsWithVariance || 0;
+    const avgCollectionVariancePercent = dto.avgCollectionVariancePercent || 0;
+    const inventoryDiscrepancies = dto.inventoryDiscrepancies || 0;
 
-    const scheduledShifts = dto.scheduled_shifts || 0;
-    const completedShifts = dto.completed_shifts || 0;
-    const lateArrivals = dto.late_arrivals || 0;
+    const scheduledShifts = dto.scheduledShifts || 0;
+    const completedShifts = dto.completedShifts || 0;
+    const lateArrivals = dto.lateArrivals || 0;
 
-    const complaintsReceived = dto.complaints_received || 0;
-    const complaintsResolved = dto.complaints_resolved || 0;
-    const averageResponseTime = dto.average_response_time || 0;
-    const avgCustomerRating = dto.avg_customer_rating || 0;
-    const positiveFeedbackCount = dto.positive_feedback_count || 0;
+    const complaintsReceived = dto.complaintsReceived || 0;
+    const complaintsResolved = dto.complaintsResolved || 0;
+    const averageResponseTime = dto.averageResponseTime || 0;
+    const avgCustomerRating = dto.avgCustomerRating || 0;
+    const positiveFeedbackCount = dto.positiveFeedbackCount || 0;
 
-    const checklistItemsCompleted = dto.checklist_items_completed || 0;
-    const checklistItemsTotal = dto.checklist_items_total || 0;
-    const commentsSent = dto.comments_sent || 0;
+    const checklistItemsCompleted = dto.checklistItemsCompleted || 0;
+    const checklistItemsTotal = dto.checklistItemsTotal || 0;
+    const commentsSent = dto.commentsSent || 0;
 
     // ===== Calculate rates =====
     const taskCompletionRate =
@@ -195,7 +194,7 @@ export class OperatorRatingsService {
         ? 0
         : Math.min(30, ((averageResponseTime - 30) / 450) * 30);
 
-    // Rating bonus: avg_customer_rating on 1-5 scale → 0-20 bonus
+    // Rating bonus: avgCustomerRating on 1-5 scale -> 0-20 bonus
     const ratingBonus =
       avgCustomerRating > 0 ? ((avgCustomerRating - 1) / 4) * 20 : 0;
 
@@ -227,66 +226,66 @@ export class OperatorRatingsService {
 
     // ===== Create and save =====
     const rating = this.ratingRepo.create({
-      organization_id: organizationId,
-      user_id: dto.user_id,
-      period_start: new Date(dto.period_start),
-      period_end: new Date(dto.period_end),
+      organizationId,
+      userId: dto.userId,
+      periodStart: new Date(dto.periodStart),
+      periodEnd: new Date(dto.periodEnd),
 
       // Task
-      tasks_assigned: tasksAssigned,
-      tasks_completed: tasksCompleted,
-      tasks_on_time: tasksOnTime,
-      tasks_late: tasksLate,
-      avg_completion_time_hours: avgCompletionTimeHours,
-      task_completion_rate: round2(taskCompletionRate),
-      task_on_time_rate: round2(taskOnTimeRate),
-      timeliness_score: round2(timelinessScore),
-      task_score: round2(taskScore),
+      tasksAssigned,
+      tasksCompleted,
+      tasksOnTime,
+      tasksLate,
+      avgCompletionTimeHours,
+      taskCompletionRate: round2(taskCompletionRate),
+      taskOnTimeRate: round2(taskOnTimeRate),
+      timelinessScore: round2(timelinessScore),
+      taskScore: round2(taskScore),
 
       // Photo compliance
-      tasks_with_photos_before: tasksWithPhotosBefore,
-      tasks_with_photos_after: tasksWithPhotosAfter,
-      total_photos_uploaded: totalPhotosUploaded,
-      photo_compliance_rate: round2(photoComplianceRate),
-      photo_quality_score: round2(photoQualityScore),
+      tasksWithPhotosBefore,
+      tasksWithPhotosAfter,
+      totalPhotosUploaded,
+      photoComplianceRate: round2(photoComplianceRate),
+      photoQualityScore: round2(photoQualityScore),
 
       // Quality
-      machine_cleanliness_score: round2(machineCleanlinessScore),
-      stock_accuracy_score: round2(stockAccuracyScore),
-      quality_score: round2(qualityScore),
+      machineCleanlinessScore: round2(machineCleanlinessScore),
+      stockAccuracyScore: round2(stockAccuracyScore),
+      qualityScore: round2(qualityScore),
 
       // Financial
-      cash_collection_accuracy: round2(cashCollectionAccuracy),
-      inventory_loss_rate: round2(inventoryLossRate),
-      collections_with_variance: collectionsWithVariance,
-      avg_collection_variance_percent: round2(avgCollectionVariancePercent),
-      inventory_discrepancies: inventoryDiscrepancies,
-      financial_score: round2(financialScore),
+      cashCollectionAccuracy: round2(cashCollectionAccuracy),
+      inventoryLossRate: round2(inventoryLossRate),
+      collectionsWithVariance,
+      avgCollectionVariancePercent: round2(avgCollectionVariancePercent),
+      inventoryDiscrepancies,
+      financialScore: round2(financialScore),
 
       // Attendance
-      scheduled_shifts: scheduledShifts,
-      completed_shifts: completedShifts,
-      late_arrivals: lateArrivals,
-      attendance_rate: round2(attendanceRate),
-      attendance_score: round2(attendanceScore),
+      scheduledShifts,
+      completedShifts,
+      lateArrivals,
+      attendanceRate: round2(attendanceRate),
+      attendanceScore: round2(attendanceScore),
 
       // Customer
-      complaints_received: complaintsReceived,
-      complaints_resolved: complaintsResolved,
-      average_response_time: averageResponseTime,
-      avg_customer_rating: round2(avgCustomerRating),
-      positive_feedback_count: positiveFeedbackCount,
-      customer_score: round2(customerScore),
+      complaintsReceived,
+      complaintsResolved,
+      averageResponseTime,
+      avgCustomerRating: round2(avgCustomerRating),
+      positiveFeedbackCount,
+      customerScore: round2(customerScore),
 
       // Discipline
-      checklist_items_completed: checklistItemsCompleted,
-      checklist_items_total: checklistItemsTotal,
-      checklist_completion_rate: round2(checklistCompletionRate),
-      comments_sent: commentsSent,
-      discipline_score: round2(disciplineScore),
+      checklistItemsCompleted,
+      checklistItemsTotal,
+      checklistCompletionRate: round2(checklistCompletionRate),
+      commentsSent,
+      disciplineScore: round2(disciplineScore),
 
       // Totals
-      total_score: round2(totalScore),
+      totalScore: round2(totalScore),
       grade,
       rank: null, // Will be computed by recalculateRanks
       notes: dto.notes || null,
@@ -296,17 +295,13 @@ export class OperatorRatingsService {
     const saved = await this.ratingRepo.save(rating);
 
     // Recalculate ranks for this period within the organization
-    await this.recalculateRanks(
-      organizationId,
-      dto.period_start,
-      dto.period_end,
-    );
+    await this.recalculateRanks(organizationId, dto.periodStart, dto.periodEnd);
 
     // Reload to get updated rank
     const result = await this.findById(saved.id, organizationId);
 
     this.logger.log(
-      `Rating calculated: user=${dto.user_id} score=${round2(totalScore)} grade=${grade}`,
+      `Rating calculated: user=${dto.userId} score=${round2(totalScore)} grade=${grade}`,
     );
 
     return result;
@@ -338,7 +333,7 @@ export class OperatorRatingsService {
    */
   async findById(id: string, organizationId: string): Promise<OperatorRating> {
     const rating = await this.ratingRepo.findOne({
-      where: { id, organization_id: organizationId },
+      where: { id, organizationId },
     });
 
     if (!rating) {
@@ -353,34 +348,34 @@ export class OperatorRatingsService {
    */
   async query(queryDto: QueryRatingsDto, organizationId: string) {
     const {
-      user_id,
-      period_start,
-      period_end,
+      userId,
+      periodStart,
+      periodEnd,
       grade,
-      min_score,
-      max_score,
-      sort_by = RatingSortBy.TOTAL_SCORE,
-      sort_order = "DESC",
+      minScore,
+      maxScore,
+      sortBy = RatingSortBy.TOTAL_SCORE,
+      sortOrder = "DESC",
       page = 1,
       limit = 20,
     } = queryDto;
 
     const qb = this.ratingRepo.createQueryBuilder("r");
-    qb.where("r.organization_id = :organizationId", { organizationId });
+    qb.where("r.organizationId = :organizationId", { organizationId });
 
-    if (user_id) {
-      qb.andWhere("r.user_id = :user_id", { user_id });
+    if (userId) {
+      qb.andWhere("r.userId = :userId", { userId });
     }
 
-    if (period_start) {
-      qb.andWhere("r.period_start >= :period_start", {
-        period_start: new Date(period_start),
+    if (periodStart) {
+      qb.andWhere("r.periodStart >= :periodStart", {
+        periodStart: new Date(periodStart),
       });
     }
 
-    if (period_end) {
-      qb.andWhere("r.period_end <= :period_end", {
-        period_end: new Date(period_end),
+    if (periodEnd) {
+      qb.andWhere("r.periodEnd <= :periodEnd", {
+        periodEnd: new Date(periodEnd),
       });
     }
 
@@ -388,17 +383,17 @@ export class OperatorRatingsService {
       qb.andWhere("r.grade = :grade", { grade });
     }
 
-    if (min_score !== undefined) {
-      qb.andWhere("r.total_score >= :min_score", { min_score });
+    if (minScore !== undefined) {
+      qb.andWhere("r.totalScore >= :minScore", { minScore });
     }
 
-    if (max_score !== undefined) {
-      qb.andWhere("r.total_score <= :max_score", { max_score });
+    if (maxScore !== undefined) {
+      qb.andWhere("r.totalScore <= :maxScore", { maxScore });
     }
 
     const total = await qb.getCount();
 
-    qb.orderBy(`r.${sort_by}`, sort_order);
+    qb.orderBy(`r.${sortBy}`, sortOrder);
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
@@ -424,11 +419,11 @@ export class OperatorRatingsService {
   ): Promise<OperatorRating[]> {
     return this.ratingRepo.find({
       where: {
-        organization_id: organizationId,
-        period_start: new Date(periodStart),
-        period_end: new Date(periodEnd),
+        organizationId,
+        periodStart: new Date(periodStart),
+        periodEnd: new Date(periodEnd),
       },
-      order: { total_score: "DESC" },
+      order: { totalScore: "DESC" },
       take: topN,
     });
   }
@@ -443,10 +438,10 @@ export class OperatorRatingsService {
   ): Promise<OperatorRating[]> {
     return this.ratingRepo.find({
       where: {
-        user_id: userId,
-        organization_id: organizationId,
+        userId,
+        organizationId,
       },
-      order: { period_start: "DESC" },
+      order: { periodStart: "DESC" },
       take: limit,
     });
   }
@@ -461,9 +456,9 @@ export class OperatorRatingsService {
   ) {
     const ratings = await this.ratingRepo.find({
       where: {
-        organization_id: organizationId,
-        period_start: new Date(periodStart),
-        period_end: new Date(periodEnd),
+        organizationId,
+        periodStart: new Date(periodStart),
+        periodEnd: new Date(periodEnd),
       },
     });
 
@@ -497,14 +492,14 @@ export class OperatorRatingsService {
     let sumDiscipline = 0;
 
     for (const r of ratings) {
-      sumScore += Number(r.total_score);
-      sumTask += Number(r.task_score);
-      sumPhoto += Number(r.photo_compliance_rate);
-      sumQuality += Number(r.quality_score);
-      sumFinancial += Number(r.financial_score);
-      sumAttendance += Number(r.attendance_score);
-      sumCustomer += Number(r.customer_score);
-      sumDiscipline += Number(r.discipline_score);
+      sumScore += Number(r.totalScore);
+      sumTask += Number(r.taskScore);
+      sumPhoto += Number(r.photoComplianceRate);
+      sumQuality += Number(r.qualityScore);
+      sumFinancial += Number(r.financialScore);
+      sumAttendance += Number(r.attendanceScore);
+      sumCustomer += Number(r.customerScore);
+      sumDiscipline += Number(r.disciplineScore);
 
       const g = r.grade || "F";
       gradeDistribution[g] = (gradeDistribution[g] || 0) + 1;
@@ -513,7 +508,7 @@ export class OperatorRatingsService {
     const n = ratings.length;
     const round2 = (v: number) => Math.round(v * 100) / 100;
     const sorted = [...ratings].sort(
-      (a, b) => Number(b.total_score) - Number(a.total_score),
+      (a, b) => Number(b.totalScore) - Number(a.totalScore),
     );
 
     return {
@@ -569,11 +564,11 @@ export class OperatorRatingsService {
   ): Promise<void> {
     const ratings = await this.ratingRepo.find({
       where: {
-        organization_id: organizationId,
-        period_start: new Date(periodStart),
-        period_end: new Date(periodEnd),
+        organizationId,
+        periodStart: new Date(periodStart),
+        periodEnd: new Date(periodEnd),
       },
-      order: { total_score: "DESC" },
+      order: { totalScore: "DESC" },
     });
 
     for (let i = 0; i < ratings.length; i++) {

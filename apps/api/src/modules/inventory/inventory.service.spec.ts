@@ -273,6 +273,7 @@ describe("InventoryService", () => {
       expect(machineRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId, machineId: "machine-uuid-1" },
         order: { slotNumber: "ASC" },
+        take: 100,
       });
     });
   });

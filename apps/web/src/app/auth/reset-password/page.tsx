@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Coffee, ArrowLeft, Loader2, Eye, EyeOff, Check } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { authApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,24 +21,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const emailSchema = z.object({
-  email: z.string().email("Введите корректный email"),
-});
-
-const resetSchema = z
-  .object({
-    password: z.string().min(8, "Минимум 8 символов"),
-    confirmPassword: z.string().min(8, "Минимум 8 символов"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Пароли не совпадают",
-    path: ["confirmPassword"],
-  });
-
-type EmailForm = z.infer<typeof emailSchema>;
-type ResetForm = z.infer<typeof resetSchema>;
+type EmailForm = { email: string };
+type ResetForm = { password: string; confirmPassword: string };
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth");
   useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -46,6 +34,28 @@ export default function ResetPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+
+  const emailSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t("validEmail")),
+      }),
+    [t],
+  );
+
+  const resetSchema = useMemo(
+    () =>
+      z
+        .object({
+          password: z.string().min(8, t("minPassword")),
+          confirmPassword: z.string().min(8, t("minPassword")),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t("passwordsDoNotMatch"),
+          path: ["confirmPassword"],
+        }),
+    [t],
+  );
 
   // Email form for requesting reset
   const emailForm = useForm<EmailForm>({
@@ -62,12 +72,12 @@ export default function ResetPasswordPage() {
     try {
       await authApi.forgotPassword(data.email);
       setEmailSent(true);
-      toast.success("Инструкции отправлены на email");
+      toast.success(t("resetEmailSentToast"));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (_error: any) {
       // Don't reveal whether email exists
       setEmailSent(true);
-      toast.success("Если email существует, инструкции будут отправлены");
+      toast.success(t("resetEmailSentFallback"));
     } finally {
       setIsSubmitting(false);
     }
@@ -79,12 +89,10 @@ export default function ResetPasswordPage() {
     try {
       await authApi.resetPassword(token, data.password);
       setResetDone(true);
-      toast.success("Пароль успешно изменен");
+      toast.success(t("passwordChanged"));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Ссылка недействительна или истекла",
-      );
+      toast.error(error.response?.data?.message || t("invalidResetLink"));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,12 +106,10 @@ export default function ResetPasswordPage() {
             <Coffee className="w-6 h-6 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl">
-            {token ? "Новый пароль" : "Восстановление пароля"}
+            {token ? t("newPasswordTitle") : t("resetTitle")}
           </CardTitle>
           <CardDescription>
-            {token
-              ? "Введите новый пароль для вашего аккаунта"
-              : "Введите email для получения ссылки восстановления"}
+            {token ? t("newPasswordSubtitle") : t("resetSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -114,7 +120,7 @@ export default function ResetPasswordPage() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -131,10 +137,10 @@ export default function ResetPasswordPage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Отправка...
+                    {t("sending")}
                   </>
                 ) : (
-                  "Отправить ссылку"
+                  t("sendResetLink")
                 )}
               </Button>
               <Link
@@ -142,7 +148,7 @@ export default function ResetPasswordPage() {
                 className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Вернуться ко входу
+                {t("backToLogin")}
               </Link>
             </form>
           )}
@@ -154,15 +160,14 @@ export default function ResetPasswordPage() {
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Если указанный email зарегистрирован в системе, на него будет
-                отправлена ссылка для восстановления пароля.
+                {t("resetEmailSent")}
               </p>
               <Link
                 href="/auth"
                 className="flex items-center justify-center gap-2 text-sm text-primary hover:underline"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Вернуться ко входу
+                {t("backToLogin")}
               </Link>
             </div>
           )}
@@ -174,12 +179,12 @@ export default function ResetPasswordPage() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="password">Новый пароль</Label>
+                <Label htmlFor="password">{t("newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Минимум 8 символов"
+                    placeholder={t("newPasswordPlaceholder")}
                     {...resetForm.register("password")}
                   />
                   <button
@@ -201,11 +206,11 @@ export default function ResetPasswordPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Подтверждение пароля</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <Input
                   id="confirmPassword"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Повторите пароль"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   {...resetForm.register("confirmPassword")}
                 />
                 {resetForm.formState.errors.confirmPassword && (
@@ -218,10 +223,10 @@ export default function ResetPasswordPage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Сохранение...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Сохранить пароль"
+                  t("savePassword")
                 )}
               </Button>
             </form>
@@ -234,10 +239,10 @@ export default function ResetPasswordPage() {
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Пароль успешно изменен. Теперь вы можете войти с новым паролем.
+                {t("passwordChangedMessage")}
               </p>
               <Link href="/auth">
-                <Button className="w-full">Перейти ко входу</Button>
+                <Button className="w-full">{t("goToLogin")}</Button>
               </Link>
             </div>
           )}

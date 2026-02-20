@@ -75,14 +75,14 @@ export enum ApprovalStatus {
  * and execution steps of the import process.
  */
 @Entity("import_sessions")
-@Index(["organization_id", "status"])
-@Index(["organization_id", "domain"])
-@Index(["uploaded_by_user_id"])
-@Index(["approval_status"])
+@Index(["organizationId", "status"])
+@Index(["organizationId", "domain"])
+@Index(["uploadedByUserId"])
+@Index(["approvalStatus"])
 export class ImportSession extends BaseEntity {
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @ApiProperty({ enum: DomainType, description: "Target domain for import" })
   @Column({ type: "enum", enum: DomainType })
@@ -103,11 +103,11 @@ export class ImportSession extends BaseEntity {
     description: "Linked ImportJob ID (set when executing)",
   })
   @Column({ type: "uuid", nullable: true })
-  import_job_id: string | null;
+  importJobId: string | null;
 
   @ApiPropertyOptional({ description: "Import template ID" })
   @Column({ type: "uuid", nullable: true })
-  template_id: string | null;
+  templateId: string | null;
 
   // ========================================================================
   // FILE INFO
@@ -115,26 +115,26 @@ export class ImportSession extends BaseEntity {
 
   @ApiProperty({ description: "Original file name" })
   @Column({ type: "varchar", length: 255 })
-  file_name: string;
+  fileName: string;
 
   @ApiProperty({ description: "File size in bytes" })
   @Column({ type: "bigint" })
-  file_size: number;
+  fileSize: number;
 
   @ApiProperty({ description: "File type (csv, xlsx, json)" })
   @Column({ type: "varchar", length: 20 })
-  file_type: string;
+  fileType: string;
 
   @ApiPropertyOptional({ description: "File URL in storage" })
   @Column({ type: "varchar", length: 500, nullable: true })
-  file_url: string | null;
+  fileUrl: string | null;
 
   @ApiPropertyOptional({
     description: "File metadata (rows, columns, headers, sampleData)",
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  file_metadata: Record<string, any> | null;
+  fileMetadata: Record<string, any> | null;
 
   // ========================================================================
   // CLASSIFICATION
@@ -146,13 +146,13 @@ export class ImportSession extends BaseEntity {
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  classification_result: Record<string, any> | null;
+  classificationResult: Record<string, any> | null;
 
   @ApiPropertyOptional({
     description: "Classification confidence score (0-100)",
   })
   @Column({ type: "decimal", precision: 5, scale: 2, nullable: true })
-  classification_confidence: number | null;
+  classificationConfidence: number | null;
 
   // ========================================================================
   // MAPPING
@@ -162,11 +162,11 @@ export class ImportSession extends BaseEntity {
     description: "Column mapping (source_col -> target_field)",
   })
   @Column({ type: "jsonb", nullable: true })
-  column_mapping: Record<string, string> | null;
+  columnMapping: Record<string, string> | null;
 
   @ApiPropertyOptional({ description: "Columns that could not be mapped" })
   @Column({ type: "jsonb", nullable: true })
-  unmapped_columns: string[] | null;
+  unmappedColumns: string[] | null;
 
   // ========================================================================
   // VALIDATION
@@ -178,7 +178,7 @@ export class ImportSession extends BaseEntity {
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validation_report: Record<string, any> | null;
+  validationReport: Record<string, any> | null;
 
   // ========================================================================
   // ACTION PLAN
@@ -190,7 +190,7 @@ export class ImportSession extends BaseEntity {
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  action_plan: Record<string, any> | null;
+  actionPlan: Record<string, any> | null;
 
   // ========================================================================
   // APPROVAL
@@ -202,19 +202,19 @@ export class ImportSession extends BaseEntity {
     enum: ApprovalStatus,
     default: ApprovalStatus.PENDING,
   })
-  approval_status: ApprovalStatus;
+  approvalStatus: ApprovalStatus;
 
   @ApiPropertyOptional({ description: "User ID who approved/rejected" })
   @Column({ type: "uuid", nullable: true })
-  approved_by_user_id: string | null;
+  approvedByUserId: string | null;
 
   @ApiPropertyOptional({ description: "Approval timestamp" })
   @Column({ type: "timestamptz", nullable: true })
-  approved_at: Date | null;
+  approvedAt: Date | null;
 
   @ApiPropertyOptional({ description: "Reason for rejection" })
   @Column({ type: "text", nullable: true })
-  rejection_reason: string | null;
+  rejectionReason: string | null;
 
   // ========================================================================
   // EXECUTION
@@ -226,7 +226,7 @@ export class ImportSession extends BaseEntity {
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  execution_result: Record<string, any> | null;
+  executionResult: Record<string, any> | null;
 
   // ========================================================================
   // USER TRACKING
@@ -234,15 +234,15 @@ export class ImportSession extends BaseEntity {
 
   @ApiProperty({ description: "User ID who uploaded the file" })
   @Column({ type: "uuid" })
-  uploaded_by_user_id: string;
+  uploadedByUserId: string;
 
   @ApiPropertyOptional({ description: "Session started at" })
   @Column({ type: "timestamptz", nullable: true })
-  started_at: Date | null;
+  startedAt: Date | null;
 
   @ApiPropertyOptional({ description: "Session completed at" })
   @Column({ type: "timestamptz", nullable: true })
-  completed_at: Date | null;
+  completedAt: Date | null;
 
   @ApiPropertyOptional({ description: "Status message" })
   @Column({ type: "text", nullable: true })

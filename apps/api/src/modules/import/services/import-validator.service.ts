@@ -103,7 +103,7 @@ export class ImportValidatorService {
     domain: DomainType,
   ): Promise<ValidationRule[]> {
     return this.validationRuleRepo.find({
-      where: { domain, is_active: true },
+      where: { domain, isActive: true },
       order: { priority: "ASC" },
     });
   }
@@ -113,7 +113,7 @@ export class ImportValidatorService {
    */
   async getValidationRules(domain?: DomainType): Promise<ValidationRule[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { is_active: true };
+    const where: any = { isActive: true };
     if (domain) {
       where.domain = domain;
     }
@@ -135,7 +135,7 @@ export class ImportValidatorService {
     row: Record<string, any>,
     rowNumber: number,
   ): { valid: boolean; message: string } {
-    const def = rule.rule_definition;
+    const def = rule.ruleDefinition;
 
     const formatMessage = (
       template: string | null,
@@ -143,12 +143,12 @@ export class ImportValidatorService {
     ): string => {
       if (!template) return defaultMsg;
       return template
-        .replace(/\{\{field\}\}/g, rule.field_name)
+        .replace(/\{\{field\}\}/g, rule.fieldName)
         .replace(/\{\{value\}\}/g, String(value ?? ""))
         .replace(/\{\{row\}\}/g, String(rowNumber));
     };
 
-    switch (rule.rule_type) {
+    switch (rule.ruleType) {
       case ValidationRuleType.REQUIRED: {
         if (
           value === undefined ||
@@ -158,8 +158,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" is required`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" is required`,
             ),
           };
         }
@@ -172,8 +172,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be a number`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be a number`,
             ),
           };
         }
@@ -181,8 +181,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be at least ${def.min}`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be at least ${def.min}`,
             ),
           };
         }
@@ -190,8 +190,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be at most ${def.max}`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be at most ${def.max}`,
             ),
           };
         }
@@ -207,8 +207,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" does not match required pattern`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" does not match required pattern`,
             ),
           };
         }
@@ -224,8 +224,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be one of: ${allowedValues.join(", ")}`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be one of: ${allowedValues.join(", ")}`,
             ),
           };
         }
@@ -241,8 +241,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be at least ${def.min_length} characters`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be at least ${def.min_length} characters`,
             ),
           };
         }
@@ -250,8 +250,8 @@ export class ImportValidatorService {
           return {
             valid: false,
             message: formatMessage(
-              rule.error_message_template,
-              `Field "${rule.field_name}" must be at most ${def.max_length} characters`,
+              rule.errorMessageTemplate,
+              `Field "${rule.fieldName}" must be at most ${def.max_length} characters`,
             ),
           };
         }
@@ -267,8 +267,8 @@ export class ImportValidatorService {
             return {
               valid: false,
               message: formatMessage(
-                rule.error_message_template,
-                `Field "${rule.field_name}" is not a valid email`,
+                rule.errorMessageTemplate,
+                `Field "${rule.fieldName}" is not a valid email`,
               ),
             };
           }
@@ -280,8 +280,8 @@ export class ImportValidatorService {
             return {
               valid: false,
               message: formatMessage(
-                rule.error_message_template,
-                `Field "${rule.field_name}" is not a valid UUID`,
+                rule.errorMessageTemplate,
+                `Field "${rule.fieldName}" is not a valid UUID`,
               ),
             };
           }
@@ -292,8 +292,8 @@ export class ImportValidatorService {
             return {
               valid: false,
               message: formatMessage(
-                rule.error_message_template,
-                `Field "${rule.field_name}" is not a valid date`,
+                rule.errorMessageTemplate,
+                `Field "${rule.fieldName}" is not a valid date`,
               ),
             };
           }
@@ -326,8 +326,8 @@ export class ImportValidatorService {
             return {
               valid: false,
               message: formatMessage(
-                rule.error_message_template,
-                `Field "${rule.field_name}" is required when "${def.dependent_field}" is set`,
+                rule.errorMessageTemplate,
+                `Field "${rule.fieldName}" is required when "${def.dependent_field}" is set`,
               ),
             };
           }

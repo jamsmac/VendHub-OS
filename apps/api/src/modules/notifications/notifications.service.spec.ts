@@ -635,7 +635,7 @@ describe("NotificationsService", () => {
   describe("subscribePush", () => {
     it("should create a new push subscription", async () => {
       pushSubscriptionRepo.findOne!.mockResolvedValue(null);
-      const sub = { user_id: "u-1", endpoint: "https://push.example.com" };
+      const sub = { userId: "u-1", endpoint: "https://push.example.com" };
       pushSubscriptionRepo.create!.mockReturnValue(sub);
       pushSubscriptionRepo.save!.mockResolvedValue({ id: "ps-1", ...sub });
 
@@ -648,16 +648,16 @@ describe("NotificationsService", () => {
       );
 
       expect(pushSubscriptionRepo.create).toHaveBeenCalled();
-      expect(result.user_id).toBe("u-1");
+      expect(result.userId).toBe("u-1");
     });
 
     it("should update existing subscription when endpoint already exists", async () => {
       const existing = {
         id: "ps-1",
         endpoint: "https://push.example.com",
-        user_id: "old-user",
-        is_active: false,
-        user_agent: "old-ua",
+        userId: "old-user",
+        isActive: false,
+        userAgent: "old-ua",
       };
       pushSubscriptionRepo.findOne!.mockResolvedValue(existing);
       pushSubscriptionRepo.save!.mockImplementation((s) => Promise.resolve(s));
@@ -670,8 +670,8 @@ describe("NotificationsService", () => {
         "new-auth",
       );
 
-      expect(result.user_id).toBe("new-user");
-      expect(result.is_active).toBe(true);
+      expect(result.userId).toBe("new-user");
+      expect(result.isActive).toBe(true);
     });
   });
 
@@ -680,14 +680,14 @@ describe("NotificationsService", () => {
       const sub = {
         id: "ps-1",
         endpoint: "https://push.example.com",
-        is_active: true,
+        isActive: true,
       };
       pushSubscriptionRepo.findOne!.mockResolvedValue(sub);
       pushSubscriptionRepo.save!.mockImplementation((s) => Promise.resolve(s));
 
       await service.unsubscribePush("https://push.example.com");
 
-      expect(sub.is_active).toBe(false);
+      expect(sub.isActive).toBe(false);
     });
 
     it("should throw NotFoundException when subscription not found", async () => {
@@ -707,9 +707,9 @@ describe("NotificationsService", () => {
     it("should create a new FCM token", async () => {
       fcmTokenRepo.findOne!.mockResolvedValue(null);
       const token = {
-        user_id: "u-1",
+        userId: "u-1",
         token: "fcm-token-123",
-        device_type: DeviceType.ANDROID,
+        deviceType: DeviceType.ANDROID,
       };
       fcmTokenRepo.create!.mockReturnValue(token);
       fcmTokenRepo.save!.mockResolvedValue({ id: "ft-1", ...token });
@@ -728,11 +728,11 @@ describe("NotificationsService", () => {
       const existing = {
         id: "ft-1",
         token: "fcm-token-123",
-        user_id: "old-user",
-        device_type: DeviceType.IOS,
-        is_active: false,
-        device_name: "Old",
-        device_id: "old-id",
+        userId: "old-user",
+        deviceType: DeviceType.IOS,
+        isActive: false,
+        deviceName: "Old",
+        deviceId: "old-id",
       };
       fcmTokenRepo.findOne!.mockResolvedValue(existing);
       fcmTokenRepo.save!.mockImplementation((s) => Promise.resolve(s));
@@ -745,21 +745,21 @@ describe("NotificationsService", () => {
         "New Phone",
       );
 
-      expect(result.user_id).toBe("new-user");
-      expect(result.device_type).toBe(DeviceType.ANDROID);
-      expect(result.is_active).toBe(true);
+      expect(result.userId).toBe("new-user");
+      expect(result.deviceType).toBe(DeviceType.ANDROID);
+      expect(result.isActive).toBe(true);
     });
   });
 
   describe("unregisterFcm", () => {
     it("should deactivate an FCM token", async () => {
-      const token = { id: "ft-1", token: "fcm-token-123", is_active: true };
+      const token = { id: "ft-1", token: "fcm-token-123", isActive: true };
       fcmTokenRepo.findOne!.mockResolvedValue(token);
       fcmTokenRepo.save!.mockImplementation((s) => Promise.resolve(s));
 
       await service.unregisterFcm("fcm-token-123");
 
-      expect(token.is_active).toBe(false);
+      expect(token.isActive).toBe(false);
     });
 
     it("should throw NotFoundException when token not found", async () => {

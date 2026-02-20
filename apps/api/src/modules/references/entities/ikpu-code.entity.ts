@@ -9,33 +9,33 @@ import { BaseEntity } from "../../../common/entities/base.entity";
  */
 @Entity("ikpu_codes")
 @Index("IDX_ikpu_codes_code", ["code"], { unique: true })
-@Index("IDX_ikpu_codes_mxik_code", ["mxik_code"])
-@Index("IDX_ikpu_codes_is_active", ["is_active"])
-@Index("IDX_ikpu_codes_is_marked", ["is_marked"])
+@Index("IDX_ikpu_codes_mxik_code", ["mxikCode"])
+@Index("IDX_ikpu_codes_is_active", ["isActive"])
+@Index("IDX_ikpu_codes_is_marked", ["isMarked"])
 export class IkpuCode extends BaseEntity {
   @Column({ type: "varchar", length: 20, unique: true })
   code: string;
 
   @Column({ type: "varchar", length: 500 })
-  name_ru: string;
+  nameRu: string;
 
   @Column({ type: "varchar", length: 500, nullable: true })
-  name_uz: string | null;
+  nameUz: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  mxik_code: string | null; // FK reference to goods_classifiers.code
+  mxikCode: string | null; // FK reference to goods_classifiers.code
 
   @Column({ type: "decimal", precision: 5, scale: 2, default: 12 })
-  vat_rate: number;
+  vatRate: number;
 
   @Column({ type: "boolean", default: false })
-  is_marked: boolean; // requires mandatory marking
+  isMarked: boolean; // requires mandatory marking
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  package_code: string | null;
+  packageCode: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;

@@ -78,8 +78,8 @@ services:
       - GF_INSTALL_PLUGINS=redis-datasource,grafana-piechart-panel,grafana-clock-panel
       - GF_ALERTING_ENABLED=true
       - GF_UNIFIED_ALERTING_ENABLED=true
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
@@ -172,7 +172,7 @@ services:
     container_name: vendhub-postgres-exporter
     restart: unless-stopped
     environment:
-      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/vendhub?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/vendhub?sslmode=disable
     ports:
       - "9187:9187"
     networks:

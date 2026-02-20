@@ -36,22 +36,22 @@ export enum MachineAccessRole {
  * Доступ к автомату
  */
 @Entity("machine_access")
-@Index(["organization_id"])
-@Index(["machine_id"])
-@Index(["user_id"])
-@Index("UQ_machine_access_machine_user", ["machine_id", "user_id"], {
+@Index(["organizationId"])
+@Index(["machineId"])
+@Index(["userId"])
+@Index("UQ_machine_access_machine_user", ["machineId", "userId"], {
   unique: true,
   where: '"deleted_at" IS NULL',
 })
 export class MachineAccess extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "uuid" })
-  machine_id: string;
+  machineId: string;
 
   @Column({ type: "uuid" })
-  user_id: string;
+  userId: string;
 
   @Column({
     type: "enum",
@@ -61,16 +61,16 @@ export class MachineAccess extends BaseEntity {
   role: MachineAccessRole;
 
   @Column({ type: "uuid" })
-  granted_by_user_id: string;
+  grantedByUserId: string;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  valid_from: Date | null;
+  validFrom: Date | null;
 
   @Column({ type: "timestamp with time zone", nullable: true })
-  valid_to: Date | null;
+  validTo: Date | null;
 
   @Column({ type: "text", nullable: true })
   notes: string | null;
@@ -83,14 +83,14 @@ export class MachineAccess extends BaseEntity {
  * Шаблон доступа
  */
 @Entity("access_templates")
-@Index(["organization_id"])
-@Index("UQ_access_templates_name_org", ["name", "organization_id"], {
+@Index(["organizationId"])
+@Index("UQ_access_templates_name_org", ["name", "organizationId"], {
   unique: true,
   where: '"deleted_at" IS NULL',
 })
 export class AccessTemplate extends BaseEntity {
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @Column({ type: "varchar", length: 200 })
   name: string;
@@ -99,7 +99,7 @@ export class AccessTemplate extends BaseEntity {
   description: string | null;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: "jsonb", default: {} })
   metadata: Record<string, unknown>;
@@ -114,10 +114,10 @@ export class AccessTemplate extends BaseEntity {
  * Строка шаблона доступа
  */
 @Entity("access_template_rows")
-@Index(["template_id"])
+@Index(["templateId"])
 export class AccessTemplateRow extends BaseEntity {
   @Column({ type: "uuid" })
-  template_id: string;
+  templateId: string;
 
   @Column({
     type: "enum",

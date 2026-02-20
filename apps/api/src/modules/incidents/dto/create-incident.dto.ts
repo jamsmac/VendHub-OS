@@ -24,12 +24,12 @@ export class CreateIncidentDto {
   })
   @IsOptional()
   @IsUUID()
-  organization_id?: string;
+  organizationId?: string;
 
   @ApiProperty({ description: "Machine ID where the incident occurred" })
   @IsUUID()
   @IsNotEmpty()
-  machine_id: string;
+  machineId: string;
 
   @ApiProperty({
     description: "Type of incident",
@@ -71,7 +71,7 @@ export class CreateIncidentDto {
   @ApiPropertyOptional({ description: "User ID to assign the incident to" })
   @IsOptional()
   @IsUUID()
-  assigned_to_user_id?: string;
+  assignedToUserId?: string;
 
   @ApiPropertyOptional({
     description: "Estimated repair cost in UZS",
@@ -80,20 +80,20 @@ export class CreateIncidentDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  repair_cost?: number;
+  repairCost?: number;
 
   @ApiPropertyOptional({
     description: "Whether an insurance claim is being filed",
   })
   @IsOptional()
   @IsBoolean()
-  insurance_claim?: boolean;
+  insuranceClaim?: boolean;
 
   @ApiPropertyOptional({ description: "Insurance claim reference number" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  insurance_claim_number?: string;
+  insuranceClaimNumber?: string;
 
   @ApiPropertyOptional({
     description: "Photo URLs documenting the incident",

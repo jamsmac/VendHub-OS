@@ -1011,25 +1011,25 @@ export class NotificationsService {
     });
 
     if (existing) {
-      existing.user_id = userId;
-      existing.organization_id = organizationId;
+      existing.userId = userId;
+      existing.organizationId = organizationId;
       existing.p256dh = p256dh;
       existing.auth = auth;
-      existing.user_agent = userAgent || existing.user_agent;
-      existing.is_active = true;
-      existing.last_used_at = new Date();
+      existing.userAgent = userAgent || existing.userAgent;
+      existing.isActive = true;
+      existing.lastUsedAt = new Date();
       return this.pushSubscriptionRepo.save(existing);
     }
 
     const subscription = this.pushSubscriptionRepo.create({
-      user_id: userId,
-      organization_id: organizationId,
+      userId,
+      organizationId,
       endpoint,
       p256dh,
       auth,
-      user_agent: userAgent || null,
-      is_active: true,
-      last_used_at: new Date(),
+      userAgent: userAgent || null,
+      isActive: true,
+      lastUsedAt: new Date(),
     });
 
     return this.pushSubscriptionRepo.save(subscription);
@@ -1048,7 +1048,7 @@ export class NotificationsService {
     }
 
     // Soft deactivate rather than hard delete
-    subscription.is_active = false;
+    subscription.isActive = false;
     await this.pushSubscriptionRepo.save(subscription);
   }
 
@@ -1073,25 +1073,25 @@ export class NotificationsService {
     });
 
     if (existing) {
-      existing.user_id = userId;
-      existing.organization_id = organizationId;
-      existing.device_type = deviceType;
-      existing.device_name = deviceName || existing.device_name;
-      existing.device_id = deviceId || existing.device_id;
-      existing.is_active = true;
-      existing.last_used_at = new Date();
+      existing.userId = userId;
+      existing.organizationId = organizationId;
+      existing.deviceType = deviceType;
+      existing.deviceName = deviceName || existing.deviceName;
+      existing.deviceId = deviceId || existing.deviceId;
+      existing.isActive = true;
+      existing.lastUsedAt = new Date();
       return this.fcmTokenRepo.save(existing);
     }
 
     const fcmToken = this.fcmTokenRepo.create({
-      user_id: userId,
-      organization_id: organizationId,
+      userId,
+      organizationId,
       token,
-      device_type: deviceType,
-      device_name: deviceName || null,
-      device_id: deviceId || null,
-      is_active: true,
-      last_used_at: new Date(),
+      deviceType,
+      deviceName: deviceName || null,
+      deviceId: deviceId || null,
+      isActive: true,
+      lastUsedAt: new Date(),
     });
 
     return this.fcmTokenRepo.save(fcmToken);
@@ -1110,7 +1110,7 @@ export class NotificationsService {
     }
 
     // Soft deactivate rather than hard delete
-    fcmToken.is_active = false;
+    fcmToken.isActive = false;
     await this.fcmTokenRepo.save(fcmToken);
   }
 }

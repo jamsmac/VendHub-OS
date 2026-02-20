@@ -53,10 +53,10 @@ export class AchievementsService {
   ): Promise<Achievement[]> {
     const qb = this.achievementRepo
       .createQueryBuilder("a")
-      .where("(a.organization_id = :orgId OR a.organization_id IS NULL)", {
+      .where("(a.organizationId = :orgId OR a.organizationId IS NULL)", {
         orgId: organizationId,
       })
-      .orderBy("a.display_order", "ASC")
+      .orderBy("a.displayOrder", "ASC")
       .addOrderBy("a.createdAt", "ASC");
 
     if (filter?.category) {
@@ -65,8 +65,8 @@ export class AchievementsService {
     if (filter?.rarity) {
       qb.andWhere("a.rarity = :rarity", { rarity: filter.rarity });
     }
-    if (filter?.is_active !== undefined) {
-      qb.andWhere("a.is_active = :isActive", { isActive: filter.is_active });
+    if (filter?.isActive !== undefined) {
+      qb.andWhere("a.isActive = :isActive", { isActive: filter.isActive });
     }
 
     return qb.getMany();
@@ -78,8 +78,8 @@ export class AchievementsService {
   ): Promise<Achievement> {
     const achievement = await this.achievementRepo.findOne({
       where: [
-        { id, organization_id: organizationId },
-        { id, organization_id: IsNull() },
+        { id, organizationId },
+        { id, organizationId: IsNull() },
       ],
     });
 
@@ -95,7 +95,7 @@ export class AchievementsService {
   ): Promise<Achievement> {
     const achievement = this.achievementRepo.create({
       ...dto,
-      organization_id: organizationId,
+      organizationId,
     });
     return this.achievementRepo.save(achievement);
   }
@@ -108,7 +108,7 @@ export class AchievementsService {
     const achievement = await this.getAchievementById(id, organizationId);
 
     // Don't allow editing global achievements
-    if (!achievement.organization_id) {
+    if (!achievement.organizationId) {
       throw new BadRequestException("Cannot edit global achievements");
     }
 
@@ -119,7 +119,7 @@ export class AchievementsService {
   async deleteAchievement(id: string, organizationId: string): Promise<void> {
     const achievement = await this.getAchievementById(id, organizationId);
 
-    if (!achievement.organization_id) {
+    if (!achievement.organizationId) {
       throw new BadRequestException("Cannot delete global achievements");
     }
 
@@ -135,18 +135,18 @@ export class AchievementsService {
   ): Promise<UserAchievementsSummaryDto> {
     // Get all active achievements
     const achievements = await this.achievementRepo.find({
-      where: { is_active: true },
-      order: { display_order: "ASC" },
+      where: { isActive: true },
+      order: { displayOrder: "ASC" },
     });
 
     // Get user's achievements
     const userAchievements = await this.userAchievementRepo.find({
-      where: { user_id: userId },
+      where: { userId },
       relations: ["achievement"],
     });
 
     const userAchMap = new Map(
-      userAchievements.map((ua) => [ua.achievement_id, ua]),
+      userAchievements.map((ua) => [ua.achievementId, ua]),
     );
 
     // Build summary
@@ -160,7 +160,7 @@ export class AchievementsService {
     for (const ach of achievements) {
       // Skip hidden achievements user hasn't unlocked
       const ua = userAchMap.get(ach.id);
-      if (ach.is_hidden && (!ua || !ua.is_unlocked)) continue;
+      if (ach.isHidden && (!ua || !ua.isUnlocked)) continue;
 
       // Category stats
       if (!byCategory[ach.category]) {
@@ -168,15 +168,15 @@ export class AchievementsService {
       }
       byCategory[ach.category].total++;
 
-      const isUnlocked = ua?.is_unlocked ?? false;
+      const isUnlocked = ua?.isUnlocked ?? false;
       if (isUnlocked) {
         totalUnlocked++;
         byCategory[ach.category].unlocked++;
-        if (ua?.points_claimed) {
-          totalPointsEarned += ua.points_claimed;
+        if (ua?.pointsClaimed) {
+          totalPointsEarned += ua.pointsClaimed;
         }
-        if (ua && !ua.claimed_at) {
-          unclaimedPoints += ach.bonus_points;
+        if (ua && !ua.claimedAt) {
+          unclaimedPoints += ach.bonusPoints;
         }
       }
 
@@ -185,76 +185,76 @@ export class AchievementsService {
         achievement: {
           id: ach.id,
           name: ach.name,
-          name_uz: ach.name_uz,
+          nameUz: ach.nameUz,
           description: ach.description,
-          description_uz: ach.description_uz,
+          descriptionUz: ach.descriptionUz,
           icon: ach.icon,
-          image_url: ach.image_url,
+          imageUrl: ach.imageUrl,
           category: ach.category,
           rarity: ach.rarity,
-          bonus_points: ach.bonus_points,
-          condition_type: ach.condition_type,
-          condition_value: ach.condition_value,
+          bonusPoints: ach.bonusPoints,
+          conditionType: ach.conditionType,
+          conditionValue: ach.conditionValue,
         },
-        current_value: ua?.current_value ?? 0,
-        target_value: ach.condition_value,
-        progress_percent: ua
+        currentValue: ua?.currentValue ?? 0,
+        targetValue: ach.conditionValue,
+        progressPercent: ua
           ? Math.min(
               100,
-              Math.floor((ua.current_value / ach.condition_value) * 100),
+              Math.floor((ua.currentValue / ach.conditionValue) * 100),
             )
           : 0,
-        is_unlocked: isUnlocked,
-        unlocked_at: ua?.unlocked_at ?? null,
-        is_claimed: !!ua?.claimed_at,
+        isUnlocked,
+        unlockedAt: ua?.unlockedAt ?? null,
+        isClaimed: !!ua?.claimedAt,
       });
     }
 
     // Recent (last 5 unlocked)
     const recent = allUserAchievements
-      .filter((a) => a.is_unlocked)
+      .filter((a) => a.isUnlocked)
       .sort((a, b) => {
-        const dateA = a.unlocked_at ? new Date(a.unlocked_at).getTime() : 0;
-        const dateB = b.unlocked_at ? new Date(b.unlocked_at).getTime() : 0;
+        const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
+        const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
         return dateB - dateA;
       })
       .slice(0, 5);
 
     // In progress (not unlocked, has some progress)
     const inProgress = allUserAchievements
-      .filter((a) => !a.is_unlocked && a.current_value > 0)
-      .sort((a, b) => b.progress_percent - a.progress_percent)
+      .filter((a) => !a.isUnlocked && a.currentValue > 0)
+      .sort((a, b) => b.progressPercent - a.progressPercent)
       .slice(0, 5);
 
     return {
-      total: achievements.filter((a) => !a.is_hidden).length,
+      total: achievements.filter((a) => !a.isHidden).length,
       unlocked: totalUnlocked,
-      total_points_earned: totalPointsEarned,
-      unclaimed_points: unclaimedPoints,
-      by_category: byCategory,
+      totalPointsEarned,
+      unclaimedPoints,
+      byCategory,
       recent,
-      in_progress: inProgress,
+      inProgress,
     };
   }
 
   async getUserAchievements(userId: string): Promise<UserAchievementDto[]> {
     const achievements = await this.achievementRepo.find({
-      where: { is_active: true },
-      order: { display_order: "ASC" },
+      where: { isActive: true },
+      order: { displayOrder: "ASC" },
     });
 
     const userAchievements = await this.userAchievementRepo.find({
-      where: { user_id: userId },
+      where: { userId },
     });
 
     const userAchMap = new Map(
-      userAchievements.map((ua) => [ua.achievement_id, ua]),
+      userAchievements.map((ua) => [ua.achievementId, ua]),
     );
 
     return achievements
       .filter((ach) => {
         const ua = userAchMap.get(ach.id);
-        return !ach.is_hidden || (ua && ua.is_unlocked);
+        return !ach.isHidden || (ua && ua.isUnlocked);
       })
       .map((ach) => {
         const ua = userAchMap.get(ach.id);
@@ -263,28 +263,28 @@ export class AchievementsService {
           achievement: {
             id: ach.id,
             name: ach.name,
-            name_uz: ach.name_uz,
+            nameUz: ach.nameUz,
             description: ach.description,
-            description_uz: ach.description_uz,
+            descriptionUz: ach.descriptionUz,
             icon: ach.icon,
-            image_url: ach.image_url,
+            imageUrl: ach.imageUrl,
             category: ach.category,
             rarity: ach.rarity,
-            bonus_points: ach.bonus_points,
-            condition_type: ach.condition_type,
-            condition_value: ach.condition_value,
+            bonusPoints: ach.bonusPoints,
+            conditionType: ach.conditionType,
+            conditionValue: ach.conditionValue,
           },
-          current_value: ua?.current_value ?? 0,
-          target_value: ach.condition_value,
-          progress_percent: ua
+          currentValue: ua?.currentValue ?? 0,
+          targetValue: ach.conditionValue,
+          progressPercent: ua
             ? Math.min(
                 100,
-                Math.floor((ua.current_value / ach.condition_value) * 100),
+                Math.floor((ua.currentValue / ach.conditionValue) * 100),
               )
             : 0,
-          is_unlocked: ua?.is_unlocked ?? false,
-          unlocked_at: ua?.unlocked_at ?? null,
-          is_claimed: !!ua?.claimed_at,
+          isUnlocked: ua?.isUnlocked ?? false,
+          unlockedAt: ua?.unlockedAt ?? null,
+          isClaimed: !!ua?.claimedAt,
         };
       });
   }
@@ -298,26 +298,26 @@ export class AchievementsService {
     userAchievementId: string,
   ): Promise<ClaimAchievementResultDto> {
     const ua = await this.userAchievementRepo.findOne({
-      where: { id: userAchievementId, user_id: userId },
+      where: { id: userAchievementId, userId },
       relations: ["achievement"],
     });
 
     if (!ua) {
       throw new NotFoundException("Achievement not found");
     }
-    if (!ua.is_unlocked) {
+    if (!ua.isUnlocked) {
       throw new BadRequestException("Achievement not yet unlocked");
     }
-    if (ua.claimed_at) {
+    if (ua.claimedAt) {
       throw new BadRequestException("Reward already claimed");
     }
 
-    const pointsToAward = ua.achievement.bonus_points;
+    const pointsToAward = ua.achievement.bonusPoints;
 
     // Award points via loyalty
     const result = await this.loyaltyService.earnPoints({
       userId,
-      organizationId: ua.achievement.organization_id!,
+      organizationId: ua.achievement.organizationId!,
       amount: pointsToAward,
       source: PointsSource.ACHIEVEMENT,
       referenceId: ua.achievement.id,
@@ -326,24 +326,24 @@ export class AchievementsService {
     });
 
     // Mark as claimed
-    ua.claimed_at = new Date();
-    ua.points_claimed = pointsToAward;
+    ua.claimedAt = new Date();
+    ua.pointsClaimed = pointsToAward;
     await this.userAchievementRepo.save(ua);
 
     return {
       success: true,
-      points_claimed: pointsToAward,
-      achievement_name: ua.achievement.name,
-      new_balance: result.newBalance,
+      pointsClaimed: pointsToAward,
+      achievementName: ua.achievement.name,
+      newBalance: result.newBalance,
     };
   }
 
   async claimAllRewards(userId: string): Promise<ClaimAchievementResultDto[]> {
     const unclaimed = await this.userAchievementRepo.find({
       where: {
-        user_id: userId,
-        is_unlocked: true,
-        claimed_at: IsNull(),
+        userId,
+        isUnlocked: true,
+        claimedAt: IsNull(),
       },
       relations: ["achievement"],
     });
@@ -370,8 +370,8 @@ export class AchievementsService {
     // Find all matching achievements
     const achievements = await this.achievementRepo.find({
       where: {
-        condition_type: conditionType,
-        is_active: true,
+        conditionType,
+        isActive: true,
       },
     });
 
@@ -383,19 +383,19 @@ export class AchievementsService {
       // Get or create user achievement
       let ua = await this.userAchievementRepo.findOne({
         where: {
-          user_id: userId,
-          achievement_id: achievement.id,
+          userId,
+          achievementId: achievement.id,
         },
       });
 
-      if (ua?.is_unlocked) continue; // Already unlocked
+      if (ua?.isUnlocked) continue; // Already unlocked
 
       if (!ua) {
         ua = this.userAchievementRepo.create({
-          user_id: userId,
-          achievement_id: achievement.id,
-          current_value: 0,
-          target_value: achievement.condition_value,
+          userId,
+          achievementId: achievement.id,
+          currentValue: 0,
+          targetValue: achievement.conditionValue,
         });
       }
 
@@ -407,17 +407,17 @@ export class AchievementsService {
         case AchievementConditionType.QUEST_COMPLETED:
         case AchievementConditionType.REVIEW_COUNT:
         case AchievementConditionType.PROMO_USED:
-          ua.current_value = value;
+          ua.currentValue = value;
           break;
 
         case AchievementConditionType.ORDER_AMOUNT:
-          ua.current_value = value;
+          ua.currentValue = value;
           break;
 
         case AchievementConditionType.UNIQUE_PRODUCTS:
         case AchievementConditionType.UNIQUE_MACHINES:
           // Accumulate unique values
-          const details = ua.progress_details || {};
+          const details = ua.progressDetails || {};
           const key =
             conditionType === AchievementConditionType.UNIQUE_PRODUCTS
               ? "tried_products"
@@ -427,8 +427,8 @@ export class AchievementsService {
           if (newId && !existing.includes(newId)) {
             existing.push(newId);
             details[key] = existing;
-            ua.progress_details = details;
-            ua.current_value = existing.length;
+            ua.progressDetails = details;
+            ua.currentValue = existing.length;
           }
           break;
 
@@ -436,24 +436,24 @@ export class AchievementsService {
         case AchievementConditionType.EARLY_BIRD:
         case AchievementConditionType.NIGHT_OWL:
         case AchievementConditionType.WEEKEND_WARRIOR:
-          ua.current_value = value;
+          ua.currentValue = value;
           break;
 
         case AchievementConditionType.LOYALTY_LEVEL:
           // value is the numeric level index
-          ua.current_value = value;
+          ua.currentValue = value;
           break;
       }
 
       // Check if unlocked
-      if (ua.current_value >= achievement.condition_value && !ua.is_unlocked) {
-        ua.is_unlocked = true;
-        ua.unlocked_at = new Date();
+      if (ua.currentValue >= achievement.conditionValue && !ua.isUnlocked) {
+        ua.isUnlocked = true;
+        ua.unlockedAt = new Date();
 
         // Update achievement stats
         await this.achievementRepo.increment(
           { id: achievement.id },
-          "total_unlocked",
+          "totalUnlocked",
           1,
         );
 
@@ -468,7 +468,7 @@ export class AchievementsService {
           userId,
           achievementId: achievement.id,
           achievementName: achievement.name,
-          bonusPoints: achievement.bonus_points,
+          bonusPoints: achievement.bonusPoints,
         });
       }
 
@@ -485,61 +485,58 @@ export class AchievementsService {
   async getStats(organizationId: string): Promise<AchievementStatsDto> {
     const totalAchievements = await this.achievementRepo.count({
       where: [
-        { organization_id: organizationId, is_active: true },
-        { organization_id: IsNull(), is_active: true },
+        { organizationId, isActive: true },
+        { organizationId: IsNull(), isActive: true },
       ],
     });
 
     const usersWithAchievements = await this.userAchievementRepo
       .createQueryBuilder("ua")
-      .select("COUNT(DISTINCT ua.user_id)", "count")
-      .where("ua.is_unlocked = true")
+      .select("COUNT(DISTINCT ua.userId)", "count")
+      .where("ua.isUnlocked = true")
       .getRawOne();
 
     const mostPopular = await this.achievementRepo
       .createQueryBuilder("a")
-      .where("(a.organization_id = :orgId OR a.organization_id IS NULL)", {
+      .where("(a.organizationId = :orgId OR a.organizationId IS NULL)", {
         orgId: organizationId,
       })
-      .andWhere("a.is_active = true")
-      .orderBy("a.total_unlocked", "DESC")
+      .andWhere("a.isActive = true")
+      .orderBy("a.totalUnlocked", "DESC")
       .limit(5)
       .getMany();
 
     const rarest = await this.achievementRepo
       .createQueryBuilder("a")
-      .where("(a.organization_id = :orgId OR a.organization_id IS NULL)", {
+      .where("(a.organizationId = :orgId OR a.organizationId IS NULL)", {
         orgId: organizationId,
       })
-      .andWhere("a.is_active = true")
-      .andWhere("a.total_unlocked > 0")
-      .orderBy("a.total_unlocked", "ASC")
+      .andWhere("a.isActive = true")
+      .andWhere("a.totalUnlocked > 0")
+      .orderBy("a.totalUnlocked", "ASC")
       .limit(5)
       .getMany();
 
     const pointsDistributed = await this.userAchievementRepo
       .createQueryBuilder("ua")
-      .select("COALESCE(SUM(ua.points_claimed), 0)", "total")
-      .where("ua.claimed_at IS NOT NULL")
+      .select("COALESCE(SUM(ua.pointsClaimed), 0)", "total")
+      .where("ua.claimedAt IS NOT NULL")
       .getRawOne();
 
     return {
-      total_achievements: totalAchievements,
-      users_with_achievements: parseInt(
-        usersWithAchievements?.count ?? "0",
-        10,
-      ),
-      most_popular: mostPopular.map((a) => ({
+      totalAchievements,
+      usersWithAchievements: parseInt(usersWithAchievements?.count ?? "0", 10),
+      mostPopular: mostPopular.map((a) => ({
         id: a.id,
         name: a.name,
-        total_unlocked: a.total_unlocked,
+        totalUnlocked: a.totalUnlocked,
       })),
       rarest: rarest.map((a) => ({
         id: a.id,
         name: a.name,
-        total_unlocked: a.total_unlocked,
+        totalUnlocked: a.totalUnlocked,
       })),
-      total_points_distributed: parseInt(pointsDistributed?.total ?? "0", 10),
+      totalPointsDistributed: parseInt(pointsDistributed?.total ?? "0", 10),
     };
   }
 
@@ -553,23 +550,23 @@ export class AchievementsService {
     for (const def of DEFAULT_ACHIEVEMENTS) {
       const exists = await this.achievementRepo.findOne({
         where: {
-          organization_id: organizationId,
-          condition_type: def.conditionType,
-          condition_value: def.conditionValue,
+          organizationId,
+          conditionType: def.conditionType,
+          conditionValue: def.conditionValue,
         },
       });
 
       if (!exists) {
         await this.achievementRepo.save(
           this.achievementRepo.create({
-            organization_id: organizationId,
+            organizationId,
             name: def.name,
-            name_uz: def.nameUz,
+            nameUz: def.nameUz,
             description: def.description,
-            description_uz: def.descriptionUz,
-            condition_type: def.conditionType,
-            condition_value: def.conditionValue,
-            bonus_points: def.bonusPoints,
+            descriptionUz: def.descriptionUz,
+            conditionType: def.conditionType,
+            conditionValue: def.conditionValue,
+            bonusPoints: def.bonusPoints,
             icon: def.icon,
             category: def.category,
             rarity: def.rarity,

@@ -188,14 +188,8 @@ spec:
       ports:
         - port: 5432
           protocol: TCP
-    # Prometheus pg_exporter
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-      ports:
-        - port: 9187
-          protocol: TCP
+    # Note: pg_exporter runs as a separate pod (not a sidecar on postgres)
+    # so its network policy is handled separately in the monitoring namespace
 
 ---
 # --------------------------------------------------
@@ -229,11 +223,5 @@ spec:
       ports:
         - port: 6379
           protocol: TCP
-    # Prometheus redis_exporter
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-      ports:
-        - port: 9121
-          protocol: TCP
+    # Note: redis_exporter runs as a separate pod (not a sidecar on redis)
+    # so its network policy is handled separately in the monitoring namespace

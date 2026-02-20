@@ -33,65 +33,65 @@ export enum AuditActionType {
  * Provides a full audit trail of changes made by an import session.
  */
 @Entity("import_audit_logs")
-@Index(["session_id"])
-@Index(["table_name", "record_id"])
-@Index(["executed_at"])
+@Index(["sessionId"])
+@Index(["tableName", "recordId"])
+@Index(["executedAt"])
 export class ImportAuditLog extends BaseEntity {
   @ApiProperty({ description: "Import session ID" })
   @Column({ type: "uuid" })
-  session_id: string;
+  sessionId: string;
 
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
-  organization_id: string;
+  organizationId: string;
 
   @ApiProperty({
     enum: AuditActionType,
     description: "Type of action performed",
   })
   @Column({ type: "enum", enum: AuditActionType })
-  action_type: AuditActionType;
+  actionType: AuditActionType;
 
   @ApiProperty({ description: "Target database table name" })
   @Column({ type: "varchar", length: 100 })
-  table_name: string;
+  tableName: string;
 
   @ApiPropertyOptional({ description: "UUID of the affected record" })
   @Column({ type: "uuid", nullable: true })
-  record_id: string | null;
+  recordId: string | null;
 
   @ApiPropertyOptional({ description: "Record state before the operation" })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  before_state: Record<string, any> | null;
+  beforeState: Record<string, any> | null;
 
   @ApiPropertyOptional({ description: "Record state after the operation" })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  after_state: Record<string, any> | null;
+  afterState: Record<string, any> | null;
 
   @ApiPropertyOptional({
     description: "Individual field changes ({field: {old, new}})",
   })
   @Column({ type: "jsonb", nullable: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  field_changes: Record<string, any> | null;
+  fieldChanges: Record<string, any> | null;
 
   @ApiPropertyOptional({ description: "Source file row number" })
   @Column({ type: "integer", nullable: true })
-  row_number: number | null;
+  rowNumber: number | null;
 
   @ApiProperty({ description: "Timestamp when the operation was executed" })
   @Column({ type: "timestamptz", default: () => "NOW()" })
-  executed_at: Date;
+  executedAt: Date;
 
   @ApiPropertyOptional({ description: "User who executed the operation" })
   @Column({ type: "uuid", nullable: true })
-  executed_by_user_id: string | null;
+  executedByUserId: string | null;
 
   @ApiPropertyOptional({ description: "Error message if operation failed" })
   @Column({ type: "text", nullable: true })
-  error_message: string | null;
+  errorMessage: string | null;
 
   @ApiProperty({ description: "Whether the operation succeeded" })
   @Column({ type: "boolean", default: true })

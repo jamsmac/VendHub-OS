@@ -1,4 +1,9 @@
-import { ApiProperty, ApiPropertyOptional, PartialType, OmitType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+  OmitType,
+} from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
@@ -9,15 +14,15 @@ import {
   Length,
   Min,
   Max,
-} from 'class-validator';
+} from "class-validator";
 
 /**
  * DTO for creating a VAT rate entry.
  */
 export class CreateVatRateDto {
   @ApiProperty({
-    description: 'VAT rate code (unique identifier)',
-    example: 'STANDARD',
+    description: "VAT rate code (unique identifier)",
+    example: "STANDARD",
     maxLength: 50,
   })
   @IsString()
@@ -25,8 +30,8 @@ export class CreateVatRateDto {
   code: string;
 
   @ApiProperty({
-    description: 'VAT rate percentage',
-    example: 12.00,
+    description: "VAT rate percentage",
+    example: 12.0,
     minimum: 0,
     maximum: 100,
   })
@@ -36,73 +41,73 @@ export class CreateVatRateDto {
   rate: number;
 
   @ApiProperty({
-    description: 'Name in Russian',
-    example: 'Стандартная ставка НДС',
+    description: "Name in Russian",
+    example: "Стандартная ставка НДС",
     maxLength: 255,
   })
   @IsString()
   @Length(1, 255)
-  name_ru: string;
+  nameRu: string;
 
   @ApiPropertyOptional({
-    description: 'Name in Uzbek',
-    example: 'Standart QQS stavkasi',
+    description: "Name in Uzbek",
+    example: "Standart QQS stavkasi",
     maxLength: 255,
   })
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  name_uz?: string;
+  nameUz?: string;
 
   @ApiPropertyOptional({
-    description: 'Detailed description of this VAT rate',
-    example: 'Standard VAT rate for most goods and services in Uzbekistan',
+    description: "Detailed description of this VAT rate",
+    example: "Standard VAT rate for most goods and services in Uzbekistan",
   })
   @IsOptional()
   @IsString()
   description?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether this is the default VAT rate',
+    description: "Whether this is the default VAT rate",
     default: false,
   })
   @IsOptional()
   @IsBoolean()
-  is_default?: boolean;
+  isDefault?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Whether this VAT rate is currently active',
+    description: "Whether this VAT rate is currently active",
     default: true,
   })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Date from which this rate is effective (ISO 8601)',
-    example: '2024-01-01',
+    description: "Date from which this rate is effective (ISO 8601)",
+    example: "2024-01-01",
   })
   @IsOptional()
   @IsDateString()
-  effective_from?: string;
+  effectiveFrom?: string;
 
   @ApiPropertyOptional({
-    description: 'Date until which this rate is effective (ISO 8601)',
-    example: '2025-12-31',
+    description: "Date until which this rate is effective (ISO 8601)",
+    example: "2025-12-31",
   })
   @IsOptional()
   @IsDateString()
-  effective_to?: string;
+  effectiveTo?: string;
 
   @ApiPropertyOptional({
-    description: 'Sort order for display',
+    description: "Sort order for display",
     example: 0,
     minimum: 0,
   })
   @IsOptional()
   @IsInt()
   @Min(0)
-  sort_order?: number;
+  sortOrder?: number;
 }
 
 /**
@@ -110,5 +115,5 @@ export class CreateVatRateDto {
  * All fields optional except code (immutable).
  */
 export class UpdateVatRateDto extends PartialType(
-  OmitType(CreateVatRateDto, ['code'] as const),
+  OmitType(CreateVatRateDto, ["code"] as const),
 ) {}

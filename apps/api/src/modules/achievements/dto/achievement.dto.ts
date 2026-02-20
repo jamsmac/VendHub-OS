@@ -36,7 +36,7 @@ export class CreateAchievementDto {
   @IsOptional()
   @IsString()
   @Length(1, 100)
-  name_uz?: string;
+  nameUz?: string;
 
   @ApiProperty({
     description: "Achievement description",
@@ -50,31 +50,31 @@ export class CreateAchievementDto {
   @IsOptional()
   @IsString()
   @Length(1, 500)
-  description_uz?: string;
+  descriptionUz?: string;
 
   @ApiProperty({
     description: "Condition type",
     enum: AchievementConditionType,
   })
   @IsEnum(AchievementConditionType)
-  condition_type: AchievementConditionType;
+  conditionType: AchievementConditionType;
 
   @ApiProperty({ description: "Target value", example: 10 })
   @IsInt()
   @Min(1)
-  condition_value: number;
+  conditionValue: number;
 
   @ApiPropertyOptional({ description: "Additional condition metadata" })
   @IsOptional()
   @IsObject()
-  condition_metadata?: Record<string, unknown>;
+  conditionMetadata?: Record<string, unknown>;
 
   @ApiPropertyOptional({ description: "Bonus points reward", example: 100 })
   @IsOptional()
   @IsInt()
   @Min(0)
   @Max(10000)
-  bonus_points?: number;
+  bonusPoints?: number;
 
   @ApiPropertyOptional({ description: "Icon emoji", example: "🏆" })
   @IsOptional()
@@ -85,7 +85,7 @@ export class CreateAchievementDto {
   @ApiPropertyOptional({ description: "Image URL" })
   @IsOptional()
   @IsString()
-  image_url?: string;
+  imageUrl?: string;
 
   @ApiPropertyOptional({ description: "Category", enum: AchievementCategory })
   @IsOptional()
@@ -100,20 +100,20 @@ export class CreateAchievementDto {
   @ApiPropertyOptional({ description: "Is hidden until unlocked" })
   @IsOptional()
   @IsBoolean()
-  is_hidden?: boolean;
+  isHidden?: boolean;
 
   @ApiPropertyOptional({ description: "Display order" })
   @IsOptional()
   @IsInt()
   @Min(0)
-  display_order?: number;
+  displayOrder?: number;
 }
 
 export class UpdateAchievementDto extends PartialType(CreateAchievementDto) {
   @ApiPropertyOptional({ description: "Is active" })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 }
 
 export class AchievementFilterDto {
@@ -137,7 +137,7 @@ export class AchievementFilterDto {
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
-  is_active?: boolean;
+  isActive?: boolean;
 }
 
 // ============================================================================
@@ -152,35 +152,35 @@ export class UserAchievementDto {
   achievement: {
     id: string;
     name: string;
-    name_uz: string | null;
+    nameUz: string | null;
     description: string;
-    description_uz: string | null;
+    descriptionUz: string | null;
     icon: string;
-    image_url: string | null;
+    imageUrl: string | null;
     category: AchievementCategory;
     rarity: AchievementRarity;
-    bonus_points: number;
-    condition_type: AchievementConditionType;
-    condition_value: number;
+    bonusPoints: number;
+    conditionType: AchievementConditionType;
+    conditionValue: number;
   };
 
   @ApiProperty({ description: "Current progress" })
-  current_value: number;
+  currentValue: number;
 
   @ApiProperty({ description: "Target value" })
-  target_value: number;
+  targetValue: number;
 
   @ApiProperty({ description: "Progress percentage (0-100)" })
-  progress_percent: number;
+  progressPercent: number;
 
   @ApiProperty({ description: "Whether achievement is unlocked" })
-  is_unlocked: boolean;
+  isUnlocked: boolean;
 
   @ApiProperty({ description: "When unlocked", nullable: true })
-  unlocked_at: Date | null;
+  unlockedAt: Date | null;
 
   @ApiProperty({ description: "Whether bonus was claimed" })
-  is_claimed: boolean;
+  isClaimed: boolean;
 }
 
 export class UserAchievementsSummaryDto {
@@ -191,19 +191,19 @@ export class UserAchievementsSummaryDto {
   unlocked: number;
 
   @ApiProperty({ description: "Total bonus points from achievements" })
-  total_points_earned: number;
+  totalPointsEarned: number;
 
   @ApiProperty({ description: "Unclaimed bonus points" })
-  unclaimed_points: number;
+  unclaimedPoints: number;
 
   @ApiProperty({ description: "Achievements by category" })
-  by_category: Record<string, { total: number; unlocked: number }>;
+  byCategory: Record<string, { total: number; unlocked: number }>;
 
   @ApiProperty({ description: "Recently unlocked", type: [UserAchievementDto] })
   recent: UserAchievementDto[];
 
   @ApiProperty({ description: "In progress", type: [UserAchievementDto] })
-  in_progress: UserAchievementDto[];
+  inProgress: UserAchievementDto[];
 }
 
 export class ClaimAchievementResultDto {
@@ -211,36 +211,36 @@ export class ClaimAchievementResultDto {
   success: boolean;
 
   @ApiProperty({ description: "Points claimed" })
-  points_claimed: number;
+  pointsClaimed: number;
 
   @ApiProperty({ description: "Achievement name" })
-  achievement_name: string;
+  achievementName: string;
 
   @ApiProperty({ description: "New balance" })
-  new_balance: number;
+  newBalance: number;
 }
 
 export class AchievementStatsDto {
   @ApiProperty({ description: "Total achievements defined" })
-  total_achievements: number;
+  totalAchievements: number;
 
   @ApiProperty({ description: "Total unique users who unlocked at least one" })
-  users_with_achievements: number;
+  usersWithAchievements: number;
 
   @ApiProperty({ description: "Most popular achievements" })
-  most_popular: Array<{
+  mostPopular: Array<{
     id: string;
     name: string;
-    total_unlocked: number;
+    totalUnlocked: number;
   }>;
 
   @ApiProperty({ description: "Rarest achievements" })
   rarest: Array<{
     id: string;
     name: string;
-    total_unlocked: number;
+    totalUnlocked: number;
   }>;
 
   @ApiProperty({ description: "Total bonus points distributed" })
-  total_points_distributed: number;
+  totalPointsDistributed: number;
 }

@@ -50,7 +50,7 @@ export class CreatePaymentProviderDto {
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  name_ru?: string;
+  nameRu?: string;
 
   @ApiPropertyOptional({
     description: "Name in Uzbek",
@@ -60,7 +60,7 @@ export class CreatePaymentProviderDto {
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  name_uz?: string;
+  nameUz?: string;
 
   @ApiProperty({
     description: "Payment provider type",
@@ -76,7 +76,7 @@ export class CreatePaymentProviderDto {
   })
   @IsOptional()
   @IsString()
-  logo_url?: string;
+  logoUrl?: string;
 
   @ApiPropertyOptional({
     description: "Provider website URL",
@@ -84,7 +84,7 @@ export class CreatePaymentProviderDto {
   })
   @IsOptional()
   @IsUrl()
-  website_url?: string;
+  websiteUrl?: string;
 
   @ApiPropertyOptional({
     description: "Whether this provider is active",
@@ -92,7 +92,7 @@ export class CreatePaymentProviderDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 
   @ApiPropertyOptional({
     description: "Whether this is the default payment provider",
@@ -100,7 +100,7 @@ export class CreatePaymentProviderDto {
   })
   @IsOptional()
   @IsBoolean()
-  is_default?: boolean;
+  isDefault?: boolean;
 
   @ApiPropertyOptional({
     description: "Commission rate percentage",
@@ -113,7 +113,7 @@ export class CreatePaymentProviderDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   @Max(100)
-  commission_rate?: number;
+  commissionRate?: number;
 
   @ApiPropertyOptional({
     description:
@@ -136,7 +136,7 @@ export class CreatePaymentProviderDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  supported_currencies?: string[];
+  supportedCurrencies?: string[];
 
   @ApiPropertyOptional({
     description: "Sort order for display",
@@ -146,7 +146,7 @@ export class CreatePaymentProviderDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  sort_order?: number;
+  sortOrder?: number;
 }
 
 /**

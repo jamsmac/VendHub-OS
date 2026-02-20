@@ -66,22 +66,22 @@ export class IncidentsController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && dto.organization_id
-        ? dto.organization_id
+      user.role === UserRole.OWNER && dto.organizationId
+        ? dto.organizationId
         : orgId;
     return this.incidentsService.create(dto, userId, organizationId);
   }
 
   @Get()
   @ApiOperation({ summary: "Query incidents with filters" })
-  @ApiQuery({ name: "machine_id", required: false, type: String })
+  @ApiQuery({ name: "machineId", required: false, type: String })
   @ApiQuery({ name: "status", required: false, enum: IncidentStatus })
   @ApiQuery({ name: "type", required: false, enum: IncidentType })
   @ApiQuery({ name: "priority", required: false, enum: IncidentPriority })
-  @ApiQuery({ name: "assigned_to_user_id", required: false, type: String })
+  @ApiQuery({ name: "assignedToUserId", required: false, type: String })
   @ApiQuery({ name: "search", required: false, type: String })
-  @ApiQuery({ name: "date_from", required: false, type: String })
-  @ApiQuery({ name: "date_to", required: false, type: String })
+  @ApiQuery({ name: "dateFrom", required: false, type: String })
+  @ApiQuery({ name: "dateTo", required: false, type: String })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @Roles("owner", "admin", "manager", "operator")
@@ -92,8 +92,8 @@ export class IncidentsController {
     @CurrentUser() user: any,
   ) {
     const organizationId =
-      user.role === UserRole.OWNER && query.organization_id
-        ? query.organization_id
+      user.role === UserRole.OWNER && query.organizationId
+        ? query.organizationId
         : orgId;
     return this.incidentsService.query(query, organizationId);
   }
@@ -163,7 +163,7 @@ export class IncidentsController {
   @HttpCode(HttpStatus.OK)
   async assign(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("assigned_to_user_id", ParseUUIDPipe) assignedToUserId: string,
+    @Body("assignedToUserId", ParseUUIDPipe) assignedToUserId: string,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {

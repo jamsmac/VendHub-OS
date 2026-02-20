@@ -54,35 +54,35 @@ export class MachineAccessService {
     // Check for existing active access
     const existing = await this.accessRepo.findOne({
       where: {
-        organization_id: organizationId,
-        machine_id: dto.machine_id,
-        user_id: dto.user_id,
-        is_active: true,
+        organizationId,
+        machineId: dto.machineId,
+        userId: dto.userId,
+        isActive: true,
       },
     });
 
     if (existing) {
       throw new ConflictException(
-        `User ${dto.user_id} already has active access to machine ${dto.machine_id}`,
+        `User ${dto.userId} already has active access to machine ${dto.machineId}`,
       );
     }
 
     const access = this.accessRepo.create({
-      organization_id: organizationId,
-      machine_id: dto.machine_id,
-      user_id: dto.user_id,
+      organizationId,
+      machineId: dto.machineId,
+      userId: dto.userId,
       role: dto.role,
-      granted_by_user_id: grantedByUserId,
-      is_active: true,
-      valid_from: dto.valid_from ? new Date(dto.valid_from) : null,
-      valid_to: dto.valid_to ? new Date(dto.valid_to) : null,
+      grantedByUserId,
+      isActive: true,
+      validFrom: dto.validFrom ? new Date(dto.validFrom) : null,
+      validTo: dto.validTo ? new Date(dto.validTo) : null,
       notes: dto.notes || null,
       metadata: dto.metadata || {},
     });
 
     const saved = await this.accessRepo.save(access);
     this.logger.log(
-      `Access granted: user=${dto.user_id} machine=${dto.machine_id} role=${dto.role} by=${grantedByUserId}`,
+      `Access granted: user=${dto.userId} machine=${dto.machineId} role=${dto.role} by=${grantedByUserId}`,
     );
 
     return saved;
@@ -98,31 +98,29 @@ export class MachineAccessService {
   ): Promise<MachineAccess> {
     const access = await this.accessRepo.findOne({
       where: {
-        id: dto.access_id,
-        organization_id: organizationId,
+        id: dto.accessId,
+        organizationId,
       },
     });
 
     if (!access) {
       throw new NotFoundException(
-        `Machine access record ${dto.access_id} not found`,
+        `Machine access record ${dto.accessId} not found`,
       );
     }
 
-    if (!access.is_active) {
+    if (!access.isActive) {
       throw new BadRequestException("Access is already revoked");
     }
 
-    access.is_active = false;
+    access.isActive = false;
     access.notes = dto.reason
       ? `${access.notes || ""}\nRevoked: ${dto.reason}`.trim()
       : access.notes;
     access.updatedById = revokedByUserId;
 
     const saved = await this.accessRepo.save(access);
-    this.logger.log(
-      `Access revoked: id=${dto.access_id} by=${revokedByUserId}`,
-    );
+    this.logger.log(`Access revoked: id=${dto.accessId} by=${revokedByUserId}`);
 
     return saved;
   }
@@ -137,12 +135,12 @@ export class MachineAccessService {
   ): Promise<MachineAccess[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
-      machine_id: machineId,
-      organization_id: organizationId,
+      machineId,
+      organizationId,
     };
 
     if (!includeInactive) {
-      where.is_active = true;
+      where.isActive = true;
     }
 
     return this.accessRepo.find({
@@ -161,12 +159,12 @@ export class MachineAccessService {
   ): Promise<MachineAccess[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
-      user_id: userId,
-      organization_id: organizationId,
+      userId,
+      organizationId,
     };
 
     if (!includeInactive) {
-      where.is_active = true;
+      where.isActive = true;
     }
 
     return this.accessRepo.find({
@@ -180,7 +178,7 @@ export class MachineAccessService {
    */
   async findById(id: string, organizationId: string): Promise<MachineAccess> {
     const access = await this.accessRepo.findOne({
-      where: { id, organization_id: organizationId },
+      where: { id, organizationId },
     });
 
     if (!access) {
@@ -206,16 +204,16 @@ export class MachineAccessService {
     const limit = options?.limit || 20;
 
     const qb = this.accessRepo.createQueryBuilder("ma");
-    qb.where("ma.organization_id = :organizationId", { organizationId });
+    qb.where("ma.organizationId = :organizationId", { organizationId });
 
     if (options?.machineId) {
-      qb.andWhere("ma.machine_id = :machineId", {
+      qb.andWhere("ma.machineId = :machineId", {
         machineId: options.machineId,
       });
     }
 
     if (options?.userId) {
-      qb.andWhere("ma.user_id = :userId", { userId: options.userId });
+      qb.andWhere("ma.userId = :userId", { userId: options.userId });
     }
 
     const total = await qb.getCount();
@@ -256,10 +254,10 @@ export class MachineAccessService {
     organizationId: string,
   ): Promise<AccessTemplate> {
     const template = this.templateRepo.create({
-      organization_id: organizationId,
+      organizationId,
       name: dto.name,
       description: dto.description || null,
-      is_active: dto.is_active !== undefined ? dto.is_active : true,
+      isActive: dto.isActive !== undefined ? dto.isActive : true,
       metadata: dto.metadata || {},
     });
 
@@ -269,7 +267,7 @@ export class MachineAccessService {
     if (dto.rows?.length) {
       const rows = dto.rows.map((row) =>
         this.templateRowRepo.create({
-          template_id: savedTemplate.id,
+          templateId: savedTemplate.id,
           role: row.role,
           permissions: row.permissions || {},
         }),
@@ -297,7 +295,7 @@ export class MachineAccessService {
     if (dto.name !== undefined) template.name = dto.name;
     if (dto.description !== undefined)
       template.description = dto.description || null;
-    if (dto.is_active !== undefined) template.is_active = dto.is_active;
+    if (dto.isActive !== undefined) template.isActive = dto.isActive;
     if (dto.metadata !== undefined) template.metadata = dto.metadata || {};
 
     await this.templateRepo.save(template);
@@ -306,7 +304,7 @@ export class MachineAccessService {
     if (dto.rows !== undefined) {
       // Soft-delete existing rows
       const existingRows = await this.templateRowRepo.find({
-        where: { template_id: id },
+        where: { templateId: id },
       });
       if (existingRows.length > 0) {
         await this.templateRowRepo.softRemove(existingRows);
@@ -315,7 +313,7 @@ export class MachineAccessService {
       // Create new rows
       const rows = dto.rows.map((row) =>
         this.templateRowRepo.create({
-          template_id: id,
+          templateId: id,
           role: row.role,
           permissions: row.permissions || {},
         }),
@@ -336,7 +334,7 @@ export class MachineAccessService {
     organizationId: string,
   ): Promise<AccessTemplate> {
     const template = await this.templateRepo.findOne({
-      where: { id, organization_id: organizationId },
+      where: { id, organizationId },
       relations: ["rows"],
     });
 
@@ -355,9 +353,9 @@ export class MachineAccessService {
     includeInactive = false,
   ): Promise<AccessTemplate[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { organization_id: organizationId };
+    const where: any = { organizationId };
     if (!includeInactive) {
-      where.is_active = true;
+      where.isActive = true;
     }
 
     return this.templateRepo.find({
@@ -392,7 +390,7 @@ export class MachineAccessService {
   ): Promise<MachineAccess[]> {
     const template = await this.findTemplateById(templateId, organizationId);
 
-    if (!template.is_active) {
+    if (!template.isActive) {
       throw new BadRequestException("Cannot apply an inactive template");
     }
 
@@ -407,8 +405,8 @@ export class MachineAccessService {
         try {
           const access = await this.grantAccess(
             {
-              machine_id: machineId,
-              user_id: userId,
+              machineId,
+              userId,
               role: row.role,
               metadata: {
                 applied_from_template: templateId,
