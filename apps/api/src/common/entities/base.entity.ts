@@ -36,12 +36,12 @@ export abstract class BaseEntity {
    * Used for audit trails.
    */
   @Column({ type: "uuid", nullable: true })
-  createdById: string | null;
+  createdById: string | null = null;
 
   /**
    * ID of the user who last updated this record.
    * Used for audit trails.
    */
   @Column({ type: "uuid", nullable: true })
-  updatedById: string | null;
+  updatedById: string | null = null;
 }
