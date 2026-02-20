@@ -543,11 +543,11 @@ export class MaterialRequestsService {
 
     const fromStatus = request.status;
     request.status = MaterialRequestStatus.DRAFT;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TypeORM: set nullable column to NULL
     request.rejectedBy = undefined as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TypeORM: set nullable column to NULL
     request.rejectedAt = undefined as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TypeORM: set nullable column to NULL
     request.rejectionReason = undefined as any;
 
     await this.requestRepo.save(request);

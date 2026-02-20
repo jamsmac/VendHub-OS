@@ -165,7 +165,7 @@ export function QuestsScreen() {
             <View style={[styles.statusBadge, { backgroundColor: "#EEF2FF" }]}>
               <Ionicons name="timer-outline" size={14} color={COLORS.primary} />
               <Text style={[styles.statusText, { color: COLORS.primary }]}>
-                In Progress
+                {t("client.quests.inProgress")}
               </Text>
             </View>
           )}
@@ -177,14 +177,16 @@ export function QuestsScreen() {
             onPress={() => handleClaimQuest(item.id)}
             disabled={claimQuestMutation.isPending}
           >
-            <Text style={styles.claimButtonText}>Claim</Text>
+            <Text style={styles.claimButtonText}>
+              {t("client.quests.claim")}
+            </Text>
           </TouchableOpacity>
         )}
 
         {item.status === "claimed" && (
           <View style={[styles.claimButton, styles.claimButtonDisabled]}>
             <Text style={[styles.claimButtonText, { color: COLORS.green }]}>
-              Done
+              {t("client.quests.done")}
             </Text>
           </View>
         )}
@@ -202,16 +204,18 @@ export function QuestsScreen() {
       {/* Header with Streak */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Quests</Text>
+          <Text style={styles.headerTitle}>{t("client.quests.title")}</Text>
           <Text style={styles.headerSubtitle}>
-            Complete quests to earn points
+            {t("client.quests.subtitle")}
           </Text>
         </View>
         <View style={styles.streakBadge}>
           <Text style={styles.streakEmoji}>🔥</Text>
           <View>
-            <Text style={styles.streakText}>{streak} day</Text>
-            <Text style={styles.streakLabel}>streak</Text>
+            <Text style={styles.streakText}>
+              {streak} {t("client.quests.day")}
+            </Text>
+            <Text style={styles.streakLabel}>{t("client.quests.streak")}</Text>
           </View>
         </View>
       </View>
@@ -230,7 +234,7 @@ export function QuestsScreen() {
                 activeTab === tab && styles.tabTextActive,
               ]}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {t(`client.quests.tabs.${tab}`)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -250,9 +254,13 @@ export function QuestsScreen() {
       ) : (
         <View style={styles.emptyState}>
           <Ionicons name="checkmark-done" size={64} color={COLORS.muted} />
-          <Text style={styles.emptyTitle}>No {activeTab} quests</Text>
+          <Text style={styles.emptyTitle}>
+            {t("client.quests.noQuests", {
+              type: t(`client.quests.tabs.${activeTab}`),
+            })}
+          </Text>
           <Text style={styles.emptySubtitle}>
-            All {activeTab} quests are completed! Come back later.
+            {t("client.quests.allCompleted")}
           </Text>
         </View>
       )}

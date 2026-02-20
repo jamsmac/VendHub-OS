@@ -294,29 +294,29 @@ export class Machine extends BaseEntity {
   @Column({ nullable: true })
   contractId: string;
 
-  // Relations (to be connected)
+  // Relations (string-based to avoid circular imports)
   @OneToMany("MachineSlot", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   slots: any[];
 
   @OneToMany("MachineLocationHistory", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   locationHistory: any[];
 
   @OneToMany("MachineInventory", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   inventory: any[];
 
   @OneToMany("Task", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   tasks: any[];
 
   @OneToMany("Transaction", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   transactions: any[];
 
   @OneToMany("Complaint", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
   complaints: any[];
 
   // Computed properties
