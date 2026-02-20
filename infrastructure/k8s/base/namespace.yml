@@ -1,0 +1,10 @@
+# ==================================================
+# VendHub Namespace
+# ==================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vendhub
+  labels:
+    app.kubernetes.io/name: vendhub
+    app.kubernetes.io/part-of: vendhub-system

@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm Brew Theme from vhm24v2 */
+    --background: 30 50% 98%;
+    --foreground: 20 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 20% 15%;
+    --primary: 24 60% 25%;
+    --primary-foreground: 30 50% 98%;
+    --secondary: 30 30% 92%;
+    --secondary-foreground: 20 20% 15%;
+    --muted: 30 20% 94%;
+    --muted-foreground: 20 10% 45%;
+    --accent: 24 80% 45%;
+    --accent-foreground: 30 50% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 24 60% 25%;
+    --radius: 0.75rem;
+
+    /* Custom colors */
+    --coffee: 24 60% 25%;
+    --cream: 30 50% 98%;
+    --caramel: 24 80% 45%;
+    --mocha: 20 30% 20%;
+  }
+
+  .dark {
+    --background: 20 20% 10%;
+    --foreground: 30 50% 95%;
+    --card: 20 20% 12%;
+    --card-foreground: 30 50% 95%;
+    --popover: 20 20% 12%;
+    --popover-foreground: 30 50% 95%;
+    --primary: 24 60% 60%;
+    --primary-foreground: 20 20% 10%;
+    --secondary: 20 15% 20%;
+    --secondary-foreground: 30 50% 95%;
+    --muted: 20 15% 18%;
+    --muted-foreground: 30 20% 60%;
+    --accent: 24 80% 50%;
+    --accent-foreground: 20 20% 10%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 15% 20%;
+    --input: 20 15% 20%;
+    --ring: 24 60% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Disable pull-to-refresh on mobile */
+  html {
+    overscroll-behavior: none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-medium transition-all active:scale-95;
+  }
+
+  .card-coffee {
+    @apply bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden;
+  }
+
+  .gradient-coffee {
+    background: linear-gradient(135deg, hsl(var(--coffee)) 0%, hsl(var(--caramel)) 100%);
+  }
+}
+
+/* Hide scrollbar but allow scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area padding for mobile */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 16px);
+}

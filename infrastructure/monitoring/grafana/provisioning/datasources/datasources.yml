@@ -1,0 +1,46 @@
+# ==================================================
+# Grafana Data Sources Provisioning
+# ==================================================
+
+apiVersion: 1
+
+datasources:
+  # Prometheus
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: POST
+
+  # Loki (for logs)
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+
+  # PostgreSQL
+  - name: PostgreSQL
+    type: postgres
+    url: postgres:5432
+    database: vendhub
+    user: ${POSTGRES_USER}
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+
+  # Redis
+  - name: Redis
+    type: redis-datasource
+    url: redis:6379
+    editable: false

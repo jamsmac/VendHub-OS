@@ -1,0 +1,62 @@
+# ==================================================
+# Staging Ingress Patch
+# ==================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vendhub-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  tls:
+    - hosts:
+        - api-staging.vendhub.uz
+        - admin-staging.vendhub.uz
+        - app-staging.vendhub.uz
+        - bot-staging.vendhub.uz
+      secretName: vendhub-staging-tls
+
+  rules:
+    - host: api-staging.vendhub.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: staging-vendhub-api
+                port:
+                  number: 4000
+
+    - host: admin-staging.vendhub.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: staging-vendhub-web
+                port:
+                  number: 3000
+
+    - host: app-staging.vendhub.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: staging-vendhub-client
+                port:
+                  number: 80
+
+    - host: bot-staging.vendhub.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: staging-vendhub-bot
+                port:
+                  number: 3001

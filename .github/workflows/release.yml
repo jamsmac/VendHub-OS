@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # ========================================
+  # Pre-release Tests
+  # ========================================
+  pre-release-tests:
+    name: Pre-release Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+  # ========================================
+  # Build & Push Production Images
+  # ========================================
+  build-production:
+    name: Build Production Images
+    runs-on: ubuntu-latest
+    needs: pre-release-tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      # API Image
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: true
+          tags: |
+            vendhub/api:${{ steps.version.outputs.VERSION }}
+            vendhub/api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Web Image
+      - name: Build and push Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: true
+          tags: |
+            vendhub/web:${{ steps.version.outputs.VERSION }}
+            vendhub/web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Client Image
+      - name: Build and push Client image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/client/Dockerfile
+          push: true
+          tags: |
+            vendhub/client:${{ steps.version.outputs.VERSION }}
+            vendhub/client:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ========================================
+  # Deploy to Production
+  # ========================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-production
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Deploy to production cluster
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /opt/vendhub
+            set -e
+
+            BACKUP_FILE="/backups/vendhub_$(date +%Y%m%d_%H%M%S).sql"
+            export VERSION=${{ steps.version.outputs.VERSION }}
+
+            # Save current image tags for rollback
+            PREV_API_TAG=$(docker inspect vendhub-api --format='{{ "{{" }}.Config.Image{{ "}}" }}' 2>/dev/null || echo "none")
+            echo "$PREV_API_TAG" > /tmp/vendhub_prev_version.txt
+
+            # Backup database
+            docker compose exec -T postgres pg_dump -U vendhub vendhub > "$BACKUP_FILE"
+
+            # Update images
+            docker compose pull
+
+            # Rolling update
+            docker compose up -d --no-deps --scale api=2 api
+            sleep 30
+            docker compose up -d --no-deps --scale api=1 api
+
+            # Run migrations
+            docker compose exec -T api pnpm migration:run
+
+            # Verify deployment health
+            for i in $(seq 1 5); do
+              if docker compose exec -T api curl -sf http://localhost:4000/health > /dev/null 2>&1; then
+                echo "Production deployment v${VERSION} completed at $(date)"
+                exit 0
+              fi
+              echo "Waiting for API health check (attempt $i/5)..."
+              sleep 10
+            done
+
+            # Rollback on failure
+            echo "ROLLBACK: Health check failed, rolling back..."
+            PREV_TAG=$(cat /tmp/vendhub_prev_version.txt)
+            if [ "$PREV_TAG" != "none" ]; then
+              docker compose up -d --no-deps api
+              psql -U vendhub -d vendhub < "$BACKUP_FILE"
+              echo "ROLLBACK completed to $PREV_TAG"
+            fi
+            exit 1
+
+      - name: Health check
+        run: |
+          for i in {1..10}; do
+            if curl -s https://api.vendhub.uz/health | grep -q "ok"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Waiting for API to be healthy..."
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Notify Telegram
+        if: always()
+        uses: appleboy/telegram-action@v0.1.1
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            VendHub Production Release
+
+            Version: ${{ steps.version.outputs.VERSION }}
+            Status: ${{ job.status }}
+
+            https://vendhub.uz
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: vendhub
+          SENTRY_PROJECT: api
+        with:
+          environment: production
+          version: ${{ steps.version.outputs.VERSION }}

@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\Users\\user\\Desktop\\vending\\VendHub OS\\apps\")",
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(test:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(node --version:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm install)",
+      "Bash(docker:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(npm run migration:run:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(node -e \"const dotenv = require(''dotenv''); const path = require(''path''); const result = dotenv.config({ path: path.join(__dirname, ''src/database'', ''../../../../.env'') }); console.log(''Loaded:'', result.parsed ? Object.keys(result.parsed).length + '' vars'' : ''FAILED''); console.log(''DB_PASSWORD:'', process.env.DB_PASSWORD);\")",
+      "Bash(npx ts-node:*)",
+      "Bash(node -e:*)",
+      "Bash(set PGPASSWORD=vendhub_secret:*)",
+      "Bash(psql:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(find:*)",
+      "Bash(npm run schema:sync:*)",
+      "Bash(pnpm dev)",
+      "Bash(timeout 45 bash -c 'cd \"\"C:\\Users\\user\\Desktop\\vending\\VendHub OS\\apps\\api\"\" && npx nest start --watch 2>&1')",
+      "Bash(timeout 60 npx ts-node:*)",
+      "Bash(timeout 90 npx ts-node:*)",
+      "Bash(curl:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh repo list:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

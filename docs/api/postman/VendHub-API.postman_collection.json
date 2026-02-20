@@ -1,0 +1,458 @@
+{
+  "info": {
+    "name": "VendHub API",
+    "description": "VendHub OS API Collection for testing all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "vendhub"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "}",
+                  "if (jsonData.refreshToken) {",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@vendhub.uz\",\n  \"password\": \"demo123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/auth/refresh"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/:id"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@vendhub.uz\",\n  \"password\": \"password123\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"role\": \"operator\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Machines",
+      "item": [
+        {
+          "name": "List Machines",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/machines?page=1&limit=20&status=online",
+              "host": ["{{baseUrl}}"],
+              "path": ["machines"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "online" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Machine by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/machines/:id"
+          }
+        },
+        {
+          "name": "Get Nearby Machines",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/machines/nearby?lat=41.311081&lng=69.279737&radius=5000",
+              "host": ["{{baseUrl}}"],
+              "path": ["machines", "nearby"],
+              "query": [
+                { "key": "lat", "value": "41.311081" },
+                { "key": "lng", "value": "69.279737" },
+                { "key": "radius", "value": "5000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products/:id"
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/search?q=кофе",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "search"],
+              "query": [
+                { "key": "q", "value": "кофе" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Get Warehouse Stock",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/inventory/warehouse"
+          }
+        },
+        {
+          "name": "Get Machine Inventory",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/inventory/machine/:machineId"
+          }
+        },
+        {
+          "name": "Transfer Stock",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceType\": \"warehouse\",\n  \"sourceId\": \"warehouse-id\",\n  \"destinationType\": \"operator\",\n  \"destinationId\": \"operator-id\",\n  \"items\": [\n    { \"productId\": \"product-id\", \"quantity\": 10 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/inventory/transfer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/orders?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machineId\": \"machine-id\",\n  \"items\": [\n    { \"productId\": \"product-id\", \"quantity\": 1, \"price\": 15000 }\n  ],\n  \"paymentMethod\": \"payme\",\n  \"totalAmount\": 15000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/orders"
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loyalty",
+      "item": [
+        {
+          "name": "Get My Loyalty",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/loyalty/me"
+          }
+        },
+        {
+          "name": "Get Rewards",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/loyalty/rewards"
+          }
+        },
+        {
+          "name": "Get Points History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/loyalty/history"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quests",
+      "item": [
+        {
+          "name": "Get Active Quests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/quests?type=daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["quests"],
+              "query": [
+                { "key": "type", "value": "daily" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Quest Reward",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quests/:questId/claim"
+          }
+        },
+        {
+          "name": "Get Streak",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/quests/streak"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/employees"
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Иван\",\n  \"lastName\": \"Петров\",\n  \"email\": \"ivan@vendhub.uz\",\n  \"phone\": \"+998901234567\",\n  \"position\": \"Оператор\",\n  \"department\": \"Операции\",\n  \"role\": \"operator\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/employees"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maintenance",
+      "item": [
+        {
+          "name": "List Maintenance Requests",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/maintenance"
+          }
+        },
+        {
+          "name": "Create Maintenance Request",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machineId\": \"machine-id\",\n  \"type\": \"corrective\",\n  \"priority\": \"high\",\n  \"title\": \"Не работает приёмник купюр\",\n  \"description\": \"Клиенты жалуются на отказ приёма купюр\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/maintenance"
+          }
+        },
+        {
+          "name": "Approve Maintenance Request",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/maintenance/:id/approve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complaints",
+      "item": [
+        {
+          "name": "List Complaints",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/complaints"
+          }
+        },
+        {
+          "name": "Create Complaint",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machineId\": \"machine-id\",\n  \"type\": \"product_quality\",\n  \"description\": \"Кофе слишком горячий\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/complaints"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Sales Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports/sales?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "sales"],
+              "query": [
+                { "key": "startDate", "value": "2024-01-01" },
+                { "key": "endDate", "value": "2024-12-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Machine Performance",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reports/machines/:machineId"
+          }
+        },
+        {
+          "name": "Inventory Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reports/inventory"
+          }
+        }
+      ]
+    }
+  ]
+}

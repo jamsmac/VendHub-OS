@@ -1,0 +1,214 @@
+# ==================================================
+# VendHub Alerting Rules
+# ==================================================
+
+groups:
+  # ============================================
+  # Infrastructure Alerts
+  # ============================================
+  - name: infrastructure
+    rules:
+      # High CPU usage
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes (current: {{ $value }}%)"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% (current: {{ $value }}%)"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is above 80% on {{ $labels.mountpoint }} (current: {{ $value }}%)"
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk usage is above 95% on {{ $labels.mountpoint }} (current: {{ $value }}%)"
+
+  # ============================================
+  # Application Alerts
+  # ============================================
+  - name: application
+    rules:
+      # API service down
+      - alert: ApiServiceDown
+        expr: up{job="vendhub-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "VendHub API is down"
+          description: "The API service has been unavailable for more than 1 minute"
+
+      # High API response time
+      - alert: HighApiLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="vendhub-api"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile of API response time is above 2 seconds (current: {{ $value }}s)"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{job="vendhub-api", status=~"5.."}[5m])) / sum(rate(http_requests_total{job="vendhub-api"}[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on API"
+          description: "Error rate is above 5% (current: {{ $value }}%)"
+
+      # Critical error rate
+      - alert: CriticalErrorRate
+        expr: sum(rate(http_requests_total{job="vendhub-api", status=~"5.."}[5m])) / sum(rate(http_requests_total{job="vendhub-api"}[5m])) * 100 > 20
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical error rate on API"
+          description: "Error rate is above 20% (current: {{ $value }}%)"
+
+      # Web service down
+      - alert: WebServiceDown
+        expr: up{job="vendhub-web"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "VendHub Web is down"
+          description: "The web service has been unavailable for more than 1 minute"
+
+      # Bot service down
+      - alert: BotServiceDown
+        expr: up{job="vendhub-bot"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "VendHub Bot is down"
+          description: "The Telegram bot has been unavailable for more than 2 minutes"
+
+  # ============================================
+  # Database Alerts
+  # ============================================
+  - name: database
+    rules:
+      # PostgreSQL down
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding"
+
+      # Too many connections
+      - alert: PostgresTooManyConnections
+        expr: pg_stat_activity_count / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connection pool nearly exhausted"
+          description: "PostgreSQL is using {{ $value }}% of available connections"
+
+      # Slow queries
+      - alert: PostgresSlowQueries
+        expr: rate(pg_stat_activity_max_tx_duration{state="active"}[5m]) > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow queries detected in PostgreSQL"
+          description: "There are queries running for more than 60 seconds"
+
+      # Redis down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is not responding"
+
+      # Redis memory high
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value }}% of available memory"
+
+  # ============================================
+  # Business Alerts
+  # ============================================
+  - name: business
+    rules:
+      # No orders in last hour
+      - alert: NoOrdersLastHour
+        expr: increase(vendhub_orders_total[1h]) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No orders in the last hour"
+          description: "No new orders have been created in the last hour during business hours"
+
+      # Machine offline
+      - alert: MachineOffline
+        expr: vendhub_machine_status{status="offline"} == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Vending machine {{ $labels.machine_id }} is offline"
+          description: "Machine {{ $labels.machine_name }} has been offline for more than 15 minutes"
+
+      # Low inventory
+      - alert: LowInventory
+        expr: vendhub_machine_inventory_level < 10
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low inventory on machine {{ $labels.machine_id }}"
+          description: "Machine {{ $labels.machine_name }} has low inventory for product {{ $labels.product_name }}"
+
+      # Payment failures
+      - alert: HighPaymentFailureRate
+        expr: sum(rate(vendhub_payments_total{status="failed"}[15m])) / sum(rate(vendhub_payments_total[15m])) * 100 > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is above 10% (current: {{ $value }}%)"

@@ -1,0 +1,318 @@
+# ==================================================
+# VendHub Helm Chart Values
+# ==================================================
+
+# Global settings
+global:
+  environment: production
+  imageRegistry: docker.io
+  imagePullSecrets: []
+  storageClass: ""
+
+# ============================================
+# API Configuration
+# ============================================
+api:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: vendhub/api
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 4000
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Environment variables
+  env:
+    NODE_ENV: production
+    PORT: "4000"
+    ENABLE_SWAGGER: "true"
+    ENABLE_METRICS: "true"
+
+  # Probes
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+
+  livenessProbe:
+    enabled: true
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    enabled: true
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# ============================================
+# Web (Admin Panel) Configuration
+# ============================================
+web:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: vendhub/web
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+  env:
+    NODE_ENV: production
+
+# ============================================
+# Client (Mini App) Configuration
+# ============================================
+client:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: vendhub/client
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+# ============================================
+# Bot Configuration
+# ============================================
+bot:
+  enabled: true
+  replicaCount: 1  # Single replica for webhook
+
+  image:
+    repository: vendhub/bot
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3001
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  env:
+    WEBHOOK_PATH: /webhook
+
+# ============================================
+# Ingress Configuration
+# ============================================
+ingress:
+  enabled: true
+  className: nginx
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+
+  hosts:
+    api: api.vendhub.uz
+    web: admin.vendhub.uz
+    client: app.vendhub.uz
+    bot: bot.vendhub.uz
+    websocket: ws.vendhub.uz
+
+  tls:
+    enabled: true
+    secretName: vendhub-tls
+
+# ============================================
+# PostgreSQL Configuration
+# ============================================
+postgresql:
+  enabled: true
+
+  auth:
+    username: vendhub
+    database: vendhub
+    existingSecret: vendhub-postgres-secret
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: ""
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# ============================================
+# Redis Configuration
+# ============================================
+redis:
+  enabled: true
+
+  auth:
+    enabled: true
+    existingSecret: vendhub-redis-secret
+    existingSecretPasswordKey: redis-password
+
+  master:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+  replica:
+    replicaCount: 0  # Disable replicas for simplicity
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# ============================================
+# Secrets
+# ============================================
+secrets:
+  # Database
+  databaseUrl: ""  # Will be constructed from postgresql values
+
+  # JWT
+  jwtSecret: ""
+  jwtRefreshSecret: ""
+
+  # Telegram
+  telegramBotToken: ""
+
+  # Payment providers
+  paymeMerchantId: ""
+  paymeSecretKey: ""
+  clickMerchantId: ""
+  clickServiceId: ""
+  clickSecretKey: ""
+
+  # External services
+  sentryDsn: ""
+  smtpHost: ""
+  smtpUser: ""
+  smtpPassword: ""
+
+# ============================================
+# Monitoring
+# ============================================
+monitoring:
+  enabled: true
+
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+  prometheusRule:
+    enabled: true
+
+# ============================================
+# Backup
+# ============================================
+backup:
+  enabled: false
+
+  schedule: "0 2 * * *"  # Daily at 2 AM
+
+  retention:
+    days: 30
+
+  s3:
+    bucket: ""
+    region: ""
+    accessKeyId: ""
+    secretAccessKey: ""
+
+# ============================================
+# Ingress-nginx (subchart)
+# ============================================
+ingress-nginx:
+  enabled: false  # Usually already installed in cluster

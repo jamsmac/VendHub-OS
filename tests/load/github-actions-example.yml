@@ -1,0 +1,259 @@
+# Example GitHub Actions workflow for VendHub OS load testing
+# Copy this to .github/workflows/load-test.yml
+
+name: Load Tests
+
+on:
+  # Run on schedule (daily at 2 AM UTC)
+  schedule:
+    - cron: '0 2 * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+          - spike
+          - all
+
+  # Run on PR to main (smoke test only)
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: vendhub_test
+          POSTGRES_USER: vendhub
+          POSTGRES_PASSWORD: vendhub123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.15
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Verify k6 installation
+        run: k6 version
+
+      - name: Build API
+        run: pnpm --filter api build
+
+      - name: Run migrations
+        run: pnpm --filter api migration:run
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: vendhub_test
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub123
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Seed test data
+        run: pnpm --filter api db:seed
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: vendhub_test
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub123
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Start API
+        run: pnpm --filter api start:prod &
+        env:
+          NODE_ENV: production
+          PORT: 4000
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: vendhub_test
+          DB_USER: vendhub
+          DB_PASSWORD: vendhub123
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret-key-do-not-use-in-production
+
+      - name: Wait for API
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:4000/health; do echo "Waiting for API..."; sleep 2; done'
+        env:
+          BASE_URL: http://localhost:4000
+
+      - name: Run smoke test
+        if: github.event_name == 'pull_request' || github.event.inputs.test_type == 'smoke' || github.event.inputs.test_type == 'all'
+        run: |
+          cd tests/load
+          k6 run --out json=../../results/smoke.json --summary-export=../../results/smoke_summary.json smoke.js
+        env:
+          BASE_URL: http://localhost:4000
+          TEST_EMAIL: admin@vendhub.com
+          TEST_PASSWORD: admin123
+
+      - name: Run load test
+        if: (github.event_name == 'schedule' || github.event.inputs.test_type == 'load' || github.event.inputs.test_type == 'all') && github.event_name != 'pull_request'
+        run: |
+          cd tests/load
+          k6 run --out json=../../results/load.json --summary-export=../../results/load_summary.json load.js
+        env:
+          BASE_URL: http://localhost:4000
+          TEST_EMAIL: admin@vendhub.com
+          TEST_PASSWORD: admin123
+
+      - name: Run stress test
+        if: (github.event.inputs.test_type == 'stress' || github.event.inputs.test_type == 'all') && github.event_name != 'pull_request'
+        run: |
+          cd tests/load
+          k6 run --out json=../../results/stress.json --summary-export=../../results/stress_summary.json stress.js
+        env:
+          BASE_URL: http://localhost:4000
+          TEST_EMAIL: admin@vendhub.com
+          TEST_PASSWORD: admin123
+
+      - name: Run spike test
+        if: (github.event.inputs.test_type == 'spike' || github.event.inputs.test_type == 'all') && github.event_name != 'pull_request'
+        run: |
+          cd tests/load
+          k6 run --out json=../../results/spike.json --summary-export=../../results/spike_summary.json spike.js
+        env:
+          BASE_URL: http://localhost:4000
+          TEST_EMAIL: admin@vendhub.com
+          TEST_PASSWORD: admin123
+
+      - name: Analyze results
+        if: always()
+        run: |
+          cd tests/load
+          for summary in ../../results/*_summary.json; do
+            if [ -f "$summary" ]; then
+              echo "Analyzing $summary"
+              node analyze-results.js "$summary"
+              echo ""
+            fi
+          done
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results-${{ github.run_number }}
+          path: results/
+          retention-days: 30
+
+      - name: Check performance thresholds
+        if: always()
+        run: |
+          # Check if any test failed thresholds
+          for summary in results/*_summary.json; do
+            if [ -f "$summary" ]; then
+              # Extract test name
+              test_name=$(basename "$summary" _summary.json)
+
+              # Check if all thresholds passed
+              if ! jq -e '.thresholds | to_entries | all(.value.ok == true)' "$summary" > /dev/null; then
+                echo "::error::Performance thresholds failed for $test_name"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryFile = 'results/smoke_summary.json';
+
+            if (!fs.existsSync(summaryFile)) {
+              console.log('No summary file found');
+              return;
+            }
+
+            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+            const metrics = summary.metrics;
+
+            const successRate = (1 - (metrics.http_req_failed?.values?.rate || 0)) * 100;
+            const avgDuration = metrics.http_req_duration?.values?.avg || 0;
+            const p95Duration = metrics.http_req_duration?.values?.['p(95)'] || 0;
+
+            const comment = `## Load Test Results (Smoke Test)
+
+            | Metric | Value |
+            |--------|-------|
+            | Success Rate | ${successRate.toFixed(2)}% |
+            | Avg Response Time | ${avgDuration.toFixed(2)}ms |
+            | p95 Response Time | ${p95Duration.toFixed(2)}ms |
+            | Total Requests | ${metrics.http_reqs?.values?.count || 0} |
+            | Requests/sec | ${(metrics.http_reqs?.values?.rate || 0).toFixed(2)} |
+
+            ${successRate >= 99 ? '✅' : '⚠️'} Performance test ${successRate >= 99 ? 'passed' : 'has warnings'}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Stop API
+        if: always()
+        run: |
+          pkill -f "node.*api" || true
