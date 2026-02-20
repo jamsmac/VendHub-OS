@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Bell,
@@ -24,50 +25,8 @@ interface NotificationSettings {
   pushEnabled: boolean;
 }
 
-const SETTINGS_CONFIG = [
-  {
-    key: "orders" as const,
-    icon: ShoppingBag,
-    label: "Заказы",
-    description: "Статус заказа, подтверждение оплаты, готовность",
-    color: "text-blue-500",
-    bg: "bg-blue-100",
-  },
-  {
-    key: "promotions" as const,
-    icon: Megaphone,
-    label: "Акции и скидки",
-    description: "Специальные предложения, новые напитки, промокоды",
-    color: "text-orange-500",
-    bg: "bg-orange-100",
-  },
-  {
-    key: "loyalty" as const,
-    icon: Gift,
-    label: "Бонусная программа",
-    description: "Начисление баллов, повышение уровня, награды",
-    color: "text-purple-500",
-    bg: "bg-purple-100",
-  },
-  {
-    key: "quests" as const,
-    icon: MessageCircle,
-    label: "Квесты и достижения",
-    description: "Новые квесты, прогресс, открытые достижения",
-    color: "text-green-500",
-    bg: "bg-green-100",
-  },
-  {
-    key: "system" as const,
-    icon: AlertTriangle,
-    label: "Системные",
-    description: "Обслуживание автоматов, важные обновления",
-    color: "text-red-500",
-    bg: "bg-red-100",
-  },
-];
-
 export function NotificationSettingsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<NotificationSettings>({
@@ -78,6 +37,49 @@ export function NotificationSettingsPage() {
     system: true,
     pushEnabled: false,
   });
+
+  const SETTINGS_CONFIG = [
+    {
+      key: "orders" as const,
+      icon: ShoppingBag,
+      label: t("notificationOrders"),
+      description: t("notificationOrdersDescription"),
+      color: "text-blue-500",
+      bg: "bg-blue-100",
+    },
+    {
+      key: "promotions" as const,
+      icon: Megaphone,
+      label: t("notificationPromotions"),
+      description: t("notificationPromotionsDescription"),
+      color: "text-orange-500",
+      bg: "bg-orange-100",
+    },
+    {
+      key: "loyalty" as const,
+      icon: Gift,
+      label: t("notificationLoyalty"),
+      description: t("notificationLoyaltyDescription"),
+      color: "text-purple-500",
+      bg: "bg-purple-100",
+    },
+    {
+      key: "quests" as const,
+      icon: MessageCircle,
+      label: t("notificationQuestsAchievements"),
+      description: t("notificationQuestsDescription"),
+      color: "text-green-500",
+      bg: "bg-green-100",
+    },
+    {
+      key: "system" as const,
+      icon: AlertTriangle,
+      label: t("notificationSystem"),
+      description: t("notificationSystemDescription"),
+      color: "text-red-500",
+      bg: "bg-red-100",
+    },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ["notification-settings"],
@@ -96,20 +98,20 @@ export function NotificationSettingsPage() {
       notificationsApi.updateSettings(newSettings as Record<string, boolean>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-settings"] });
-      toast.success("Настройки сохранены");
+      toast.success(t("notificationSaved"));
     },
-    onError: () => toast.error("Ошибка сохранения"),
+    onError: () => toast.error(t("notificationSaveError")),
   });
 
   const pushMutation = useMutation({
     mutationFn: async (enable: boolean) => {
       if (enable) {
         if (!("Notification" in window)) {
-          throw new Error("Браузер не поддерживает уведомления");
+          throw new Error(t("notificationBrowserNotSupported"));
         }
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
-          throw new Error("Разрешение на уведомления отклонено");
+          throw new Error(t("notificationPermissionDenied"));
         }
         const registration = await navigator.serviceWorker?.ready;
         if (registration) {
@@ -129,10 +131,10 @@ export function NotificationSettingsPage() {
     onSuccess: (_data, enable) => {
       setSettings((s) => ({ ...s, pushEnabled: enable }));
       toast.success(
-        enable ? "Push-уведомления включены" : "Push-уведомления выключены",
+        enable ? t("notificationPushEnabled") : t("notificationPushDisabled"),
       );
     },
-    onError: (error: Error) => toast.error(error.message || "Ошибка"),
+    onError: (error: Error) => toast.error(error.message || t("error")),
   });
 
   const handleToggle = (key: keyof NotificationSettings) => {
@@ -172,10 +174,12 @@ export function NotificationSettingsPage() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Уведомления</h1>
+          <h1 className="text-xl font-bold">
+            {t("notificationSettingsTitle")}
+          </h1>
         </div>
         <p className="text-sm text-gray-500">
-          Настройте какие уведомления вы хотите получать
+          {t("notificationSettingsSubtitle")}
         </p>
       </div>
 
@@ -194,9 +198,9 @@ export function NotificationSettingsPage() {
                 )}
               </div>
               <div>
-                <p className="font-medium text-sm">Push-уведомления</p>
+                <p className="font-medium text-sm">{t("notificationPush")}</p>
                 <p className="text-xs text-gray-500">
-                  Уведомления в браузере в реальном времени
+                  {t("notificationPushDescription")}
                 </p>
               </div>
             </div>
@@ -220,13 +224,15 @@ export function NotificationSettingsPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">
-              Категории уведомлений
+              {t("notificationCategoriesTitle")}
             </h2>
             <button
               onClick={toggleAll}
               className="text-xs text-primary-500 font-medium"
             >
-              {allEnabled ? "Выключить все" : "Включить все"}
+              {allEnabled
+                ? t("notificationDisableAll")
+                : t("notificationEnableAll")}
             </button>
           </div>
 
@@ -272,10 +278,11 @@ export function NotificationSettingsPage() {
           <div className="flex gap-3">
             <Bell className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-sm text-amber-800">Тихие часы</p>
+              <p className="font-medium text-sm text-amber-800">
+                {t("notificationQuietHours")}
+              </p>
               <p className="text-xs text-amber-700 mt-1">
-                Уведомления автоматически отключаются с 23:00 до 07:00. Важные
-                системные сообщения будут приходить в любое время.
+                {t("notificationQuietHoursDescription")}
               </p>
             </div>
           </div>
@@ -298,9 +305,11 @@ export function NotificationSettingsPage() {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="font-medium text-sm">Telegram бот</p>
+            <p className="font-medium text-sm">
+              {t("notificationTelegramBot")}
+            </p>
             <p className="text-xs text-gray-500">
-              Получайте уведомления в Telegram
+              {t("notificationTelegramDescription")}
             </p>
           </div>
           <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />

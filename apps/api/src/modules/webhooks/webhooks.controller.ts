@@ -70,8 +70,10 @@ export class WebhooksController {
   @ApiOperation({ summary: "Create a new webhook endpoint" })
   @ApiResponse({ status: 201, description: "Webhook created successfully" })
   @ApiResponse({ status: 400, description: "Invalid input data" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createWebhook(@Req() req: any, @Body() dto: CreateWebhookDto) {
+  createWebhook(
+    @Req() req: Request & { user: { organizationId: string } },
+    @Body() dto: CreateWebhookDto,
+  ) {
     const organization_id = req.user.organizationId;
     const id = crypto.randomUUID();
     const secret = crypto.randomBytes(32).toString("hex");
@@ -107,8 +109,10 @@ export class WebhooksController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "List all webhooks for organization" })
   @ApiResponse({ status: 200, description: "List of webhooks" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listWebhooks(@Req() req: any, @Query() filter: FilterWebhooksDto) {
+  listWebhooks(
+    @Req() req: Request & { user: { organizationId: string } },
+    @Query() filter: FilterWebhooksDto,
+  ) {
     const organization_id = req.user.organizationId;
 
     let orgWebhooks = Array.from(this.webhooks.values()).filter(
@@ -164,8 +168,10 @@ export class WebhooksController {
   @ApiOperation({ summary: "Get webhook details" })
   @ApiResponse({ status: 200, description: "Webhook details" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getWebhook(@Req() req: any, @Param("id") id: string) {
+  getWebhook(
+    @Req() req: Request & { user: { organizationId: string } },
+    @Param("id") id: string,
+  ) {
     const webhook = this.webhooks.get(id);
 
     if (!webhook || webhook.organization_id !== req.user.organizationId) {
@@ -192,8 +198,7 @@ export class WebhooksController {
   @ApiResponse({ status: 200, description: "Webhook updated" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
   updateWebhook(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Req() req: any,
+    @Req() req: Request & { user: { organizationId: string } },
     @Param("id") id: string,
     @Body() dto: UpdateWebhookDto,
   ) {
@@ -230,8 +235,10 @@ export class WebhooksController {
   @ApiOperation({ summary: "Delete webhook" })
   @ApiResponse({ status: 204, description: "Webhook deleted" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteWebhook(@Req() req: any, @Param("id") id: string) {
+  deleteWebhook(
+    @Req() req: Request & { user: { organizationId: string } },
+    @Param("id") id: string,
+  ) {
     const webhook = this.webhooks.get(id);
 
     if (!webhook || webhook.organization_id !== req.user.organizationId) {
@@ -248,8 +255,10 @@ export class WebhooksController {
   @ApiOperation({ summary: "Regenerate webhook secret" })
   @ApiResponse({ status: 200, description: "New secret generated" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  regenerateSecret(@Req() req: any, @Param("id") id: string) {
+  regenerateSecret(
+    @Req() req: Request & { user: { organizationId: string } },
+    @Param("id") id: string,
+  ) {
     const webhook = this.webhooks.get(id);
 
     if (!webhook || webhook.organization_id !== req.user.organizationId) {
@@ -274,8 +283,7 @@ export class WebhooksController {
   @ApiResponse({ status: 200, description: "Test webhook sent" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
   async testWebhook(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Req() req: any,
+    @Req() req: Request & { user: { organizationId: string } },
     @Param("id") id: string,
     @Body() dto: TestWebhookDto,
   ) {
@@ -357,8 +365,7 @@ export class WebhooksController {
   @ApiResponse({ status: 200, description: "Webhook delivery logs" })
   @ApiResponse({ status: 400, description: "Webhook not found" })
   getWebhookLogs(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Req() req: any,
+    @Req() req: Request & { user: { organizationId: string } },
     @Param("id") id: string,
     @Query() query: WebhookLogsQueryDto,
   ) {

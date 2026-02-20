@@ -56,8 +56,7 @@ export class BotNotificationsService {
 
     try {
       await this.bot.telegram.sendMessage(user.telegramId, message, keyboard);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to send notification to ${userId}:`, error);
     }
   }
@@ -78,8 +77,7 @@ export class BotNotificationsService {
 
     try {
       await this.bot.telegram.sendMessage(user.telegramId, message, keyboard);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to send notification to ${userId}:`, error);
     }
   }
@@ -111,8 +109,7 @@ export class BotNotificationsService {
 
     try {
       await this.bot.telegram.sendMessage(user.telegramId, message, keyboard);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to send alert to ${userId}:`, error);
     }
   }

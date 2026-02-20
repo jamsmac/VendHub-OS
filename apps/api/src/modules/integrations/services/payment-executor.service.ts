@@ -126,17 +126,17 @@ export class PaymentExecutorService {
 
       // Parse response
       return this.parsePaymentResponse(config, endpoint, response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
       // Log error
       await this.logRequest(
         integration,
         endpoint,
         null,
-        error.response,
+        axiosErr?.response ?? null,
         startTime,
         false,
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
 
       throw this.handleError(error, config);
@@ -183,16 +183,16 @@ export class PaymentExecutorService {
 
       // Parse response
       return this.parsePaymentResponse(config, endpoint, response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
       await this.logRequest(
         integration,
         endpoint,
         null,
-        error.response,
+        axiosErr?.response ?? null,
         startTime,
         false,
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
       throw this.handleError(error, config);
     }
@@ -233,16 +233,16 @@ export class PaymentExecutorService {
       );
 
       return this.parsePaymentResponse(config, endpoint, response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
       await this.logRequest(
         integration,
         endpoint,
         null,
-        error.response,
+        axiosErr?.response ?? null,
         startTime,
         false,
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
       throw this.handleError(error, config);
     }
@@ -287,16 +287,16 @@ export class PaymentExecutorService {
       );
 
       return this.parsePaymentResponse(config, endpoint, response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
       await this.logRequest(
         integration,
         endpoint,
         null,
-        error.response,
+        axiosErr?.response ?? null,
         startTime,
         false,
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
       throw this.handleError(error, config);
     }
@@ -750,15 +750,18 @@ export class PaymentExecutorService {
     return path.split(".").reduce((current, key) => current?.[key], obj);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private handleError(error: any, config: PaymentIntegrationConfig): Error {
-    if (error.response) {
-      const errorData = error.response.data;
+  private handleError(error: unknown, config: PaymentIntegrationConfig): Error {
+    if (error instanceof AxiosError && error.response) {
+      const errorData = error.response.data as
+        | Record<string, unknown>
+        | undefined;
 
       // Check error mapping
       if (config.endpoints.createPayment?.errorMapping) {
         const mapping = config.endpoints.createPayment.errorMapping.find(
-          (m) => m.code === errorData.code || m.code === error.response.status,
+          (m) =>
+            m.code === (errorData as Record<string, unknown>)?.code ||
+            m.code === error.response!.status,
         );
 
         if (mapping) {
@@ -771,16 +774,19 @@ export class PaymentExecutorService {
       }
 
       return new BadRequestException({
-        code: errorData.code || "PAYMENT_ERROR",
+        code: (errorData as Record<string, unknown>)?.code || "PAYMENT_ERROR",
         message:
-          errorData.message || errorData.error || "Payment request failed",
+          (errorData as Record<string, unknown>)?.message ||
+          (errorData as Record<string, unknown>)?.error ||
+          "Payment request failed",
         originalError: errorData,
       });
     }
 
     return new BadRequestException({
       code: "NETWORK_ERROR",
-      message: error.message || "Network error occurred",
+      message:
+        error instanceof Error ? error.message : "Network error occurred",
     });
   }
 

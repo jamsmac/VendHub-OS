@@ -108,9 +108,11 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.bot.launch();
       this.logger.log("Telegram bot started");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Failed to start bot:", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Failed to start bot:",
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 

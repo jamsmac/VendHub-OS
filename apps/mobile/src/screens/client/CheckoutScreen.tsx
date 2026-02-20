@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,6 +69,7 @@ interface CheckoutScreenProps {
 }
 
 export function CheckoutScreen({ route }: CheckoutScreenProps) {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string>("payme");
@@ -104,7 +106,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
       });
     },
     onError: () => {
-      Alert.alert("Error", "Failed to place order. Please try again.");
+      Alert.alert(t("common.error"), t("client.checkout.orderFailed"));
     },
   });
 
@@ -129,7 +131,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
 
   const handlePlaceOrder = async () => {
     if (!selectedPayment) {
-      Alert.alert("Error", "Please select a payment method");
+      Alert.alert(t("common.error"), t("client.checkout.selectPayment"));
       return;
     }
 
@@ -161,13 +163,15 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Checkout</Text>
+        <Text style={styles.headerTitle}>{t("client.checkout.title")}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       {/* Order Summary */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Summary</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.checkout.orderSummary")}
+        </Text>
         <View style={styles.summaryCard}>
           <FlatList
             data={cartItems}
@@ -189,7 +193,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
           <View style={styles.divider} />
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalLabel}>{t("client.cart.subtotal")}</Text>
             <Text style={styles.totalValue}>
               {subtotal.toLocaleString()} so'm
             </Text>
@@ -197,7 +201,9 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
 
           {pointsDiscount > 0 && (
             <View style={styles.discountRow}>
-              <Text style={styles.discountLabel}>Points Discount</Text>
+              <Text style={styles.discountLabel}>
+                {t("client.checkout.pointsDiscount")}
+              </Text>
               <Text style={styles.discountValue}>
                 -{pointsDiscount.toLocaleString()} so'm
               </Text>
@@ -205,12 +211,12 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
           )}
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tax</Text>
+            <Text style={styles.totalLabel}>{t("client.checkout.tax")}</Text>
             <Text style={styles.totalValue}>{tax.toLocaleString()} so'm</Text>
           </View>
 
           <View style={[styles.totalRow, styles.grandTotal]}>
-            <Text style={styles.grandTotalLabel}>Total</Text>
+            <Text style={styles.grandTotalLabel}>{t("client.cart.total")}</Text>
             <Text style={styles.grandTotalValue}>
               {total.toLocaleString()} so'm
             </Text>
@@ -221,12 +227,16 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
       {/* Loyalty Points */}
       {loyaltyData && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Use Bonus Points</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.cart.useBonusPoints")}
+          </Text>
           <View style={styles.pointsCard}>
             <View style={styles.pointsHeader}>
               <Ionicons name="gift" size={24} color={COLORS.primary} />
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.pointsLabel}>Available Points</Text>
+                <Text style={styles.pointsLabel}>
+                  {t("client.checkout.availablePoints")}
+                </Text>
                 <Text style={styles.pointsAmount}>
                   {availablePoints.toLocaleString()}
                 </Text>
@@ -289,7 +299,9 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
 
       {/* Delivery Method */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Delivery Method</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.checkout.deliveryMethod")}
+        </Text>
         <View style={styles.deliveryOptions}>
           <TouchableOpacity
             style={[
@@ -311,7 +323,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
                 deliveryMethod === "pickup" && styles.deliveryTextActive,
               ]}
             >
-              Pickup at Machine
+              {t("client.checkout.pickupAtMachine")}
             </Text>
           </TouchableOpacity>
 
@@ -335,7 +347,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
                 deliveryMethod === "delivery" && styles.deliveryTextActive,
               ]}
             >
-              Delivery
+              {t("client.checkout.delivery")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -352,7 +364,9 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
 
       {/* Payment Method */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Payment Method</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.checkout.paymentMethod")}
+        </Text>
         <View style={styles.paymentOptions}>
           {PAYMENT_METHODS.map((method) => (
             <TouchableOpacity
@@ -408,7 +422,9 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
           ) : (
             <>
               <Ionicons name="checkmark-done" size={20} color={COLORS.card} />
-              <Text style={styles.placeOrderText}>Place Order</Text>
+              <Text style={styles.placeOrderText}>
+                {t("client.checkout.placeOrder")}
+              </Text>
             </>
           )}
         </TouchableOpacity>

@@ -5,6 +5,9 @@ import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import { TransactionsService } from "./transactions.service";
+import { TransactionQueryService } from "./transaction-query.service";
+import { TransactionCreateService } from "./transaction-create.service";
+import { TransactionReconcileService } from "./transaction-reconcile.service";
 import {
   Transaction,
   TransactionItem,
@@ -96,6 +99,9 @@ describe("TransactionsService", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        TransactionQueryService,
+        TransactionCreateService,
+        TransactionReconcileService,
         TransactionsService,
         {
           provide: getRepositoryToken(Transaction),

@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { inventoryApi } from "../../services/api";
 
 type TabKey = "operator" | "movements";
@@ -50,6 +51,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function InventoryScreen() {
+  const { t } = useTranslation();
   useNavigation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const route = useRoute<any>();
@@ -142,7 +144,8 @@ export function InventoryScreen() {
 
         {item.lastUpdated && (
           <Text style={styles.lastUpdated}>
-            Obnovleno: {new Date(item.lastUpdated).toLocaleDateString("ru-RU")}
+            {t("inventory.updated")}:{" "}
+            {new Date(item.lastUpdated).toLocaleDateString("ru-RU")}
           </Text>
         )}
       </View>
@@ -155,10 +158,10 @@ export function InventoryScreen() {
     const sign = item.type === "in" ? "+" : item.type === "out" ? "-" : "";
     const typeLabel =
       item.type === "in"
-        ? "Priyom"
+        ? t("inventory.receipt")
         : item.type === "out"
-          ? "Rashod"
-          : "Transfer";
+          ? t("inventory.expense")
+          : t("inventory.transfer");
 
     return (
       <View key={item.id} style={styles.movementCard}>
@@ -210,7 +213,7 @@ export function InventoryScreen() {
               activeTab === "operator" && styles.tabTextActive,
             ]}
           >
-            Zapasy
+            {t("inventory.stock")}
           </Text>
         </TouchableOpacity>
 
@@ -229,7 +232,7 @@ export function InventoryScreen() {
               activeTab === "movements" && styles.tabTextActive,
             ]}
           >
-            Dvizheniya
+            {t("inventory.movements")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -250,7 +253,9 @@ export function InventoryScreen() {
                   <Text style={styles.summaryValue}>
                     {operatorInventory.length}
                   </Text>
-                  <Text style={styles.summaryLabel}>Tovarov</Text>
+                  <Text style={styles.summaryLabel}>
+                    {t("inventory.products")}
+                  </Text>
                 </View>
                 <View style={styles.summaryCard}>
                   <Text style={[styles.summaryValue, { color: "#EF4444" }]}>
@@ -260,13 +265,15 @@ export function InventoryScreen() {
                       ).length
                     }
                   </Text>
-                  <Text style={styles.summaryLabel}>Kritichno</Text>
+                  <Text style={styles.summaryLabel}>
+                    {t("inventory.critical")}
+                  </Text>
                 </View>
                 <View style={styles.summaryCard}>
                   <Text style={[styles.summaryValue, { color: "#F59E0B" }]}>
                     {operatorInventory.filter((i) => i.status === "low").length}
                   </Text>
-                  <Text style={styles.summaryLabel}>Malo</Text>
+                  <Text style={styles.summaryLabel}>{t("inventory.low")}</Text>
                 </View>
               </View>
             )}
@@ -276,7 +283,7 @@ export function InventoryScreen() {
             operatorInventory &&
             operatorInventory.length > 0
               ? operatorInventory.map(renderInventoryItem)
-              : !loadingOperator && renderEmptyState("Net dannyh o zapasah")}
+              : !loadingOperator && renderEmptyState(t("inventory.emptyStock"))}
           </>
         )}
 
@@ -284,7 +291,8 @@ export function InventoryScreen() {
           <>
             {!loadingMovements && movements && movements.length > 0
               ? movements.map(renderMovement)
-              : !loadingMovements && renderEmptyState("Net dvizhenij tovara")}
+              : !loadingMovements &&
+                renderEmptyState(t("inventory.emptyMovements"))}
           </>
         )}
 

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +56,7 @@ const COLORS = {
 };
 
 export function CartScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [useBonusPoints, setUseBonusPoints] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const swipeAnimations = useRef<Record<string, Animated.Value>>({});
@@ -137,7 +139,7 @@ export function CartScreen({ navigation }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Shopping Cart</Text>
+        <Text style={styles.headerTitle}>{t("client.cart.title")}</Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{cartData?.items?.length || 0}</Text>
         </View>
@@ -146,13 +148,17 @@ export function CartScreen({ navigation }: Props) {
       {isEmpty ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="cafe-outline" size={64} color={COLORS.muted} />
-          <Text style={styles.emptyTitle}>Your cart is empty</Text>
-          <Text style={styles.emptySubtitle}>Start exploring our menu</Text>
+          <Text style={styles.emptyTitle}>{t("client.cart.empty")}</Text>
+          <Text style={styles.emptySubtitle}>
+            {t("client.cart.emptySubtitle")}
+          </Text>
           <TouchableOpacity
             style={styles.browseButton}
             onPress={() => navigation.navigate("Map")}
           >
-            <Text style={styles.browseButtonText}>Browse Machines</Text>
+            <Text style={styles.browseButtonText}>
+              {t("client.cart.browseMachines")}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -178,7 +184,9 @@ export function CartScreen({ navigation }: Props) {
             <View style={styles.bonusPointsHeader}>
               <View style={styles.bonusPointsInfo}>
                 <Ionicons name="gift" size={20} color={COLORS.primary} />
-                <Text style={styles.bonusPointsLabel}>Use Bonus Points</Text>
+                <Text style={styles.bonusPointsLabel}>
+                  {t("client.cart.useBonusPoints")}
+                </Text>
               </View>
               <Switch
                 value={useBonusPoints}
@@ -197,13 +205,15 @@ export function CartScreen({ navigation }: Props) {
           {/* Totals */}
           <View style={styles.totalsSection}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalLabel}>{t("client.cart.subtotal")}</Text>
               <Text style={styles.totalValue}>{cartData.subtotal} UZS</Text>
             </View>
 
             {useBonusPoints && cartData.bonus_points && (
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Bonus Points</Text>
+                <Text style={styles.totalLabel}>
+                  {t("client.cart.bonusPoints")}
+                </Text>
                 <Text style={[styles.totalValue, styles.discountValue]}>
                   -{cartData.bonus_points} UZS
                 </Text>
@@ -213,7 +223,7 @@ export function CartScreen({ navigation }: Props) {
             <View style={styles.divider} />
 
             <View style={styles.totalRow}>
-              <Text style={styles.grandTotal}>Total</Text>
+              <Text style={styles.grandTotal}>{t("client.cart.total")}</Text>
               <Text style={styles.grandTotalValue}>
                 {useBonusPoints
                   ? cartData.total - (cartData.bonus_points || 0)
@@ -235,7 +245,7 @@ export function CartScreen({ navigation }: Props) {
               ) : (
                 <>
                   <Text style={styles.checkoutButtonText}>
-                    Proceed to Checkout
+                    {t("client.cart.proceedToCheckout")}
                   </Text>
                   <Ionicons
                     name="arrow-forward"
@@ -250,7 +260,9 @@ export function CartScreen({ navigation }: Props) {
               style={styles.continueShoppingButton}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.continueShoppingText}>Continue Shopping</Text>
+              <Text style={styles.continueShoppingText}>
+                {t("client.cart.continueShopping")}
+              </Text>
             </TouchableOpacity>
           </View>
         </>

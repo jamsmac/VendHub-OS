@@ -44,8 +44,7 @@ export interface CreateNotificationDto {
   body: string;
   titleUz?: string;
   bodyUz?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   imageUrl?: string;
   actionUrl?: string;
   channels: NotificationChannel[];
@@ -61,8 +60,7 @@ export interface SendTemplatedNotificationDto {
   recipientEmail?: string;
   recipientPhone?: string;
   recipientTelegramId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variables: Record<string, any>;
+  variables: Record<string, unknown>;
   channels?: NotificationChannel[];
   priority?: NotificationPriority;
   scheduledFor?: Date;
@@ -76,13 +74,11 @@ export interface CreateCampaignDto {
   templateId?: string;
   title: string;
   body: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   targetType: "all" | "role" | "custom" | "filter";
   targetRoles?: string[];
   targetUserIds?: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  targetFilter?: Record<string, any>;
+  targetFilter?: Record<string, unknown>;
   channels: NotificationChannel[];
   scheduledFor?: Date;
 }
@@ -344,8 +340,7 @@ export class NotificationsService {
       body: string;
       status: NotificationStatus;
       priority: NotificationPriority;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: Record<string, any>;
+      data: Record<string, unknown>;
       scheduledFor: Date;
       expiresAt: Date;
     }>,
@@ -583,8 +578,7 @@ export class NotificationsService {
 
   private interpolate(
     template: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    variables: Record<string, any>,
+    variables: Record<string, unknown>,
   ): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return variables[key] !== undefined ? String(variables[key]) : match;
@@ -798,10 +792,10 @@ export class NotificationsService {
         await this.sendToChannel(entry);
         entry.status = NotificationStatus.SENT;
         entry.processedAt = new Date();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error: unknown) {
         entry.status = NotificationStatus.FAILED;
-        entry.lastError = error.message;
+        entry.lastError =
+          error instanceof Error ? error.message : String(error);
         entry.retryCount++;
 
         if (entry.retryCount < entry.maxRetries) {
@@ -882,8 +876,7 @@ export class NotificationsService {
   async triggerByEvent(
     organizationId: string,
     eventType: NotificationType,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): Promise<void> {
     const rules = await this.ruleRepo.find({
       where: {
@@ -933,8 +926,7 @@ export class NotificationsService {
 
   private checkRuleConditions(
     rule: NotificationRule,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): boolean {
     if (!rule.conditions?.length) return true;
 
@@ -949,10 +941,10 @@ export class NotificationsService {
           if (value === condition.value) return false;
           break;
         case "greater_than":
-          if (value <= condition.value) return false;
+          if (Number(value) <= Number(condition.value)) return false;
           break;
         case "less_than":
-          if (value >= condition.value) return false;
+          if (Number(value) >= Number(condition.value)) return false;
           break;
         case "in":
           if (!condition.value.includes(value)) return false;
@@ -971,8 +963,7 @@ export class NotificationsService {
 
   private resolveRecipient(
     rule: NotificationRule,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): string | undefined {
     if (
       rule.recipientType === "specific_users" &&
@@ -982,10 +973,10 @@ export class NotificationsService {
     }
     // For assignee or manager types, try to get from data
     if (rule.recipientType === "assignee" && data.assigneeId) {
-      return data.assigneeId;
+      return data.assigneeId as string;
     }
     if (rule.recipientType === "manager" && data.managerId) {
-      return data.managerId;
+      return data.managerId as string;
     }
     return undefined;
   }

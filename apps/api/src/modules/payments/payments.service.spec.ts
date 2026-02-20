@@ -9,6 +9,9 @@ import {
 } from "@nestjs/common";
 
 import { PaymentsService, PaymeWebhookData } from "./payments.service";
+import { PaymeHandler } from "./payme.handler";
+import { ClickHandler } from "./click.handler";
+import { UzumHandler } from "./uzum.handler";
 import {
   PaymentTransaction,
   PaymentProvider,
@@ -86,6 +89,9 @@ describe("PaymentsService", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        PaymeHandler,
+        ClickHandler,
+        UzumHandler,
         PaymentsService,
         {
           provide: ConfigService,

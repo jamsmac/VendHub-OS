@@ -13,6 +13,7 @@ import {
   RecoverEvent,
   DataSource,
   EntityManager,
+  ObjectLiteral,
 } from "typeorm";
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
@@ -57,8 +58,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Called after entity insertion
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async afterInsert(event: InsertEvent<any>): Promise<void> {
+  async afterInsert(event: InsertEvent<ObjectLiteral>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
     }
@@ -74,20 +74,17 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Created ${event.metadata.tableName} record`,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(
-        `Failed to create audit log for INSERT: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create audit log for INSERT: ${msg}`, stack);
     }
   }
 
   /**
    * Called after entity update
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async afterUpdate(event: UpdateEvent<any>): Promise<void> {
+  async afterUpdate(event: UpdateEvent<ObjectLiteral>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
     }
@@ -116,20 +113,17 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Updated ${event.metadata.tableName} record (${changes.length} fields)`,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(
-        `Failed to create audit log for UPDATE: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create audit log for UPDATE: ${msg}`, stack);
     }
   }
 
   /**
    * Called after entity removal (hard delete)
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async afterRemove(event: RemoveEvent<any>): Promise<void> {
+  async afterRemove(event: RemoveEvent<ObjectLiteral>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
     }
@@ -154,20 +148,17 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.WARNING,
         description: `Deleted ${event.metadata.tableName} record`,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(
-        `Failed to create audit log for REMOVE: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create audit log for REMOVE: ${msg}`, stack);
     }
   }
 
   /**
    * Called after soft remove
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async afterSoftRemove(event: SoftRemoveEvent<any>): Promise<void> {
+  async afterSoftRemove(event: SoftRemoveEvent<ObjectLiteral>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
     }
@@ -183,11 +174,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Soft deleted ${event.metadata.tableName} record`,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Failed to create audit log for SOFT_REMOVE: ${error.message}`,
-        error.stack,
+        `Failed to create audit log for SOFT_REMOVE: ${msg}`,
+        stack,
       );
     }
   }
@@ -195,8 +187,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Called after entity recovery (restore from soft delete)
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async afterRecover(event: RecoverEvent<any>): Promise<void> {
+  async afterRecover(event: RecoverEvent<ObjectLiteral>): Promise<void> {
     if (!this.shouldAudit(event.metadata.tableName)) {
       return;
     }
@@ -212,11 +203,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         severity: AuditSeverity.INFO,
         description: `Restored ${event.metadata.tableName} record`,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Failed to create audit log for RECOVER: ${error.message}`,
-        error.stack,
+        `Failed to create audit log for RECOVER: ${msg}`,
+        stack,
       );
     }
   }
@@ -237,8 +229,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Get entity display name
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getEntityName(entity: any): string {
+  private getEntityName(entity: ObjectLiteral | undefined | null): string {
     if (!entity) return "";
     return (
       entity.name ||
@@ -255,10 +246,8 @@ export class AuditSubscriber implements EntitySubscriberInterface {
    * Calculate changes between old and new values
    */
   private calculateChanges(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    oldEntity: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    newEntity: any,
+    oldEntity: ObjectLiteral | undefined | null,
+    newEntity: ObjectLiteral | undefined | null,
     updatedColumns?: string[],
   ): AuditChanges[] {
     const changes: AuditChanges[] = [];
@@ -298,8 +287,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
    * Check if two values are equal (deep comparison for objects)
    */
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private isEqual(a: any, b: any): boolean {
+  private isEqual(a: unknown, b: unknown): boolean {
     if (a === b) return true;
     if (a == null && b == null) return true;
     if (a == null || b == null) return false;
@@ -316,8 +304,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   /**
    * Sanitize entity values (mask sensitive fields)
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private sanitizeValues(entity: any): Record<string, unknown> {
+  private sanitizeValues(
+    entity: ObjectLiteral | undefined | null,
+  ): Record<string, unknown> {
     if (!entity) return {};
 
     const sanitized: Record<string, unknown> = {};
@@ -333,8 +322,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
    * Sanitize a single value
    */
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private sanitizeValue(field: string, value: any): any {
+  private sanitizeValue(field: string, value: unknown): unknown {
     // Check if field is sensitive
     const isSensitive = SENSITIVE_FIELDS.some((sf) =>
       field.toLowerCase().includes(sf.toLowerCase()),
@@ -346,8 +334,8 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
     // Handle complex objects (don't serialize full relations)
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      if (value.id) {
-        return { id: value.id };
+      if ((value as Record<string, unknown>).id) {
+        return { id: (value as Record<string, unknown>).id };
       }
       // For Date objects
       if (value instanceof Date) {

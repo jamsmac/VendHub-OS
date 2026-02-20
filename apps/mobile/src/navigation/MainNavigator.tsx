@@ -7,6 +7,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 // Tab Screens
 import { HomeScreen } from "../screens/HomeScreen";
@@ -51,6 +52,8 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
 function HomeTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -84,28 +87,30 @@ function HomeTabs() {
       <Tab.Screen
         name="HomeTab"
         component={HomeScreen}
-        options={{ title: "Главная" }}
+        options={{ title: t("tabs.home") }}
       />
       <Tab.Screen
         name="TasksTab"
         component={TasksScreen}
-        options={{ title: "Задачи" }}
+        options={{ title: t("tabs.tasks") }}
       />
       <Tab.Screen
         name="MachinesTab"
         component={MachinesScreen}
-        options={{ title: "Автоматы" }}
+        options={{ title: t("tabs.machines") }}
       />
       <Tab.Screen
         name="ProfileTab"
         component={ProfileScreen}
-        options={{ title: "Профиль" }}
+        options={{ title: t("tabs.profile") }}
       />
     </Tab.Navigator>
   );
 }
 
 export function MainNavigator() {
+  const { t } = useTranslation();
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -116,47 +121,47 @@ export function MainNavigator() {
       <Stack.Screen
         name="TaskDetail"
         component={TaskDetailScreen}
-        options={{ title: "Задача" }}
+        options={{ title: t("nav.taskDetail") }}
       />
       <Stack.Screen
         name="TaskPhoto"
         component={TaskPhotoScreen}
-        options={{ title: "Фото" }}
+        options={{ title: t("nav.taskPhoto") }}
       />
       <Stack.Screen
         name="MachineDetail"
         component={MachineDetailScreen}
-        options={{ title: "Автомат" }}
+        options={{ title: t("nav.machineDetail") }}
       />
       <Stack.Screen
         name="Inventory"
         component={InventoryScreen}
-        options={{ title: "Товары" }}
+        options={{ title: t("nav.inventory") }}
       />
       <Stack.Screen
         name="Transfer"
         component={TransferScreen}
-        options={{ title: "Перемещение" }}
+        options={{ title: t("nav.transfer") }}
       />
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
-        options={{ title: "Уведомления" }}
+        options={{ title: t("nav.notifications") }}
       />
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: "Настройки" }}
+        options={{ title: t("nav.settings") }}
       />
       <Stack.Screen
         name="Route"
         component={RouteScreen}
-        options={{ title: "Маршрут" }}
+        options={{ title: t("nav.route") }}
       />
       <Stack.Screen
         name="Maintenance"
         component={MaintenanceScreen}
-        options={{ title: "Обслуживание" }}
+        options={{ title: t("nav.maintenance") }}
       />
       <Stack.Screen
         name="BarcodeScan"

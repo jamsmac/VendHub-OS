@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import i18n from "../i18n";
 
 interface Props {
   children: ReactNode;
@@ -47,9 +48,9 @@ export class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <View style={styles.card}>
             <Text style={styles.icon}>⚠️</Text>
-            <Text style={styles.title}>Произошла ошибка</Text>
+            <Text style={styles.title}>{i18n.t("errorBoundary.title")}</Text>
             <Text style={styles.message}>
-              Что-то пошло не так. Попробуйте перезапустить приложение.
+              {i18n.t("errorBoundary.message")}
             </Text>
             {__DEV__ && this.state.error && (
               <ScrollView style={styles.errorBox}>
@@ -59,7 +60,9 @@ export class ErrorBoundary extends Component<Props, State> {
               </ScrollView>
             )}
             <TouchableOpacity style={styles.button} onPress={this.handleReset}>
-              <Text style={styles.buttonText}>Попробовать снова</Text>
+              <Text style={styles.buttonText}>
+                {i18n.t("errorBoundary.retry")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

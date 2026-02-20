@@ -32,6 +32,7 @@ import {
   OrderStatsDto,
 } from "./dto/order.dto";
 import { CurrentUser, Roles } from "../../common/decorators";
+import { OrderStatus } from "./entities/order.entity";
 
 @ApiTags("Orders")
 @ApiBearerAuth()
@@ -199,8 +200,7 @@ export class OrdersController {
     @CurrentUser("organizationId") organizationId: string,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: "confirmed" as any,
+      status: OrderStatus.CONFIRMED,
     });
   }
 
@@ -215,8 +215,7 @@ export class OrdersController {
     @CurrentUser("organizationId") organizationId: string,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: "preparing" as any,
+      status: OrderStatus.PREPARING,
     });
   }
 
@@ -231,8 +230,7 @@ export class OrdersController {
     @CurrentUser("organizationId") organizationId: string,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: "ready" as any,
+      status: OrderStatus.READY,
     });
   }
 
@@ -247,8 +245,7 @@ export class OrdersController {
     @CurrentUser("organizationId") organizationId: string,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: "completed" as any,
+      status: OrderStatus.COMPLETED,
     });
   }
 
@@ -264,8 +261,7 @@ export class OrdersController {
     @Body("reason") reason?: string,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: "cancelled" as any,
+      status: OrderStatus.CANCELLED,
       reason,
     });
   }

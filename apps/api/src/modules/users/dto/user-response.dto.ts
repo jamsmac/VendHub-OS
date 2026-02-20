@@ -205,35 +205,28 @@ export class UserResponseDto extends BaseResponseDto {
   ipWhitelist?: string[]; // IP whitelist is sensitive
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  approvedBy?: any; // Full related entity excluded
+  approvedBy?: Record<string, unknown>; // Full related entity excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rejectedBy?: any; // Full related entity excluded
+  rejectedBy?: Record<string, unknown>; // Full related entity excluded
 
   @Exclude()
   rejectedById?: string; // Related user ID excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  referredBy?: any; // Related user excluded
+  referredBy?: Record<string, unknown>; // Related user excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  roles?: any[]; // Dynamic roles excluded in base response
+  roles?: Record<string, unknown>[]; // Dynamic roles excluded in base response
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sessions?: any[]; // Sessions excluded
+  sessions?: Record<string, unknown>[]; // Sessions excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  twoFactorAuths?: any[]; // 2FA details excluded
+  twoFactorAuths?: Record<string, unknown>[]; // 2FA details excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  organization?: any; // Full org excluded (too much data)
+  organization?: Record<string, unknown>; // Full org excluded (too much data)
 }
 
 /**
@@ -304,8 +297,7 @@ export class UserSessionResponseDto extends BaseResponseDto {
   refreshTokenHint?: string; // Even hint is excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any; // Full user excluded
+  user?: Record<string, unknown>; // Full user excluded
 }
 
 /**
@@ -388,12 +380,10 @@ export class TwoFactorAuthResponseDto extends BaseResponseDto {
   usedBackupCodes?: string[]; // Used codes list must be excluded
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any;
+  user?: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -435,10 +425,8 @@ export class AccessRequestResponseDto extends BaseResponseDto {
 
   // ====== EXCLUDED SENSITIVE FIELDS ======
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any;
+  user?: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  processedBy?: any;
+  processedBy?: Record<string, unknown>;
 }

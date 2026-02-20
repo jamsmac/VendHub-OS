@@ -102,9 +102,11 @@ Return JSON array format:
       } else {
         throw new BadRequestException("No AI provider configured");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Failed to parse products from image", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Failed to parse products from image",
+        error instanceof Error ? error.stack : error,
+      );
       throw error;
     }
   }
@@ -381,9 +383,11 @@ Return JSON array with same order:
             results.set(product.id, batchResults[idx]);
           });
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        this.logger.error("Batch categorization failed", error);
+      } catch (error: unknown) {
+        this.logger.error(
+          "Batch categorization failed",
+          error instanceof Error ? error.stack : error,
+        );
       }
     }
 
@@ -503,14 +507,16 @@ Return JSON:
       } catch {
         return content;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("OpenAI API call failed", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "OpenAI API call failed",
+        error instanceof Error ? error.stack : error,
+      );
       throw new BadRequestException("AI service unavailable");
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- external API response shape unknown
   private async callAnthropic(prompt: string): Promise<any> {
     try {
       const response = await firstValueFrom(
@@ -537,9 +543,11 @@ Return JSON:
       } catch {
         return content;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Anthropic API call failed", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Anthropic API call failed",
+        error instanceof Error ? error.stack : error,
+      );
       throw new BadRequestException("AI service unavailable");
     }
   }
@@ -581,9 +589,11 @@ Return JSON:
 
       const content = response.data.choices[0].message.content;
       return JSON.parse(content);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("OpenAI vision call failed", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "OpenAI vision call failed",
+        error instanceof Error ? error.stack : error,
+      );
       throw new BadRequestException("Failed to parse image");
     }
   }
@@ -628,14 +638,16 @@ Return JSON:
 
       const content = response.data.content[0].text;
       return JSON.parse(content);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Anthropic vision call failed", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Anthropic vision call failed",
+        error instanceof Error ? error.stack : error,
+      );
       throw new BadRequestException("Failed to parse image");
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data shape varies by prompt
   private getMockResponse(prompt: string): any {
     // Development fallback
     // Check sentiment/complaint first

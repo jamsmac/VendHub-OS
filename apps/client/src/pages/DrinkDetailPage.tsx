@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Heart,
@@ -16,27 +17,8 @@ import { toast } from "sonner";
 import { productsApi, recipesApi } from "../lib/api";
 import { useCartStore } from "../lib/store";
 
-const SUGAR_LEVELS = [
-  { key: "none", label: "Без сахара", icon: "🚫" },
-  { key: "low", label: "Мало", icon: "🍬" },
-  { key: "medium", label: "Средний", icon: "🍬🍬" },
-  { key: "high", label: "Много", icon: "🍬🍬🍬" },
-];
-
-const VOLUME_OPTIONS = [
-  { key: "small", label: "200 мл", price: 0 },
-  { key: "medium", label: "300 мл", price: 3000 },
-  { key: "large", label: "400 мл", price: 5000 },
-];
-
-const MILK_OPTIONS = [
-  { key: "regular", label: "Обычное", icon: "🥛" },
-  { key: "oat", label: "Овсяное", icon: "🌾", extra: 2000 },
-  { key: "coconut", label: "Кокосовое", icon: "🥥", extra: 3000 },
-  { key: "none", label: "Без молока", icon: "❌" },
-];
-
 export function DrinkDetailPage() {
+  const { t } = useTranslation();
   const { productId } = useParams<{
     machineId: string;
     productId: string;
@@ -49,6 +31,39 @@ export function DrinkDetailPage() {
   const [volume, setVolume] = useState("medium");
   const [milk, setMilk] = useState("regular");
   const [isFavorite, setIsFavorite] = useState(false);
+
+  const SUGAR_LEVELS = [
+    { key: "none", label: t("drinkSugarNone"), icon: "\uD83D\uDEAB" },
+    { key: "low", label: t("drinkSugarLow"), icon: "\uD83C\uDF6C" },
+    {
+      key: "medium",
+      label: t("drinkSugarMedium"),
+      icon: "\uD83C\uDF6C\uD83C\uDF6C",
+    },
+    {
+      key: "high",
+      label: t("drinkSugarHigh"),
+      icon: "\uD83C\uDF6C\uD83C\uDF6C\uD83C\uDF6C",
+    },
+  ];
+
+  const VOLUME_OPTIONS = [
+    { key: "small", label: "200 ml", price: 0 },
+    { key: "medium", label: "300 ml", price: 3000 },
+    { key: "large", label: "400 ml", price: 5000 },
+  ];
+
+  const MILK_OPTIONS = [
+    { key: "regular", label: t("drinkMilkRegular"), icon: "\uD83E\uDD5B" },
+    { key: "oat", label: t("drinkMilkOat"), icon: "\uD83C\uDF3E", extra: 2000 },
+    {
+      key: "coconut",
+      label: t("drinkMilkCoconut"),
+      icon: "\uD83E\uDD65",
+      extra: 3000,
+    },
+    { key: "none", label: t("drinkMilkNone"), icon: "\u274C" },
+  ];
 
   // Fetch product
   const { data: product, isLoading } = useQuery({
@@ -83,7 +98,7 @@ export function DrinkDetailPage() {
       productName: product.name,
       price: basePrice + volumeExtra + milkExtra,
     });
-    toast.success("Добавлено в корзину");
+    toast.success(t("addedToCartToast"));
     navigate(-1);
   };
 
@@ -117,7 +132,7 @@ export function DrinkDetailPage() {
             className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}`}
           />
         </button>
-        <span className="text-8xl">{product?.imageUrl || "☕"}</span>
+        <span className="text-8xl">{product?.imageUrl || "\u2615"}</span>
       </div>
 
       <div className="px-4 -mt-4 space-y-5">
@@ -128,7 +143,7 @@ export function DrinkDetailPage() {
             <p className="text-sm text-gray-500 mt-1">{product.description}</p>
           )}
           <p className="text-xl font-bold text-primary-600 mt-2">
-            {basePrice.toLocaleString()} сум
+            {basePrice.toLocaleString()} {t("currency")}
           </p>
         </div>
 
@@ -137,7 +152,7 @@ export function DrinkDetailPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
               <Coffee className="h-4 w-4 text-amber-600" />
-              Состав
+              {t("drinkComposition")}
             </h3>
             <div className="flex flex-wrap gap-2">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -151,8 +166,10 @@ export function DrinkDetailPage() {
                 </span>
               )) || (
                 <p className="text-xs text-amber-700">
-                  Время приготовления: {recipe.preparationTimeSeconds}с, Объём:{" "}
-                  {recipe.servingSizeMl}мл
+                  {t("drinkPrepTime", {
+                    seconds: recipe.preparationTimeSeconds,
+                    ml: recipe.servingSizeMl,
+                  })}
                 </p>
               )}
             </div>
@@ -163,7 +180,7 @@ export function DrinkDetailPage() {
         <div>
           <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
             <Droplets className="h-4 w-4 text-blue-500" />
-            Объём
+            {t("drinkVolume")}
           </h3>
           <div className="grid grid-cols-3 gap-2">
             {VOLUME_OPTIONS.map((v) => (
@@ -191,7 +208,7 @@ export function DrinkDetailPage() {
         <div>
           <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
             <Flame className="h-4 w-4 text-orange-500" />
-            Сахар
+            {t("drinkSugar")}
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {SUGAR_LEVELS.map((s) => (
@@ -215,7 +232,7 @@ export function DrinkDetailPage() {
         <div>
           <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
             <Milk className="h-4 w-4 text-gray-500" />
-            Молоко
+            {t("drinkMilk")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
             {MILK_OPTIONS.map((m) => (
@@ -267,7 +284,7 @@ export function DrinkDetailPage() {
             className="flex-1 py-3 bg-primary-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25"
           >
             <ShoppingCart className="h-5 w-5" />
-            {totalPrice.toLocaleString()} сум
+            {totalPrice.toLocaleString()} {t("currency")}
           </button>
         </div>
       </div>

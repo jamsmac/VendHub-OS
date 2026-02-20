@@ -77,9 +77,10 @@ export abstract class BaseGateway {
 
       // Gateway-specific setup (room joins, init events)
       this.onAuthenticated(client, payload);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Connection error: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Connection error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       client.disconnect();
     }
   }

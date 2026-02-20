@@ -17,6 +17,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { authApi } from "../services/api";
 import { useAuthStore } from "../store/authStore";
 
@@ -34,22 +35,13 @@ interface UserProfile {
 }
 
 const languageLabels: Record<string, string> = {
-  ru: "Russkij",
+  ru: "Русский",
   uz: "O'zbekcha",
   en: "English",
 };
 
-const roleLabels: Record<string, string> = {
-  owner: "Vladelets",
-  admin: "Administrator",
-  manager: "Menedzher",
-  operator: "Operator",
-  warehouse: "Sklad",
-  accountant: "Bukhgalter",
-  viewer: "Nablyudatel'",
-};
-
 export function SettingsScreen() {
+  const { t } = useTranslation();
   useNavigation();
   useQueryClient();
   const { logout } = useAuthStore();
@@ -68,10 +60,10 @@ export function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert("Vyjti iz akkaunta?", "Vy uvereny, chto hotite vyjti?", [
-      { text: "Otmena", style: "cancel" },
+    Alert.alert(t("settings.logoutTitle"), t("settings.logoutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Vyjti",
+        text: t("settings.logout"),
         style: "destructive",
         onPress: () => {
           logout();
@@ -81,12 +73,16 @@ export function SettingsScreen() {
   };
 
   const handleLanguageSelect = () => {
-    Alert.alert("Vybor yazyka", "Vyberite yazyk interfejsa", [
-      { text: "Russkij", onPress: () => {} },
-      { text: "O'zbekcha", onPress: () => {} },
-      { text: "English", onPress: () => {} },
-      { text: "Otmena", style: "cancel" },
-    ]);
+    Alert.alert(
+      t("settings.languageSelect"),
+      t("settings.languageSelectSubtitle"),
+      [
+        { text: "Русский", onPress: () => {} },
+        { text: "O'zbekcha", onPress: () => {} },
+        { text: "English", onPress: () => {} },
+        { text: t("common.cancel"), style: "cancel" },
+      ],
+    );
   };
 
   const handleSupport = () => {
@@ -141,15 +137,15 @@ export function SettingsScreen() {
     return (
       <View style={styles.loadingContainer}>
         <Ionicons name="settings-outline" size={48} color="#D1D5DB" />
-        <Text style={styles.loadingText}>Zagruzka...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
 
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
-    "Pol'zovatel'";
-  const roleLabel = roleLabels[profile.role] || profile.role;
+    t("settings.user");
+  const roleLabel = t(`roles.${profile.role}`);
 
   return (
     <ScrollView style={styles.container}>
@@ -172,23 +168,27 @@ export function SettingsScreen() {
       </View>
 
       {/* Account Section */}
-      {renderSectionHeader("Akkaunt")}
+      {renderSectionHeader(t("settings.account"))}
       <View style={styles.menuGroup}>
-        {renderMenuItem("person-outline", "Imya", displayName)}
-        {renderMenuItem("mail-outline", "Email", profile.email || "Ne ukazan")}
+        {renderMenuItem("person-outline", t("settings.name"), displayName)}
+        {renderMenuItem(
+          "mail-outline",
+          "Email",
+          profile.email || t("settings.notSpecified"),
+        )}
         {renderMenuItem(
           "call-outline",
-          "Telefon",
-          profile.phone || "Ne ukazan",
+          t("settings.phone"),
+          profile.phone || t("settings.notSpecified"),
         )}
       </View>
 
       {/* Preferences Section */}
-      {renderSectionHeader("Nastrojki")}
+      {renderSectionHeader(t("settings.preferences"))}
       <View style={styles.menuGroup}>
         {renderMenuItem(
           "language-outline",
-          "Yazyk",
+          t("settings.language"),
           languageLabels[profile.language] || profile.language,
           handleLanguageSelect,
           undefined,
@@ -196,7 +196,7 @@ export function SettingsScreen() {
         )}
         {renderMenuItem(
           "notifications-outline",
-          "Uvedomleniya",
+          t("settings.notifications"),
           undefined,
           undefined,
           <Switch
@@ -210,11 +210,11 @@ export function SettingsScreen() {
       </View>
 
       {/* Support Section */}
-      {renderSectionHeader("Pomoshch'")}
+      {renderSectionHeader(t("settings.help"))}
       <View style={styles.menuGroup}>
         {renderMenuItem(
           "chatbubble-ellipses-outline",
-          "Podderzhka",
+          t("settings.support"),
           undefined,
           handleSupport,
           undefined,
@@ -222,7 +222,7 @@ export function SettingsScreen() {
         )}
         {renderMenuItem(
           "document-text-outline",
-          "Politika konfidentsial'nosti",
+          t("settings.privacyPolicy"),
           undefined,
           () => Linking.openURL("https://vendhub.uz/privacy"),
           undefined,
@@ -230,7 +230,7 @@ export function SettingsScreen() {
         )}
         {renderMenuItem(
           "information-circle-outline",
-          "Versiya",
+          t("settings.version"),
           "1.0.0",
           undefined,
           undefined,
@@ -242,7 +242,7 @@ export function SettingsScreen() {
       <View style={[styles.menuGroup, { marginTop: 24 }]}>
         {renderMenuItem(
           "log-out-outline",
-          "Vyjti",
+          t("settings.logout"),
           undefined,
           handleLogout,
           undefined,

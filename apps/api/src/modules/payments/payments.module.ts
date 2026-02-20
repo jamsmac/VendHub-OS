@@ -1,20 +1,23 @@
 /**
  * Payments Module
  * Integrations with Uzbekistan payment systems:
- * - Payme (JSON-RPC webhook, Basic Auth)
- * - Click (REST webhook, MD5 signature)
- * - Uzum Bank (REST API, HMAC SHA-256)
+ * - Payme (JSON-RPC webhook, Basic Auth) → PaymeHandler
+ * - Click (REST webhook, MD5 signature) → ClickHandler
+ * - Uzum Bank (REST API, HMAC SHA-256) → UzumHandler
  * - QR payments for vending machines
  * - Refund management
  */
 
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PaymentsController } from './payments.controller';
-import { PaymentsService } from './payments.service';
-import { PaymentTransaction } from './entities/payment-transaction.entity';
-import { PaymentRefund } from './entities/payment-refund.entity';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { PaymentsController } from "./payments.controller";
+import { PaymentsService } from "./payments.service";
+import { PaymeHandler } from "./payme.handler";
+import { ClickHandler } from "./click.handler";
+import { UzumHandler } from "./uzum.handler";
+import { PaymentTransaction } from "./entities/payment-transaction.entity";
+import { PaymentRefund } from "./entities/payment-refund.entity";
 
 @Module({
   imports: [
@@ -22,7 +25,13 @@ import { PaymentRefund } from './entities/payment-refund.entity';
     TypeOrmModule.forFeature([PaymentTransaction, PaymentRefund]),
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
-  exports: [PaymentsService],
+  providers: [
+    // Provider handlers (dependencies first)
+    PaymeHandler,
+    ClickHandler,
+    UzumHandler,
+    PaymentsService,
+  ],
+  exports: [PaymentsService, PaymeHandler, ClickHandler, UzumHandler],
 })
 export class PaymentsModule {}

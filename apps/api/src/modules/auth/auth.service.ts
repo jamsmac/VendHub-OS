@@ -680,11 +680,10 @@ export class AuthService {
         resetLink,
       );
       this.logger.log(`Password reset email sent to ${user.email}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send password reset email to ${user.email}`,
-        error,
+        error instanceof Error ? error.stack : error,
       );
       // Don't expose email sending failure to user (security)
     }

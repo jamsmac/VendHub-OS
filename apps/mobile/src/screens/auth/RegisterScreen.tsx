@@ -19,6 +19,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { authApi } from "../../services/api";
 import { AuthStackParamList } from "../../navigation/AuthNavigator";
 
@@ -45,6 +46,7 @@ interface FormErrors {
 
 export function RegisterScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState<FormData>({
     firstName: "",
@@ -77,26 +79,26 @@ export function RegisterScreen() {
     const newErrors: FormErrors = {};
 
     if (!form.firstName.trim()) {
-      newErrors.firstName = "Введите имя";
+      newErrors.firstName = t("auth.register.errorFirstName");
     }
 
     if (!form.email.trim()) {
-      newErrors.email = "Введите email";
+      newErrors.email = t("auth.register.errorEmail");
     } else if (!EMAIL_REGEX.test(form.email.trim())) {
-      newErrors.email = "Некорректный email адрес";
+      newErrors.email = t("auth.register.errorEmailInvalid");
     }
 
     if (
       form.phone.trim() &&
       !PHONE_REGEX.test(form.phone.trim().replace(/[\s()-]/g, ""))
     ) {
-      newErrors.phone = "Некорректный номер телефона";
+      newErrors.phone = t("auth.register.errorPhoneInvalid");
     }
 
     if (!form.password) {
-      newErrors.password = "Введите пароль";
+      newErrors.password = t("auth.register.errorPassword");
     } else if (form.password.length < 6) {
-      newErrors.password = "Пароль должен быть не менее 6 символов";
+      newErrors.password = t("auth.register.errorPasswordShort");
     }
 
     setErrors(newErrors);
@@ -119,21 +121,19 @@ export function RegisterScreen() {
       });
 
       Alert.alert(
-        "Регистрация успешна",
-        "Ваш аккаунт создан. Войдите с вашими данными.",
+        t("auth.register.success"),
+        t("auth.register.successMessage"),
         [
           {
-            text: "Войти",
+            text: t("auth.register.login"),
             onPress: () => navigation.navigate("Login"),
           },
         ],
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const message =
-        err.response?.data?.message ||
-        "Не удалось зарегистрироваться. Попробуйте позже.";
-      Alert.alert("Ошибка регистрации", message);
+      const message = err.response?.data?.message || t("common.error");
+      Alert.alert(t("common.error"), message);
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +230,9 @@ export function RegisterScreen() {
               <Ionicons name="cafe" size={32} color="#fff" />
             </View>
             <Text style={styles.brandName}>VendHub</Text>
-            <Text style={styles.headerSubtitle}>Создайте аккаунт</Text>
+            <Text style={styles.headerSubtitle}>
+              {t("auth.register.title")}
+            </Text>
           </View>
 
           {/* Form Card */}
@@ -238,49 +240,74 @@ export function RegisterScreen() {
             {/* Name Row */}
             <View style={styles.nameRow}>
               <View style={styles.nameField}>
-                {renderInputField("firstName", "Имя", "person-outline", {
-                  placeholder: "Иван",
-                  autoCapitalize: "words",
-                  onSubmitEditing: () => lastNameRef.current?.focus(),
-                  required: true,
-                })}
+                {renderInputField(
+                  "firstName",
+                  t("auth.register.firstName"),
+                  "person-outline",
+                  {
+                    placeholder: t("auth.register.firstName"),
+                    autoCapitalize: "words",
+                    onSubmitEditing: () => lastNameRef.current?.focus(),
+                    required: true,
+                  },
+                )}
               </View>
               <View style={styles.nameField}>
-                {renderInputField("lastName", "Фамилия", "person-outline", {
-                  placeholder: "Иванов",
-                  autoCapitalize: "words",
-                  ref: lastNameRef,
-                  onSubmitEditing: () => emailRef.current?.focus(),
-                })}
+                {renderInputField(
+                  "lastName",
+                  t("auth.register.lastName"),
+                  "person-outline",
+                  {
+                    placeholder: t("auth.register.lastName"),
+                    autoCapitalize: "words",
+                    ref: lastNameRef,
+                    onSubmitEditing: () => emailRef.current?.focus(),
+                  },
+                )}
               </View>
             </View>
 
-            {renderInputField("email", "Email", "mail-outline", {
-              placeholder: "ivan@example.com",
-              keyboardType: "email-address",
-              autoCapitalize: "none",
-              ref: emailRef,
-              onSubmitEditing: () => phoneRef.current?.focus(),
-              required: true,
-            })}
+            {renderInputField(
+              "email",
+              t("auth.register.email"),
+              "mail-outline",
+              {
+                placeholder: "ivan@example.com",
+                keyboardType: "email-address",
+                autoCapitalize: "none",
+                ref: emailRef,
+                onSubmitEditing: () => phoneRef.current?.focus(),
+                required: true,
+              },
+            )}
 
-            {renderInputField("phone", "Телефон", "call-outline", {
-              placeholder: "+998 90 123 45 67",
-              keyboardType: "phone-pad",
-              autoCapitalize: "none",
-              ref: phoneRef,
-              onSubmitEditing: () => passwordRef.current?.focus(),
-            })}
+            {renderInputField(
+              "phone",
+              t("auth.register.phone"),
+              "call-outline",
+              {
+                placeholder: "+998 90 123 45 67",
+                keyboardType: "phone-pad",
+                autoCapitalize: "none",
+                ref: phoneRef,
+                onSubmitEditing: () => passwordRef.current?.focus(),
+              },
+            )}
 
-            {renderInputField("password", "Пароль", "lock-closed-outline", {
-              placeholder: "Минимум 6 символов",
-              secureTextEntry: true,
-              autoCapitalize: "none",
-              ref: passwordRef,
-              returnKeyType: "done",
-              onSubmitEditing: handleRegister,
-              required: true,
-            })}
+            {renderInputField(
+              "password",
+              t("auth.register.password"),
+              "lock-closed-outline",
+              {
+                placeholder: t("auth.register.passwordHint"),
+                secureTextEntry: true,
+                autoCapitalize: "none",
+                ref: passwordRef,
+                returnKeyType: "done",
+                onSubmitEditing: handleRegister,
+                required: true,
+              },
+            )}
 
             {/* Password hint */}
             <View style={styles.passwordHints}>
@@ -300,7 +327,7 @@ export function RegisterScreen() {
                     form.password.length >= 6 && styles.hintTextValid,
                   ]}
                 >
-                  Не менее 6 символов
+                  {t("auth.register.passwordHint")}
                 </Text>
               </View>
             </View>
@@ -319,7 +346,7 @@ export function RegisterScreen() {
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <Text style={styles.registerButtonText}>
-                  Зарегистрироваться
+                  {t("auth.register.submit")}
                 </Text>
               )}
             </TouchableOpacity>
@@ -327,9 +354,11 @@ export function RegisterScreen() {
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Уже есть аккаунт? </Text>
+            <Text style={styles.loginText}>
+              {t("auth.register.hasAccount")}{" "}
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.loginLink}>Войдите</Text>
+              <Text style={styles.loginLink}>{t("auth.register.login")}</Text>
             </TouchableOpacity>
           </View>
 

@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +34,7 @@ const COLORS = {
 };
 
 export function ClientHomeScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: nearbyMachines, refetch: refetchMachines } = useQuery({
@@ -71,8 +73,10 @@ export function ClientHomeScreen({ navigation }: Props) {
       {/* Header with greeting */}
       <View style={styles.header}>
         <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Welcome back!</Text>
-          <Text style={styles.subGreeting}>Ready for a refresh?</Text>
+          <Text style={styles.greeting}>{t("client.home.welcome")}</Text>
+          <Text style={styles.subGreeting}>
+            {t("client.home.readyForRefresh")}
+          </Text>
         </View>
         <View style={styles.avatar}>
           <Ionicons name="person-circle" size={40} color={COLORS.primary} />
@@ -103,7 +107,7 @@ export function ClientHomeScreen({ navigation }: Props) {
           <View style={styles.machineFooter}>
             <Ionicons name="location" size={16} color={COLORS.muted} />
             <Text style={styles.distance}>
-              {closestMachine.distance || "0.5"} km away
+              {closestMachine.distance || "0.5"} {t("client.home.kmAway")}
             </Text>
           </View>
         </TouchableOpacity>
@@ -111,27 +115,29 @@ export function ClientHomeScreen({ navigation }: Props) {
 
       {/* Quick Actions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{t("client.home.quickActions")}</Text>
         <View style={styles.actionsGrid}>
           <QuickActionButton
             icon="map"
-            label="Map"
+            label={t("client.home.map")}
             onPress={() => navigation.navigate("MapTab")}
           />
           <QuickActionButton
             icon="qr-code"
-            label="QR Scan"
+            label={t("client.home.qrScan")}
             onPress={() => navigation.navigate("BarcodeScan")}
           />
           <QuickActionButton
             icon="heart"
-            label="Favorites"
+            label={t("client.home.favorites")}
             onPress={() => navigation.navigate("FavoritesTab")}
           />
           <QuickActionButton
             icon="help-circle"
-            label="Help"
-            onPress={() => Alert.alert("Help", "Coming soon!")}
+            label={t("client.home.help")}
+            onPress={() =>
+              Alert.alert(t("client.home.help"), t("common.comingSoon"))
+            }
           />
         </View>
       </View>
@@ -141,12 +147,15 @@ export function ClientHomeScreen({ navigation }: Props) {
         <View style={styles.loyaltyCard}>
           <View style={styles.loyaltyHeader}>
             <Ionicons name="gift" size={24} color={COLORS.primary} />
-            <Text style={styles.loyaltyTitle}>Your Points</Text>
+            <Text style={styles.loyaltyTitle}>
+              {t("client.home.yourPoints")}
+            </Text>
           </View>
           <Text style={styles.pointsAmount}>{loyaltyData.points || 0}</Text>
           <View style={styles.tierBadge}>
             <Text style={styles.tierText}>
-              {loyaltyData.tier || "Bronze"} Member
+              {loyaltyData.tier || t("client.loyalty.bronze")}{" "}
+              {t("client.loyalty.member")}
             </Text>
           </View>
         </View>
@@ -157,8 +166,10 @@ export function ClientHomeScreen({ navigation }: Props) {
         <View style={styles.promoContent}>
           <Ionicons name="megaphone" size={28} color={COLORS.card} />
           <View style={styles.promoText}>
-            <Text style={styles.promoTitle}>Get 20% off today</Text>
-            <Text style={styles.promoSubtitle}>Use code SAVE20</Text>
+            <Text style={styles.promoTitle}>{t("client.home.promoTitle")}</Text>
+            <Text style={styles.promoSubtitle}>
+              {t("client.home.promoSubtitle")}
+            </Text>
           </View>
         </View>
       </View>
@@ -166,11 +177,15 @@ export function ClientHomeScreen({ navigation }: Props) {
       {/* Recent Orders */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Orders</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.home.recentOrders")}
+          </Text>
           <TouchableOpacity
-            onPress={() => Alert.alert("Orders", "Coming soon!")}
+            onPress={() =>
+              Alert.alert(t("client.orders.title"), t("common.comingSoon"))
+            }
           >
-            <Text style={styles.viewAll}>View All</Text>
+            <Text style={styles.viewAll}>{t("common.viewAll")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -188,7 +203,7 @@ export function ClientHomeScreen({ navigation }: Props) {
             </View>
           ))
         ) : (
-          <Text style={styles.noOrders}>No orders yet. Start exploring!</Text>
+          <Text style={styles.noOrders}>{t("client.home.noOrders")}</Text>
         )}
       </View>
     </ScrollView>

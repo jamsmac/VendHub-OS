@@ -22,8 +22,7 @@ export class WebhooksService {
   async send(
     organizationId: string,
     event: WebhookEvent,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload: any,
+    payload: Record<string, unknown>,
     webhooks: {
       url: string;
       events: string[];
@@ -47,8 +46,7 @@ export class WebhooksService {
     url: string,
     secret: string,
     event: WebhookEvent,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload: any,
+    payload: Record<string, unknown>,
     attempt = 0,
   ): Promise<void> {
     try {
@@ -76,8 +74,7 @@ export class WebhooksService {
           this.sendWithRetry(url, secret, event, payload, attempt + 1);
         }, delay);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (attempt < this.MAX_RETRIES) {
         const delay = this.RETRY_DELAYS[attempt];
         setTimeout(() => {
@@ -85,9 +82,11 @@ export class WebhooksService {
         }, delay);
       }
       // Log error but don't throw
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Webhook failed after ${attempt + 1} attempts: ${error.message}`,
-        error.stack,
+        `Webhook failed after ${attempt + 1} attempts: ${msg}`,
+        stack,
       );
     }
   }

@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { notificationsApi } from "../services/api";
 
 interface Notification {
@@ -53,16 +54,17 @@ function formatTimeAgo(dateStr: string): string {
   const diffMs = now - date;
   const diffMin = Math.floor(diffMs / 60000);
 
-  if (diffMin < 1) return "Tol'ko chto";
-  if (diffMin < 60) return `${diffMin} min nazad`;
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour} ch nazad`;
+  if (diffHour < 24) return `${diffHour}h ago`;
   const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 7) return `${diffDay} dn nazad`;
+  if (diffDay < 7) return `${diffDay}d ago`;
   return new Date(dateStr).toLocaleDateString("ru-RU");
 }
 
 export function NotificationsScreen() {
+  const { t } = useTranslation();
   useNavigation();
   const queryClient = useQueryClient();
 
@@ -101,11 +103,11 @@ export function NotificationsScreen() {
   const handleMarkAllRead = () => {
     if (unreadCount === 0) return;
     Alert.alert(
-      "Otmetit' vse kak prochitannye?",
-      `${unreadCount} neprichitannyh uvedomlenij`,
+      t("notifications.markAllReadTitle"),
+      t("notifications.unreadCount", { count: unreadCount }),
       [
-        { text: "Otmena", style: "cancel" },
-        { text: "Da", onPress: () => markAllReadMutation.mutate() },
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("common.yes"), onPress: () => markAllReadMutation.mutate() },
       ],
     );
   };
@@ -155,9 +157,9 @@ export function NotificationsScreen() {
   const renderEmpty = () => (
     <View style={styles.emptyState}>
       <Ionicons name="notifications-off-outline" size={56} color="#D1D5DB" />
-      <Text style={styles.emptyTitle}>Net uvedomlenij</Text>
+      <Text style={styles.emptyTitle}>{t("notifications.empty")}</Text>
       <Text style={styles.emptySubtitle}>
-        Zdes' poyavyatsya vashi uvedomleniya
+        {t("notifications.emptySubtitle")}
       </Text>
     </View>
   );
@@ -167,12 +169,14 @@ export function NotificationsScreen() {
       {/* Header actions */}
       {unreadCount > 0 && (
         <View style={styles.headerActions}>
-          <Text style={styles.unreadLabel}>{unreadCount} neprichitannyh</Text>
+          <Text style={styles.unreadLabel}>
+            {t("notifications.unreadCount", { count: unreadCount })}
+          </Text>
           <TouchableOpacity
             onPress={handleMarkAllRead}
             disabled={markAllReadMutation.isPending}
           >
-            <Text style={styles.markAllText}>Prochitat' vse</Text>
+            <Text style={styles.markAllText}>{t("notifications.readAll")}</Text>
           </TouchableOpacity>
         </View>
       )}

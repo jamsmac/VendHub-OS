@@ -344,28 +344,22 @@ export class OrganizationResponseDto extends BaseResponseDto {
   };
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parent?: any;
+  parent?: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  children?: any[];
+  children?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  users?: any[];
+  users?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machines?: any[];
+  machines?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  locations?: any[];
+  locations?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contracts?: any[];
+  contracts?: Record<string, unknown>[];
 }
 
 /**
@@ -550,8 +544,7 @@ export class OrganizationContractResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  organization?: any;
+  organization?: Record<string, unknown>;
 }
 
 /**
@@ -632,8 +625,7 @@ export class OrganizationInvitationResponseDto extends BaseResponseDto {
   token?: string; // Invitation token is sensitive
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  organization?: any;
+  organization?: Record<string, unknown>;
 }
 
 /**
@@ -698,6 +690,5 @@ export class OrganizationAuditLogResponseDto extends BaseResponseDto {
   };
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  organization?: any;
+  organization?: Record<string, unknown>;
 }

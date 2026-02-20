@@ -170,8 +170,7 @@ export class StorageService {
         mimeType,
         etag: result.ETag,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to upload file: ${key}`, error);
       throw new BadRequestException("Failed to upload file");
     }
@@ -267,8 +266,7 @@ export class StorageService {
         cdnUrl: this.getCdnUrl(key),
         expiresAt,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to generate presigned URL`, error);
       throw new BadRequestException("Failed to generate upload URL");
     }
@@ -304,9 +302,8 @@ export class StorageService {
         buffer: Buffer.concat(chunks),
         contentType: response.ContentType || "application/octet-stream",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.name === "NoSuchKey") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "NoSuchKey") {
         throw new NotFoundException("File not found");
       }
       this.logger.error(`Failed to get file: ${key}`, error);
@@ -336,8 +333,7 @@ export class StorageService {
       return await getSignedUrl(this.s3Client, command, {
         expiresIn: expiresInSeconds,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to generate download URL: ${key}`, error);
       throw new BadRequestException("Failed to generate download URL");
     }
@@ -360,9 +356,8 @@ export class StorageService {
 
       await this.s3Client.send(command);
       return true;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.name === "NotFound") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "NotFound") {
         return false;
       }
       throw error;
@@ -392,9 +387,8 @@ export class StorageService {
         contentType: response.ContentType,
         etag: response.ETag,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.name === "NotFound") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "NotFound") {
         throw new NotFoundException("File not found");
       }
       throw error;
@@ -414,8 +408,7 @@ export class StorageService {
 
       await this.s3Client.send(command);
       this.logger.log(`Deleted file: ${key}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to delete file: ${key}`, error);
       throw new BadRequestException("Failed to delete file");
     }
@@ -463,8 +456,7 @@ export class StorageService {
       this.logger.log(`Copied file from ${sourceKey} to ${destinationKey}`);
 
       return this.getCdnUrl(destinationKey);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to copy file`, error);
       throw new BadRequestException("Failed to copy file");
     }
@@ -506,15 +498,20 @@ export class StorageService {
 
       const response = await this.s3Client.send(command);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (response.Contents || []).map((item: any) => ({
-        key: item.Key || "",
-        size: item.Size || 0,
-        lastModified: item.LastModified || new Date(),
-        etag: item.ETag,
-      }));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+      return (response.Contents || []).map(
+        (item: {
+          Key?: string;
+          Size?: number;
+          LastModified?: Date;
+          ETag?: string;
+        }) => ({
+          key: item.Key || "",
+          size: item.Size || 0,
+          lastModified: item.LastModified || new Date(),
+          etag: item.ETag,
+        }),
+      );
+    } catch (error: unknown) {
       this.logger.error(`Failed to list files in ${prefix}`, error);
       throw new BadRequestException("Failed to list files");
     }

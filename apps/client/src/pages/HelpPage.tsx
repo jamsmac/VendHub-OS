@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   ChevronDown,
@@ -13,46 +14,23 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "../lib/api";
 
-const FAQ_ITEMS = [
-  {
-    q: "Как сделать заказ?",
-    a: "Найдите ближайший автомат на карте или отсканируйте QR-код. Выберите напиток, настройте по вкусу и оплатите удобным способом.",
-  },
-  {
-    q: "Какие способы оплаты доступны?",
-    a: "Мы принимаем Payme, Click, Uzum Bank и Telegram Stars. Также можно оплатить бонусными баллами (до 50% от суммы заказа).",
-  },
-  {
-    q: "Как получить бонусные баллы?",
-    a: "Баллы начисляются автоматически за каждую покупку. Также вы получаете баллы за выполнение квестов, достижения и приглашение друзей.",
-  },
-  {
-    q: "Как потратить бонусные баллы?",
-    a: 'При оформлении заказа выберите "Оплата баллами". Минимум 100 баллов, максимум 50% от суммы заказа. 1 балл = 1 сум.',
-  },
-  {
-    q: "Что делать если автомат не работает?",
-    a: 'Нажмите кнопку "Пожаловаться" на странице автомата или отправьте жалобу через раздел "Помощь". Мы оперативно устраним проблему.',
-  },
-  {
-    q: "Как вернуть деньги?",
-    a: "Если заказ не был выдан, напишите нам с указанием номера заказа. Возврат производится на исходный способ оплаты в течение 1-3 рабочих дней.",
-  },
-  {
-    q: "Как работает программа лояльности?",
-    a: "Есть 4 уровня: Bronze, Silver, Gold, Platinum. Чем больше покупок — тем выше уровень и больше кэшбэк (от 1% до 5%).",
-  },
-  {
-    q: "Как пригласить друга?",
-    a: 'Откройте раздел "Рефералы" и скопируйте свою ссылку. За каждого друга вы получите бонусные баллы.',
-  },
-];
-
 export function HelpPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [feedbackType, setFeedbackType] = useState("suggestion");
   const [feedbackText, setFeedbackText] = useState("");
+
+  const FAQ_ITEMS = [
+    { q: t("helpFaq1Q"), a: t("helpFaq1A") },
+    { q: t("helpFaq2Q"), a: t("helpFaq2A") },
+    { q: t("helpFaq3Q"), a: t("helpFaq3A") },
+    { q: t("helpFaq4Q"), a: t("helpFaq4A") },
+    { q: t("helpFaq5Q"), a: t("helpFaq5A") },
+    { q: t("helpFaq6Q"), a: t("helpFaq6A") },
+    { q: t("helpFaq7Q"), a: t("helpFaq7A") },
+    { q: t("helpFaq8Q"), a: t("helpFaq8A") },
+  ];
 
   const feedbackMutation = useMutation({
     mutationFn: (data: { type: string; message: string }) =>
@@ -61,10 +39,10 @@ export function HelpPage() {
         message: data.message,
       }),
     onSuccess: () => {
-      toast.success("Обращение отправлено!");
+      toast.success(t("helpFeedbackSent"));
       setFeedbackText("");
     },
-    onError: () => toast.error("Ошибка при отправке"),
+    onError: () => toast.error(t("helpFeedbackError")),
   });
 
   return (
@@ -75,7 +53,7 @@ export function HelpPage() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Помощь</h1>
+          <h1 className="text-xl font-bold">{t("helpTitle")}</h1>
         </div>
       </div>
 
@@ -84,7 +62,7 @@ export function HelpPage() {
         <div>
           <h2 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
             <HelpCircle className="h-4 w-4" />
-            Часто задаваемые вопросы
+            {t("helpFaqTitle")}
           </h2>
           <div className="space-y-2">
             {FAQ_ITEMS.map((item, idx) => (
@@ -115,32 +93,32 @@ export function HelpPage() {
         <div>
           <h2 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            Обратная связь
+            {t("helpFeedbackTitle")}
           </h2>
           <div className="bg-white rounded-xl border p-4 space-y-3">
             <div className="flex gap-2">
               {[
-                { key: "suggestion", label: "Предложение" },
-                { key: "complaint", label: "Жалоба" },
-                { key: "question", label: "Вопрос" },
-              ].map((t) => (
+                { key: "suggestion", label: t("helpFeedbackSuggestion") },
+                { key: "complaint", label: t("helpFeedbackComplaint") },
+                { key: "question", label: t("helpFeedbackQuestion") },
+              ].map((ft) => (
                 <button
-                  key={t.key}
-                  onClick={() => setFeedbackType(t.key)}
+                  key={ft.key}
+                  onClick={() => setFeedbackType(ft.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                    feedbackType === t.key
+                    feedbackType === ft.key
                       ? "bg-primary-500 text-white"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {t.label}
+                  {ft.label}
                 </button>
               ))}
             </div>
             <textarea
               value={feedbackText}
               onChange={(e) => setFeedbackText(e.target.value)}
-              placeholder="Опишите вашу проблему или предложение..."
+              placeholder={t("helpFeedbackPlaceholder")}
               rows={4}
               className="w-full border rounded-xl p-3 text-sm resize-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none"
             />
@@ -155,7 +133,9 @@ export function HelpPage() {
               className="w-full py-3 bg-primary-500 text-white rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Send className="h-4 w-4" />
-              {feedbackMutation.isPending ? "Отправка..." : "Отправить"}
+              {feedbackMutation.isPending
+                ? t("helpFeedbackSending")
+                : t("helpFeedbackSendButton")}
             </button>
           </div>
         </div>
@@ -163,7 +143,7 @@ export function HelpPage() {
         {/* Contact Info */}
         <div>
           <h2 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-3">
-            Контакты
+            {t("helpContactsTitle")}
           </h2>
           <div className="space-y-2">
             <a
@@ -175,7 +155,7 @@ export function HelpPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">+998 90 123 45 67</p>
-                <p className="text-xs text-gray-500">Звонок / WhatsApp</p>
+                <p className="text-xs text-gray-500">{t("helpPhoneLabel")}</p>
               </div>
             </a>
             <a
@@ -187,7 +167,9 @@ export function HelpPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">@vendhub_support</p>
-                <p className="text-xs text-gray-500">Telegram поддержка</p>
+                <p className="text-xs text-gray-500">
+                  {t("helpTelegramLabel")}
+                </p>
               </div>
             </a>
             <a
@@ -199,7 +181,7 @@ export function HelpPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">support@vendhub.uz</p>
-                <p className="text-xs text-gray-500">Email</p>
+                <p className="text-xs text-gray-500">{t("helpEmailLabel")}</p>
               </div>
             </a>
           </div>

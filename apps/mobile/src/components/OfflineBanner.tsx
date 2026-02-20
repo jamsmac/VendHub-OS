@@ -5,16 +5,18 @@
 
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useNetworkStatus } from "../hooks/useNetworkStatus";
 
 export function OfflineBanner() {
   const { isConnected } = useNetworkStatus();
+  const { t } = useTranslation();
 
   if (isConnected) return null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Нет подключения к интернету</Text>
+      <Text style={styles.text}>{t("common.noInternet")}</Text>
     </View>
   );
 }

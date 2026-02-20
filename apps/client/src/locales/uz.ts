@@ -448,5 +448,181 @@ export const uz = {
     referralFriendsCount: "{{count}} do'st",
     referralGetReward: "{{amount}} ball oling",
     untilLevel: "{{level}} darajagacha",
+
+    // Order Success Page
+    orderPlaced: "Buyurtma rasmiylashtirildi!",
+    orderReadySoon:
+      "Ichimligingiz tez orada tayyor bo'ladi. Avtomatga yaqinlashing.",
+    orderNumber: "Buyurtma raqami",
+    orderTotal: "Jami",
+    currency: "so'm",
+    payment: "To'lov",
+    status: "Holat",
+    statusPaid: "To'langan",
+    statusPreparing: "Tayyorlanmoqda",
+    pointsEarned: "Hisoblangan ballar",
+    pointsForPurchase: "+{{count}} ball xarid uchun",
+    orderAgain: "Yana buyurtma berish",
+    viewReceipt: "Chekni ko'rish",
+
+    // Achievements Page
+    achievementsTitle: "Yutuqlar",
+    achievementsTotalLabel: "Jami",
+    achievementsUnlocked: "Ochilgan",
+    achievementsClaimedLabel: "Olingan",
+    claimAllRewards: "Barcha mukofotlarni olish ({{count}})",
+    filterUnlocked: "Ochilganlar",
+    filterLocked: "Yopiqlar",
+    achievementPointsReward: "{{count}} ball",
+    claimRewardButton: "Mukofotni olish",
+    rewardClaimed: "Mukofot olingan",
+    categoryBeginner: "Yangi boshlovchi",
+    categoryExplorer: "Tadqiqotchi",
+    categoryLoyal: "Sodiq",
+    categorySocial: "Ijtimoiy",
+    categoryCollector: "Kolleksioner",
+    categorySpecial: "Maxsus",
+
+    // Promo Code Page
+    promoCodeTitle: "Promokod",
+    promoCodeSubtitle: "Chegirma yoki bonuslar olish uchun promokodni kiriting",
+    promoCodeLabel: "Promokod",
+    promoCodePlaceholder: "Kodni kiriting",
+    promoChecking: "Tekshirilmoqda...",
+    promoApplyButton: "Qo'llash",
+    promoValid: "Promokod amal qiladi!",
+    promoInvalidTitle: "Promokod yaroqsiz",
+    promoNotFoundOrExpired: "Promokod topilmadi yoki muddati tugagan",
+    promoActivated: "Promokod faollashtirildi!",
+    promoActivationError: "Promokodni faollashtirishda xatolik",
+    promoActivating: "Faollashtirilmoqda...",
+    promoActivate: "Faollashtirish",
+    promoTypeFixedDiscount: "Chegirma",
+    promoTypePercentDiscount: "Chegirma",
+    promoTypeBonusPoints: "Bonus",
+    promoTypeFreeProduct: "Sovg'a",
+    promoWhereToFind: "Promokodlarni qayerdan topish mumkin?",
+    promoSourceTelegram: "Bizning Telegram kanalda @vendhub",
+    promoSourceStickers: "Avtomatlardagi stikerlarda",
+    promoSourceEmail: "Email va SMS xabarnomalarda",
+    promoSourceAchievements: "Yutuqlar va topshiriqlar uchun mukofotlarda",
+
+    // Help Page
+    helpTitle: "Yordam",
+    helpFaqTitle: "Ko'p so'raladigan savollar",
+    helpFeedbackTitle: "Qayta aloqa",
+    helpFeedbackSuggestion: "Taklif",
+    helpFeedbackComplaint: "Shikoyat",
+    helpFeedbackQuestion: "Savol",
+    helpFeedbackPlaceholder: "Muammo yoki taklifingizni tasvirlab bering...",
+    helpFeedbackSent: "Murojaat yuborildi!",
+    helpFeedbackError: "Yuborishda xatolik",
+    helpFeedbackSending: "Yuborilmoqda...",
+    helpFeedbackSendButton: "Yuborish",
+    helpContactsTitle: "Aloqa",
+    helpPhoneLabel: "Qo'ng'iroq / WhatsApp",
+    helpTelegramLabel: "Telegram qo'llab-quvvatlash",
+    helpEmailLabel: "Email",
+
+    helpFaq1Q: "Qanday buyurtma berish mumkin?",
+    helpFaq1A:
+      "Xaritada eng yaqin avtomatni toping yoki QR-kodni skanerlang. Ichimlikni tanlang, ta'mga moslang va qulay usulda to'lang.",
+    helpFaq2Q: "Qanday to'lov usullari mavjud?",
+    helpFaq2A:
+      "Biz Payme, Click, Uzum Bank va Telegram Stars qabul qilamiz. Bonus ballar bilan ham to'lash mumkin (buyurtma summasining 50% gacha).",
+    helpFaq3Q: "Bonus ballarni qanday olish mumkin?",
+    helpFaq3A:
+      "Ballar har bir xarid uchun avtomatik hisoblanadi. Shuningdek, topshiriqlar, yutuqlar va do'stlarni taklif qilganingiz uchun ball olasiz.",
+    helpFaq4Q: "Bonus ballarni qanday sarflash mumkin?",
+    helpFaq4A:
+      "Buyurtma berishda \"Ballar bilan to'lash\" ni tanlang. Minimum 100 ball, maksimum buyurtma summasining 50%. 1 ball = 1 so'm.",
+    helpFaq5Q: "Avtomat ishlamasa nima qilish kerak?",
+    helpFaq5A:
+      'Avtomat sahifasidagi "Shikoyat" tugmasini bosing yoki "Yordam" bo\'limi orqali shikoyat yuboring. Biz muammoni tezda hal qilamiz.',
+    helpFaq6Q: "Pulni qanday qaytarish mumkin?",
+    helpFaq6A:
+      "Buyurtma berilmagan bo'lsa, buyurtma raqami bilan bizga yozing. Qaytarish asl to'lov usuliga 1-3 ish kuni ichida amalga oshiriladi.",
+    helpFaq7Q: "Sodiqlik dasturi qanday ishlaydi?",
+    helpFaq7A:
+      "4 ta daraja bor: Bronze, Silver, Gold, Platinum. Xaridlar qancha ko'p bo'lsa, daraja shuncha yuqori va keshbek ko'proq (1% dan 5% gacha).",
+    helpFaq8Q: "Do'stni qanday taklif qilish mumkin?",
+    helpFaq8A:
+      "\"Referallar\" bo'limini oching va havolangizni nusxalang. Har bir do'st uchun bonus ball olasiz.",
+
+    // Drink Detail Page
+    addedToCartToast: "Savatga qo'shildi",
+    drinkComposition: "Tarkibi",
+    drinkPrepTime: "Tayyorlash vaqti: {{seconds}}s, Hajm: {{ml}}ml",
+    drinkVolume: "Hajm",
+    drinkSugar: "Shakar",
+    drinkSugarNone: "Shakarsiz",
+    drinkSugarLow: "Kam",
+    drinkSugarMedium: "O'rtacha",
+    drinkSugarHigh: "Ko'p",
+    drinkMilk: "Sut",
+    drinkMilkRegular: "Oddiy",
+    drinkMilkOat: "Suli",
+    drinkMilkCoconut: "Kokos",
+    drinkMilkNone: "Sutsiz",
+
+    // Loyalty Page (hardcoded strings)
+    loyaltyAchievements: "Yutuqlar",
+    loyaltyMedals: "Medallar",
+    loyaltyPromoCode: "Promokod",
+    loyaltyEnterCode: "Kodni kiriting",
+    loyaltyStreak: "Xaridlar ketma-ketligi",
+    loyaltyStreakBonus: "7 kunlik ketma-ketlik uchun x2 bonus!",
+    loyaltyDailyQuests: "Kunlik topshiriqlar",
+    loyaltyAllQuests: "Hammasi",
+    loyaltyLeaderboard: "Liderlar jadvali",
+    loyaltyYourRank: "Sizning o'rningiz: #{{rank}}",
+    loyaltyUser: "Foydalanuvchi",
+    loyaltyMakePurchases: "Yutuqlarni ochish uchun xarid qiling!",
+    loyaltyDays: "Du,Se,Ch,Pa,Ju,Sh,Ya",
+
+    // Notification Settings Page
+    notificationSettingsTitle: "Bildirishnomalar",
+    notificationSettingsSubtitle: "Qaysi bildirishnomalarni olishni sozlang",
+    notificationPush: "Push-bildirishnomalar",
+    notificationPushDescription: "Brauzerda real vaqt bildirishnomalar",
+    notificationCategoriesTitle: "Bildirishnoma toifalari",
+    notificationEnableAll: "Hammasini yoqish",
+    notificationDisableAll: "Hammasini o'chirish",
+    notificationOrders: "Buyurtmalar",
+    notificationOrdersDescription:
+      "Buyurtma holati, to'lov tasdiqi, tayyorligi",
+    notificationPromotions: "Aksiyalar va chegirmalar",
+    notificationPromotionsDescription:
+      "Maxsus takliflar, yangi ichimliklar, promokodlar",
+    notificationLoyalty: "Bonus dasturi",
+    notificationLoyaltyDescription:
+      "Ball hisoblash, daraja oshirish, mukofotlar",
+    notificationQuestsAchievements: "Topshiriqlar va yutuqlar",
+    notificationQuestsDescription:
+      "Yangi topshiriqlar, jarayon, ochilgan yutuqlar",
+    notificationSystem: "Tizim",
+    notificationSystemDescription:
+      "Avtomatlarga xizmat ko'rsatish, muhim yangilanishlar",
+    notificationSaved: "Sozlamalar saqlandi",
+    notificationSaveError: "Saqlashda xatolik",
+    notificationPushEnabled: "Push-bildirishnomalar yoqildi",
+    notificationPushDisabled: "Push-bildirishnomalar o'chirildi",
+    notificationBrowserNotSupported:
+      "Brauzer bildirishnomalarni qo'llab-quvvatlamaydi",
+    notificationPermissionDenied: "Bildirishnoma ruxsati rad etildi",
+    notificationQuietHours: "Tinch soatlar",
+    notificationQuietHoursDescription:
+      "Bildirishnomalar 23:00 dan 07:00 gacha avtomatik o'chiriladi. Muhim tizim xabarlari istalgan vaqtda keladi.",
+    notificationTelegramBot: "Telegram bot",
+    notificationTelegramDescription: "Telegramda bildirishnomalar oling",
+
+    // Google Map
+    mapLoading: "Xarita yuklanmoqda...",
+    mapError: "Xaritani yuklashda xatolik",
+    mapApiKeyMissing: "Google Maps API kaliti sozlanmagan",
+    mapYouAreHere: "Siz shu yerdasiz",
+
+    // Machine Card
+    machineAddressUnknown: "Manzil ko'rsatilmagan",
   },
 } as const;

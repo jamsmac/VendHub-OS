@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { tasksApi } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
@@ -25,6 +26,7 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type RouteType = RouteProp<MainStackParamList, "TaskDetail">;
 
 export function TaskDetailScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteType>();
   const queryClient = useQueryClient();
@@ -49,14 +51,14 @@ export function TaskDetailScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
-      Alert.alert("Успешно", "Задача завершена!");
+      Alert.alert(t("common.success"), t("tasks.detail.taskCompleted"));
       navigation.goBack();
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       Alert.alert(
-        "Ошибка",
-        error.response?.data?.message || "Не удалось завершить задачу",
+        t("common.error"),
+        error.response?.data?.message || t("tasks.detail.completeFailed"),
       );
     },
   });
@@ -72,35 +74,38 @@ export function TaskDetailScreen() {
   if (!task) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Задача не найдена</Text>
+        <Text>{t("tasks.detail.notFound")}</Text>
       </View>
     );
   }
 
   const typeLabels: Record<string, string> = {
-    refill: "🔋 Пополнение",
-    collection: "💰 Инкассация",
-    cleaning: "🧹 Мойка",
-    repair: "🔧 Ремонт",
-    audit: "📊 Ревизия",
+    refill: `🔋 ${t("tasks.types.refill")}`,
+    collection: `💰 ${t("tasks.types.collection")}`,
+    cleaning: `🧹 ${t("tasks.types.cleaning")}`,
+    repair: `🔧 ${t("tasks.types.repair")}`,
+    audit: `📊 ${t("tasks.types.audit")}`,
   };
 
   const statusLabels: Record<string, { label: string; color: string }> = {
-    pending: { label: "Ожидает", color: "#6B7280" },
-    assigned: { label: "Назначена", color: "#3B82F6" },
-    in_progress: { label: "В работе", color: "#F59E0B" },
-    completed: { label: "Завершена", color: "#10B981" },
+    pending: { label: t("tasks.status.pending"), color: "#6B7280" },
+    assigned: { label: t("tasks.status.assigned"), color: "#3B82F6" },
+    in_progress: { label: t("tasks.status.inProgress"), color: "#F59E0B" },
+    completed: { label: t("tasks.status.completed"), color: "#10B981" },
   };
 
   const status = statusLabels[task.status] || statusLabels.pending;
 
   const handleStart = () => {
     Alert.alert(
-      "Начать выполнение?",
-      "Вы уверены, что хотите начать выполнение задачи?",
+      t("tasks.detail.startConfirmTitle"),
+      t("tasks.detail.startConfirmMessage"),
       [
-        { text: "Отмена", style: "cancel" },
-        { text: "Начать", onPress: () => startMutation.mutate() },
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("tasks.detail.start"),
+          onPress: () => startMutation.mutate(),
+        },
       ],
     );
   };
@@ -108,8 +113,8 @@ export function TaskDetailScreen() {
   const handleComplete = () => {
     if (!task.hasPhotoBefore || !task.hasPhotoAfter) {
       Alert.alert(
-        "Необходимы фото",
-        `Загрузите ${!task.hasPhotoBefore ? "фото ДО" : ""}${!task.hasPhotoBefore && !task.hasPhotoAfter ? " и " : ""}${!task.hasPhotoAfter ? "фото ПОСЛЕ" : ""}`,
+        t("tasks.detail.photosRequired"),
+        `${t("tasks.detail.uploadPhotos")} ${!task.hasPhotoBefore ? t("tasks.detail.photoBefore") : ""}${!task.hasPhotoBefore && !task.hasPhotoAfter ? ` ${t("common.and")} ` : ""}${!task.hasPhotoAfter ? t("tasks.detail.photoAfter") : ""}`,
       );
       return;
     }
@@ -117,12 +122,12 @@ export function TaskDetailScreen() {
     if (task.taskType === "collection") {
       // For collection tasks, prompt for cash amount
       Alert.prompt(
-        "Сумма инкассации",
-        "Введите фактическую сумму (сум):",
+        t("tasks.detail.collectionAmount"),
+        t("tasks.detail.enterActualAmount"),
         [
-          { text: "Отмена", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Завершить",
+            text: t("tasks.detail.complete"),
             onPress: (amount) => {
               if (amount) {
                 completeMutation.mutate({
@@ -167,16 +172,16 @@ export function TaskDetailScreen() {
 
       {/* Machine Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Аппарат</Text>
+        <Text style={styles.sectionTitle}>{t("tasks.detail.machine")}</Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons name="cafe-outline" size={20} color="#6B7280" />
-            <Text style={styles.infoLabel}>Название:</Text>
+            <Text style={styles.infoLabel}>{t("tasks.detail.name")}:</Text>
             <Text style={styles.infoValue}>{task.machine?.name || "N/A"}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={20} color="#6B7280" />
-            <Text style={styles.infoLabel}>Адрес:</Text>
+            <Text style={styles.infoLabel}>{t("tasks.detail.address")}:</Text>
             <Text style={styles.infoValue}>
               {task.machine?.address || "N/A"}
             </Text>
@@ -187,7 +192,9 @@ export function TaskDetailScreen() {
               onPress={openNavigation}
             >
               <Ionicons name="navigate-outline" size={20} color="#4F46E5" />
-              <Text style={styles.navigationText}>Открыть навигацию</Text>
+              <Text style={styles.navigationText}>
+                {t("tasks.detail.openNavigation")}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -195,12 +202,12 @@ export function TaskDetailScreen() {
 
       {/* Task Details */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Детали задачи</Text>
+        <Text style={styles.sectionTitle}>{t("tasks.detail.details")}</Text>
         <View style={styles.infoCard}>
           {task.dueDate && (
             <View style={styles.infoRow}>
               <Ionicons name="time-outline" size={20} color="#6B7280" />
-              <Text style={styles.infoLabel}>Срок:</Text>
+              <Text style={styles.infoLabel}>{t("tasks.detail.dueDate")}:</Text>
               <Text style={styles.infoValue}>
                 {new Date(task.dueDate).toLocaleString("ru-RU")}
               </Text>
@@ -209,19 +216,23 @@ export function TaskDetailScreen() {
           {task.priority && (
             <View style={styles.infoRow}>
               <Ionicons name="flag-outline" size={20} color="#6B7280" />
-              <Text style={styles.infoLabel}>Приоритет:</Text>
+              <Text style={styles.infoLabel}>
+                {t("tasks.detail.priority")}:
+              </Text>
               <Text style={styles.infoValue}>
                 {task.priority === "urgent"
-                  ? "🔴 Срочный"
+                  ? `🔴 ${t("tasks.priority.urgent")}`
                   : task.priority === "high"
-                    ? "🟠 Высокий"
-                    : "🟢 Обычный"}
+                    ? `🟠 ${t("tasks.priority.high")}`
+                    : `🟢 ${t("tasks.priority.normal")}`}
               </Text>
             </View>
           )}
           {task.description && (
             <View style={styles.descriptionContainer}>
-              <Text style={styles.infoLabel}>Описание:</Text>
+              <Text style={styles.infoLabel}>
+                {t("tasks.detail.description")}:
+              </Text>
               <Text style={styles.description}>{task.description}</Text>
             </View>
           )}
@@ -231,7 +242,9 @@ export function TaskDetailScreen() {
       {/* Items (for refill tasks) */}
       {task.items && task.items.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Товары для загрузки</Text>
+          <Text style={styles.sectionTitle}>
+            {t("tasks.detail.itemsToLoad")}
+          </Text>
           <View style={styles.infoCard}>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {task.items.map((item: any, index: number) => (
@@ -249,11 +262,13 @@ export function TaskDetailScreen() {
       {/* Collection Info */}
       {task.taskType === "collection" && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Инкассация</Text>
+          <Text style={styles.sectionTitle}>{t("tasks.types.collection")}</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Ionicons name="cash-outline" size={20} color="#6B7280" />
-              <Text style={styles.infoLabel}>Ожидаемая сумма:</Text>
+              <Text style={styles.infoLabel}>
+                {t("tasks.detail.expectedAmount")}:
+              </Text>
               <Text style={styles.infoValue}>
                 {Number(task.expectedCashAmount || 0).toLocaleString()} сум
               </Text>
@@ -264,7 +279,7 @@ export function TaskDetailScreen() {
 
       {/* Photo Status */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Фотоотчёт</Text>
+        <Text style={styles.sectionTitle}>{t("tasks.detail.photoReport")}</Text>
         <View style={styles.photoButtons}>
           <TouchableOpacity
             style={[
@@ -286,7 +301,7 @@ export function TaskDetailScreen() {
                 task.hasPhotoBefore && styles.photoButtonTextDone,
               ]}
             >
-              Фото ДО
+              {t("tasks.detail.photoBefore")}
             </Text>
           </TouchableOpacity>
 
@@ -310,7 +325,7 @@ export function TaskDetailScreen() {
                 task.hasPhotoAfter && styles.photoButtonTextDone,
               ]}
             >
-              Фото ПОСЛЕ
+              {t("tasks.detail.photoAfter")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -329,7 +344,9 @@ export function TaskDetailScreen() {
             ) : (
               <>
                 <Ionicons name="play" size={20} color="#fff" />
-                <Text style={styles.startButtonText}>Начать выполнение</Text>
+                <Text style={styles.startButtonText}>
+                  {t("tasks.detail.startExecution")}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -346,7 +363,9 @@ export function TaskDetailScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="#fff" />
-                <Text style={styles.completeButtonText}>Завершить задачу</Text>
+                <Text style={styles.completeButtonText}>
+                  {t("tasks.detail.completeTask")}
+                </Text>
               </>
             )}
           </TouchableOpacity>

@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { machinesApi } from "../../services/api";
 
 interface MachineDetail {
@@ -48,16 +49,37 @@ interface InventoryItem {
 
 const statusConfig: Record<
   string,
-  { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }
+  { key: string; color: string; icon: keyof typeof Ionicons.glyphMap }
 > = {
-  active: { label: "Aktiven", color: "#10B981", icon: "checkmark-circle" },
-  low_stock: { label: "Malo tovara", color: "#F59E0B", icon: "alert-circle" },
-  error: { label: "Oshibka", color: "#EF4444", icon: "close-circle" },
-  maintenance: { label: "Obsluzhivanie", color: "#3B82F6", icon: "construct" },
-  offline: { label: "Oflajn", color: "#6B7280", icon: "cloud-offline" },
+  active: {
+    key: "machines.status.active",
+    color: "#10B981",
+    icon: "checkmark-circle",
+  },
+  low_stock: {
+    key: "machines.status.lowStock",
+    color: "#F59E0B",
+    icon: "alert-circle",
+  },
+  error: {
+    key: "machines.status.error",
+    color: "#EF4444",
+    icon: "close-circle",
+  },
+  maintenance: {
+    key: "machines.status.maintenance",
+    color: "#3B82F6",
+    icon: "construct",
+  },
+  offline: {
+    key: "machines.status.offline",
+    color: "#6B7280",
+    icon: "cloud-offline",
+  },
 };
 
 export function MachineDetailScreen() {
+  const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const route = useRoute<any>();
   useNavigation();
@@ -105,7 +127,7 @@ export function MachineDetailScreen() {
     return (
       <View style={styles.loadingContainer}>
         <Ionicons name="cafe-outline" size={48} color="#D1D5DB" />
-        <Text style={styles.loadingText}>Zagruzka...</Text>
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
       </View>
     );
   }
@@ -124,7 +146,7 @@ export function MachineDetailScreen() {
         >
           <Ionicons name={status.icon} size={20} color={status.color} />
           <Text style={[styles.statusText, { color: status.color }]}>
-            {status.label}
+            {t(status.key)}
           </Text>
         </View>
         <Text style={styles.machineName}>{machine.name}</Text>
@@ -147,7 +169,7 @@ export function MachineDetailScreen() {
               ? `${machine.stockLevel}%`
               : "N/A"}
           </Text>
-          <Text style={styles.statLabel}>Zapas</Text>
+          <Text style={styles.statLabel}>{t("machines.stock")}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="cash-outline" size={24} color="#F59E0B" />
@@ -156,29 +178,33 @@ export function MachineDetailScreen() {
               ? `${Number(machine.currentCashAmount).toLocaleString()}`
               : "N/A"}
           </Text>
-          <Text style={styles.statLabel}>V kasse</Text>
+          <Text style={styles.statLabel}>{t("machines.cashRegister")}</Text>
         </View>
       </View>
 
       {/* Info Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informatsiya</Text>
+        <Text style={styles.sectionTitle}>{t("machines.detail.info")}</Text>
         <View style={styles.infoCard}>
           {machine.model && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Model'</Text>
+              <Text style={styles.infoLabel}>{t("machines.detail.model")}</Text>
               <Text style={styles.infoValue}>{machine.model}</Text>
             </View>
           )}
           {machine.serialNumber && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Serijnyj nomer</Text>
+              <Text style={styles.infoLabel}>
+                {t("machines.detail.serialNumber")}
+              </Text>
               <Text style={styles.infoValue}>{machine.serialNumber}</Text>
             </View>
           )}
           {machine.installDate && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Data ustanovki</Text>
+              <Text style={styles.infoLabel}>
+                {t("machines.detail.installDate")}
+              </Text>
               <Text style={styles.infoValue}>
                 {new Date(machine.installDate).toLocaleDateString("ru-RU")}
               </Text>
@@ -186,7 +212,9 @@ export function MachineDetailScreen() {
           )}
           {machine.lastRefillDate && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Popolnenie</Text>
+              <Text style={styles.infoLabel}>
+                {t("machines.detail.refill")}
+              </Text>
               <Text style={styles.infoValue}>
                 {new Date(machine.lastRefillDate).toLocaleDateString("ru-RU")}
               </Text>
@@ -194,7 +222,9 @@ export function MachineDetailScreen() {
           )}
           {machine.lastCollectionDate && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Inkassatsiya</Text>
+              <Text style={styles.infoLabel}>
+                {t("machines.detail.collection")}
+              </Text>
               <Text style={styles.infoValue}>
                 {new Date(machine.lastCollectionDate).toLocaleDateString(
                   "ru-RU",
@@ -208,7 +238,9 @@ export function MachineDetailScreen() {
       {/* Inventory Section */}
       {inventory && inventory.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Zapasy</Text>
+          <Text style={styles.sectionTitle}>
+            {t("machines.detail.inventory")}
+          </Text>
           {inventory.map((item) => {
             const percent =
               item.maxCapacity > 0
@@ -243,7 +275,9 @@ export function MachineDetailScreen() {
       <View style={styles.actionsSection}>
         <TouchableOpacity style={styles.actionButton} onPress={openMaps}>
           <Ionicons name="navigate" size={20} color="#fff" />
-          <Text style={styles.actionButtonText}>Marshrut</Text>
+          <Text style={styles.actionButtonText}>
+            {t("machines.detail.route")}
+          </Text>
         </TouchableOpacity>
       </View>
 

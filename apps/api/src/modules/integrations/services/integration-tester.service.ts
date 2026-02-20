@@ -1,4 +1,5 @@
 import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { AxiosError } from "axios";
 import { Integration } from "../entities/integration.entity";
 import {
   PaymentExecutorService,
@@ -152,8 +153,9 @@ export class IntegrationTesterService {
         },
         assertions: assertionResults,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
+      const errMsg = error instanceof Error ? error.message : String(error);
       return {
         testId: testCase.id,
         passed: false,
@@ -165,16 +167,16 @@ export class IntegrationTesterService {
           body: testCase.requestData,
         },
         response: {
-          status: error.response?.status || 500,
+          status: axiosErr?.response?.status || 500,
           headers: {},
-          body: error.response?.data || { error: error.message },
+          body: axiosErr?.response?.data || { error: errMsg },
         },
         assertions: testCase.assertions.map((a) => ({
           assertion: a,
           passed: false,
           actual: null,
         })),
-        error: error.message,
+        error: errMsg,
       };
     }
   }
@@ -205,10 +207,13 @@ export class IntegrationTesterService {
         message: "Connection successful",
         latency: Date.now() - startTime,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
       // Check if it's an auth error (which means connectivity works)
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (
+        axiosErr?.response?.status === 401 ||
+        axiosErr?.response?.status === 403
+      ) {
         return {
           success: true,
           message: "Connection successful (authentication required)",
@@ -218,7 +223,7 @@ export class IntegrationTesterService {
 
       return {
         success: false,
-        message: error.message || "Connection failed",
+        message: error instanceof Error ? error.message : "Connection failed",
         latency: Date.now() - startTime,
       };
     }
@@ -268,9 +273,12 @@ export class IntegrationTesterService {
         valid: true,
         message: "Credentials validated successfully",
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
+      if (
+        axiosErr?.response?.status === 401 ||
+        axiosErr?.response?.status === 403
+      ) {
         return {
           valid: false,
           message: "Invalid credentials",

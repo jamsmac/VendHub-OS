@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { AuthStackParamList } from "../../navigation/AuthNavigator";
 
@@ -26,6 +27,7 @@ type NavigationProp = NativeStackNavigationProp<AuthStackParamList, "Login">;
 export function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { login, isLoading } = useAuthStore();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +35,7 @@ export function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Ошибка", "Заполните все поля");
+      Alert.alert(t("common.error"), t("auth.login.errorFillAll"));
       return;
     }
 
@@ -41,7 +43,7 @@ export function LoginScreen() {
       await login(email.trim(), password);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      Alert.alert("Ошибка входа", err.message);
+      Alert.alert(t("auth.login.errorLogin"), err.message);
     }
   };
 
@@ -58,7 +60,7 @@ export function LoginScreen() {
               <Ionicons name="cafe" size={36} color="#fff" />
             </View>
             <Text style={styles.title}>VendHub</Text>
-            <Text style={styles.subtitle}>Войдите в аккаунт</Text>
+            <Text style={styles.subtitle}>{t("auth.login.subtitle")}</Text>
           </View>
 
           {/* Form */}
@@ -72,7 +74,7 @@ export function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t("auth.login.email")}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -90,7 +92,7 @@ export function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Пароль"
+                placeholder={t("auth.login.password")}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -111,7 +113,9 @@ export function LoginScreen() {
               onPress={() => navigation.navigate("ForgotPassword")}
               style={styles.forgotButton}
             >
-              <Text style={styles.forgotText}>Забыли пароль?</Text>
+              <Text style={styles.forgotText}>
+                {t("auth.login.forgotPassword")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -125,16 +129,22 @@ export function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.loginButtonText}>Войти</Text>
+                <Text style={styles.loginButtonText}>
+                  {t("auth.login.submit")}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
 
           {/* Register link */}
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Нет аккаунта? </Text>
+            <Text style={styles.registerText}>
+              {t("auth.login.noAccount")}{" "}
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-              <Text style={styles.registerLink}>Зарегистрируйтесь</Text>
+              <Text style={styles.registerLink}>
+                {t("auth.login.register")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

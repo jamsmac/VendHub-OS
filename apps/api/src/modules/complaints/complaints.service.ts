@@ -1038,10 +1038,9 @@ export class ComplaintsService {
       try {
         await this.update(id, data, userId);
         updated++;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.logger.warn(
-          `Failed to update complaint ${id}: ${(error as Error).message}`,
+          `Failed to update complaint ${id}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

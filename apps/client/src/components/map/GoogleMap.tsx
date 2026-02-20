@@ -1,4 +1,5 @@
 import { useEffect, useRef, MutableRefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 
 interface GoogleMapProps {
@@ -22,6 +23,7 @@ function MapComponent({
   onMachineClick,
   mapRef,
 }: GoogleMapProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const localMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -85,7 +87,7 @@ function MapComponent({
           strokeWeight: 2,
         },
         zIndex: 1000,
-        title: "Вы здесь",
+        title: t("mapYouAreHere"),
       });
     }
   }, [userLocation]);
@@ -139,25 +141,29 @@ function MapComponent({
 }
 
 function LoadingRender() {
+  const { t } = useTranslation();
   return (
     <div className="w-full h-full flex items-center justify-center bg-muted">
       <div className="text-center">
         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Загрузка карты...</p>
+        <p className="text-sm text-muted-foreground">{t("mapLoading")}</p>
       </div>
     </div>
   );
 }
 
 function ErrorRender() {
+  const { t } = useTranslation();
   return (
     <div className="w-full h-full flex items-center justify-center bg-muted">
-      <p className="text-sm text-destructive">Ошибка загрузки карты</p>
+      <p className="text-sm text-destructive">{t("mapError")}</p>
     </div>
   );
 }
 
 export function GoogleMap(props: GoogleMapProps) {
+  const { t } = useTranslation();
+
   const render = (status: Status) => {
     switch (status) {
       case Status.LOADING:
@@ -172,9 +178,7 @@ export function GoogleMap(props: GoogleMapProps) {
   if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-muted">
-        <p className="text-sm text-muted-foreground">
-          API ключ Google Maps не настроен
-        </p>
+        <p className="text-sm text-muted-foreground">{t("mapApiKeyMissing")}</p>
       </div>
     );
   }

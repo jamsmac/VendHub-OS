@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Ticket,
@@ -19,23 +20,33 @@ interface ValidationResult {
   description: string;
 }
 
-const TYPE_LABELS: Record<
-  string,
-  { label: string; format: (v: number) => string }
-> = {
-  fixed_discount: {
-    label: "Скидка",
-    format: (v) => `${v.toLocaleString()} сум`,
-  },
-  percent_discount: { label: "Скидка", format: (v) => `${v}%` },
-  bonus_points: { label: "Бонус", format: (v) => `+${v} баллов` },
-  free_product: { label: "Подарок", format: (v) => `${v} бесплатно` },
-};
-
 export function PromoCodePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<ValidationResult | null>(null);
+
+  const TYPE_LABELS: Record<
+    string,
+    { label: string; format: (v: number) => string }
+  > = {
+    fixed_discount: {
+      label: t("promoTypeFixedDiscount"),
+      format: (v) => `${v.toLocaleString()} ${t("currency")}`,
+    },
+    percent_discount: {
+      label: t("promoTypePercentDiscount"),
+      format: (v) => `${v}%`,
+    },
+    bonus_points: {
+      label: t("promoTypeBonusPoints"),
+      format: (v) => `+${v} ${t("pointsLabel")}`,
+    },
+    free_product: {
+      label: t("promoTypeFreeProduct"),
+      format: (v) => `${v} ${t("free")}`,
+    },
+  };
 
   const validateMutation = useMutation({
     mutationFn: (code: string) =>
@@ -46,7 +57,7 @@ export function PromoCodePage() {
         valid: false,
         type: "",
         value: 0,
-        description: "Промокод не найден или истёк",
+        description: t("promoNotFoundOrExpired"),
       });
     },
   });
@@ -54,11 +65,11 @@ export function PromoCodePage() {
   const redeemMutation = useMutation({
     mutationFn: (code: string) => promoCodesApi.redeem(code),
     onSuccess: () => {
-      toast.success("Промокод активирован!");
+      toast.success(t("promoActivated"));
       setCode("");
       setResult(null);
     },
-    onError: () => toast.error("Ошибка при активации промокода"),
+    onError: () => toast.error(t("promoActivationError")),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,11 +87,9 @@ export function PromoCodePage() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Промокод</h1>
+          <h1 className="text-xl font-bold">{t("promoCodeTitle")}</h1>
         </div>
-        <p className="text-sm opacity-90">
-          Введите промокод для получения скидки или бонусов
-        </p>
+        <p className="text-sm opacity-90">{t("promoCodeSubtitle")}</p>
       </div>
 
       <div className="px-4 -mt-8 space-y-6 pb-24">
@@ -89,7 +98,7 @@ export function PromoCodePage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Промокод
+                {t("promoCodeLabel")}
               </label>
               <div className="relative">
                 <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -100,7 +109,7 @@ export function PromoCodePage() {
                     setCode(e.target.value.toUpperCase());
                     setResult(null);
                   }}
-                  placeholder="Введите код"
+                  placeholder={t("promoCodePlaceholder")}
                   className="w-full pl-11 pr-4 py-3 border rounded-xl text-lg font-mono tracking-widest focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none"
                   maxLength={20}
                   autoCapitalize="characters"
@@ -112,7 +121,9 @@ export function PromoCodePage() {
               disabled={code.trim().length < 3 || validateMutation.isPending}
               className="w-full py-3 bg-purple-500 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {validateMutation.isPending ? "Проверяем..." : "Применить"}
+              {validateMutation.isPending
+                ? t("promoChecking")
+                : t("promoApplyButton")}
             </button>
           </form>
         </div>
@@ -128,7 +139,7 @@ export function PromoCodePage() {
                   <CheckCircle className="h-8 w-8 text-green-500" />
                 </div>
                 <h3 className="text-lg font-bold text-green-800 mb-1">
-                  Промокод действителен!
+                  {t("promoValid")}
                 </h3>
                 <p className="text-sm text-green-600 mb-3">
                   {result.description}
@@ -148,7 +159,9 @@ export function PromoCodePage() {
                   className="w-full py-3 bg-green-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
                 >
                   <Gift className="h-5 w-5" />
-                  {redeemMutation.isPending ? "Активация..." : "Активировать"}
+                  {redeemMutation.isPending
+                    ? t("promoActivating")
+                    : t("promoActivate")}
                 </button>
               </div>
             ) : (
@@ -157,7 +170,7 @@ export function PromoCodePage() {
                   <XCircle className="h-8 w-8 text-red-500" />
                 </div>
                 <h3 className="text-lg font-bold text-red-800 mb-1">
-                  Промокод недействителен
+                  {t("promoInvalidTitle")}
                 </h3>
                 <p className="text-sm text-red-600">{result.description}</p>
               </div>
@@ -169,24 +182,24 @@ export function PromoCodePage() {
         <div className="bg-white rounded-2xl p-5 border">
           <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-purple-500" />
-            Где найти промокоды?
+            {t("promoWhereToFind")}
           </h3>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start gap-2">
-              <span className="text-purple-500 font-bold">•</span>В нашем
-              Telegram канале @vendhub
+              <span className="text-purple-500 font-bold">&#8226;</span>
+              {t("promoSourceTelegram")}
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-500 font-bold">•</span>
-              На стикерах на автоматах
+              <span className="text-purple-500 font-bold">&#8226;</span>
+              {t("promoSourceStickers")}
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-500 font-bold">•</span>В рассылке по
-              email и SMS
+              <span className="text-purple-500 font-bold">&#8226;</span>
+              {t("promoSourceEmail")}
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-500 font-bold">•</span>В наградах за
-              достижения и квесты
+              <span className="text-purple-500 font-bold">&#8226;</span>
+              {t("promoSourceAchievements")}
             </li>
           </ul>
         </div>

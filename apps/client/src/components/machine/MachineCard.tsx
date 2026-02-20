@@ -62,7 +62,9 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
         <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
           <MapPin className="w-3 h-3" />
           <span className="truncate">
-            {machine.location?.address || machine.address || "Адрес не указан"}
+            {machine.location?.address ||
+              machine.address ||
+              t("machineAddressUnknown")}
           </span>
         </div>
 

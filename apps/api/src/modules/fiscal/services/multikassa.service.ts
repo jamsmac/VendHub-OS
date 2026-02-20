@@ -1,6 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
+import { AxiosError } from "axios";
 import { firstValueFrom } from "rxjs";
 import {
   MultiKassaReceiptItem,
@@ -145,15 +146,17 @@ export class MultiKassaService {
       );
 
       return response.data;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosErr = error instanceof AxiosError ? error : null;
+      const errMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `MultiKassa API error: ${error.message}`,
-        error.response?.data,
+        `MultiKassa API error: ${errMsg}`,
+        axiosErr?.response?.data,
       );
       throw new HttpException(
-        error.response?.data?.message || "MultiKassa API error",
-        error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        ((axiosErr?.response?.data as Record<string, unknown>)
+          ?.message as string) || "MultiKassa API error",
+        axiosErr?.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -1,13 +1,17 @@
 /**
- * Payments Service
- * Integration with Uzbekistan payment providers: Payme, Click, Uzum
+ * Payments Service (Orchestrator)
+ * Delegates provider-specific logic to split handlers:
+ * - PaymeHandler → Payme (JSON-RPC)
+ * - ClickHandler → Click (REST/MD5)
+ * - UzumHandler → Uzum Bank (REST/HMAC-SHA256)
+ *
+ * Keeps cross-provider logic: QR payments, refunds, transaction queries
  */
 
 import {
   Injectable,
   Logger,
   BadRequestException,
-  UnauthorizedException,
   NotFoundException,
   InternalServerErrorException,
 } from "@nestjs/common";
@@ -24,9 +28,12 @@ import {
 import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
 import { UzumCreateDto } from "./dto/create-payment.dto";
 import { InitiateRefundDto, QueryTransactionsDto } from "./dto/refund.dto";
+import { PaymeHandler } from "./payme.handler";
+import { ClickHandler } from "./click.handler";
+import { UzumHandler } from "./uzum.handler";
 
 // ============================================================================
-// INTERFACES
+// INTERFACES (re-exported for backward compatibility)
 // ============================================================================
 
 export interface PaymeWebhookData {
@@ -83,15 +90,15 @@ export class PaymentsService {
     private transactionRepo: Repository<PaymentTransaction>,
     @InjectRepository(PaymentRefund)
     private refundRepo: Repository<PaymentRefund>,
+    private readonly paymeHandler: PaymeHandler,
+    private readonly clickHandler: ClickHandler,
+    private readonly uzumHandler: UzumHandler,
   ) {}
 
   // ============================================
-  // PAYME INTEGRATION
+  // PAYME (delegated to PaymeHandler)
   // ============================================
 
-  /**
-   * Create Payme transaction
-   */
   async createPaymeTransaction(
     amount: number,
     orderId: string,
@@ -99,479 +106,30 @@ export class PaymentsService {
     machineId?: string,
     clientUserId?: string,
   ): Promise<PaymentResult> {
-    const merchantId = this.configService.get<string>("PAYME_MERCHANT_ID");
-    const baseUrl = this.configService.get<string>(
-      "PAYME_CHECKOUT_URL",
-      "https://checkout.paycom.uz",
-    );
-
-    if (!merchantId) {
-      throw new BadRequestException("Payme integration not configured");
-    }
-
-    // Amount in tiyn (1 UZS = 100 tiyn)
-    const amountInTiyn = Math.round(amount * 100);
-
-    // Generate Payme checkout URL
-    const params = Buffer.from(
-      JSON.stringify({
-        m: merchantId,
-        ac: { order_id: orderId },
-        a: amountInTiyn,
-      }),
-    ).toString("base64");
-
-    // Create pending transaction record if organization context is available
-    let transactionId: string | undefined;
-    if (organizationId) {
-      const transaction = this.transactionRepo.create({
-        organizationId: organizationId,
-        provider: PaymentProvider.PAYME,
-        amount,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PENDING,
-        orderId: orderId,
-        machineId: machineId || null,
-        clientUserId: clientUserId || null,
-        rawRequest: { amount, orderId, amountInTiyn },
-      });
-      const saved = await this.transactionRepo.save(transaction);
-      transactionId = saved.id;
-    }
-
-    return {
-      provider: "payme",
-      status: "pending",
+    return this.paymeHandler.createPaymeTransaction(
       amount,
       orderId,
-      transactionId,
-      checkoutUrl: `${baseUrl}/${params}`,
-    };
-  }
-
-  /**
-   * Verify Payme webhook signature (Basic Auth)
-   */
-  verifyPaymeSignature(authHeader: string | undefined): boolean {
-    if (!authHeader) {
-      this.logger.warn("Payme webhook: Missing Authorization header");
-      return false;
-    }
-
-    const merchantKey = this.configService.get<string>("PAYME_MERCHANT_KEY");
-    if (!merchantKey) {
-      this.logger.error("Payme webhook: PAYME_MERCHANT_KEY not configured");
-      return false;
-    }
-
-    // Payme uses Basic auth with merchant_id:key
-    const merchantId = this.configService.get<string>("PAYME_MERCHANT_ID");
-    const expectedAuth = Buffer.from(`${merchantId}:${merchantKey}`).toString(
-      "base64",
+      organizationId,
+      machineId,
+      clientUserId,
     );
-
-    if (!authHeader.startsWith("Basic ")) {
-      return false;
-    }
-
-    const providedAuth = authHeader.substring(6);
-
-    // Use timing-safe comparison to prevent timing attacks
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expectedAuth),
-        Buffer.from(providedAuth),
-      );
-    } catch {
-      return false;
-    }
   }
 
-  /**
-   * Handle Payme webhook (signature verified externally in controller)
-   */
+  verifyPaymeSignature(authHeader: string | undefined): boolean {
+    return this.paymeHandler.verifyPaymeSignature(authHeader);
+  }
+
   async handlePaymeWebhook(
     data: PaymeWebhookData,
     authHeader?: string,
   ): Promise<Record<string, unknown>> {
-    // Verify signature
-    if (!this.verifyPaymeSignature(authHeader)) {
-      throw new UnauthorizedException("Invalid Payme webhook signature");
-    }
-
-    this.logger.log(`Payme webhook: ${data.method}`);
-
-    switch (data.method) {
-      case "CheckPerformTransaction":
-        return this.paymeCheckPerformTransaction(data);
-      case "CreateTransaction":
-        return this.paymeCreateTransaction(data);
-      case "PerformTransaction":
-        return this.paymePerformTransaction(data);
-      case "CancelTransaction":
-        return this.paymeCancelTransaction(data);
-      case "CheckTransaction":
-        return this.paymeCheckTransaction(data);
-      default:
-        return {
-          error: {
-            code: -32601,
-            message: {
-              ru: "Метод не найден",
-              uz: "Metod topilmadi",
-              en: "Method not found",
-            },
-          },
-          id: data.id,
-        };
-    }
-  }
-
-  private async paymeCheckPerformTransaction(data: PaymeWebhookData) {
-    const orderId = data.params.account?.order_id;
-    if (!orderId) {
-      return {
-        error: {
-          code: -31050,
-          message: {
-            ru: "Заказ не найден",
-            uz: "Buyurtma topilmadi",
-            en: "Order not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    // Look for an existing pending transaction for this order
-    const existing = await this.transactionRepo.findOne({
-      where: { orderId: orderId, provider: PaymentProvider.PAYME },
-    });
-
-    if (!existing) {
-      return {
-        error: {
-          code: -31050,
-          message: {
-            ru: "Заказ не найден",
-            uz: "Buyurtma topilmadi",
-            en: "Order not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    // Payme sends amount in tiyn (1 UZS = 100 tiyn)
-    const expectedAmountTiyn = Math.round(existing.amount * 100);
-    if (data.params.amount && data.params.amount !== expectedAmountTiyn) {
-      return {
-        error: {
-          code: -31001,
-          message: {
-            ru: "Неверная сумма",
-            uz: "Noto'g'ri summa",
-            en: "Invalid amount",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    return {
-      result: { allow: true },
-      id: data.id,
-    };
-  }
-
-  private async paymeCreateTransaction(data: PaymeWebhookData) {
-    const orderId = data.params.account?.order_id;
-    const paymeTransactionId = data.params.id;
-
-    if (!orderId || !paymeTransactionId) {
-      return {
-        error: {
-          code: -31050,
-          message: {
-            ru: "Неверные параметры",
-            uz: "Noto'g'ri parametrlar",
-            en: "Invalid parameters",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    // Check if transaction already exists with this providerTxId
-    const existingByProvider = await this.transactionRepo.findOne({
-      where: {
-        providerTxId: paymeTransactionId,
-        provider: PaymentProvider.PAYME,
-      },
-    });
-
-    if (existingByProvider) {
-      // Payme state: 1 = created
-      return {
-        result: {
-          create_time: existingByProvider.createdAt.getTime(),
-          transaction: existingByProvider.id,
-          state: 1,
-        },
-        id: data.id,
-      };
-    }
-
-    // Find existing pending transaction for this order, or create new one
-    let transaction = await this.transactionRepo.findOne({
-      where: {
-        orderId: orderId,
-        provider: PaymentProvider.PAYME,
-        status: PaymentTransactionStatus.PENDING,
-      },
-    });
-
-    const createTime = Date.now();
-
-    if (transaction) {
-      // Update existing pending transaction with Payme's ID
-      transaction.providerTxId = paymeTransactionId;
-      transaction.status = PaymentTransactionStatus.PROCESSING;
-      transaction.rawRequest = data as unknown as Record<string, unknown>;
-      await this.transactionRepo.save(transaction);
-    } else {
-      // Create new transaction
-      const amountUzs = data.params.amount ? data.params.amount / 100 : 0;
-      transaction = this.transactionRepo.create({
-        organizationId: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
-        provider: PaymentProvider.PAYME,
-        providerTxId: paymeTransactionId,
-        amount: amountUzs,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PROCESSING,
-        orderId: orderId,
-        rawRequest: data as unknown as Record<string, unknown>,
-      });
-      await this.transactionRepo.save(transaction);
-    }
-
-    return {
-      result: {
-        create_time: createTime,
-        transaction: transaction.id,
-        state: 1, // 1 = created
-      },
-      id: data.id,
-    };
-  }
-
-  private async paymePerformTransaction(data: PaymeWebhookData) {
-    const paymeTransactionId = data.params.id;
-    if (!paymeTransactionId) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    return this.dataSource.transaction(async (manager) => {
-      const txRepo = manager.getRepository(PaymentTransaction);
-      const transaction = await txRepo.findOne({
-        where: {
-          providerTxId: paymeTransactionId,
-          provider: PaymentProvider.PAYME,
-        },
-        lock: { mode: "pessimistic_write" },
-      });
-
-      if (!transaction) {
-        return {
-          error: {
-            code: -31003,
-            message: {
-              ru: "Транзакция не найдена",
-              uz: "Tranzaksiya topilmadi",
-              en: "Transaction not found",
-            },
-          },
-          id: data.id,
-        };
-      }
-
-      // Already completed
-      if (transaction.status === PaymentTransactionStatus.COMPLETED) {
-        return {
-          result: {
-            transaction: transaction.id,
-            perform_time: transaction.processedAt?.getTime() || Date.now(),
-            state: 2, // 2 = completed
-          },
-          id: data.id,
-        };
-      }
-
-      // Mark as completed
-      const performTime = Date.now();
-      transaction.status = PaymentTransactionStatus.COMPLETED;
-      transaction.processedAt = new Date(performTime);
-      transaction.rawResponse = data as unknown as Record<string, unknown>;
-      await txRepo.save(transaction);
-
-      return {
-        result: {
-          transaction: transaction.id,
-          perform_time: performTime,
-          state: 2, // 2 = completed
-        },
-        id: data.id,
-      };
-    });
-  }
-
-  private async paymeCancelTransaction(data: PaymeWebhookData) {
-    const paymeTransactionId = data.params.id;
-    if (!paymeTransactionId) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    const transaction = await this.transactionRepo.findOne({
-      where: {
-        providerTxId: paymeTransactionId,
-        provider: PaymentProvider.PAYME,
-      },
-    });
-
-    if (!transaction) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    const cancelTime = Date.now();
-    const wasCompleted =
-      transaction.status === PaymentTransactionStatus.COMPLETED;
-
-    transaction.status = PaymentTransactionStatus.CANCELLED;
-    transaction.rawResponse = data as unknown as Record<string, unknown>;
-    transaction.errorMessage = `Cancelled by Payme, reason: ${data.params.reason}`;
-    await this.transactionRepo.save(transaction);
-
-    return {
-      result: {
-        transaction: transaction.id,
-        cancel_time: cancelTime,
-        state: wasCompleted ? -2 : -1, // -1 = cancelled after create, -2 = cancelled after complete
-      },
-      id: data.id,
-    };
-  }
-
-  private async paymeCheckTransaction(data: PaymeWebhookData) {
-    const paymeTransactionId = data.params.id;
-    if (!paymeTransactionId) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    const transaction = await this.transactionRepo.findOne({
-      where: {
-        providerTxId: paymeTransactionId,
-        provider: PaymentProvider.PAYME,
-      },
-    });
-
-    if (!transaction) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
-        },
-        id: data.id,
-      };
-    }
-
-    // Map internal status to Payme state
-    let state: number;
-    switch (transaction.status) {
-      case PaymentTransactionStatus.PENDING:
-      case PaymentTransactionStatus.PROCESSING:
-        state = 1; // created
-        break;
-      case PaymentTransactionStatus.COMPLETED:
-        state = 2; // completed
-        break;
-      case PaymentTransactionStatus.CANCELLED:
-        state = -1; // cancelled (simplified; could be -2 if cancelled after complete)
-        break;
-      default:
-        state = 1;
-    }
-
-    return {
-      result: {
-        create_time: transaction.createdAt.getTime(),
-        perform_time: transaction.processedAt?.getTime() || null,
-        cancel_time:
-          transaction.status === PaymentTransactionStatus.CANCELLED
-            ? transaction.updatedAt.getTime()
-            : null,
-        transaction: transaction.id,
-        state,
-        reason:
-          transaction.status === PaymentTransactionStatus.CANCELLED
-            ? (transaction.metadata as Record<string, unknown>)
-                ?.cancel_reason || null
-            : null,
-      },
-      id: data.id,
-    };
+    return this.paymeHandler.handlePaymeWebhook(data, authHeader);
   }
 
   // ============================================
-  // CLICK INTEGRATION
+  // CLICK (delegated to ClickHandler)
   // ============================================
 
-  /**
-   * Create Click transaction
-   */
   async createClickTransaction(
     amount: number,
     orderId: string,
@@ -579,437 +137,48 @@ export class PaymentsService {
     machineId?: string,
     clientUserId?: string,
   ): Promise<PaymentResult> {
-    const merchantId = this.configService.get<string>("CLICK_MERCHANT_ID");
-    const serviceId = this.configService.get<string>("CLICK_SERVICE_ID");
-    const baseUrl = this.configService.get<string>(
-      "CLICK_CHECKOUT_URL",
-      "https://my.click.uz/services/pay",
-    );
-    const returnUrl = this.configService.get<string>("CLICK_RETURN_URL", "");
-
-    if (!merchantId || !serviceId) {
-      throw new BadRequestException("Click integration not configured");
-    }
-
-    // Build checkout URL
-    const checkoutUrl = new URL(baseUrl);
-    checkoutUrl.searchParams.set("service_id", serviceId);
-    checkoutUrl.searchParams.set("merchant_id", merchantId);
-    checkoutUrl.searchParams.set("amount", amount.toString());
-    checkoutUrl.searchParams.set("transaction_param", orderId);
-    if (returnUrl) {
-      checkoutUrl.searchParams.set("return_url", returnUrl);
-    }
-
-    // Create pending transaction record if organization context is available
-    let transactionId: string | undefined;
-    if (organizationId) {
-      const transaction = this.transactionRepo.create({
-        organizationId: organizationId,
-        provider: PaymentProvider.CLICK,
-        amount,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PENDING,
-        orderId: orderId,
-        machineId: machineId || null,
-        clientUserId: clientUserId || null,
-        rawRequest: { amount, orderId },
-      });
-      const saved = await this.transactionRepo.save(transaction);
-      transactionId = saved.id;
-    }
-
-    return {
-      provider: "click",
-      status: "pending",
+    return this.clickHandler.createClickTransaction(
       amount,
       orderId,
-      transactionId,
-      checkoutUrl: checkoutUrl.toString(),
-    };
+      organizationId,
+      machineId,
+      clientUserId,
+    );
   }
 
-  /**
-   * Verify Click webhook signature
-   */
   verifyClickSignature(data: ClickWebhookData): boolean {
-    const secretKey = this.configService.get<string>("CLICK_SECRET_KEY");
-    if (!secretKey) {
-      this.logger.error("Click webhook: CLICK_SECRET_KEY not configured");
-      return false;
-    }
-
-    // Click signature: MD5(click_trans_id + service_id + secret_key + merchant_trans_id + amount + action + sign_time)
-    const signString = [
-      data.click_trans_id,
-      data.service_id,
-      secretKey,
-      data.merchant_trans_id,
-      data.amount,
-      data.action,
-      data.sign_time,
-    ].join("");
-
-    const expectedSign = crypto
-      .createHash("md5")
-      .update(signString)
-      .digest("hex");
-
-    // Use timing-safe comparison to prevent timing attacks
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expectedSign),
-        Buffer.from(data.sign_string || ""),
-      );
-    } catch {
-      return false;
-    }
+    return this.clickHandler.verifyClickSignature(data);
   }
 
-  /**
-   * Handle Click webhook
-   */
   async handleClickWebhook(
     data: ClickWebhookData,
   ): Promise<Record<string, unknown>> {
-    // Verify signature
-    if (!this.verifyClickSignature(data)) {
-      this.logger.warn("Click webhook: Invalid signature");
-      return {
-        error: -1,
-        error_note: "Invalid signature",
-      };
-    }
-
-    this.logger.log(
-      `Click webhook: action=${data.action}, trans_id=${data.click_trans_id}`,
-    );
-
-    switch (data.action) {
-      case 0: // Prepare (check availability)
-        return this.clickPrepare(data);
-      case 1: // Complete
-        return this.clickComplete(data);
-      default:
-        return {
-          error: -3,
-          error_note: "Unknown action",
-        };
-    }
-  }
-
-  private async clickPrepare(data: ClickWebhookData) {
-    const orderId = data.merchant_trans_id;
-
-    // Look for an existing pending transaction for this order
-    const existing = await this.transactionRepo.findOne({
-      where: { orderId: orderId, provider: PaymentProvider.CLICK },
-    });
-
-    if (!existing) {
-      // Create a new transaction record
-      const transaction = this.transactionRepo.create({
-        organizationId: "00000000-0000-0000-0000-000000000000", // Will be resolved from order
-        provider: PaymentProvider.CLICK,
-        providerTxId: data.click_trans_id,
-        amount: data.amount,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PENDING,
-        orderId: orderId,
-        rawRequest: data as unknown as Record<string, unknown>,
-      });
-      const saved = await this.transactionRepo.save(transaction);
-
-      return {
-        click_trans_id: data.click_trans_id,
-        merchant_trans_id: data.merchant_trans_id,
-        merchant_prepare_id: saved.id,
-        error: 0,
-        error_note: "Success",
-      };
-    }
-
-    // Verify amount matches
-    if (Number(existing.amount) !== Number(data.amount)) {
-      return {
-        click_trans_id: data.click_trans_id,
-        merchant_trans_id: data.merchant_trans_id,
-        error: -2,
-        error_note: "Incorrect amount",
-      };
-    }
-
-    // Update providerTxId on existing transaction
-    existing.providerTxId = data.click_trans_id;
-    existing.rawRequest = data as unknown as Record<string, unknown>;
-    await this.transactionRepo.save(existing);
-
-    return {
-      click_trans_id: data.click_trans_id,
-      merchant_trans_id: data.merchant_trans_id,
-      merchant_prepare_id: existing.id,
-      error: 0,
-      error_note: "Success",
-    };
-  }
-
-  private async clickComplete(data: ClickWebhookData) {
-    // Check for error from Click
-    if (data.error < 0) {
-      // Click reports an error, cancel the transaction
-      const transaction = await this.transactionRepo.findOne({
-        where: {
-          providerTxId: data.click_trans_id,
-          provider: PaymentProvider.CLICK,
-        },
-      });
-
-      if (transaction) {
-        transaction.status = PaymentTransactionStatus.FAILED;
-        transaction.errorMessage = data.error_note;
-        transaction.rawResponse = data as unknown as Record<string, unknown>;
-        await this.transactionRepo.save(transaction);
-      }
-
-      return {
-        click_trans_id: data.click_trans_id,
-        merchant_trans_id: data.merchant_trans_id,
-        error: -4,
-        error_note: "Transaction cancelled",
-      };
-    }
-
-    return this.dataSource.transaction(async (manager) => {
-      const txRepo = manager.getRepository(PaymentTransaction);
-      const transaction = await txRepo.findOne({
-        where: {
-          providerTxId: data.click_trans_id,
-          provider: PaymentProvider.CLICK,
-        },
-        lock: { mode: "pessimistic_write" },
-      });
-
-      if (!transaction) {
-        return {
-          click_trans_id: data.click_trans_id,
-          merchant_trans_id: data.merchant_trans_id,
-          error: -6,
-          error_note: "Transaction not found",
-        };
-      }
-
-      // Idempotency: already completed — return success without re-processing
-      if (transaction.status === PaymentTransactionStatus.COMPLETED) {
-        return {
-          click_trans_id: data.click_trans_id,
-          merchant_trans_id: data.merchant_trans_id,
-          merchant_confirm_id: transaction.id,
-          error: 0,
-          error_note: "Success",
-        };
-      }
-
-      // Mark as completed
-      transaction.status = PaymentTransactionStatus.COMPLETED;
-      transaction.processedAt = new Date();
-      transaction.rawResponse = data as unknown as Record<string, unknown>;
-      await txRepo.save(transaction);
-
-      return {
-        click_trans_id: data.click_trans_id,
-        merchant_trans_id: data.merchant_trans_id,
-        merchant_confirm_id: transaction.id,
-        error: 0,
-        error_note: "Success",
-      };
-    });
+    return this.clickHandler.handleClickWebhook(data);
   }
 
   // ============================================
-  // UZUM BANK INTEGRATION
+  // UZUM (delegated to UzumHandler)
   // ============================================
 
-  /**
-   * Create Uzum Bank checkout session
-   */
   async createUzumTransaction(
     dto: UzumCreateDto,
     organizationId: string,
   ): Promise<PaymentResult> {
-    const merchantId = this.configService.get<string>("UZUM_MERCHANT_ID");
-    const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
-    const apiUrl = this.configService.get<string>(
-      "UZUM_API_URL",
-      "https://api.uzumbank.uz",
-    );
-
-    if (!merchantId || !secretKey) {
-      throw new BadRequestException("Uzum Bank integration not configured");
-    }
-
-    // Create pending transaction record
-    const transaction = this.transactionRepo.create({
-      organizationId: organizationId,
-      provider: PaymentProvider.UZUM,
-      amount: dto.amount,
-      currency: "UZS",
-      status: PaymentTransactionStatus.PENDING,
-      orderId: dto.orderId,
-      rawRequest: { ...dto, merchantId },
-    });
-    const saved = await this.transactionRepo.save(transaction);
-
-    // Generate signature for Uzum checkout
-    const signData = `${merchantId}:${saved.id}:${dto.amount}`;
-    const signature = crypto
-      .createHmac("sha256", secretKey)
-      .update(signData)
-      .digest("hex");
-
-    // Build checkout URL
-    const returnUrl =
-      dto.returnUrl || this.configService.get<string>("UZUM_RETURN_URL", "");
-    const checkoutUrl = new URL(`${apiUrl}/checkout`);
-    checkoutUrl.searchParams.set("merchant_id", merchantId);
-    checkoutUrl.searchParams.set("transaction_id", saved.id);
-    checkoutUrl.searchParams.set("amount", dto.amount.toString());
-    checkoutUrl.searchParams.set("signature", signature);
-    if (returnUrl) {
-      checkoutUrl.searchParams.set("return_url", returnUrl);
-    }
-
-    return {
-      provider: "uzum",
-      status: "pending",
-      amount: dto.amount,
-      orderId: dto.orderId,
-      transactionId: saved.id,
-      checkoutUrl: checkoutUrl.toString(),
-    };
+    return this.uzumHandler.createUzumTransaction(dto, organizationId);
   }
 
-  /**
-   * Verify Uzum webhook signature (HMAC SHA-256)
-   */
   verifyUzumSignature(data: UzumWebhookData): boolean {
-    const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
-    if (!secretKey) {
-      this.logger.error("Uzum webhook: UZUM_SECRET_KEY not configured");
-      return false;
-    }
-
-    const { signature, ..._payload } = data;
-    if (!signature) {
-      return false;
-    }
-
-    // Uzum signature: HMAC-SHA256 of sorted payload fields
-    const signData = `${data.transactionId}:${data.orderId}:${data.amount}:${data.status}`;
-    const expectedSignature = crypto
-      .createHmac("sha256", secretKey)
-      .update(signData)
-      .digest("hex");
-
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expectedSignature),
-        Buffer.from(signature),
-      );
-    } catch {
-      return false;
-    }
+    return this.uzumHandler.verifyUzumSignature(data);
   }
 
-  /**
-   * Handle Uzum Bank webhook (REST-based)
-   */
   async handleUzumWebhook(
     data: UzumWebhookData,
   ): Promise<Record<string, unknown>> {
-    // Verify signature
-    if (!this.verifyUzumSignature(data)) {
-      this.logger.warn("Uzum webhook: Invalid signature");
-      return {
-        success: false,
-        error: "Invalid signature",
-      };
-    }
-
-    this.logger.log(
-      `Uzum webhook: transactionId=${data.transactionId}, status=${data.status}`,
-    );
-
-    return this.dataSource.transaction(async (manager) => {
-      const txRepo = manager.getRepository(PaymentTransaction);
-
-      // Find the transaction with pessimistic lock
-      const transaction = await txRepo.findOne({
-        where: { id: data.transactionId, provider: PaymentProvider.UZUM },
-        lock: { mode: "pessimistic_write" },
-      });
-
-      if (!transaction) {
-        this.logger.warn(
-          `Uzum webhook: Transaction not found: ${data.transactionId}`,
-        );
-        return {
-          success: false,
-          error: "Transaction not found",
-        };
-      }
-
-      // Idempotency: if transaction already in terminal state, return current status
-      const terminalStatuses = [
-        PaymentTransactionStatus.COMPLETED,
-        PaymentTransactionStatus.FAILED,
-        PaymentTransactionStatus.CANCELLED,
-        PaymentTransactionStatus.REFUNDED,
-      ];
-      if (terminalStatuses.includes(transaction.status)) {
-        this.logger.log(
-          `Uzum webhook: Transaction ${transaction.id} already in terminal state ${transaction.status}, skipping`,
-        );
-        return {
-          success: true,
-          transactionId: transaction.id,
-          status: transaction.status,
-        };
-      }
-
-      // Update transaction based on Uzum status
-      switch (data.status) {
-        case "COMPLETED":
-        case "SUCCESS":
-          transaction.status = PaymentTransactionStatus.COMPLETED;
-          transaction.processedAt = new Date();
-          transaction.providerTxId = data.transactionId;
-          break;
-        case "FAILED":
-        case "ERROR":
-          transaction.status = PaymentTransactionStatus.FAILED;
-          transaction.errorMessage = `Uzum payment failed: ${data.status}`;
-          break;
-        case "CANCELLED":
-          transaction.status = PaymentTransactionStatus.CANCELLED;
-          transaction.errorMessage = "Payment cancelled by user";
-          break;
-        default:
-          transaction.status = PaymentTransactionStatus.PROCESSING;
-      }
-
-      transaction.rawResponse = data as Record<string, unknown>;
-      await txRepo.save(transaction);
-
-      return {
-        success: true,
-        transactionId: transaction.id,
-        status: transaction.status,
-      };
-    });
+    return this.uzumHandler.handleUzumWebhook(data);
   }
 
   // ============================================
-  // QR PAYMENT
+  // QR PAYMENT (cross-provider)
   // ============================================
 
   /**
@@ -1037,7 +206,7 @@ export class PaymentsService {
     if (organizationId) {
       const transaction = this.transactionRepo.create({
         organizationId: organizationId,
-        provider: PaymentProvider.CASH, // Will be updated when provider is selected
+        provider: PaymentProvider.CASH,
         amount,
         currency: "UZS",
         status: PaymentTransactionStatus.PENDING,
@@ -1050,7 +219,7 @@ export class PaymentsService {
 
     // Build QR data containing deep links to each payment provider
     const qrPayload = {
-      v: 1, // QR format version
+      v: 1,
       id: paymentId,
       a: amount,
       m: machineId,
@@ -1100,7 +269,7 @@ export class PaymentsService {
   }
 
   // ============================================
-  // REFUNDS
+  // REFUNDS (cross-provider)
   // ============================================
 
   /**
@@ -1111,7 +280,6 @@ export class PaymentsService {
     organizationId: string,
     userId: string,
   ): Promise<PaymentRefund> {
-    // Find the transaction
     const transaction = await this.transactionRepo.findOne({
       where: {
         id: dto.paymentTransactionId,
@@ -1129,10 +297,8 @@ export class PaymentsService {
       );
     }
 
-    // Determine refund amount (full or partial)
     const refundAmount = dto.amount || Number(transaction.amount);
 
-    // Validate refund amount does not exceed transaction amount
     const existingRefunds = await this.refundRepo.find({
       where: {
         paymentTransactionId: transaction.id,
@@ -1151,7 +317,6 @@ export class PaymentsService {
       );
     }
 
-    // Create refund record
     const refund = this.refundRepo.create({
       organizationId: organizationId,
       paymentTransactionId: transaction.id,
@@ -1200,26 +365,20 @@ export class PaymentsService {
     try {
       switch (transaction.provider) {
         case PaymentProvider.PAYME:
-          // Payme refund is handled via CancelTransaction webhook
-          // We just mark as completed; Payme will call CancelTransaction
-          this.logger.log(
-            `Payme refund initiated for transaction ${transaction.providerTxId}`,
+          this.logger.warn(
+            `Payme refund for transaction ${transaction.providerTxId} requires manual processing or webhook confirmation`,
           );
-          refund.status = RefundStatus.COMPLETED;
-          refund.processedAt = new Date();
+          refund.status = RefundStatus.PROCESSING;
           break;
 
         case PaymentProvider.CLICK:
-          // Click refund: would call Click API
-          this.logger.log(
-            `Click refund initiated for transaction ${transaction.providerTxId}`,
+          this.logger.warn(
+            `Click refund for transaction ${transaction.providerTxId} requires manual processing or API integration`,
           );
-          refund.status = RefundStatus.COMPLETED;
-          refund.processedAt = new Date();
+          refund.status = RefundStatus.PROCESSING;
           break;
 
         case PaymentProvider.UZUM: {
-          // Uzum refund via REST API
           const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
           const apiUrl = this.configService.get<string>(
             "UZUM_API_URL",
@@ -1238,12 +397,10 @@ export class PaymentsService {
             .update(signData)
             .digest("hex");
 
-          this.logger.log(
-            `Uzum refund initiated: ${apiUrl}/refund, tx=${transaction.id}, signature=${signature}`,
+          this.logger.warn(
+            `Uzum refund requires API call: ${apiUrl}/refund, tx=${transaction.id}, signature=${signature}. Marked as PROCESSING.`,
           );
-          // In production, make HTTP call to Uzum refund API here
-          refund.status = RefundStatus.COMPLETED;
-          refund.processedAt = new Date();
+          refund.status = RefundStatus.PROCESSING;
           break;
         }
 
@@ -1287,12 +444,9 @@ export class PaymentsService {
   }
 
   // ============================================
-  // TRANSACTION QUERIES
+  // TRANSACTION QUERIES (cross-provider)
   // ============================================
 
-  /**
-   * Get paginated list of transactions with filters
-   */
   async getTransactions(
     query: QueryTransactionsDto,
     organizationId: string,
@@ -1342,9 +496,6 @@ export class PaymentsService {
     return { data, total, page, limit };
   }
 
-  /**
-   * Get a single transaction with its refunds
-   */
   async getTransaction(
     id: string,
     organizationId: string,
@@ -1361,16 +512,12 @@ export class PaymentsService {
     return transaction;
   }
 
-  /**
-   * Get aggregated transaction statistics for an organization
-   */
   async getTransactionStats(organizationId: string): Promise<{
     totalRevenue: number;
     totalTransactions: number;
     byProvider: Record<string, { count: number; amount: number }>;
     byStatus: Record<string, number>;
   }> {
-    // Total revenue from completed transactions
     const revenueResult = await this.transactionRepo
       .createQueryBuilder("tx")
       .select("COALESCE(SUM(tx.amount), 0)", "total_revenue")
@@ -1381,7 +528,6 @@ export class PaymentsService {
       })
       .getRawOne();
 
-    // Count by provider
     const providerResults = await this.transactionRepo
       .createQueryBuilder("tx")
       .select("tx.provider", "provider")
@@ -1402,7 +548,6 @@ export class PaymentsService {
       };
     }
 
-    // Count by status
     const statusResults = await this.transactionRepo
       .createQueryBuilder("tx")
       .select("tx.status", "status")

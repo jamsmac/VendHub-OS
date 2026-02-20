@@ -256,16 +256,13 @@ export class TransactionResponseDto extends BaseResponseDto {
 
   // Relations excluded
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  items?: any[];
+  items?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  originalTransaction?: any;
+  originalTransaction?: Record<string, unknown>;
 }
 
 /**
@@ -342,8 +339,7 @@ export class TransactionItemResponseDto extends BaseResponseDto {
   metadata: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transaction?: any;
+  transaction?: Record<string, unknown>;
 }
 
 /**
@@ -476,8 +472,7 @@ export class CollectionRecordResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }
 
 /**

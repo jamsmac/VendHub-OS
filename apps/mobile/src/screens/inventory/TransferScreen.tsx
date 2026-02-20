@@ -21,6 +21,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { machinesApi, inventoryApi } from "../../services/api";
 
 interface Machine {
@@ -51,6 +52,7 @@ interface TransferItem {
 type Step = 1 | 2 | 3;
 
 export function TransferScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useRoute<any>();
@@ -107,10 +109,8 @@ export function TransferScreen() {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
-      const message =
-        err.response?.data?.message ||
-        "Не удалось создать перемещение. Попробуйте снова.";
-      Alert.alert("Ошибка", message);
+      const message = err.response?.data?.message || t("transfer.errorMessage");
+      Alert.alert(t("common.error"), message);
     },
   });
 
@@ -198,13 +198,13 @@ export function TransferScreen() {
   const handleNextStep = () => {
     if (step === 1) {
       if (!fromMachineId || !toMachineId) {
-        Alert.alert("Ошибка", "Выберите откуда и куда перемещать товар");
+        Alert.alert(t("common.error"), t("transfer.selectBothMachines"));
         return;
       }
       setStep(2);
     } else if (step === 2) {
       if (transferItems.length === 0) {
-        Alert.alert("Ошибка", "Выберите хотя бы один товар для перемещения");
+        Alert.alert(t("common.error"), t("transfer.selectAtLeastOne"));
         return;
       }
       setStep(3);
@@ -213,11 +213,17 @@ export function TransferScreen() {
 
   const handleConfirmTransfer = () => {
     Alert.alert(
-      "Подтвердить перемещение?",
-      `${transferItems.length} товар(ов), ${totalItems} единиц`,
+      t("transfer.confirmTitle"),
+      t("transfer.confirmMessage", {
+        items: transferItems.length,
+        units: totalItems,
+      }),
       [
-        { text: "Отмена", style: "cancel" },
-        { text: "Подтвердить", onPress: () => transferMutation.mutate() },
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("transfer.confirm"),
+          onPress: () => transferMutation.mutate(),
+        },
       ],
     );
   };
@@ -234,13 +240,16 @@ export function TransferScreen() {
           <View style={styles.successIconWrapper}>
             <Ionicons name="checkmark-circle" size={64} color="#10B981" />
           </View>
-          <Text style={styles.successTitle}>Перемещение создано</Text>
+          <Text style={styles.successTitle}>{t("transfer.created")}</Text>
           <Text style={styles.successNumber}>#{transferNumber}</Text>
           <Text style={styles.successMeta}>
             {fromMachine?.name} {"->"} {toMachine?.name}
           </Text>
           <Text style={styles.successDetail}>
-            {transferItems.length} товар(ов), {totalItems} единиц
+            {t("transfer.confirmMessage", {
+              items: transferItems.length,
+              units: totalItems,
+            })}
           </Text>
 
           <TouchableOpacity
@@ -249,7 +258,7 @@ export function TransferScreen() {
             activeOpacity={0.8}
           >
             <Ionicons name="arrow-back-outline" size={20} color="#fff" />
-            <Text style={styles.doneButtonText}>Готово</Text>
+            <Text style={styles.doneButtonText}>{t("common.done")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -271,7 +280,7 @@ export function TransferScreen() {
             <Ionicons name="arrow-back" size={22} color="#1F2937" />
           </TouchableOpacity>
           <Text style={styles.selectorTitle}>
-            {selectingFor === "from" ? "Откуда" : "Куда"}
+            {selectingFor === "from" ? t("transfer.from") : t("transfer.to")}
           </Text>
           <View style={{ width: 36 }} />
         </View>
@@ -280,7 +289,7 @@ export function TransferScreen() {
           <Ionicons name="search-outline" size={20} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Поиск автомата..."
+            placeholder={t("transfer.searchMachine")}
             placeholderTextColor="#9CA3AF"
             value={machineSearch}
             onChangeText={setMachineSearch}
@@ -296,7 +305,7 @@ export function TransferScreen() {
         {loadingMachines ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#43302b" />
-            <Text style={styles.loadingText}>Zagruzka...</Text>
+            <Text style={styles.loadingText}>{t("common.loading")}</Text>
           </View>
         ) : (
           <FlatList
@@ -346,7 +355,9 @@ export function TransferScreen() {
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <Ionicons name="cafe-outline" size={48} color="#D1D5DB" />
-                <Text style={styles.emptyText}>Автоматы не найдены</Text>
+                <Text style={styles.emptyText}>
+                  {t("transfer.machinesNotFound")}
+                </Text>
               </View>
             }
           />
@@ -403,13 +414,13 @@ export function TransferScreen() {
         {/* Step 1: Select Machines */}
         {step === 1 && (
           <>
-            <Text style={styles.stepTitle}>Выберите автоматы</Text>
+            <Text style={styles.stepTitle}>{t("transfer.selectMachines")}</Text>
             <Text style={styles.stepSubtitle}>
-              Укажите откуда и куда перемещать товар
+              {t("transfer.selectMachinesSubtitle")}
             </Text>
 
             {/* From Machine */}
-            <Text style={styles.fieldLabel}>Откуда</Text>
+            <Text style={styles.fieldLabel}>{t("transfer.from")}</Text>
             <TouchableOpacity
               style={[
                 styles.selectorCard,
@@ -440,7 +451,9 @@ export function TransferScreen() {
                   )}
                 </View>
               ) : (
-                <Text style={styles.selectorPlaceholder}>Выберите автомат</Text>
+                <Text style={styles.selectorPlaceholder}>
+                  {t("transfer.selectMachine")}
+                </Text>
               )}
               <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
@@ -461,7 +474,7 @@ export function TransferScreen() {
             )}
 
             {/* To Machine */}
-            <Text style={styles.fieldLabel}>Куда</Text>
+            <Text style={styles.fieldLabel}>{t("transfer.to")}</Text>
             <TouchableOpacity
               style={[
                 styles.selectorCard,
@@ -492,7 +505,9 @@ export function TransferScreen() {
                   )}
                 </View>
               ) : (
-                <Text style={styles.selectorPlaceholder}>Выберите автомат</Text>
+                <Text style={styles.selectorPlaceholder}>
+                  {t("transfer.selectMachine")}
+                </Text>
               )}
               <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
@@ -502,15 +517,17 @@ export function TransferScreen() {
         {/* Step 2: Select Products */}
         {step === 2 && (
           <>
-            <Text style={styles.stepTitle}>Выберите товары</Text>
+            <Text style={styles.stepTitle}>{t("transfer.selectProducts")}</Text>
             <Text style={styles.stepSubtitle}>
-              Из: {fromMachine?.name || "---"}
+              {t("transfer.from")}: {fromMachine?.name || "---"}
             </Text>
 
             {loadingProducts ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#43302b" />
-                <Text style={styles.loadingText}>Zagruzka tovarov...</Text>
+                <Text style={styles.loadingText}>
+                  {t("transfer.loadingProducts")}
+                </Text>
               </View>
             ) : sourceProducts && sourceProducts.length > 0 ? (
               sourceProducts.map((product) => {
@@ -546,14 +563,17 @@ export function TransferScreen() {
                           </Text>
                         )}
                         <Text style={styles.productStock}>
-                          В наличии: {product.currentQuantity} {product.unit}
+                          {t("transfer.inStock")}: {product.currentQuantity}{" "}
+                          {product.unit}
                         </Text>
                       </View>
                     </TouchableOpacity>
 
                     {isSelected && (
                       <View style={styles.quantityControl}>
-                        <Text style={styles.quantityLabel}>Количество:</Text>
+                        <Text style={styles.quantityLabel}>
+                          {t("transfer.quantity")}:
+                        </Text>
                         <View style={styles.quantityRow}>
                           <TouchableOpacity
                             style={styles.quantityButton}
@@ -594,7 +614,7 @@ export function TransferScreen() {
                           </Text>
                         </View>
                         <Text style={styles.quantityMax}>
-                          Максимум: {product.currentQuantity}
+                          {t("transfer.maximum")}: {product.currentQuantity}
                         </Text>
                       </View>
                     )}
@@ -604,7 +624,7 @@ export function TransferScreen() {
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="cube-outline" size={48} color="#D1D5DB" />
-                <Text style={styles.emptyText}>Нет доступных товаров</Text>
+                <Text style={styles.emptyText}>{t("transfer.noProducts")}</Text>
               </View>
             )}
           </>
@@ -613,10 +633,8 @@ export function TransferScreen() {
         {/* Step 3: Confirm */}
         {step === 3 && (
           <>
-            <Text style={styles.stepTitle}>Подтверждение</Text>
-            <Text style={styles.stepSubtitle}>
-              Проверьте данные перемещения
-            </Text>
+            <Text style={styles.stepTitle}>{t("transfer.confirmation")}</Text>
+            <Text style={styles.stepSubtitle}>{t("transfer.reviewData")}</Text>
 
             {/* Summary Card */}
             <View style={styles.confirmCard}>
@@ -635,7 +653,9 @@ export function TransferScreen() {
                     />
                   </View>
                   <View style={styles.confirmDirInfo}>
-                    <Text style={styles.confirmDirLabel}>Откуда</Text>
+                    <Text style={styles.confirmDirLabel}>
+                      {t("transfer.from")}
+                    </Text>
                     <Text style={styles.confirmDirValue}>
                       {fromMachine?.name}
                     </Text>
@@ -658,7 +678,9 @@ export function TransferScreen() {
                     />
                   </View>
                   <View style={styles.confirmDirInfo}>
-                    <Text style={styles.confirmDirLabel}>Куда</Text>
+                    <Text style={styles.confirmDirLabel}>
+                      {t("transfer.to")}
+                    </Text>
                     <Text style={styles.confirmDirValue}>
                       {toMachine?.name}
                     </Text>
@@ -669,7 +691,7 @@ export function TransferScreen() {
 
             {/* Products List */}
             <Text style={styles.confirmSectionLabel}>
-              Товары ({transferItems.length})
+              {t("transfer.products")} ({transferItems.length})
             </Text>
             {transferItems.map((item) => (
               <View key={item.productId} style={styles.confirmProductCard}>
@@ -689,16 +711,16 @@ export function TransferScreen() {
 
             {/* Totals */}
             <View style={styles.totalCard}>
-              <Text style={styles.totalLabel}>Всего единиц</Text>
+              <Text style={styles.totalLabel}>{t("transfer.totalUnits")}</Text>
               <Text style={styles.totalValue}>{totalItems}</Text>
             </View>
 
             {/* Note */}
-            <Text style={styles.fieldLabel}>Примечание (необязательно)</Text>
+            <Text style={styles.fieldLabel}>{t("transfer.noteOptional")}</Text>
             <View style={styles.noteContainer}>
               <TextInput
                 style={styles.noteInput}
-                placeholder="Добавьте комментарий..."
+                placeholder={t("transfer.addComment")}
                 placeholderTextColor="#9CA3AF"
                 value={note}
                 onChangeText={setNote}
@@ -722,7 +744,7 @@ export function TransferScreen() {
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={20} color="#43302b" />
-            <Text style={styles.backButtonText}>Назад</Text>
+            <Text style={styles.backButtonText}>{t("common.back")}</Text>
           </TouchableOpacity>
         )}
 
@@ -741,7 +763,7 @@ export function TransferScreen() {
           ) : (
             <>
               <Text style={styles.nextButtonText}>
-                {step === 3 ? "Создать перемещение" : "Далее"}
+                {step === 3 ? t("transfer.createTransfer") : t("common.next")}
               </Text>
               {step < 3 && (
                 <Ionicons name="arrow-forward" size={20} color="#fff" />

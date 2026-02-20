@@ -260,8 +260,10 @@ export function LoyaltyPage() {
             <Medal className="w-5 h-5 text-blue-500" />
           </div>
           <div>
-            <p className="font-medium text-sm">Достижения</p>
-            <p className="text-xs text-muted-foreground">Медали</p>
+            <p className="font-medium text-sm">{t("loyaltyAchievements")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("loyaltyMedals")}
+            </p>
           </div>
         </Link>
         <Link
@@ -272,8 +274,10 @@ export function LoyaltyPage() {
             <TicketPercent className="w-5 h-5 text-green-500" />
           </div>
           <div>
-            <p className="font-medium text-sm">Промокод</p>
-            <p className="text-xs text-muted-foreground">Ввести код</p>
+            <p className="font-medium text-sm">{t("loyaltyPromoCode")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("loyaltyEnterCode")}
+            </p>
           </div>
         </Link>
       </div>
@@ -499,7 +503,7 @@ export function LoyaltyPage() {
 
 /** Streak visual component */
 function StreakCard() {
-  useTranslation();
+  const { t } = useTranslation();
   const { data: streak } = useQuery({
     queryKey: ["streak"],
     queryFn: async () => {
@@ -512,7 +516,7 @@ function StreakCard() {
     },
   });
 
-  const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const days = t("loyaltyDays").split(",");
   const currentDay = new Date().getDay(); // 0=Sun
   const dayIndex = currentDay === 0 ? 6 : currentDay - 1;
 
@@ -521,10 +525,10 @@ function StreakCard() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Flame className="w-5 h-5 text-orange-500" />
-          <h3 className="font-semibold text-sm">Серия покупок</h3>
+          <h3 className="font-semibold text-sm">{t("loyaltyStreak")}</h3>
         </div>
         <span className="text-lg font-bold text-orange-500">
-          {streak?.currentStreak || 0} 🔥
+          {streak?.currentStreak || 0}
         </span>
       </div>
       <div className="flex gap-1.5">
@@ -539,14 +543,14 @@ function StreakCard() {
                     : "bg-muted text-muted-foreground"
               }`}
             >
-              {idx < (streak?.currentStreak || 0) ? "✓" : day}
+              {idx < (streak?.currentStreak || 0) ? "\u2713" : day}
             </div>
           </div>
         ))}
       </div>
       {(streak?.currentStreak || 0) >= 7 && (
         <p className="text-xs text-green-600 mt-2 text-center font-medium">
-          🎉 Бонус x2 за 7-дневную серию!
+          {t("loyaltyStreakBonus")}
         </p>
       )}
     </div>
@@ -555,18 +559,22 @@ function StreakCard() {
 
 /** Daily quests preview */
 function DailyQuestsPreview() {
+  const { t } = useTranslation();
   const { data: quests } = useQuery({
     queryKey: ["daily-quests"],
     queryFn: async () => {
       const res = await api.get("/quests");
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (
-        (res.data as any[])
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .filter((q: any) => q.period === "daily")
-          .slice(0, 3)
-      );
+      interface Quest {
+        id: string;
+        title: string;
+        period: string;
+        progress: number;
+        target: number;
+        reward: number;
+      }
+      const data = res.data as Quest[];
+      return data.filter((q) => q.period === "daily").slice(0, 3);
     },
   });
 
@@ -577,18 +585,17 @@ function DailyQuestsPreview() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-amber-500" />
-          <h3 className="font-semibold text-sm">Квесты дня</h3>
+          <h3 className="font-semibold text-sm">{t("loyaltyDailyQuests")}</h3>
         </div>
         <Link
           to="/quests"
           className="text-xs text-primary font-medium flex items-center gap-1"
         >
-          Все <ChevronRight className="w-3 h-3" />
+          {t("loyaltyAllQuests")} <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
       <div className="space-y-2">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {quests.map((quest: any) => {
+        {quests.map((quest) => {
           const pct =
             quest.target > 0
               ? Math.min(100, (quest.progress / quest.target) * 100)
@@ -622,6 +629,7 @@ function DailyQuestsPreview() {
 
 /** Leaderboard preview - top 5 */
 function LeaderboardPreview() {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["leaderboard-preview"],
     queryFn: async () => {
@@ -640,11 +648,11 @@ function LeaderboardPreview() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-indigo-500" />
-          <h3 className="font-semibold text-sm">Лидерборд</h3>
+          <h3 className="font-semibold text-sm">{t("loyaltyLeaderboard")}</h3>
         </div>
         {data.myRank && (
           <span className="text-xs text-muted-foreground">
-            Ваше место: #{data.myRank}
+            {t("loyaltyYourRank", { rank: data.myRank })}
           </span>
         )}
       </div>
@@ -676,7 +684,7 @@ function LeaderboardPreview() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {user.name || user.username || "Пользователь"}
+                {user.name || user.username || t("loyaltyUser")}
               </p>
             </div>
             <span className="text-sm font-semibold">
@@ -691,6 +699,7 @@ function LeaderboardPreview() {
 
 /** Achievements preview - recent unlocked */
 function AchievementsPreview() {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["achievements-preview"],
     queryFn: async () => {
@@ -719,7 +728,7 @@ function AchievementsPreview() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Medal className="w-5 h-5 text-blue-500" />
-          <h3 className="font-semibold text-sm">Достижения</h3>
+          <h3 className="font-semibold text-sm">{t("loyaltyAchievements")}</h3>
         </div>
         <Link
           to="/achievements"
@@ -744,7 +753,7 @@ function AchievementsPreview() {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Совершайте покупки, чтобы открыть достижения!
+          {t("loyaltyMakePurchases")}
         </p>
       )}
     </div>

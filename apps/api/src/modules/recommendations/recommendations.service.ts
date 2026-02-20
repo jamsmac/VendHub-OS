@@ -3,8 +3,10 @@
  * Персонализированные рекомендации для пользователей
  */
 
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Inject, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 import { Repository, In, Not, IsNull } from "typeorm";
 import { Cron } from "@nestjs/schedule";
 import { Product } from "../products/entities/product.entity";
@@ -53,9 +55,9 @@ export interface RecommendationContext {
 export class RecommendationsService {
   private readonly logger = new Logger(RecommendationsService.name);
 
-  // Кэш популярных продуктов (обновляется раз в час)
-  private popularProductsCache: Map<string, Product[]> = new Map();
-  private trendingProductsCache: Map<string, Product[]> = new Map();
+  private static readonly CACHE_TTL = 300; // 5 minutes in seconds
+  private static readonly POPULAR_CACHE_PREFIX = "recommendations:popular:";
+  private static readonly TRENDING_CACHE_PREFIX = "recommendations:trending:";
 
   constructor(
     @InjectRepository(Product)
@@ -66,6 +68,8 @@ export class RecommendationsService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Machine)
     private readonly machineRepo: Repository<Machine>,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
   ) {}
 
   // ============================================================================
@@ -485,8 +489,9 @@ export class RecommendationsService {
     organizationId: string,
     limit: number,
   ): Promise<Product[]> {
-    // Проверить кэш
-    const cached = this.popularProductsCache.get(organizationId);
+    // Check Redis cache
+    const cacheKey = `${RecommendationsService.POPULAR_CACHE_PREFIX}${organizationId}`;
+    const cached = await this.cacheManager.get<Product[]>(cacheKey);
     if (cached && cached.length >= limit) {
       return cached.slice(0, limit);
     }
@@ -517,13 +522,21 @@ export class RecommendationsService {
         order: { createdAt: "DESC" },
         take: limit * 2,
       });
-      this.popularProductsCache.set(organizationId, products);
+      await this.cacheManager.set(
+        cacheKey,
+        products,
+        RecommendationsService.CACHE_TTL * 1000,
+      );
       return products.slice(0, limit);
     }
 
     const products = await this.productRepo.findBy({ id: In(productIds) });
 
-    this.popularProductsCache.set(organizationId, products);
+    await this.cacheManager.set(
+      cacheKey,
+      products,
+      RecommendationsService.CACHE_TTL * 1000,
+    );
     return products.slice(0, limit);
   }
 
@@ -598,8 +611,11 @@ export class RecommendationsService {
    */
   @Cron("0 * * * *")
   async updatePopularProductsCache(): Promise<void> {
-    this.logger.log("Updating popular products cache");
-    this.popularProductsCache.clear();
-    this.trendingProductsCache.clear();
+    this.logger.log(
+      "Popular products cache refresh cycle — Redis TTL (300s) handles expiry automatically",
+    );
+    // With Redis-backed cache and a 5-minute TTL, entries expire automatically.
+    // This cron serves as a monitoring heartbeat. No explicit invalidation needed
+    // since cache-manager's reset() would clear ALL services' caches (global store).
   }
 }

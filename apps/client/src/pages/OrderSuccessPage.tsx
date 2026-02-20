@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CheckCircle, Receipt, RotateCcw, Home, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 import { ordersApi } from "../lib/api";
 
 export function OrderSuccessPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const { t } = useTranslation();
   useNavigate();
 
   const { data: order, isLoading } = useQuery({
@@ -36,10 +38,10 @@ export function OrderSuccessPage() {
         <CheckCircle className="h-14 w-14 text-green-500" />
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Заказ оформлен!</h1>
-      <p className="text-gray-500 text-center mb-6">
-        Ваш напиток скоро будет готов. Подойдите к автомату.
-      </p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        {t("orderPlaced")}
+      </h1>
+      <p className="text-gray-500 text-center mb-6">{t("orderReadySoon")}</p>
 
       {/* Order Details Card */}
       {isLoading ? (
@@ -51,7 +53,7 @@ export function OrderSuccessPage() {
       ) : order ? (
         <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-sm border space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Номер заказа</span>
+            <span className="text-sm text-gray-500">{t("orderNumber")}</span>
             <span className="font-mono font-bold text-lg">
               {order.orderNumber}
             </span>
@@ -68,33 +70,33 @@ export function OrderSuccessPage() {
                   <span className="text-gray-400">x{item.quantity}</span>
                 </span>
                 <span className="font-medium">
-                  {item.totalPrice.toLocaleString()} сум
+                  {item.totalPrice.toLocaleString()} {t("currency")}
                 </span>
               </div>
             ))}
           </div>
 
           <div className="border-t pt-3 flex items-center justify-between">
-            <span className="font-semibold">Итого</span>
+            <span className="font-semibold">{t("orderTotal")}</span>
             <span className="font-bold text-lg text-primary-600">
-              {order.totalAmount.toLocaleString()} сум
+              {order.totalAmount.toLocaleString()} {t("currency")}
             </span>
           </div>
 
           {order.paymentMethod && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Оплата</span>
+              <span className="text-gray-500">{t("payment")}</span>
               <span className="capitalize">{order.paymentMethod}</span>
             </div>
           )}
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Статус</span>
+            <span className="text-gray-500">{t("status")}</span>
             <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
               {order.status === "paid"
-                ? "Оплачен"
+                ? t("statusPaid")
                 : order.status === "preparing"
-                  ? "Готовится"
+                  ? t("statusPreparing")
                   : order.status}
             </span>
           </div>
@@ -104,10 +106,12 @@ export function OrderSuccessPage() {
             <Star className="h-5 w-5 text-yellow-500" />
             <div>
               <p className="text-sm font-medium text-yellow-800">
-                Начислено баллов
+                {t("pointsEarned")}
               </p>
               <p className="text-xs text-yellow-600">
-                +{Math.floor(order.totalAmount * 0.01)} баллов за покупку
+                {t("pointsForPurchase", {
+                  count: Math.floor(order.totalAmount * 0.01),
+                })}
               </p>
             </div>
           </div>
@@ -122,7 +126,7 @@ export function OrderSuccessPage() {
             className="w-full py-3 bg-primary-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25"
           >
             <RotateCcw className="h-5 w-5" />
-            Заказать ещё
+            {t("orderAgain")}
           </Link>
         )}
 
@@ -131,7 +135,7 @@ export function OrderSuccessPage() {
           className="w-full py-3 bg-white text-gray-700 rounded-xl font-semibold flex items-center justify-center gap-2 border"
         >
           <Receipt className="h-5 w-5" />
-          Посмотреть чек
+          {t("viewReceipt")}
         </Link>
 
         <Link
@@ -139,7 +143,7 @@ export function OrderSuccessPage() {
           className="w-full py-3 text-gray-500 rounded-xl font-medium flex items-center justify-center gap-2"
         >
           <Home className="h-5 w-5" />
-          На главную
+          {t("goHome")}
         </Link>
       </div>
     </div>

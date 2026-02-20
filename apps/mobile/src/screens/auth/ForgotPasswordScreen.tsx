@@ -18,6 +18,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { authApi } from "../../services/api";
 import { AuthStackParamList } from "../../navigation/AuthNavigator";
 
@@ -30,6 +31,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ForgotPasswordScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +39,10 @@ export function ForgotPasswordScreen() {
 
   const validateEmail = (value: string): string | null => {
     if (!value.trim()) {
-      return "Введите email адрес";
+      return t("auth.forgotPassword.errorEmail");
     }
     if (!EMAIL_REGEX.test(value.trim())) {
-      return "Введите корректный email адрес";
+      return t("auth.forgotPassword.errorEmailInvalid");
     }
     return null;
   };
@@ -48,7 +50,7 @@ export function ForgotPasswordScreen() {
   const handleSubmit = async () => {
     const error = validateEmail(email);
     if (error) {
-      Alert.alert("Ошибка", error);
+      Alert.alert(t("common.error"), error);
       return;
     }
 
@@ -59,9 +61,8 @@ export function ForgotPasswordScreen() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const message =
-        err.response?.data?.message ||
-        "Не удалось отправить ссылку. Попробуйте позже.";
-      Alert.alert("Ошибка", message);
+        err.response?.data?.message || t("auth.forgotPassword.errorSend");
+      Alert.alert(t("common.error"), message);
     } finally {
       setIsLoading(false);
     }
@@ -79,13 +80,16 @@ export function ForgotPasswordScreen() {
             <View style={styles.successIconWrapper}>
               <Ionicons name="mail-open-outline" size={48} color="#10B981" />
             </View>
-            <Text style={styles.successTitle}>Проверьте вашу почту</Text>
+            <Text style={styles.successTitle}>
+              {t("auth.forgotPassword.checkEmail")}
+            </Text>
             <Text style={styles.successMessage}>
-              Мы отправили ссылку для сброса пароля на{"\n"}
+              {t("auth.forgotPassword.sentTo")}
+              {"\n"}
               <Text style={styles.emailHighlight}>{email.trim()}</Text>
             </Text>
             <Text style={styles.successHint}>
-              Если письмо не пришло, проверьте папку "Спам"
+              {t("auth.forgotPassword.checkSpam")}
             </Text>
 
             <TouchableOpacity
@@ -93,7 +97,9 @@ export function ForgotPasswordScreen() {
               onPress={handleBackToLogin}
             >
               <Ionicons name="arrow-back-outline" size={20} color="#fff" />
-              <Text style={styles.primaryButtonText}>Вернуться ко входу</Text>
+              <Text style={styles.primaryButtonText}>
+                {t("auth.forgotPassword.backToLogin")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -102,7 +108,9 @@ export function ForgotPasswordScreen() {
                 setIsSent(false);
               }}
             >
-              <Text style={styles.resendText}>Отправить повторно</Text>
+              <Text style={styles.resendText}>
+                {t("auth.forgotPassword.resend")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -122,16 +130,17 @@ export function ForgotPasswordScreen() {
             <View style={styles.iconCircle}>
               <Ionicons name="lock-open-outline" size={32} color="#43302b" />
             </View>
-            <Text style={styles.title}>Восстановление пароля</Text>
+            <Text style={styles.title}>{t("auth.forgotPassword.title")}</Text>
             <Text style={styles.subtitle}>
-              Введите email, привязанный к вашему аккаунту. Мы отправим ссылку
-              для сброса пароля.
+              {t("auth.forgotPassword.subtitle")}
             </Text>
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.inputLabel}>Email адрес</Text>
+            <Text style={styles.inputLabel}>
+              {t("auth.forgotPassword.email")}
+            </Text>
             <View style={styles.inputContainer}>
               <Ionicons
                 name="mail-outline"
@@ -178,7 +187,7 @@ export function ForgotPasswordScreen() {
                 <>
                   <Ionicons name="send-outline" size={18} color="#fff" />
                   <Text style={styles.primaryButtonText}>
-                    Отправить ссылку для сброса
+                    {t("auth.forgotPassword.submit")}
                   </Text>
                 </>
               )}
@@ -188,7 +197,9 @@ export function ForgotPasswordScreen() {
           {/* Back to Login */}
           <TouchableOpacity style={styles.backLink} onPress={handleBackToLogin}>
             <Ionicons name="arrow-back-outline" size={18} color="#43302b" />
-            <Text style={styles.backLinkText}>Вернуться ко входу</Text>
+            <Text style={styles.backLinkText}>
+              {t("auth.forgotPassword.backToLogin")}
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

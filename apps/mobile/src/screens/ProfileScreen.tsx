@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { useAppModeStore, AppMode } from "../store/appModeStore";
 import { MainStackParamList } from "../navigation/MainNavigator";
@@ -26,69 +27,56 @@ export function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuthStore();
   const { mode, setMode } = useAppModeStore();
+  const { t } = useTranslation();
 
   const handleModeSwitch = () => {
     const newMode: AppMode = mode === "staff" ? "client" : "staff";
-    const label = newMode === "staff" ? "Режим сотрудника" : "Режим клиента";
-    Alert.alert("Сменить режим?", `Переключить на "${label}"?`, [
-      { text: "Отмена", style: "cancel" },
-      { text: "Переключить", onPress: () => setMode(newMode) },
+    const label =
+      newMode === "staff" ? t("profile.modeStaff") : t("profile.modeClient");
+    Alert.alert(t("profile.switchMode"), t("profile.switchTo", { label }), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("profile.switchBtn"), onPress: () => setMode(newMode) },
     ]);
   };
 
   const getRoleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      owner: "Владелец",
-      admin: "Администратор",
-      manager: "Менеджер",
-      operator: "Оператор",
-      warehouse: "Склад",
-      accountant: "Бухгалтер",
-      viewer: "Наблюдатель",
-    };
-    return labels[role] || role;
+    return t(`roles.${role}`, { defaultValue: role });
   };
 
   const handleLogout = () => {
-    Alert.alert("Выйти из аккаунта?", "Вы уверены, что хотите выйти?", [
-      { text: "Отмена", style: "cancel" },
-      { text: "Выйти", style: "destructive", onPress: logout },
+    Alert.alert(t("profile.logoutConfirm"), t("profile.logoutMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("profile.logoutBtn"), style: "destructive", onPress: logout },
     ]);
   };
 
   const menuItems = [
     {
       icon: "person-outline",
-      label: "Редактировать профиль",
+      label: t("profile.editProfile"),
       onPress: () =>
-        Alert.alert(
-          "Редактирование профиля",
-          "Для изменения данных профиля обратитесь к администратору через веб-панель.",
-        ),
+        Alert.alert(t("profile.editProfile"), t("profile.editProfileMessage")),
     },
     {
       icon: "notifications-outline",
-      label: "Уведомления",
+      label: t("profile.notifications"),
       onPress: () => navigation.navigate("Notifications"),
     },
     {
       icon: "settings-outline",
-      label: "Настройки",
+      label: t("profile.settings"),
       onPress: () => navigation.navigate("Settings"),
     },
     {
       icon: "help-circle-outline",
-      label: "Помощь",
+      label: t("profile.help"),
       onPress: () => Linking.openURL("https://t.me/vendhub_support"),
     },
     {
       icon: "information-circle-outline",
-      label: "О приложении",
+      label: t("profile.about"),
       onPress: () =>
-        Alert.alert(
-          "VendHub Mobile",
-          "Версия: 1.0.0\nСистема управления вендинговыми автоматами\n\n© 2024-2026 VendHub",
-        ),
+        Alert.alert(t("profile.aboutTitle"), t("profile.aboutMessage")),
     },
   ];
 
@@ -153,8 +141,8 @@ export function ProfileScreen() {
           />
           <Text style={[styles.menuLabel, { color: "#4F46E5" }]}>
             {mode === "staff"
-              ? "Переключить на клиент"
-              : "Переключить на сотрудника"}
+              ? t("profile.switchToClient")
+              : t("profile.switchToStaff")}
           </Text>
           <View style={styles.modeBadge}>
             <Text style={styles.modeBadgeText}>
@@ -168,12 +156,12 @@ export function ProfileScreen() {
       <View style={styles.section}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-          <Text style={styles.logoutText}>Выйти из аккаунта</Text>
+          <Text style={styles.logoutText}>{t("profile.logoutBtn")}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Version */}
-      <Text style={styles.version}>VendHub Mobile v1.0.0</Text>
+      <Text style={styles.version}>{t("profile.version")}</Text>
     </ScrollView>
   );
 }

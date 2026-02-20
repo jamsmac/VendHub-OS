@@ -292,28 +292,22 @@ export class MachineResponseDto extends BaseResponseDto {
 
   // Relations excluded
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  slots?: any[];
+  slots?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  locationHistory?: any[];
+  locationHistory?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  inventory?: any[];
+  inventory?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tasks?: any[];
+  tasks?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactions?: any[];
+  transactions?: Record<string, unknown>[];
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  complaints?: any[];
+  complaints?: Record<string, unknown>[];
 }
 
 /**
@@ -389,8 +383,7 @@ export class MachineSlotResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }
 
 /**
@@ -435,8 +428,7 @@ export class MachineLocationHistoryResponseDto extends BaseResponseDto {
   metadata: Record<string, unknown>;
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }
 
 /**
@@ -529,8 +521,7 @@ export class MachineComponentResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }
 
 /**
@@ -589,8 +580,7 @@ export class MachineErrorLogResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }
 
 /**
@@ -693,6 +683,5 @@ export class MachineMaintenanceScheduleResponseDto extends BaseResponseDto {
   }
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine?: any;
+  machine?: Record<string, unknown>;
 }

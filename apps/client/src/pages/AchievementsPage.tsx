@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Lock, Gift, CheckCircle, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { achievementsApi, UserAchievement } from "../lib/api";
@@ -31,16 +32,8 @@ const RARITY_COLORS: Record<
   },
 };
 
-const _CATEGORY_LABELS: Record<string, string> = {
-  beginner: "Новичок",
-  explorer: "Исследователь",
-  loyal: "Лояльный",
-  social: "Социальный",
-  collector: "Коллекционер",
-  special: "Специальный",
-};
-
 export function AchievementsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
@@ -89,22 +82,24 @@ export function AchievementsPage() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Достижения</h1>
+          <h1 className="text-xl font-bold">{t("achievementsTitle")}</h1>
         </div>
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white/20 rounded-xl p-3 text-center backdrop-blur-sm">
             <p className="text-2xl font-bold">{summaryData?.total || 0}</p>
-            <p className="text-xs opacity-90">Всего</p>
+            <p className="text-xs opacity-90">{t("achievementsTotalLabel")}</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center backdrop-blur-sm">
             <p className="text-2xl font-bold">{summaryData?.unlocked || 0}</p>
-            <p className="text-xs opacity-90">Открыто</p>
+            <p className="text-xs opacity-90">{t("achievementsUnlocked")}</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center backdrop-blur-sm">
             <p className="text-2xl font-bold">{summaryData?.claimed || 0}</p>
-            <p className="text-xs opacity-90">Получено</p>
+            <p className="text-xs opacity-90">
+              {t("achievementsClaimedLabel")}
+            </p>
           </div>
         </div>
       </div>
@@ -118,16 +113,16 @@ export function AchievementsPage() {
             className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg shadow-green-500/25"
           >
             <Gift className="h-5 w-5" />
-            Забрать все награды ({unclaimedCount})
+            {t("claimAllRewards", { count: unclaimedCount })}
           </button>
         )}
 
         {/* Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[
-            { key: "all", label: "Все" },
-            { key: "unlocked", label: "Открытые" },
-            { key: "locked", label: "Закрытые" },
+            { key: "all", label: t("filterAll") },
+            { key: "unlocked", label: t("filterUnlocked") },
+            { key: "locked", label: t("filterLocked") },
           ].map((f) => (
             <button
               key={f.key}
@@ -192,7 +187,9 @@ export function AchievementsPage() {
                             {ua.progress}/{ach.conditionValue}
                           </span>
                           <span className={`font-medium ${rarity.text}`}>
-                            🎁 {ach.pointsReward} баллов
+                            {t("achievementPointsReward", {
+                              count: ach.pointsReward,
+                            })}
                           </span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -211,13 +208,13 @@ export function AchievementsPage() {
                           className="mt-2 px-3 py-1 bg-green-500 text-white text-xs rounded-lg font-medium flex items-center gap-1"
                         >
                           <Gift className="h-3 w-3" />
-                          Забрать награду
+                          {t("claimRewardButton")}
                         </button>
                       )}
                       {ua.isClaimed && (
                         <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" />
-                          Награда получена
+                          {t("rewardClaimed")}
                         </p>
                       )}
                     </div>

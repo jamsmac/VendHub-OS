@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { tasksApi } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
@@ -26,6 +27,7 @@ export function TaskPhotoScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteType>();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { taskId, type } = route.params;
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -55,7 +57,7 @@ export function TaskPhotoScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      Alert.alert("Успешно", "Фото загружено!");
+      Alert.alert(t("common.success"), t("taskPhoto.photoUploaded"));
       navigation.goBack();
     },
     onError: (error: unknown) => {
@@ -63,8 +65,8 @@ export function TaskPhotoScreen() {
         response?: { data?: { message?: string } };
       };
       Alert.alert(
-        "Ошибка",
-        axiosError.response?.data?.message || "Не удалось загрузить фото",
+        t("common.error"),
+        axiosError.response?.data?.message || t("taskPhoto.uploadFailed"),
       );
     },
   });
@@ -100,7 +102,7 @@ export function TaskPhotoScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text>Запрос доступа к камере...</Text>
+        <Text>{t("taskPhoto.requestingAccess")}</Text>
       </View>
     );
   }
@@ -108,12 +110,14 @@ export function TaskPhotoScreen() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Нет доступа к камере</Text>
+        <Text style={styles.errorText}>{t("taskPhoto.noAccess")}</Text>
         <TouchableOpacity
           style={styles.galleryButton}
           onPress={pickFromGallery}
         >
-          <Text style={styles.galleryButtonText}>Выбрать из галереи</Text>
+          <Text style={styles.galleryButtonText}>
+            {t("taskPhoto.pickFromGallery")}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -129,11 +133,11 @@ export function TaskPhotoScreen() {
             onPress={() => setPhoto(null)}
           >
             <Ionicons name="refresh" size={24} color="#fff" />
-            <Text style={styles.retakeText}>Переснять</Text>
+            <Text style={styles.retakeText}>{t("taskPhoto.retake")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.confirmButton} onPress={confirmPhoto}>
             <Ionicons name="checkmark" size={24} color="#fff" />
-            <Text style={styles.confirmText}>Подтвердить</Text>
+            <Text style={styles.confirmText}>{t("taskPhoto.confirm")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -145,7 +149,9 @@ export function TaskPhotoScreen() {
       <CameraView style={styles.camera} facing="back" ref={cameraRef}>
         <View style={styles.cameraOverlay}>
           <Text style={styles.cameraTitle}>
-            {type === "before" ? "Фото ДО выполнения" : "Фото ПОСЛЕ выполнения"}
+            {type === "before"
+              ? t("taskPhoto.photoBefore")
+              : t("taskPhoto.photoAfter")}
           </Text>
         </View>
       </CameraView>

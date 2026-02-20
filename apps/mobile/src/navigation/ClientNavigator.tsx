@@ -7,6 +7,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 // Tab Screens
 import { ClientHomeScreen } from "../screens/client/ClientHomeScreen";
@@ -59,6 +60,8 @@ const Tab = createBottomTabNavigator<ClientTabParamList>();
 const Stack = createNativeStackNavigator<ClientStackParamList>();
 
 function ClientTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -92,28 +95,30 @@ function ClientTabs() {
       <Tab.Screen
         name="HomeTab"
         component={ClientHomeScreen}
-        options={{ title: "Главная" }}
+        options={{ title: t("tabs.home") }}
       />
       <Tab.Screen
         name="MapTab"
         component={MapScreen}
-        options={{ title: "Карта", headerShown: false }}
+        options={{ title: t("tabs.map"), headerShown: false }}
       />
       <Tab.Screen
         name="LoyaltyTab"
         component={LoyaltyScreen}
-        options={{ title: "Бонусы" }}
+        options={{ title: t("tabs.loyalty") }}
       />
       <Tab.Screen
         name="FavoritesTab"
         component={FavoritesScreen}
-        options={{ title: "Избранное" }}
+        options={{ title: t("tabs.favorites") }}
       />
     </Tab.Navigator>
   );
 }
 
 export function ClientNavigator() {
+  const { t } = useTranslation();
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -124,22 +129,22 @@ export function ClientNavigator() {
       <Stack.Screen
         name="Menu"
         component={MenuScreen}
-        options={{ title: "Меню" }}
+        options={{ title: t("nav.menu") }}
       />
       <Stack.Screen
         name="DrinkDetail"
         component={DrinkDetailScreen}
-        options={{ title: "Настроить напиток" }}
+        options={{ title: t("nav.customizeDrink") }}
       />
       <Stack.Screen
         name="Cart"
         component={CartScreen}
-        options={{ title: "Корзина" }}
+        options={{ title: t("nav.cart") }}
       />
       <Stack.Screen
         name="Checkout"
         component={CheckoutScreen}
-        options={{ title: "Оформление" }}
+        options={{ title: t("nav.checkout") }}
       />
       <Stack.Screen
         name="OrderSuccess"
@@ -149,47 +154,47 @@ export function ClientNavigator() {
       <Stack.Screen
         name="Quests"
         component={QuestsScreen}
-        options={{ title: "Квесты" }}
+        options={{ title: t("nav.quests") }}
       />
       <Stack.Screen
         name="OrderHistory"
         component={OrderHistoryScreen}
-        options={{ title: "Мои заказы" }}
+        options={{ title: t("nav.orders") }}
       />
       <Stack.Screen
         name="Achievements"
         component={AchievementsScreen}
-        options={{ title: "Достижения" }}
+        options={{ title: t("nav.achievements") }}
       />
       <Stack.Screen
         name="PromoCode"
         component={PromoCodeScreen}
-        options={{ title: "Промокод" }}
+        options={{ title: t("nav.promoCode") }}
       />
       <Stack.Screen
         name="Referrals"
         component={ReferralScreen}
-        options={{ title: "Рефералы" }}
+        options={{ title: t("nav.referrals") }}
       />
       <Stack.Screen
         name="FullHistory"
         component={PointsHistoryScreen}
-        options={{ title: "История баллов" }}
+        options={{ title: t("nav.pointsHistory") }}
       />
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: "Профиль" }}
+        options={{ title: t("tabs.profile") }}
       />
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
-        options={{ title: "Уведомления" }}
+        options={{ title: t("nav.notifications") }}
       />
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: "Настройки" }}
+        options={{ title: t("nav.settings") }}
       />
     </Stack.Navigator>
   );

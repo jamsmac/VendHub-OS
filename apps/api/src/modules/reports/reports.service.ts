@@ -19,6 +19,7 @@ import {
   ExportFormat,
   ReportStatus,
   ReportFrequency,
+  ChartType,
 } from "./entities/report.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { Machine } from "../machines/entities/machine.entity";
@@ -38,8 +39,7 @@ export interface GenerateReportDto {
   type?: ReportType;
   name?: string;
   format: ReportFormat;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   dateFrom?: Date;
   dateTo?: Date;
   delivery?: {
@@ -60,8 +60,7 @@ export interface CreateScheduledReportDto {
     dayOfMonth?: number;
     timezone?: string;
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   format: ReportFormat;
   deliveryMethod: "email" | "telegram" | "webhook";
   deliveryConfig: {
@@ -91,10 +90,8 @@ export interface CreateWidgetDto {
   width: number;
   height: number;
   definitionId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  chartConfig?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kpiConfig?: any;
+  chartConfig?: DashboardWidget["chartConfig"];
+  kpiConfig?: DashboardWidget["kpiConfig"];
 }
 
 // ============================================================================
@@ -200,8 +197,7 @@ export class ReportsService {
         format: dto.format,
         ...dto.parameters,
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      filters: dto.parameters as any,
+      filters: dto.parameters as Record<string, unknown>,
       dateFrom: dto.dateFrom,
       dateTo: dto.dateTo,
       status: ReportStatus.GENERATING,
@@ -250,11 +246,13 @@ export class ReportsService {
       }
 
       return report;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       report.status = ReportStatus.FAILED;
-      report.errorMessage = error.message;
-      report.errorDetails = { stack: error.stack };
+      report.errorMessage =
+        error instanceof Error ? error.message : String(error);
+      report.errorDetails = {
+        stack: error instanceof Error ? error.stack : undefined,
+      };
       report.generationTimeMs = Date.now() - startTime;
       report.completedAt = new Date();
       await this.generatedRepo.save(report);
@@ -265,9 +263,10 @@ export class ReportsService {
   private async generateReportData(
     type: ReportType,
     dto: GenerateReportDto,
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ rows: any[]; summary: any }> {
+  ): Promise<{
+    rows: Record<string, unknown>[];
+    summary: Record<string, unknown>;
+  }> {
     // This would be implemented with actual data queries
     // Simplified example:
 
@@ -283,8 +282,12 @@ export class ReportsService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async generateSalesSummary(dto: GenerateReportDto): Promise<any> {
+  private async generateSalesSummary(
+    dto: GenerateReportDto,
+  ): Promise<{
+    rows: Record<string, unknown>[];
+    summary: Record<string, unknown>;
+  }> {
     const qb = this.transactionRepo
       .createQueryBuilder("t")
       .where("t.organizationId = :orgId", { orgId: dto.organizationId });
@@ -331,8 +334,10 @@ export class ReportsService {
 
   private async generateMachinePerformance(
     dto: GenerateReportDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
+  ): Promise<{
+    rows: Record<string, unknown>[];
+    summary: Record<string, unknown>;
+  }> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
       select: [
@@ -392,8 +397,10 @@ export class ReportsService {
 
   private async generateInventoryLevels(
     dto: GenerateReportDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
+  ): Promise<{
+    rows: Record<string, unknown>[];
+    summary: Record<string, unknown>;
+  }> {
     const machines = await this.machineRepo.find({
       where: { organizationId: dto.organizationId },
       select: [
@@ -442,8 +449,7 @@ export class ReportsService {
 
   private async createReportFile(
     report: GeneratedReport,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any,
+    data: { rows: Record<string, unknown>[]; summary: Record<string, unknown> },
     format: ReportFormat,
   ): Promise<{ filePath: string; fileSize: number; checksum: string }> {
     const filePath = `/reports/${report.organizationId}/${report.id}.${format}`;
@@ -464,8 +470,7 @@ export class ReportsService {
 
   private async deliverReport(
     report: GeneratedReport,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delivery: any,
+    delivery: { method: string; emails?: string[]; storagePath?: string },
   ): Promise<void> {
     this.logger.log(`Delivering report ${report.id} via ${delivery.method}`);
 
@@ -603,8 +608,7 @@ export class ReportsService {
           dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
         format: dto.format,
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      filters: dto.parameters as any,
+      filters: dto.parameters as Record<string, unknown>,
       format: dto.format,
       recipients: dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
       isActive: true,
@@ -678,8 +682,7 @@ export class ReportsService {
           organizationId: scheduled.organizationId,
           reportDefinitionId: scheduled.definitionId,
           format: scheduled.format,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          parameters: scheduled.filters as any,
+          parameters: scheduled.filters as Record<string, unknown>,
           delivery: {
             method: "email",
             emails,
@@ -698,14 +701,13 @@ export class ReportsService {
             timezone: scheduled.schedule.timezone,
           },
         );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        scheduled.lastError = undefined as any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+        scheduled.lastError = "";
+      } catch (error: unknown) {
         scheduled.failCount++;
-        scheduled.lastError = error.message;
+        const msg = error instanceof Error ? error.message : String(error);
+        scheduled.lastError = msg;
         this.logger.error(
-          `Failed to run scheduled report ${scheduled.id}: ${error.message}`,
+          `Failed to run scheduled report ${scheduled.id}: ${msg}`,
         );
       }
 
@@ -782,8 +784,7 @@ export class ReportsService {
           dashboardId: saved.id,
           organizationId: dto.organizationId,
           title: widgetDto.title,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          chartType: widgetDto.chartType as any,
+          chartType: widgetDto.chartType,
           positionX: widgetDto.positionX,
           positionY: widgetDto.positionY,
           width: widgetDto.width,
@@ -866,8 +867,7 @@ export class ReportsService {
       organizationId: dto.organizationId || dashboard.organizationId,
       dashboardId: dto.dashboardId,
       title: dto.title,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      chartType: (dto.chartType as any) || "kpi",
+      chartType: (dto.chartType || "kpi") as ChartType,
       positionX: dto.positionX,
       positionY: dto.positionY,
       width: dto.width,
@@ -917,8 +917,7 @@ export class ReportsService {
     organizationId: string,
     reportDefinitionId: string,
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filters: Record<string, any>,
+    filters: Record<string, unknown>,
     isDefault: boolean = false,
   ): Promise<SavedReportFilter> {
     if (isDefault) {
@@ -934,8 +933,7 @@ export class ReportsService {
       organizationId,
       definitionId: reportDefinitionId,
       name,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      filters: filters as any,
+      filters: filters as Record<string, unknown>,
       isDefault,
     });
 
@@ -946,8 +944,7 @@ export class ReportsService {
     userId: string,
     reportDefinitionId?: string,
   ): Promise<SavedReportFilter[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { userId };
+    const where: { userId: string; definitionId?: string } = { userId };
     if (reportDefinitionId) {
       where.definitionId = reportDefinitionId;
     }

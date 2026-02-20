@@ -33,8 +33,7 @@ interface CustomerContext extends Context {
 
 interface CustomerSession {
   state: CustomerSessionState;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 enum CustomerSessionState {
@@ -96,8 +95,7 @@ export class TelegramCustomerBotService
     try {
       await this.bot.launch();
       this.logger.log("Telegram customer bot started");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error("Failed to start customer bot:", error);
     }
   }
@@ -609,35 +607,32 @@ export class TelegramCustomerBotService
 
     try {
       const machine = await this.machineRepository.findOne({
-        where: { id: session.data.machineId },
+        where: { id: session.data.machineId as string },
       });
 
       // Create complaint
       const complaint = this.complaintRepository.create({
         organizationId: machine?.organizationId,
-        machineId: session.data.machineId,
-        category: session.data.complaintType,
+        machineId: session.data.machineId as string,
+        category: session.data.complaintType as ComplaintCategory,
         subject: `Жалоба через Telegram: ${session.data.complaintType}`,
-        description: session.data.description,
+        description: session.data.description as string,
         customer: {
-          phone: session.data.phone,
+          phone: session.data.phone as string,
           telegramId: ctx.from!.id.toString(),
         },
         status: ComplaintStatus.PENDING,
         source: ComplaintSource.TELEGRAM_BOT,
         metadata: {
-          qrCodeId: session.data.photoFileId, // photoFileId stored in qrCodeId
+          qrCodeId: session.data.photoFileId as string | undefined,
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as Partial<Complaint>);
 
-      const savedComplaint = (await this.complaintRepository.save(
-        complaint,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      )) as any;
-      const ticketNumber = Array.isArray(savedComplaint)
-        ? savedComplaint[0]?.ticketNumber
-        : savedComplaint.ticketNumber;
+      const savedComplaint = await this.complaintRepository.save(complaint);
+      const savedEntity = Array.isArray(savedComplaint)
+        ? savedComplaint[0]
+        : savedComplaint;
+      const ticketNumber = savedEntity?.ticketNumber;
 
       this.clearSession(ctx.from!.id);
 
@@ -653,8 +648,7 @@ export class TelegramCustomerBotService
           `📱 При необходимости свяжемся с вами по номеру ${session.data.phone}`,
         keyboard,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error("Failed to create complaint:", error);
       await ctx.reply("❌ Произошла ошибка. Попробуйте позже.");
     }
@@ -694,8 +688,7 @@ export class TelegramCustomerBotService
 
     let message = `📋 Ваши обращения (${complaints.length}):\n\n`;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buttons: any[][] = [];
+    const buttons: ReturnType<typeof Markup.button.callback>[][] = [];
 
     complaints.forEach((complaint, index) => {
       const status = statusLabels[complaint.status] || complaint.status;
@@ -755,8 +748,7 @@ export class TelegramCustomerBotService
       `📋 Обращение #${complaint.ticketNumber}\n\n` +
       `📊 Статус: ${statusLabels[complaint.status]}\n` +
       `📝 Тип: ${typeLabels[complaint.category] || complaint.category}\n` +
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `🏭 Аппарат: ${(complaint as any).machine?.name || complaint.machineId || "N/A"}\n` +
+      `🏭 Аппарат: ${(complaint as Complaint & { machine?: { name?: string } }).machine?.name || complaint.machineId || "N/A"}\n` +
       `📅 Дата: ${new Date(complaint.createdAt).toLocaleString("ru-RU")}\n\n` +
       `📄 Описание:\n${complaint.description}\n`;
 
@@ -847,8 +839,7 @@ export class TelegramCustomerBotService
       `🧾 Транзакция #${transaction.transactionNumber}\n\n` +
       `📊 Статус: ${statusLabels[transaction.status]}\n` +
       `🏭 Аппарат: ${transaction.machineId || "N/A"}\n` +
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `📦 Товар: ${(transaction as any).productName || "N/A"}\n` +
+      `📦 Товар: ${(transaction as Transaction & { productName?: string }).productName || "N/A"}\n` +
       `💰 Сумма: ${Number(transaction.amount).toLocaleString()} сум\n` +
       `📅 Дата: ${new Date(transaction.createdAt).toLocaleString("ru-RU")}\n`;
 
@@ -859,8 +850,7 @@ export class TelegramCustomerBotService
         "\n❌ К сожалению, произошла ошибка при покупке.\nВы можете оставить жалобу для возврата средств.";
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buttons: any[][] = [];
+    const buttons: ReturnType<typeof Markup.button.callback>[][] = [];
 
     if (["failed", "completed"].includes(transaction.status)) {
       buttons.push([
@@ -915,18 +905,15 @@ export class TelegramCustomerBotService
         status: ComplaintStatus.PENDING,
         source: ComplaintSource.TELEGRAM_BOT,
         metadata: {
-          tags: ["refund_request"], // Use tags instead of isRefundRequest
+          tags: ["refund_request"],
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      } as Partial<Complaint>);
 
-      const savedRefund = (await this.complaintRepository.save(
-        complaint,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      )) as any;
-      const refundTicketNumber = Array.isArray(savedRefund)
-        ? savedRefund[0]?.ticketNumber
-        : savedRefund.ticketNumber;
+      const savedRefund = await this.complaintRepository.save(complaint);
+      const savedRefundEntity = Array.isArray(savedRefund)
+        ? savedRefund[0]
+        : savedRefund;
+      const refundTicketNumber = savedRefundEntity?.ticketNumber;
       this.clearSession(ctx.from!.id);
 
       const keyboard = Markup.inlineKeyboard([
@@ -939,8 +926,7 @@ export class TelegramCustomerBotService
           "Мы рассмотрим вашу заявку и свяжемся с вами.",
         keyboard,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error("Failed to create refund request:", error);
       await ctx.reply("❌ Произошла ошибка. Попробуйте позже.");
     }
@@ -975,8 +961,7 @@ export class TelegramCustomerBotService
 
     try {
       await this.bot.telegram.sendMessage(telegramId, message, keyboard);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to send notification to ${telegramId}:`, error);
     }
   }
@@ -1003,8 +988,7 @@ export class TelegramCustomerBotService
 
     try {
       await this.bot.telegram.sendMessage(telegramId, message);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send refund notification to ${telegramId}:`,
         error,

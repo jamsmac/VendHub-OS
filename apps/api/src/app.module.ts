@@ -87,6 +87,9 @@ import { DirectoriesModule } from "./modules/directories/directories.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
 import { TripsModule } from "./modules/trips/trips.module";
 import { AchievementsModule } from "./modules/achievements/achievements.module";
+import { SmsModule } from "./modules/sms/sms.module";
+import { EmailModule } from "./modules/email/email.module";
+import { ContainersModule } from "./modules/containers/containers.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -508,6 +511,15 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Achievements & Badges System
     AchievementsModule,
+
+    // SMS Sending (Eskiz, PlayMobile)
+    SmsModule,
+
+    // Email Sending (SMTP / NodeMailer)
+    EmailModule,
+
+    // Container Management (Hoppers/Bunkers)
+    ContainersModule,
   ],
   providers: [
     // ============================================

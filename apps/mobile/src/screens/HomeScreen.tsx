@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
+import { useTranslation } from "react-i18next";
 import { reportsApi, tasksApi } from "../services/api";
 import { MainStackParamList } from "../navigation/MainNavigator";
 
@@ -33,6 +34,7 @@ interface StatCard {
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
 
   const {
     data: stats,
@@ -55,28 +57,28 @@ export function HomeScreen() {
 
   const statCards: StatCard[] = [
     {
-      title: "Активные задачи",
+      title: t("home.activeTasks"),
       value: activeTasks,
       icon: "clipboard",
       color: "#4F46E5",
       bgColor: "#EEF2FF",
     },
     {
-      title: "Мои автоматы",
+      title: t("home.myMachines"),
       value: stats?.myMachines || 0,
       icon: "cafe",
       color: "#059669",
       bgColor: "#ECFDF5",
     },
     {
-      title: "Выполнено сегодня",
+      title: t("home.completedToday"),
       value: stats?.completedToday || 0,
       icon: "checkmark-circle",
       color: "#10B981",
       bgColor: "#D1FAE5",
     },
     {
-      title: "Просрочено",
+      title: t("home.overdue"),
       value: stats?.overdue || 0,
       icon: "alert-circle",
       color: "#EF4444",
@@ -86,38 +88,29 @@ export function HomeScreen() {
 
   const quickActions = [
     {
-      title: "Мои задачи",
+      title: t("home.myTasks"),
       icon: "clipboard-outline",
       onPress: () => navigation.navigate("HomeTabs"),
     },
     {
-      title: "Сканировать QR",
+      title: t("home.scanQR"),
       icon: "qr-code-outline",
       onPress: () => navigation.navigate("BarcodeScan"),
     },
     {
-      title: "Уведомления",
+      title: t("home.notifications"),
       icon: "notifications-outline",
       onPress: () => navigation.navigate("Notifications"),
     },
     {
-      title: "Мой склад",
+      title: t("home.myWarehouse"),
       icon: "cube-outline",
       onPress: () => navigation.navigate("Inventory", {}),
     },
   ];
 
   const getRoleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      owner: "Владелец",
-      admin: "Администратор",
-      manager: "Менеджер",
-      operator: "Оператор",
-      warehouse: "Склад",
-      accountant: "Бухгалтер",
-      viewer: "Наблюдатель",
-    };
-    return labels[role] || role;
+    return t(`roles.${role}`, { defaultValue: role });
   };
 
   return (
@@ -130,7 +123,9 @@ export function HomeScreen() {
       {/* Welcome */}
       <View style={styles.welcomeSection}>
         <View>
-          <Text style={styles.greeting}>Привет, {user?.firstName}! 👋</Text>
+          <Text style={styles.greeting}>
+            {t("home.greeting")} {user?.firstName}!
+          </Text>
           <Text style={styles.role}>{getRoleLabel(user?.role || "")}</Text>
         </View>
         <TouchableOpacity
@@ -165,7 +160,7 @@ export function HomeScreen() {
       </View>
 
       {/* Quick Actions */}
-      <Text style={styles.sectionTitle}>Быстрые действия</Text>
+      <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
       <View style={styles.actionsGrid}>
         {quickActions.map((action, index) => (
           <TouchableOpacity
@@ -183,7 +178,7 @@ export function HomeScreen() {
       </View>
 
       {/* Recent Tasks */}
-      <Text style={styles.sectionTitle}>Ближайшие задачи</Text>
+      <Text style={styles.sectionTitle}>{t("home.upcomingTasks")}</Text>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {myTasks?.slice(0, 3).map((task: any) => (
         <TouchableOpacity
@@ -206,14 +201,12 @@ export function HomeScreen() {
           </View>
           <View style={styles.taskInfo}>
             <Text style={styles.taskTitle}>
-              {task.taskType === "refill"
-                ? "Пополнение"
-                : task.taskType === "collection"
-                  ? "Инкассация"
-                  : "Ремонт"}
+              {t(`home.taskTypes.${task.taskType}`, {
+                defaultValue: task.taskType,
+              })}
             </Text>
             <Text style={styles.taskSubtitle}>
-              {task.machine?.name || "Автомат"}
+              {task.machine?.name || t("home.machine")}
             </Text>
           </View>
           <View style={styles.taskStatus}>
@@ -238,7 +231,7 @@ export function HomeScreen() {
       {(!myTasks || myTasks.length === 0) && (
         <View style={styles.emptyState}>
           <Ionicons name="checkmark-circle-outline" size={48} color="#10B981" />
-          <Text style={styles.emptyText}>Нет активных задач</Text>
+          <Text style={styles.emptyText}>{t("home.noActiveTasks")}</Text>
         </View>
       )}
 

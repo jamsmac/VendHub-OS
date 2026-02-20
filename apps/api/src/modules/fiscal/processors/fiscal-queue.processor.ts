@@ -17,10 +17,9 @@ export class FiscalQueueProcessor extends WorkerHost {
     try {
       await this.fiscalService.processQueueItem(job.data.queueItemId);
       this.logger.log(`Successfully processed: ${job.data.queueItemId}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Failed to process ${job.data.queueItemId}: ${error.message}`,
+        `Failed to process ${job.data.queueItemId}: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }

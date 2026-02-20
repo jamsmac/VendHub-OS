@@ -71,14 +71,18 @@ export class AIParserService {
       const analysis = await this.analyzeWithAI(documentationContent, request);
 
       return analysis;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Error parsing documentation:", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error parsing documentation:",
+        error instanceof Error ? error.stack : error,
+      );
       return {
         success: false,
         confidence: 0,
         config: {},
-        warnings: [`Error parsing documentation: ${error.message}`],
+        warnings: [
+          `Error parsing documentation: ${error instanceof Error ? error.message : String(error)}`,
+        ],
         suggestions: ["Try providing the documentation in a different format"],
         missingInfo: [],
       };
@@ -298,11 +302,13 @@ export class AIParserService {
 
       // Plain text or markdown
       return response.data.toString();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Error fetching documentation from ${url}:`, error);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error fetching documentation from ${url}:`,
+        error instanceof Error ? error.stack : error,
+      );
       throw new BadGatewayException(
-        `Failed to fetch documentation: ${error.message}`,
+        `Failed to fetch documentation: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -383,9 +389,11 @@ export class AIParserService {
 
       const aiResponse = response.data.content[0].text;
       return this.parseAIResponse(aiResponse);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Error calling AI API:", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error calling AI API:",
+        error instanceof Error ? error.stack : error,
+      );
 
       // Return manual configuration template
       return {
@@ -439,9 +447,11 @@ export class AIParserService {
       );
 
       return response.data.content[0].text;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error("Error getting AI response:", error);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error getting AI response:",
+        error instanceof Error ? error.stack : error,
+      );
       return "I apologize, but I encountered an error. Could you please rephrase your question or provide more details about what you need help with?";
     }
   }

@@ -690,9 +690,10 @@ export class AuditService {
           await this.triggerAlert(alert, log);
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.logger.error(`Failed to check alerts: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to check alerts: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -961,10 +962,10 @@ export class AuditService {
       await this.reportRepo.save(report);
 
       return report;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       report.status = "failed";
-      report.errorMessage = error.message;
+      report.errorMessage =
+        error instanceof Error ? error.message : String(error);
       await this.reportRepo.save(report);
       throw error;
     }
