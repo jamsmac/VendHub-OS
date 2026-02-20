@@ -263,11 +263,11 @@ describe("BillingService", () => {
     it("should return invoice with payments", async () => {
       invoiceRepo.findOne.mockResolvedValue(mockInvoice);
 
-      const result = await service.findInvoiceById("inv-uuid-1");
+      const result = await service.findInvoiceById("inv-uuid-1", ORG_ID);
 
       expect(result).toEqual(mockInvoice);
       expect(invoiceRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "inv-uuid-1" },
+        where: { id: "inv-uuid-1", organizationId: ORG_ID },
         relations: ["payments"],
       });
     });
@@ -275,9 +275,9 @@ describe("BillingService", () => {
     it("should throw NotFoundException when invoice not found", async () => {
       invoiceRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findInvoiceById("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findInvoiceById("non-existent", ORG_ID),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -290,9 +290,14 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
-      const result = await service.updateInvoice("inv-uuid-1", USER_ID, {
-        notes: "Updated",
-      } as UpdateInvoiceDto);
+      const result = await service.updateInvoice(
+        "inv-uuid-1",
+        ORG_ID,
+        USER_ID,
+        {
+          notes: "Updated",
+        } as UpdateInvoiceDto,
+      );
 
       expect(result.notes).toBe("Updated");
     });
@@ -301,7 +306,7 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue(mockSentInvoice);
 
       await expect(
-        service.updateInvoice("inv-uuid-2", USER_ID, {
+        service.updateInvoice("inv-uuid-2", ORG_ID, USER_ID, {
           notes: "Test",
         } as UpdateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
@@ -317,7 +322,7 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue({ ...mockInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
-      const result = await service.sendInvoice("inv-uuid-1", USER_ID);
+      const result = await service.sendInvoice("inv-uuid-1", ORG_ID, USER_ID);
 
       expect(result.status).toBe(InvoiceStatus.SENT);
     });
@@ -325,9 +330,9 @@ describe("BillingService", () => {
     it("should throw BadRequestException when invoice is not DRAFT", async () => {
       invoiceRepo.findOne.mockResolvedValue(mockSentInvoice);
 
-      await expect(service.sendInvoice("inv-uuid-2", USER_ID)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.sendInvoice("inv-uuid-2", ORG_ID, USER_ID),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -340,7 +345,7 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue({ ...mockSentInvoice } as Invoice);
       invoiceRepo.save.mockImplementation(async (inv) => inv as Invoice);
 
-      const result = await service.cancelInvoice("inv-uuid-2", USER_ID);
+      const result = await service.cancelInvoice("inv-uuid-2", ORG_ID, USER_ID);
 
       expect(result.status).toBe(InvoiceStatus.CANCELLED);
     });
@@ -349,7 +354,7 @@ describe("BillingService", () => {
       invoiceRepo.findOne.mockResolvedValue(mockPaidInvoice);
 
       await expect(
-        service.cancelInvoice("inv-uuid-3", USER_ID),
+        service.cancelInvoice("inv-uuid-3", ORG_ID, USER_ID),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -360,7 +365,7 @@ describe("BillingService", () => {
       } as unknown as Invoice);
 
       await expect(
-        service.cancelInvoice("inv-uuid-1", USER_ID),
+        service.cancelInvoice("inv-uuid-1", ORG_ID, USER_ID),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -434,7 +439,7 @@ describe("BillingService", () => {
         undefined as unknown as ReturnType<Repository<Invoice>["softDelete"]>,
       );
 
-      await service.removeInvoice("inv-uuid-1");
+      await service.removeInvoice("inv-uuid-1", ORG_ID);
 
       expect(invoiceRepo.softDelete).toHaveBeenCalledWith("inv-uuid-1");
     });
@@ -442,7 +447,7 @@ describe("BillingService", () => {
     it("should throw BadRequestException for non-DRAFT invoice", async () => {
       invoiceRepo.findOne.mockResolvedValue(mockSentInvoice);
 
-      await expect(service.removeInvoice("inv-uuid-2")).rejects.toThrow(
+      await expect(service.removeInvoice("inv-uuid-2", ORG_ID)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -450,9 +455,9 @@ describe("BillingService", () => {
     it("should throw NotFoundException when invoice not found", async () => {
       invoiceRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeInvoice("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.removeInvoice("non-existent", ORG_ID),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

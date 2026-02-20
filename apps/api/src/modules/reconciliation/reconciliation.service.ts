@@ -80,8 +80,13 @@ export class ReconciliationService {
   /**
    * Запустить процесс сверки
    */
-  async processReconciliation(runId: string): Promise<ReconciliationRun> {
-    const run = await this.runRepo.findOne({ where: { id: runId } });
+  async processReconciliation(
+    runId: string,
+    organizationId: string,
+  ): Promise<ReconciliationRun> {
+    const run = await this.runRepo.findOne({
+      where: { id: runId, organizationId },
+    });
 
     if (!run) {
       throw new NotFoundException("Reconciliation run not found");
@@ -320,6 +325,7 @@ export class ReconciliationService {
    */
   async getMismatches(
     runId: string,
+    organizationId: string,
     params: QueryMismatchesDto,
   ): Promise<{
     items: ReconciliationMismatch[];
@@ -332,7 +338,8 @@ export class ReconciliationService {
 
     const qb = this.mismatchRepo
       .createQueryBuilder("m")
-      .where("m.runId = :runId", { runId });
+      .where("m.runId = :runId", { runId })
+      .andWhere("m.organizationId = :organizationId", { organizationId });
 
     if (mismatchType) {
       qb.andWhere("m.mismatchType = :mismatchType", { mismatchType });
@@ -366,10 +373,13 @@ export class ReconciliationService {
    */
   async resolveMismatch(
     id: string,
+    organizationId: string,
     userId: string,
     dto: ResolveMismatchDto,
   ): Promise<ReconciliationMismatch> {
-    const mismatch = await this.mismatchRepo.findOne({ where: { id } });
+    const mismatch = await this.mismatchRepo.findOne({
+      where: { id, organizationId },
+    });
 
     if (!mismatch) {
       throw new NotFoundException("Mismatch not found");

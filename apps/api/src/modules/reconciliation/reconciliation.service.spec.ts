@@ -211,16 +211,16 @@ describe("ReconciliationService", () => {
       runRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.processReconciliation("non-existent"),
+        service.processReconciliation("non-existent", ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
 
     it("should throw BadRequestException when run is not pending", async () => {
       runRepo.findOne.mockResolvedValue(mockCompletedRun);
 
-      await expect(service.processReconciliation("run-uuid-2")).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.processReconciliation("run-uuid-2", ORG_ID),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it("should process a pending run and mark as completed", async () => {
@@ -234,7 +234,7 @@ describe("ReconciliationService", () => {
       );
       mockHwQueryBuilder.getMany.mockResolvedValue([]);
 
-      const result = await service.processReconciliation("run-uuid-1");
+      const result = await service.processReconciliation("run-uuid-1", ORG_ID);
 
       expect(result.status).toBe(ReconciliationStatus.COMPLETED);
       expect(result.summary).toBeDefined();
@@ -305,7 +305,7 @@ describe("ReconciliationService", () => {
 
   describe("getMismatches", () => {
     it("should return paginated mismatches for a run", async () => {
-      const result = await service.getMismatches("run-uuid-1", {
+      const result = await service.getMismatches("run-uuid-1", ORG_ID, {
         page: 1,
         limit: 20,
       } as QueryMismatchesDto);
@@ -336,6 +336,7 @@ describe("ReconciliationService", () => {
       const dto = { resolutionNotes: "Fixed manually" };
       const result = await service.resolveMismatch(
         "mismatch-uuid-1",
+        ORG_ID,
         USER_ID,
         dto as ResolveMismatchDto,
       );
@@ -351,6 +352,7 @@ describe("ReconciliationService", () => {
       await expect(
         service.resolveMismatch(
           "non-existent",
+          ORG_ID,
           USER_ID,
           {} as ResolveMismatchDto,
         ),
@@ -366,6 +368,7 @@ describe("ReconciliationService", () => {
       await expect(
         service.resolveMismatch(
           "mismatch-uuid-1",
+          ORG_ID,
           USER_ID,
           {} as ResolveMismatchDto,
         ),

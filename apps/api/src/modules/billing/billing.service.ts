@@ -158,9 +158,9 @@ export class BillingService {
   /**
    * Получить инвойс по ID с платежами
    */
-  async findInvoiceById(id: string): Promise<Invoice> {
+  async findInvoiceById(id: string, organizationId: string): Promise<Invoice> {
     const invoice = await this.invoiceRepo.findOne({
-      where: { id },
+      where: { id, organizationId },
       relations: ["payments"],
     });
 
@@ -180,10 +180,11 @@ export class BillingService {
    */
   async updateInvoice(
     id: string,
+    organizationId: string,
     userId: string,
     dto: UpdateInvoiceDto,
   ): Promise<Invoice> {
-    const invoice = await this.findInvoiceById(id);
+    const invoice = await this.findInvoiceById(id, organizationId);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
       throw new BadRequestException("Only DRAFT invoices can be updated");
@@ -234,8 +235,12 @@ export class BillingService {
   /**
    * Отправить инвойс (DRAFT -> SENT)
    */
-  async sendInvoice(id: string, userId: string): Promise<Invoice> {
-    const invoice = await this.findInvoiceById(id);
+  async sendInvoice(
+    id: string,
+    organizationId: string,
+    userId: string,
+  ): Promise<Invoice> {
+    const invoice = await this.findInvoiceById(id, organizationId);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
       throw new BadRequestException("Only DRAFT invoices can be sent");
@@ -254,8 +259,12 @@ export class BillingService {
   /**
    * Отменить инвойс (любой кроме PAID -> CANCELLED)
    */
-  async cancelInvoice(id: string, userId: string): Promise<Invoice> {
-    const invoice = await this.findInvoiceById(id);
+  async cancelInvoice(
+    id: string,
+    organizationId: string,
+    userId: string,
+  ): Promise<Invoice> {
+    const invoice = await this.findInvoiceById(id, organizationId);
 
     if (invoice.status === InvoiceStatus.PAID) {
       throw new BadRequestException("Paid invoices cannot be cancelled");
@@ -288,7 +297,7 @@ export class BillingService {
     userId: string,
     dto: CreatePaymentDto,
   ): Promise<BillingPayment> {
-    const invoice = await this.findInvoiceById(invoiceId);
+    const invoice = await this.findInvoiceById(invoiceId, organizationId);
 
     if (
       invoice.status === InvoiceStatus.CANCELLED ||
@@ -508,8 +517,8 @@ export class BillingService {
   /**
    * Мягкое удаление инвойса (только DRAFT)
    */
-  async removeInvoice(id: string): Promise<void> {
-    const invoice = await this.findInvoiceById(id);
+  async removeInvoice(id: string, organizationId: string): Promise<void> {
+    const invoice = await this.findInvoiceById(id, organizationId);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
       throw new BadRequestException("Only DRAFT invoices can be deleted");

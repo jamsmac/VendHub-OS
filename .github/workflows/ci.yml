@@ -466,6 +466,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Run Trivy vulnerability scanner on Client
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: vendhub/client:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results-client.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results for Client
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results-client.sarif"
+          category: "client-image"
+
+      - name: Run Trivy vulnerability scanner on Bot
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: vendhub/bot:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results-bot.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results for Bot
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results-bot.sarif"
+          category: "bot-image"
+
       - name: Extract metadata for Site
         id: meta-site
         uses: docker/metadata-action@v5

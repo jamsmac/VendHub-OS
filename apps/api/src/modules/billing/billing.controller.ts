@@ -15,26 +15,26 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-} from '@nestjs/swagger';
-import { BillingService } from './billing.service';
+} from "@nestjs/swagger";
+import { BillingService } from "./billing.service";
 import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
   QueryInvoicesDto,
-} from './dto/create-invoice.dto';
-import { CreatePaymentDto, QueryPaymentsDto } from './dto/create-payment.dto';
-import { CurrentUser, Roles } from '../../common/decorators';
+} from "./dto/create-invoice.dto";
+import { CreatePaymentDto, QueryPaymentsDto } from "./dto/create-payment.dto";
+import { CurrentUser, Roles } from "../../common/decorators";
 
-@ApiTags('Billing')
+@ApiTags("Billing")
 @ApiBearerAuth()
-@Controller('billing')
+@Controller("billing")
 export class BillingController {
   constructor(private readonly service: BillingService) {}
 
@@ -42,132 +42,154 @@ export class BillingController {
   // INVOICES
   // ============================================================================
 
-  @Post('invoices')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Create a new invoice' })
-  @ApiResponse({ status: 201, description: 'Invoice created' })
+  @Post("invoices")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Create a new invoice" })
+  @ApiResponse({ status: 201, description: "Invoice created" })
   async createInvoice(
-    @CurrentUser('id') userId: string,
-    @CurrentUser('organizationId') organizationId: string,
+    @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Body() dto: CreateInvoiceDto,
   ) {
     return this.service.createInvoice(organizationId, userId, dto);
   }
 
-  @Get('invoices')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'List invoices' })
-  @ApiResponse({ status: 200, description: 'Paginated list of invoices' })
+  @Get("invoices")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "List invoices" })
+  @ApiResponse({ status: 200, description: "Paginated list of invoices" })
   async findAllInvoices(
-    @CurrentUser('organizationId') organizationId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Query() params: QueryInvoicesDto,
   ) {
     return this.service.findAllInvoices(organizationId, params);
   }
 
-  @Get('invoices/stats')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get invoice statistics' })
-  @ApiResponse({ status: 200, description: 'Invoice statistics for the organization' })
-  async getInvoiceStats(
-    @CurrentUser('organizationId') organizationId: string,
-  ) {
+  @Get("invoices/stats")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get invoice statistics" })
+  @ApiResponse({
+    status: 200,
+    description: "Invoice statistics for the organization",
+  })
+  async getInvoiceStats(@CurrentUser("organizationId") organizationId: string) {
     return this.service.getInvoiceStats(organizationId);
   }
 
-  @Get('invoices/:id')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Get invoice by ID' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 200, description: 'Invoice details with payments' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
-  async findInvoiceById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findInvoiceById(id);
+  @Get("invoices/:id")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get invoice by ID" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 200, description: "Invoice details with payments" })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
+  async findInvoiceById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("organizationId") organizationId: string,
+  ) {
+    return this.service.findInvoiceById(id, organizationId);
   }
 
-  @Patch('invoices/:id')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Update an invoice (DRAFT only)' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 200, description: 'Invoice updated' })
-  @ApiResponse({ status: 400, description: 'Only DRAFT invoices can be updated' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @Patch("invoices/:id")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Update an invoice (DRAFT only)" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 200, description: "Invoice updated" })
+  @ApiResponse({
+    status: 400,
+    description: "Only DRAFT invoices can be updated",
+  })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
   async updateInvoice(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Body() dto: UpdateInvoiceDto,
   ) {
-    return this.service.updateInvoice(id, userId, dto);
+    return this.service.updateInvoice(id, organizationId, userId, dto);
   }
 
-  @Post('invoices/:id/send')
-  @Roles('accountant', 'manager', 'admin', 'owner')
+  @Post("invoices/:id/send")
+  @Roles("accountant", "manager", "admin", "owner")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send an invoice (DRAFT -> SENT)' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 200, description: 'Invoice sent' })
-  @ApiResponse({ status: 400, description: 'Only DRAFT invoices can be sent' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @ApiOperation({ summary: "Send an invoice (DRAFT -> SENT)" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 200, description: "Invoice sent" })
+  @ApiResponse({ status: 400, description: "Only DRAFT invoices can be sent" })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
   async sendInvoice(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
   ) {
-    return this.service.sendInvoice(id, userId);
+    return this.service.sendInvoice(id, organizationId, userId);
   }
 
-  @Post('invoices/:id/cancel')
-  @Roles('admin', 'owner')
+  @Post("invoices/:id/cancel")
+  @Roles("admin", "owner")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cancel an invoice' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 200, description: 'Invoice cancelled' })
-  @ApiResponse({ status: 400, description: 'Paid invoices cannot be cancelled' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @ApiOperation({ summary: "Cancel an invoice" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 200, description: "Invoice cancelled" })
+  @ApiResponse({
+    status: 400,
+    description: "Paid invoices cannot be cancelled",
+  })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
   async cancelInvoice(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
   ) {
-    return this.service.cancelInvoice(id, userId);
+    return this.service.cancelInvoice(id, organizationId, userId);
   }
 
-  @Delete('invoices/:id')
-  @Roles('admin', 'owner')
+  @Delete("invoices/:id")
+  @Roles("admin", "owner")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete an invoice (DRAFT only, soft delete)' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 204, description: 'Invoice deleted' })
-  @ApiResponse({ status: 400, description: 'Only DRAFT invoices can be deleted' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
-  async removeInvoice(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.removeInvoice(id);
+  @ApiOperation({ summary: "Delete an invoice (DRAFT only, soft delete)" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 204, description: "Invoice deleted" })
+  @ApiResponse({
+    status: 400,
+    description: "Only DRAFT invoices can be deleted",
+  })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
+  async removeInvoice(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("organizationId") organizationId: string,
+  ) {
+    return this.service.removeInvoice(id, organizationId);
   }
 
   // ============================================================================
   // PAYMENTS
   // ============================================================================
 
-  @Post('invoices/:id/payments')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'Record a payment for an invoice' })
-  @ApiParam({ name: 'id', description: 'Invoice ID' })
-  @ApiResponse({ status: 201, description: 'Payment recorded' })
-  @ApiResponse({ status: 400, description: 'Invalid payment or exceeds balance' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @Post("invoices/:id/payments")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Record a payment for an invoice" })
+  @ApiParam({ name: "id", description: "Invoice ID" })
+  @ApiResponse({ status: 201, description: "Payment recorded" })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid payment or exceeds balance",
+  })
+  @ApiResponse({ status: 404, description: "Invoice not found" })
   async recordPayment(
-    @Param('id', ParseUUIDPipe) invoiceId: string,
-    @CurrentUser('id') userId: string,
-    @CurrentUser('organizationId') organizationId: string,
+    @Param("id", ParseUUIDPipe) invoiceId: string,
+    @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Body() dto: CreatePaymentDto,
   ) {
     return this.service.recordPayment(invoiceId, organizationId, userId, dto);
   }
 
-  @Get('payments')
-  @Roles('accountant', 'manager', 'admin', 'owner')
-  @ApiOperation({ summary: 'List all payments' })
-  @ApiResponse({ status: 200, description: 'Paginated list of payments' })
+  @Get("payments")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "List all payments" })
+  @ApiResponse({ status: 200, description: "Paginated list of payments" })
   async findAllPayments(
-    @CurrentUser('organizationId') organizationId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Query() params: QueryPaymentsDto,
   ) {
     return this.service.findAllPayments(organizationId, params);

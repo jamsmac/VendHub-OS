@@ -58,7 +58,7 @@ export class ReconciliationController {
     const run = await this.service.createRun(organizationId, userId, dto);
 
     // Trigger processing asynchronously (fire and forget)
-    this.service.processReconciliation(run.id).catch((_err) => {
+    this.service.processReconciliation(run.id, organizationId).catch((_err) => {
       // Error is already handled inside processReconciliation
     });
 
@@ -102,9 +102,10 @@ export class ReconciliationController {
   @ApiResponse({ status: 200, description: "Paginated list of mismatches" })
   async getMismatches(
     @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Query() params: QueryMismatchesDto,
   ) {
-    return this.service.getMismatches(id, params);
+    return this.service.getMismatches(id, organizationId, params);
   }
 
   @Delete("runs/:id")
@@ -139,9 +140,10 @@ export class ReconciliationController {
   async resolveMismatch(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser("id") userId: string,
+    @CurrentUser("organizationId") organizationId: string,
     @Body() dto: ResolveMismatchDto,
   ) {
-    return this.service.resolveMismatch(id, userId, dto);
+    return this.service.resolveMismatch(id, organizationId, userId, dto);
   }
 
   // ============================================================================
