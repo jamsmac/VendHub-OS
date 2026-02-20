@@ -60,18 +60,18 @@ description: |
 
 ## Стек технологий
 
-| Компонент | Технология | Деплой |
-| --------- | ---------- | ------ |
-| Backend API | NestJS 11 + TypeORM | Docker -> Kubernetes |
-| Web (SSR) | Next.js 16 + React 19 | Docker -> Kubernetes |
-| Client (SPA) | React 19 + Vite | Docker (nginx) -> Kubernetes |
-| Bot | Node.js + Telegraf | Docker -> Kubernetes |
-| Database | PostgreSQL 16 | Docker Compose (dev) / K8s StatefulSet (prod) |
-| Cache | Redis 7 | Docker Compose (dev) / K8s StatefulSet (prod) |
-| Files | S3-compatible (Minio / AWS S3) | Docker Compose (dev) / облако (prod) |
-| Mobile | React Native + Expo | App Store / Play Store |
-| IaC | Terraform + Helm | CI/CD |
-| Мониторинг | Prometheus + Grafana + Loki | Kubernetes |
+| Компонент    | Технология                     | Деплой                                        |
+| ------------ | ------------------------------ | --------------------------------------------- |
+| Backend API  | NestJS 11 + TypeORM            | Docker -> Kubernetes                          |
+| Web (SSR)    | Next.js 16 + React 19          | Docker -> Kubernetes                          |
+| Client (SPA) | React 19 + Vite                | Docker (nginx) -> Kubernetes                  |
+| Bot          | Node.js + Telegraf             | Docker -> Kubernetes                          |
+| Database     | PostgreSQL 16                  | Docker Compose (dev) / K8s StatefulSet (prod) |
+| Cache        | Redis 7                        | Docker Compose (dev) / K8s StatefulSet (prod) |
+| Files        | S3-compatible (Minio / AWS S3) | Docker Compose (dev) / облако (prod)          |
+| Mobile       | React Native + Expo            | App Store / Play Store                        |
+| IaC          | Terraform + Helm               | CI/CD                                         |
+| Мониторинг   | Prometheus + Grafana + Loki    | Kubernetes                                    |
 
 ## Структура конфигурации
 
@@ -167,7 +167,7 @@ VHM24-repo/
 ### Сервисы docker-compose.yml
 
 ```yaml
-version: '3.9'
+version: "3.9"
 
 services:
   postgres:
@@ -203,7 +203,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "4000:4000"
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgres://vendhub:vendhub_dev@postgres:5432/vendhub
@@ -225,7 +225,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - API_URL=http://api:3001
+      - API_URL=http://api:4000
     depends_on:
       - api
     volumes:
@@ -239,7 +239,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://localhost:4000
     depends_on:
       - api
     volumes:
@@ -252,7 +252,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=development
-      - API_URL=http://api:3001
+      - API_URL=http://api:4000
       - BOT_TOKEN=${BOT_TOKEN}
     depends_on:
       - api
@@ -292,9 +292,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 USER nestjs
-EXPOSE 3001
+EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD wget -qO- http://localhost:3001/health || exit 1
+  CMD wget -qO- http://localhost:4000/health || exit 1
 CMD ["node", "dist/main"]
 ```
 
@@ -341,7 +341,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm run lint
 
@@ -371,7 +371,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm run test -- --coverage
         env:
@@ -408,7 +408,7 @@ name: Release & Deploy
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-and-push:
@@ -575,7 +575,7 @@ spec:
         - name: api
           image: vendhub/api:latest
           ports:
-            - containerPort: 3001
+            - containerPort: 4000
           env:
             - name: NODE_ENV
               value: production
@@ -599,13 +599,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: 3001
+              port: 4000
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 3001
+              port: 4000
             initialDelaySeconds: 30
             periodSeconds: 10
 ```
@@ -719,7 +719,7 @@ image:
 
 api:
   replicas: 2
-  port: 3001
+  port: 4000
   resources:
     requests:
       cpu: 250m
@@ -885,17 +885,17 @@ docker-compose exec api npm run migration:revert
 
 ## Troubleshooting
 
-| Проблема | Решение |
-| -------- | ------- |
-| Docker build fails | Проверить node_modules кэш, очистить docker cache (`docker builder prune`) |
-| Pod CrashLoopBackOff | Проверить логи: `kubectl logs pod-name -n namespace --previous` |
-| Health check fails | Проверить DATABASE_URL, REDIS_URL в Kubernetes Secrets |
-| 502 Bad Gateway | Проверить Ingress, порт сервиса, readinessProbe |
-| SSL errors | Проверить cert-manager, ClusterIssuer, обновить сертификат |
-| OOMKilled | Увеличить memory limits в Helm values или Kustomize patch |
-| ImagePullBackOff | Проверить Docker registry credentials (imagePullSecrets) |
-| Migration fails | Проверить подключение к БД, откатить: `npm run migration:revert` |
-| Terraform state lock | Разблокировать: `terraform force-unlock LOCK_ID` |
-| Helm upgrade fails | Проверить `helm history`, откатить: `helm rollback` |
-| Pods не шедулятся | Проверить ресурсы нод: `kubectl describe nodes`, увеличить кластер |
-| Prometheus нет метрик | Проверить ServiceMonitor, annotations на подах |
+| Проблема              | Решение                                                                    |
+| --------------------- | -------------------------------------------------------------------------- |
+| Docker build fails    | Проверить node_modules кэш, очистить docker cache (`docker builder prune`) |
+| Pod CrashLoopBackOff  | Проверить логи: `kubectl logs pod-name -n namespace --previous`            |
+| Health check fails    | Проверить DATABASE_URL, REDIS_URL в Kubernetes Secrets                     |
+| 502 Bad Gateway       | Проверить Ingress, порт сервиса, readinessProbe                            |
+| SSL errors            | Проверить cert-manager, ClusterIssuer, обновить сертификат                 |
+| OOMKilled             | Увеличить memory limits в Helm values или Kustomize patch                  |
+| ImagePullBackOff      | Проверить Docker registry credentials (imagePullSecrets)                   |
+| Migration fails       | Проверить подключение к БД, откатить: `npm run migration:revert`           |
+| Terraform state lock  | Разблокировать: `terraform force-unlock LOCK_ID`                           |
+| Helm upgrade fails    | Проверить `helm history`, откатить: `helm rollback`                        |
+| Pods не шедулятся     | Проверить ресурсы нод: `kubectl describe nodes`, увеличить кластер         |
+| Prometheus нет метрик | Проверить ServiceMonitor, annotations на подах                             |

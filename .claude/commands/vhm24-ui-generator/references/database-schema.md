@@ -1,6 +1,7 @@
-# VendHub Database Schema (Drizzle ORM)
+# VendHub Database Schema (TypeORM)
 
 ## Table of Contents
+
 1. [Core Tables](#core-tables)
 2. [Inventory Tables](#inventory-tables)
 3. [Business Tables](#business-tables)
@@ -11,6 +12,7 @@
 ## Core Tables
 
 ### users
+
 ```typescript
 {
   id: int().autoincrement().primaryKey(),
@@ -40,6 +42,7 @@
 ```
 
 ### machines
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -61,6 +64,7 @@
 ```
 
 ### products
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -80,6 +84,7 @@
 ```
 
 ### orders
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -110,6 +115,7 @@
 ## Inventory Tables
 
 ### employees
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -117,9 +123,7 @@
   phone: varchar(32),
   email: varchar(320),
   username: varchar(64),
-  role: enum("platform_owner", "platform_admin", "org_owner", "org_admin",
-             "manager", "supervisor", "operator", "technician", "collector",
-             "warehouse_manager", "warehouse_worker", "accountant", "investor"),
+  role: enum("owner", "admin", "manager", "operator", "warehouse", "accountant", "viewer"),
   status: enum("pending", "active", "inactive", "suspended"),
   telegramUserId: varchar(64),
   hireDate: timestamp(),
@@ -128,6 +132,7 @@
 ```
 
 ### ingredients
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -141,6 +146,7 @@
 ```
 
 ### bunkers
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -156,6 +162,7 @@
 ```
 
 ### warehouseInventory
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -168,6 +175,7 @@
 ```
 
 ### stockMovements
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -186,6 +194,7 @@
 ## Business Tables
 
 ### tasks
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -205,6 +214,7 @@
 ```
 
 ### machineAssignments
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -220,6 +230,7 @@
 ```
 
 ### workLogs
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -240,6 +251,7 @@
 ```
 
 ### salesRecords
+
 ```typescript
 {
   id: int().primaryKey(),
@@ -262,48 +274,67 @@
 ## Enums Reference
 
 ### Machine Status
+
 ```typescript
-"online" | "offline" | "maintenance" | "inactive"
+"online" | "offline" | "maintenance" | "inactive";
 ```
 
 ### Order Status
+
 ```typescript
-"pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled"
+"pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled";
 ```
 
 ### Payment Status
+
 ```typescript
-"pending" | "paid" | "failed" | "refunded"
+"pending" | "paid" | "failed" | "refunded";
 ```
 
 ### Payment Methods
+
 ```typescript
-"click" | "payme" | "uzum" | "telegram" | "cash" | "bonus"
+"click" | "payme" | "uzum" | "telegram" | "cash" | "bonus";
 ```
 
 ### Employee Roles
+
 ```typescript
-"platform_owner" | "platform_admin" | "org_owner" | "org_admin" |
-"manager" | "supervisor" | "operator" | "technician" | "collector" |
-"warehouse_manager" | "warehouse_worker" | "accountant" | "investor"
+"owner" |
+  "admin" |
+  "manager" |
+  "operator" |
+  "warehouse" |
+  "accountant" |
+  "viewer";
 ```
 
 ### Task Priority
+
 ```typescript
-"low" | "medium" | "high" | "urgent"
+"low" | "medium" | "high" | "urgent";
 ```
 
 ### Task Type
+
 ```typescript
-"maintenance" | "refill" | "cleaning" | "repair" | "inspection" | "inventory" | "other"
+"maintenance" |
+  "refill" |
+  "cleaning" |
+  "repair" |
+  "inspection" |
+  "inventory" |
+  "other";
 ```
 
 ### Loyalty Level
+
 ```typescript
-"bronze" | "silver" | "gold" | "platinum"
+"bronze" | "silver" | "gold" | "platinum";
 ```
 
 ### Product Category
+
 ```typescript
-"coffee" | "tea" | "snacks" | "cold_drinks" | "other"
+"coffee" | "tea" | "snacks" | "cold_drinks" | "other";
 ```

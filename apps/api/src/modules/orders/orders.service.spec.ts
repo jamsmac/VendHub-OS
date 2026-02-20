@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -202,6 +202,22 @@ describe("OrdersService", () => {
           provide: PromoCodesService,
           useValue: {
             validate: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn((cb) =>
+              cb({
+                getRepository: jest.fn().mockImplementation((entity) => {
+                  if (entity === Order) return orderRepo;
+                  if (entity === OrderItem) return itemRepo;
+                  if (entity === Product) return productRepo;
+                  if (entity === User) return userRepo;
+                  return {};
+                }),
+              }),
+            ),
           },
         },
       ],

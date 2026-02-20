@@ -10,7 +10,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   Invoice,
@@ -34,6 +34,7 @@ export class BillingService {
     private readonly invoiceRepo: Repository<Invoice>,
     @InjectRepository(BillingPayment)
     private readonly paymentRepo: Repository<BillingPayment>,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ============================================================================
@@ -307,47 +308,52 @@ export class BillingService {
       );
     }
 
-    // Generate payment number
-    const paymentCount = await this.paymentRepo.count({
-      where: { invoiceId },
+    return this.dataSource.transaction(async (manager) => {
+      const txPaymentRepo = manager.getRepository(BillingPayment);
+      const txInvoiceRepo = manager.getRepository(Invoice);
+
+      // Generate payment number
+      const paymentCount = await txPaymentRepo.count({
+        where: { invoiceId },
+      });
+      const paymentNumber = `${invoice.invoiceNumber}-P${String(paymentCount + 1).padStart(2, "0")}`;
+
+      const payment = txPaymentRepo.create({
+        organizationId,
+        invoiceId,
+        paymentNumber,
+        amount: dto.amount,
+        currency: invoice.currency,
+        paymentMethod: dto.paymentMethod,
+        status: BillingPaymentStatus.COMPLETED,
+        paymentDate: new Date(dto.paymentDate),
+        referenceNumber: dto.referenceNumber || null,
+        notes: dto.notes || null,
+        createdById: userId,
+      });
+
+      await txPaymentRepo.save(payment);
+
+      // Update invoice paid amount and status
+      invoice.paidAmount = Number(invoice.paidAmount) + dto.amount;
+      invoice.updatedById = userId;
+
+      if (invoice.paidAmount >= Number(invoice.totalAmount)) {
+        invoice.status = InvoiceStatus.PAID;
+        invoice.paidAt = new Date();
+      } else if (invoice.paidAmount > 0) {
+        invoice.status = InvoiceStatus.PARTIALLY_PAID;
+      }
+
+      await txInvoiceRepo.save(invoice);
+
+      this.logger.log(
+        `Payment ${paymentNumber} recorded for invoice ${invoice.invoiceNumber} ` +
+          `(${dto.amount} ${invoice.currency})`,
+      );
+
+      return payment;
     });
-    const paymentNumber = `${invoice.invoiceNumber}-P${String(paymentCount + 1).padStart(2, "0")}`;
-
-    const payment = this.paymentRepo.create({
-      organizationId,
-      invoiceId,
-      paymentNumber,
-      amount: dto.amount,
-      currency: invoice.currency,
-      paymentMethod: dto.paymentMethod,
-      status: BillingPaymentStatus.COMPLETED,
-      paymentDate: new Date(dto.paymentDate),
-      referenceNumber: dto.referenceNumber || null,
-      notes: dto.notes || null,
-      createdById: userId,
-    });
-
-    await this.paymentRepo.save(payment);
-
-    // Update invoice paid amount and status
-    invoice.paidAmount = Number(invoice.paidAmount) + dto.amount;
-    invoice.updatedById = userId;
-
-    if (invoice.paidAmount >= Number(invoice.totalAmount)) {
-      invoice.status = InvoiceStatus.PAID;
-      invoice.paidAt = new Date();
-    } else if (invoice.paidAmount > 0) {
-      invoice.status = InvoiceStatus.PARTIALLY_PAID;
-    }
-
-    await this.invoiceRepo.save(invoice);
-
-    this.logger.log(
-      `Payment ${paymentNumber} recorded for invoice ${invoice.invoiceNumber} ` +
-        `(${dto.amount} ${invoice.currency})`,
-    );
-
-    return payment;
   }
 
   /**

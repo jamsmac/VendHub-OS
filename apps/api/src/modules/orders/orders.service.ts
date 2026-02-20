@@ -10,7 +10,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Order,
@@ -62,6 +62,7 @@ export class OrdersService {
     private readonly userRepo: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
     private readonly promoCodesService: PromoCodesService,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ============================================================================
@@ -76,109 +77,116 @@ export class OrdersService {
     organizationId: string,
     dto: CreateOrderDto,
   ): Promise<OrderDto> {
-    // Get products
-    const productIds = dto.items.map((item) => item.productId);
-    const products = await this.productRepo.find({
-      where: { id: In(productIds) },
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const txOrderRepo = manager.getRepository(Order);
+      const txItemRepo = manager.getRepository(OrderItem);
+      const txProductRepo = manager.getRepository(Product);
+      const txUserRepo = manager.getRepository(User);
 
-    if (products.length !== productIds.length) {
-      throw new BadRequestException("Some products not found");
-    }
-
-    // Build product map
-    const productMap = new Map(products.map((p) => [p.id, p]));
-
-    // Calculate order items
-    let subtotal = 0;
-    const orderItems: Partial<OrderItem>[] = [];
-
-    for (const item of dto.items) {
-      const product = productMap.get(item.productId);
-      if (!product) continue;
-
-      const unitPrice = Number(product.sellingPrice) || 0;
-      const totalPrice = unitPrice * item.quantity;
-      subtotal += totalPrice;
-
-      orderItems.push({
-        productId: item.productId,
-        productName: product.name,
-        productSku: product.sku,
-        quantity: item.quantity,
-        unitPrice,
-        totalPrice,
-        customizations: item.customizations,
-        notes: item.notes,
+      // Get products
+      const productIds = dto.items.map((item) => item.productId);
+      const products = await txProductRepo.find({
+        where: { id: In(productIds) },
       });
-    }
 
-    // Validate and apply promo code
-    let promoDiscount = 0;
-    if (dto.promoCode) {
-      const validation = await this.promoCodesService.validate(
-        { code: dto.promoCode, clientUserId: userId, orderAmount: subtotal },
-        organizationId,
-      );
-      if (validation.valid && validation.discountAmount) {
-        promoDiscount = validation.discountAmount;
-      } else {
-        this.logger.debug(
-          `Promo code "${dto.promoCode}" rejected: ${validation.reason}`,
+      if (products.length !== productIds.length) {
+        throw new BadRequestException("Some products not found");
+      }
+
+      // Build product map
+      const productMap = new Map(products.map((p) => [p.id, p]));
+
+      // Calculate order items
+      let subtotal = 0;
+      const orderItems: Partial<OrderItem>[] = [];
+
+      for (const item of dto.items) {
+        const product = productMap.get(item.productId);
+        if (!product) continue;
+
+        const unitPrice = Number(product.sellingPrice) || 0;
+        const totalPrice = unitPrice * item.quantity;
+        subtotal += totalPrice;
+
+        orderItems.push({
+          productId: item.productId,
+          productName: product.name,
+          productSku: product.sku,
+          quantity: item.quantity,
+          unitPrice,
+          totalPrice,
+          customizations: item.customizations,
+          notes: item.notes,
+        });
+      }
+
+      // Validate and apply promo code
+      let promoDiscount = 0;
+      if (dto.promoCode) {
+        const validation = await this.promoCodesService.validate(
+          { code: dto.promoCode, clientUserId: userId, orderAmount: subtotal },
+          organizationId,
         );
+        if (validation.valid && validation.discountAmount) {
+          promoDiscount = validation.discountAmount;
+        } else {
+          this.logger.debug(
+            `Promo code "${dto.promoCode}" rejected: ${validation.reason}`,
+          );
+        }
       }
-    }
 
-    // Apply bonus points
-    let bonusAmount = 0;
-    if (dto.usePoints && dto.usePoints > 0) {
-      const user = await this.userRepo.findOne({ where: { id: userId } });
-      if (user && user.pointsBalance >= dto.usePoints) {
-        // 1 point = 1 sum (configurable)
-        bonusAmount = Math.min(dto.usePoints, subtotal - promoDiscount);
+      // Apply bonus points
+      let bonusAmount = 0;
+      if (dto.usePoints && dto.usePoints > 0) {
+        const user = await txUserRepo.findOne({ where: { id: userId } });
+        if (user && user.pointsBalance >= dto.usePoints) {
+          // 1 point = 1 sum (configurable)
+          bonusAmount = Math.min(dto.usePoints, subtotal - promoDiscount);
+        }
       }
-    }
 
-    // Calculate total
-    const discountAmount = promoDiscount;
-    const totalAmount = subtotal - discountAmount - bonusAmount;
+      // Calculate total
+      const discountAmount = promoDiscount;
+      const totalAmount = subtotal - discountAmount - bonusAmount;
 
-    // Generate order number
-    const orderNumber = this.generateOrderNumber(organizationId);
+      // Generate order number
+      const orderNumber = this.generateOrderNumber(organizationId);
 
-    // Create order
-    const order = this.orderRepo.create({
-      organizationId,
-      orderNumber,
-      userId,
-      machineId: dto.machineId,
-      status: OrderStatus.PENDING,
-      paymentStatus: PaymentStatus.PENDING,
-      paymentMethod: dto.paymentMethod,
-      subtotalAmount: subtotal,
-      discountAmount,
-      bonusAmount,
-      totalAmount,
-      promoCode: dto.promoCode,
-      promoDiscount,
-      pointsUsed: bonusAmount,
-      notes: dto.notes,
-      items: orderItems.map((item) => this.itemRepo.create(item)),
+      // Create order
+      const order = txOrderRepo.create({
+        organizationId,
+        orderNumber,
+        userId,
+        machineId: dto.machineId,
+        status: OrderStatus.PENDING,
+        paymentStatus: PaymentStatus.PENDING,
+        paymentMethod: dto.paymentMethod,
+        subtotalAmount: subtotal,
+        discountAmount,
+        bonusAmount,
+        totalAmount,
+        promoCode: dto.promoCode,
+        promoDiscount,
+        pointsUsed: bonusAmount,
+        notes: dto.notes,
+        items: orderItems.map((item) => txItemRepo.create(item)),
+      });
+
+      await txOrderRepo.save(order);
+
+      this.logger.log(`Order ${orderNumber} created for user ${userId}`);
+
+      this.eventEmitter.emit("order.created", {
+        orderId: order.id,
+        orderNumber,
+        userId,
+        organizationId,
+        totalAmount,
+      });
+
+      return this.mapToDto(order);
     });
-
-    await this.orderRepo.save(order);
-
-    this.logger.log(`Order ${orderNumber} created for user ${userId}`);
-
-    this.eventEmitter.emit("order.created", {
-      orderId: order.id,
-      orderNumber,
-      userId,
-      organizationId,
-      totalAmount,
-    });
-
-    return this.mapToDto(order);
   }
 
   // ============================================================================

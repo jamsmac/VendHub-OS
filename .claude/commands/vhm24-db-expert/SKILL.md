@@ -32,12 +32,12 @@ description: |
 
 ## Технологический стек
 
-| Технология | Версия | Назначение |
-|-----------|--------|-----------|
-| TypeORM | 0.3.20 | ORM для работы с БД |
-| PostgreSQL | 16 | СУБД |
-| Node.js | 20+ | Среда выполнения |
-| TypeScript | 5.x | Язык разработки |
+| Технология | Версия | Назначение          |
+| ---------- | ------ | ------------------- |
+| TypeORM    | 0.3.20 | ORM для работы с БД |
+| PostgreSQL | 16     | СУБД                |
+| Node.js    | 20+    | Среда выполнения    |
+| TypeScript | 5.x    | Язык разработки     |
 
 ## Структура проекта VendHub
 
@@ -115,31 +115,32 @@ export abstract class BaseEntity extends TypeORMBaseEntity {
   id: string;
 
   // Дата создания — заполняется автоматически
-  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  created_at: Date;
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date;
 
   // Дата обновления — обновляется автоматически
-  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
-  updated_at: Date;
+  @UpdateDateColumn({ type: "timestamptz" })
+  updatedAt: Date;
 
   // Soft delete — запись не удаляется физически, а помечается датой удаления
-  @DeleteDateColumn({ name: "deleted_at", type: "timestamptz", nullable: true })
-  deleted_at: Date | null;
+  @DeleteDateColumn({ type: "timestamptz", nullable: true })
+  deletedAt: Date | null;
 
   // Кто создал запись (UUID пользователя)
-  @Column({ name: "created_by_id", type: "uuid", nullable: true })
-  created_by_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  createdById: string | null;
 
   // Кто последний обновил запись (UUID пользователя)
-  @Column({ name: "updated_by_id", type: "uuid", nullable: true })
-  updated_by_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  updatedById: string | null;
 }
 ```
 
 **Важно:**
+
 - `id` всегда `uuid`, никогда `number`
-- `@DeleteDateColumn` включает soft delete — при вызове `.softRemove()` или `.softDelete()` запись получает `deleted_at`, а не удаляется физически
-- Стандартные find-запросы автоматически исключают записи с `deleted_at IS NOT NULL`
+- `@DeleteDateColumn` включает soft delete — при вызове `.softRemove()` или `.softDelete()` запись получает `deletedAt`, а не удаляется физически
+- Стандартные find-запросы автоматически исключают записи с `deletedAt IS NOT NULL` (в БД: `deleted_at IS NOT NULL`)
 - Для получения удалённых записей используй `withDeleted: true`
 
 ---
@@ -150,22 +151,29 @@ export abstract class BaseEntity extends TypeORMBaseEntity {
 
 ```typescript
 // src/entities/machine.entity.ts
-import { Entity, Column, Index, OneToMany, ManyToOne, JoinColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  Index,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { User } from "./user.entity";
 import { Order } from "./order.entity";
 
 @Entity("machines") // Имя таблицы — snake_case, множественное число
-@Index("idx_machines_serial_number", ["serial_number"], { unique: true })
+@Index("idx_machines_serial_number", ["serialNumber"], { unique: true })
 @Index("idx_machines_status", ["status"])
-@Index("idx_machines_location_id", ["location_id"])
+@Index("idx_machines_location_id", ["locationId"])
 export class Machine extends BaseEntity {
   // Строковые поля
   @Column({ type: "varchar", length: 255 })
   name: string;
 
-  @Column({ name: "serial_number", type: "varchar", length: 100, unique: true })
-  serial_number: string;
+  @Column({ type: "varchar", length: 100, unique: true })
+  serialNumber: string;
 
   @Column({ type: "text", nullable: true })
   description: string | null;
@@ -179,28 +187,28 @@ export class Machine extends BaseEntity {
   status: "active" | "inactive" | "maintenance" | "decommissioned";
 
   // Числовые поля
-  @Column({ name: "slot_count", type: "int", default: 0 })
-  slot_count: number;
+  @Column({ type: "int", default: 0 })
+  slotCount: number;
 
   // Денежные поля — ВСЕГДА decimal
-  @Column({ name: "cash_balance", type: "decimal", precision: 12, scale: 2, default: 0 })
-  cash_balance: number;
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  cashBalance: number;
 
   // Boolean поля
-  @Column({ name: "is_online", type: "boolean", default: false })
-  is_online: boolean;
+  @Column({ type: "boolean", default: false })
+  isOnline: boolean;
 
   // JSONB поле (PostgreSQL)
   @Column({ type: "jsonb", nullable: true, default: {} })
   settings: Record<string, any>;
 
   // UUID поле для координат или внешних ID
-  @Column({ name: "location_id", type: "uuid", nullable: true })
-  location_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  locationId: string | null;
 
   // Дата без временной зоны
-  @Column({ name: "last_service_date", type: "timestamp", nullable: true })
-  last_service_date: Date | null;
+  @Column({ type: "timestamp", nullable: true })
+  lastServiceDate: Date | null;
 
   // --- Связи ---
 
@@ -209,8 +217,8 @@ export class Machine extends BaseEntity {
   @JoinColumn({ name: "owner_id" })
   owner: User;
 
-  @Column({ name: "owner_id", type: "uuid", nullable: true })
-  owner_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  ownerId: string | null;
 
   // У автомата много заказов
   @OneToMany(() => Order, (order) => order.machine)
@@ -220,24 +228,24 @@ export class Machine extends BaseEntity {
 
 ### Все поддерживаемые типы колонок PostgreSQL
 
-| Данные | Тип TypeORM | Пример |
-|--------|-------------|--------|
-| UUID PK | `@PrimaryGeneratedColumn("uuid")` | `id: string` |
-| Строка (до N) | `{ type: "varchar", length: 255 }` | `name: string` |
-| Длинный текст | `{ type: "text" }` | `description: string` |
-| Целое число | `{ type: "int" }` | `quantity: number` |
-| Маленькое число | `{ type: "smallint" }` | `sort_order: number` |
-| Большое число | `{ type: "bigint" }` | `total_views: string` |
-| Деньги/точность | `{ type: "decimal", precision: 12, scale: 2 }` | `price: number` |
-| UUID ссылка | `{ type: "uuid" }` | `user_id: string` |
-| JSON (PostgreSQL) | `{ type: "jsonb" }` | `settings: Record<string, any>` |
-| Дата+время+зона | `{ type: "timestamptz" }` | `scheduled_at: Date` |
-| Дата+время | `{ type: "timestamp" }` | `event_date: Date` |
-| Только дата | `{ type: "date" }` | `birth_date: string` |
-| Boolean | `{ type: "boolean" }` | `is_active: boolean` |
-| Enum | `{ type: "enum", enum: [...] }` | `status: string` |
-| Массив строк | `{ type: "varchar", array: true }` | `tags: string[]` |
-| Массив UUID | `{ type: "uuid", array: true }` | `role_ids: string[]` |
+| Данные            | Тип TypeORM                                    | Пример                          |
+| ----------------- | ---------------------------------------------- | ------------------------------- |
+| UUID PK           | `@PrimaryGeneratedColumn("uuid")`              | `id: string`                    |
+| Строка (до N)     | `{ type: "varchar", length: 255 }`             | `name: string`                  |
+| Длинный текст     | `{ type: "text" }`                             | `description: string`           |
+| Целое число       | `{ type: "int" }`                              | `quantity: number`              |
+| Маленькое число   | `{ type: "smallint" }`                         | `sortOrder: number`             |
+| Большое число     | `{ type: "bigint" }`                           | `totalViews: string`            |
+| Деньги/точность   | `{ type: "decimal", precision: 12, scale: 2 }` | `price: number`                 |
+| UUID ссылка       | `{ type: "uuid" }`                             | `userId: string`                |
+| JSON (PostgreSQL) | `{ type: "jsonb" }`                            | `settings: Record<string, any>` |
+| Дата+время+зона   | `{ type: "timestamptz" }`                      | `scheduledAt: Date`             |
+| Дата+время        | `{ type: "timestamp" }`                        | `eventDate: Date`               |
+| Только дата       | `{ type: "date" }`                             | `birthDate: string`             |
+| Boolean           | `{ type: "boolean" }`                          | `isActive: boolean`             |
+| Enum              | `{ type: "enum", enum: [...] }`                | `status: string`                |
+| Массив строк      | `{ type: "varchar", array: true }`             | `tags: string[]`                |
+| Массив UUID       | `{ type: "uuid", array: true }`                | `roleIds: string[]`             |
 
 ---
 
@@ -250,12 +258,12 @@ export class Machine extends BaseEntity {
 // Заказ принадлежит пользователю и автомату
 
 @Entity("orders")
-@Index("idx_orders_user_id", ["user_id"])
-@Index("idx_orders_machine_id", ["machine_id"])
-@Index("idx_orders_status_created", ["status", "created_at"])
+@Index("idx_orders_user_id", ["userId"])
+@Index("idx_orders_machine_id", ["machineId"])
+@Index("idx_orders_status_created", ["status", "createdAt"])
 export class Order extends BaseEntity {
-  @Column({ name: "order_number", type: "varchar", length: 50, unique: true })
-  order_number: string;
+  @Column({ type: "varchar", length: 50, unique: true })
+  orderNumber: string;
 
   @Column({
     type: "enum",
@@ -264,24 +272,26 @@ export class Order extends BaseEntity {
   })
   status: "pending" | "processing" | "completed" | "cancelled" | "refunded";
 
-  @Column({ name: "total_amount", type: "decimal", precision: 12, scale: 2 })
-  total_amount: number;
+  @Column({ type: "decimal", precision: 12, scale: 2 })
+  totalAmount: number;
 
   // --- ManyToOne: Заказ -> Пользователь ---
   @ManyToOne(() => User, (user) => user.orders, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
-  @Column({ name: "user_id", type: "uuid" })
-  user_id: string;
+  @Column({ type: "uuid" })
+  userId: string;
 
   // --- ManyToOne: Заказ -> Автомат ---
-  @ManyToOne(() => Machine, (machine) => machine.orders, { onDelete: "SET NULL" })
+  @ManyToOne(() => Machine, (machine) => machine.orders, {
+    onDelete: "SET NULL",
+  })
   @JoinColumn({ name: "machine_id" })
   machine: Machine;
 
-  @Column({ name: "machine_id", type: "uuid", nullable: true })
-  machine_id: string | null;
+  @Column({ type: "uuid", nullable: true })
+  machineId: string | null;
 
   // --- OneToMany: Заказ -> Позиции заказа ---
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
@@ -298,8 +308,8 @@ export class User extends BaseEntity {
   @Column({ type: "varchar", length: 255 })
   email: string;
 
-  @Column({ name: "full_name", type: "varchar", length: 255 })
-  full_name: string;
+  @Column({ type: "varchar", length: 255 })
+  fullName: string;
 
   // --- OneToMany: Пользователь -> Заказы ---
   @OneToMany(() => Order, (order) => order.user)
@@ -334,12 +344,14 @@ export class Product extends BaseEntity {
   sku: string;
 
   @Column({ type: "boolean", default: true })
-  is_available: boolean;
+  isAvailable: boolean;
 
   // --- ManyToMany: Продукт <-> Ингредиент ---
-  @ManyToMany(() => Ingredient, (ingredient) => ingredient.products, { cascade: true })
+  @ManyToMany(() => Ingredient, (ingredient) => ingredient.products, {
+    cascade: true,
+  })
   @JoinTable({
-    name: "product_ingredients",                          // Имя junction-таблицы
+    name: "product_ingredients", // Имя junction-таблицы
     joinColumn: { name: "product_id", referencedColumnName: "id" },
     inverseJoinColumn: { name: "ingredient_id", referencedColumnName: "id" },
   })
@@ -359,8 +371,8 @@ export class Ingredient extends BaseEntity {
   @Column({ type: "varchar", length: 50 })
   unit: string; // "г", "мл", "шт"
 
-  @Column({ name: "cost_per_unit", type: "decimal", precision: 10, scale: 4 })
-  cost_per_unit: number;
+  @Column({ type: "decimal", precision: 10, scale: 4 })
+  costPerUnit: number;
 
   // Обратная сторона — без @JoinTable
   @ManyToMany(() => Product, (product) => product.ingredients)
@@ -377,22 +389,22 @@ export class Ingredient extends BaseEntity {
 // Промежуточная entity с дополнительными полями
 
 @Entity("product_ingredients")
-@Index("idx_product_ingredients_product", ["product_id"])
-@Index("idx_product_ingredients_ingredient", ["ingredient_id"])
+@Index("idx_product_ingredients_product", ["productId"])
+@Index("idx_product_ingredients_ingredient", ["ingredientId"])
 export class ProductIngredient extends BaseEntity {
   @ManyToOne(() => Product, { onDelete: "CASCADE" })
   @JoinColumn({ name: "product_id" })
   product: Product;
 
-  @Column({ name: "product_id", type: "uuid" })
-  product_id: string;
+  @Column({ type: "uuid" })
+  productId: string;
 
   @ManyToOne(() => Ingredient, { onDelete: "CASCADE" })
   @JoinColumn({ name: "ingredient_id" })
   ingredient: Ingredient;
 
-  @Column({ name: "ingredient_id", type: "uuid" })
-  ingredient_id: string;
+  @Column({ type: "uuid" })
+  ingredientId: string;
 
   // Дополнительные поля
   @Column({ type: "decimal", precision: 10, scale: 4 })
@@ -435,10 +447,12 @@ export enum PaymentMethod {
 }
 
 export enum UserRole {
+  OWNER = "owner",
   ADMIN = "admin",
   MANAGER = "manager",
-  TECHNICIAN = "technician",
   OPERATOR = "operator",
+  WAREHOUSE = "warehouse",
+  ACCOUNTANT = "accountant",
   VIEWER = "viewer",
 }
 ```
@@ -478,19 +492,19 @@ import { Entity, Column, Index, Unique } from "typeorm";
 
 // Индекс на уровне entity (составной индекс)
 @Entity("orders")
-@Index("idx_orders_user_status", ["user_id", "status"])
-@Index("idx_orders_created_at", ["created_at"])
-@Index("idx_orders_machine_created", ["machine_id", "created_at"])
+@Index("idx_orders_user_status", ["userId", "status"])
+@Index("idx_orders_created_at", ["createdAt"])
+@Index("idx_orders_machine_created", ["machineId", "createdAt"])
 // Уникальный составной индекс
-@Unique("uq_orders_number", ["order_number"])
+@Unique("uq_orders_number", ["orderNumber"])
 export class Order extends BaseEntity {
   // Уникальный индекс на уровне колонки
   @Column({ type: "varchar", length: 50, unique: true })
-  order_number: string;
+  orderNumber: string;
 
   // Обычная колонка (индекс задан на уровне entity)
-  @Column({ name: "user_id", type: "uuid" })
-  user_id: string;
+  @Column({ type: "uuid" })
+  userId: string;
 
   @Column({
     type: "enum",
@@ -562,7 +576,13 @@ npx typeorm migration:show -d src/config/data-source.ts
 
 ```typescript
 // src/migrations/1700000000000-CreateMachines.ts
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from "typeorm";
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableForeignKey,
+} from "typeorm";
 
 export class CreateMachines1700000000000 implements MigrationInterface {
   // Имя миграции для логов
@@ -579,15 +599,41 @@ export class CreateMachines1700000000000 implements MigrationInterface {
       new Table({
         name: "machines",
         columns: [
-          { name: "id", type: "uuid", isPrimary: true, generationStrategy: "uuid", default: "uuid_generate_v4()" },
+          {
+            name: "id",
+            type: "uuid",
+            isPrimary: true,
+            generationStrategy: "uuid",
+            default: "uuid_generate_v4()",
+          },
           { name: "name", type: "varchar", length: "255" },
-          { name: "serial_number", type: "varchar", length: "100", isUnique: true },
+          {
+            name: "serial_number",
+            type: "varchar",
+            length: "100",
+            isUnique: true,
+          },
           { name: "description", type: "text", isNullable: true },
-          { name: "status", type: "machine_status_enum", default: "'inactive'" },
+          {
+            name: "status",
+            type: "machine_status_enum",
+            default: "'inactive'",
+          },
           { name: "slot_count", type: "int", default: 0 },
-          { name: "cash_balance", type: "decimal", precision: 12, scale: 2, default: 0 },
+          {
+            name: "cash_balance",
+            type: "decimal",
+            precision: 12,
+            scale: 2,
+            default: 0,
+          },
           { name: "is_online", type: "boolean", default: false },
-          { name: "settings", type: "jsonb", isNullable: true, default: "'{}'" },
+          {
+            name: "settings",
+            type: "jsonb",
+            isNullable: true,
+            default: "'{}'",
+          },
           { name: "owner_id", type: "uuid", isNullable: true },
           { name: "location_id", type: "uuid", isNullable: true },
           { name: "last_service_date", type: "timestamp", isNullable: true },
@@ -602,30 +648,42 @@ export class CreateMachines1700000000000 implements MigrationInterface {
     );
 
     // Создание индексов
-    await queryRunner.createIndex("machines", new TableIndex({
-      name: "idx_machines_serial_number",
-      columnNames: ["serial_number"],
-      isUnique: true,
-    }));
+    await queryRunner.createIndex(
+      "machines",
+      new TableIndex({
+        name: "idx_machines_serial_number",
+        columnNames: ["serial_number"],
+        isUnique: true,
+      }),
+    );
 
-    await queryRunner.createIndex("machines", new TableIndex({
-      name: "idx_machines_status",
-      columnNames: ["status"],
-    }));
+    await queryRunner.createIndex(
+      "machines",
+      new TableIndex({
+        name: "idx_machines_status",
+        columnNames: ["status"],
+      }),
+    );
 
-    await queryRunner.createIndex("machines", new TableIndex({
-      name: "idx_machines_owner_id",
-      columnNames: ["owner_id"],
-    }));
+    await queryRunner.createIndex(
+      "machines",
+      new TableIndex({
+        name: "idx_machines_owner_id",
+        columnNames: ["owner_id"],
+      }),
+    );
 
     // Создание внешнего ключа
-    await queryRunner.createForeignKey("machines", new TableForeignKey({
-      name: "fk_machines_owner",
-      columnNames: ["owner_id"],
-      referencedTableName: "users",
-      referencedColumnNames: ["id"],
-      onDelete: "SET NULL",
-    }));
+    await queryRunner.createForeignKey(
+      "machines",
+      new TableForeignKey({
+        name: "fk_machines_owner",
+        columnNames: ["owner_id"],
+        referencedTableName: "users",
+        referencedColumnNames: ["id"],
+        onDelete: "SET NULL",
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -659,17 +717,17 @@ const machine = await machineRepo.findOne({
 const activeMachines = await machineRepo.find({
   where: {
     status: MachineStatus.ACTIVE,
-    is_online: true,
+    isOnline: true,
   },
   relations: { owner: true },
-  order: { created_at: "DESC" },
-  take: 20,   // LIMIT
-  skip: 0,    // OFFSET
+  order: { createdAt: "DESC" },
+  take: 20, // LIMIT
+  skip: 0, // OFFSET
 });
 
 // --- Поиск с включением soft-deleted записей ---
 const allMachines = await machineRepo.find({
-  withDeleted: true, // Включить записи с deleted_at IS NOT NULL
+  withDeleted: true, // Включить записи с deletedAt IS NOT NULL
 });
 
 // --- Подсчёт записей ---
@@ -680,18 +738,18 @@ const count = await machineRepo.count({
 // --- Создание ---
 const newMachine = machineRepo.create({
   name: "Автомат #42",
-  serial_number: "VH-2024-042",
+  serialNumber: "VH-2024-042",
   status: MachineStatus.INACTIVE,
-  owner_id: userId,
-  created_by_id: currentUserId,
+  ownerId: userId,
+  createdById: currentUserId,
 });
 await machineRepo.save(newMachine);
 
 // --- Обновление ---
 await machineRepo.update(machineId, {
   status: MachineStatus.ACTIVE,
-  is_online: true,
-  updated_by_id: currentUserId,
+  isOnline: true,
+  updatedById: currentUserId,
 });
 
 // --- Soft delete (помечает deleted_at) ---
@@ -708,28 +766,26 @@ await machineRepo.delete(machineId);
 
 ```typescript
 // --- Сложная выборка с JOIN и агрегацией ---
-const salesByMachine = await AppDataSource
-  .getRepository(Order)
+const salesByMachine = await AppDataSource.getRepository(Order)
   .createQueryBuilder("order")
-  .select("order.machine_id", "machine_id")
-  .addSelect("machine.name", "machine_name")
-  .addSelect("SUM(order.total_amount)", "total_sales")
-  .addSelect("COUNT(order.id)", "order_count")
-  .addSelect("AVG(order.total_amount)", "avg_order")
+  .select("order.machineId", "machineId")
+  .addSelect("machine.name", "machineName")
+  .addSelect("SUM(order.totalAmount)", "totalSales")
+  .addSelect("COUNT(order.id)", "orderCount")
+  .addSelect("AVG(order.totalAmount)", "avgOrder")
   .innerJoin("order.machine", "machine")
   .where("order.status = :status", { status: "completed" })
-  .andWhere("order.created_at >= :startDate", { startDate })
-  .andWhere("order.created_at <= :endDate", { endDate })
-  .andWhere("order.deleted_at IS NULL")
-  .groupBy("order.machine_id")
+  .andWhere("order.createdAt >= :startDate", { startDate })
+  .andWhere("order.createdAt <= :endDate", { endDate })
+  .andWhere("order.deletedAt IS NULL")
+  .groupBy("order.machineId")
   .addGroupBy("machine.name")
-  .orderBy("total_sales", "DESC")
+  .orderBy("totalSales", "DESC")
   .limit(50)
   .getRawMany();
 
 // --- Подзапрос ---
-const machinesWithLowStock = await AppDataSource
-  .getRepository(Machine)
+const machinesWithLowStock = await AppDataSource.getRepository(Machine)
   .createQueryBuilder("machine")
   .where((qb) => {
     const subQuery = qb
@@ -744,27 +800,27 @@ const machinesWithLowStock = await AppDataSource
   .getMany();
 
 // --- Обновление через QueryBuilder ---
-await AppDataSource
-  .getRepository(Machine)
+await AppDataSource.getRepository(Machine)
   .createQueryBuilder()
   .update(Machine)
   .set({
-    is_online: false,
-    updated_by_id: systemUserId,
+    isOnline: false,
+    updatedById: systemUserId,
   })
-  .where("last_ping_at < :threshold", {
+  .where("lastPingAt < :threshold", {
     threshold: new Date(Date.now() - 5 * 60 * 1000),
   })
   .execute();
 
 // --- Пагинация с подсчётом общего количества ---
-const [orders, totalCount] = await AppDataSource
-  .getRepository(Order)
+const [orders, totalCount] = await AppDataSource.getRepository(Order)
   .createQueryBuilder("order")
   .leftJoinAndSelect("order.user", "user")
   .leftJoinAndSelect("order.machine", "machine")
-  .where("order.status IN (:...statuses)", { statuses: ["pending", "processing"] })
-  .orderBy("order.created_at", "DESC")
+  .where("order.status IN (:...statuses)", {
+    statuses: ["pending", "processing"],
+  })
+  .orderBy("order.createdAt", "DESC")
   .skip((page - 1) * perPage)
   .take(perPage)
   .getManyAndCount();
@@ -774,7 +830,8 @@ const [orders, totalCount] = await AppDataSource
 
 ```typescript
 // Для особо сложных запросов или когда QueryBuilder не подходит
-const result = await AppDataSource.query(`
+const result = await AppDataSource.query(
+  `
   SELECT
     m.id,
     m.name,
@@ -792,7 +849,9 @@ const result = await AppDataSource.query(`
   GROUP BY m.id, m.name, m.serial_number
   ORDER BY total_revenue DESC
   LIMIT $2
-`, [startDate, limit]);
+`,
+  [startDate, limit],
+);
 ```
 
 ---
@@ -809,24 +868,24 @@ import { BunkerInventory } from "../entities/bunker-inventory.entity";
 await AppDataSource.transaction(async (manager) => {
   // Создать заказ
   const order = manager.create(Order, {
-    order_number: generateOrderNumber(),
-    user_id: input.userId,
-    machine_id: input.machineId,
-    total_amount: input.total,
+    orderNumber: generateOrderNumber(),
+    userId: input.userId,
+    machineId: input.machineId,
+    totalAmount: input.total,
     status: "pending",
-    created_by_id: currentUserId,
+    createdById: currentUserId,
   });
   await manager.save(order);
 
   // Создать позиции заказа
   const items = input.items.map((item) =>
     manager.create(OrderItem, {
-      order_id: order.id,
-      product_id: item.productId,
+      orderId: order.id,
+      productId: item.productId,
       quantity: item.quantity,
-      unit_price: item.price,
+      unitPrice: item.price,
       subtotal: item.quantity * item.price,
-    })
+    }),
   );
   await manager.save(items);
 
@@ -836,10 +895,10 @@ await AppDataSource.transaction(async (manager) => {
       .createQueryBuilder()
       .update(BunkerInventory)
       .set({
-        current_level: () => `current_level - ${item.quantity}`,
-        updated_by_id: currentUserId,
+        currentLevel: () => `current_level - ${item.quantity}`,
+        updatedById: currentUserId,
       })
-      .where("product_id = :productId AND machine_id = :machineId", {
+      .where("productId = :productId AND machineId = :machineId", {
         productId: item.productId,
         machineId: input.machineId,
       })
@@ -859,11 +918,14 @@ try {
   await queryRunner.manager.save(OrderItem, itemsData);
 
   // Можно выполнить raw SQL внутри транзакции
-  await queryRunner.query(`
+  await queryRunner.query(
+    `
     UPDATE bunker_inventory
     SET current_level = current_level - $1
     WHERE product_id = $2 AND machine_id = $3
-  `, [quantity, productId, machineId]);
+  `,
+    [quantity, productId, machineId],
+  );
 
   await queryRunner.commitTransaction();
 } catch (error) {
@@ -891,8 +953,8 @@ export class Order extends BaseEntity {
   // Выполняется перед INSERT
   @BeforeInsert()
   generateOrderNumber() {
-    if (!this.order_number) {
-      this.order_number = `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    if (!this.orderNumber) {
+      this.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     }
   }
 
@@ -907,7 +969,7 @@ export class Order extends BaseEntity {
   @AfterSoftRemove()
   async onSoftDelete() {
     // Логика при soft-удалении заказа
-    console.log(`Заказ ${this.order_number} помечен как удалённый`);
+    console.log(`Заказ ${this.orderNumber} помечен как удалённый`);
   }
 }
 ```
@@ -936,7 +998,7 @@ export class OrderSubscriber implements EntitySubscriberInterface<Order> {
   async afterInsert(event: InsertEvent<Order>): Promise<void> {
     const order = event.entity;
     // Отправить уведомление о новом заказе
-    console.log(`Создан новый заказ: ${order.order_number}`);
+    console.log(`Создан новый заказ: ${order.orderNumber}`);
     // await notificationService.sendNewOrderNotification(order);
   }
 
@@ -945,14 +1007,16 @@ export class OrderSubscriber implements EntitySubscriberInterface<Order> {
     const order = event.entity as Order;
     // Проверить смену статуса и выполнить действия
     if (event.updatedColumns.some((col) => col.propertyName === "status")) {
-      console.log(`Статус заказа ${order.order_number} изменён на: ${order.status}`);
+      console.log(
+        `Статус заказа ${order.orderNumber} изменён на: ${order.status}`,
+      );
     }
   }
 
   // После soft delete
   async afterSoftRemove(event: SoftRemoveEvent<Order>): Promise<void> {
     const order = event.entity as Order;
-    console.log(`Заказ ${order.order_number} удалён (soft delete)`);
+    console.log(`Заказ ${order.orderNumber} удалён (soft delete)`);
   }
 }
 ```
@@ -966,9 +1030,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   // Без listenTo() — слушает ВСЕ entity
 
   async beforeUpdate(event: UpdateEvent<any>): Promise<void> {
-    // Автоматически проставляем updated_by_id при обновлении
+    // Автоматически проставляем updatedById при обновлении
     if (event.entity && event.queryRunner.data?.currentUserId) {
-      event.entity.updated_by_id = event.queryRunner.data.currentUserId;
+      event.entity.updatedById = event.queryRunner.data.currentUserId;
     }
   }
 }
@@ -980,52 +1044,52 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
 ### Основные сущности
 
-| Таблица | Назначение | Ключевые поля |
-|---------|-----------|---------------|
-| `users` | Пользователи системы | email, full_name, role, phone |
-| `machines` | Вендинговые автоматы | serial_number, status, location_id, owner_id |
-| `products` | Товары/напитки | name, sku, price, category, is_available |
-| `orders` | Заказы/продажи | order_number, status, total_amount, user_id, machine_id |
-| `order_items` | Позиции заказа | order_id, product_id, quantity, unit_price |
-| `employees` | Сотрудники | user_id, position, department, hire_date |
+| Таблица       | Назначение           | Ключевые поля                                           |
+| ------------- | -------------------- | ------------------------------------------------------- |
+| `users`       | Пользователи системы | email, full_name, role, phone                           |
+| `machines`    | Вендинговые автоматы | serial_number, status, location_id, owner_id            |
+| `products`    | Товары/напитки       | name, sku, price, category, is_available                |
+| `orders`      | Заказы/продажи       | order_number, status, total_amount, user_id, machine_id |
+| `order_items` | Позиции заказа       | order_id, product_id, quantity, unit_price              |
+| `employees`   | Сотрудники           | user_id, position, department, hire_date                |
 
 ### Склад и ингредиенты
 
-| Таблица | Назначение | Ключевые поля |
-|---------|-----------|---------------|
-| `ingredients` | Ингредиенты для напитков | name, unit, cost_per_unit |
-| `product_ingredients` | Состав продукта | product_id, ingredient_id, amount, unit |
-| `bunkers` | Бункеры (ёмкости в автоматах) | machine_id, ingredient_id, capacity, current_level |
-| `warehouse_inventory` | Остатки на складе | ingredient_id, warehouse_id, quantity |
-| `stock_movements` | Движение товаров | type, ingredient_id, quantity, from_location, to_location |
+| Таблица               | Назначение                    | Ключевые поля                                             |
+| --------------------- | ----------------------------- | --------------------------------------------------------- |
+| `ingredients`         | Ингредиенты для напитков      | name, unit, cost_per_unit                                 |
+| `product_ingredients` | Состав продукта               | product_id, ingredient_id, amount, unit                   |
+| `bunkers`             | Бункеры (ёмкости в автоматах) | machine_id, ingredient_id, capacity, current_level        |
+| `warehouse_inventory` | Остатки на складе             | ingredient_id, warehouse_id, quantity                     |
+| `stock_movements`     | Движение товаров              | type, ingredient_id, quantity, from_location, to_location |
 
 ### Операции и обслуживание
 
-| Таблица | Назначение | Ключевые поля |
-|---------|-----------|---------------|
-| `tasks` | Задачи для сотрудников | title, status, assignee_id, machine_id, due_date |
-| `work_logs` | Рабочие логи | employee_id, machine_id, action_type, started_at, finished_at |
-| `spare_parts` | Запасные части | name, sku, quantity, min_quantity |
-| `maintenance_schedule` | График обслуживания | machine_id, type, scheduled_at, completed_at |
-| `machine_events` | События автоматов | machine_id, event_type, payload, occurred_at |
+| Таблица                | Назначение             | Ключевые поля                                                 |
+| ---------------------- | ---------------------- | ------------------------------------------------------------- |
+| `tasks`                | Задачи для сотрудников | title, status, assignee_id, machine_id, due_date              |
+| `work_logs`            | Рабочие логи           | employee_id, machine_id, action_type, started_at, finished_at |
+| `spare_parts`          | Запасные части         | name, sku, quantity, min_quantity                             |
+| `maintenance_schedule` | График обслуживания    | machine_id, type, scheduled_at, completed_at                  |
+| `machine_events`       | События автоматов      | machine_id, event_type, payload, occurred_at                  |
 
 ### Финансы
 
-| Таблица | Назначение | Ключевые поля |
-|---------|-----------|---------------|
-| `payments` | Платежи | order_id, method, amount, status, transaction_id |
-| `cash_collections` | Инкассации | machine_id, collector_id, amount, collected_at |
-| `payment_methods` | Способы оплаты | name, type, is_active, config |
+| Таблица            | Назначение     | Ключевые поля                                    |
+| ------------------ | -------------- | ------------------------------------------------ |
+| `payments`         | Платежи        | order_id, method, amount, status, transaction_id |
+| `cash_collections` | Инкассации     | machine_id, collector_id, amount, collected_at   |
+| `payment_methods`  | Способы оплаты | name, type, is_active, config                    |
 
 ### Справочники и настройки
 
-| Таблица | Назначение | Ключевые поля |
-|---------|-----------|---------------|
-| `locations` | Локации/адреса | name, address, lat, lng, type |
-| `warehouses` | Склады | name, location_id, type |
-| `roles` | Роли пользователей | name, permissions |
-| `settings` | Системные настройки | key, value, group |
-| `audit_logs` | Лог аудита | entity_name, entity_id, action, changes, user_id |
+| Таблица      | Назначение          | Ключевые поля                                    |
+| ------------ | ------------------- | ------------------------------------------------ |
+| `locations`  | Локации/адреса      | name, address, lat, lng, type                    |
+| `warehouses` | Склады              | name, location_id, type                          |
+| `roles`      | Роли пользователей  | name, permissions                                |
+| `settings`   | Системные настройки | key, value, group                                |
+| `audit_logs` | Лог аудита          | entity_name, entity_id, action, changes, user_id |
 
 ---
 
@@ -1033,38 +1097,47 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
 ### Общие правила
 
-| Элемент | Стиль | Пример |
-|---------|-------|--------|
-| Таблицы | snake_case, множественное число | `order_items`, `cash_collections` |
-| Колонки | snake_case | `full_name`, `created_at`, `is_active` |
-| Первичный ключ | `id` (UUID) | `id: string` |
-| Внешний ключ | `{entity}_id` | `user_id`, `machine_id` |
-| Индексы | `idx_{table}_{columns}` | `idx_orders_user_id` |
-| Уникальные индексы | `uq_{table}_{columns}` | `uq_users_email` |
-| Внешние ключи (FK) | `fk_{table}_{column}` | `fk_orders_user` |
-| Enum типы | `{table}_{column}_enum` | `machine_status_enum` |
-| Junction таблицы | `{table1}_{table2}` | `product_ingredients` |
-| Миграции | `{timestamp}-{Description}` | `1700000000000-CreateMachines` |
+| Элемент              | Стиль                                 | Пример                                 |
+| -------------------- | ------------------------------------- | -------------------------------------- |
+| Таблицы (в БД)       | snake_case, множественное число       | `order_items`, `cash_collections`      |
+| Колонки (в БД)       | snake_case (SnakeNamingStrategy авто) | `full_name`, `created_at`, `is_active` |
+| Entity свойства (TS) | camelCase                             | `fullName`, `createdAt`, `isActive`    |
+| Первичный ключ       | `id` (UUID)                           | `id: string`                           |
+| Внешний ключ (TS)    | camelCase                             | `userId`, `machineId`                  |
+| Внешний ключ (БД)    | snake_case (авто)                     | `user_id`, `machine_id`                |
+| Индексы              | `idx_{table}_{columns}`               | `idx_orders_user_id`                   |
+| Уникальные индексы   | `uq_{table}_{columns}`                | `uq_users_email`                       |
+| Внешние ключи (FK)   | `fk_{table}_{column}`                 | `fk_orders_user`                       |
+| Enum типы            | `{table}_{column}_enum`               | `machine_status_enum`                  |
+| Junction таблицы     | `{table1}_{table2}`                   | `product_ingredients`                  |
+| Миграции             | `{timestamp}-{Description}`           | `1700000000000-CreateMachines`         |
 
-### Правила для колонок
+### Правила для свойств entity
+
+VendHub использует **SnakeNamingStrategy**, которая автоматически конвертирует camelCase свойства TypeScript в snake_case колонки БД. Поэтому НЕ нужно указывать `name:` в декораторах `@Column` -- SnakeNamingStrategy сделает это автоматически.
 
 ```typescript
-// ПРАВИЛЬНО: snake_case для имён колонок в БД
-@Column({ name: "full_name", type: "varchar", length: 255 })
-full_name: string;
+// ПРАВИЛЬНО: camelCase для свойств entity (SnakeNamingStrategy конвертирует в snake_case в БД)
+@Column({ type: "varchar", length: 255 })
+fullName: string;  // -> БД колонка: full_name
 
-@Column({ name: "is_active", type: "boolean", default: true })
-is_active: boolean;
+@Column({ type: "boolean", default: true })
+isActive: boolean;  // -> БД колонка: is_active
 
-@Column({ name: "last_service_date", type: "timestamptz", nullable: true })
-last_service_date: Date | null;
+@Column({ type: "timestamptz", nullable: true })
+lastServiceDate: Date | null;  // -> БД колонка: last_service_date
 
-@Column({ name: "owner_id", type: "uuid", nullable: true })
-owner_id: string | null;
+@Column({ type: "uuid", nullable: true })
+ownerId: string | null;  // -> БД колонка: owner_id
 
-// НЕПРАВИЛЬНО: camelCase в БД
-// @Column({ type: "varchar" })
-// fullName: string;  // <-- НЕ ДЕЛАЙ ТАК
+// НЕПРАВИЛЬНО: snake_case свойства в TypeScript
+// @Column({ name: "full_name", type: "varchar", length: 255 })
+// full_name: string;  // <-- НЕ ДЕЛАЙ ТАК, SnakeNamingStrategy всё решит
+
+// ВАЖНО: @JoinColumn({ name: "..." }) ОСТАВЛЯЕМ snake_case -- это имя колонки в БД
+@ManyToOne(() => User)
+@JoinColumn({ name: "owner_id" })  // <-- здесь snake_case, т.к. это DB column name
+owner: User;
 ```
 
 ### Правила для таблиц
@@ -1152,25 +1225,25 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   const users: Partial<User>[] = [
     {
       email: "admin@vendhub.ru",
-      full_name: "Администратор VendHub",
+      fullName: "Администратор VendHub",
       role: UserRole.ADMIN,
       phone: "+7 900 000 0001",
     },
     {
       email: "manager@vendhub.ru",
-      full_name: "Иванов Пётр Сергеевич",
+      fullName: "Иванов Пётр Сергеевич",
       role: UserRole.MANAGER,
       phone: "+7 900 000 0002",
     },
     {
       email: "tech01@vendhub.ru",
-      full_name: "Сидоров Алексей Владимирович",
-      role: UserRole.TECHNICIAN,
+      fullName: "Сидоров Алексей Владимирович",
+      role: UserRole.OPERATOR,
       phone: "+7 900 000 0003",
     },
     {
       email: "operator01@vendhub.ru",
-      full_name: "Козлова Мария Ивановна",
+      fullName: "Козлова Мария Ивановна",
       role: UserRole.OPERATOR,
       phone: "+7 900 000 0004",
     },
@@ -1204,38 +1277,40 @@ export async function seedMachines(dataSource: DataSource): Promise<void> {
   const locations = await locationRepo.find();
 
   if (!manager || locations.length === 0) {
-    throw new Error("Необходимые данные (пользователи, локации) отсутствуют. Запустите соответствующие сиды.");
+    throw new Error(
+      "Необходимые данные (пользователи, локации) отсутствуют. Запустите соответствующие сиды.",
+    );
   }
 
   const machines: Partial<Machine>[] = [
     {
       name: "Автомат ТЦ Мега-1",
-      serial_number: "VH-2024-001",
+      serialNumber: "VH-2024-001",
       status: MachineStatus.ACTIVE,
-      slot_count: 8,
-      is_online: true,
-      owner_id: manager.id,
-      location_id: locations[0].id,
+      slotCount: 8,
+      isOnline: true,
+      ownerId: manager.id,
+      locationId: locations[0].id,
       settings: { temperature: 5, brightness: 80 },
     },
     {
       name: "Автомат Офис Центр-2",
-      serial_number: "VH-2024-002",
+      serialNumber: "VH-2024-002",
       status: MachineStatus.ACTIVE,
-      slot_count: 12,
-      is_online: true,
-      owner_id: manager.id,
-      location_id: locations[1]?.id || locations[0].id,
+      slotCount: 12,
+      isOnline: true,
+      ownerId: manager.id,
+      locationId: locations[1]?.id || locations[0].id,
       settings: { temperature: 4, brightness: 70 },
     },
     {
       name: "Автомат Вокзал-3",
-      serial_number: "VH-2024-003",
+      serialNumber: "VH-2024-003",
       status: MachineStatus.MAINTENANCE,
-      slot_count: 6,
-      is_online: false,
-      owner_id: manager.id,
-      location_id: locations[2]?.id || locations[0].id,
+      slotCount: 6,
+      isOnline: false,
+      ownerId: manager.id,
+      locationId: locations[2]?.id || locations[0].id,
       settings: { temperature: 5, brightness: 90 },
     },
   ];
@@ -1263,6 +1338,7 @@ npm run db:seed
 ### Шаг 1: Анализ требований
 
 Определить:
+
 - Какие поля нужны и их типы
 - Связи с существующими таблицами
 - Какие индексы понадобятся
@@ -1297,6 +1373,7 @@ npx typeorm migration:generate src/migrations/CreateNewEntities -d src/config/da
 ### Шаг 4: Проверка сгенерированной миграции
 
 Открыть файл миграции и проверить:
+
 - Правильные типы колонок
 - Индексы созданы
 - FK ссылаются на правильные таблицы

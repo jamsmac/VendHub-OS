@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { BillingService } from "./billing.service";
@@ -136,6 +136,20 @@ describe("BillingService", () => {
             createQueryBuilder: jest
               .fn()
               .mockReturnValue(mockPaymentQueryBuilder),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn((cb) =>
+              cb({
+                getRepository: jest.fn().mockImplementation((entity) => {
+                  if (entity === Invoice) return invoiceRepo;
+                  if (entity === BillingPayment) return paymentRepo;
+                  return {};
+                }),
+              }),
+            ),
           },
         },
       ],

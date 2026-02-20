@@ -7,11 +7,10 @@
 # Manual trigger:
 #   kubectl create job --from=cronjob/postgres-backup manual-backup-$(date +%s) -n vendhub
 #
-# Restore:
+# Restore (custom format uses pg_restore):
 #   kubectl exec -it postgres-0 -n vendhub -- bash
-#   mc cp minio/vendhub-backups/daily/backup-YYYY-MM-DD.sql.gz /tmp/
-#   gunzip /tmp/backup-*.sql.gz
-#   psql -U $POSTGRES_USER -d $POSTGRES_DB < /tmp/backup-*.sql
+#   mc cp minio/vendhub-backups/daily/vendhub-YYYY-MM-DD_HH-MM-SS.dump /tmp/
+#   pg_restore -U $POSTGRES_USER -d $POSTGRES_DB --clean --if-exists /tmp/vendhub-*.dump
 # ==================================================
 
 apiVersion: batch/v1
@@ -39,9 +38,30 @@ spec:
         spec:
           securityContext:
             runAsNonRoot: true
-            runAsUser: 1001
-            fsGroup: 1001
+            runAsUser: 70 # postgres user UID in alpine
+            fsGroup: 70
           restartPolicy: OnFailure
+
+          # Init container: download MinIO client once
+          initContainers:
+            - name: install-mc
+              image: alpine:3.20
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /tools/mc
+                  chmod +x /tools/mc
+              volumeMounts:
+                - name: tools
+                  mountPath: /tools
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "64Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "128Mi"
 
           containers:
             - name: backup
@@ -55,11 +75,11 @@ spec:
                   TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
                   DAY_OF_WEEK=$(date +%u)
                   DAY_OF_MONTH=$(date +%d)
-                  BACKUP_FILE="vendhub-${TIMESTAMP}.sql.gz"
+                  BACKUP_FILE="vendhub-${TIMESTAMP}.dump"
 
                   echo "[$(date)] Starting PostgreSQL backup..."
 
-                  # Create backup with pg_dump
+                  # Create backup with pg_dump (custom format = binary, compressed)
                   PGPASSWORD="${DB_PASSWORD}" pg_dump \
                     -h "${DB_HOST}" \
                     -p "${DB_PORT}" \
@@ -73,13 +93,10 @@ spec:
                   BACKUP_SIZE=$(du -h "/tmp/${BACKUP_FILE}" | cut -f1)
                   echo "[$(date)] Backup created: ${BACKUP_FILE} (${BACKUP_SIZE})"
 
-                  # Install MinIO client
-                  wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
-                  chmod +x /usr/local/bin/mc
-
-                  # Configure MinIO client
+                  # Configure MinIO client (from init container)
+                  export PATH="/tools:$PATH"
                   mc alias set minio \
-                    "http://${STORAGE_ENDPOINT}" \
+                    "${STORAGE_ENDPOINT}" \
                     "${STORAGE_ACCESS_KEY}" \
                     "${STORAGE_SECRET_KEY}" \
                     --api S3v4
@@ -147,6 +164,11 @@ spec:
                       name: vendhub-secrets
                       key: STORAGE_SECRET_KEY
 
+              volumeMounts:
+                - name: tools
+                  mountPath: /tools
+                  readOnly: true
+
               resources:
                 requests:
                   cpu: "100m"
@@ -154,3 +176,7 @@ spec:
                 limits:
                   cpu: "500m"
                   memory: "512Mi"
+
+          volumes:
+            - name: tools
+              emptyDir: {}

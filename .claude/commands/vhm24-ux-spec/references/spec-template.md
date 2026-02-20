@@ -7,6 +7,7 @@
 ## 📋 СПЕЦИФИКАЦИЯ ЭКРАНА
 
 ### Метаданные
+
 ```yaml
 Название: [Название экрана на русском]
 Файл: [filename.tsx]
@@ -20,14 +21,17 @@
 ### 1. ЦЕЛЬ И КОНТЕКСТ
 
 **Основная цель экрана:**
+
 > [Одно предложение описывающее зачем этот экран существует]
 
 **Целевая аудитория:**
-- Роль: [admin | manager | operator | technician | investor]
+
+- Роль: [owner | admin | manager | operator | warehouse | accountant | viewer]
 - Частота использования: [ежедневно | еженедельно | по необходимости]
 - Уровень экспертизы: [новичок | средний | эксперт]
 
 **Бизнес-ценность:**
+
 > [Какую бизнес-задачу решает этот экран]
 
 ---
@@ -39,6 +43,7 @@
 ```
 
 **Как пользователь попадает сюда:**
+
 - [ ] Через боковое меню
 - [ ] Через кнопку на другом экране
 - [ ] Через уведомление
@@ -74,31 +79,30 @@
 
 ### 4. КОМПОНЕНТЫ
 
-| # | Компонент | Тип shadcn/ui | Данные | Действия |
-|---|-----------|---------------|--------|----------|
-| 1 | Page Header | - | title, description | - |
-| 2 | Stats Card | Card | value, change, icon | - |
-| 3 | Data Table | Table | rows[] | sort, filter |
-| 4 | Action Button | Button | - | onClick |
-| ... | ... | ... | ... | ... |
+| #   | Компонент     | Тип shadcn/ui | Данные              | Действия     |
+| --- | ------------- | ------------- | ------------------- | ------------ |
+| 1   | Page Header   | -             | title, description  | -            |
+| 2   | Stats Card    | Card          | value, change, icon | -            |
+| 3   | Data Table    | Table         | rows[]              | sort, filter |
+| 4   | Action Button | Button        | -                   | onClick      |
+| ... | ...           | ...           | ...                 | ...          |
 
 ---
 
 ### 5. ДАННЫЕ
 
-**tRPC Endpoints:**
-```typescript
-// Чтение
-trpc.resourceName.list.useQuery()
-trpc.resourceName.getById.useQuery({ id })
+**REST API Endpoints:**
 
-// Мутации
-trpc.resourceName.create.useMutation()
-trpc.resourceName.update.useMutation()
-trpc.resourceName.delete.useMutation()
+```
+GET    /api/v1/resourceName
+GET    /api/v1/resourceName/:id
+POST   /api/v1/resourceName
+PATCH  /api/v1/resourceName/:id
+DELETE /api/v1/resourceName/:id
 ```
 
 **Структура данных:**
+
 ```typescript
 interface ResourceItem {
   id: number;
@@ -110,6 +114,7 @@ interface ResourceItem {
 ```
 
 **Локальное состояние (Zustand/useState):**
+
 ```typescript
 // Фильтры
 const [filters, setFilters] = useState({
@@ -149,6 +154,7 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 ### 7. СОСТОЯНИЯ ЭКРАНА
 
 **Loading:**
+
 ```
 - Показать Skeleton для таблицы/карточек
 - Disable кнопки действий
@@ -156,6 +162,7 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 ```
 
 **Empty:**
+
 ```
 - Показать EmptyState компонент
 - Иконка: [IconName]
@@ -164,6 +171,7 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 ```
 
 **Error:**
+
 ```
 - Показать Alert variant="destructive"
 - Текст: error.message
@@ -171,6 +179,7 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 ```
 
 **Success (после действия):**
+
 ```
 - Toast уведомление
 - Текст: "Успешно сохранено"
@@ -181,11 +190,11 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
 ### 8. АДАПТИВНОСТЬ
 
-| Breakpoint | Изменения |
-|------------|-----------|
-| Desktop (lg+) | 4 колонки stats, полная таблица |
-| Tablet (md) | 2 колонки stats, скролл таблицы |
-| Mobile (sm) | 1 колонка, карточки вместо таблицы |
+| Breakpoint    | Изменения                          |
+| ------------- | ---------------------------------- |
+| Desktop (lg+) | 4 колонки stats, полная таблица    |
+| Tablet (md)   | 2 колонки stats, скролл таблицы    |
+| Mobile (sm)   | 1 колонка, карточки вместо таблицы |
 
 ---
 
@@ -202,6 +211,7 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 ### 10. ЧЕКЛИСТ ГОТОВНОСТИ
 
 **Перед генерацией кода:**
+
 - [ ] Цель экрана понятна
 - [ ] Все компоненты определены
 - [ ] Все действия описаны
@@ -213,6 +223,6 @@ const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
 ## ✅ СПЕЦИФИКАЦИЯ УТВЕРЖДЕНА
 
-> Дата: ___________
+> Дата: ****\_\_\_****
 >
 > Готов к генерации кода: ДА / НЕТ

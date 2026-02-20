@@ -505,13 +505,18 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
+          script_stop: true
+          envs: IMAGE_TAG
           script: |
             cd /opt/vendhub
             git pull origin main
+            export IMAGE_TAG=${IMAGE_TAG}
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker compose -f docker-compose.prod.yml exec api pnpm migration:run
-            echo "Deployment completed at $(date)"
+            echo "Deployed IMAGE_TAG=${IMAGE_TAG} at $(date)"
+        env:
+          IMAGE_TAG: ${{ github.sha }}
 
       - name: Notify Telegram
         if: always()

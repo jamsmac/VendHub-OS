@@ -54,20 +54,21 @@ description: |
 
 ## Компоненты
 
-| Компонент | Назначение | Пакет |
-|-----------|------------|-------|
-| Helmet | Security headers | helmet |
-| CORS | Cross-origin requests | @nestjs/cors |
-| Throttler | Rate limiting | @nestjs/throttler |
-| Validation | Input validation | class-validator |
-| Sanitization | XSS prevention | class-transformer |
-| CSRF | CSRF protection | csurf |
+| Компонент    | Назначение            | Пакет             |
+| ------------ | --------------------- | ----------------- |
+| Helmet       | Security headers      | helmet            |
+| CORS         | Cross-origin requests | @nestjs/cors      |
+| Throttler    | Rate limiting         | @nestjs/throttler |
+| Validation   | Input validation      | class-validator   |
+| Sanitization | XSS prevention        | class-transformer |
+| CSRF         | CSRF protection       | csurf             |
 
 ## Паттерны
 
 ### Security Headers
 
 Для настройки Helmet см. [references/helmet-config.md](references/helmet-config.md):
+
 - Content-Security-Policy
 - X-Frame-Options
 - X-Content-Type-Options
@@ -75,6 +76,7 @@ description: |
 ### CORS
 
 Для настройки CORS см. [references/cors-config.md](references/cors-config.md):
+
 - Whitelist доменов
 - Credentials
 - Methods/Headers
@@ -82,6 +84,7 @@ description: |
 ### Rate Limiting
 
 Для настройки rate limiting см. [references/rate-limiting.md](references/rate-limiting.md):
+
 - Global limits
 - Per-endpoint limits
 - Bypass для админов
@@ -89,6 +92,7 @@ description: |
 ### Input Validation
 
 Для валидации входных данных см. [references/input-validation.md](references/input-validation.md):
+
 - DTO validation
 - Sanitization
 - Custom validators
@@ -96,6 +100,7 @@ description: |
 ### Audit Logging
 
 Для аудита действий см. [references/audit-logging.md](references/audit-logging.md):
+
 - User actions
 - Data changes
 - Security events
@@ -115,8 +120,8 @@ npm install sanitize-html dompurify
 
 ```typescript
 // main.ts
-import helmet from 'helmet';
-import { ValidationPipe } from '@nestjs/common';
+import helmet from "helmet";
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -126,16 +131,21 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3001'],
+    origin: process.env.CORS_ORIGINS?.split(",") || [
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ],
     credentials: true,
   });
 
   // Global validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,          // Strip unknown properties
-    forbidNonWhitelisted: true, // Throw on unknown properties
-    transform: true,          // Auto-transform types
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip unknown properties
+      forbidNonWhitelisted: true, // Throw on unknown properties
+      transform: true, // Auto-transform types
+    }),
+  );
 
   await app.listen(3000);
 }
@@ -144,38 +154,45 @@ async function bootstrap() {
 ## Security Checklist
 
 ### Authentication
+
 - [x] JWT с коротким временем жизни (15 min)
 - [x] Refresh token rotation
 - [x] Password hashing (bcrypt, 12 rounds)
 - [x] Telegram OAuth
 
 ### Authorization
+
 - [x] RBAC (Role-Based Access Control)
 - [x] Permission guards
 - [x] Resource ownership checks
 
 ### Input/Output
+
 - [ ] All inputs validated (class-validator)
 - [ ] SQL injection prevention (TypeORM)
 - [ ] XSS prevention (sanitize-html)
 - [ ] Output encoding
 
 ### Transport
+
 - [ ] HTTPS only
 - [ ] HSTS enabled
 - [ ] Secure cookies
 
 ### Rate Limiting
+
 - [ ] Global: 100 req/min
 - [ ] Auth endpoints: 5 req/min
 - [ ] API endpoints: 60 req/min
 
 ### Headers
+
 - [ ] Helmet.js configured
 - [ ] CSP policy defined
 - [ ] X-Frame-Options: DENY
 
 ### Monitoring
+
 - [ ] Failed login attempts logged
 - [ ] Suspicious activity alerts
 - [ ] Audit trail for sensitive actions
@@ -204,10 +221,10 @@ COOKIE_SAME_SITE=strict
 
 ## Troubleshooting
 
-| Проблема | Проверить | Решение |
-|----------|-----------|---------|
-| CORS error | CORS_ORIGINS | Добавить домен в whitelist |
-| Rate limit hit | IP whitelist | Добавить IP в bypass |
-| 403 Forbidden | RBAC permissions | Проверить роль пользователя |
-| Invalid token | JWT_SECRET | Проверить совпадение secrets |
-| XSS detected | CSP headers | Обновить CSP policy |
+| Проблема       | Проверить        | Решение                      |
+| -------------- | ---------------- | ---------------------------- |
+| CORS error     | CORS_ORIGINS     | Добавить домен в whitelist   |
+| Rate limit hit | IP whitelist     | Добавить IP в bypass         |
+| 403 Forbidden  | RBAC permissions | Проверить роль пользователя  |
+| Invalid token  | JWT_SECRET       | Проверить совпадение secrets |
+| XSS detected   | CSP headers      | Обновить CSP policy          |

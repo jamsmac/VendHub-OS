@@ -40,7 +40,8 @@ vendhub-unified/
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
 │   ├── bot/              # Telegram bot (Telegraf)
-│   └── mobile/           # React Native Expo app
+│   ├── mobile/           # React Native Expo app
+│   └── site/             # Next.js landing/marketing site
 ├── packages/
 │   └── shared/           # Shared types, utils, constants (tsup)
 ├── infrastructure/
@@ -223,10 +224,12 @@ pnpm docker:logs            # View logs
 | web      | 3000 | Next.js admin  |
 | client   | 5173 | Vite PWA       |
 | bot      | -    | Telegram bot   |
+| site     | 3100 | Next.js site   |
+| mobile   | -    | Expo dev       |
 
 ## Skills (AI Agent Tools)
 
-19 specialized skills in `.claude/commands/` directory for domain-specific code generation:
+21 specialized skills in `.claude/commands/` directory for domain-specific code generation:
 
 | Skill                      | Purpose                             |
 | -------------------------- | ----------------------------------- |
@@ -238,7 +241,9 @@ pnpm docker:logs            # View logs
 | `vhm24-devops`             | Docker, K8s, CI/CD                  |
 | `vhm24-docs-generator`     | Documentation generation            |
 | `vhm24-forms`              | React Hook Form + Zod               |
+| `vhm24-health-check`       | Service diagnostics & monitoring    |
 | `vhm24-i18n`               | Localization (uz, ru, en)           |
+| `vhm24-migration`          | Module migration VHM24→VendHub OS   |
 | `vhm24-mobile`             | React Native/Expo mobile            |
 | `vhm24-monitoring`         | Prometheus, Grafana, logging        |
 | `vhm24-orchestrator`       | Workflow coordination               |
@@ -249,6 +254,19 @@ pnpm docker:logs            # View logs
 | `vhm24-testing`            | Jest + Playwright testing           |
 | `vhm24-ui-generator`       | React UI generation                 |
 | `vhm24-ux-spec`            | UX specifications                   |
+
+## Agents (AI Subagents)
+
+6 specialized agents in `.claude/agents/` for automated workflows:
+
+| Agent                         | Model  | Purpose                                  |
+| ----------------------------- | ------ | ---------------------------------------- |
+| `production-quality-guardian` | opus   | 8-phase production readiness audit       |
+| `module-migrator`             | opus   | Module migration from VHM24-repo         |
+| `build-verifier`              | sonnet | Verify all 6 apps compile without errors |
+| `db-migration-helper`         | sonnet | TypeORM migration management             |
+| `health-check`                | sonnet | Service diagnostics and monitoring       |
+| `dependency-audit`            | sonnet | Security vulnerability and outdated deps |
 
 ## Migration Context
 

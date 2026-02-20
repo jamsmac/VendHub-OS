@@ -18,21 +18,22 @@ Brief description of what this module does and its purpose in VendHub.
 - Feature 3
 
 ## Architecture
+```
 
-```
 module-name/
-├── module-name.module.ts    # NestJS module definition
+├── module-name.module.ts # NestJS module definition
 ├── module-name.controller.ts # REST API endpoints
-├── module-name.service.ts    # Business logic
+├── module-name.service.ts # Business logic
 ├── entities/
-│   └── entity.entity.ts     # TypeORM entities
+│ └── entity.entity.ts # TypeORM entities
 ├── dto/
-│   ├── create-*.dto.ts      # Create DTOs
-│   └── update-*.dto.ts      # Update DTOs
+│ ├── create-_.dto.ts # Create DTOs
+│ └── update-_.dto.ts # Update DTOs
 ├── interfaces/
-│   └── *.interface.ts       # TypeScript interfaces
-└── README.md                # This file
-```
+│ └── \*.interface.ts # TypeScript interfaces
+└── README.md # This file
+
+````
 
 ## API Endpoints
 
@@ -55,7 +56,7 @@ CREATE TABLE resource (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-```
+````
 
 ## Dependencies
 
@@ -64,9 +65,9 @@ CREATE TABLE resource (
 
 ## Configuration
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| FEATURE_FLAG | Enable/disable feature | false |
+| Variable     | Description            | Default |
+| ------------ | ---------------------- | ------- |
+| FEATURE_FLAG | Enable/disable feature | false   |
 
 ## Usage Examples
 
@@ -75,8 +76,8 @@ CREATE TABLE resource (
 ```typescript
 // Using the service
 const resource = await this.resourceService.create({
-  name: 'Example',
-  description: 'Description',
+  name: "Example",
+  description: "Description",
 });
 ```
 
@@ -103,7 +104,8 @@ npm run test:cov -- --testPathPattern=module-name
 
 - [related-module](../related-module/README.md) - Description
 - [another-module](../another-module/README.md) - Description
-```
+
+````
 
 ## Пример: Tasks Module
 
@@ -116,7 +118,7 @@ Manages all task types in VendHub: refill, collection, maintenance, and installa
 
 ## Features
 
-- Create and assign tasks to technicians
+- Create and assign tasks to operators
 - Track task status (pending → in_progress → completed)
 - Photo upload for task verification
 - Task templates for quick creation
@@ -125,25 +127,27 @@ Manages all task types in VendHub: refill, collection, maintenance, and installa
 
 ## Architecture
 
-```
+````
+
 tasks/
 ├── tasks.module.ts
 ├── tasks.controller.ts
 ├── tasks.service.ts
 ├── entities/
-│   ├── task.entity.ts
-│   ├── task-item.entity.ts
-│   └── task-photo.entity.ts
+│ ├── task.entity.ts
+│ ├── task-item.entity.ts
+│ └── task-photo.entity.ts
 ├── dto/
-│   ├── create-task.dto.ts
-│   ├── update-task.dto.ts
-│   ├── complete-task.dto.ts
-│   └── task-query.dto.ts
+│ ├── create-task.dto.ts
+│ ├── update-task.dto.ts
+│ ├── complete-task.dto.ts
+│ └── task-query.dto.ts
 ├── enums/
-│   ├── task-type.enum.ts
-│   └── task-status.enum.ts
+│ ├── task-type.enum.ts
+│ └── task-status.enum.ts
 └── README.md
-```
+
+````
 
 ## API Endpoints
 
@@ -153,9 +157,9 @@ tasks/
 | GET | /api/tasks/:id | Get task by ID | JWT | All |
 | POST | /api/tasks | Create new task | JWT | Admin, Manager |
 | PATCH | /api/tasks/:id | Update task | JWT | Admin, Manager |
-| POST | /api/tasks/:id/start | Start task | JWT | Technician |
-| POST | /api/tasks/:id/complete | Complete task | JWT | Technician |
-| POST | /api/tasks/:id/photos | Upload task photo | JWT | Technician |
+| POST | /api/tasks/:id/start | Start task | JWT | Operator |
+| POST | /api/tasks/:id/complete | Complete task | JWT | Operator |
+| POST | /api/tasks/:id/photos | Upload task photo | JWT | Operator |
 | DELETE | /api/tasks/:id | Delete task | JWT | Admin |
 
 ## Database Schema
@@ -198,7 +202,7 @@ CREATE TABLE task_photos (
   type VARCHAR(50), -- 'before', 'after', 'issue'
   uploaded_at TIMESTAMP DEFAULT NOW()
 );
-```
+````
 
 ## Dependencies
 
@@ -207,11 +211,11 @@ CREATE TABLE task_photos (
 
 ## Configuration
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| TASK_AUTO_ASSIGN | Auto-assign tasks to available technician | false |
-| TASK_PHOTO_REQUIRED | Require photo on completion | true |
-| TASK_MAX_DURATION_HOURS | Max task duration before alert | 8 |
+| Variable                | Description                             | Default |
+| ----------------------- | --------------------------------------- | ------- |
+| TASK_AUTO_ASSIGN        | Auto-assign tasks to available operator | false   |
+| TASK_PHOTO_REQUIRED     | Require photo on completion             | true    |
+| TASK_MAX_DURATION_HOURS | Max task duration before alert          | 8       |
 
 ## Usage Examples
 
@@ -220,13 +224,13 @@ CREATE TABLE task_photos (
 ```typescript
 const task = await tasksService.create({
   type: TaskType.REFILL,
-  machineId: '550e8400-e29b-41d4-a716-446655440000',
-  assignedTo: 'technician-uuid',
+  machineId: "550e8400-e29b-41d4-a716-446655440000",
+  assignedTo: "operator-uuid",
   items: [
-    { productId: 'coffee-uuid', plannedQuantity: 50 },
-    { productId: 'milk-uuid', plannedQuantity: 20 },
+    { productId: "coffee-uuid", plannedQuantity: 50 },
+    { productId: "milk-uuid", plannedQuantity: 20 },
   ],
-  dueDate: new Date('2025-02-03'),
+  dueDate: new Date("2025-02-03"),
 });
 ```
 
@@ -235,10 +239,10 @@ const task = await tasksService.create({
 ```typescript
 await tasksService.complete(taskId, {
   items: [
-    { productId: 'coffee-uuid', actualQuantity: 48 },
-    { productId: 'milk-uuid', actualQuantity: 20 },
+    { productId: "coffee-uuid", actualQuantity: 48 },
+    { productId: "milk-uuid", actualQuantity: 20 },
   ],
-  notes: 'Completed successfully',
+  notes: "Completed successfully",
 });
 ```
 
@@ -255,10 +259,11 @@ npm run test:e2e -- --testPathPattern=tasks
 ## Related Modules
 
 - [machines](../machines/README.md) - Machine management
-- [users](../users/README.md) - User and technician management
+- [users](../users/README.md) - User and operator management
 - [products](../products/README.md) - Product catalog
 - [notifications](../notifications/README.md) - Task notifications
-```
+
+````
 
 ## CLI для генерации README
 
@@ -312,4 +317,4 @@ npm run test -- --testPathPattern=${MODULE_NAME}
 EOF
 
 echo "Created: $MODULE_PATH/README.md"
-```
+````

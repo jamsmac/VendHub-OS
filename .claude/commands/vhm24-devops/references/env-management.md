@@ -7,11 +7,11 @@ Development  →  Staging  →  Production
    (local)      (test)      (live)
 ```
 
-| Окружение | Назначение | База данных | URL |
-|-----------|------------|-------------|-----|
-| Development | Локальная разработка | localhost | http://localhost:3000 |
-| Staging | Тестирование | Railway staging | https://api-staging.vendhub.uz |
-| Production | Live | Railway/Supabase prod | https://api.vendhub.uz |
+| Окружение   | Назначение           | База данных           | URL                            |
+| ----------- | -------------------- | --------------------- | ------------------------------ |
+| Development | Локальная разработка | localhost             | http://localhost:3000          |
+| Staging     | Тестирование         | Railway staging       | https://api-staging.vendhub.uz |
+| Production  | Live                 | Railway/Supabase prod | https://api.vendhub.uz         |
 
 ## Файлы .env
 
@@ -33,9 +33,9 @@ backend/
 # Server
 # ===========================================
 NODE_ENV=development
-PORT=3000
+PORT=4000
 API_PREFIX=api
-CORS_ORIGINS=http://localhost:3001
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # ===========================================
 # Database
@@ -108,17 +108,17 @@ OPENAI_API_KEY=
 
 ```typescript
 // backend/src/config/env.validation.ts
-import * as Joi from 'joi';
+import * as Joi from "joi";
 
 export const envValidationSchema = Joi.object({
   // Server
   NODE_ENV: Joi.string()
-    .valid('development', 'staging', 'production', 'test')
-    .default('development'),
-  PORT: Joi.number().default(3000),
+    .valid("development", "staging", "production", "test")
+    .default("development"),
+  PORT: Joi.number().default(4000),
 
   // Database
-  DATABASE_URL: Joi.string().when('DATABASE_HOST', {
+  DATABASE_URL: Joi.string().when("DATABASE_HOST", {
     is: Joi.exist(),
     then: Joi.optional(),
     otherwise: Joi.required(),
@@ -130,7 +130,7 @@ export const envValidationSchema = Joi.object({
   DATABASE_NAME: Joi.string(),
 
   // Redis
-  REDIS_URL: Joi.string().when('REDIS_HOST', {
+  REDIS_URL: Joi.string().when("REDIS_HOST", {
     is: Joi.exist(),
     then: Joi.optional(),
     otherwise: Joi.required(),
@@ -140,20 +140,20 @@ export const envValidationSchema = Joi.object({
 
   // JWT
   JWT_SECRET: Joi.string().required().min(32),
-  JWT_EXPIRATION: Joi.string().default('15m'),
+  JWT_EXPIRATION: Joi.string().default("15m"),
   JWT_REFRESH_SECRET: Joi.string().required().min(32),
-  JWT_REFRESH_EXPIRATION: Joi.string().default('7d'),
+  JWT_REFRESH_EXPIRATION: Joi.string().default("7d"),
 
   // Telegram (optional in dev)
-  TELEGRAM_BOT_TOKEN: Joi.string().when('NODE_ENV', {
-    is: 'production',
+  TELEGRAM_BOT_TOKEN: Joi.string().when("NODE_ENV", {
+    is: "production",
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
 
   // S3 (optional in dev)
-  AWS_ACCESS_KEY_ID: Joi.string().when('NODE_ENV', {
-    is: 'production',
+  AWS_ACCESS_KEY_ID: Joi.string().when("NODE_ENV", {
+    is: "production",
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
@@ -166,8 +166,8 @@ export const envValidationSchema = Joi.object({
 
 ```typescript
 // backend/src/app.module.ts
-import { ConfigModule } from '@nestjs/config';
-import { envValidationSchema } from './config/env.validation';
+import { ConfigModule } from "@nestjs/config";
+import { envValidationSchema } from "./config/env.validation";
 
 @Module({
   imports: [

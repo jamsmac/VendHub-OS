@@ -18,8 +18,8 @@ case $ENV in
     APP_URL="https://app.vendhub.uz"
     ;;
   local)
-    API_URL="http://localhost:3000"
-    APP_URL="http://localhost:3001"
+    API_URL="http://localhost:4000"
+    APP_URL="http://localhost:3000"
     ;;
   *)
     echo "Unknown environment: $ENV"

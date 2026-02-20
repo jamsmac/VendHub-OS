@@ -104,7 +104,7 @@ CMD ["node", "server.js"]
 ## docker-compose.yml (Development)
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   # ===========================================
@@ -150,7 +150,7 @@ services:
   # PostgreSQL
   # ===========================================
   db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     ports:
       - "5432:5432"
     environment:
@@ -188,7 +188,7 @@ volumes:
 ## docker-compose.prod.yml (Production)
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
@@ -212,7 +212,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
 
   frontend:
@@ -227,7 +227,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
 ```
 

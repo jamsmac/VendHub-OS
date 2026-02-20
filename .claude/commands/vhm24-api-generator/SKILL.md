@@ -28,17 +28,18 @@ description: |
 
 ## Технологический стек
 
-| Технология            | Версия / Описание                        |
-| --------------------- | ---------------------------------------- |
-| NestJS                | 11                                       |
-| TypeORM               | 0.3.20                                   |
-| PostgreSQL            | 16                                       |
-| Валидация             | class-validator + class-transformer      |
-| API документация      | @nestjs/swagger                          |
-| Аутентификация        | JWT (Passport)                           |
-| API префикс           | `api/v1`                                 |
-| Стиль колонок в БД    | snake_case                               |
-| Первичный ключ        | UUID v4                                  |
+| Технология           | Версия / Описание                                    |
+| -------------------- | ---------------------------------------------------- |
+| NestJS               | 11                                                   |
+| TypeORM              | 0.3.20                                               |
+| PostgreSQL           | 16                                                   |
+| Валидация            | class-validator + class-transformer                  |
+| API документация     | @nestjs/swagger                                      |
+| Аутентификация       | JWT (Passport)                                       |
+| API префикс          | `api/v1`                                             |
+| Стиль колонок в БД   | snake_case (автоматически через SnakeNamingStrategy) |
+| Стиль свойств entity | camelCase                                            |
+| Первичный ключ       | UUID v4                                              |
 
 ## Структура модуля
 
@@ -81,7 +82,7 @@ src/modules/
 
 ## 1. BaseEntity - базовая сущность
 
-Все сущности наследуются от `BaseEntity`. Колонки в snake_case, UUID первичный ключ, soft delete.
+Все сущности наследуются от `BaseEntity`. Свойства в camelCase, колонки в snake_case (SnakeNamingStrategy), UUID первичный ключ, soft delete.
 
 ```typescript
 // src/modules/common/entities/base.entity.ts
@@ -92,25 +93,25 @@ import {
   DeleteDateColumn,
   Column,
   BaseEntity as TypeOrmBaseEntity,
-} from 'typeorm';
+} from "typeorm";
 
 export abstract class BaseEntity extends TypeOrmBaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  @DeleteDateColumn({ name: "deleted_at", type: "timestamptz", nullable: true })
   deletedAt: Date | null;
 
-  @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
+  @Column({ name: "created_by_id", type: "uuid", nullable: true })
   createdById: string | null;
 
-  @Column({ name: 'updated_by_id', type: 'uuid', nullable: true })
+  @Column({ name: "updated_by_id", type: "uuid", nullable: true })
   updatedById: string | null;
 }
 ```
@@ -128,49 +129,49 @@ import {
   OneToMany,
   JoinColumn,
   Index,
-} from 'typeorm';
-import { BaseEntity } from '../../common/entities/base.entity';
-import { Organization } from '../../organizations/entities/organization.entity';
-import { Order } from '../../orders/entities/order.entity';
+} from "typeorm";
+import { BaseEntity } from "../../common/entities/base.entity";
+import { Organization } from "../../organizations/entities/organization.entity";
+import { Order } from "../../orders/entities/order.entity";
 
 // Статусы автомата
 export enum MachineStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  MAINTENANCE = 'maintenance',
-  OFFLINE = 'offline',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  MAINTENANCE = "maintenance",
+  OFFLINE = "offline",
 }
 
-@Entity('machines')
+@Entity("machines")
 export class Machine extends BaseEntity {
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: "varchar", length: 255 })
   name: string;
 
-  @Column({ name: 'serial_number', type: 'varchar', length: 100, unique: true })
+  @Column({ name: "serial_number", type: "varchar", length: 100, unique: true })
   @Index()
   serialNumber: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: MachineStatus,
     default: MachineStatus.INACTIVE,
   })
   status: MachineStatus;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   address: string | null;
 
-  @Column({ type: 'decimal', precision: 9, scale: 6, nullable: true })
+  @Column({ type: "decimal", precision: 9, scale: 6, nullable: true })
   latitude: number | null;
 
-  @Column({ type: 'decimal', precision: 9, scale: 6, nullable: true })
+  @Column({ type: "decimal", precision: 9, scale: 6, nullable: true })
   longitude: number | null;
 
-  @Column({ name: 'organization_id', type: 'uuid' })
+  @Column({ name: "organization_id", type: "uuid" })
   organizationId: string;
 
-  @ManyToOne(() => Organization, (org) => org.machines, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'organization_id' })
+  @ManyToOne(() => Organization, (org) => org.machines, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
   @OneToMany(() => Order, (order) => order.machine)
@@ -197,55 +198,58 @@ import {
   MaxLength,
   Min,
   Max,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { MachineStatus } from '../entities/machine.entity';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { MachineStatus } from "../entities/machine.entity";
 
 export class CreateMachineDto {
-  @ApiProperty({ description: 'Название автомата', example: 'Автомат #42' })
-  @IsString({ message: 'Название должно быть строкой' })
-  @IsNotEmpty({ message: 'Название обязательно' })
-  @MinLength(1, { message: 'Название не может быть пустым' })
-  @MaxLength(255, { message: 'Название не может превышать 255 символов' })
+  @ApiProperty({ description: "Название автомата", example: "Автомат #42" })
+  @IsString({ message: "Название должно быть строкой" })
+  @IsNotEmpty({ message: "Название обязательно" })
+  @MinLength(1, { message: "Название не может быть пустым" })
+  @MaxLength(255, { message: "Название не может превышать 255 символов" })
   name: string;
 
-  @ApiProperty({ description: 'Серийный номер', example: 'VH-2024-001' })
+  @ApiProperty({ description: "Серийный номер", example: "VH-2024-001" })
   @IsString()
-  @IsNotEmpty({ message: 'Серийный номер обязателен' })
+  @IsNotEmpty({ message: "Серийный номер обязателен" })
   @MaxLength(100)
   serialNumber: string;
 
   @ApiPropertyOptional({
-    description: 'Статус автомата',
+    description: "Статус автомата",
     enum: MachineStatus,
     default: MachineStatus.INACTIVE,
   })
   @IsOptional()
-  @IsEnum(MachineStatus, { message: 'Неверный статус автомата' })
+  @IsEnum(MachineStatus, { message: "Неверный статус автомата" })
   status?: MachineStatus;
 
-  @ApiPropertyOptional({ description: 'Адрес установки', example: 'ул. Навои, 10' })
+  @ApiPropertyOptional({
+    description: "Адрес установки",
+    example: "ул. Навои, 10",
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   address?: string;
 
-  @ApiPropertyOptional({ description: 'Широта', example: 41.311081 })
+  @ApiPropertyOptional({ description: "Широта", example: 41.311081 })
   @IsOptional()
-  @IsNumber({}, { message: 'Широта должна быть числом' })
+  @IsNumber({}, { message: "Широта должна быть числом" })
   @Min(-90)
   @Max(90)
   latitude?: number;
 
-  @ApiPropertyOptional({ description: 'Долгота', example: 69.240562 })
+  @ApiPropertyOptional({ description: "Долгота", example: 69.240562 })
   @IsOptional()
-  @IsNumber({}, { message: 'Долгота должна быть числом' })
+  @IsNumber({}, { message: "Долгота должна быть числом" })
   @Min(-180)
   @Max(180)
   longitude?: number;
 
-  @ApiProperty({ description: 'ID организации' })
-  @IsUUID('4', { message: 'Неверный формат UUID организации' })
+  @ApiProperty({ description: "ID организации" })
+  @IsUUID("4", { message: "Неверный формат UUID организации" })
   organizationId: string;
 }
 ```
@@ -254,8 +258,8 @@ export class CreateMachineDto {
 
 ```typescript
 // src/modules/machines/dto/update-machine.dto.ts
-import { PartialType } from '@nestjs/swagger';
-import { CreateMachineDto } from './create-machine.dto';
+import { PartialType } from "@nestjs/swagger";
+import { CreateMachineDto } from "./create-machine.dto";
 
 // PartialType делает все поля опциональными и сохраняет Swagger-метаданные
 export class UpdateMachineDto extends PartialType(CreateMachineDto) {}
@@ -265,23 +269,28 @@ export class UpdateMachineDto extends PartialType(CreateMachineDto) {}
 
 ```typescript
 // src/modules/machines/dto/filter-machine.dto.ts
-import { IsOptional, IsEnum, IsString } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { MachineStatus } from '../entities/machine.entity';
-import { PageOptionsDto } from '../../common/dto/page-options.dto';
+import { IsOptional, IsEnum, IsString } from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { MachineStatus } from "../entities/machine.entity";
+import { PageOptionsDto } from "../../common/dto/page-options.dto";
 
 export class FilterMachineDto extends PageOptionsDto {
-  @ApiPropertyOptional({ description: 'Поиск по названию или серийному номеру' })
+  @ApiPropertyOptional({
+    description: "Поиск по названию или серийному номеру",
+  })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Фильтр по статусу', enum: MachineStatus })
+  @ApiPropertyOptional({
+    description: "Фильтр по статусу",
+    enum: MachineStatus,
+  })
   @IsOptional()
   @IsEnum(MachineStatus)
   status?: MachineStatus;
 
-  @ApiPropertyOptional({ description: 'Фильтр по организации (UUID)' })
+  @ApiPropertyOptional({ description: "Фильтр по организации (UUID)" })
   @IsOptional()
   @IsString()
   organizationId?: string;
@@ -296,24 +305,33 @@ export class FilterMachineDto extends PageOptionsDto {
 
 ```typescript
 // src/modules/common/dto/page-options.dto.ts
-import { IsOptional, IsInt, Min, Max, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsInt, Min, Max, IsEnum } from "class-validator";
+import { Type } from "class-transformer";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum SortOrder {
-  ASC = 'ASC',
-  DESC = 'DESC',
+  ASC = "ASC",
+  DESC = "DESC",
 }
 
 export class PageOptionsDto {
-  @ApiPropertyOptional({ description: 'Номер страницы', default: 1, minimum: 1 })
+  @ApiPropertyOptional({
+    description: "Номер страницы",
+    default: 1,
+    minimum: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page: number = 1;
 
-  @ApiPropertyOptional({ description: 'Количество на странице', default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({
+    description: "Количество на странице",
+    default: 20,
+    minimum: 1,
+    maximum: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -321,11 +339,15 @@ export class PageOptionsDto {
   @Max(100)
   limit: number = 20;
 
-  @ApiPropertyOptional({ description: 'Поле сортировки', default: 'createdAt' })
+  @ApiPropertyOptional({ description: "Поле сортировки", default: "createdAt" })
   @IsOptional()
-  sortBy: string = 'createdAt';
+  sortBy: string = "createdAt";
 
-  @ApiPropertyOptional({ description: 'Направление сортировки', enum: SortOrder, default: SortOrder.DESC })
+  @ApiPropertyOptional({
+    description: "Направление сортировки",
+    enum: SortOrder,
+    default: SortOrder.DESC,
+  })
   @IsOptional()
   @IsEnum(SortOrder)
   sortOrder: SortOrder = SortOrder.DESC;
@@ -341,7 +363,7 @@ export class PageOptionsDto {
 
 ```typescript
 // src/modules/common/dto/page-meta.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 
 export interface PageMetaParams {
   pageOptions: { page: number; limit: number };
@@ -349,22 +371,22 @@ export interface PageMetaParams {
 }
 
 export class PageMetaDto {
-  @ApiProperty({ description: 'Текущая страница' })
+  @ApiProperty({ description: "Текущая страница" })
   readonly page: number;
 
-  @ApiProperty({ description: 'Количество на странице' })
+  @ApiProperty({ description: "Количество на странице" })
   readonly limit: number;
 
-  @ApiProperty({ description: 'Общее количество записей' })
+  @ApiProperty({ description: "Общее количество записей" })
   readonly totalItems: number;
 
-  @ApiProperty({ description: 'Общее количество страниц' })
+  @ApiProperty({ description: "Общее количество страниц" })
   readonly totalPages: number;
 
-  @ApiProperty({ description: 'Есть предыдущая страница' })
+  @ApiProperty({ description: "Есть предыдущая страница" })
   readonly hasPrevious: boolean;
 
-  @ApiProperty({ description: 'Есть следующая страница' })
+  @ApiProperty({ description: "Есть следующая страница" })
   readonly hasNext: boolean;
 
   constructor({ pageOptions, totalItems }: PageMetaParams) {
@@ -382,14 +404,14 @@ export class PageMetaDto {
 
 ```typescript
 // src/modules/common/dto/page.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
-import { PageMetaDto } from './page-meta.dto';
+import { ApiProperty } from "@nestjs/swagger";
+import { PageMetaDto } from "./page-meta.dto";
 
 export class PageDto<T> {
-  @ApiProperty({ isArray: true, description: 'Массив данных' })
+  @ApiProperty({ isArray: true, description: "Массив данных" })
   readonly data: T[];
 
-  @ApiProperty({ type: () => PageMetaDto, description: 'Метаданные пагинации' })
+  @ApiProperty({ type: () => PageMetaDto, description: "Метаданные пагинации" })
   readonly meta: PageMetaDto;
 
   constructor(data: T[], meta: PageMetaDto) {
@@ -419,32 +441,32 @@ import {
   HttpStatus,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-} from '@nestjs/swagger';
-import { MachinesService } from './machines.service';
-import { CreateMachineDto } from './dto/create-machine.dto';
-import { UpdateMachineDto } from './dto/update-machine.dto';
-import { FilterMachineDto } from './dto/filter-machine.dto';
-import { Machine } from './entities/machine.entity';
-import { PageDto } from '../common/dto/page.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { OrganizationGuard } from '../common/guards/organization.guard';
-import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Auth } from '../common/decorators/auth.decorator';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserRole } from '../users/entities/user.entity';
+} from "@nestjs/swagger";
+import { MachinesService } from "./machines.service";
+import { CreateMachineDto } from "./dto/create-machine.dto";
+import { UpdateMachineDto } from "./dto/update-machine.dto";
+import { FilterMachineDto } from "./dto/filter-machine.dto";
+import { Machine } from "./entities/machine.entity";
+import { PageDto } from "../common/dto/page.dto";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { OrganizationGuard } from "../common/guards/organization.guard";
+import { TransformInterceptor } from "../common/interceptors/transform.interceptor";
+import { Roles } from "../common/decorators/roles.decorator";
+import { Auth } from "../common/decorators/auth.decorator";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { UserRole } from "../users/entities/user.entity";
 
-@ApiTags('Автоматы')
+@ApiTags("Автоматы")
 @ApiBearerAuth()
-@Controller('machines')
+@Controller("machines")
 @UseGuards(JwtAuthGuard, RolesGuard, OrganizationGuard)
 @UseInterceptors(TransformInterceptor)
 export class MachinesController {
@@ -452,8 +474,10 @@ export class MachinesController {
 
   // --- GET /api/v1/machines ---
   @Get()
-  @ApiOperation({ summary: 'Получить список автоматов с пагинацией и фильтрацией' })
-  @ApiResponse({ status: 200, description: 'Список автоматов' })
+  @ApiOperation({
+    summary: "Получить список автоматов с пагинацией и фильтрацией",
+  })
+  @ApiResponse({ status: 200, description: "Список автоматов" })
   async findAll(
     @Query() filterDto: FilterMachineDto,
     @CurrentUser() user: { id: string; organizationId: string },
@@ -462,13 +486,13 @@ export class MachinesController {
   }
 
   // --- GET /api/v1/machines/:id ---
-  @Get(':id')
-  @ApiOperation({ summary: 'Получить автомат по ID' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Данные автомата' })
-  @ApiResponse({ status: 404, description: 'Автомат не найден' })
+  @Get(":id")
+  @ApiOperation({ summary: "Получить автомат по ID" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Данные автомата" })
+  @ApiResponse({ status: 404, description: "Автомат не найден" })
   async findOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param("id", new ParseUUIDPipe()) id: string,
   ): Promise<Machine> {
     return this.machinesService.findOne(id);
   }
@@ -477,9 +501,9 @@ export class MachinesController {
   @Post()
   @Auth(UserRole.ADMIN, UserRole.MANAGER)
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Создать новый автомат' })
-  @ApiResponse({ status: 201, description: 'Автомат создан' })
-  @ApiResponse({ status: 409, description: 'Серийный номер уже существует' })
+  @ApiOperation({ summary: "Создать новый автомат" })
+  @ApiResponse({ status: 201, description: "Автомат создан" })
+  @ApiResponse({ status: 409, description: "Серийный номер уже существует" })
   async create(
     @Body() createDto: CreateMachineDto,
     @CurrentUser() user: { id: string },
@@ -488,14 +512,14 @@ export class MachinesController {
   }
 
   // --- PUT /api/v1/machines/:id ---
-  @Put(':id')
+  @Put(":id")
   @Auth(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Обновить автомат' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Автомат обновлён' })
-  @ApiResponse({ status: 404, description: 'Автомат не найден' })
+  @ApiOperation({ summary: "Обновить автомат" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Автомат обновлён" })
+  @ApiResponse({ status: 404, description: "Автомат не найден" })
   async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param("id", new ParseUUIDPipe()) id: string,
     @Body() updateDto: UpdateMachineDto,
     @CurrentUser() user: { id: string },
   ): Promise<Machine> {
@@ -503,16 +527,14 @@ export class MachinesController {
   }
 
   // --- DELETE /api/v1/machines/:id ---
-  @Delete(':id')
+  @Delete(":id")
   @Auth(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Удалить автомат (soft delete)' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 204, description: 'Автомат удалён' })
-  @ApiResponse({ status: 404, description: 'Автомат не найден' })
-  async remove(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<void> {
+  @ApiOperation({ summary: "Удалить автомат (soft delete)" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiResponse({ status: 204, description: "Автомат удалён" })
+  @ApiResponse({ status: 404, description: "Автомат не найден" })
+  async remove(@Param("id", new ParseUUIDPipe()) id: string): Promise<void> {
     return this.machinesService.remove(id);
   }
 }
@@ -529,21 +551,21 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import {
   Repository,
   DataSource,
   ILike,
   FindOptionsWhere,
   SelectQueryBuilder,
-} from 'typeorm';
-import { Machine, MachineStatus } from './entities/machine.entity';
-import { CreateMachineDto } from './dto/create-machine.dto';
-import { UpdateMachineDto } from './dto/update-machine.dto';
-import { FilterMachineDto } from './dto/filter-machine.dto';
-import { PageDto } from '../common/dto/page.dto';
-import { PageMetaDto } from '../common/dto/page-meta.dto';
+} from "typeorm";
+import { Machine, MachineStatus } from "./entities/machine.entity";
+import { CreateMachineDto } from "./dto/create-machine.dto";
+import { UpdateMachineDto } from "./dto/update-machine.dto";
+import { FilterMachineDto } from "./dto/filter-machine.dto";
+import { PageDto } from "../common/dto/page.dto";
+import { PageMetaDto } from "../common/dto/page-meta.dto";
 
 @Injectable()
 export class MachinesService {
@@ -559,32 +581,32 @@ export class MachinesService {
     user: { id: string; organizationId: string },
   ): Promise<PageDto<Machine>> {
     const queryBuilder: SelectQueryBuilder<Machine> = this.machineRepository
-      .createQueryBuilder('machine')
-      .leftJoinAndSelect('machine.organization', 'organization');
+      .createQueryBuilder("machine")
+      .leftJoinAndSelect("machine.organization", "organization");
 
     // Фильтр по организации текущего пользователя
-    queryBuilder.andWhere('machine.organization_id = :orgId', {
+    queryBuilder.andWhere("machine.organization_id = :orgId", {
       orgId: user.organizationId,
     });
 
     // Полнотекстовый поиск по названию и серийному номеру
     if (filterDto.search) {
       queryBuilder.andWhere(
-        '(machine.name ILIKE :search OR machine.serial_number ILIKE :search)',
+        "(machine.name ILIKE :search OR machine.serial_number ILIKE :search)",
         { search: `%${filterDto.search}%` },
       );
     }
 
     // Фильтр по статусу
     if (filterDto.status) {
-      queryBuilder.andWhere('machine.status = :status', {
+      queryBuilder.andWhere("machine.status = :status", {
         status: filterDto.status,
       });
     }
 
     // Фильтр по организации (для админов, у которых доступ ко всем)
     if (filterDto.organizationId) {
-      queryBuilder.andWhere('machine.organization_id = :filterOrgId', {
+      queryBuilder.andWhere("machine.organization_id = :filterOrgId", {
         filterOrgId: filterDto.organizationId,
       });
     }
@@ -611,7 +633,7 @@ export class MachinesService {
   async findOne(id: string): Promise<Machine> {
     const machine = await this.machineRepository.findOne({
       where: { id },
-      relations: ['organization', 'orders'],
+      relations: ["organization", "orders"],
     });
 
     if (!machine) {
@@ -652,7 +674,10 @@ export class MachinesService {
     const machine = await this.findOne(id);
 
     // Если меняется серийный номер - проверить уникальность
-    if (updateDto.serialNumber && updateDto.serialNumber !== machine.serialNumber) {
+    if (
+      updateDto.serialNumber &&
+      updateDto.serialNumber !== machine.serialNumber
+    ) {
       const existing = await this.machineRepository.findOne({
         where: { serialNumber: updateDto.serialNumber },
       });
@@ -693,7 +718,7 @@ export class MachinesService {
       // Создать записи инвентаря для автомата
       if (inventoryItems.length > 0) {
         const inventory = inventoryItems.map((item) =>
-          manager.create('MachineInventory', {
+          manager.create("MachineInventory", {
             machineId: savedMachine.id,
             productId: item.productId,
             quantity: item.quantity,
@@ -737,11 +762,11 @@ export class MachinesService {
     offline: number;
   }> {
     const stats = await this.machineRepository
-      .createQueryBuilder('machine')
-      .select('machine.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .where('machine.organization_id = :orgId', { orgId: organizationId })
-      .groupBy('machine.status')
+      .createQueryBuilder("machine")
+      .select("machine.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("machine.organization_id = :orgId", { orgId: organizationId })
+      .groupBy("machine.status")
       .getRawMany<{ status: MachineStatus; count: string }>();
 
     const result = {
@@ -764,14 +789,14 @@ export class MachinesService {
   // ========== Вспомогательные методы ==========
   private getSortColumn(sortBy: string): string {
     const allowedColumns: Record<string, string> = {
-      name: 'machine.name',
-      serialNumber: 'machine.serial_number',
-      status: 'machine.status',
-      createdAt: 'machine.created_at',
-      updatedAt: 'machine.updated_at',
+      name: "machine.name",
+      serialNumber: "machine.serial_number",
+      status: "machine.status",
+      createdAt: "machine.created_at",
+      updatedAt: "machine.updated_at",
     };
 
-    return allowedColumns[sortBy] ?? 'machine.created_at';
+    return allowedColumns[sortBy] ?? "machine.created_at";
   }
 }
 ```
@@ -782,11 +807,11 @@ export class MachinesService {
 
 ```typescript
 // src/modules/machines/machines.module.ts
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { MachinesController } from './machines.controller';
-import { MachinesService } from './machines.service';
-import { Machine } from './entities/machine.entity';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { MachinesController } from "./machines.controller";
+import { MachinesService } from "./machines.service";
+import { Machine } from "./entities/machine.entity";
 
 @Module({
   imports: [TypeOrmModule.forFeature([Machine])],
@@ -801,15 +826,15 @@ export class MachinesModule {}
 
 ```typescript
 // src/app.module.ts
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MachinesModule } from './modules/machines/machines.module';
-import { ProductsModule } from './modules/products/products.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { IngredientsModule } from './modules/ingredients/ingredients.module';
-import { UsersModule } from './modules/users/users.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MachinesModule } from "./modules/machines/machines.module";
+import { ProductsModule } from "./modules/products/products.module";
+import { OrdersModule } from "./modules/orders/orders.module";
+import { IngredientsModule } from "./modules/ingredients/ingredients.module";
+import { UsersModule } from "./modules/users/users.module";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   imports: [
@@ -821,15 +846,15 @@ import { AuthModule } from './modules/auth/auth.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get('DB_USERNAME'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
+        type: "postgres",
+        host: config.get("DB_HOST", "localhost"),
+        port: config.get<number>("DB_PORT", 5432),
+        username: config.get("DB_USERNAME"),
+        password: config.get("DB_PASSWORD"),
+        database: config.get("DB_NAME"),
         autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') !== 'production',
-        logging: config.get('NODE_ENV') === 'development',
+        synchronize: config.get("NODE_ENV") !== "production",
+        logging: config.get("NODE_ENV") === "development",
       }),
     }),
 
@@ -849,23 +874,23 @@ export class AppModule {}
 
 ```typescript
 // src/main.ts
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Глобальный префикс API
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix("api/v1");
 
   // Глобальная валидация DTO
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,            // удалять свойства без декораторов
+      whitelist: true, // удалять свойства без декораторов
       forbidNonWhitelisted: true, // ошибка при неизвестных свойствах
-      transform: true,            // автоматическая трансформация типов
+      transform: true, // автоматическая трансформация типов
       transformOptions: {
         enableImplicitConversion: true,
       },
@@ -877,20 +902,22 @@ async function bootstrap() {
 
   // Swagger документация
   const config = new DocumentBuilder()
-    .setTitle('VendHub API')
-    .setDescription('REST API для VendHub OS - управление вендинговыми автоматами')
-    .setVersion('1.0')
+    .setTitle("VendHub API")
+    .setDescription(
+      "REST API для VendHub OS - управление вендинговыми автоматами",
+    )
+    .setVersion("1.0")
     .addBearerAuth()
-    .addTag('Автоматы', 'Управление вендинговыми автоматами')
-    .addTag('Продукты', 'Управление каталогом продуктов')
-    .addTag('Заказы', 'Управление заказами')
-    .addTag('Ингредиенты', 'Управление ингредиентами')
-    .addTag('Пользователи', 'Управление пользователями')
-    .addTag('Авторизация', 'Вход, регистрация, токены')
+    .addTag("Автоматы", "Управление вендинговыми автоматами")
+    .addTag("Продукты", "Управление каталогом продуктов")
+    .addTag("Заказы", "Управление заказами")
+    .addTag("Ингредиенты", "Управление ингредиентами")
+    .addTag("Пользователи", "Управление пользователями")
+    .addTag("Авторизация", "Вход, регистрация, токены")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup("api/docs", app, document);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
@@ -907,13 +934,13 @@ bootstrap();
 
 ```typescript
 // src/modules/common/guards/jwt-auth.guard.ts
-import { Injectable, ExecutionContext } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { Injectable, ExecutionContext } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { Reflector } from "@nestjs/core";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard("jwt") {
   constructor(private reflector: Reflector) {
     super();
   }
@@ -938,20 +965,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
 ```typescript
 // src/modules/common/guards/roles.guard.ts
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { UserRole } from '../../users/entities/user.entity';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { ROLES_KEY } from "../decorators/roles.decorator";
+import { UserRole } from "../../users/entities/user.entity";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // Если роли не указаны - доступ разрешён
     if (!requiredRoles || requiredRoles.length === 0) {
@@ -968,7 +995,12 @@ export class RolesGuard implements CanActivate {
 
 ```typescript
 // src/modules/common/guards/organization.guard.ts
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from "@nestjs/common";
 
 @Injectable()
 export class OrganizationGuard implements CanActivate {
@@ -977,7 +1009,7 @@ export class OrganizationGuard implements CanActivate {
     const user = request.user;
 
     // Суперадмин имеет доступ ко всем организациям
-    if (user.role === 'superadmin') {
+    if (user.role === "superadmin") {
       return true;
     }
 
@@ -988,7 +1020,7 @@ export class OrganizationGuard implements CanActivate {
       request.query?.organizationId;
 
     if (orgId && orgId !== user.organizationId) {
-      throw new ForbiddenException('Нет доступа к данной организации');
+      throw new ForbiddenException("Нет доступа к данной организации");
     }
 
     return true;
@@ -1000,29 +1032,29 @@ export class OrganizationGuard implements CanActivate {
 
 ```typescript
 // src/modules/common/decorators/public.decorator.ts
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata } from "@nestjs/common";
 
-export const IS_PUBLIC_KEY = 'isPublic';
+export const IS_PUBLIC_KEY = "isPublic";
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 ```
 
 ```typescript
 // src/modules/common/decorators/roles.decorator.ts
-import { SetMetadata } from '@nestjs/common';
-import { UserRole } from '../../users/entities/user.entity';
+import { SetMetadata } from "@nestjs/common";
+import { UserRole } from "../../users/entities/user.entity";
 
-export const ROLES_KEY = 'roles';
+export const ROLES_KEY = "roles";
 export const Roles = (...roles: UserRole[]) => SetMetadata(ROLES_KEY, roles);
 ```
 
 ```typescript
 // src/modules/common/decorators/auth.decorator.ts
-import { applyDecorators, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from './roles.decorator';
-import { UserRole } from '../../users/entities/user.entity';
+import { applyDecorators, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import { RolesGuard } from "../guards/roles.guard";
+import { Roles } from "./roles.decorator";
+import { UserRole } from "../../users/entities/user.entity";
 
 // Комбинированный декоратор: авторизация + роли
 export function Auth(...roles: UserRole[]) {
@@ -1036,7 +1068,7 @@ export function Auth(...roles: UserRole[]) {
 
 ```typescript
 // src/modules/common/decorators/current-user.decorator.ts
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 // Извлечение текущего пользователя из request
 export const CurrentUser = createParamDecorator(
@@ -1060,8 +1092,8 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+} from "@nestjs/common";
+import { Observable, map } from "rxjs";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -1070,9 +1102,10 @@ export interface ApiResponse<T> {
 }
 
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, ApiResponse<T>>
-{
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  ApiResponse<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -1103,28 +1136,34 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   UnprocessableEntityException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 
 // 404 - Не найдено
 throw new NotFoundException('Автомат с ID "abc-123" не найден');
 
 // 409 - Конфликт (дублирование)
-throw new ConflictException('Автомат с серийным номером "VH-001" уже существует');
+throw new ConflictException(
+  'Автомат с серийным номером "VH-001" уже существует',
+);
 
 // 400 - Некорректный запрос
-throw new BadRequestException('Неверный формат даты');
+throw new BadRequestException("Неверный формат даты");
 
 // 403 - Нет прав
-throw new ForbiddenException('Нет доступа к данной операции');
+throw new ForbiddenException("Нет доступа к данной операции");
 
 // 401 - Не авторизован
-throw new UnauthorizedException('Токен истёк или недействителен');
+throw new UnauthorizedException("Токен истёк или недействителен");
 
 // 422 - Ошибка валидации бизнес-логики
-throw new UnprocessableEntityException('Нельзя удалить автомат с активными заказами');
+throw new UnprocessableEntityException(
+  "Нельзя удалить автомат с активными заказами",
+);
 
 // 500 - Внутренняя ошибка
-throw new InternalServerErrorException('Ошибка подключения к платёжной системе');
+throw new InternalServerErrorException(
+  "Ошибка подключения к платёжной системе",
+);
 ```
 
 ### Глобальный фильтр ошибок (опционально)
@@ -1138,8 +1177,8 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
+} from "@nestjs/common";
+import { Request, Response } from "express";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -1158,7 +1197,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.getResponse()
-        : 'Внутренняя ошибка сервера';
+        : "Внутренняя ошибка сервера";
 
     this.logger.error(
       `${request.method} ${request.url} - ${status}`,
@@ -1169,9 +1208,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       success: false,
       statusCode: status,
       message:
-        typeof message === 'string'
+        typeof message === "string"
           ? message
-          : (message as any).message ?? message,
+          : ((message as any).message ?? message),
       path: request.url,
       timestamp: new Date().toISOString(),
     });
@@ -1272,17 +1311,17 @@ async findAllWithRevenue(): Promise<any[]> {
 // Через find options
 const machine = await this.machineRepository.findOne({
   where: { id },
-  relations: ['organization', 'orders', 'orders.items'],
+  relations: ["organization", "orders", "orders.items"],
 });
 
 // Через QueryBuilder (более гибко)
 const machine = await this.machineRepository
-  .createQueryBuilder('machine')
-  .leftJoinAndSelect('machine.organization', 'org')
-  .leftJoinAndSelect('machine.orders', 'order', 'order.status = :status', {
-    status: 'completed',
+  .createQueryBuilder("machine")
+  .leftJoinAndSelect("machine.organization", "org")
+  .leftJoinAndSelect("machine.orders", "order", "order.status = :status", {
+    status: "completed",
   })
-  .where('machine.id = :id', { id })
+  .where("machine.id = :id", { id })
   .getOne();
 ```
 
@@ -1293,7 +1332,7 @@ const machine = await this.machineRepository
 1. Создать entity в `src/modules/<name>/entities/<name>.entity.ts`
    - Наследовать от `BaseEntity`
    - Определить колонки с декораторами TypeORM
-   - Указать `snake_case` имена через `{ name: '...' }`
+   - Свойства entity в camelCase; `{ name: '...' }` в `@JoinColumn` указывает DB-колонку в snake_case (SnakeNamingStrategy конвертирует автоматически для обычных `@Column`)
    - Определить связи (`@ManyToOne`, `@OneToMany`, `@ManyToMany`)
 
 2. Создать DTO в `src/modules/<name>/dto/`

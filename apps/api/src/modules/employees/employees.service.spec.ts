@@ -11,30 +11,24 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { EmployeesService } from "./employees.service";
 import {
   Employee,
-  EmployeeDocument,
   EmployeeRole,
   EmployeeStatus,
 } from "./entities/employee.entity";
-import { Department } from "./entities/department.entity";
-import { Position } from "./entities/position.entity";
-import { Attendance, AttendanceStatus } from "./entities/attendance.entity";
-import { LeaveRequest } from "./entities/leave-request.entity";
-import { Payroll } from "./entities/payroll.entity";
-import { PerformanceReview } from "./entities/performance-review.entity";
+import { DepartmentService } from "./services/department.service";
+import { PositionService } from "./services/position.service";
+import { AttendanceService } from "./services/attendance.service";
+import { LeaveService } from "./services/leave.service";
+import { PayrollService } from "./services/payroll.service";
+import { PerformanceReviewService } from "./services/performance-review.service";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 
 describe("EmployeesService", () => {
   let service: EmployeesService;
   let employeeRepo: jest.Mocked<Repository<Employee>>;
-  let _documentRepo: jest.Mocked<Repository<EmployeeDocument>>;
-  let departmentRepo: jest.Mocked<Repository<Department>>;
-  let _positionRepo: jest.Mocked<Repository<Position>>;
-  let attendanceRepo: jest.Mocked<Repository<Attendance>>;
-  let _leaveRequestRepo: jest.Mocked<Repository<LeaveRequest>>;
-  let _payrollRepo: jest.Mocked<Repository<Payroll>>;
-  let _reviewRepo: jest.Mocked<Repository<PerformanceReview>>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let departmentService: jest.Mocked<Partial<DepartmentService>>;
+  let attendanceService: jest.Mocked<Partial<AttendanceService>>;
 
   const mockEmployee = {
     id: "emp-uuid-1",
@@ -79,7 +73,7 @@ describe("EmployeesService", () => {
     subDepartments: [],
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as unknown as Department;
+  };
 
   const mockAttendance = {
     id: "att-uuid-1",
@@ -90,13 +84,13 @@ describe("EmployeesService", () => {
     checkOut: null,
     totalHours: null,
     overtimeHours: null,
-    status: AttendanceStatus.PRESENT,
+    status: "present",
     note: null,
     checkInLocation: null,
     checkOutLocation: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as unknown as Attendance;
+  };
 
   const mockEmployeeQueryBuilder = {
     where: jest.fn().mockReturnThis(),
@@ -114,37 +108,23 @@ describe("EmployeesService", () => {
     getRawMany: jest.fn().mockResolvedValue([]),
   };
 
-  const mockDeptQueryBuilder = {
-    where: jest.fn().mockReturnThis(),
-    andWhere: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    addOrderBy: jest.fn().mockReturnThis(),
-    skip: jest.fn().mockReturnThis(),
-    take: jest.fn().mockReturnThis(),
-    leftJoinAndSelect: jest.fn().mockReturnThis(),
-    getManyAndCount: jest.fn().mockResolvedValue([[mockDepartment], 1]),
-  };
-
-  const mockAttendanceQueryBuilder = {
-    where: jest.fn().mockReturnThis(),
-    andWhere: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    skip: jest.fn().mockReturnThis(),
-    take: jest.fn().mockReturnThis(),
-    getManyAndCount: jest.fn().mockResolvedValue([[mockAttendance], 1]),
-  };
-
-  const mockLeaveQueryBuilder = {
-    where: jest.fn().mockReturnThis(),
-    andWhere: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    skip: jest.fn().mockReturnThis(),
-    take: jest.fn().mockReturnThis(),
-    getCount: jest.fn().mockResolvedValue(0),
-    getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
-  };
-
   beforeEach(async () => {
+    departmentService = {
+      createDepartment: jest.fn(),
+      updateDepartment: jest.fn(),
+      getDepartments: jest.fn(),
+      getDepartment: jest.fn(),
+      deleteDepartment: jest.fn(),
+    };
+
+    attendanceService = {
+      checkIn: jest.fn(),
+      checkOut: jest.fn(),
+      getAttendance: jest.fn(),
+      getDailyReport: jest.fn(),
+      getMonthlyReport: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmployeesService,
@@ -164,98 +144,22 @@ describe("EmployeesService", () => {
           },
         },
         {
-          provide: getRepositoryToken(EmployeeDocument),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(Department),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            softRemove: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(mockDeptQueryBuilder),
-          },
-        },
-        {
-          provide: getRepositoryToken(Position),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(mockDeptQueryBuilder),
-          },
-        },
-        {
-          provide: getRepositoryToken(Attendance),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            createQueryBuilder: jest
-              .fn()
-              .mockReturnValue(mockAttendanceQueryBuilder),
-          },
-        },
-        {
-          provide: getRepositoryToken(LeaveRequest),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            createQueryBuilder: jest
-              .fn()
-              .mockReturnValue(mockLeaveQueryBuilder),
-          },
-        },
-        {
-          provide: getRepositoryToken(Payroll),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(PerformanceReview),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            createQueryBuilder: jest
-              .fn()
-              .mockReturnValue(mockEmployeeQueryBuilder),
-          },
-        },
-        {
           provide: EventEmitter2,
           useValue: {
             emit: jest.fn(),
           },
         },
+        { provide: DepartmentService, useValue: departmentService },
+        { provide: PositionService, useValue: {} },
+        { provide: AttendanceService, useValue: attendanceService },
+        { provide: LeaveService, useValue: {} },
+        { provide: PayrollService, useValue: {} },
+        { provide: PerformanceReviewService, useValue: {} },
       ],
     }).compile();
 
     service = module.get<EmployeesService>(EmployeesService);
     employeeRepo = module.get(getRepositoryToken(Employee));
-    _documentRepo = module.get(getRepositoryToken(EmployeeDocument));
-    departmentRepo = module.get(getRepositoryToken(Department));
-    _positionRepo = module.get(getRepositoryToken(Position));
-    attendanceRepo = module.get(getRepositoryToken(Attendance));
-    _leaveRequestRepo = module.get(getRepositoryToken(LeaveRequest));
-    _payrollRepo = module.get(getRepositoryToken(Payroll));
-    _reviewRepo = module.get(getRepositoryToken(PerformanceReview));
     eventEmitter = module.get(EventEmitter2) as jest.Mocked<EventEmitter2>;
   });
 
@@ -432,28 +336,31 @@ describe("EmployeesService", () => {
   });
 
   // ============================================================================
-  // DEPARTMENTS
+  // DEPARTMENTS (delegated to DepartmentService)
   // ============================================================================
 
   describe("createDepartment", () => {
-    it("should create a department with unique code", async () => {
-      departmentRepo.findOne.mockResolvedValue(null); // no existing code
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      departmentRepo.create.mockReturnValue(mockDepartment as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      departmentRepo.save.mockResolvedValue(mockDepartment as any);
+    it("should delegate to departmentService and return result", async () => {
+      (departmentService.createDepartment as jest.Mock).mockResolvedValue(
+        mockDepartment,
+      );
 
       const dto = { name: "Operations", code: "OPS" };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createDepartment(ORG_ID, dto as any);
 
+      expect(departmentService.createDepartment).toHaveBeenCalledWith(
+        ORG_ID,
+        dto,
+      );
       expect(result).toBeDefined();
       expect(result.code).toBe("OPS");
     });
 
-    it("should throw ConflictException for duplicate department code", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      departmentRepo.findOne.mockResolvedValue(mockDepartment as any);
+    it("should propagate ConflictException from departmentService", async () => {
+      (departmentService.createDepartment as jest.Mock).mockRejectedValue(
+        new ConflictException("Duplicate code"),
+      );
 
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -463,7 +370,12 @@ describe("EmployeesService", () => {
   });
 
   describe("getDepartments", () => {
-    it("should return paginated departments", async () => {
+    it("should delegate to departmentService", async () => {
+      (departmentService.getDepartments as jest.Mock).mockResolvedValue({
+        items: [mockDepartment],
+        total: 1,
+      });
+
       const result = await service.getDepartments(ORG_ID, {
         page: 1,
         limit: 20,
@@ -476,34 +388,28 @@ describe("EmployeesService", () => {
   });
 
   // ============================================================================
-  // ATTENDANCE (CHECK IN)
+  // ATTENDANCE (delegated to AttendanceService)
   // ============================================================================
 
   describe("checkIn", () => {
-    it("should create attendance check-in record", async () => {
-      employeeRepo.findOne.mockResolvedValue(mockEmployee);
-      attendanceRepo.findOne.mockResolvedValue(null); // no existing check-in
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      attendanceRepo.create.mockReturnValue(mockAttendance as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      attendanceRepo.save.mockResolvedValue(mockAttendance as any);
+    it("should delegate to attendanceService", async () => {
+      (attendanceService.checkIn as jest.Mock).mockResolvedValue(
+        mockAttendance,
+      );
 
       const dto = { employeeId: "emp-uuid-1" };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.checkIn(ORG_ID, dto as any);
 
+      expect(attendanceService.checkIn).toHaveBeenCalledWith(ORG_ID, dto);
       expect(result).toBeDefined();
       expect(result.employeeId).toBe("emp-uuid-1");
     });
 
-    it("should throw BadRequestException when already checked in", async () => {
-      employeeRepo.findOne.mockResolvedValue(mockEmployee);
-
-      attendanceRepo.findOne.mockResolvedValue({
-        ...mockAttendance,
-        checkIn: new Date(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+    it("should propagate BadRequestException from attendanceService", async () => {
+      (attendanceService.checkIn as jest.Mock).mockRejectedValue(
+        new BadRequestException("Already checked in"),
+      );
 
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

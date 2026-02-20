@@ -163,7 +163,7 @@ server {
 ```nginx
 # /etc/nginx/conf.d/app.vendhub.uz.conf
 upstream vendhub_frontend {
-    server 127.0.0.1:3001;
+    server 127.0.0.1:3000;
     keepalive 32;
 }
 

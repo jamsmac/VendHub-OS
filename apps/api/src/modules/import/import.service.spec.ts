@@ -1,13 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository, DataSource, ObjectLiteral } from "typeorm";
+import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import { ImportService } from "./import.service";
 import {
   ImportJob,
-  ImportTemplate,
   ImportType,
   ImportStatus,
   ImportSource,
@@ -18,9 +17,10 @@ import {
   DomainType,
   ApprovalStatus,
 } from "./entities/import-session.entity";
-import { ImportAuditLog } from "./entities/import-audit-log.entity";
-import { SchemaDefinition } from "./entities/schema-definition.entity";
-import { ValidationRule } from "./entities/validation-rule.entity";
+import { ImportParserService } from "./services/import-parser.service";
+import { ImportValidatorService } from "./services/import-validator.service";
+import { ImportTemplateService } from "./services/import-template.service";
+import { ImportSessionService } from "./services/import-session.service";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -56,13 +56,11 @@ const createMockQueryBuilder = () => ({
 describe("ImportService", () => {
   let service: ImportService;
   let importJobRepo: MockRepository<ImportJob>;
-  let templateRepo: MockRepository<ImportTemplate>;
-  let sessionRepo: MockRepository<ImportSession>;
-  let auditLogRepo: MockRepository<ImportAuditLog>;
-  let schemaDefRepo: MockRepository<SchemaDefinition>;
-  let validationRuleRepo: MockRepository<ValidationRule>;
-  let dataSource: jest.Mocked<Partial<DataSource>>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let parserService: Record<string, jest.Mock>;
+  let validatorService: Record<string, jest.Mock>;
+  let templateService: Record<string, jest.Mock>;
+  let sessionService: Record<string, jest.Mock>;
 
   const orgId = "org-uuid-1";
   const userId = "user-uuid-1";
@@ -108,7 +106,7 @@ describe("ImportService", () => {
     uploaded_by_user_id: userId,
   };
 
-  const mockTemplate: Partial<ImportTemplate> = {
+  const mockTemplate = {
     id: templateId,
     organizationId: orgId,
     name: "Products Template",
@@ -120,41 +118,50 @@ describe("ImportService", () => {
 
   beforeEach(async () => {
     importJobRepo = createMockRepository<ImportJob>();
-    templateRepo = createMockRepository<ImportTemplate>();
-    sessionRepo = createMockRepository<ImportSession>();
-    auditLogRepo = createMockRepository<ImportAuditLog>();
-    schemaDefRepo = createMockRepository<SchemaDefinition>();
-    validationRuleRepo = createMockRepository<ValidationRule>();
-    dataSource = {
-      createQueryRunner: jest.fn().mockReturnValue({
-        connect: jest.fn(),
-        startTransaction: jest.fn(),
-        commitTransaction: jest.fn(),
-        rollbackTransaction: jest.fn(),
-        release: jest.fn(),
-        query: jest.fn(),
-        manager: { save: jest.fn() },
-      }),
-    };
     eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
+
+    parserService = {
+      parseCSV: jest.fn(),
+      parseExcel: jest.fn(),
+      parseJSON: jest.fn(),
+    };
+
+    validatorService = {
+      getValidator: jest.fn(),
+      applyMapping: jest.fn(),
+      getValidationRules: jest.fn(),
+    };
+
+    templateService = {
+      createTemplate: jest.fn(),
+      getTemplates: jest.fn(),
+      getTemplate: jest.fn(),
+      deleteTemplate: jest.fn(),
+    };
+
+    sessionService = {
+      createSession: jest.fn(),
+      classifySession: jest.fn(),
+      validateSession: jest.fn(),
+      submitForApproval: jest.fn(),
+      approveSession: jest.fn(),
+      rejectSession: jest.fn(),
+      executeImportSession: jest.fn(),
+      getSessions: jest.fn(),
+      getSession: jest.fn(),
+      getAuditLog: jest.fn(),
+      getSchemaDefinitions: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImportService,
         { provide: getRepositoryToken(ImportJob), useValue: importJobRepo },
-        { provide: getRepositoryToken(ImportTemplate), useValue: templateRepo },
-        { provide: getRepositoryToken(ImportSession), useValue: sessionRepo },
-        { provide: getRepositoryToken(ImportAuditLog), useValue: auditLogRepo },
-        {
-          provide: getRepositoryToken(SchemaDefinition),
-          useValue: schemaDefRepo,
-        },
-        {
-          provide: getRepositoryToken(ValidationRule),
-          useValue: validationRuleRepo,
-        },
-        { provide: DataSource, useValue: dataSource },
         { provide: EventEmitter2, useValue: eventEmitter },
+        { provide: ImportParserService, useValue: parserService },
+        { provide: ImportValidatorService, useValue: validatorService },
+        { provide: ImportTemplateService, useValue: templateService },
+        { provide: ImportSessionService, useValue: sessionService },
       ],
     }).compile();
 
@@ -290,66 +297,68 @@ describe("ImportService", () => {
   });
 
   // ========================================================================
-  // parseCSV
+  // parseCSV (delegated to parserService)
   // ========================================================================
 
   describe("parseCSV", () => {
-    it("should parse a CSV buffer into headers and rows", async () => {
-      const csv =
-        "name,price,category\nCola,5000,beverage\nSnickers,8000,snack";
-      const buffer = Buffer.from(csv, "utf-8");
+    it("should delegate to parserService.parseCSV", async () => {
+      const mockResult = {
+        headers: ["name", "price", "category"],
+        rows: [
+          { name: "Cola", price: "5000", category: "beverage" },
+          { name: "Snickers", price: "8000", category: "snack" },
+        ],
+      };
+      parserService.parseCSV.mockResolvedValue(mockResult);
 
+      const buffer = Buffer.from("csv data", "utf-8");
       const result = await service.parseCSV(buffer);
 
+      expect(parserService.parseCSV).toHaveBeenCalledWith(buffer, undefined);
       expect(result.headers).toEqual(["name", "price", "category"]);
       expect(result.rows).toHaveLength(2);
-      expect(result.rows[0]).toEqual({
-        name: "Cola",
-        price: "5000",
-        category: "beverage",
-      });
     });
 
-    it("should handle custom delimiter", async () => {
-      const csv = "name;price;category\nCola;5000;beverage";
-      const buffer = Buffer.from(csv, "utf-8");
+    it("should pass options to parserService", async () => {
+      parserService.parseCSV.mockResolvedValue({ headers: [], rows: [] });
 
-      const result = await service.parseCSV(buffer, { delimiter: ";" });
+      const buffer = Buffer.from("csv data", "utf-8");
+      await service.parseCSV(buffer, { delimiter: ";" });
 
-      expect(result.headers).toEqual(["name", "price", "category"]);
+      expect(parserService.parseCSV).toHaveBeenCalledWith(buffer, {
+        delimiter: ";",
+      });
     });
   });
 
   // ========================================================================
-  // parseJSON
+  // parseJSON (delegated to parserService)
   // ========================================================================
 
   describe("parseJSON", () => {
-    it("should parse a JSON array buffer", async () => {
-      const json = JSON.stringify([
-        { name: "Cola", price: 5000 },
-        { name: "Fanta", price: 5000 },
-      ]);
-      const buffer = Buffer.from(json, "utf-8");
+    it("should delegate to parserService.parseJSON", async () => {
+      const mockResult = {
+        headers: ["name", "price"],
+        rows: [
+          { name: "Cola", price: 5000 },
+          { name: "Fanta", price: 5000 },
+        ],
+      };
+      parserService.parseJSON.mockResolvedValue(mockResult);
 
+      const buffer = Buffer.from("[]", "utf-8");
       const result = await service.parseJSON(buffer);
 
-      expect(result.headers).toEqual(["name", "price"]);
+      expect(parserService.parseJSON).toHaveBeenCalledWith(buffer);
       expect(result.rows).toHaveLength(2);
     });
 
-    it("should wrap single object into array", async () => {
-      const json = JSON.stringify({ name: "Cola", price: 5000 });
-      const buffer = Buffer.from(json, "utf-8");
+    it("should propagate BadRequestException from parserService", async () => {
+      parserService.parseJSON.mockRejectedValue(
+        new BadRequestException("Invalid JSON"),
+      );
 
-      const result = await service.parseJSON(buffer);
-
-      expect(result.rows).toHaveLength(1);
-    });
-
-    it("should throw BadRequestException for invalid JSON", async () => {
       const buffer = Buffer.from("not json", "utf-8");
-
       await expect(service.parseJSON(buffer)).rejects.toThrow(
         BadRequestException,
       );
@@ -361,14 +370,20 @@ describe("ImportService", () => {
   // ========================================================================
 
   describe("validateImportData", () => {
-    it("should validate product rows and separate valid/invalid", async () => {
+    it("should validate product rows using validatorService", async () => {
       importJobRepo.findOne!.mockResolvedValue({ ...mockJob });
       importJobRepo.save!.mockImplementation(async (entity) => entity);
 
+      const mockValidator = (row: Record<string, string>) => {
+        const errors: { field: string; message: string }[] = [];
+        if (!row.name) errors.push({ field: "name", message: "required" });
+        return { errors, warnings: [] };
+      };
+      validatorService.getValidator.mockReturnValue(mockValidator);
+
       const rows = [
         { name: "Cola", price: "5000", category: "beverage" },
-        { name: "", price: "8000", category: "snack" }, // Missing name
-        { name: "Chips", price: "-100", category: "snack" }, // Negative price
+        { name: "", price: "8000", category: "snack" },
       ];
 
       const result = await service.validateImportData(
@@ -378,17 +393,21 @@ describe("ImportService", () => {
         ImportType.PRODUCTS,
       );
 
-      expect(result.validRows.length).toBeGreaterThanOrEqual(1); // Cola is valid
-      expect(result.invalidRows.length).toBeGreaterThanOrEqual(1); // Missing name
+      expect(result.validRows.length).toBeGreaterThanOrEqual(1);
+      expect(result.invalidRows.length).toBeGreaterThanOrEqual(1);
     });
 
     it("should set job status to VALIDATION_FAILED when all rows are invalid", async () => {
       importJobRepo.findOne!.mockResolvedValue({ ...mockJob });
       importJobRepo.save!.mockImplementation(async (entity) => entity);
 
-      const rows = [
-        { name: "", price: "5000" }, // Missing name
-      ];
+      const mockValidator = () => ({
+        errors: [{ field: "name", message: "required" }],
+        warnings: [],
+      });
+      validatorService.getValidator.mockReturnValue(mockValidator);
+
+      const rows = [{ name: "", price: "5000" }];
 
       const result = await service.validateImportData(
         orgId,
@@ -404,6 +423,26 @@ describe("ImportService", () => {
       importJobRepo.findOne!.mockResolvedValue({ ...mockJob });
       importJobRepo.save!.mockImplementation(async (entity) => entity);
 
+      const mockValidatorMapping = (row: Record<string, string>) => {
+        const errors: { field: string; message: string }[] = [];
+        if (!row.name) errors.push({ field: "name", message: "required" });
+        return { errors, warnings: [] };
+      };
+      validatorService.getValidator.mockReturnValue(mockValidatorMapping);
+      validatorService.applyMapping.mockImplementation(
+        (row: Record<string, string>, mapping: Record<string, string>) => {
+          const mapped: Record<string, string> = {};
+          for (const [from, to] of Object.entries(mapping)) {
+            if (row[from] !== undefined) mapped[to] = row[from];
+          }
+          // Copy unmapped fields
+          for (const [key, val] of Object.entries(row)) {
+            if (!mapping[key]) mapped[key] = val;
+          }
+          return mapped;
+        },
+      );
+
       const rows = [{ product_name: "Cola", cost: "5000" }];
       const mapping = { product_name: "name", cost: "price" };
 
@@ -415,70 +454,69 @@ describe("ImportService", () => {
         mapping,
       );
 
-      // After mapping, "product_name" -> "name" should pass the name-required check
       expect(result.validRows).toHaveLength(1);
     });
   });
 
   // ========================================================================
-  // Templates
+  // Templates (delegated to templateService)
   // ========================================================================
 
   describe("createTemplate", () => {
-    it("should create an import template", async () => {
-      templateRepo.create!.mockReturnValue(mockTemplate);
-      templateRepo.save!.mockResolvedValue(mockTemplate);
+    it("should delegate to templateService", async () => {
+      templateService.createTemplate.mockResolvedValue(mockTemplate);
 
       const result = await service.createTemplate(orgId, userId, {
         name: "Products Template",
         importType: ImportType.PRODUCTS,
       });
 
+      expect(templateService.createTemplate).toHaveBeenCalledWith(
+        orgId,
+        userId,
+        expect.objectContaining({ name: "Products Template" }),
+      );
       expect(result).toEqual(mockTemplate);
     });
   });
 
   describe("getTemplates", () => {
-    it("should return active templates for organization", async () => {
-      templateRepo.find!.mockResolvedValue([mockTemplate]);
+    it("should delegate to templateService", async () => {
+      templateService.getTemplates.mockResolvedValue([mockTemplate]);
 
       const result = await service.getTemplates(orgId);
 
-      expect(result).toEqual([mockTemplate]);
-      expect(templateRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { organizationId: orgId, isActive: true },
-        }),
+      expect(templateService.getTemplates).toHaveBeenCalledWith(
+        orgId,
+        undefined,
       );
+      expect(result).toEqual([mockTemplate]);
     });
 
-    it("should filter by import type when provided", async () => {
-      templateRepo.find!.mockResolvedValue([]);
+    it("should pass importType filter", async () => {
+      templateService.getTemplates.mockResolvedValue([]);
 
       await service.getTemplates(orgId, ImportType.MACHINES);
 
-      expect(templateRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            organizationId: orgId,
-            isActive: true,
-            importType: ImportType.MACHINES,
-          },
-        }),
+      expect(templateService.getTemplates).toHaveBeenCalledWith(
+        orgId,
+        ImportType.MACHINES,
       );
     });
   });
 
   describe("getTemplate", () => {
-    it("should return a template by ID", async () => {
-      templateRepo.findOne!.mockResolvedValue(mockTemplate);
+    it("should delegate to templateService", async () => {
+      templateService.getTemplate.mockResolvedValue(mockTemplate);
 
       const result = await service.getTemplate(orgId, templateId);
       expect(result).toEqual(mockTemplate);
     });
 
-    it("should throw NotFoundException when template not found", async () => {
-      templateRepo.findOne!.mockResolvedValue(null);
+    it("should propagate NotFoundException from templateService", async () => {
+      templateService.getTemplate.mockRejectedValue(
+        new NotFoundException("Template not found"),
+      );
 
       await expect(service.getTemplate(orgId, "bad")).rejects.toThrow(
         NotFoundException,
@@ -487,32 +525,34 @@ describe("ImportService", () => {
   });
 
   describe("deleteTemplate", () => {
-    it("should deactivate a template", async () => {
-      templateRepo.update!.mockResolvedValue({ affected: 1 });
+    it("should delegate to templateService", async () => {
+      templateService.deleteTemplate.mockResolvedValue(undefined);
 
       await service.deleteTemplate(orgId, templateId);
 
-      expect(templateRepo.update).toHaveBeenCalledWith(
-        { id: templateId, organizationId: orgId },
-        { isActive: false },
+      expect(templateService.deleteTemplate).toHaveBeenCalledWith(
+        orgId,
+        templateId,
       );
     });
   });
 
   // ========================================================================
-  // Import Sessions
+  // Import Sessions (delegated to sessionService)
   // ========================================================================
 
   describe("getSession", () => {
-    it("should return a session by ID", async () => {
-      sessionRepo.findOne!.mockResolvedValue(mockSession);
+    it("should delegate to sessionService", async () => {
+      sessionService.getSession.mockResolvedValue(mockSession);
 
       const result = await service.getSession(sessionId, orgId);
       expect(result).toEqual(mockSession);
     });
 
-    it("should throw NotFoundException when session not found", async () => {
-      sessionRepo.findOne!.mockResolvedValue(null);
+    it("should propagate NotFoundException from sessionService", async () => {
+      sessionService.getSession.mockRejectedValue(
+        new NotFoundException("Session not found"),
+      );
 
       await expect(service.getSession("bad", orgId)).rejects.toThrow(
         NotFoundException,
@@ -521,10 +561,11 @@ describe("ImportService", () => {
   });
 
   describe("getSessions", () => {
-    it("should return paginated sessions", async () => {
-      const qb = createMockQueryBuilder();
-      qb.getManyAndCount.mockResolvedValue([[mockSession], 1]);
-      sessionRepo.createQueryBuilder!.mockReturnValue(qb);
+    it("should delegate to sessionService", async () => {
+      sessionService.getSessions.mockResolvedValue({
+        data: [mockSession],
+        total: 1,
+      });
 
       const result = await service.getSessions({ page: 1, limit: 20 }, orgId);
 
@@ -534,60 +575,30 @@ describe("ImportService", () => {
   });
 
   // ========================================================================
-  // submitForApproval
+  // submitForApproval (delegated to sessionService)
   // ========================================================================
 
   describe("submitForApproval", () => {
-    it("should auto-approve when confidence >= 95% and no errors", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
+    it("should delegate to sessionService", async () => {
+      sessionService.submitForApproval.mockResolvedValue({
         ...mockSession,
-        status: ImportSessionStatus.VALIDATED,
-        classification_confidence: 98,
-        validation_report: { errors: [] },
+        status: ImportSessionStatus.APPROVED,
+        approval_status: ApprovalStatus.AUTO_APPROVED,
       });
-      sessionRepo.save!.mockImplementation(async (entity) => entity);
 
       const result = await service.submitForApproval(sessionId, orgId);
 
+      expect(sessionService.submitForApproval).toHaveBeenCalledWith(
+        sessionId,
+        orgId,
+      );
       expect(result.approval_status).toBe(ApprovalStatus.AUTO_APPROVED);
-      expect(result.status).toBe(ImportSessionStatus.APPROVED);
     });
 
-    it("should require manual approval when confidence < 95%", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
-        ...mockSession,
-        status: ImportSessionStatus.VALIDATED,
-        classification_confidence: 70,
-        validation_report: { errors: [] },
-      });
-      sessionRepo.save!.mockImplementation(async (entity) => entity);
-
-      const result = await service.submitForApproval(sessionId, orgId);
-
-      expect(result.status).toBe(ImportSessionStatus.AWAITING_APPROVAL);
-    });
-
-    it("should require manual approval when there are validation errors", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
-        ...mockSession,
-        status: ImportSessionStatus.VALIDATED,
-        classification_confidence: 98,
-        validation_report: {
-          errors: [{ row: 1, field: "name", message: "required" }],
-        },
-      });
-      sessionRepo.save!.mockImplementation(async (entity) => entity);
-
-      const result = await service.submitForApproval(sessionId, orgId);
-
-      expect(result.status).toBe(ImportSessionStatus.AWAITING_APPROVAL);
-    });
-
-    it("should throw when session is not in VALIDATED status", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
-        ...mockSession,
-        status: ImportSessionStatus.UPLOADED,
-      });
+    it("should propagate BadRequestException from sessionService", async () => {
+      sessionService.submitForApproval.mockRejectedValue(
+        new BadRequestException("Not in VALIDATED status"),
+      );
 
       await expect(service.submitForApproval(sessionId, orgId)).rejects.toThrow(
         BadRequestException,
@@ -596,16 +607,16 @@ describe("ImportService", () => {
   });
 
   // ========================================================================
-  // approveSession
+  // approveSession (delegated to sessionService)
   // ========================================================================
 
   describe("approveSession", () => {
-    it("should approve a session awaiting approval", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
+    it("should delegate to sessionService", async () => {
+      sessionService.approveSession.mockResolvedValue({
         ...mockSession,
-        status: ImportSessionStatus.AWAITING_APPROVAL,
+        approval_status: ApprovalStatus.APPROVED,
+        approved_by_user_id: userId,
       });
-      sessionRepo.save!.mockImplementation(async (entity) => entity);
 
       const result = await service.approveSession(
         sessionId,
@@ -618,11 +629,10 @@ describe("ImportService", () => {
       expect(result.approved_by_user_id).toBe(userId);
     });
 
-    it("should throw when not in AWAITING_APPROVAL status", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
-        ...mockSession,
-        status: ImportSessionStatus.UPLOADED,
-      });
+    it("should propagate BadRequestException from sessionService", async () => {
+      sessionService.approveSession.mockRejectedValue(
+        new BadRequestException("Not awaiting approval"),
+      );
 
       await expect(
         service.approveSession(sessionId, {}, userId, orgId),
@@ -631,16 +641,17 @@ describe("ImportService", () => {
   });
 
   // ========================================================================
-  // rejectSession
+  // rejectSession (delegated to sessionService)
   // ========================================================================
 
   describe("rejectSession", () => {
-    it("should reject a session with reason", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
+    it("should delegate to sessionService", async () => {
+      sessionService.rejectSession.mockResolvedValue({
         ...mockSession,
-        status: ImportSessionStatus.AWAITING_APPROVAL,
+        approval_status: ApprovalStatus.REJECTED,
+        rejection_reason: "Bad data",
+        status: ImportSessionStatus.REJECTED,
       });
-      sessionRepo.save!.mockImplementation(async (entity) => entity);
 
       const result = await service.rejectSession(
         sessionId,
@@ -651,50 +662,37 @@ describe("ImportService", () => {
 
       expect(result.approval_status).toBe(ApprovalStatus.REJECTED);
       expect(result.rejection_reason).toBe("Bad data");
-      expect(result.status).toBe(ImportSessionStatus.REJECTED);
-    });
-
-    it("should throw when not in AWAITING_APPROVAL status", async () => {
-      sessionRepo.findOne!.mockResolvedValue({
-        ...mockSession,
-        status: ImportSessionStatus.VALIDATED,
-      });
-
-      await expect(
-        service.rejectSession(sessionId, { reason: "x" }, userId, orgId),
-      ).rejects.toThrow(BadRequestException);
     });
   });
 
   // ========================================================================
-  // Schema Definitions & Validation Rules
+  // Schema Definitions & Validation Rules (delegated)
   // ========================================================================
 
   describe("getSchemaDefinitions", () => {
-    it("should return active schema definitions", async () => {
+    it("should delegate to sessionService", async () => {
       const schemaDef = { domain: DomainType.PRODUCTS, is_active: true };
-      schemaDefRepo.find!.mockResolvedValue([schemaDef]);
+      sessionService.getSchemaDefinitions.mockResolvedValue([schemaDef]);
 
       const result = await service.getSchemaDefinitions();
 
       expect(result).toEqual([schemaDef]);
     });
 
-    it("should filter by domain when provided", async () => {
-      schemaDefRepo.find!.mockResolvedValue([]);
+    it("should pass domain filter", async () => {
+      sessionService.getSchemaDefinitions.mockResolvedValue([]);
 
       await service.getSchemaDefinitions(DomainType.MACHINES);
 
-      expect(schemaDefRepo.find).toHaveBeenCalledWith({
-        where: { is_active: true, domain: DomainType.MACHINES },
-        order: { domain: "ASC", table_name: "ASC" },
-      });
+      expect(sessionService.getSchemaDefinitions).toHaveBeenCalledWith(
+        DomainType.MACHINES,
+      );
     });
   });
 
   describe("getValidationRules", () => {
-    it("should return active validation rules", async () => {
-      validationRuleRepo.find!.mockResolvedValue([]);
+    it("should delegate to validatorService", async () => {
+      validatorService.getValidationRules.mockResolvedValue([]);
 
       const result = await service.getValidationRules();
 
@@ -703,15 +701,15 @@ describe("ImportService", () => {
   });
 
   // ========================================================================
-  // getAuditLog
+  // getAuditLog (delegated to sessionService)
   // ========================================================================
 
   describe("getAuditLog", () => {
-    it("should return paginated audit log entries", async () => {
-      sessionRepo.findOne!.mockResolvedValue(mockSession);
-      const qb = createMockQueryBuilder();
-      qb.getManyAndCount.mockResolvedValue([[], 0]);
-      auditLogRepo.createQueryBuilder!.mockReturnValue(qb);
+    it("should delegate to sessionService", async () => {
+      sessionService.getAuditLog.mockResolvedValue({
+        data: [],
+        total: 0,
+      });
 
       const result = await service.getAuditLog(
         sessionId,
