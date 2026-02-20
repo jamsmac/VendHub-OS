@@ -1,6 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import { StorageService } from "./storage.service";
 
 // Mock S3 commands and client
@@ -88,7 +92,7 @@ describe("StorageService", () => {
         "image/jpeg",
       );
 
-      expect(result.key).toContain("org-1/images/");
+      expect(result.key).toContain("org/org-1/images/");
       expect(result.key).toContain(".jpg");
       expect(result.size).toBe(buffer.length);
       expect(result.mimeType).toBe("image/jpeg");
@@ -166,7 +170,7 @@ describe("StorageService", () => {
       );
 
       expect(result.uploadUrl).toBe("https://presigned-url.example.com");
-      expect(result.key).toContain("org-1/uploads/");
+      expect(result.key).toContain("org/org-1/uploads/");
       expect(result.cdnUrl).toContain("cdn.vendhub.test");
       expect(result.expiresAt).toBeInstanceOf(Date);
     });
@@ -210,7 +214,7 @@ describe("StorageService", () => {
         ContentType: "text/plain",
       });
 
-      const result = await service.getFile("org-1/docs/file.txt");
+      const result = await service.getFile("org-1", "org-1/docs/file.txt");
 
       expect(result.buffer.toString()).toBe("hello world");
       expect(result.contentType).toBe("text/plain");
@@ -222,7 +226,7 @@ describe("StorageService", () => {
       error.name = "NoSuchKey";
       mockSend.mockRejectedValue(error);
 
-      await expect(service.getFile("non/existent/key")).rejects.toThrow(
+      await expect(service.getFile("non", "non/existent/key")).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -230,7 +234,7 @@ describe("StorageService", () => {
     it("should throw BadRequestException for other S3 errors", async () => {
       mockSend.mockRejectedValue(new Error("S3 internal error"));
 
-      await expect(service.getFile("some/key")).rejects.toThrow(
+      await expect(service.getFile("some", "some/key")).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -243,6 +247,7 @@ describe("StorageService", () => {
   describe("getPresignedDownloadUrl", () => {
     it("should generate a presigned download URL", async () => {
       const result = await service.getPresignedDownloadUrl(
+        "org-1",
         "org-1/docs/file.pdf",
       );
 
@@ -258,7 +263,10 @@ describe("StorageService", () => {
     it("should return true when file exists", async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await service.fileExists("org-1/images/photo.jpg");
+      const result = await service.fileExists(
+        "org-1",
+        "org-1/images/photo.jpg",
+      );
 
       expect(result).toBe(true);
     });
@@ -269,7 +277,7 @@ describe("StorageService", () => {
       error.name = "NotFound";
       mockSend.mockRejectedValue(error);
 
-      const result = await service.fileExists("non/existent/key");
+      const result = await service.fileExists("non", "non/existent/key");
 
       expect(result).toBe(false);
     });
@@ -277,7 +285,7 @@ describe("StorageService", () => {
     it("should re-throw non-NotFound errors", async () => {
       mockSend.mockRejectedValue(new Error("Network error"));
 
-      await expect(service.fileExists("some/key")).rejects.toThrow(
+      await expect(service.fileExists("some", "some/key")).rejects.toThrow(
         "Network error",
       );
     });
@@ -297,7 +305,10 @@ describe("StorageService", () => {
         ETag: '"abc"',
       });
 
-      const result = await service.getFileMetadata("org-1/images/photo.jpg");
+      const result = await service.getFileMetadata(
+        "org-1",
+        "org-1/images/photo.jpg",
+      );
 
       expect(result.key).toBe("org-1/images/photo.jpg");
       expect(result.size).toBe(1024);
@@ -312,9 +323,9 @@ describe("StorageService", () => {
       error.name = "NotFound";
       mockSend.mockRejectedValue(error);
 
-      await expect(service.getFileMetadata("non/existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getFileMetadata("non", "non/existent"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -326,7 +337,7 @@ describe("StorageService", () => {
     it("should delete a file", async () => {
       mockSend.mockResolvedValue({});
 
-      await service.deleteFile("org-1/images/photo.jpg");
+      await service.deleteFile("org-1", "org-1/images/photo.jpg");
 
       expect(mockSend).toHaveBeenCalled();
     });
@@ -334,7 +345,7 @@ describe("StorageService", () => {
     it("should throw BadRequestException on S3 error", async () => {
       mockSend.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(service.deleteFile("some/key")).rejects.toThrow(
+      await expect(service.deleteFile("some", "some/key")).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -351,7 +362,11 @@ describe("StorageService", () => {
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(new Error("fail"));
 
-      const result = await service.deleteFiles(["key1", "key2", "key3"]);
+      const result = await service.deleteFiles("org-1", [
+        "org-1/key1",
+        "org-1/key2",
+        "org-1/key3",
+      ]);
 
       expect(result.deleted).toBe(2);
       expect(result.failed).toBe(1);
@@ -360,7 +375,10 @@ describe("StorageService", () => {
     it("should return all deleted when all succeed", async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await service.deleteFiles(["k1", "k2"]);
+      const result = await service.deleteFiles("org-1", [
+        "org-1/k1",
+        "org-1/k2",
+      ]);
 
       expect(result.deleted).toBe(2);
       expect(result.failed).toBe(0);
@@ -375,7 +393,7 @@ describe("StorageService", () => {
     it("should copy a file and return CDN URL", async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await service.copyFile("source/key", "dest/key");
+      const result = await service.copyFile("source", "source/key", "dest/key");
 
       expect(result).toContain("cdn.vendhub.test/dest/key");
     });
@@ -383,9 +401,9 @@ describe("StorageService", () => {
     it("should throw BadRequestException on copy error", async () => {
       mockSend.mockRejectedValue(new Error("Copy failed"));
 
-      await expect(service.copyFile("src", "dst")).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.copyFile("src", "src/file", "dst/file"),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -397,10 +415,46 @@ describe("StorageService", () => {
     it("should copy then delete the source file", async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await service.moveFile("old/key", "new/key");
+      const result = await service.moveFile("old", "old/key", "new/key");
 
       expect(result).toContain("new/key");
       expect(mockSend).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ==========================================================================
+  // TENANT ISOLATION (validateKeyAccess)
+  // ==========================================================================
+
+  describe("tenant isolation", () => {
+    it("should allow access to files with new org/ prefix", async () => {
+      mockSend.mockResolvedValue({});
+
+      // Should not throw - key starts with org/org-1/
+      await expect(
+        service.fileExists("org-1", "org/org-1/images/photo.jpg"),
+      ).resolves.toBe(true);
+    });
+
+    it("should allow access to files with legacy prefix", async () => {
+      mockSend.mockResolvedValue({});
+
+      // Should not throw - key starts with org-1/ (legacy format)
+      await expect(
+        service.fileExists("org-1", "org-1/images/photo.jpg"),
+      ).resolves.toBe(true);
+    });
+
+    it("should deny access to files belonging to another organization", async () => {
+      await expect(
+        service.getFile("org-1", "org/org-2/images/photo.jpg"),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should deny access when key has no matching prefix", async () => {
+      await expect(
+        service.deleteFile("org-1", "other-org/file.txt"),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

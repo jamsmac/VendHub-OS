@@ -8,6 +8,7 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 // AWS SDK is optional - provide mock types if not installed
@@ -280,7 +281,11 @@ export class StorageService {
   /**
    * Get file as buffer
    */
-  async getFile(key: string): Promise<{ buffer: Buffer; contentType: string }> {
+  async getFile(
+    organizationId: string,
+    key: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    this.validateKeyAccess(key, organizationId);
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucket,
@@ -313,10 +318,12 @@ export class StorageService {
    * Generate presigned URL for download
    */
   async getPresignedDownloadUrl(
+    organizationId: string,
     key: string,
     expiresInSeconds: number = 3600,
     downloadFileName?: string,
   ): Promise<string> {
+    this.validateKeyAccess(key, organizationId);
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucket,
@@ -343,7 +350,8 @@ export class StorageService {
   /**
    * Check if file exists
    */
-  async fileExists(key: string): Promise<boolean> {
+  async fileExists(organizationId: string, key: string): Promise<boolean> {
+    this.validateKeyAccess(key, organizationId);
     try {
       const command = new HeadObjectCommand({
         Bucket: this.bucket,
@@ -364,7 +372,11 @@ export class StorageService {
   /**
    * Get file metadata
    */
-  async getFileMetadata(key: string): Promise<FileMetadata> {
+  async getFileMetadata(
+    organizationId: string,
+    key: string,
+  ): Promise<FileMetadata> {
+    this.validateKeyAccess(key, organizationId);
     try {
       const command = new HeadObjectCommand({
         Bucket: this.bucket,
@@ -392,7 +404,8 @@ export class StorageService {
   /**
    * Delete file
    */
-  async deleteFile(key: string): Promise<void> {
+  async deleteFile(organizationId: string, key: string): Promise<void> {
+    this.validateKeyAccess(key, organizationId);
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.bucket,
@@ -412,6 +425,7 @@ export class StorageService {
    * Delete multiple files
    */
   async deleteFiles(
+    organizationId: string,
     keys: string[],
   ): Promise<{ deleted: number; failed: number }> {
     let deleted = 0;
@@ -419,7 +433,7 @@ export class StorageService {
 
     for (const key of keys) {
       try {
-        await this.deleteFile(key);
+        await this.deleteFile(organizationId, key);
         deleted++;
       } catch {
         failed++;
@@ -432,7 +446,12 @@ export class StorageService {
   /**
    * Copy file
    */
-  async copyFile(sourceKey: string, destinationKey: string): Promise<string> {
+  async copyFile(
+    organizationId: string,
+    sourceKey: string,
+    destinationKey: string,
+  ): Promise<string> {
+    this.validateKeyAccess(sourceKey, organizationId);
     try {
       const command = new CopyObjectCommand({
         Bucket: this.bucket,
@@ -454,9 +473,17 @@ export class StorageService {
   /**
    * Move file (copy + delete)
    */
-  async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
-    const newUrl = await this.copyFile(sourceKey, destinationKey);
-    await this.deleteFile(sourceKey);
+  async moveFile(
+    organizationId: string,
+    sourceKey: string,
+    destinationKey: string,
+  ): Promise<string> {
+    const newUrl = await this.copyFile(
+      organizationId,
+      sourceKey,
+      destinationKey,
+    );
+    await this.deleteFile(organizationId, sourceKey);
     return newUrl;
   }
 
@@ -468,7 +495,7 @@ export class StorageService {
     folder: string,
     maxFiles: number = 1000,
   ): Promise<FileMetadata[]> {
-    const prefix = `${organizationId}/${folder}/`;
+    const prefix = `org/${organizationId}/${folder}/`;
 
     try {
       const command = new ListObjectsV2Command({
@@ -516,7 +543,18 @@ export class StorageService {
       .replace(/[^a-z0-9]/g, "-")
       .substring(0, 50);
 
-    return `${organizationId}/${folder}/${sanitizedName}-${timestamp}-${hash}${ext}`;
+    return `org/${organizationId}/${folder}/${sanitizedName}-${timestamp}-${hash}${ext}`;
+  }
+
+  /**
+   * Validate that a file key belongs to the given organization
+   */
+  private validateKeyAccess(key: string, organizationId: string): void {
+    const newPrefix = `org/${organizationId}/`;
+    const legacyPrefix = `${organizationId}/`;
+    if (!key.startsWith(newPrefix) && !key.startsWith(legacyPrefix)) {
+      throw new ForbiddenException("Access denied to this file");
+    }
   }
 
   /**

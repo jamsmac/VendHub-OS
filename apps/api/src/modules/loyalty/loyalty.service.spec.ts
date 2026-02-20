@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, DataSource } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -91,6 +91,20 @@ describe("LoyaltyService", () => {
   };
 
   // ---------------------------------------------------------------------------
+  // DataSource transaction mock
+  // ---------------------------------------------------------------------------
+
+  const mockManager = {
+    getRepository: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockDataSource = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transaction: jest.fn().mockImplementation((cb: any) => cb(mockManager)),
+  };
+
+  // ---------------------------------------------------------------------------
   // Module setup
   // ---------------------------------------------------------------------------
 
@@ -146,6 +160,10 @@ describe("LoyaltyService", () => {
           useValue: {
             emit: jest.fn(),
           },
+        },
+        {
+          provide: DataSource,
+          useValue: mockDataSource,
         },
       ],
     }).compile();
@@ -492,31 +510,34 @@ describe("LoyaltyService", () => {
 
   describe("spendPoints", () => {
     it("should deduct points and return discount amount using FIFO", async () => {
-      const userWithBalance = {
-        ...mockUser,
-        pointsBalance: 1000,
-      } as User;
-      userRepo.findOne.mockResolvedValue(userWithBalance);
-      pointsTransactionRepo.create.mockReturnValue({
-        ...mockTransaction,
-        id: "spend-uuid-1",
-        type: PointsTransactionType.SPEND,
-        amount: -200,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-      pointsTransactionRepo.save.mockResolvedValue({
-        ...mockTransaction,
-        id: "spend-uuid-1",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-      // deductFromOldestTransactions: find earn txns for FIFO
-      pointsTransactionRepo.find.mockResolvedValue([
-        { ...mockTransaction, remainingAmount: 300 } as PointsTransaction,
-      ]);
+      const mockTxRepo = {
+        create: jest.fn().mockReturnValue({
+          ...mockTransaction,
+          id: "spend-uuid-1",
+          type: PointsTransactionType.SPEND,
+          amount: -200,
+        }),
+        save: jest.fn().mockResolvedValue({
+          ...mockTransaction,
+          id: "spend-uuid-1",
+        }),
+        find: jest
+          .fn()
+          .mockResolvedValue([{ ...mockTransaction, remainingAmount: 300 }]),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      const mockUserRepoInTx = {
+        findOne: jest.fn().mockResolvedValue({
+          ...mockUser,
+          pointsBalance: 1000,
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointsTransactionRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.update.mockResolvedValue(undefined as any);
+      mockManager.getRepository.mockImplementation((entity: any) => {
+        if (entity === User) return mockUserRepoInTx;
+        return mockTxRepo;
+      });
 
       const result = await service.spendPoints({
         userId: "user-uuid-1",
@@ -533,11 +554,24 @@ describe("LoyaltyService", () => {
     });
 
     it("should throw BadRequestException for insufficient balance", async () => {
-      const userWithLowBalance = {
-        ...mockUser,
-        pointsBalance: 50,
-      } as User;
-      userRepo.findOne.mockResolvedValue(userWithLowBalance);
+      const mockTxRepo = {
+        create: jest.fn(),
+        save: jest.fn(),
+        find: jest.fn(),
+        update: jest.fn(),
+      };
+      const mockUserRepoInTx = {
+        findOne: jest.fn().mockResolvedValue({
+          ...mockUser,
+          pointsBalance: 50,
+        }),
+        update: jest.fn(),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockManager.getRepository.mockImplementation((entity: any) => {
+        if (entity === User) return mockUserRepoInTx;
+        return mockTxRepo;
+      });
 
       await expect(
         service.spendPoints({
@@ -549,11 +583,24 @@ describe("LoyaltyService", () => {
     });
 
     it("should throw BadRequestException when below minimum spend threshold", async () => {
-      const userWithBalance = {
-        ...mockUser,
-        pointsBalance: 1000,
-      } as User;
-      userRepo.findOne.mockResolvedValue(userWithBalance);
+      const mockTxRepo = {
+        create: jest.fn(),
+        save: jest.fn(),
+        find: jest.fn(),
+        update: jest.fn(),
+      };
+      const mockUserRepoInTx = {
+        findOne: jest.fn().mockResolvedValue({
+          ...mockUser,
+          pointsBalance: 1000,
+        }),
+        update: jest.fn(),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockManager.getRepository.mockImplementation((entity: any) => {
+        if (entity === User) return mockUserRepoInTx;
+        return mockTxRepo;
+      });
 
       // minPointsToSpend = 100 per constants
       await expect(
@@ -566,26 +613,32 @@ describe("LoyaltyService", () => {
     });
 
     it("should emit loyalty.points_spent event", async () => {
-      const userWithBalance = {
-        ...mockUser,
-        pointsBalance: 1000,
-      } as User;
-      userRepo.findOne.mockResolvedValue(userWithBalance);
-      pointsTransactionRepo.create.mockReturnValue({
-        ...mockTransaction,
-        id: "spend-uuid-2",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-      pointsTransactionRepo.save.mockResolvedValue({
-        ...mockTransaction,
-        id: "spend-uuid-2",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-      pointsTransactionRepo.find.mockResolvedValue([]);
+      const mockTxRepo = {
+        create: jest.fn().mockReturnValue({
+          ...mockTransaction,
+          id: "spend-uuid-2",
+          type: PointsTransactionType.SPEND,
+          amount: -200,
+        }),
+        save: jest.fn().mockResolvedValue({
+          ...mockTransaction,
+          id: "spend-uuid-2",
+        }),
+        find: jest.fn().mockResolvedValue([]),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      const mockUserRepoInTx = {
+        findOne: jest.fn().mockResolvedValue({
+          ...mockUser,
+          pointsBalance: 1000,
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pointsTransactionRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userRepo.update.mockResolvedValue(undefined as any);
+      mockManager.getRepository.mockImplementation((entity: any) => {
+        if (entity === User) return mockUserRepoInTx;
+        return mockTxRepo;
+      });
 
       await service.spendPoints({
         userId: "user-uuid-1",
@@ -605,7 +658,21 @@ describe("LoyaltyService", () => {
     });
 
     it("should throw NotFoundException when user not found", async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      const mockTxRepo = {
+        create: jest.fn(),
+        save: jest.fn(),
+        find: jest.fn(),
+        update: jest.fn(),
+      };
+      const mockUserRepoInTx = {
+        findOne: jest.fn().mockResolvedValue(null),
+        update: jest.fn(),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockManager.getRepository.mockImplementation((entity: any) => {
+        if (entity === User) return mockUserRepoInTx;
+        return mockTxRepo;
+      });
 
       await expect(
         service.spendPoints({

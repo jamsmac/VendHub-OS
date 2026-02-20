@@ -89,7 +89,7 @@ export class StorageController {
     @Body() dto: UploadFileDto,
   ): Promise<UploadResult> {
     if (!file) {
-      throw new Error("No file provided");
+      throw new BadRequestException("No file provided");
     }
 
     // Validate MIME type against category allowlist
@@ -180,10 +180,14 @@ export class StorageController {
   @ApiResponse({ status: 200, description: "File stream returned" })
   @ApiResponse({ status: 404, description: "File not found" })
   async downloadFile(
+    @CurrentOrganizationId() organizationId: string,
     @Param("key") key: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
-    const { buffer, contentType } = await this.storageService.getFile(key);
+    const { buffer, contentType } = await this.storageService.getFile(
+      organizationId,
+      key,
+    );
 
     const rawName = key.split("/").pop() || "download";
     const sanitizedName = rawName.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -202,11 +206,13 @@ export class StorageController {
   @ApiResponse({ status: 200, description: "Presigned download URL generated" })
   @ApiResponse({ status: 400, description: "Invalid parameters" })
   async getPresignedDownloadUrl(
+    @CurrentOrganizationId() organizationId: string,
     @Param("key") key: string,
     @Query() query: PresignedDownloadQueryDto,
   ): Promise<{ url: string; expiresAt: Date }> {
     const expiresIn = query.expires_in || 3600;
     const url = await this.storageService.getPresignedDownloadUrl(
+      organizationId,
       key,
       expiresIn,
       query.file_name,
@@ -243,8 +249,11 @@ export class StorageController {
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "File metadata returned" })
   @ApiResponse({ status: 404, description: "File not found" })
-  async getFileMetadata(@Param("key") key: string): Promise<FileMetadata> {
-    return this.storageService.getFileMetadata(key);
+  async getFileMetadata(
+    @CurrentOrganizationId() organizationId: string,
+    @Param("key") key: string,
+  ): Promise<FileMetadata> {
+    return this.storageService.getFileMetadata(organizationId, key);
   }
 
   @Get("files/exists/:key(*)")
@@ -252,8 +261,11 @@ export class StorageController {
   @ApiOperation({ summary: "Check if file exists" })
   @ApiParam({ name: "key", description: "File key" })
   @ApiResponse({ status: 200, description: "File existence check result" })
-  async fileExists(@Param("key") key: string): Promise<{ exists: boolean }> {
-    const exists = await this.storageService.fileExists(key);
+  async fileExists(
+    @CurrentOrganizationId() organizationId: string,
+    @Param("key") key: string,
+  ): Promise<{ exists: boolean }> {
+    const exists = await this.storageService.fileExists(organizationId, key);
     return { exists };
   }
 
@@ -264,8 +276,11 @@ export class StorageController {
   @ApiResponse({ status: 204, description: "File deleted successfully" })
   @ApiResponse({ status: 400, description: "Failed to delete file" })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteFile(@Param("key") key: string): Promise<void> {
-    await this.storageService.deleteFile(key);
+  async deleteFile(
+    @CurrentOrganizationId() organizationId: string,
+    @Param("key") key: string,
+  ): Promise<void> {
+    await this.storageService.deleteFile(organizationId, key);
   }
 
   @Post("files/delete-bulk")
@@ -274,9 +289,10 @@ export class StorageController {
   @ApiResponse({ status: 200, description: "Bulk delete result" })
   @ApiResponse({ status: 400, description: "Invalid parameters" })
   async deleteFiles(
+    @CurrentOrganizationId() organizationId: string,
     @Body() dto: DeleteFilesDto,
   ): Promise<{ deleted: number; failed: number }> {
-    return this.storageService.deleteFiles(dto.keys);
+    return this.storageService.deleteFiles(organizationId, dto.keys);
   }
 
   @Post("files/copy")
@@ -284,8 +300,12 @@ export class StorageController {
   @ApiOperation({ summary: "Copy file" })
   @ApiResponse({ status: 200, description: "File copied successfully" })
   @ApiResponse({ status: 400, description: "Failed to copy file" })
-  async copyFile(@Body() dto: CopyFileDto): Promise<{ url: string }> {
+  async copyFile(
+    @CurrentOrganizationId() organizationId: string,
+    @Body() dto: CopyFileDto,
+  ): Promise<{ url: string }> {
     const url = await this.storageService.copyFile(
+      organizationId,
       dto.source_key,
       dto.destination_key,
     );
@@ -297,8 +317,12 @@ export class StorageController {
   @ApiOperation({ summary: "Move file" })
   @ApiResponse({ status: 200, description: "File moved successfully" })
   @ApiResponse({ status: 400, description: "Failed to move file" })
-  async moveFile(@Body() dto: MoveFileDto): Promise<{ url: string }> {
+  async moveFile(
+    @CurrentOrganizationId() organizationId: string,
+    @Body() dto: MoveFileDto,
+  ): Promise<{ url: string }> {
     const url = await this.storageService.moveFile(
+      organizationId,
       dto.source_key,
       dto.destination_key,
     );

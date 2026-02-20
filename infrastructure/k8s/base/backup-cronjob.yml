@@ -63,7 +63,7 @@ spec:
                   PGPASSWORD="${DB_PASSWORD}" pg_dump \
                     -h "${DB_HOST}" \
                     -p "${DB_PORT}" \
-                    -U "${DB_USERNAME}" \
+                    -U "${DB_USER}" \
                     -d "${DB_NAME}" \
                     --format=custom \
                     --compress=9 \
@@ -121,7 +121,7 @@ spec:
                   value: "5432"
                 - name: DB_NAME
                   value: "vendhub"
-                - name: DB_USERNAME
+                - name: DB_USER
                   valueFrom:
                     secretKeyRef:
                       name: postgres-secrets

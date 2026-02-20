@@ -10,7 +10,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, In, LessThan, MoreThan } from "typeorm";
+import {
+  Repository,
+  Between,
+  In,
+  LessThan,
+  MoreThan,
+  DataSource,
+} from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Cron } from "@nestjs/schedule";
 import { PointsTransaction } from "./entities/points-transaction.entity";
@@ -56,6 +63,7 @@ export class LoyaltyService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ============================================================================
@@ -303,65 +311,90 @@ export class LoyaltyService {
       description,
     } = dto;
 
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
+    const result = await this.dataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const txRepo = manager.getRepository(PointsTransaction);
 
-    const currentBalance = user.pointsBalance || 0;
+      const user = await userRepo.findOne({
+        where: { id: userId },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
 
-    // Validate spend
-    if (amount > currentBalance) {
-      throw new BadRequestException("Insufficient points balance");
-    }
+      const currentBalance = user.pointsBalance || 0;
 
-    if (amount < POINTS_RULES.minPointsToSpend) {
-      throw new BadRequestException(
-        `Minimum ${POINTS_RULES.minPointsToSpend} points to spend`,
-      );
-    }
+      if (amount > currentBalance) {
+        throw new BadRequestException("Insufficient points balance");
+      }
 
-    const newBalance = currentBalance - amount;
+      if (amount < POINTS_RULES.minPointsToSpend) {
+        throw new BadRequestException(
+          `Minimum ${POINTS_RULES.minPointsToSpend} points to spend`,
+        );
+      }
 
-    // Create transaction
-    const transaction = this.pointsTransactionRepo.create({
-      organizationId,
-      userId,
-      type: PointsTransactionType.SPEND,
-      amount: -amount,
-      balanceAfter: newBalance,
-      source: PointsSource.PURCHASE,
-      referenceId,
-      referenceType,
-      description: description || `Списание ${amount} баллов`,
+      const newBalance = currentBalance - amount;
+
+      const transaction = txRepo.create({
+        organizationId,
+        userId,
+        type: PointsTransactionType.SPEND,
+        amount: -amount,
+        balanceAfter: newBalance,
+        source: PointsSource.PURCHASE,
+        referenceId,
+        referenceType,
+        description: description || `Списание ${amount} баллов`,
+      });
+
+      await txRepo.save(transaction);
+
+      // FIFO deduction within the same transaction
+      const earnTransactions = await txRepo.find({
+        where: {
+          userId,
+          type: PointsTransactionType.EARN,
+          isExpired: false,
+          remainingAmount: MoreThan(0),
+        },
+        order: { createdAt: "ASC" },
+      });
+
+      let remaining = amount;
+      for (const tx of earnTransactions) {
+        if (remaining <= 0) break;
+        const deductAmount = Math.min(remaining, tx.remainingAmount || 0);
+        remaining -= deductAmount;
+        await txRepo.update(tx.id, {
+          remainingAmount: (tx.remainingAmount || 0) - deductAmount,
+        });
+      }
+
+      await userRepo.update(userId, {
+        pointsBalance: newBalance,
+      });
+
+      return {
+        spent: amount,
+        newBalance,
+        discountAmount: amount * POINTS_RULES.pointsValue,
+        transactionId: transaction.id,
+      };
     });
 
-    await this.pointsTransactionRepo.save(transaction);
-
-    // Deduct from oldest non-expired transactions first (FIFO)
-    await this.deductFromOldestTransactions(userId, amount);
-
-    // Update user balance
-    await this.userRepo.update(userId, {
-      pointsBalance: newBalance,
-    });
-
-    // Emit event
+    // Emit event outside transaction
     this.eventEmitter.emit("loyalty.points_spent", {
-      userId,
-      amount,
-      referenceId,
-      newBalance,
+      userId: dto.userId,
+      amount: dto.amount,
+      referenceId: dto.referenceId,
+      newBalance: result.newBalance,
     });
 
-    this.logger.log(`Spent ${amount} points for user ${userId}`);
+    this.logger.log(`Spent ${dto.amount} points for user ${dto.userId}`);
 
-    return {
-      spent: amount,
-      newBalance,
-      discountAmount: amount * POINTS_RULES.pointsValue,
-      transactionId: transaction.id,
-    };
+    return result;
   }
 
   /**
