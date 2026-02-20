@@ -124,7 +124,12 @@ export class OrdersService {
       let promoDiscount = 0;
       if (dto.promoCode) {
         const validation = await this.promoCodesService.validate(
-          { code: dto.promoCode, clientUserId: userId, orderAmount: subtotal },
+          {
+            code: dto.promoCode,
+            clientUserId: userId,
+            orderAmount: subtotal,
+            organizationId,
+          },
           organizationId,
         );
         if (validation.valid && validation.discountAmount) {
@@ -460,8 +465,7 @@ export class OrdersService {
       averageOrderValue: 0,
       totalPointsEarned: parseInt(pointsRaw?.totalPointsEarned || "0"),
       totalPointsUsed: parseInt(pointsRaw?.totalPointsUsed || "0"),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      byPaymentMethod: {} as any,
+      byPaymentMethod: {} as Record<string, { count: number; amount: number }>,
     };
 
     // Initialize payment method stats

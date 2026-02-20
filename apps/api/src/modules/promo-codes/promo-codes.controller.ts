@@ -108,11 +108,8 @@ export class PromoCodesController {
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 validations/min to prevent brute-force code enumeration
   @HttpCode(HttpStatus.OK)
-  async validate(
-    @Body() dto: ValidatePromoCodeDto,
-    @CurrentOrganizationId() organizationId: string,
-  ) {
-    return this.promoCodesService.validate(dto, organizationId);
+  async validate(@Body() dto: ValidatePromoCodeDto) {
+    return this.promoCodesService.validate(dto, dto.organizationId);
   }
 
   @Post("redeem")

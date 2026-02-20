@@ -303,6 +303,7 @@ export class PromoCodesService {
     const validation = await this.validate(
       {
         code: dto.code,
+        organizationId,
         clientUserId: dto.clientUserId,
         orderAmount: dto.orderAmount,
       },

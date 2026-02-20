@@ -316,7 +316,7 @@ describe("PromoCodesService", () => {
       redemptionRepo.count!.mockResolvedValue(0);
 
       const result = await service.validate(
-        { code: "VALID", orderAmount: 100000 },
+        { code: "VALID", organizationId: orgId, orderAmount: 100000 },
         orgId,
       );
 
@@ -328,7 +328,10 @@ describe("PromoCodesService", () => {
     it("should return valid=false when code not found", async () => {
       promoCodeRepo.findOne!.mockResolvedValue(null);
 
-      const result = await service.validate({ code: "INVALID" }, orgId);
+      const result = await service.validate(
+        { code: "INVALID", organizationId: orgId },
+        orgId,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe("Promo code not found");
@@ -340,7 +343,10 @@ describe("PromoCodesService", () => {
         status: PromoCodeStatus.PAUSED,
       });
 
-      const result = await service.validate({ code: "VALID" }, orgId);
+      const result = await service.validate(
+        { code: "VALID", organizationId: orgId },
+        orgId,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.reason).toContain("paused");
@@ -352,7 +358,10 @@ describe("PromoCodesService", () => {
         validUntil: new Date("2020-01-01"),
       });
 
-      const result = await service.validate({ code: "VALID" }, orgId);
+      const result = await service.validate(
+        { code: "VALID", organizationId: orgId },
+        orgId,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.reason).toContain("expired");
@@ -365,7 +374,10 @@ describe("PromoCodesService", () => {
         currentTotalUses: 5,
       });
 
-      const result = await service.validate({ code: "VALID" }, orgId);
+      const result = await service.validate(
+        { code: "VALID", organizationId: orgId },
+        orgId,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.reason).toContain("maximum usage");
@@ -376,7 +388,7 @@ describe("PromoCodesService", () => {
       redemptionRepo.count!.mockResolvedValue(1);
 
       const result = await service.validate(
-        { code: "VALID", clientUserId: "user-1" },
+        { code: "VALID", organizationId: orgId, clientUserId: "user-1" },
         orgId,
       );
 
@@ -391,7 +403,7 @@ describe("PromoCodesService", () => {
       });
 
       const result = await service.validate(
-        { code: "VALID", orderAmount: 10000 },
+        { code: "VALID", organizationId: orgId, orderAmount: 10000 },
         orgId,
       );
 
@@ -404,7 +416,7 @@ describe("PromoCodesService", () => {
       redemptionRepo.count!.mockResolvedValue(0);
 
       const result = await service.validate(
-        { code: "VALID", orderAmount: 100000 },
+        { code: "VALID", organizationId: orgId, orderAmount: 100000 },
         orgId,
       );
 
@@ -420,7 +432,7 @@ describe("PromoCodesService", () => {
       redemptionRepo.count!.mockResolvedValue(0);
 
       const result = await service.validate(
-        { code: "VALID", orderAmount: 100000 },
+        { code: "VALID", organizationId: orgId, orderAmount: 100000 },
         orgId,
       );
 
