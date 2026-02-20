@@ -129,10 +129,17 @@ jobs:
         env:
           VITE_API_URL: http://localhost:4000
 
+      - name: Build Bot
+        run: pnpm --filter bot build
+
       - name: Build Site (Landing Page)
         run: pnpm --filter @vendhub/site build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
+
+      - name: Build Mobile (type-check only, no native build in CI)
+        run: pnpm --filter mobile type-check
+        continue-on-error: true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -142,6 +149,7 @@ jobs:
             apps/api/dist
             apps/web/.next
             apps/client/dist
+            apps/bot/dist
             apps/site/.next
           retention-days: 7
 
