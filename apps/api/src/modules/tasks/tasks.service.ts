@@ -75,8 +75,18 @@ export class TasksService {
    */
   async findAll(
     organizationId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filters?: any,
+    filters?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      assigneeId?: string;
+      machineId?: string;
+      type?: string;
+      priority?: string;
+      dueDateFrom?: string;
+      dueDateTo?: string;
+      search?: string;
+    },
   ): Promise<{
     data: Task[];
     total: number;
@@ -347,8 +357,7 @@ export class TasksService {
     id: string,
     completionData: {
       completionNotes?: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      products?: any[];
+      products?: { id: string; quantity?: number; name?: string }[];
       collectedCash?: number;
       location?: { latitude: number; longitude: number };
     },

@@ -21,6 +21,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -295,6 +296,7 @@ export class LoyaltyController {
 
   @Get("levels/info")
   @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests/min -- public info
   @ApiOperation({
     summary: "Get loyalty levels information (public)",
     description: "Публичная информация о программе лояльности и уровнях.",

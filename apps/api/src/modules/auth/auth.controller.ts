@@ -200,6 +200,7 @@ export class AuthController {
 
   @Get("password/requirements")
   @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests/min -- static data
   @ApiOperation({ summary: "Get password requirements" })
   @ApiResponse({ status: 200, description: "Password policy requirements" })
   async getPasswordRequirements() {

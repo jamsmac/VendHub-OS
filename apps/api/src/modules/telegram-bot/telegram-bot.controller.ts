@@ -73,6 +73,7 @@ export class TelegramBotController {
    */
   @Get("health")
   @Public()
+  @Throttle({ default: { limit: 60, ttl: 60000 } }) // 60 checks/min
   @ApiOperation({ summary: "Check bot health" })
   async healthCheck() {
     return {

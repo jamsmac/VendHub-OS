@@ -339,7 +339,7 @@ export class TasksController {
     @Body()
     data: {
       completionNotes?: string;
-      products?: Record<string, unknown>[];
+      products?: { id: string; quantity?: number; name?: string }[];
       collectedCash?: number;
       location?: { latitude: number; longitude: number };
     },

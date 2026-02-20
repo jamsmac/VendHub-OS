@@ -385,6 +385,7 @@ export class ComplaintsController {
 
   @Get("qr-codes/:code")
   @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 lookups/min -- prevent QR code enumeration
   @ApiOperation({ summary: "Get QR code info" })
   async getQrCode(@Param("code") code: string) {
     return this.complaintsService.getQrCodeByCode(code);
