@@ -9,6 +9,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  BadGatewayException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -389,7 +390,9 @@ export class DirectorySourceService {
       // Validate URL protocol (prevent SSRF with file://, ftp://, etc.)
       const parsedUrl = new URL(source.url);
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-        throw new Error(`Unsupported URL protocol: ${parsedUrl.protocol}`);
+        throw new BadRequestException(
+          `Unsupported URL protocol: ${parsedUrl.protocol}`,
+        );
       }
 
       // Timeout after 30 seconds
@@ -407,7 +410,9 @@ export class DirectorySourceService {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new BadGatewayException(
+            `HTTP ${response.status}: ${response.statusText}`,
+          );
         }
 
         data = await response.json();
@@ -431,7 +436,7 @@ export class DirectorySourceService {
 
       return [];
     } catch (err) {
-      throw new Error(
+      throw new BadGatewayException(
         `Failed to fetch source data: ${err instanceof Error ? err.message : String(err)}`,
       );
     }

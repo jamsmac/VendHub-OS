@@ -9,6 +9,7 @@ import {
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -1226,7 +1227,9 @@ export class PaymentsService {
           );
 
           if (!secretKey) {
-            throw new Error("UZUM_SECRET_KEY not configured");
+            throw new InternalServerErrorException(
+              "UZUM_SECRET_KEY not configured",
+            );
           }
 
           const signData = `${transaction.id}:${refund.amount}`;
@@ -1253,7 +1256,7 @@ export class PaymentsService {
           break;
 
         default:
-          throw new Error(
+          throw new InternalServerErrorException(
             `Unsupported provider for refund: ${transaction.provider}`,
           );
       }

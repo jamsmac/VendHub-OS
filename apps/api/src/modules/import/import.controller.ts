@@ -17,6 +17,7 @@ import {
   HttpStatus,
   HttpCode,
   UseGuards,
+  BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -141,7 +142,7 @@ export class ImportController {
     preview: { headers: string[]; sampleRows: ImportRowData[] };
   }> {
     if (!file) {
-      throw new Error("No file provided");
+      throw new BadRequestException("No file provided");
     }
 
     // Determine source type from file extension
@@ -160,7 +161,7 @@ export class ImportController {
         source = ImportSource.JSON;
         break;
       default:
-        throw new Error("Unsupported file format");
+        throw new BadRequestException("Unsupported file format");
     }
 
     // Parse file for preview
@@ -381,7 +382,7 @@ export class ImportController {
     @Body() dto: CreateImportSessionDto,
   ): Promise<ImportSession> {
     if (!file) {
-      throw new Error("No file provided");
+      throw new BadRequestException("No file provided");
     }
 
     return this.importService.createSession(file, dto, organizationId, user.id);

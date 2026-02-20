@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Route, RouteStop } from './entities/route.entity';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Route, RouteStop } from "./entities/route.entity";
 
 /**
  * Route Optimization Service
@@ -47,11 +47,11 @@ export class RouteOptimizationService {
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId },
-      relations: ['stops'],
+      relations: ["stops"],
     });
 
     if (!route) {
-      throw new Error(`Route with ID ${routeId} not found`);
+      throw new NotFoundException(`Route with ID ${routeId} not found`);
     }
 
     const stops = route.stops || [];
@@ -60,7 +60,12 @@ export class RouteOptimizationService {
     );
 
     if (validStops.length < 3) {
-      return { route, optimized: false, estimatedSavingsMinutes: 0, estimatedSavingsKm: 0 };
+      return {
+        route,
+        optimized: false,
+        estimatedSavingsMinutes: 0,
+        estimatedSavingsKm: 0,
+      };
     }
 
     // Calculate original distance
@@ -68,12 +73,16 @@ export class RouteOptimizationService {
 
     // Build distance matrix
     const n = validStops.length;
-    const distMatrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+    const distMatrix: number[][] = Array.from({ length: n }, () =>
+      new Array(n).fill(0),
+    );
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         const d = this.haversineDistance(
-          validStops[i].latitude!, validStops[i].longitude!,
-          validStops[j].latitude!, validStops[j].longitude!,
+          validStops[i].latitude!,
+          validStops[i].longitude!,
+          validStops[j].latitude!,
+          validStops[j].longitude!,
         );
         distMatrix[i][j] = d;
         distMatrix[j][i] = d;
@@ -105,7 +114,7 @@ export class RouteOptimizationService {
     // Reload route with updated stops
     const updatedRoute = await this.routeRepository.findOne({
       where: { id: routeId },
-      relations: ['stops'],
+      relations: ["stops"],
     });
 
     this.logger.log(
@@ -161,8 +170,10 @@ export class RouteOptimizationService {
       improved = false;
       for (let i = 0; i < n - 1; i++) {
         for (let j = i + 2; j < n; j++) {
-          const a = order[i], b = order[i + 1];
-          const c = order[j], d = order[(j + 1) % n];
+          const a = order[i],
+            b = order[i + 1];
+          const c = order[j],
+            d = order[(j + 1) % n];
 
           const currentDist = distMatrix[a][b] + distMatrix[c][d];
           const newDist = distMatrix[a][c] + distMatrix[b][d];

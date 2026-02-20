@@ -1,4 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  BadGatewayException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 // Cheerio is optional for html parsing
@@ -132,7 +138,7 @@ export class AIParserService {
   }> {
     const session = this.sessions.get(sessionId);
     if (!session) {
-      throw new Error("Session not found");
+      throw new NotFoundException("Session not found");
     }
 
     // Add user message
@@ -232,11 +238,11 @@ export class AIParserService {
     try {
       parsed = new URL(url);
     } catch {
-      throw new Error("Invalid URL format");
+      throw new BadRequestException("Invalid URL format");
     }
 
     if (!["http:", "https:"].includes(parsed.protocol)) {
-      throw new Error("Only http/https URLs are allowed");
+      throw new BadRequestException("Only http/https URLs are allowed");
     }
 
     const hostname = parsed.hostname.toLowerCase();
@@ -244,7 +250,9 @@ export class AIParserService {
     // Block localhost and loopback
     const blocked = ["localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"];
     if (blocked.includes(hostname)) {
-      throw new Error("Access to internal addresses is not allowed");
+      throw new BadRequestException(
+        "Access to internal addresses is not allowed",
+      );
     }
 
     // Block private IP ranges (10.x, 172.16-31.x, 192.168.x)
@@ -257,7 +265,9 @@ export class AIParserService {
         (a === 192 && b === 168) ||
         (a === 169 && b === 254) // link-local
       ) {
-        throw new Error("Access to private network addresses is not allowed");
+        throw new BadRequestException(
+          "Access to private network addresses is not allowed",
+        );
       }
     }
   }
@@ -291,7 +301,9 @@ export class AIParserService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.logger.error(`Error fetching documentation from ${url}:`, error);
-      throw new Error(`Failed to fetch documentation: ${error.message}`);
+      throw new BadGatewayException(
+        `Failed to fetch documentation: ${error.message}`,
+      );
     }
   }
 

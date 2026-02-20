@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -931,7 +932,7 @@ export class AuthService {
     if (!keyHex || keyHex.length !== 64) {
       // SECURITY: In production, encryption key MUST be set
       if (nodeEnv === "production") {
-        throw new Error(
+        throw new InternalServerErrorException(
           "CRITICAL: ENCRYPTION_KEY must be set in production. " +
             "Generate with: openssl rand -hex 32",
         );

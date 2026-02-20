@@ -39,7 +39,7 @@ export enum SecuritySeverity {
 @Index(["eventType"])
 @Index(["severity"])
 @Index(["ipAddress"])
-@Index(["created_at"])
+@Index(["createdAt"])
 export class SecurityEvent extends BaseEntity {
   @ApiProperty({ enum: SecurityEventType })
   @Column({ type: "enum", enum: SecurityEventType })

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { Integration } from "../entities/integration.entity";
 import {
   PaymentExecutorService,
@@ -121,7 +121,9 @@ export class IntegrationTesterService {
           break;
 
         default:
-          throw new Error(`Unknown endpoint: ${testCase.endpoint}`);
+          throw new BadRequestException(
+            `Unknown endpoint: ${testCase.endpoint}`,
+          );
       }
 
       // Run assertions

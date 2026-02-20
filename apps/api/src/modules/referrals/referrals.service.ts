@@ -9,6 +9,7 @@ import {
   BadRequestException,
   NotFoundException,
   ConflictException,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between } from "typeorm";
@@ -549,7 +550,9 @@ export class ReferralsService {
       attempts++;
     } while (attempts < 100);
 
-    throw new Error("Failed to generate unique referral code");
+    throw new InternalServerErrorException(
+      "Failed to generate unique referral code",
+    );
   }
 
   /**

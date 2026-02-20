@@ -8,6 +8,7 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  BadGatewayException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -606,7 +607,9 @@ export class TelegramPaymentsService {
     };
 
     if (!data.ok) {
-      throw new Error(data.description || "Failed to send invoice");
+      throw new BadGatewayException(
+        data.description || "Failed to send invoice",
+      );
     }
 
     return data.result;
@@ -642,7 +645,9 @@ export class TelegramPaymentsService {
     };
 
     if (!data.ok) {
-      throw new Error(data.description || "Failed to create invoice link");
+      throw new BadGatewayException(
+        data.description || "Failed to create invoice link",
+      );
     }
 
     return data.result as string;
@@ -687,7 +692,9 @@ export class TelegramPaymentsService {
     };
 
     if (!data.ok) {
-      throw new Error(data.description || "Failed to refund payment");
+      throw new BadGatewayException(
+        data.description || "Failed to refund payment",
+      );
     }
   }
 

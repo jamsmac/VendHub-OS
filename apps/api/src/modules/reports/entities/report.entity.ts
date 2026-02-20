@@ -613,9 +613,9 @@ export class ScheduledReport extends BaseEntity {
  * Сгенерированный отчет
  */
 @Entity("generated_reports")
-@Index(["organizationId", "status", "created_at"])
-@Index(["definitionId", "created_at"])
-@Index(["created_by_id", "created_at"])
+@Index(["organizationId", "status", "createdAt"])
+@Index(["definitionId", "createdAt"])
+@Index(["createdById", "createdAt"])
 export class GeneratedReport extends BaseEntity {
   @Column()
   organizationId: string;

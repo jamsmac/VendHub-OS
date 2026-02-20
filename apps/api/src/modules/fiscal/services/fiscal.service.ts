@@ -1,4 +1,10 @@
-import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between, In } from "typeorm";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -740,7 +746,7 @@ export class FiscalService {
       const device = await this.deviceRepo.findOne({
         where: { id: item.deviceId },
       });
-      if (!device) throw new Error("Device not found");
+      if (!device) throw new NotFoundException("Device not found");
 
       switch (item.operation) {
         case "receipt_sale":

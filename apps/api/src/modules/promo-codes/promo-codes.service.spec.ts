@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository, ObjectLiteral } from "typeorm";
+import { DataSource, Repository, ObjectLiteral } from "typeorm";
 import {
   NotFoundException,
   BadRequestException,
@@ -75,6 +75,20 @@ describe("PromoCodesService", () => {
         {
           provide: getRepositoryToken(PromoCodeRedemption),
           useValue: redemptionRepo,
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn((cb) =>
+              cb({
+                getRepository: jest.fn().mockImplementation((entity) => {
+                  if (entity === PromoCode) return promoCodeRepo;
+                  if (entity === PromoCodeRedemption) return redemptionRepo;
+                  return {};
+                }),
+              }),
+            ),
+          },
         },
       ],
     }).compile();

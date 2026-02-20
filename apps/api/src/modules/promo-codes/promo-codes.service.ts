@@ -11,7 +11,7 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   PromoCode,
@@ -38,6 +38,7 @@ export class PromoCodesService {
     private promoCodeRepo: Repository<PromoCode>,
     @InjectRepository(PromoCodeRedemption)
     private redemptionRepo: Repository<PromoCodeRedemption>,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ============================================================================
@@ -298,7 +299,7 @@ export class PromoCodesService {
     discountApplied: number;
     loyaltyPointsAwarded: number;
   }> {
-    // Validate first
+    // Validate first (outside transaction for fast-fail)
     const validation = await this.validate(
       {
         code: dto.code,
@@ -312,36 +313,60 @@ export class PromoCodesService {
       throw new BadRequestException(validation.reason || "Invalid promo code");
     }
 
-    const promoCode = validation.promoCode;
-    const discountApplied = validation.discountAmount || 0;
-    const loyaltyPointsAwarded =
-      promoCode.type === PromoCodeType.LOYALTY_BONUS
-        ? Math.floor(promoCode.value)
-        : 0;
+    return this.dataSource.transaction(async (manager) => {
+      const txPromoCodeRepo = manager.getRepository(PromoCode);
+      const txRedemptionRepo = manager.getRepository(PromoCodeRedemption);
 
-    // Create redemption record
-    const redemption = this.redemptionRepo.create({
-      organizationId: organizationId,
-      promoCodeId: promoCode.id,
-      clientUserId: dto.clientUserId,
-      orderId: dto.orderId || null,
-      discountApplied: discountApplied,
-      loyaltyPointsAwarded: loyaltyPointsAwarded,
-      orderAmount: dto.orderAmount || null,
-      redeemedAt: new Date(),
+      // Re-fetch with pessimistic lock to prevent race conditions
+      const promoCode = await txPromoCodeRepo.findOne({
+        where: { id: validation.promoCode!.id },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!promoCode) {
+        throw new NotFoundException("Promo code not found");
+      }
+
+      // Re-check usage limit under lock
+      if (
+        promoCode.maxTotalUses !== null &&
+        promoCode.currentTotalUses >= promoCode.maxTotalUses
+      ) {
+        throw new BadRequestException(
+          "Promo code has reached its maximum usage limit",
+        );
+      }
+
+      const discountApplied = validation.discountAmount || 0;
+      const loyaltyPointsAwarded =
+        promoCode.type === PromoCodeType.LOYALTY_BONUS
+          ? Math.floor(promoCode.value)
+          : 0;
+
+      // Create redemption record
+      const redemption = txRedemptionRepo.create({
+        organizationId: organizationId,
+        promoCodeId: promoCode.id,
+        clientUserId: dto.clientUserId,
+        orderId: dto.orderId || null,
+        discountApplied: discountApplied,
+        loyaltyPointsAwarded: loyaltyPointsAwarded,
+        orderAmount: dto.orderAmount || null,
+        redeemedAt: new Date(),
+      });
+
+      await txRedemptionRepo.save(redemption);
+
+      // Increment usage counter
+      promoCode.currentTotalUses += 1;
+      await txPromoCodeRepo.save(promoCode);
+
+      return {
+        redemption,
+        discountApplied,
+        loyaltyPointsAwarded,
+      };
     });
-
-    await this.redemptionRepo.save(redemption);
-
-    // Increment usage counter
-    promoCode.currentTotalUses += 1;
-    await this.promoCodeRepo.save(promoCode);
-
-    return {
-      redemption,
-      discountApplied,
-      loyaltyPointsAwarded,
-    };
   }
 
   // ============================================================================
