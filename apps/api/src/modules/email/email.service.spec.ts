@@ -2,9 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { EmailService } from "./email.service";
 
-// Mock nodemailer
 const mockSendMail = jest.fn();
-const mockVerify = jest.fn();
+const mockVerify = jest.fn().mockResolvedValue(true);
 const mockCreateTransport = jest.fn().mockReturnValue({
   sendMail: mockSendMail,
   verify: mockVerify,
