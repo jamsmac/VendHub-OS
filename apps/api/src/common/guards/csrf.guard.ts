@@ -47,6 +47,11 @@ export class CsrfGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
+    // Agent mode: skip CSRF entirely (no browser context)
+    if (process.env.AGENT_MODE === "true") {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest();
 
     // Safe methods don't need CSRF protection

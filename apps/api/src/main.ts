@@ -30,14 +30,20 @@ import { AppModule } from "./app.module";
 import { AppLoggerService } from "./common/services/logger.service";
 import { SanitizePipe } from "./common/pipes/sanitize.pipe";
 
+const isAgentMode = process.env.AGENT_MODE === "true";
+
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
+
+  if (isAgentMode) {
+    logger.log("🤖 AGENT MODE — auth disabled, errors crash, minimal logs");
+  }
 
   // ============================================
   // SENTRY ERROR TRACKING
   // ============================================
 
-  const sentryDsn = process.env.SENTRY_DSN;
+  const sentryDsn = isAgentMode ? undefined : process.env.SENTRY_DSN;
   if (sentryDsn) {
     Sentry.init({
       dsn: sentryDsn,
@@ -63,7 +69,9 @@ async function bootstrap() {
 
   // Create app with Express
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ["error", "warn", "log", "debug", "verbose"],
+    logger: isAgentMode
+      ? ["error", "warn"]
+      : ["error", "warn", "log", "debug", "verbose"],
     bufferLogs: true,
   });
 
@@ -323,7 +331,12 @@ All endpoints require JWT Bearer authentication except public endpoints.
 
   const appUrl = await app.getUrl();
 
-  logger.log(`
+  if (isAgentMode) {
+    logger.log(
+      `[AGENT] API ready at ${appUrl} | role=${process.env.AGENT_USER_ROLE || "owner"} org=${process.env.AGENT_ORG_ID || "00000000-0000-0000-0000-000000000001"}`,
+    );
+  } else {
+    logger.log(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
 ║   🚀  VendHub Unified API v${configService.get("npm_package_version", "1.0.0").padEnd(40)}    ║
@@ -340,13 +353,17 @@ All endpoints require JWT Bearer authentication except public endpoints.
 ║   💾  Memory:      ${(Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB").padEnd(53)}  ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-  `);
+    `);
+  }
 }
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
   const logger = new Logger("UnhandledRejection");
   logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+  if (isAgentMode) {
+    process.exit(1); // Agent mode: crash immediately so agent sees the failure
+  }
   Sentry.captureException(reason);
 });
 

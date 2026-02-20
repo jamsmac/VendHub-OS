@@ -259,25 +259,22 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        throttlers: [
-          {
-            name: "short",
-            ttl: 1000, // 1 second
-            limit: 10,
-          },
-          {
-            name: "medium",
-            ttl: 10000, // 10 seconds
-            limit: 50,
-          },
-          {
-            name: "long",
-            ttl: 60000, // 1 minute
-            limit: configService.get<number>("THROTTLE_LIMIT", 100),
-          },
-        ],
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isAgent = configService.get("AGENT_MODE") === "true";
+        return {
+          throttlers: isAgent
+            ? [{ name: "agent", ttl: 1000, limit: 10000 }]
+            : [
+                { name: "short", ttl: 1000, limit: 10 },
+                { name: "medium", ttl: 10000, limit: 50 },
+                {
+                  name: "long",
+                  ttl: 60000,
+                  limit: configService.get<number>("THROTTLE_LIMIT", 100),
+                },
+              ],
+        };
+      },
     }),
 
     // ============================================
