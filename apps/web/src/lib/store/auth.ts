@@ -53,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
 
           localStorage.setItem("vendhub_access_token", data.accessToken);
           localStorage.setItem("vendhub_refresh_token", data.refreshToken);
+          document.cookie = `vendhub_access_token=${data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
           set({
             user: data.user,
@@ -71,6 +72,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem("vendhub_access_token");
         localStorage.removeItem("vendhub_refresh_token");
+        document.cookie = "vendhub_access_token=; path=/; max-age=0";
         set({
           user: null,
           isAuthenticated: false,

@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import * as crypto from "crypto";
 
 import {
@@ -77,6 +77,7 @@ export class PaymentsService {
 
   constructor(
     private configService: ConfigService,
+    private dataSource: DataSource,
     @InjectRepository(PaymentTransaction)
     private transactionRepo: Repository<PaymentTransaction>,
     @InjectRepository(PaymentRefund)
@@ -379,54 +380,58 @@ export class PaymentsService {
       };
     }
 
-    const transaction = await this.transactionRepo.findOne({
-      where: {
-        providerTxId: paymeTransactionId,
-        provider: PaymentProvider.PAYME,
-      },
-    });
-
-    if (!transaction) {
-      return {
-        error: {
-          code: -31003,
-          message: {
-            ru: "Транзакция не найдена",
-            uz: "Tranzaksiya topilmadi",
-            en: "Transaction not found",
-          },
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(PaymentTransaction);
+      const transaction = await txRepo.findOne({
+        where: {
+          providerTxId: paymeTransactionId,
+          provider: PaymentProvider.PAYME,
         },
-        id: data.id,
-      };
-    }
+        lock: { mode: "pessimistic_write" },
+      });
 
-    // Already completed
-    if (transaction.status === PaymentTransactionStatus.COMPLETED) {
+      if (!transaction) {
+        return {
+          error: {
+            code: -31003,
+            message: {
+              ru: "Транзакция не найдена",
+              uz: "Tranzaksiya topilmadi",
+              en: "Transaction not found",
+            },
+          },
+          id: data.id,
+        };
+      }
+
+      // Already completed
+      if (transaction.status === PaymentTransactionStatus.COMPLETED) {
+        return {
+          result: {
+            transaction: transaction.id,
+            perform_time: transaction.processedAt?.getTime() || Date.now(),
+            state: 2, // 2 = completed
+          },
+          id: data.id,
+        };
+      }
+
+      // Mark as completed
+      const performTime = Date.now();
+      transaction.status = PaymentTransactionStatus.COMPLETED;
+      transaction.processedAt = new Date(performTime);
+      transaction.rawResponse = data as unknown as Record<string, unknown>;
+      await txRepo.save(transaction);
+
       return {
         result: {
           transaction: transaction.id,
-          perform_time: transaction.processedAt?.getTime() || Date.now(),
+          perform_time: performTime,
           state: 2, // 2 = completed
         },
         id: data.id,
       };
-    }
-
-    // Mark as completed
-    const performTime = Date.now();
-    transaction.status = PaymentTransactionStatus.COMPLETED;
-    transaction.processedAt = new Date(performTime);
-    transaction.rawResponse = data as unknown as Record<string, unknown>;
-    await this.transactionRepo.save(transaction);
-
-    return {
-      result: {
-        transaction: transaction.id,
-        perform_time: performTime,
-        state: 2, // 2 = completed
-      },
-      id: data.id,
-    };
+    });
   }
 
   private async paymeCancelTransaction(data: PaymeWebhookData) {
@@ -773,24 +778,42 @@ export class PaymentsService {
       };
     }
 
-    const transaction = await this.transactionRepo.findOne({
-      where: {
-        providerTxId: data.click_trans_id,
-        provider: PaymentProvider.CLICK,
-      },
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(PaymentTransaction);
+      const transaction = await txRepo.findOne({
+        where: {
+          providerTxId: data.click_trans_id,
+          provider: PaymentProvider.CLICK,
+        },
+        lock: { mode: "pessimistic_write" },
+      });
 
-    if (!transaction) {
-      return {
-        click_trans_id: data.click_trans_id,
-        merchant_trans_id: data.merchant_trans_id,
-        error: -6,
-        error_note: "Transaction not found",
-      };
-    }
+      if (!transaction) {
+        return {
+          click_trans_id: data.click_trans_id,
+          merchant_trans_id: data.merchant_trans_id,
+          error: -6,
+          error_note: "Transaction not found",
+        };
+      }
 
-    // Idempotency: already completed — return success without re-processing
-    if (transaction.status === PaymentTransactionStatus.COMPLETED) {
+      // Idempotency: already completed — return success without re-processing
+      if (transaction.status === PaymentTransactionStatus.COMPLETED) {
+        return {
+          click_trans_id: data.click_trans_id,
+          merchant_trans_id: data.merchant_trans_id,
+          merchant_confirm_id: transaction.id,
+          error: 0,
+          error_note: "Success",
+        };
+      }
+
+      // Mark as completed
+      transaction.status = PaymentTransactionStatus.COMPLETED;
+      transaction.processedAt = new Date();
+      transaction.rawResponse = data as unknown as Record<string, unknown>;
+      await txRepo.save(transaction);
+
       return {
         click_trans_id: data.click_trans_id,
         merchant_trans_id: data.merchant_trans_id,
@@ -798,21 +821,7 @@ export class PaymentsService {
         error: 0,
         error_note: "Success",
       };
-    }
-
-    // Mark as completed
-    transaction.status = PaymentTransactionStatus.COMPLETED;
-    transaction.processedAt = new Date();
-    transaction.rawResponse = data as unknown as Record<string, unknown>;
-    await this.transactionRepo.save(transaction);
-
-    return {
-      click_trans_id: data.click_trans_id,
-      merchant_trans_id: data.merchant_trans_id,
-      merchant_confirm_id: transaction.id,
-      error: 0,
-      error_note: "Success",
-    };
+    });
   }
 
   // ============================================
@@ -929,68 +938,73 @@ export class PaymentsService {
       `Uzum webhook: transactionId=${data.transactionId}, status=${data.status}`,
     );
 
-    // Find the transaction
-    const transaction = await this.transactionRepo.findOne({
-      where: { id: data.transactionId, provider: PaymentProvider.UZUM },
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(PaymentTransaction);
 
-    if (!transaction) {
-      this.logger.warn(
-        `Uzum webhook: Transaction not found: ${data.transactionId}`,
-      );
-      return {
-        success: false,
-        error: "Transaction not found",
-      };
-    }
+      // Find the transaction with pessimistic lock
+      const transaction = await txRepo.findOne({
+        where: { id: data.transactionId, provider: PaymentProvider.UZUM },
+        lock: { mode: "pessimistic_write" },
+      });
 
-    // Idempotency: if transaction already in terminal state, return current status
-    const terminalStatuses = [
-      PaymentTransactionStatus.COMPLETED,
-      PaymentTransactionStatus.FAILED,
-      PaymentTransactionStatus.CANCELLED,
-      PaymentTransactionStatus.REFUNDED,
-    ];
-    if (terminalStatuses.includes(transaction.status)) {
-      this.logger.log(
-        `Uzum webhook: Transaction ${transaction.id} already in terminal state ${transaction.status}, skipping`,
-      );
+      if (!transaction) {
+        this.logger.warn(
+          `Uzum webhook: Transaction not found: ${data.transactionId}`,
+        );
+        return {
+          success: false,
+          error: "Transaction not found",
+        };
+      }
+
+      // Idempotency: if transaction already in terminal state, return current status
+      const terminalStatuses = [
+        PaymentTransactionStatus.COMPLETED,
+        PaymentTransactionStatus.FAILED,
+        PaymentTransactionStatus.CANCELLED,
+        PaymentTransactionStatus.REFUNDED,
+      ];
+      if (terminalStatuses.includes(transaction.status)) {
+        this.logger.log(
+          `Uzum webhook: Transaction ${transaction.id} already in terminal state ${transaction.status}, skipping`,
+        );
+        return {
+          success: true,
+          transactionId: transaction.id,
+          status: transaction.status,
+        };
+      }
+
+      // Update transaction based on Uzum status
+      switch (data.status) {
+        case "COMPLETED":
+        case "SUCCESS":
+          transaction.status = PaymentTransactionStatus.COMPLETED;
+          transaction.processedAt = new Date();
+          transaction.providerTxId = data.transactionId;
+          break;
+        case "FAILED":
+        case "ERROR":
+          transaction.status = PaymentTransactionStatus.FAILED;
+          transaction.errorMessage = `Uzum payment failed: ${data.status}`;
+          break;
+        case "CANCELLED":
+          transaction.status = PaymentTransactionStatus.CANCELLED;
+          transaction.errorMessage = "Payment cancelled by user";
+          break;
+        default:
+          transaction.status = PaymentTransactionStatus.PROCESSING;
+      }
+
+      transaction.rawResponse = data as Record<string, unknown>;
+      await txRepo.save(transaction);
+
       return {
         success: true,
         transactionId: transaction.id,
         status: transaction.status,
       };
-    }
-
-    // Update transaction based on Uzum status
-    switch (data.status) {
-      case "COMPLETED":
-      case "SUCCESS":
-        transaction.status = PaymentTransactionStatus.COMPLETED;
-        transaction.processedAt = new Date();
-        transaction.providerTxId = data.transactionId;
-        break;
-      case "FAILED":
-      case "ERROR":
-        transaction.status = PaymentTransactionStatus.FAILED;
-        transaction.errorMessage = `Uzum payment failed: ${data.status}`;
-        break;
-      case "CANCELLED":
-        transaction.status = PaymentTransactionStatus.CANCELLED;
-        transaction.errorMessage = "Payment cancelled by user";
-        break;
-      default:
-        transaction.status = PaymentTransactionStatus.PROCESSING;
-    }
-
-    transaction.rawResponse = data as Record<string, unknown>;
-    await this.transactionRepo.save(transaction);
-
-    return {
-      success: true,
-      transactionId: transaction.id,
-      status: transaction.status,
-    };
+    });
   }
 
   // ============================================

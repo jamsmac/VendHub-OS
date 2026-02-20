@@ -44,6 +44,7 @@ import {
   CurrentUserId,
   CurrentOrganizationId,
   CurrentUser,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 
@@ -194,8 +195,7 @@ export class NotificationsController {
   async updateSettings(
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() updates: any,
+    @Body() updates: Record<string, unknown>,
   ) {
     return this.notificationsService.updateSettings(userId, orgId, updates);
   }
@@ -211,8 +211,7 @@ export class NotificationsController {
   async create(
     @Body() dto: CreateNotificationDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -231,8 +230,7 @@ export class NotificationsController {
   async sendTemplated(
     @Body() dto: SendTemplatedNotificationDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -293,8 +291,7 @@ export class NotificationsController {
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createTemplate(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() data: any,
+    @Body() data: Record<string, unknown>,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.notificationsService.createTemplate({
@@ -308,8 +305,7 @@ export class NotificationsController {
   @Roles("owner", "admin")
   async updateTemplate(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() data: any,
+    @Body() data: Record<string, unknown>,
   ) {
     return this.notificationsService.updateTemplate(id, data);
   }
@@ -332,8 +328,7 @@ export class NotificationsController {
   async createCampaign(
     @Body() dto: CreateCampaignDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId

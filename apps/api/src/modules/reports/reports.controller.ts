@@ -34,6 +34,7 @@ import {
   CurrentUserId,
   CurrentOrganizationId,
   CurrentUser,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 
@@ -66,8 +67,7 @@ export class ReportsController {
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createDefinition(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() data: any,
+    @Body() data: Record<string, unknown>,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.reportsService.createDefinition({
@@ -88,8 +88,7 @@ export class ReportsController {
     @Body() dto: GenerateReportDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -146,8 +145,7 @@ export class ReportsController {
     @Body() dto: CreateScheduledReportDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -164,8 +162,7 @@ export class ReportsController {
   @Roles("owner", "admin")
   async updateScheduledReport(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() updates: any,
+    @Body() updates: Record<string, unknown>,
   ) {
     return this.reportsService.updateScheduledReport(id, updates);
   }
@@ -204,8 +201,7 @@ export class ReportsController {
     @Body() dto: CreateDashboardDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -222,8 +218,7 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   async updateDashboard(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() updates: any,
+    @Body() updates: Record<string, unknown>,
   ) {
     return this.reportsService.updateDashboard(id, updates);
   }
@@ -265,8 +260,7 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   async updateWidget(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() updates: any,
+    @Body() updates: Record<string, unknown>,
   ) {
     return this.reportsService.updateWidget(id, updates);
   }

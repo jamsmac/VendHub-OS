@@ -20,16 +20,16 @@ export const api = axios.create({
 
 // Token helpers — keep localStorage and cookie in sync for middleware
 function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", refreshToken);
+  localStorage.setItem("vendhub_access_token", accessToken);
+  localStorage.setItem("vendhub_refresh_token", refreshToken);
   // Sync to cookie so server-side middleware can read it
-  document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  document.cookie = `vendhub_access_token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 }
 
 function clearTokens() {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  document.cookie = "accessToken=; path=/; max-age=0";
+  localStorage.removeItem("vendhub_access_token");
+  localStorage.removeItem("vendhub_refresh_token");
+  document.cookie = "vendhub_access_token=; path=/; max-age=0";
 }
 
 export { setTokens, clearTokens };
@@ -37,7 +37,7 @@ export { setTokens, clearTokens };
 // Request interceptor - add auth token
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("vendhub_access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -92,7 +92,7 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = localStorage.getItem("vendhub_refresh_token");
 
       if (!refreshToken) {
         // No refresh token available — reject all queued requests and logout

@@ -2,12 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User, UserStatus } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { UserRole } from "../../common/enums";
 
 @Injectable()
 export class UsersService {
@@ -17,6 +19,9 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    if (createUserDto.role === UserRole.OWNER) {
+      throw new ForbiddenException("Cannot assign owner role through API");
+    }
     const user = this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
   }
@@ -85,6 +90,9 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    if (updateUserDto.role === UserRole.OWNER) {
+      throw new ForbiddenException("Cannot assign owner role through API");
+    }
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);

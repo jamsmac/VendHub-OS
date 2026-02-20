@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { ConfigService } from "@nestjs/config";
-import { Repository } from "typeorm";
+import { Repository, DataSource } from "typeorm";
 import {
   BadRequestException,
   NotFoundException,
@@ -110,6 +110,23 @@ describe("PaymentsService", () => {
             find: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            transaction: jest.fn().mockImplementation((cb: any) =>
+              cb({
+                getRepository: jest.fn().mockReturnValue({
+                  findOne: jest.fn(),
+                  find: jest.fn(),
+                  create: jest.fn(),
+                  save: jest.fn(),
+                  update: jest.fn(),
+                }),
+              }),
+            ),
           },
         },
       ],

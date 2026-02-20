@@ -71,6 +71,11 @@ import {
 } from "./dto/performance-review.dto";
 import { CurrentUser, Roles } from "../../common/decorators";
 import { EmployeeRole } from "./entities/employee.entity";
+import {
+  CreatePositionDto,
+  UpdatePositionDto,
+  QueryPositionsDto,
+} from "./dto/position.dto";
 
 @ApiTags("Employees")
 @ApiBearerAuth()
@@ -305,8 +310,7 @@ export class EmployeesController {
   @ApiResponse({ status: 201 })
   async createPosition(
     @CurrentUser("organizationId") organizationId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() dto: any,
+    @Body() dto: CreatePositionDto,
   ) {
     return this.service.createPosition(organizationId, dto);
   }
@@ -317,8 +321,7 @@ export class EmployeesController {
   @ApiResponse({ status: 200 })
   async getPositions(
     @CurrentUser("organizationId") organizationId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Query() query: any,
+    @Query() query: QueryPositionsDto,
   ) {
     return this.service.getPositions(organizationId, query);
   }
@@ -343,8 +346,7 @@ export class EmployeesController {
   async updatePosition(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser("organizationId") organizationId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() dto: any,
+    @Body() dto: UpdatePositionDto,
   ) {
     return this.service.updatePosition(id, organizationId, dto);
   }

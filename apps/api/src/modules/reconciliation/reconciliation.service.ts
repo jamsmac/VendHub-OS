@@ -295,9 +295,16 @@ export class ReconciliationService {
   /**
    * Получить запуск сверки с расхождениями
    */
-  async findOne(id: string): Promise<ReconciliationRun> {
+  async findOne(
+    id: string,
+    organizationId?: string,
+  ): Promise<ReconciliationRun> {
+    const where: Record<string, string> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     const run = await this.runRepo.findOne({
-      where: { id },
+      where,
       relations: ["mismatches"],
     });
 
@@ -436,8 +443,12 @@ export class ReconciliationService {
   /**
    * Мягкое удаление запуска сверки (только COMPLETED или FAILED)
    */
-  async deleteRun(id: string): Promise<void> {
-    const run = await this.runRepo.findOne({ where: { id } });
+  async deleteRun(id: string, organizationId?: string): Promise<void> {
+    const where: Record<string, string> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    const run = await this.runRepo.findOne({ where });
 
     if (!run) {
       throw new NotFoundException("Reconciliation run not found");

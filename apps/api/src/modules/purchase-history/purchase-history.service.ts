@@ -223,8 +223,15 @@ export class PurchaseHistoryService {
   /**
    * Find a single purchase history record by ID
    */
-  async findById(id: string): Promise<PurchaseHistory> {
-    const purchase = await this.repository.findOne({ where: { id } });
+  async findById(
+    id: string,
+    organizationId?: string,
+  ): Promise<PurchaseHistory> {
+    const where: Record<string, string> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    const purchase = await this.repository.findOne({ where });
 
     if (!purchase) {
       throw new NotFoundException(
@@ -241,8 +248,9 @@ export class PurchaseHistoryService {
   async update(
     id: string,
     dto: UpdatePurchaseHistoryDto,
+    organizationId?: string,
   ): Promise<PurchaseHistory> {
-    const purchase = await this.findById(id);
+    const purchase = await this.findById(id, organizationId);
 
     if (purchase.status !== PurchaseStatus.PENDING) {
       throw new BadRequestException(
@@ -276,8 +284,9 @@ export class PurchaseHistoryService {
     id: string,
     userId: string,
     dto?: ReceivePurchaseDto,
+    organizationId?: string,
   ): Promise<PurchaseHistory> {
-    const purchase = await this.findById(id);
+    const purchase = await this.findById(id, organizationId);
 
     if (purchase.status !== PurchaseStatus.PENDING) {
       throw new BadRequestException(
@@ -309,8 +318,8 @@ export class PurchaseHistoryService {
   /**
    * Cancel a purchase (PENDING -> CANCELLED)
    */
-  async cancel(id: string): Promise<PurchaseHistory> {
-    const purchase = await this.findById(id);
+  async cancel(id: string, organizationId?: string): Promise<PurchaseHistory> {
+    const purchase = await this.findById(id, organizationId);
 
     if (purchase.status !== PurchaseStatus.PENDING) {
       throw new BadRequestException(
@@ -333,8 +342,9 @@ export class PurchaseHistoryService {
   async returnPurchase(
     id: string,
     dto: ReturnPurchaseDto,
+    organizationId?: string,
   ): Promise<PurchaseHistory> {
-    const purchase = await this.findById(id);
+    const purchase = await this.findById(id, organizationId);
 
     if (purchase.status !== PurchaseStatus.RECEIVED) {
       throw new BadRequestException(
@@ -365,8 +375,8 @@ export class PurchaseHistoryService {
   /**
    * Soft delete a purchase (only PENDING or CANCELLED)
    */
-  async remove(id: string): Promise<void> {
-    const purchase = await this.findById(id);
+  async remove(id: string, organizationId?: string): Promise<void> {
+    const purchase = await this.findById(id, organizationId);
 
     if (
       purchase.status !== PurchaseStatus.PENDING &&

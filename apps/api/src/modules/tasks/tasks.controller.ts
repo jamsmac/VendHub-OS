@@ -28,6 +28,7 @@ import {
   ICurrentUser,
 } from "../../common/decorators";
 import { CreateTaskDto, UpdateTaskDto } from "./dto/create-task.dto";
+import { Task } from "./entities/task.entity";
 import { CreateTaskItemDto, UpdateTaskItemDto } from "./dto/task-item.dto";
 import { CreateTaskCommentDto } from "./dto/task-comment.dto";
 import {
@@ -188,8 +189,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: "Task updated successfully" })
   @ApiResponse({ status: 404, description: "Task not found" })
   update(@Param("id", ParseUUIDPipe) id: string, @Body() data: UpdateTaskDto) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.tasksService.update(id, data as any);
+    return this.tasksService.update(id, data as unknown as Partial<Task>);
   }
 
   @Delete(":id")
@@ -336,8 +336,13 @@ export class TasksController {
   @ApiResponse({ status: 404, description: "Task not found" })
   completeTask(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @Body() data: any,
+    @Body()
+    data: {
+      completionNotes?: string;
+      products?: Record<string, unknown>[];
+      collectedCash?: number;
+      location?: { latitude: number; longitude: number };
+    },
   ) {
     return this.tasksService.completeTask(id, data);
   }

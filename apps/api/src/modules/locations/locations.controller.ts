@@ -95,8 +95,11 @@ export class LocationsController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get location by ID" })
-  findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.locationsService.findById(id);
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.locationsService.findById(id, user.organizationId);
   }
 
   @Patch(":id")
@@ -105,17 +108,22 @@ export class LocationsController {
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateLocationDto: UpdateLocationDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.locationsService.update(
       id,
       updateLocationDto as Partial<Location>,
+      user.organizationId,
     );
   }
 
   @Delete(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete location" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.locationsService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.locationsService.remove(id, user.organizationId);
   }
 }

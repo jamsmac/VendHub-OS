@@ -146,8 +146,11 @@ export class PurchaseHistoryController {
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Purchase history record" })
   @ApiResponse({ status: 404, description: "Purchase record not found" })
-  findById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.purchaseHistoryService.findById(id);
+  findById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.purchaseHistoryService.findById(id, user.organizationId);
   }
 
   @Patch(":id")
@@ -172,8 +175,9 @@ export class PurchaseHistoryController {
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdatePurchaseHistoryDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.purchaseHistoryService.update(id, dto);
+    return this.purchaseHistoryService.update(id, dto, user.organizationId);
   }
 
   @Post(":id/receive")
@@ -192,7 +196,12 @@ export class PurchaseHistoryController {
     @CurrentUser() user: ICurrentUser,
     @Body() dto?: ReceivePurchaseDto,
   ) {
-    return this.purchaseHistoryService.receive(id, user.id, dto);
+    return this.purchaseHistoryService.receive(
+      id,
+      user.id,
+      dto,
+      user.organizationId,
+    );
   }
 
   @Post(":id/cancel")
@@ -206,8 +215,11 @@ export class PurchaseHistoryController {
     description: "Cannot cancel non-PENDING purchase",
   })
   @ApiResponse({ status: 404, description: "Purchase record not found" })
-  cancel(@Param("id", ParseUUIDPipe) id: string) {
-    return this.purchaseHistoryService.cancel(id);
+  cancel(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.purchaseHistoryService.cancel(id, user.organizationId);
   }
 
   @Post(":id/return")
@@ -224,8 +236,13 @@ export class PurchaseHistoryController {
   returnPurchase(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ReturnPurchaseDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.purchaseHistoryService.returnPurchase(id, dto);
+    return this.purchaseHistoryService.returnPurchase(
+      id,
+      dto,
+      user.organizationId,
+    );
   }
 
   @Delete(":id")
@@ -244,7 +261,10 @@ export class PurchaseHistoryController {
     description: "Cannot delete non-PENDING/CANCELLED purchase",
   })
   @ApiResponse({ status: 404, description: "Purchase record not found" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.purchaseHistoryService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.purchaseHistoryService.remove(id, user.organizationId);
   }
 }

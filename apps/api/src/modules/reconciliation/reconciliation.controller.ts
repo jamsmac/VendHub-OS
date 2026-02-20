@@ -88,8 +88,11 @@ export class ReconciliationController {
     description: "Reconciliation run details with summary",
   })
   @ApiResponse({ status: 404, description: "Run not found" })
-  async findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  async findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("organizationId") organizationId: string,
+  ) {
+    return this.service.findOne(id, organizationId);
   }
 
   @Get("runs/:id/mismatches")
@@ -115,8 +118,11 @@ export class ReconciliationController {
     description: "Cannot delete run with current status",
   })
   @ApiResponse({ status: 404, description: "Run not found" })
-  async deleteRun(@Param("id", ParseUUIDPipe) id: string) {
-    return this.service.deleteRun(id);
+  async deleteRun(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser("organizationId") organizationId: string,
+  ) {
+    return this.service.deleteRun(id, organizationId);
   }
 
   // ============================================================================

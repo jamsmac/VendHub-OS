@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
 
   // Check for auth token in cookies or Authorization header
   const accessToken =
-    request.cookies.get("accessToken")?.value ||
+    request.cookies.get("vendhub_access_token")?.value ||
     request.headers.get("authorization")?.replace("Bearer ", "");
 
   // Also check localStorage-backed token passed as custom header
