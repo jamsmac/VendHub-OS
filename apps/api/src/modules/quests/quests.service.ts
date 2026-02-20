@@ -631,19 +631,19 @@ export class QuestsService {
    */
   private matchesConditions(
     quest: Quest,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: Record<string, any> | undefined,
+
+    metadata: Record<string, unknown> | undefined,
   ): boolean {
     if (!quest.metadata) return true;
     if (!metadata) return true;
 
     // ORDER_TIME conditions
     if (quest.metadata.beforeHour !== undefined) {
-      if (metadata.hour >= quest.metadata.beforeHour) return false;
+      if ((metadata.hour as number) >= quest.metadata.beforeHour) return false;
     }
 
     if (quest.metadata.afterHour !== undefined) {
-      if (metadata.hour < quest.metadata.afterHour) return false;
+      if ((metadata.hour as number) < quest.metadata.afterHour) return false;
     }
 
     // Category/Product/Machine conditions
@@ -679,7 +679,7 @@ export class QuestsService {
     // Min order amount
     if (
       quest.metadata.minOrderAmount &&
-      metadata.amount < quest.metadata.minOrderAmount
+      (metadata.amount as number) < quest.metadata.minOrderAmount
     ) {
       return false;
     }

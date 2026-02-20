@@ -92,9 +92,10 @@ export class ImportParserService {
       }
 
       return { headers, rows };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new BadRequestException(`Excel parse error: ${error.message}`);
+    } catch (error: unknown) {
+      throw new BadRequestException(
+        `Excel parse error: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -112,9 +113,10 @@ export class ImportParserService {
       const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
 
       return { headers, rows };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new BadRequestException(`JSON parse error: ${error.message}`);
+    } catch (error: unknown) {
+      throw new BadRequestException(
+        `JSON parse error: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }

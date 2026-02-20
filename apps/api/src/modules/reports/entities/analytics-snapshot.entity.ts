@@ -179,8 +179,7 @@ export class AnalyticsSnapshot extends BaseEntity {
   detailedMetrics: DetailedMetrics;
 
   @Column({ type: "jsonb", default: {} })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -286,6 +285,5 @@ export class DailyStats extends BaseEntity {
   isFinalized: boolean;
 
   @Column({ type: "jsonb", default: {} })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }

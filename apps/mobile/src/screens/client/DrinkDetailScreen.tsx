@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,10 +56,11 @@ const VOLUME_PRICES = {
   large: 4000,
 };
 
-const MILK_TYPES = ["Regular", "Oat", "Coconut", "None"];
+const MILK_TYPE_KEYS = ["regular", "oat", "coconut", "none"];
 const SUGAR_LEVELS: (0 | 25 | 50 | 100)[] = [0, 25, 50, 100];
 
 export function DrinkDetailScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const route = useRoute();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { machineId, productId } = route.params as any;
@@ -118,7 +120,9 @@ export function DrinkDetailScreen({ navigation }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Customize</Text>
+        <Text style={styles.headerTitle}>
+          {t("client.drinkDetail.customize")}
+        </Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -140,7 +144,9 @@ export function DrinkDetailScreen({ navigation }: Props) {
 
         {/* Volume Selector */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Size</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.drinkDetail.size")}
+          </Text>
           <View style={styles.optionsGrid}>
             {(["small", "medium", "large"] as const).map((size) => (
               <TouchableOpacity
@@ -179,7 +185,9 @@ export function DrinkDetailScreen({ navigation }: Props) {
 
         {/* Sugar Level Selector */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sugar Level</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.drinkDetail.sugarLevel")}
+          </Text>
           <View style={styles.sugarGrid}>
             {SUGAR_LEVELS.map((level) => (
               <TouchableOpacity
@@ -207,17 +215,15 @@ export function DrinkDetailScreen({ navigation }: Props) {
 
         {/* Milk Type Selector */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Milk Type</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.drinkDetail.milkType")}
+          </Text>
           <View style={styles.milkContainer}>
-            {MILK_TYPES.map((type) => {
-              const key = type.toLowerCase() as
-                | "regular"
-                | "oat"
-                | "coconut"
-                | "none";
+            {MILK_TYPE_KEYS.map((milkKey) => {
+              const key = milkKey as "regular" | "oat" | "coconut" | "none";
               return (
                 <TouchableOpacity
-                  key={type}
+                  key={milkKey}
                   style={[
                     styles.milkButton,
                     customization.milk === key && styles.milkButtonActive,
@@ -239,7 +245,7 @@ export function DrinkDetailScreen({ navigation }: Props) {
                       customization.milk === key && styles.milkTextActive,
                     ]}
                   >
-                    {type}
+                    {t(`client.drinkDetail.milk.${milkKey}`)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -249,12 +255,26 @@ export function DrinkDetailScreen({ navigation }: Props) {
 
         {/* Ingredients/Recipe */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ingredients</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.drinkDetail.ingredients")}
+          </Text>
           <View style={styles.ingredientsList}>
-            <IngredientItem icon="leaf" label="Espresso" />
-            <IngredientItem icon="water" label="Water" />
-            <IngredientItem icon="nutrition" label="Milk" />
-            <IngredientItem icon="snow" label="Ice (optional)" />
+            <IngredientItem
+              icon="leaf"
+              label={t("client.drinkDetail.espresso")}
+            />
+            <IngredientItem
+              icon="water"
+              label={t("client.drinkDetail.water")}
+            />
+            <IngredientItem
+              icon="nutrition"
+              label={t("client.drinkDetail.milkIngredient")}
+            />
+            <IngredientItem
+              icon="snow"
+              label={t("client.drinkDetail.iceOptional")}
+            />
           </View>
         </View>
       </ScrollView>
@@ -294,7 +314,9 @@ export function DrinkDetailScreen({ navigation }: Props) {
           style={styles.addToCartButton}
           onPress={handleAddToCart}
         >
-          <Text style={styles.addToCartText}>Add to Cart</Text>
+          <Text style={styles.addToCartText}>
+            {t("client.drinkDetail.addToCart")}
+          </Text>
           <Text style={styles.priceText}>{calculateTotal()} UZS</Text>
         </TouchableOpacity>
       </View>

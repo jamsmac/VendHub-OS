@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,6 +52,7 @@ const COLORS = {
 };
 
 export function QuestsScreen() {
+  const { t } = useTranslation();
   useNavigation<NavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<QuestTab>("daily");
@@ -72,10 +74,10 @@ export function QuestsScreen() {
       api.post(`/quests/${questId}/claim`).then((res) => res.data),
     onSuccess: () => {
       refetchQuests();
-      Alert.alert("Success", "Quest claimed! Points added to your account.");
+      Alert.alert(t("common.success"), t("client.quests.questClaimed"));
     },
     onError: () => {
-      Alert.alert("Error", "Failed to claim quest. Try again.");
+      Alert.alert(t("common.error"), t("client.quests.claimFailed"));
     },
   });
 
@@ -143,7 +145,7 @@ export function QuestsScreen() {
                 color={COLORS.green}
               />
               <Text style={[styles.statusText, { color: COLORS.green }]}>
-                Claimed
+                {t("client.quests.claimed")}
               </Text>
             </View>
           )}
@@ -155,7 +157,7 @@ export function QuestsScreen() {
                 color={COLORS.amber}
               />
               <Text style={[styles.statusText, { color: COLORS.amber }]}>
-                Completed
+                {t("client.quests.completed")}
               </Text>
             </View>
           )}

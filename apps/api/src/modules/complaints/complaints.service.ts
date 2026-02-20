@@ -92,8 +92,8 @@ export interface CreateRefundDto {
   currency?: string;
   method: RefundMethod;
   reason: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bankDetails?: Record<string, any>;
+
+  bankDetails?: Record<string, unknown>;
   requestedById?: string;
 }
 
@@ -959,7 +959,7 @@ export class ComplaintsService {
           result.priority = action.params.priority as ComplaintPriority;
         }
         if (action.type === "assign" && action.params?.userId) {
-          result.assignedToId = action.params.userId;
+          result.assignedToId = action.params.userId as string;
         }
       }
 

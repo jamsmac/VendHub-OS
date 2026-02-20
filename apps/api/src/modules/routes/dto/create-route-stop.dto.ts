@@ -55,8 +55,7 @@ export class CreateRouteStopDto {
   @ApiPropertyOptional({ description: "Extra metadata", default: {} })
   @IsOptional()
   @IsObject()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class UpdateRouteStopDto {
@@ -114,8 +113,7 @@ export class UpdateRouteStopDto {
   @ApiPropertyOptional({ description: "Extra metadata" })
   @IsOptional()
   @IsObject()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class ReorderStopsDto {

@@ -246,12 +246,11 @@ export class FavoritesService {
       try {
         const result = await this.addFavorite(userId, item);
         results.push(result);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error: unknown) {
         results.push({
           success: false,
           id: "",
-          message: error.message,
+          message: error instanceof Error ? error.message : String(error),
           alreadyExists: false,
         });
       }

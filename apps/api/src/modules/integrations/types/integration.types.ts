@@ -431,10 +431,10 @@ export interface IntegrationTestCase {
   description: string;
   endpoint: string;
   method: HttpMethod;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic test payloads
   requestData: Record<string, any>;
   expectedStatus: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic test responses
   expectedResponse?: Record<string, any>;
   assertions: TestAssertion[];
 }

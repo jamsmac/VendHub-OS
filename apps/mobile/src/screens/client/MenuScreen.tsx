@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRoute } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,13 +54,14 @@ const COLORS = {
 };
 
 const CATEGORIES: Category[] = [
-  { id: "0", name: "All", key: "all" },
-  { id: "1", name: "Coffee", key: "coffee" },
-  { id: "2", name: "Drinks", key: "drinks" },
-  { id: "3", name: "Snacks", key: "snacks" },
+  { id: "0", name: "all", key: "all" },
+  { id: "1", name: "coffee", key: "coffee" },
+  { id: "2", name: "drinks", key: "drinks" },
+  { id: "3", name: "snacks", key: "snacks" },
 ];
 
 export function MenuScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const route = useRoute();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const machineId = (route.params as any)?.machineId;
@@ -122,7 +124,9 @@ export function MenuScreen({ navigation }: Props) {
         )}
         {item.stock === 0 && (
           <View style={styles.outOfStockOverlay}>
-            <Text style={styles.outOfStockText}>Out of Stock</Text>
+            <Text style={styles.outOfStockText}>
+              {t("client.menu.outOfStock")}
+            </Text>
           </View>
         )}
       </View>
@@ -149,9 +153,11 @@ export function MenuScreen({ navigation }: Props) {
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
-          <Text style={styles.machineTitle}>{machine?.name || "Menu"}</Text>
+          <Text style={styles.machineTitle}>
+            {machine?.name || t("client.menu.title")}
+          </Text>
           <Text style={styles.machineLocation}>
-            {machine?.location || "Select items"}
+            {machine?.location || t("client.menu.selectItems")}
           </Text>
         </View>
         <TouchableOpacity
@@ -185,7 +191,7 @@ export function MenuScreen({ navigation }: Props) {
                     styles.categoryTextActive,
                 ]}
               >
-                {category.name}
+                {t(`client.menu.categories.${category.name}`)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -211,7 +217,9 @@ export function MenuScreen({ navigation }: Props) {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="cafe-outline" size={48} color={COLORS.muted} />
-              <Text style={styles.emptyText}>No products available</Text>
+              <Text style={styles.emptyText}>
+                {t("client.menu.noProducts")}
+              </Text>
             </View>
           }
           contentContainerStyle={styles.listContent}

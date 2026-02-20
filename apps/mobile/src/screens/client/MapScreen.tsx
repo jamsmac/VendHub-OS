@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { useQuery } from "@tanstack/react-query";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +51,7 @@ const statusColors = {
 };
 
 export function MapScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const mapRef = useRef<MapView>(null);
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,7 +111,7 @@ export function MapScreen({ navigation }: Props) {
         <Ionicons name="search" size={20} color={COLORS.muted} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search machines..."
+          placeholder={t("client.map.searchPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.muted}
@@ -141,7 +143,7 @@ export function MapScreen({ navigation }: Props) {
                   latitude: userLocation.latitude,
                   longitude: userLocation.longitude,
                 }}
-                title="Your Location"
+                title={t("client.map.yourLocation")}
               >
                 <View style={styles.userLocationMarker} />
               </Marker>
@@ -224,7 +226,7 @@ export function MapScreen({ navigation }: Props) {
                 <View style={styles.distanceInfo}>
                   <Ionicons name="location" size={16} color={COLORS.muted} />
                   <Text style={styles.distanceText}>
-                    {selectedMachine.distance || "N/A"} km away
+                    {selectedMachine.distance || "N/A"} {t("client.map.kmAway")}
                   </Text>
                 </View>
 
@@ -240,7 +242,9 @@ export function MapScreen({ navigation }: Props) {
                     }).start();
                   }}
                 >
-                  <Text style={styles.viewMenuButtonText}>View Menu</Text>
+                  <Text style={styles.viewMenuButtonText}>
+                    {t("client.map.viewMenu")}
+                  </Text>
                   <Ionicons
                     name="arrow-forward"
                     size={18}

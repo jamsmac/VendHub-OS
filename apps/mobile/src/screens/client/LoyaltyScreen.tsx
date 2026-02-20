@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,6 +86,7 @@ const TIER_CONFIG = {
 };
 
 export function LoyaltyScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -129,7 +131,7 @@ export function LoyaltyScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Loyalty Program</Text>
+        <Text style={styles.headerTitle}>{t("client.loyalty.title")}</Text>
         <TouchableOpacity>
           <Ionicons name="help-circle-outline" size={24} color={COLORS.muted} />
         </TouchableOpacity>
@@ -144,7 +146,9 @@ export function LoyaltyScreen() {
       >
         <View style={styles.pointsCardContent}>
           <View style={styles.pointsTop}>
-            <Text style={styles.pointsLabel}>Total Points</Text>
+            <Text style={styles.pointsLabel}>
+              {t("client.loyalty.totalPoints")}
+            </Text>
             <View style={styles.tierBadge}>
               <Ionicons name="star" size={14} color="#FFD700" />
               <Text style={styles.tierBadgeText}>
@@ -159,19 +163,25 @@ export function LoyaltyScreen() {
 
           <View style={styles.pointsFooter}>
             <View style={styles.pointsStat}>
-              <Text style={styles.pointsStatLabel}>Cashback</Text>
+              <Text style={styles.pointsStatLabel}>
+                {t("client.loyalty.cashback")}
+              </Text>
               <Text style={styles.pointsStatValue}>
                 {mockData.cashback_rate}%
               </Text>
             </View>
             <View style={styles.pointsStatDivider} />
             <View style={styles.pointsStat}>
-              <Text style={styles.pointsStatLabel}>Multiplier</Text>
+              <Text style={styles.pointsStatLabel}>
+                {t("client.loyalty.multiplier")}
+              </Text>
               <Text style={styles.pointsStatValue}>{mockData.multiplier}x</Text>
             </View>
             <View style={styles.pointsStatDivider} />
             <View style={styles.pointsStat}>
-              <Text style={styles.pointsStatLabel}>Earned Total</Text>
+              <Text style={styles.pointsStatLabel}>
+                {t("client.loyalty.earnedTotal")}
+              </Text>
               <Text style={styles.pointsStatValue}>
                 {mockData.total_earned.toLocaleString()}
               </Text>
@@ -183,9 +193,12 @@ export function LoyaltyScreen() {
       {/* Progress to Next Tier */}
       <View style={styles.progressSection}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Progress to Next Tier</Text>
+          <Text style={styles.progressLabel}>
+            {t("client.loyalty.progressToNextTier")}
+          </Text>
           <Text style={styles.progressPoints}>
-            {mockData.points_to_next_tier.toLocaleString()} points needed
+            {mockData.points_to_next_tier.toLocaleString()}{" "}
+            {t("client.loyalty.pointsNeeded")}
           </Text>
         </View>
         <View style={styles.progressBar}>
@@ -197,29 +210,31 @@ export function LoyaltyScreen() {
 
       {/* Quick Links */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Links</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.loyalty.quickLinks")}
+        </Text>
         <View style={styles.quickLinksGrid}>
           <QuickLinkButton
             icon="flame"
-            label="Quests"
+            label={t("client.loyalty.quests")}
             color={COLORS.red}
             onPress={() => navigation.navigate("Quests")}
           />
           <QuickLinkButton
             icon="trophy"
-            label="Achievements"
+            label={t("client.loyalty.achievements")}
             color={COLORS.amber}
             onPress={() => navigation.navigate("Achievements")}
           />
           <QuickLinkButton
             icon="share-social"
-            label="Referrals"
+            label={t("client.loyalty.referrals")}
             color={COLORS.blue}
             onPress={() => navigation.navigate("Referrals")}
           />
           <QuickLinkButton
             icon="ticket"
-            label="Promo Codes"
+            label={t("client.loyalty.promoCodes")}
             color={COLORS.primary}
             onPress={() => navigation.navigate("PromoCode")}
           />
@@ -229,9 +244,11 @@ export function LoyaltyScreen() {
       {/* Recent Points History */}
       <View style={styles.section}>
         <View style={styles.historyHeader}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Text style={styles.sectionTitle}>
+            {t("client.loyalty.recentActivity")}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate("FullHistory")}>
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>{t("common.viewAll")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -254,14 +271,18 @@ export function LoyaltyScreen() {
         ) : (
           <View style={styles.emptyHistory}>
             <Ionicons name="time-outline" size={48} color={COLORS.muted} />
-            <Text style={styles.emptyText}>No points activity yet</Text>
+            <Text style={styles.emptyText}>
+              {t("client.loyalty.noActivity")}
+            </Text>
           </View>
         )}
       </View>
 
       {/* Tier Levels Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tier Levels</Text>
+        <Text style={styles.sectionTitle}>
+          {t("client.loyalty.tierLevels")}
+        </Text>
         <View style={styles.tiersContainer}>
           {Object.entries(TIER_CONFIG).map(([tierName, config]) => (
             <TierLevelCard
@@ -284,7 +305,7 @@ export function LoyaltyScreen() {
           />
         </View>
         <Text style={styles.termsText}>
-          Points never expire as long as you maintain your membership status
+          {t("client.loyalty.pointsNeverExpire")}
         </Text>
       </View>
     </ScrollView>
@@ -366,6 +387,7 @@ interface TierLevelCardProps {
 }
 
 function TierLevelCard({ tier, config, isCurrent }: TierLevelCardProps) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.tierCard, isCurrent && styles.tierCardCurrent]}>
       <View style={styles.tierHeader}>
@@ -378,18 +400,24 @@ function TierLevelCard({ tier, config, isCurrent }: TierLevelCardProps) {
           <Text style={styles.tierName}>{tier.toUpperCase()}</Text>
           {isCurrent && (
             <View style={styles.currentBadge}>
-              <Text style={styles.currentBadgeText}>Current</Text>
+              <Text style={styles.currentBadgeText}>
+                {t("client.loyalty.current")}
+              </Text>
             </View>
           )}
         </View>
       </View>
       <View style={styles.tierBenefits}>
         <View style={styles.tierBenefit}>
-          <Text style={styles.tierBenefitLabel}>Cashback</Text>
+          <Text style={styles.tierBenefitLabel}>
+            {t("client.loyalty.cashback")}
+          </Text>
           <Text style={styles.tierBenefitValue}>{config.cashback}%</Text>
         </View>
         <View style={styles.tierBenefit}>
-          <Text style={styles.tierBenefitLabel}>Multiplier</Text>
+          <Text style={styles.tierBenefitLabel}>
+            {t("client.loyalty.multiplier")}
+          </Text>
           <Text style={styles.tierBenefitValue}>{config.multiplier}x</Text>
         </View>
       </View>

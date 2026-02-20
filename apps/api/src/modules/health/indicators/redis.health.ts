@@ -63,8 +63,7 @@ export class RedisHealthIndicator extends HealthIndicator {
         connected: true,
         ...info,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       const responseTime = Date.now() - startTime;
 
       throw new HealthCheckError(
@@ -72,7 +71,7 @@ export class RedisHealthIndicator extends HealthIndicator {
         this.getStatus(key, false, {
           responseTime: `${responseTime}ms`,
           connected: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         }),
       );
     }

@@ -8,7 +8,7 @@
  *   statusCode: number,
  *   errorCode: string,        // ErrorCode enum value
  *   message: string,
- *   details?: Record<string, any>,
+ *   details?: Record<string, unknown>,
  *   errors?: string[],        // validation error list
  *   path: string,
  *   timestamp: string,
@@ -66,8 +66,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof BusinessException) {
       statusCode = exception.getStatus();
       errorCode = exception.errorCode;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      message = (exception.getResponse() as any).message ?? exception.message;
+      message =
+        ((exception.getResponse() as Record<string, unknown>)
+          .message as string) ?? exception.message;
       details = exception.details;
 
       // -----------------------------------------------------------------
@@ -81,19 +82,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === "string") {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === "object") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const responseObj = exceptionResponse as any;
+        const responseObj = exceptionResponse as Record<string, unknown>;
 
         // Preserve errorCode if the response already carries one
         if (responseObj.errorCode) {
-          errorCode = responseObj.errorCode;
+          errorCode = responseObj.errorCode as string;
         }
 
-        message = responseObj.message || message;
+        message = (responseObj.message as string) || message;
 
         // Handle class-validator validation errors (array of messages)
         if (Array.isArray(responseObj.message)) {
-          errors = responseObj.message;
+          errors = responseObj.message as string[];
           errorCode = ErrorCode.VALIDATION_ERROR;
           message = "Validation error";
         }
@@ -188,8 +188,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * Handle database-specific errors (PostgreSQL error codes).
    */
   private handleDatabaseError(error: QueryFailedError): string {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const driverError = error.driverError as any;
+    const driverError = error.driverError as { code?: string; detail?: string };
 
     switch (driverError?.code) {
       case "23505": // unique_violation
@@ -211,8 +210,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * Extract a user-friendly message from a PostgreSQL unique-constraint
    * violation.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private extractUniqueViolationMessage(error: any): string {
+  private extractUniqueViolationMessage(error: {
+    code?: string;
+    detail?: string;
+  }): string {
     const detail = error.detail || "";
 
     const match = detail.match(/Key \(([^)]+)\)/);
@@ -246,8 +247,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       ip: request.ip,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userId: (request as any).user?.id,
+      userId: (request as Request & { user?: { id?: string } }).user?.id,
       statusCode,
       requestId: request.headers["x-request-id"],
     };

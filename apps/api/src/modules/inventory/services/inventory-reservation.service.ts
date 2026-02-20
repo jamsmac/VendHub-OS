@@ -706,11 +706,10 @@ export class InventoryReservationService {
             `Reservation expired: id=${locked.id}, qty=${releaseQty}`,
           );
         });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.logger.error(
-          `Failed to expire reservation ${reservation.id}: ${error?.message}`,
-          error?.stack,
+          `Failed to expire reservation ${reservation.id}: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
         );
       }
     }

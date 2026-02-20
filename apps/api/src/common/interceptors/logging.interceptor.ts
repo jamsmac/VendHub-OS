@@ -37,10 +37,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const { method, url, ip, body, query, params } = request;
     const userAgent = request.get("user-agent") || "";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userId = (request as any).user?.id || "anonymous";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const organizationId = (request as any).user?.organizationId;
+    const userId =
+      (request as Request & { user?: { id?: string; organizationId?: string } })
+        .user?.id || "anonymous";
+    const organizationId = (
+      request as Request & { user?: { id?: string; organizationId?: string } }
+    ).user?.organizationId;
 
     // Store user context in CLS for audit subscriber and downstream services
     if (userId !== "anonymous") {

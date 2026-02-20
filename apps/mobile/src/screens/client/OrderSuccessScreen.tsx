@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NavigationProp = NativeStackNavigationProp<any>;
@@ -39,6 +40,7 @@ const COLORS = {
 };
 
 export function OrderSuccessScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const params = (route.params as OrderSuccessRouteParams) || {
@@ -109,15 +111,19 @@ export function OrderSuccessScreen() {
       </Animated.View>
 
       {/* Success Title */}
-      <Text style={styles.successTitle}>Order Confirmed!</Text>
+      <Text style={styles.successTitle}>
+        {t("client.orderSuccess.confirmed")}
+      </Text>
 
       {/* Order Number */}
       <View style={styles.orderNumberCard}>
-        <Text style={styles.orderNumberLabel}>Order Number</Text>
+        <Text style={styles.orderNumberLabel}>
+          {t("client.orderSuccess.orderNumber")}
+        </Text>
         <Text style={styles.orderNumber}>{params.orderNumber}</Text>
         <TouchableOpacity style={styles.copyButton}>
           <Ionicons name="copy" size={16} color={COLORS.primary} />
-          <Text style={styles.copyText}>Copy</Text>
+          <Text style={styles.copyText}>{t("common.copy")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -126,15 +132,19 @@ export function OrderSuccessScreen() {
         <View style={styles.statusIcon}>
           <Ionicons name="hourglass" size={32} color={COLORS.amber} />
         </View>
-        <Text style={styles.statusTitle}>Your drink is being prepared</Text>
+        <Text style={styles.statusTitle}>
+          {t("client.orderSuccess.beingPrepared")}
+        </Text>
         <Text style={styles.statusSubtitle}>
-          The barista is making your perfect beverage right now
+          {t("client.orderSuccess.baristaWorking")}
         </Text>
       </View>
 
       {/* Estimated Time */}
       <View style={styles.timerCard}>
-        <Text style={styles.timerLabel}>Estimated Ready Time</Text>
+        <Text style={styles.timerLabel}>
+          {t("client.orderSuccess.estimatedReady")}
+        </Text>
         <View style={styles.timerDisplay}>
           <Ionicons name="timer" size={28} color={COLORS.primary} />
           <Text style={styles.timerValue}>
@@ -143,7 +153,9 @@ export function OrderSuccessScreen() {
           </Text>
           <Text style={styles.timerUnit}>min</Text>
         </View>
-        <Text style={styles.timerHint}>We'll notify you when it's ready</Text>
+        <Text style={styles.timerHint}>
+          {t("client.orderSuccess.willNotify")}
+        </Text>
       </View>
 
       {/* Points Earned */}
@@ -153,7 +165,9 @@ export function OrderSuccessScreen() {
             <Ionicons name="gift" size={28} color={COLORS.primary} />
           </View>
           <View style={styles.pointsInfo}>
-            <Text style={styles.pointsEarnedLabel}>Points Earned</Text>
+            <Text style={styles.pointsEarnedLabel}>
+              {t("client.orderSuccess.pointsEarned")}
+            </Text>
             <Text style={styles.pointsEarnedAmount}>
               +{params.pointsEarned}
             </Text>
@@ -173,8 +187,12 @@ export function OrderSuccessScreen() {
             />
           </View>
           <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Machine Location</Text>
-            <Text style={styles.detailValue}>Downtown Coffee Stand #1</Text>
+            <Text style={styles.detailLabel}>
+              {t("client.orderSuccess.machineLocation")}
+            </Text>
+            <Text style={styles.detailValue}>
+              {t("client.orderSuccess.locationPlaceholder")}
+            </Text>
           </View>
         </View>
 
@@ -185,7 +203,9 @@ export function OrderSuccessScreen() {
             <Ionicons name="card-outline" size={20} color={COLORS.primary} />
           </View>
           <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Payment Method</Text>
+            <Text style={styles.detailLabel}>
+              {t("client.orderSuccess.paymentMethod")}
+            </Text>
             <Text style={styles.detailValue}>Payme</Text>
           </View>
         </View>
@@ -197,7 +217,9 @@ export function OrderSuccessScreen() {
             <Ionicons name="time-outline" size={20} color={COLORS.primary} />
           </View>
           <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Order Time</Text>
+            <Text style={styles.detailLabel}>
+              {t("client.orderSuccess.orderTime")}
+            </Text>
             <Text style={styles.detailValue}>
               {new Date().toLocaleTimeString()}
             </Text>
@@ -212,7 +234,9 @@ export function OrderSuccessScreen() {
           onPress={handleViewReceipt}
         >
           <Ionicons name="receipt" size={20} color={COLORS.card} />
-          <Text style={styles.primaryButtonText}>View Receipt</Text>
+          <Text style={styles.primaryButtonText}>
+            {t("client.orderSuccess.viewReceipt")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -220,7 +244,9 @@ export function OrderSuccessScreen() {
           onPress={handleBackHome}
         >
           <Ionicons name="home" size={20} color={COLORS.primary} />
-          <Text style={styles.secondaryButtonText}>Back to Home</Text>
+          <Text style={styles.secondaryButtonText}>
+            {t("client.orderSuccess.backToHome")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -228,7 +254,7 @@ export function OrderSuccessScreen() {
       <View style={styles.supportSection}>
         <Ionicons name="help-circle-outline" size={20} color={COLORS.muted} />
         <Text style={styles.supportText}>
-          Need help? Contact support for any issues with your order
+          {t("client.orderSuccess.supportHint")}
         </Text>
       </View>
     </ScrollView>

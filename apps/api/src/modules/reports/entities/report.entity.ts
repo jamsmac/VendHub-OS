@@ -198,8 +198,8 @@ interface ReportFilters {
   tags?: string[];
 
   // Кастомные
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  custom?: Record<string, any>;
+
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -382,8 +382,8 @@ interface ReportResult {
   // Данные
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary?: Record<string, any>;
+
+  summary?: Record<string, unknown>;
 
   // Метаданные
   rowCount: number;
@@ -684,8 +684,7 @@ export class GeneratedReport extends BaseEntity {
   result: ReportResult;
 
   @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: Record<string, any>;
+  summary: Record<string, unknown>;
 
   @Column({ default: 0 })
   rowCount: number;
@@ -719,8 +718,7 @@ export class GeneratedReport extends BaseEntity {
   errorMessage: string;
 
   @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorDetails: Record<string, any>;
+  errorDetails: Record<string, unknown>;
 
   // ===== Срок хранения =====
 

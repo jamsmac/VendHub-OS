@@ -364,8 +364,8 @@ export class AchievementsService {
     userId: string,
     conditionType: AchievementConditionType,
     value: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata?: Record<string, any>,
+
+    metadata?: Record<string, unknown>,
   ): Promise<UserAchievement[]> {
     // Find all matching achievements
     const achievements = await this.achievementRepo.find({
@@ -423,7 +423,7 @@ export class AchievementsService {
               ? "tried_products"
               : "visited_machines";
           const existing: string[] = (details[key] as string[]) || [];
-          const newId = metadata?.id;
+          const newId = metadata?.id as string | undefined;
           if (newId && !existing.includes(newId)) {
             existing.push(newId);
             details[key] = existing;

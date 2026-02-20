@@ -49,15 +49,15 @@ export class DiskHealthIndicator extends HealthIndicator {
         `Disk usage exceeded threshold: ${usedPercent.toFixed(2)}% > ${(thresholdPercent * 100).toFixed(0)}%`,
         this.getStatus(key, false, details),
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof HealthCheckError) {
         throw error;
       }
 
+      const errMsg = error instanceof Error ? error.message : String(error);
       throw new HealthCheckError(
-        `Disk check failed: ${error.message}`,
-        this.getStatus(key, false, { error: error.message }),
+        `Disk check failed: ${errMsg}`,
+        this.getStatus(key, false, { error: errMsg }),
       );
     }
   }

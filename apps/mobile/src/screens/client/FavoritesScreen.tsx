@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,13 +58,14 @@ const COLORS = {
   muted: "#6B7280",
 };
 
-const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  active: { color: COLORS.green, label: "Active" },
-  low_stock: { color: COLORS.amber, label: "Low Stock" },
-  offline: { color: COLORS.red, label: "Offline" },
+const STATUS_CONFIG: Record<string, { color: string; key: string }> = {
+  active: { color: COLORS.green, key: "client.favorites.statusActive" },
+  low_stock: { color: COLORS.amber, key: "client.favorites.statusLowStock" },
+  offline: { color: COLORS.red, key: "client.favorites.statusOffline" },
 };
 
 export function FavoritesScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<FavoritesTab>("machines");
@@ -85,7 +87,10 @@ export function FavoritesScreen() {
       api.delete(`/favorites/machines/${machineId}`).then((res) => res.data),
     onSuccess: () => {
       refetchMachines();
-      Alert.alert("Success", "Removed from favorites");
+      Alert.alert(
+        t("common.success"),
+        t("client.favorites.removedFromFavorites"),
+      );
     },
   });
 
@@ -94,7 +99,10 @@ export function FavoritesScreen() {
       api.delete(`/favorites/products/${productId}`).then((res) => res.data),
     onSuccess: () => {
       refetchProducts();
-      Alert.alert("Success", "Removed from favorites");
+      Alert.alert(
+        t("common.success"),
+        t("client.favorites.removedFromFavorites"),
+      );
     },
   });
 
@@ -106,12 +114,12 @@ export function FavoritesScreen() {
 
   const handleRemoveMachine = (machineId: string) => {
     Alert.alert(
-      "Remove Favorite",
-      "Are you sure you want to remove this machine from favorites?",
+      t("client.favorites.removeFavorite"),
+      t("client.favorites.removeMachineConfirm"),
       [
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        { text: t("common.cancel"), onPress: () => {}, style: "cancel" },
         {
-          text: "Remove",
+          text: t("common.remove"),
           onPress: () => removeMachineMutation.mutate(machineId),
           style: "destructive",
         },
@@ -121,12 +129,12 @@ export function FavoritesScreen() {
 
   const handleRemoveProduct = (productId: string) => {
     Alert.alert(
-      "Remove Favorite",
-      "Are you sure you want to remove this product from favorites?",
+      t("client.favorites.removeFavorite"),
+      t("client.favorites.removeProductConfirm"),
       [
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        { text: t("common.cancel"), onPress: () => {}, style: "cancel" },
         {
-          text: "Remove",
+          text: t("common.remove"),
           onPress: () => removeProductMutation.mutate(productId),
           style: "destructive",
         },
@@ -146,7 +154,7 @@ export function FavoritesScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Favorites</Text>
+        <Text style={styles.headerTitle}>{t("client.favorites.title")}</Text>
         <View style={styles.headerInfo}>
           <Ionicons name="heart" size={20} color={COLORS.red} />
           <Text style={styles.headerCount}>
@@ -172,7 +180,7 @@ export function FavoritesScreen() {
               activeTab === "machines" && styles.tabTextActive,
             ]}
           >
-            Machines
+            {t("client.favorites.machines")}
           </Text>
           <View
             style={[
@@ -206,7 +214,7 @@ export function FavoritesScreen() {
               activeTab === "products" && styles.tabTextActive,
             ]}
           >
-            Products
+            {t("client.favorites.products")}
           </Text>
           <View
             style={[
@@ -249,9 +257,9 @@ export function FavoritesScreen() {
           ) : (
             <EmptyState
               icon="location-outline"
-              title="No favorite machines"
-              subtitle="Add machines to your favorites for quick access"
-              actionLabel="Browse Machines"
+              title={t("client.favorites.noFavoriteMachines")}
+              subtitle={t("client.favorites.addMachinesHint")}
+              actionLabel={t("client.favorites.browseMachines")}
               onAction={() => navigation.navigate("ClientHome")}
             />
           )}
@@ -279,9 +287,9 @@ export function FavoritesScreen() {
           ) : (
             <EmptyState
               icon="cafe-outline"
-              title="No favorite products"
-              subtitle="Save your favorite drinks and snacks for easy ordering"
-              actionLabel="Browse Products"
+              title={t("client.favorites.noFavoriteProducts")}
+              subtitle={t("client.favorites.addProductsHint")}
+              actionLabel={t("client.favorites.browseProducts")}
               onAction={() => navigation.navigate("ClientHome")}
             />
           )}
@@ -304,6 +312,7 @@ function MachineCard({
   isLoading,
   onPress,
 }: MachineCardProps) {
+  const { t } = useTranslation();
   const statusConfig = STATUS_CONFIG[machine.status];
 
   return (
@@ -347,11 +356,11 @@ function MachineCard({
                 <Text
                   style={[styles.statusLabel, { color: statusConfig.color }]}
                 >
-                  {statusConfig.label}
+                  {t(statusConfig.key)}
                 </Text>
               </View>
               <Text style={styles.productCount}>
-                {machine.productCount} products
+                {machine.productCount} {t("client.favorites.productsCount")}
               </Text>
             </View>
           </View>
@@ -373,7 +382,9 @@ function MachineCard({
       {machine.distance && (
         <View style={styles.machineFooter}>
           <Ionicons name="navigate" size={14} color={COLORS.primary} />
-          <Text style={styles.distanceText}>{machine.distance} away</Text>
+          <Text style={styles.distanceText}>
+            {machine.distance} {t("client.favorites.away")}
+          </Text>
         </View>
       )}
     </TouchableOpacity>

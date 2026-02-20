@@ -784,27 +784,25 @@ export class ImportSessionService {
       }
 
       await queryRunner.commitTransaction();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       await queryRunner.rollbackTransaction();
       session.status = ImportSessionStatus.FAILED;
-      session.message = `Import execution failed: ${error.message}`;
+      session.message = `Import execution failed: ${error instanceof Error ? error.message : String(error)}`;
       session.completedAt = new Date();
 
+      const errMsg = error instanceof Error ? error.message : String(error);
       session.executionResult = {
         total: allRows.length,
         successful: 0,
         failed: allRows.length,
         skipped: 0,
         duration_ms: Date.now() - startTime,
-        error: error.message,
+        error: errMsg,
       };
 
       const savedFailed = await this.sessionRepo.save(session);
       this.eventEmitter.emit("import.session.failed", { session: savedFailed });
-      this.logger.error(
-        `Session ${sessionId} execution failed: ${error.message}`,
-      );
+      this.logger.error(`Session ${sessionId} execution failed: ${errMsg}`);
 
       return savedFailed;
     } finally {
