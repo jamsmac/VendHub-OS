@@ -31,8 +31,8 @@ spec:
         fsGroup: 101
       containers:
         - name: client
-          image: vendhub/client:latest
-          imagePullPolicy: Always
+          image: vendhub/client:IMAGE_TAG # Override via Kustomize or CI/CD
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 80

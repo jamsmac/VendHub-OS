@@ -53,7 +53,11 @@
     "stock": "Zaxira",
     "cashBox": "Kassada",
     "transactions": "tranzaksiyalar",
-    "optional": "ixti."
+    "optional": "ixti.",
+    "errorOccurred": "Xatolik yuz berdi",
+    "errorDescription": "Nimadir noto'g'ri ketdi. Sahifani yangilang yoki bosh sahifaga qayting.",
+    "refreshPage": "Sahifani yangilash",
+    "goToDashboard": "Bosh sahifaga"
   },
   "auth": {
     "login": "Kirish",
@@ -1424,7 +1428,23 @@
     "type_template": "Shablon",
     "scope_hq": "Bosh ofis",
     "scope_organization": "Tashkilot",
-    "scope_location": "Joylashuv"
+    "scope_location": "Joylashuv",
+    "editTitle": "Ma'lumotnomani tahrirlash",
+    "saveBtn": "Saqlash",
+    "hierarchical": "Ierarxik ma'lumotnoma",
+    "nameRequired": "Nom kiritilishi shart",
+    "slugRequired": "Kod kiritilishi shart",
+    "slugPattern": "Faqat kichik lotin harflari, raqamlar va pastki chiziq",
+    "entryCreateTitle": "Yozuv yaratish",
+    "entryEditTitle": "Yozuvni tahrirlash",
+    "entryName": "Nomi",
+    "entryNamePlaceholder": "Nomini kiriting",
+    "entryCode": "Kod",
+    "entryCodePlaceholder": "Yozuv kodi",
+    "entryDescription": "Tavsif",
+    "entryDescriptionPlaceholder": "Tavsif",
+    "additionalFields": "Qo'shimcha maydonlar",
+    "selectPlaceholder": "Tanlang..."
   },
   "fiscal": {
     "title": "Fiskalizatsiya",

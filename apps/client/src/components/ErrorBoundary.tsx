@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
+import i18n from "../i18n";
 
 interface Props {
   children: ReactNode;
@@ -31,6 +32,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = i18n.t.bind(i18n);
+
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
           <div className="w-full max-w-md p-8 text-center">
@@ -50,23 +53,21 @@ export class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
             <h2 className="text-xl font-semibold mb-2 text-gray-900">
-              Произошла ошибка
+              {t("errorOccurred")}
             </h2>
-            <p className="text-gray-500 mb-6">
-              Что-то пошло не так. Попробуйте обновить страницу.
-            </p>
+            <p className="text-gray-500 mb-6">{t("errorDescription")}</p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => window.location.reload()}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Обновить страницу
+                {t("refreshPage")}
               </button>
               <button
                 onClick={this.handleReset}
                 className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
               >
-                Повторить
+                {t("retry")}
               </button>
             </div>
           </div>

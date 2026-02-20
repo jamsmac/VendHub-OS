@@ -64,6 +64,19 @@ export const uz = {
     pullToRefresh: "Yangilash uchun torting",
     loginRequired: "Bu harakat uchun tizimga kirish kerak",
 
+    // Geolocation errors
+    geoNotSupported: "Geolokatsiya qo'llab-quvvatlanmaydi",
+    geoError: "Joylashuvni aniqlashda xatolik",
+    geoPermissionDenied: "Joylashuvga kirish rad etildi",
+    geoPositionUnavailable: "Joylashuv aniqlanmadi",
+    geoTimeout: "Kutish vaqti tugadi",
+
+    // Error boundary
+    errorOccurred: "Xatolik yuz berdi",
+    errorDescription:
+      "Nimadir noto'g'ri ketdi. Sahifani yangilashga urinib ko'ring.",
+    refreshPage: "Sahifani yangilash",
+
     // Home Page
     findNearestMachine: "Eng yaqin avtomatni toping",
     coffeeSnacksDrinksNearby: "Qahva, gazaklar va ichimliklar yaqiningizda",

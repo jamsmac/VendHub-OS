@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 interface Position {
   latitude: number;
@@ -13,6 +14,7 @@ interface GeolocationState {
 }
 
 export function useGeolocation() {
+  const { t } = useTranslation();
   const [state, setState] = useState<GeolocationState>({
     position: null,
     error: null,
@@ -23,7 +25,7 @@ export function useGeolocation() {
     if (!navigator.geolocation) {
       setState((prev) => ({
         ...prev,
-        error: 'Геолокация не поддерживается',
+        error: t("geoNotSupported"),
         isLoading: false,
       }));
       return;
@@ -44,16 +46,16 @@ export function useGeolocation() {
         });
       },
       (error) => {
-        let message = 'Ошибка получения геолокации';
+        let message = t("geoError");
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            message = 'Доступ к геолокации запрещён';
+            message = t("geoPermissionDenied");
             break;
           case error.POSITION_UNAVAILABLE:
-            message = 'Местоположение недоступно';
+            message = t("geoPositionUnavailable");
             break;
           case error.TIMEOUT:
-            message = 'Время ожидания истекло';
+            message = t("geoTimeout");
             break;
         }
         setState((prev) => ({
@@ -66,9 +68,9 @@ export function useGeolocation() {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000,
-      }
+      },
     );
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     getCurrentPosition();

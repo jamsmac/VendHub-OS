@@ -44,6 +44,7 @@ import {
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { Roles, UserRole } from "../../common/decorators/roles.decorator";
+import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import { SettingsService } from "./settings.service";
 import { SettingCategory } from "./entities/system-setting.entity";
@@ -70,10 +71,9 @@ export class SettingsController {
   @ApiOperation({ summary: "Get all system settings" })
   @ApiResponse({ status: 200, description: "List of system settings" })
   @ApiQuery({ name: "category", required: false, enum: SettingCategory })
-  @ApiQuery({ name: "organizationId", required: false, type: String })
   async getAllSettings(
     @Query("category") category?: SettingCategory,
-    @Query("organizationId") organizationId?: string,
+    @CurrentOrganizationId() organizationId?: string,
   ) {
     return this.settingsService.getAllSettings(organizationId, category);
   }
@@ -94,8 +94,7 @@ export class SettingsController {
     status: 200,
     description: "List of AI provider keys (API keys masked)",
   })
-  @ApiQuery({ name: "organizationId", required: false, type: String })
-  async getAiProviderKeys(@Query("organizationId") organizationId?: string) {
+  async getAiProviderKeys(@CurrentOrganizationId() organizationId?: string) {
     return this.settingsService.getAiProviderKeys(organizationId);
   }
 

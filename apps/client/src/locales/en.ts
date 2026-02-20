@@ -63,6 +63,18 @@ export const en = {
     pullToRefresh: "Pull to refresh",
     loginRequired: "Login required for this action",
 
+    // Geolocation errors
+    geoNotSupported: "Geolocation is not supported",
+    geoError: "Failed to get location",
+    geoPermissionDenied: "Location access denied",
+    geoPositionUnavailable: "Position unavailable",
+    geoTimeout: "Location request timed out",
+
+    // Error boundary
+    errorOccurred: "An error occurred",
+    errorDescription: "Something went wrong. Please try refreshing the page.",
+    refreshPage: "Refresh page",
+
     // Home Page
     findNearestMachine: "Find the nearest machine",
     coffeeSnacksDrinksNearby: "Coffee, snacks and drinks near you",

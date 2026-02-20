@@ -53,7 +53,11 @@
     "stock": "Stock",
     "cashBox": "Cash box",
     "transactions": "transactions",
-    "optional": "opt."
+    "optional": "opt.",
+    "errorOccurred": "An error occurred",
+    "errorDescription": "Something went wrong. Please try refreshing the page or go back to the dashboard.",
+    "refreshPage": "Refresh page",
+    "goToDashboard": "Go to dashboard"
   },
   "auth": {
     "login": "Sign In",
@@ -1424,7 +1428,23 @@
     "type_template": "Template",
     "scope_hq": "Headquarters",
     "scope_organization": "Organization",
-    "scope_location": "Location"
+    "scope_location": "Location",
+    "editTitle": "Edit directory",
+    "saveBtn": "Save",
+    "hierarchical": "Hierarchical directory",
+    "nameRequired": "Name is required",
+    "slugRequired": "Code is required",
+    "slugPattern": "Only lowercase letters, numbers and underscores",
+    "entryCreateTitle": "Create entry",
+    "entryEditTitle": "Edit entry",
+    "entryName": "Name",
+    "entryNamePlaceholder": "Enter name",
+    "entryCode": "Code",
+    "entryCodePlaceholder": "Entry code",
+    "entryDescription": "Description",
+    "entryDescriptionPlaceholder": "Description",
+    "additionalFields": "Additional fields",
+    "selectPlaceholder": "Select..."
   },
   "fiscal": {
     "title": "Fiscalization",

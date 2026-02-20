@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function GlobalError({
   error,
@@ -11,6 +12,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("common");
+
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       console.error("Global error:", error);
@@ -23,11 +26,8 @@ export default function GlobalError({
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
           <AlertTriangle className="h-8 w-8 text-red-600" />
         </div>
-        <h2 className="text-xl font-semibold mb-2">Произошла ошибка</h2>
-        <p className="text-gray-500 mb-6">
-          Что-то пошло не так. Попробуйте обновить страницу или вернуться на
-          главную.
-        </p>
+        <h2 className="text-xl font-semibold mb-2">{t("errorOccurred")}</h2>
+        <p className="text-gray-500 mb-6">{t("errorDescription")}</p>
         {error.digest && (
           <p className="text-xs text-gray-400 mb-4 font-mono">
             ID: {error.digest}
@@ -39,14 +39,14 @@ export default function GlobalError({
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <Home className="h-4 w-4 mr-2" />
-            На главную
+            {t("goToDashboard")}
           </Link>
           <button
             onClick={reset}
             className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Повторить
+            {t("retry")}
           </button>
         </div>
       </div>

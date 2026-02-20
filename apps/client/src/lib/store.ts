@@ -4,6 +4,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import i18n from "../i18n";
 
 // ============================================
 // Cart Store
@@ -215,7 +216,7 @@ export const useUIStore = create<UIState>()(
       setLanguage: (language) => {
         set({ language });
         // Sync with i18next
-        import("../i18n").then((mod) => mod.default.changeLanguage(language));
+        i18n.changeLanguage(language);
       },
 
       setNotifications: (notificationsEnabled) => {
@@ -270,7 +271,7 @@ export const useGeolocationStore = create<GeolocationState>((set) => ({
     set({ isLoading: true, error: null });
 
     if (!navigator.geolocation) {
-      set({ error: "Геолокация не поддерживается", isLoading: false });
+      set({ error: i18n.t("geoNotSupported"), isLoading: false });
       return;
     }
 
@@ -285,16 +286,16 @@ export const useGeolocationStore = create<GeolocationState>((set) => ({
         });
       },
       (err) => {
-        let errorMessage = "Ошибка геолокации";
+        let errorMessage = i18n.t("geoError");
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            errorMessage = "Доступ к геолокации запрещён";
+            errorMessage = i18n.t("geoPermissionDenied");
             break;
           case err.POSITION_UNAVAILABLE:
-            errorMessage = "Местоположение недоступно";
+            errorMessage = i18n.t("geoPositionUnavailable");
             break;
           case err.TIMEOUT:
-            errorMessage = "Время ожидания истекло";
+            errorMessage = i18n.t("geoTimeout");
             break;
         }
         set({ error: errorMessage, isLoading: false });

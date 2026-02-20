@@ -33,8 +33,10 @@ scrape_configs:
       - targets: ["api:4000"]
     metrics_path: /api/v1/monitoring/metrics
     scrape_interval: 10s
+    # Authorization: use bearer_token_file with K8s secret mount
+    # or set via Prometheus --web.config for basic auth
     authorization:
-      credentials: "${METRICS_API_KEY}"
+      credentials_file: /etc/prometheus/secrets/metrics-api-key
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance

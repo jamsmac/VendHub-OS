@@ -16,13 +16,13 @@ export const api = axios.create({
 // ============================================
 
 function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem("vendhub-token", accessToken);
-  localStorage.setItem("vendhub-refresh-token", refreshToken);
+  localStorage.setItem("vendhub_access_token", accessToken);
+  localStorage.setItem("vendhub_refresh_token", refreshToken);
 }
 
 function clearTokens() {
-  localStorage.removeItem("vendhub-token");
-  localStorage.removeItem("vendhub-refresh-token");
+  localStorage.removeItem("vendhub_access_token");
+  localStorage.removeItem("vendhub_refresh_token");
 }
 
 export { setTokens, clearTokens };
@@ -32,7 +32,7 @@ export { setTokens, clearTokens };
 // ============================================
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("vendhub-token");
+  const token = localStorage.getItem("vendhub_access_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -87,7 +87,7 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem("vendhub-refresh-token");
+      const refreshToken = localStorage.getItem("vendhub_refresh_token");
       if (!refreshToken) {
         // No refresh token stored — cannot refresh, force logout
         throw new Error("No refresh token available");

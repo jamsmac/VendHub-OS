@@ -151,7 +151,22 @@ describe("ReportsService", () => {
   });
 
   describe("getDefinition", () => {
-    it("should return a definition by id", async () => {
+    it("should return a definition by id with org filter", async () => {
+      const definition = { id: "def-1", name: "Sales Report" };
+      definitionRepo.findOne!.mockResolvedValue(definition);
+
+      const result = await service.getDefinition("def-1", "org-1");
+
+      expect(result).toEqual(definition);
+      expect(definitionRepo.findOne).toHaveBeenCalledWith({
+        where: [
+          { id: "def-1", organizationId: "org-1" },
+          { id: "def-1", isSystem: true },
+        ],
+      });
+    });
+
+    it("should return a definition by id without org filter", async () => {
       const definition = { id: "def-1", name: "Sales Report" };
       definitionRepo.findOne!.mockResolvedValue(definition);
 
@@ -159,16 +174,16 @@ describe("ReportsService", () => {
 
       expect(result).toEqual(definition);
       expect(definitionRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "def-1" },
+        where: [{ id: "def-1" }],
       });
     });
 
     it("should throw NotFoundException when definition not found", async () => {
       definitionRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.getDefinition("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getDefinition("non-existent", "org-1"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -282,7 +297,7 @@ describe("ReportsService", () => {
       const result = await service.generate(dto);
 
       expect(definitionRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "def-1" },
+        where: [{ id: "def-1" }],
       });
       expect(result).toBeDefined();
     });
@@ -373,20 +388,23 @@ describe("ReportsService", () => {
   });
 
   describe("getGeneratedReport", () => {
-    it("should return a generated report by id", async () => {
+    it("should return a generated report by id and organizationId", async () => {
       const report = { id: "rpt-1", name: "Test Report" };
       generatedRepo.findOne!.mockResolvedValue(report);
 
-      const result = await service.getGeneratedReport("rpt-1");
+      const result = await service.getGeneratedReport("rpt-1", "org-1");
       expect(result).toEqual(report);
+      expect(generatedRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "rpt-1", organizationId: "org-1" },
+      });
     });
 
     it("should throw NotFoundException when report not found", async () => {
       generatedRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.getGeneratedReport("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getGeneratedReport("non-existent", "org-1"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -465,7 +483,7 @@ describe("ReportsService", () => {
   });
 
   describe("updateScheduledReport", () => {
-    it("should update a scheduled report", async () => {
+    it("should update a scheduled report with org filter", async () => {
       const existing = {
         id: "s1",
         name: "Old Name",
@@ -474,33 +492,49 @@ describe("ReportsService", () => {
       scheduledRepo.findOne!.mockResolvedValue(existing);
       scheduledRepo.save!.mockResolvedValue({ ...existing, name: "New Name" });
 
-      const result = await service.updateScheduledReport("s1", {
+      const result = await service.updateScheduledReport("s1", "org-1", {
         name: "New Name",
       } as Partial<ScheduledReport>);
 
       expect(result.name).toBe("New Name");
+      expect(scheduledRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "s1", organizationId: "org-1" },
+      });
     });
 
     it("should throw NotFoundException when schedule not found", async () => {
       scheduledRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.updateScheduledReport("non-existent", {}),
+        service.updateScheduledReport("non-existent", "org-1", {}),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("deleteScheduledReport", () => {
-    it("should soft-delete a scheduled report", async () => {
+    it("should verify ownership then soft-delete a scheduled report", async () => {
+      const existing = { id: "s1", organizationId: "org-1" };
+      scheduledRepo.findOne!.mockResolvedValue(existing);
       scheduledRepo.softDelete!.mockResolvedValue({
         affected: 1,
         raw: {},
         generatedMaps: [],
       });
 
-      await service.deleteScheduledReport("s1");
+      await service.deleteScheduledReport("s1", "org-1");
 
+      expect(scheduledRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "s1", organizationId: "org-1" },
+      });
       expect(scheduledRepo.softDelete).toHaveBeenCalledWith("s1");
+    });
+
+    it("should throw NotFoundException when schedule not owned by org", async () => {
+      scheduledRepo.findOne!.mockResolvedValue(null);
+
+      await expect(
+        service.deleteScheduledReport("s1", "wrong-org"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -525,14 +559,18 @@ describe("ReportsService", () => {
   });
 
   describe("getDashboard", () => {
-    it("should return a dashboard and increment view count", async () => {
+    it("should return a dashboard with org filter and increment view count", async () => {
       const dashboard = { id: "d1", name: "Main", widgets: [] };
       dashboardRepo.findOne!.mockResolvedValue(dashboard);
       dashboardRepo.increment!.mockResolvedValue(undefined);
 
-      const result = await service.getDashboard("d1");
+      const result = await service.getDashboard("d1", "org-1");
 
       expect(result).toEqual(dashboard);
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1", organizationId: "org-1" },
+        relations: ["widgets"],
+      });
       expect(dashboardRepo.increment).toHaveBeenCalledWith(
         { id: "d1" },
         "viewCount",
@@ -540,17 +578,34 @@ describe("ReportsService", () => {
       );
     });
 
+    it("should return a dashboard without org filter", async () => {
+      const dashboard = { id: "d1", name: "Main", widgets: [] };
+      dashboardRepo.findOne!.mockResolvedValue(dashboard);
+      dashboardRepo.increment!.mockResolvedValue(undefined);
+
+      const result = await service.getDashboard("d1");
+
+      expect(result).toEqual(dashboard);
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1" },
+        relations: ["widgets"],
+      });
+    });
+
     it("should throw NotFoundException when dashboard not found", async () => {
       dashboardRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.getDashboard("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getDashboard("non-existent", "org-1"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("deleteDashboard", () => {
-    it("should soft-delete widgets then dashboard", async () => {
+    it("should verify ownership then soft-delete widgets and dashboard", async () => {
+      const dashboard = { id: "d1", organizationId: "org-1", widgets: [] };
+      dashboardRepo.findOne!.mockResolvedValue(dashboard);
+      dashboardRepo.increment!.mockResolvedValue(undefined);
       widgetRepo.softDelete!.mockResolvedValue({
         affected: 3,
         raw: {},
@@ -562,10 +617,22 @@ describe("ReportsService", () => {
         generatedMaps: [],
       });
 
-      await service.deleteDashboard("d1");
+      await service.deleteDashboard("d1", "org-1");
 
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1", organizationId: "org-1" },
+        relations: ["widgets"],
+      });
       expect(widgetRepo.softDelete).toHaveBeenCalledWith({ dashboardId: "d1" });
       expect(dashboardRepo.softDelete).toHaveBeenCalledWith("d1");
+    });
+
+    it("should throw NotFoundException when dashboard not owned by org", async () => {
+      dashboardRepo.findOne!.mockResolvedValue(null);
+
+      await expect(service.deleteDashboard("d1", "wrong-org")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -594,7 +661,7 @@ describe("ReportsService", () => {
   // ==========================================================================
 
   describe("createWidget", () => {
-    it("should create a widget for existing dashboard", async () => {
+    it("should create a widget verifying dashboard ownership", async () => {
       const dashboard = { id: "d1", organizationId: "org-1" };
       dashboardRepo.findOne!.mockResolvedValue(dashboard);
 
@@ -617,62 +684,111 @@ describe("ReportsService", () => {
       widgetRepo.create!.mockReturnValue(created);
       widgetRepo.save!.mockResolvedValue(created);
 
+      const result = await service.createWidget(widgetData, "org-1");
+
+      expect(result.id).toBe("w1");
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1", organizationId: "org-1" },
+      });
+      expect(widgetRepo.create).toHaveBeenCalled();
+    });
+
+    it("should create a widget without org filter (internal call)", async () => {
+      const dashboard = { id: "d1", organizationId: "org-1" };
+      dashboardRepo.findOne!.mockResolvedValue(dashboard);
+
+      const widgetData = {
+        dashboardId: "d1",
+        title: "Revenue",
+        positionX: 0,
+        positionY: 0,
+        width: 6,
+        height: 3,
+      };
+
+      const created = { id: "w1", ...widgetData, organizationId: "org-1" };
+      widgetRepo.create!.mockReturnValue(created);
+      widgetRepo.save!.mockResolvedValue(created);
+
       const result = await service.createWidget(widgetData);
 
       expect(result.id).toBe("w1");
-      expect(widgetRepo.create).toHaveBeenCalled();
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1" },
+      });
     });
 
     it("should throw NotFoundException when dashboard not found", async () => {
       dashboardRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.createWidget({
-          dashboardId: "invalid",
-          title: "Test",
-          positionX: 0,
-          positionY: 0,
-          width: 4,
-          height: 2,
-        }),
+        service.createWidget(
+          {
+            dashboardId: "invalid",
+            title: "Test",
+            positionX: 0,
+            positionY: 0,
+            width: 4,
+            height: 2,
+          },
+          "org-1",
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("updateWidget", () => {
-    it("should update an existing widget", async () => {
+    it("should update an existing widget with org filter", async () => {
       const widget = { id: "w1", title: "Old" };
       widgetRepo.findOne!.mockResolvedValue(widget);
       widgetRepo.save!.mockResolvedValue({ ...widget, title: "New" });
 
-      const result = await service.updateWidget("w1", {
+      const result = await service.updateWidget("w1", "org-1", {
         title: "New",
       } as Partial<DashboardWidget>);
       expect(result.title).toBe("New");
+      expect(widgetRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "w1", organizationId: "org-1" },
+      });
     });
 
     it("should throw NotFoundException when widget not found", async () => {
       widgetRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.updateWidget("non-existent", {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateWidget("non-existent", "org-1", {}),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("reorderWidgets", () => {
-    it("should update positionY for each widget in order", async () => {
+    it("should verify dashboard ownership then update positionY", async () => {
+      const dashboard = { id: "d1", organizationId: "org-1", widgets: [] };
+      dashboardRepo.findOne!.mockResolvedValue(dashboard);
+      dashboardRepo.increment!.mockResolvedValue(undefined);
       widgetRepo.update!.mockResolvedValue({
         affected: 1,
         raw: {},
         generatedMaps: [],
       });
 
-      await service.reorderWidgets("d1", ["w3", "w1", "w2"]);
+      await service.reorderWidgets("d1", "org-1", ["w3", "w1", "w2"]);
 
+      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "d1", organizationId: "org-1" },
+        relations: ["widgets"],
+      });
       expect(widgetRepo.update).toHaveBeenCalledWith("w3", { positionY: 0 });
       expect(widgetRepo.update).toHaveBeenCalledWith("w1", { positionY: 1 });
       expect(widgetRepo.update).toHaveBeenCalledWith("w2", { positionY: 2 });
+    });
+
+    it("should throw NotFoundException when dashboard not owned by org", async () => {
+      dashboardRepo.findOne!.mockResolvedValue(null);
+
+      await expect(
+        service.reorderWidgets("d1", "wrong-org", ["w1"]),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -752,16 +868,29 @@ describe("ReportsService", () => {
   });
 
   describe("deleteSavedFilter", () => {
-    it("should soft-delete a saved filter", async () => {
+    it("should verify ownership then soft-delete a saved filter", async () => {
+      const filter = { id: "f1", userId: "user-1" };
+      filterRepo.findOne!.mockResolvedValue(filter);
       filterRepo.softDelete!.mockResolvedValue({
         affected: 1,
         raw: {},
         generatedMaps: [],
       });
 
-      await service.deleteSavedFilter("f1");
+      await service.deleteSavedFilter("f1", "user-1");
 
+      expect(filterRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "f1", userId: "user-1" },
+      });
       expect(filterRepo.softDelete).toHaveBeenCalledWith("f1");
+    });
+
+    it("should throw NotFoundException when filter not owned by user", async () => {
+      filterRepo.findOne!.mockResolvedValue(null);
+
+      await expect(
+        service.deleteSavedFilter("f1", "wrong-user"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -32,8 +32,8 @@ spec:
 
       containers:
         - name: web
-          image: vendhub/web:latest
-          imagePullPolicy: Always
+          image: vendhub/web:IMAGE_TAG # Override via Kustomize or CI/CD
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 3000

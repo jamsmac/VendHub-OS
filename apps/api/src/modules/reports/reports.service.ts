@@ -139,8 +139,17 @@ export class ReportsService {
     });
   }
 
-  async getDefinition(id: string): Promise<ReportDefinition> {
-    const definition = await this.definitionRepo.findOne({ where: { id } });
+  async getDefinition(
+    id: string,
+    organizationId?: string,
+  ): Promise<ReportDefinition> {
+    const where = organizationId
+      ? [
+          { id, organizationId },
+          { id, isSystem: true },
+        ]
+      : [{ id }];
+    const definition = await this.definitionRepo.findOne({ where });
     if (!definition) {
       throw new NotFoundException(`Определение отчёта ${id} не найдено`);
     }
@@ -282,9 +291,7 @@ export class ReportsService {
     }
   }
 
-  private async generateSalesSummary(
-    dto: GenerateReportDto,
-  ): Promise<{
+  private async generateSalesSummary(dto: GenerateReportDto): Promise<{
     rows: Record<string, unknown>[];
     summary: Record<string, unknown>;
   }> {
@@ -332,9 +339,7 @@ export class ReportsService {
     };
   }
 
-  private async generateMachinePerformance(
-    dto: GenerateReportDto,
-  ): Promise<{
+  private async generateMachinePerformance(dto: GenerateReportDto): Promise<{
     rows: Record<string, unknown>[];
     summary: Record<string, unknown>;
   }> {
@@ -395,9 +400,7 @@ export class ReportsService {
     };
   }
 
-  private async generateInventoryLevels(
-    dto: GenerateReportDto,
-  ): Promise<{
+  private async generateInventoryLevels(dto: GenerateReportDto): Promise<{
     rows: Record<string, unknown>[];
     summary: Record<string, unknown>;
   }> {
@@ -564,8 +567,13 @@ export class ReportsService {
     };
   }
 
-  async getGeneratedReport(id: string): Promise<GeneratedReport> {
-    const report = await this.generatedRepo.findOne({ where: { id } });
+  async getGeneratedReport(
+    id: string,
+    organizationId: string,
+  ): Promise<GeneratedReport> {
+    const report = await this.generatedRepo.findOne({
+      where: { id, organizationId },
+    });
     if (!report) {
       throw new NotFoundException(`Отчёт ${id} не найден`);
     }
@@ -632,9 +640,12 @@ export class ReportsService {
 
   async updateScheduledReport(
     id: string,
+    organizationId: string,
     updates: Partial<ScheduledReport>,
   ): Promise<ScheduledReport> {
-    const scheduled = await this.scheduledRepo.findOne({ where: { id } });
+    const scheduled = await this.scheduledRepo.findOne({
+      where: { id, organizationId },
+    });
     if (!scheduled) {
       throw new NotFoundException(`Расписание ${id} не найдено`);
     }
@@ -657,7 +668,16 @@ export class ReportsService {
     return this.scheduledRepo.save(scheduled);
   }
 
-  async deleteScheduledReport(id: string): Promise<void> {
+  async deleteScheduledReport(
+    id: string,
+    organizationId: string,
+  ): Promise<void> {
+    const scheduled = await this.scheduledRepo.findOne({
+      where: { id, organizationId },
+    });
+    if (!scheduled) {
+      throw new NotFoundException(`Расписание ${id} не найдено`);
+    }
     await this.scheduledRepo.softDelete(id);
   }
 
@@ -796,7 +816,7 @@ export class ReportsService {
       }
     }
 
-    return this.getDashboard(saved.id);
+    return this.getDashboard(saved.id, dto.organizationId);
   }
 
   async getDashboards(organizationId: string): Promise<Dashboard[]> {
@@ -807,9 +827,10 @@ export class ReportsService {
     });
   }
 
-  async getDashboard(id: string): Promise<Dashboard> {
+  async getDashboard(id: string, organizationId?: string): Promise<Dashboard> {
+    const where = organizationId ? { id, organizationId } : { id };
     const dashboard = await this.dashboardRepo.findOne({
-      where: { id },
+      where,
       relations: ["widgets"],
     });
 
@@ -825,17 +846,19 @@ export class ReportsService {
 
   async updateDashboard(
     id: string,
+    organizationId: string,
     updates: Partial<Dashboard>,
   ): Promise<Dashboard> {
-    const dashboard = await this.getDashboard(id);
+    const dashboard = await this.getDashboard(id, organizationId);
     Object.assign(dashboard, updates);
     dashboard.updatedAt = new Date();
     await this.dashboardRepo.save(dashboard);
-    return this.getDashboard(id);
+    return this.getDashboard(id, organizationId);
   }
 
-  async deleteDashboard(id: string): Promise<void> {
-    await this.widgetRepo.softDelete({ dashboardId: id });
+  async deleteDashboard(id: string, organizationId: string): Promise<void> {
+    const dashboard = await this.getDashboard(id, organizationId);
+    await this.widgetRepo.softDelete({ dashboardId: dashboard.id });
     await this.dashboardRepo.softDelete(id);
   }
 
@@ -854,11 +877,15 @@ export class ReportsService {
   // WIDGETS
   // ============================================================================
 
-  async createWidget(dto: CreateWidgetDto): Promise<DashboardWidget> {
-    // Get dashboard to get organizationId
-    const dashboard = await this.dashboardRepo.findOne({
-      where: { id: dto.dashboardId },
-    });
+  async createWidget(
+    dto: CreateWidgetDto,
+    organizationId?: string,
+  ): Promise<DashboardWidget> {
+    // Get dashboard and verify ownership
+    const where = organizationId
+      ? { id: dto.dashboardId, organizationId }
+      : { id: dto.dashboardId };
+    const dashboard = await this.dashboardRepo.findOne({ where });
     if (!dashboard) {
       throw new NotFoundException(`Dashboard ${dto.dashboardId} not found`);
     }
@@ -884,9 +911,12 @@ export class ReportsService {
 
   async updateWidget(
     id: string,
+    organizationId: string,
     updates: Partial<DashboardWidget>,
   ): Promise<DashboardWidget> {
-    const widget = await this.widgetRepo.findOne({ where: { id } });
+    const widget = await this.widgetRepo.findOne({
+      where: { id, organizationId },
+    });
     if (!widget) {
       throw new NotFoundException(`Виджет ${id} не найден`);
     }
@@ -895,14 +925,23 @@ export class ReportsService {
     return this.widgetRepo.save(widget);
   }
 
-  async deleteWidget(id: string): Promise<void> {
+  async deleteWidget(id: string, organizationId: string): Promise<void> {
+    const widget = await this.widgetRepo.findOne({
+      where: { id, organizationId },
+    });
+    if (!widget) {
+      throw new NotFoundException(`Виджет ${id} не найден`);
+    }
     await this.widgetRepo.softDelete(id);
   }
 
   async reorderWidgets(
     dashboardId: string,
+    organizationId: string,
     widgetIds: string[],
   ): Promise<void> {
+    // Verify dashboard ownership
+    await this.getDashboard(dashboardId, organizationId);
     for (let i = 0; i < widgetIds.length; i++) {
       await this.widgetRepo.update(widgetIds[i], { positionY: i });
     }
@@ -955,7 +994,13 @@ export class ReportsService {
     });
   }
 
-  async deleteSavedFilter(id: string): Promise<void> {
+  async deleteSavedFilter(id: string, userId: string): Promise<void> {
+    const filter = await this.filterRepo.findOne({
+      where: { id, userId },
+    });
+    if (!filter) {
+      throw new NotFoundException(`Фильтр ${id} не найден`);
+    }
     await this.filterRepo.softDelete(id);
   }
 

@@ -73,9 +73,7 @@ jobs:
           context: .
           file: ./apps/api/Dockerfile
           push: true
-          tags: |
-            vendhub/api:${{ steps.version.outputs.VERSION }}
-            vendhub/api:latest
+          tags: vendhub/api:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -86,9 +84,7 @@ jobs:
           context: .
           file: ./apps/web/Dockerfile
           push: true
-          tags: |
-            vendhub/web:${{ steps.version.outputs.VERSION }}
-            vendhub/web:latest
+          tags: vendhub/web:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -99,9 +95,7 @@ jobs:
           context: .
           file: ./apps/client/Dockerfile
           push: true
-          tags: |
-            vendhub/client:${{ steps.version.outputs.VERSION }}
-            vendhub/client:latest
+          tags: vendhub/client:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -112,9 +106,7 @@ jobs:
           context: .
           file: ./apps/bot/Dockerfile
           push: true
-          tags: |
-            vendhub/bot:${{ steps.version.outputs.VERSION }}
-            vendhub/bot:latest
+          tags: vendhub/bot:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -125,9 +117,7 @@ jobs:
           context: .
           file: ./apps/site/Dockerfile
           push: true
-          tags: |
-            vendhub/site:${{ steps.version.outputs.VERSION }}
-            vendhub/site:latest
+          tags: vendhub/site:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -53,7 +53,11 @@
     "stock": "Запас",
     "cashBox": "В кассе",
     "transactions": "транзакций",
-    "optional": "опц."
+    "optional": "опц.",
+    "errorOccurred": "Произошла ошибка",
+    "errorDescription": "Что-то пошло не так. Попробуйте обновить страницу или вернуться на главную.",
+    "refreshPage": "Обновить страницу",
+    "goToDashboard": "На главную"
   },
   "auth": {
     "login": "Войти",
@@ -1424,7 +1428,23 @@
     "type_template": "Шаблон",
     "scope_hq": "Штаб-квартира",
     "scope_organization": "Организация",
-    "scope_location": "Локация"
+    "scope_location": "Локация",
+    "editTitle": "Редактировать справочник",
+    "saveBtn": "Сохранить",
+    "hierarchical": "Иерархический справочник",
+    "nameRequired": "Название обязательно",
+    "slugRequired": "Код обязателен",
+    "slugPattern": "Только латинские буквы, цифры и подчёркивание",
+    "entryCreateTitle": "Создать запись",
+    "entryEditTitle": "Редактировать запись",
+    "entryName": "Название",
+    "entryNamePlaceholder": "Введите название",
+    "entryCode": "Код",
+    "entryCodePlaceholder": "Код записи",
+    "entryDescription": "Описание",
+    "entryDescriptionPlaceholder": "Описание",
+    "additionalFields": "Дополнительные поля",
+    "selectPlaceholder": "Выберите..."
   },
   "fiscal": {
     "title": "Фискализация",

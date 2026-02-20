@@ -48,8 +48,8 @@ spec:
 
       containers:
         - name: bot
-          image: vendhub/bot:latest
-          imagePullPolicy: Always
+          image: vendhub/bot:IMAGE_TAG # Override via Kustomize or CI/CD
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 3001

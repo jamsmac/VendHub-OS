@@ -64,6 +64,18 @@ export const ru = {
     pullToRefresh: "Потяните для обновления",
     loginRequired: "Для этого действия необходимо войти",
 
+    // Geolocation errors
+    geoNotSupported: "Геолокация не поддерживается",
+    geoError: "Ошибка получения геолокации",
+    geoPermissionDenied: "Доступ к геолокации запрещён",
+    geoPositionUnavailable: "Местоположение недоступно",
+    geoTimeout: "Время ожидания истекло",
+
+    // Error boundary
+    errorOccurred: "Произошла ошибка",
+    errorDescription: "Что-то пошло не так. Попробуйте обновить страницу.",
+    refreshPage: "Обновить страницу",
+
     // Home Page
     findNearestMachine: "Найди ближайший автомат",
     coffeeSnacksDrinksNearby: "Кофе, снеки и напитки рядом с вами",

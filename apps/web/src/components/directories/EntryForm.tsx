@@ -1,17 +1,18 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import * as React from "react";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface FieldDefinition {
   id: string;
@@ -26,7 +27,12 @@ interface FieldDefinition {
 interface EntryFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { name: string; code?: string; description?: string; data: Record<string, unknown> }) => void;
+  onSubmit: (data: {
+    name: string;
+    code?: string;
+    description?: string;
+    data: Record<string, unknown>;
+  }) => void;
   fields?: FieldDefinition[];
   defaultValues?: {
     name?: string;
@@ -36,7 +42,7 @@ interface EntryFormProps {
   };
   isSubmitting?: boolean;
   title?: string;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
 }
 
 export function EntryForm({
@@ -47,18 +53,23 @@ export function EntryForm({
   defaultValues,
   isSubmitting = false,
   title,
-  mode = 'create',
+  mode = "create",
 }: EntryFormProps) {
-  const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [fieldValues, setFieldValues] = React.useState<Record<string, unknown>>({});
+  const t = useTranslations("directories");
+  const tCommon = useTranslations("common");
+
+  const [name, setName] = React.useState("");
+  const [code, setCode] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [fieldValues, setFieldValues] = React.useState<Record<string, unknown>>(
+    {},
+  );
 
   React.useEffect(() => {
     if (open) {
-      setName(defaultValues?.name || '');
-      setCode(defaultValues?.code || '');
-      setDescription(defaultValues?.description || '');
+      setName(defaultValues?.name || "");
+      setCode(defaultValues?.code || "");
+      setDescription(defaultValues?.description || "");
       setFieldValues(defaultValues?.data || {});
     }
   }, [open, defaultValues]);
@@ -79,10 +90,10 @@ export function EntryForm({
   };
 
   const renderField = (field: FieldDefinition) => {
-    const value = fieldValues[field.name] ?? field.defaultValue ?? '';
+    const value = fieldValues[field.name] ?? field.defaultValue ?? "";
 
     switch (field.fieldType) {
-      case 'TEXT':
+      case "TEXT":
         return (
           <Input
             value={String(value)}
@@ -91,17 +102,19 @@ export function EntryForm({
           />
         );
 
-      case 'NUMBER':
+      case "NUMBER":
         return (
           <Input
             type="number"
             value={String(value)}
-            onChange={(e) => handleFieldChange(field.name, Number(e.target.value))}
+            onChange={(e) =>
+              handleFieldChange(field.name, Number(e.target.value))
+            }
             placeholder={field.displayName}
           />
         );
 
-      case 'BOOLEAN':
+      case "BOOLEAN":
         return (
           <div className="flex items-center gap-2">
             <input
@@ -110,11 +123,13 @@ export function EntryForm({
               onChange={(e) => handleFieldChange(field.name, e.target.checked)}
               className="h-4 w-4 rounded border-input"
             />
-            <span className="text-sm text-muted-foreground">{field.displayName}</span>
+            <span className="text-sm text-muted-foreground">
+              {field.displayName}
+            </span>
           </div>
         );
 
-      case 'DATE':
+      case "DATE":
         return (
           <Input
             type="date"
@@ -123,7 +138,7 @@ export function EntryForm({
           />
         );
 
-      case 'DATETIME':
+      case "DATETIME":
         return (
           <Input
             type="datetime-local"
@@ -132,15 +147,15 @@ export function EntryForm({
           />
         );
 
-      case 'SELECT_SINGLE':
+      case "SELECT_SINGLE":
         return (
           <select
             value={String(value)}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <option value="">Выберите...</option>
-            {(field.validationRules?.options as string[] || []).map((opt) => (
+            <option value="">{t("selectPlaceholder")}</option>
+            {((field.validationRules?.options as string[]) || []).map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
               </option>
@@ -164,48 +179,51 @@ export function EntryForm({
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {title || (mode === 'create' ? 'Создать запись' : 'Редактировать запись')}
+            {title ||
+              (mode === "create" ? t("entryCreateTitle") : t("entryEditTitle"))}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Название *</Label>
+            <Label>{t("entryName")} *</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Введите название"
+              placeholder={t("entryNamePlaceholder")}
               autoFocus
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Код</Label>
+            <Label>{t("entryCode")}</Label>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Код записи"
+              placeholder={t("entryCodePlaceholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Описание</Label>
+            <Label>{t("entryDescription")}</Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Описание"
+              placeholder={t("entryDescriptionPlaceholder")}
             />
           </div>
 
           {fields.length > 0 && (
             <div className="space-y-3 pt-2 border-t">
               <p className="text-sm font-medium text-muted-foreground">
-                Дополнительные поля
+                {t("additionalFields")}
               </p>
               {fields.map((field) => (
                 <div key={field.id} className="space-y-1">
                   <Label className="text-sm">
                     {field.displayName}
-                    {field.isRequired && <span className="text-destructive ml-1">*</span>}
+                    {field.isRequired && (
+                      <span className="text-destructive ml-1">*</span>
+                    )}
                   </Label>
                   {renderField(field)}
                 </div>
@@ -219,11 +237,13 @@ export function EntryForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Отмена
+              {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={!name.trim() || isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'create' ? 'Создать' : 'Сохранить'}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {mode === "create" ? tCommon("create") : tCommon("save")}
             </Button>
           </DialogFooter>
         </form>

@@ -28,7 +28,19 @@ import {
   CreateDashboardDto,
   CreateWidgetDto,
 } from "./reports.service";
-import { ReportType, ExportFormat } from "./entities/report.entity";
+import {
+  ReportType,
+  ExportFormat,
+  ReportDefinition,
+  ScheduledReport,
+  DashboardWidget,
+} from "./entities/report.entity";
+import {
+  CreateReportDefinitionDto,
+  UpdateScheduledReportDto,
+  UpdateDashboardDto,
+  UpdateWidgetDto,
+} from "./dto/report-operations.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentUserId,
@@ -58,8 +70,11 @@ export class ReportsController {
   @Get("definitions/:id")
   @ApiOperation({ summary: "Get report definition by ID" })
   @Roles("owner", "admin", "manager", "accountant")
-  async getDefinition(@Param("id", ParseUUIDPipe) id: string) {
-    return this.reportsService.getDefinition(id);
+  async getDefinition(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.reportsService.getDefinition(id, orgId);
   }
 
   @Post("definitions")
@@ -67,13 +82,13 @@ export class ReportsController {
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createDefinition(
-    @Body() data: Record<string, unknown>,
+    @Body() dto: CreateReportDefinitionDto,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.reportsService.createDefinition({
-      ...data,
+      ...dto,
       organizationId: orgId,
-    });
+    } as Partial<ReportDefinition>);
   }
 
   // ============================================================================
@@ -122,8 +137,11 @@ export class ReportsController {
   @Get("generated/:id")
   @ApiOperation({ summary: "Get generated report by ID" })
   @Roles("owner", "admin", "manager", "accountant")
-  async getGeneratedReport(@Param("id", ParseUUIDPipe) id: string) {
-    return this.reportsService.getGeneratedReport(id);
+  async getGeneratedReport(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.reportsService.getGeneratedReport(id, orgId);
   }
 
   // ============================================================================
@@ -162,17 +180,25 @@ export class ReportsController {
   @Roles("owner", "admin")
   async updateScheduledReport(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() updates: Record<string, unknown>,
+    @CurrentOrganizationId() orgId: string,
+    @Body() dto: UpdateScheduledReportDto,
   ) {
-    return this.reportsService.updateScheduledReport(id, updates);
+    return this.reportsService.updateScheduledReport(
+      id,
+      orgId,
+      dto as Partial<ScheduledReport>,
+    );
   }
 
   @Delete("scheduled/:id")
   @ApiOperation({ summary: "Delete scheduled report" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteScheduledReport(@Param("id", ParseUUIDPipe) id: string) {
-    await this.reportsService.deleteScheduledReport(id);
+  async deleteScheduledReport(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    await this.reportsService.deleteScheduledReport(id, orgId);
   }
 
   // ============================================================================
@@ -189,8 +215,11 @@ export class ReportsController {
   @Get("dashboards/:id")
   @ApiOperation({ summary: "Get dashboard by ID" })
   @Roles("owner", "admin", "manager", "accountant")
-  async getDashboard(@Param("id", ParseUUIDPipe) id: string) {
-    return this.reportsService.getDashboard(id);
+  async getDashboard(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.reportsService.getDashboard(id, orgId);
   }
 
   @Post("dashboards")
@@ -218,17 +247,21 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   async updateDashboard(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() updates: Record<string, unknown>,
+    @CurrentOrganizationId() orgId: string,
+    @Body() dto: UpdateDashboardDto,
   ) {
-    return this.reportsService.updateDashboard(id, updates);
+    return this.reportsService.updateDashboard(id, orgId, dto);
   }
 
   @Delete("dashboards/:id")
   @ApiOperation({ summary: "Delete dashboard" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteDashboard(@Param("id", ParseUUIDPipe) id: string) {
-    await this.reportsService.deleteDashboard(id);
+  async deleteDashboard(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    await this.reportsService.deleteDashboard(id, orgId);
   }
 
   @Post("dashboards/:id/set-default")
@@ -251,8 +284,11 @@ export class ReportsController {
   @ApiOperation({ summary: "Create widget" })
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
-  async createWidget(@Body() dto: CreateWidgetDto) {
-    return this.reportsService.createWidget(dto);
+  async createWidget(
+    @Body() dto: CreateWidgetDto,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.reportsService.createWidget(dto, orgId);
   }
 
   @Patch("widgets/:id")
@@ -260,17 +296,25 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   async updateWidget(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() updates: Record<string, unknown>,
+    @CurrentOrganizationId() orgId: string,
+    @Body() dto: UpdateWidgetDto,
   ) {
-    return this.reportsService.updateWidget(id, updates);
+    return this.reportsService.updateWidget(
+      id,
+      orgId,
+      dto as Partial<DashboardWidget>,
+    );
   }
 
   @Delete("widgets/:id")
   @ApiOperation({ summary: "Delete widget" })
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteWidget(@Param("id", ParseUUIDPipe) id: string) {
-    await this.reportsService.deleteWidget(id);
+  async deleteWidget(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    await this.reportsService.deleteWidget(id, orgId);
   }
 
   @Post("dashboards/:id/reorder-widgets")
@@ -279,9 +323,10 @@ export class ReportsController {
   @HttpCode(HttpStatus.OK)
   async reorderWidgets(
     @Param("id", ParseUUIDPipe) dashboardId: string,
+    @CurrentOrganizationId() orgId: string,
     @Body("widgetIds") widgetIds: string[],
   ) {
-    await this.reportsService.reorderWidgets(dashboardId, widgetIds);
+    await this.reportsService.reorderWidgets(dashboardId, orgId, widgetIds);
     return { success: true };
   }
 
@@ -329,8 +374,11 @@ export class ReportsController {
   @ApiOperation({ summary: "Delete saved filter" })
   @Roles("owner", "admin", "manager", "accountant")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteSavedFilter(@Param("id", ParseUUIDPipe) id: string) {
-    await this.reportsService.deleteSavedFilter(id);
+  async deleteSavedFilter(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUserId() userId: string,
+  ) {
+    await this.reportsService.deleteSavedFilter(id, userId);
   }
 
   // ============================================================================
