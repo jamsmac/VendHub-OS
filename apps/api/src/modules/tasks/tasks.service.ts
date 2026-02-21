@@ -1,10 +1,12 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In } from "typeorm";
+import { Repository, DataSource, In, LessThan } from "typeorm";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   Task,
   TaskItem,
@@ -12,6 +14,7 @@ import {
   TaskComponent,
   TaskPhoto,
   TaskStatus,
+  TaskPriority,
   VALID_TASK_TRANSITIONS,
 } from "./entities/task.entity";
 import { CreateTaskItemDto, UpdateTaskItemDto } from "./dto/task-item.dto";
@@ -23,6 +26,8 @@ import {
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
@@ -38,6 +43,8 @@ export class TasksService {
 
     @InjectRepository(TaskPhoto)
     private readonly taskPhotoRepository: Repository<TaskPhoto>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   // ============================================================================
@@ -63,11 +70,75 @@ export class TasksService {
   // ============================================================================
 
   /**
-   * Create a new task
+   * Create a new task (transactional — saves task + items + components atomically)
+   * Ported from VHM24-repo with conflict check for active tasks on same machine
    */
-  async create(data: Partial<Task>): Promise<Task> {
-    const task = this.taskRepository.create(data);
-    return this.taskRepository.save(task);
+  async create(
+    data: Partial<Task> & {
+      items?: Partial<TaskItem>[];
+      components?: Partial<TaskComponent>[];
+    },
+  ): Promise<Task> {
+    const { items, components, ...taskData } = data;
+
+    // Check for conflicting active tasks on same machine
+    if (taskData.machineId) {
+      const activeStatuses = [
+        TaskStatus.PENDING,
+        TaskStatus.ASSIGNED,
+        TaskStatus.IN_PROGRESS,
+      ];
+      const existing = await this.taskRepository.findOne({
+        where: {
+          machineId: taskData.machineId,
+          status: In(activeStatuses),
+        },
+      });
+      if (existing) {
+        throw new BadRequestException(
+          `Cannot create task: machine already has an active task (ID: ${existing.id})`,
+        );
+      }
+    }
+
+    // Generate task number
+    if (!taskData.taskNumber) {
+      taskData.taskNumber = await this.generateTaskNumber();
+    }
+
+    const savedTaskId = await this.dataSource.transaction(async (manager) => {
+      const task = manager.create(Task, {
+        ...taskData,
+        status: taskData.status ?? TaskStatus.PENDING,
+      });
+      const savedTask = await manager.save(Task, task);
+
+      // Save task items (for REFILL tasks)
+      if (items?.length) {
+        const taskItems = items.map((item) =>
+          manager.create(TaskItem, {
+            ...item,
+            taskId: savedTask.id,
+          }),
+        );
+        await manager.save(TaskItem, taskItems);
+      }
+
+      // Save task components (for replacement tasks)
+      if (components?.length) {
+        const taskComponents = components.map((comp) =>
+          manager.create(TaskComponent, {
+            ...comp,
+            taskId: savedTask.id,
+          }),
+        );
+        await manager.save(TaskComponent, taskComponents);
+      }
+
+      return savedTask.id;
+    });
+
+    return this.findByIdOrFail(savedTaskId);
   }
 
   /**
@@ -520,6 +591,202 @@ export class TasksService {
     }
 
     return board;
+  }
+
+  // ============================================================================
+  // TASK NUMBER GENERATION (ported from VHM24-repo)
+  // ============================================================================
+
+  private async generateTaskNumber(): Promise<string> {
+    const now = new Date();
+    const dateStr =
+      String(now.getFullYear()) +
+      String(now.getMonth() + 1).padStart(2, "0") +
+      String(now.getDate()).padStart(2, "0");
+
+    // Count tasks created today
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const count = await this.taskRepository
+      .createQueryBuilder("task")
+      .where("task.createdAt >= :startOfDay", { startOfDay })
+      .getCount();
+
+    const seq = String(count + 1).padStart(4, "0");
+    return `TASK-${dateStr}-${seq}`;
+  }
+
+  // ============================================================================
+  // STATISTICS & OVERDUE (ported from VHM24-repo)
+  // ============================================================================
+
+  async getTaskStats(
+    organizationId: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byType: Record<string, number>;
+    byPriority: Record<string, number>;
+    avgCompletionMinutes: number;
+    overdueCount: number;
+  }> {
+    const query = this.taskRepository
+      .createQueryBuilder("task")
+      .where("task.organizationId = :organizationId", { organizationId });
+
+    if (dateFrom) {
+      query.andWhere("task.createdAt >= :dateFrom", { dateFrom });
+    }
+    if (dateTo) {
+      query.andWhere("task.createdAt <= :dateTo", { dateTo });
+    }
+
+    const total = await query.getCount();
+
+    // By status
+    const statusRows = await query
+      .clone()
+      .select("task.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("task.status")
+      .getRawMany();
+
+    const byStatus = statusRows.reduce(
+      (acc: Record<string, number>, row: { status: string; count: string }) => {
+        acc[row.status] = parseInt(row.count);
+        return acc;
+      },
+      {},
+    );
+
+    // By type
+    const typeRows = await query
+      .clone()
+      .select("task.typeCode", "type")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("task.typeCode")
+      .getRawMany();
+
+    const byType = typeRows.reduce(
+      (acc: Record<string, number>, row: { type: string; count: string }) => {
+        acc[row.type] = parseInt(row.count);
+        return acc;
+      },
+      {},
+    );
+
+    // By priority
+    const priorityRows = await query
+      .clone()
+      .select("task.priority", "priority")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("task.priority")
+      .getRawMany();
+
+    const byPriority = priorityRows.reduce(
+      (
+        acc: Record<string, number>,
+        row: { priority: string; count: string },
+      ) => {
+        acc[row.priority] = parseInt(row.count);
+        return acc;
+      },
+      {},
+    );
+
+    // Average completion time
+    const avgResult = await this.taskRepository
+      .createQueryBuilder("task")
+      .select("AVG(task.actualDuration)", "avg")
+      .where("task.organizationId = :organizationId", { organizationId })
+      .andWhere("task.status = :status", { status: TaskStatus.COMPLETED })
+      .andWhere("task.actualDuration IS NOT NULL")
+      .getRawOne();
+
+    const avgCompletionMinutes = avgResult?.avg
+      ? Math.round(parseFloat(avgResult.avg))
+      : 0;
+
+    // Overdue count
+    const overdueCount = await this.taskRepository.count({
+      where: {
+        organizationId,
+        dueDate: LessThan(new Date()),
+        status: In([
+          TaskStatus.PENDING,
+          TaskStatus.ASSIGNED,
+          TaskStatus.IN_PROGRESS,
+          TaskStatus.POSTPONED,
+        ]),
+      },
+    });
+
+    return {
+      total,
+      byStatus,
+      byType,
+      byPriority,
+      avgCompletionMinutes,
+      overdueCount,
+    };
+  }
+
+  async getOverdueTasks(organizationId: string): Promise<Task[]> {
+    return this.taskRepository.find({
+      where: {
+        organizationId,
+        dueDate: LessThan(new Date()),
+        status: In([
+          TaskStatus.PENDING,
+          TaskStatus.ASSIGNED,
+          TaskStatus.IN_PROGRESS,
+          TaskStatus.POSTPONED,
+        ]),
+      },
+      relations: ["machine", "assignedTo"],
+      order: { dueDate: "ASC" },
+    });
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async checkOverdueTasks(): Promise<void> {
+    const overdue = await this.taskRepository.find({
+      where: {
+        dueDate: LessThan(new Date()),
+        status: In([
+          TaskStatus.PENDING,
+          TaskStatus.ASSIGNED,
+          TaskStatus.IN_PROGRESS,
+          TaskStatus.POSTPONED,
+        ]),
+      },
+      relations: ["machine"],
+    });
+
+    if (overdue.length > 0) {
+      this.logger.warn(
+        `Found ${overdue.length} overdue task(s): ${overdue.map((t) => t.taskNumber).join(", ")}`,
+      );
+
+      // Mark high-priority overdue tasks as urgent
+      for (const task of overdue) {
+        if (
+          task.priority !== TaskPriority.URGENT &&
+          task.dueDate &&
+          new Date().getTime() - new Date(task.dueDate).getTime() >
+            24 * 60 * 60 * 1000 // overdue > 24h
+        ) {
+          task.priority = TaskPriority.URGENT;
+          await this.taskRepository.save(task);
+          this.logger.warn(
+            `Escalated task ${task.taskNumber} to URGENT (overdue > 24h)`,
+          );
+        }
+      }
+    }
   }
 
   // ============================================================================
