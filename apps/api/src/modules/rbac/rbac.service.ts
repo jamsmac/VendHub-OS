@@ -131,6 +131,69 @@ export class RbacService {
     return role;
   }
 
+  async findRoleByName(
+    name: string,
+    organizationId?: string,
+  ): Promise<Role | null> {
+    return this.roleRepository.findOne({
+      where: {
+        name,
+        organizationId: organizationId || IsNull(),
+      },
+      relations: ["permissions"],
+    });
+  }
+
+  async findRolesByNames(
+    names: string[],
+    organizationId?: string,
+  ): Promise<Role[]> {
+    if (names.length === 0) return [];
+    const where = names.map((name) => ({
+      name,
+      organizationId: organizationId || IsNull(),
+    }));
+    return this.roleRepository.find({
+      where,
+      relations: ["permissions"],
+    });
+  }
+
+  async addPermissionsToRole(
+    roleId: string,
+    permissionIds: string[],
+  ): Promise<Role> {
+    const role = await this.findRoleById(roleId);
+
+    const permissions = await this.permissionRepository.findBy({
+      id: In(permissionIds),
+    });
+    if (permissions.length !== permissionIds.length) {
+      throw new BadRequestException("One or more permission IDs are invalid");
+    }
+
+    const existingIds = role.permissions.map((p) => p.id);
+    const newPermissions = permissions.filter(
+      (p) => !existingIds.includes(p.id),
+    );
+    role.permissions = [...role.permissions, ...newPermissions];
+
+    await this.roleRepository.save(role);
+    return this.findRoleById(roleId);
+  }
+
+  async removePermissionsFromRole(
+    roleId: string,
+    permissionIds: string[],
+  ): Promise<Role> {
+    const role = await this.findRoleById(roleId);
+    role.permissions = role.permissions.filter(
+      (p) => !permissionIds.includes(p.id),
+    );
+    await this.roleRepository.save(role);
+    return this.findRoleById(roleId);
+  }
+
   // ==================== Permissions ====================
 
   async createPermission(dto: CreatePermissionDto): Promise<Permission> {
