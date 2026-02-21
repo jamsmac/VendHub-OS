@@ -2,15 +2,16 @@
  * Material Requests Module
  */
 
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import {
   MaterialRequest,
   MaterialRequestItem,
   MaterialRequestHistory,
-} from './entities/material-request.entity';
-import { MaterialRequestsService } from './material-requests.service';
-import { MaterialRequestsController } from './material-requests.controller';
+} from "./entities/material-request.entity";
+import { Material } from "./entities/supplier.entity";
+import { MaterialRequestsService } from "./material-requests.service";
+import { MaterialRequestsController } from "./material-requests.controller";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MaterialRequestsController } from './material-requests.controller';
       MaterialRequest,
       MaterialRequestItem,
       MaterialRequestHistory,
+      Material,
     ]),
   ],
   controllers: [MaterialRequestsController],
