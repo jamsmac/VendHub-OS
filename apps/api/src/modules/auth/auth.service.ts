@@ -6,12 +6,14 @@ import {
   ForbiddenException,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, MoreThan } from "typeorm";
+import { LessThan, Repository, MoreThan } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 import { authenticator } from "otplib";
@@ -814,6 +816,175 @@ export class AuthService {
 
   getPasswordRequirements() {
     return this.passwordPolicyService.getRequirements();
+  }
+
+  // ==================== 2FA Login Completion (ported from VHM24-repo) ====================
+
+  /**
+   * Complete 2FA login after initial login returned requiresTwoFactor
+   */
+  async complete2FALogin(
+    userId: string,
+    totpCode: string | undefined,
+    backupCode: string | undefined,
+    ipAddress: string,
+    userAgent: string,
+  ) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["organization"],
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (!user.twoFactorEnabled) {
+      throw new BadRequestException("2FA is not enabled for this user");
+    }
+
+    const isValid = await this.verify2FA(userId, totpCode, backupCode);
+    if (!isValid) {
+      await this.logLoginAttempt(
+        user.email,
+        ipAddress,
+        userAgent,
+        false,
+        userId,
+        "Invalid 2FA code",
+      );
+      throw new UnauthorizedException("Invalid two-factor code");
+    }
+
+    // Reset login attempts on success
+    user.loginAttempts = 0;
+    user.lockedUntil = undefined as unknown as Date;
+    user.lastLoginAt = new Date();
+    user.lastLoginIp = ipAddress;
+    await this.userRepository.save(user);
+
+    const deviceInfo = this.parseUserAgent(userAgent);
+    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const tokens = await this.generateTokens(user, session.id);
+
+    await this.logLoginAttempt(user.email, ipAddress, userAgent, true, userId);
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens,
+      sessionId: session.id,
+      mustChangePassword: user.mustChangePassword,
+    };
+  }
+
+  /**
+   * First login password change (REQ-AUTH-31)
+   * Forces admin-created users to change their temporary password
+   */
+  async firstLoginChangePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    ipAddress: string,
+    userAgent: string,
+  ) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["organization"],
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (!user.mustChangePassword) {
+      throw new BadRequestException("Password change is not required");
+    }
+
+    // Verify current (temporary) password
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      throw new UnauthorizedException("Invalid current password");
+    }
+
+    // Validate new password policy
+    const policyResult = this.passwordPolicyService.validate(newPassword, {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
+    if (!policyResult.valid) {
+      throw new BadRequestException(policyResult.errors);
+    }
+
+    // Update password
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.passwordChangedAt = new Date();
+    user.mustChangePassword = false;
+    user.loginAttempts = 0;
+    await this.userRepository.save(user);
+
+    // Create session and return tokens
+    const deviceInfo = this.parseUserAgent(userAgent);
+    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const tokens = await this.generateTokens(user, session.id);
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens,
+      sessionId: session.id,
+    };
+  }
+
+  /**
+   * Admin: unlock a locked account
+   */
+  async unlockAccount(userId: string): Promise<void> {
+    const result = await this.userRepository.update(userId, {
+      loginAttempts: 0,
+      lockedUntil: undefined as unknown as Date,
+    });
+    if (result.affected === 0) {
+      throw new NotFoundException("User not found");
+    }
+  }
+
+  /**
+   * Validate a password reset token without consuming it
+   * Used by frontend to check token validity before showing the form
+   */
+  async validateResetToken(
+    token: string,
+  ): Promise<{ valid: boolean; email?: string; message?: string }> {
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const resetToken = await this.passwordResetRepository.findOne({
+      where: { token: hashedToken },
+      relations: ["user"],
+    });
+
+    if (!resetToken) {
+      return { valid: false, message: "Invalid reset token" };
+    }
+    if (resetToken.isUsed) {
+      return { valid: false, message: "Token already used" };
+    }
+    if (resetToken.isExpired) {
+      return { valid: false, message: "Token expired" };
+    }
+    return { valid: true, email: resetToken.user?.email };
+  }
+
+  /**
+   * Cleanup expired/used password reset tokens (runs daily at 3 AM)
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupExpiredResetTokens(): Promise<number> {
+    const result = await this.passwordResetRepository.softDelete({
+      expiresAt: LessThan(new Date()),
+    });
+    const count = result.affected || 0;
+    if (count > 0) {
+      this.logger.log(`Cleaned up ${count} expired password reset tokens`);
+    }
+    return count;
   }
 
   // ==================== Helper Methods ====================

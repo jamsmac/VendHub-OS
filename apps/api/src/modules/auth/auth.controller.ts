@@ -148,6 +148,66 @@ export class AuthController {
   }
 
   // ============================================================================
+  // 2FA Login Completion + First Login
+  // ============================================================================
+
+  @Post("2fa/complete")
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Complete 2FA login with TOTP or backup code" })
+  @ApiResponse({ status: 200, description: "Login completed" })
+  @ApiResponse({ status: 401, description: "Invalid 2FA code" })
+  async complete2FALogin(
+    @Body() body: { userId: string; totpCode?: string; backupCode?: string },
+    @Ip() ipAddress: string,
+    @Headers("user-agent") userAgent: string,
+  ) {
+    return this.authService.complete2FALogin(
+      body.userId,
+      body.totpCode,
+      body.backupCode,
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  @Post("first-login/change-password")
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Change temporary password on first login" })
+  @ApiResponse({
+    status: 200,
+    description: "Password changed, session created",
+  })
+  @ApiResponse({ status: 400, description: "Password change not required" })
+  async firstLoginChangePassword(
+    @Body()
+    body: { userId: string; currentPassword: string; newPassword: string },
+    @Ip() ipAddress: string,
+    @Headers("user-agent") userAgent: string,
+  ) {
+    return this.authService.firstLoginChangePassword(
+      body.userId,
+      body.currentPassword,
+      body.newPassword,
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  @Post("password/validate-reset-token")
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Validate password reset token" })
+  @ApiResponse({ status: 200, description: "Token validation result" })
+  async validateResetToken(@Body("token") token: string) {
+    return this.authService.validateResetToken(token);
+  }
+
+  // ============================================================================
   // Two-Factor Authentication
   // ============================================================================
 
