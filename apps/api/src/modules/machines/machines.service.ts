@@ -1,11 +1,18 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ConflictException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { Repository, In } from "typeorm";
+import {
+  WriteoffJobData,
+  WriteoffJobResult,
+} from "./processors/writeoff.processor";
 import {
   Machine,
   MachineSlot,
@@ -37,6 +44,8 @@ import {
 
 @Injectable()
 export class MachinesService {
+  private readonly logger = new Logger(MachinesService.name);
+
   constructor(
     @InjectRepository(Machine)
     private readonly machineRepository: Repository<Machine>,
@@ -55,6 +64,9 @@ export class MachinesService {
 
     @InjectRepository(MachineMaintenanceSchedule)
     private readonly maintenanceRepository: Repository<MachineMaintenanceSchedule>,
+
+    @InjectQueue("machine-writeoff")
+    private readonly writeoffQueue: Queue<WriteoffJobData, WriteoffJobResult>,
   ) {}
 
   // ============================================================================
@@ -748,6 +760,95 @@ export class MachinesService {
           (slot.currentQuantity / slot.capacity) * 100 <= minThreshold,
       );
     });
+  }
+
+  // ============================================================================
+  // WRITEOFF (BullMQ queue — ported from VHM24-repo)
+  // ============================================================================
+
+  async writeoffMachine(
+    machineId: string,
+    reason: string,
+    userId?: string,
+    options?: { notes?: string; disposalDate?: string; requestId?: string },
+  ): Promise<{ jobId: string }> {
+    const machine = await this.ensureMachineExists(machineId);
+
+    if (machine.isDisposed) {
+      throw new BadRequestException(
+        `Machine ${machine.machineNumber} is already disposed`,
+      );
+    }
+
+    const job = await this.writeoffQueue.add(
+      "writeoff",
+      {
+        machineId,
+        reason: reason as WriteoffJobData["reason"],
+        notes: options?.notes,
+        disposalDate: options?.disposalDate,
+        userId,
+        requestId: options?.requestId,
+      },
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { age: 7 * 24 * 3600 }, // keep 7 days
+        removeOnFail: { age: 30 * 24 * 3600 }, // keep 30 days
+      },
+    );
+
+    this.logger.log(
+      `Queued writeoff job ${job.id} for machine ${machine.machineNumber}`,
+    );
+
+    return { jobId: job.id! };
+  }
+
+  async getWriteoffJobStatus(jobId: string): Promise<{
+    id: string;
+    status: string;
+    progress: number;
+    result?: WriteoffJobResult;
+    failedReason?: string;
+  }> {
+    const job = await this.writeoffQueue.getJob(jobId);
+    if (!job) {
+      throw new NotFoundException(`Writeoff job ${jobId} not found`);
+    }
+
+    const state = await job.getState();
+
+    return {
+      id: job.id!,
+      status: state,
+      progress: typeof job.progress === "number" ? job.progress : 0,
+      result: job.returnvalue ?? undefined,
+      failedReason: job.failedReason ?? undefined,
+    };
+  }
+
+  async bulkWriteoff(
+    machineIds: string[],
+    reason: string,
+    userId?: string,
+    options?: { notes?: string; disposalDate?: string },
+  ): Promise<{ jobs: { machineId: string; jobId: string }[] }> {
+    const jobs: { machineId: string; jobId: string }[] = [];
+
+    for (const machineId of machineIds) {
+      const { jobId } = await this.writeoffMachine(machineId, reason, userId, {
+        ...options,
+        requestId: `bulk-${Date.now()}`,
+      });
+      jobs.push({ machineId, jobId });
+    }
+
+    this.logger.log(
+      `Queued ${jobs.length} bulk writeoff jobs for reason: ${reason}`,
+    );
+
+    return { jobs };
   }
 
   // ============================================================================
