@@ -2,9 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import {
   Machine,
   MachineSlot,
@@ -13,6 +14,7 @@ import {
   MachineErrorLog,
   MachineMaintenanceSchedule,
   MachineStatus,
+  MachineConnectionStatus,
   ComponentStatus,
   MaintenanceStatus,
   MoveReason,
@@ -60,6 +62,18 @@ export class MachinesService {
   // ============================================================================
 
   async create(data: Partial<Machine>): Promise<Machine> {
+    // Check machineNumber uniqueness
+    if (data.machineNumber) {
+      const existing = await this.machineRepository.findOne({
+        where: { machineNumber: data.machineNumber },
+      });
+      if (existing) {
+        throw new ConflictException(
+          `Machine with number ${data.machineNumber} already exists`,
+        );
+      }
+    }
+
     const machine = this.machineRepository.create(data);
     return this.machineRepository.save(machine);
   }
@@ -664,6 +678,76 @@ export class MachinesService {
     }
 
     return savedSchedule;
+  }
+
+  // ============================================================================
+  // LOOKUP HELPERS (ported from VHM24-repo)
+  // ============================================================================
+
+  async findByMachineNumber(
+    machineNumber: string,
+    organizationId?: string,
+  ): Promise<Machine | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { machineNumber };
+    if (organizationId) where.organizationId = organizationId;
+    return this.machineRepository.findOne({
+      where,
+      relations: ["slots"],
+    });
+  }
+
+  async findByQrCode(qrCode: string): Promise<Machine | null> {
+    return this.machineRepository.findOne({
+      where: { qrCode },
+      relations: ["slots"],
+    });
+  }
+
+  async findByIds(ids: string[]): Promise<Machine[]> {
+    if (ids.length === 0) return [];
+    return this.machineRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async updateConnectionStatus(
+    machineId: string,
+    connectionStatus: MachineConnectionStatus,
+    lastSeenAt?: Date,
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const update: any = { connectionStatus };
+    if (lastSeenAt) {
+      update.lastSeenAt = lastSeenAt;
+    }
+    await this.machineRepository.update(machineId, update);
+  }
+
+  async getMachinesWithLowStock(
+    organizationId: string,
+    threshold?: number,
+  ): Promise<Machine[]> {
+    const minThreshold = threshold ?? 20; // default 20% capacity
+
+    // Get machines with slots below threshold
+    const machines = await this.machineRepository
+      .createQueryBuilder("machine")
+      .leftJoinAndSelect("machine.slots", "slot")
+      .where("machine.organizationId = :organizationId", { organizationId })
+      .andWhere("machine.status != :disabled", {
+        disabled: MachineStatus.DISABLED,
+      })
+      .getMany();
+
+    return machines.filter((machine) => {
+      if (!machine.slots?.length) return false;
+      return machine.slots.some(
+        (slot) =>
+          slot.capacity > 0 &&
+          (slot.currentQuantity / slot.capacity) * 100 <= minThreshold,
+      );
+    });
   }
 
   // ============================================================================
