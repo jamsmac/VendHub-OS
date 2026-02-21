@@ -22,7 +22,27 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 # ==================================================
-# Stage 2: Builder
+# Stage 2: Development (for docker-compose dev mode)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+ARG PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install
+
+COPY . .
+
+EXPOSE 4000
+
+CMD ["pnpm", "--filter", "@vendhub/api", "dev"]
+
+# ==================================================
+# Stage 3: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -32,11 +52,15 @@ RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 # Copy deps and source
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY apps/api ./apps/api
 COPY packages ./packages
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.base.json ./
 
-# Build
+# Build shared package first (API imports from @vendhub/shared)
+RUN pnpm --filter @vendhub/shared build
+
+# Build API
 ENV NODE_ENV=production
 RUN pnpm --filter @vendhub/api build
 
@@ -44,7 +68,7 @@ RUN pnpm --filter @vendhub/api build
 RUN pnpm --filter @vendhub/api deploy --prod /app/pruned
 
 # ==================================================
-# Stage 3: Production Runner
+# Stage 4: Production Runner (MUST be last for Railway)
 FROM node:20-alpine AS production
 WORKDIR /app
 
@@ -75,23 +99,3 @@ EXPOSE 4000
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/main.js"]
-
-# ==================================================
-# Stage 4: Development
-FROM node:20-alpine AS development
-WORKDIR /app
-
-ARG PNPM_VERSION
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/shared/package.json ./packages/shared/
-
-RUN pnpm install
-
-COPY . .
-
-EXPOSE 4000
-
-CMD ["pnpm", "--filter", "@vendhub/api", "dev"]

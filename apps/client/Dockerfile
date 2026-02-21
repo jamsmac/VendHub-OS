@@ -20,7 +20,26 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 # ==================================================
-# Stage 2: Builder
+# Stage 2: Development (for docker-compose dev mode)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/client/package.json ./apps/client/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["pnpm", "--filter", "@vendhub/client", "dev", "--host"]
+
+# ==================================================
+# Stage 3: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -29,11 +48,15 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 # Copy deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/client/node_modules ./apps/client/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source
 COPY apps/client ./apps/client
 COPY packages ./packages
-COPY tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.base.json ./
+
+# Build shared package first (client imports from @vendhub/shared)
+RUN pnpm --filter @vendhub/shared build
 
 # Build environment
 ENV NODE_ENV=production
@@ -51,7 +74,7 @@ ENV VITE_APP_ENV=$VITE_APP_ENV
 RUN pnpm --filter @vendhub/client build
 
 # ==================================================
-# Stage 3: Production Runner (nginx, non-root)
+# Stage 4: Production Runner (MUST be last for Railway)
 FROM nginx:alpine AS production
 
 # Remove default nginx config
@@ -83,22 +106,3 @@ USER nginx
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
-
-# ==================================================
-# Stage 4: Development
-FROM node:20-alpine AS development
-WORKDIR /app
-
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/client/package.json ./apps/client/
-COPY packages/shared/package.json ./packages/shared/
-
-RUN pnpm install
-
-COPY . .
-
-EXPOSE 5173
-
-CMD ["pnpm", "--filter", "@vendhub/client", "dev", "--host"]

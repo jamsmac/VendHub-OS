@@ -19,7 +19,24 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 # ==================================================
-# Stage 2: Builder
+# Stage 2: Development (for docker-compose dev mode)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/bot/package.json ./apps/bot/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install
+
+COPY . .
+
+CMD ["pnpm", "--filter", "@vendhub/bot", "dev"]
+
+# ==================================================
+# Stage 3: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -28,13 +45,17 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 # Copy deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/bot/node_modules ./apps/bot/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source
 COPY apps/bot ./apps/bot
 COPY packages ./packages
-COPY tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.base.json ./
 
-# Build
+# Build shared package first (bot imports from @vendhub/shared)
+RUN pnpm --filter @vendhub/shared build
+
+# Build bot
 ENV NODE_ENV=production
 RUN pnpm --filter @vendhub/bot build
 
@@ -42,7 +63,7 @@ RUN pnpm --filter @vendhub/bot build
 RUN pnpm --filter @vendhub/bot deploy --prod /app/pruned
 
 # ==================================================
-# Stage 3: Production Runner
+# Stage 4: Production Runner (MUST be last for Railway)
 FROM node:20-alpine AS production
 WORKDIR /app
 
@@ -72,20 +93,3 @@ USER botuser
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/main.js"]
-
-# ==================================================
-# Stage 4: Development
-FROM node:20-alpine AS development
-WORKDIR /app
-
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/bot/package.json ./apps/bot/
-COPY packages/shared/package.json ./packages/shared/
-
-RUN pnpm install
-
-COPY . .
-
-CMD ["pnpm", "--filter", "@vendhub/bot", "dev"]
