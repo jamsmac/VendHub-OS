@@ -20,6 +20,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { IMPORT_LIMITS } from "./services/import-parser.service";
 import {
   ApiTags,
   ApiOperation,
@@ -116,7 +117,11 @@ export class ImportController {
 
   @Post("upload")
   @Roles("manager", "admin", "owner")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: { fileSize: IMPORT_LIMITS.MAX_FILE_SIZE },
+    }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Upload file and create import job" })
   @ApiBody({
@@ -357,7 +362,11 @@ export class ImportController {
 
   @Post("sessions")
   @Roles("manager", "admin", "owner")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: { fileSize: IMPORT_LIMITS.MAX_FILE_SIZE },
+    }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Create import session with file upload" })
   @ApiBody({

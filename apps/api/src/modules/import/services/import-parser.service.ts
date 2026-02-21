@@ -7,8 +7,51 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import * as ExcelJS from "exceljs";
 import * as Papa from "papaparse";
 
+export const IMPORT_LIMITS = {
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10 MB
+  MAX_ROWS: 50_000,
+  MAX_COLUMNS: 100,
+  MAX_CELL_LENGTH: 10_000,
+};
+
 @Injectable()
 export class ImportParserService {
+  private enforceRowLimit(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rows: Record<string, any>[],
+    format: string,
+  ): void {
+    if (rows.length > IMPORT_LIMITS.MAX_ROWS) {
+      throw new BadRequestException(
+        `${format} file exceeds maximum of ${IMPORT_LIMITS.MAX_ROWS.toLocaleString()} rows (got ${rows.length.toLocaleString()})`,
+      );
+    }
+  }
+
+  private enforceColumnLimit(headers: string[], format: string): void {
+    if (headers.length > IMPORT_LIMITS.MAX_COLUMNS) {
+      throw new BadRequestException(
+        `${format} file exceeds maximum of ${IMPORT_LIMITS.MAX_COLUMNS} columns (got ${headers.length})`,
+      );
+    }
+  }
+
+  private truncateCellValues(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rows: Record<string, any>[],
+  ): void {
+    for (const row of rows) {
+      for (const key of Object.keys(row)) {
+        if (
+          typeof row[key] === "string" &&
+          row[key].length > IMPORT_LIMITS.MAX_CELL_LENGTH
+        ) {
+          row[key] = row[key].slice(0, IMPORT_LIMITS.MAX_CELL_LENGTH);
+        }
+      }
+    }
+  }
+
   /**
    * Parse CSV file
    */
@@ -28,11 +71,20 @@ export class ImportParserService {
         skipEmptyLines: true,
         transformHeader: (header) => header.trim(),
         complete: (results) => {
-          resolve({
-            headers: results.meta.fields || [],
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            rows: results.data as Record<string, any>[],
-          });
+          const headers = results.meta.fields || [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const rows = results.data as Record<string, any>[];
+
+          try {
+            this.enforceColumnLimit(headers, "CSV");
+            this.enforceRowLimit(rows, "CSV");
+            this.truncateCellValues(rows);
+          } catch (err) {
+            reject(err);
+            return;
+          }
+
+          resolve({ headers, rows });
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         error: (error: any) => {
@@ -92,6 +144,10 @@ export class ImportParserService {
         }
       }
 
+      this.enforceColumnLimit(headers, "Excel");
+      this.enforceRowLimit(rows, "Excel");
+      this.truncateCellValues(rows);
+
       return { headers, rows };
     } catch (error: unknown) {
       if (error instanceof BadRequestException) throw error;
@@ -112,10 +168,16 @@ export class ImportParserService {
       const data = JSON.parse(buffer.toString("utf-8"));
       const rows = Array.isArray(data) ? data : [data];
 
+      this.enforceRowLimit(rows, "JSON");
+
       const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+
+      this.enforceColumnLimit(headers, "JSON");
+      this.truncateCellValues(rows);
 
       return { headers, rows };
     } catch (error: unknown) {
+      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
         `JSON parse error: ${error instanceof Error ? error.message : String(error)}`,
       );
