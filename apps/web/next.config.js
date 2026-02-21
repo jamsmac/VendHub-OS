@@ -1,3 +1,4 @@
+const path = require("path");
 const createNextIntlPlugin = require("next-intl/plugin");
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -18,6 +19,11 @@ const nextConfig = {
 
   // Standalone output for Docker
   output: "standalone",
+
+  // Turbopack needs explicit root in monorepo Docker builds
+  turbopack: {
+    root: path.join(__dirname, "../.."),
+  },
 
   images: {
     remotePatterns: [
