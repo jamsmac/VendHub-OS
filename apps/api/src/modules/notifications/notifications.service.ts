@@ -30,6 +30,9 @@ import {
 } from "./entities/notification.entity";
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
+import { User } from "../users/entities/user.entity";
+import { EmailService } from "../email/email.service";
+import { SmsService } from "../sms/sms.service";
 
 // ============================================================================
 // DTOs
@@ -122,6 +125,10 @@ export class NotificationsService {
     private pushSubscriptionRepo: Repository<PushSubscription>,
     @InjectRepository(FcmToken)
     private fcmTokenRepo: Repository<FcmToken>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+    private readonly emailService: EmailService,
+    private readonly smsService: SmsService,
     // @InjectQueue('notifications') private notificationQueue: Queue,
   ) {}
 
@@ -844,29 +851,111 @@ export class NotificationsService {
     );
   }
 
+  private async loadRecipient(userId: string): Promise<User | null> {
+    return this.userRepo.findOne({ where: { id: userId } });
+  }
+
   private async sendPush(notification: Notification): Promise<void> {
-    // Implement FCM/APNS push
-    this.logger.log(`Sending push: ${notification.content?.title}`);
+    if (!notification.userId) {
+      this.logger.warn("Push: no userId, skipping");
+      return;
+    }
+
+    const tokens = await this.fcmTokenRepo.find({
+      where: { userId: notification.userId, isActive: true },
+    });
+
+    if (tokens.length === 0) {
+      this.logger.warn(
+        `Push: no active FCM tokens for user ${notification.userId}`,
+      );
+      return;
+    }
+
+    // TODO: integrate firebase-admin for actual FCM dispatch
+    this.logger.log(
+      `Push: would send "${notification.content?.title}" to ${tokens.length} device(s) for user ${notification.userId}`,
+    );
   }
 
   private async sendEmail(notification: Notification): Promise<void> {
-    // Implement email sending via SMTP/SendGrid/etc
-    this.logger.log(`Sending email: ${notification.content?.title}`);
+    if (!notification.userId) {
+      this.logger.warn("Email: no userId, skipping");
+      return;
+    }
+
+    const user = await this.loadRecipient(notification.userId);
+    if (!user?.email) {
+      this.logger.warn(`Email: no email for user ${notification.userId}`);
+      return;
+    }
+
+    try {
+      await this.emailService.sendEmail({
+        to: user.email,
+        subject: notification.content?.title || "VendHub Notification",
+        text: notification.content?.body || "",
+        html: notification.content?.body
+          ? `<p>${notification.content.body}</p>`
+          : undefined,
+      });
+    } catch (error: unknown) {
+      this.logger.error(
+        `Email send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
+      );
+      throw error;
+    }
   }
 
   private async sendSms(notification: Notification): Promise<void> {
-    // Implement SMS via Playmobile/Eskiz
-    this.logger.log(`Sending SMS: ${notification.content?.title}`);
+    if (!notification.userId) {
+      this.logger.warn("SMS: no userId, skipping");
+      return;
+    }
+
+    const user = await this.loadRecipient(notification.userId);
+    if (!user?.phone) {
+      this.logger.warn(`SMS: no phone for user ${notification.userId}`);
+      return;
+    }
+
+    try {
+      await this.smsService.send({
+        to: user.phone,
+        message:
+          notification.content?.body || notification.content?.title || "",
+      });
+    } catch (error: unknown) {
+      this.logger.error(
+        `SMS send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
+      );
+      throw error;
+    }
   }
 
   private async sendTelegram(notification: Notification): Promise<void> {
-    // Implement Telegram bot message
-    this.logger.log(`Sending Telegram: ${notification.content?.title}`);
+    if (!notification.userId) {
+      this.logger.warn("Telegram: no userId, skipping");
+      return;
+    }
+
+    const user = await this.loadRecipient(notification.userId);
+    if (!user?.telegramId) {
+      this.logger.warn(
+        `Telegram: no telegramId for user ${notification.userId}`,
+      );
+      return;
+    }
+
+    // TODO: inject TelegramBotService.sendMessage when generic method is available
+    this.logger.log(
+      `Telegram: would send "${notification.content?.title}" to chatId ${user.telegramId}`,
+    );
   }
 
   private async sendWebhook(notification: Notification): Promise<void> {
-    // Implement webhook call
-    this.logger.log(`Sending webhook: ${notification.content?.title}`);
+    // TODO: implement webhook call via HttpService
+    this.logger.log(`Webhook: ${notification.content?.title}`);
   }
 
   // ============================================================================

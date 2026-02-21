@@ -2,10 +2,10 @@
  * Notifications Module for VendHub OS
  */
 
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { NotificationsController } from './notifications.controller';
-import { NotificationsService } from './notifications.service';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { NotificationsController } from "./notifications.controller";
+import { NotificationsService } from "./notifications.service";
 import {
   Notification,
   NotificationTemplate,
@@ -14,9 +14,12 @@ import {
   NotificationQueue,
   NotificationLog,
   NotificationCampaign,
-} from './entities/notification.entity';
-import { PushSubscription } from './entities/push-subscription.entity';
-import { FcmToken } from './entities/fcm-token.entity';
+} from "./entities/notification.entity";
+import { PushSubscription } from "./entities/push-subscription.entity";
+import { FcmToken } from "./entities/fcm-token.entity";
+import { User } from "../users/entities/user.entity";
+import { EmailModule } from "../email/email.module";
+import { SmsModule } from "../sms/sms.module";
 
 @Module({
   imports: [
@@ -30,7 +33,10 @@ import { FcmToken } from './entities/fcm-token.entity';
       NotificationCampaign,
       PushSubscription,
       FcmToken,
+      User,
     ]),
+    EmailModule,
+    SmsModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],
