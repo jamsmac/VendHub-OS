@@ -5,7 +5,8 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, In, Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
 import { User, UserStatus } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -167,6 +168,143 @@ export class UsersService {
     user.rejectedById = rejectedById;
     user.rejectionReason = reason;
 
+    return this.userRepository.save(user);
+  }
+
+  // ========================================================================
+  // LOOKUP HELPERS (ported from VHM24-repo)
+  // ========================================================================
+
+  async findByTelegramId(telegramId: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { telegramId } });
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { username } });
+  }
+
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+    return this.userRepository.find({ where: { id: In(ids) } });
+  }
+
+  async findByRole(
+    role: UserRole,
+    organizationId?: string,
+    activeOnly = true,
+  ): Promise<User[]> {
+    const where: FindOptionsWhere<User> = { role };
+    if (organizationId) where.organizationId = organizationId;
+    if (activeOnly) where.status = UserStatus.ACTIVE;
+    return this.userRepository.find({
+      where,
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async findByRoles(
+    roles: UserRole[],
+    organizationId?: string,
+    activeOnly = true,
+  ): Promise<User[]> {
+    if (roles.length === 0) return [];
+    const query = this.userRepository
+      .createQueryBuilder("user")
+      .where("user.role IN (:...roles)", { roles });
+    if (organizationId) {
+      query.andWhere("user.organizationId = :organizationId", {
+        organizationId,
+      });
+    }
+    if (activeOnly) {
+      query.andWhere("user.status = :status", { status: UserStatus.ACTIVE });
+    }
+    return query.orderBy("user.createdAt", "DESC").getMany();
+  }
+
+  async getAdminUserIds(organizationId?: string): Promise<string[]> {
+    const admins = await this.findByRoles(
+      [UserRole.OWNER, UserRole.ADMIN],
+      organizationId,
+    );
+    return admins.map((u) => u.id);
+  }
+
+  async getManagerUserIds(organizationId?: string): Promise<string[]> {
+    const managers = await this.findByRole(UserRole.MANAGER, organizationId);
+    return managers.map((u) => u.id);
+  }
+
+  async getFirstAdminId(organizationId?: string): Promise<string | null> {
+    const ids = await this.getAdminUserIds(organizationId);
+    return ids[0] ?? null;
+  }
+
+  async findPendingUsers(organizationId?: string): Promise<User[]> {
+    const where: FindOptionsWhere<User> = {
+      status: UserStatus.PENDING,
+    };
+    if (organizationId) where.organizationId = organizationId;
+    return this.userRepository.find({
+      where,
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  // ========================================================================
+  // ACCOUNT STATE MANAGEMENT (ported from VHM24-repo)
+  // ========================================================================
+
+  async validatePassword(user: User, password: string): Promise<boolean> {
+    return bcrypt.compare(password, user.password);
+  }
+
+  async changePassword(userId: string, newPassword: string): Promise<void> {
+    const hash = await bcrypt.hash(newPassword, 12);
+    await this.userRepository.update(userId, {
+      password: hash,
+      passwordChangedAt: new Date(),
+      mustChangePassword: false,
+    });
+  }
+
+  async save(user: User): Promise<User> {
+    return this.userRepository.save(user);
+  }
+
+  async blockUser(userId: string, reason?: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
+    user.status = UserStatus.SUSPENDED;
+    if (reason) {
+      user.preferences = {
+        ...user.preferences,
+        blockReason: reason,
+      } as typeof user.preferences;
+    }
+    return this.userRepository.save(user);
+  }
+
+  async unblockUser(userId: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
+    user.status = UserStatus.ACTIVE;
+    user.loginAttempts = 0;
+    user.lockedUntil = null as unknown as Date;
+    return this.userRepository.save(user);
+  }
+
+  async deactivateUser(userId: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
+    user.status = UserStatus.INACTIVE;
+    return this.userRepository.save(user);
+  }
+
+  async activateUser(userId: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
+    user.status = UserStatus.ACTIVE;
     return this.userRepository.save(user);
   }
 }
