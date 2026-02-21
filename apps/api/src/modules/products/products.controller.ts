@@ -97,23 +97,32 @@ export class ProductsController {
     });
   }
 
-  @Get(":id")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.OPERATOR,
-    UserRole.WAREHOUSE,
-    UserRole.ACCOUNTANT,
-    UserRole.VIEWER,
-  )
-  @ApiOperation({ summary: "Get product by ID" })
-  @ApiParam({ name: "id", type: String })
-  findOne(
-    @Param("id", ParseUUIDPipe) id: string,
+  @Get("recipes-stats")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get recipe statistics for the organization" })
+  getRecipeStats(@CurrentUser() user: ICurrentUser) {
+    return this.productsService.getRecipeStats(user.organizationId);
+  }
+
+  @Get("stock-summary")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get organization-wide stock summary" })
+  getStockSummary(@CurrentUser() user: ICurrentUser) {
+    return this.productsService.getStockSummary(user.organizationId);
+  }
+
+  @Get("batches-expiring")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Get batches expiring within N days" })
+  @ApiQuery({ name: "days", required: false, type: Number })
+  getExpiringBatches(
     @CurrentUser() user: ICurrentUser,
+    @Query("days") days?: number,
   ) {
-    return this.productsService.findById(id, user.organizationId);
+    return this.productsService.getExpiringBatches(
+      user.organizationId,
+      days ? Number(days) : 7,
+    );
   }
 
   @Get("barcode/:barcode")
@@ -133,6 +142,25 @@ export class ProductsController {
     @CurrentUser() user: ICurrentUser,
   ) {
     return this.productsService.findByBarcode(barcode, user.organizationId);
+  }
+
+  @Get(":id")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get product by ID" })
+  @ApiParam({ name: "id", type: String })
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.findById(id, user.organizationId);
   }
 
   @Patch(":id")
@@ -195,6 +223,33 @@ export class ProductsController {
     @CurrentUser() user: ICurrentUser,
   ) {
     return this.productsService.getRecipesByProduct(
+      productId,
+      user.organizationId,
+    );
+  }
+
+  @Get(":id/recipes/primary")
+  @ApiOperation({ summary: "Get the primary recipe for a product" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  findPrimaryRecipe(
+    @Param("id", ParseUUIDPipe) productId: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.findPrimaryRecipe(
+      productId,
+      user.organizationId,
+    );
+  }
+
+  @Get(":id/stock")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get stock summary for a specific product" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  getStockByProduct(
+    @Param("id", ParseUUIDPipe) productId: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.getStockByProduct(
       productId,
       user.organizationId,
     );
@@ -323,6 +378,17 @@ export class ProductsController {
       productId,
       user.organizationId,
     );
+  }
+
+  // ===========================================================================
+  // BATCH MANAGEMENT
+  // ===========================================================================
+
+  @Post("batches-check-expired")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Mark expired batches as EXPIRED" })
+  checkExpiredBatches(@CurrentUser() user: ICurrentUser) {
+    return this.productsService.checkExpiredBatches(user.organizationId);
   }
 
   // ===========================================================================
