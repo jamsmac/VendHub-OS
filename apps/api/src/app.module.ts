@@ -92,7 +92,6 @@ import { EmailModule } from "./modules/email/email.module";
 import { ContainersModule } from "./modules/containers/containers.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { CounterpartyModule } from "./modules/counterparty/counterparty.module";
-import { RecipesModule } from "./modules/recipes/recipes.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -526,9 +525,6 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Counterparties, Contracts & Commission Calculations
     CounterpartyModule,
-
-    // Recipes, Ingredients & Version Snapshots
-    RecipesModule,
   ],
   providers: [
     // ============================================
