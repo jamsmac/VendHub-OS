@@ -3,15 +3,18 @@
  * S3 + CloudFront integration for file storage
  */
 
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { MulterModule } from "@nestjs/platform-express";
 
-import { StorageController } from './storage.controller';
-import { StorageService } from './storage.service';
+import { StorageController } from "./storage.controller";
+import { StorageService } from "./storage.service";
+import { FileRecord } from "./entities/file.entity";
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([FileRecord]),
     ConfigModule,
     MulterModule.register({
       limits: {

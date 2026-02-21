@@ -123,6 +123,15 @@ export class RouteStop extends BaseEntity {
   })
   status: RouteStopStatus;
 
+  @Column({ type: "text", nullable: true })
+  address: string | null;
+
+  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
+  latitude: number | null;
+
+  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
+  longitude: number | null;
+
   @Column({ type: "timestamp with time zone", nullable: true })
   estimatedArrival: Date | null;
 
@@ -132,14 +141,22 @@ export class RouteStop extends BaseEntity {
   @Column({ type: "timestamp with time zone", nullable: true })
   departedAt: Date | null;
 
+  @Column({ type: "int", default: 15 })
+  estimatedDurationMinutes: number;
+
+  @Column({ type: "boolean", default: false })
+  isPriority: boolean;
+
   @Column({ type: "text", nullable: true })
   notes: string | null;
 
-  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
-  latitude: number | null;
-
-  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
-  longitude: number | null;
+  @Column({ type: "jsonb", default: {} })
+  completionData: {
+    collectedCash?: number;
+    refilledItems?: Record<string, number>;
+    issues?: string[];
+    photos?: string[];
+  };
 
   @Column({ type: "jsonb", default: {} })
   metadata: Record<string, unknown>;

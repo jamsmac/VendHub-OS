@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, Index, Unique } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { Organization } from "../../organizations/entities/organization.entity";
 import {
@@ -231,4 +231,163 @@ export class IntegrationWebhook extends BaseEntity {
 
   @Column({ type: "timestamp", nullable: true })
   processedAt: Date;
+}
+
+// ============================================================================
+// SYNC JOB ENTITY
+// ============================================================================
+
+export enum SyncJobStatus {
+  SCHEDULED = "scheduled",
+  RUNNING = "running",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CANCELLED = "cancelled",
+}
+
+export enum SyncDirection {
+  INBOUND = "inbound",
+  OUTBOUND = "outbound",
+  BIDIRECTIONAL = "bidirectional",
+}
+
+@Entity("sync_jobs")
+@Index(["integrationId"])
+@Index(["status"])
+@Index(["scheduledAt"])
+export class SyncJob extends BaseEntity {
+  @Column({ type: "uuid" })
+  integrationId: string;
+
+  @ManyToOne(() => Integration, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "integration_id" })
+  integration: Integration;
+
+  @Column({ type: "uuid" })
+  organizationId: string;
+
+  @Column({ type: "varchar", length: 100 })
+  jobName: string;
+
+  @Column({ type: "enum", enum: SyncDirection })
+  direction: SyncDirection;
+
+  @Column({ type: "varchar", length: 100 })
+  entityType: string; // products, orders, customers, etc.
+
+  @Column({
+    type: "enum",
+    enum: SyncJobStatus,
+    default: SyncJobStatus.SCHEDULED,
+  })
+  status: SyncJobStatus;
+
+  @Column({ type: "timestamp" })
+  scheduledAt: Date;
+
+  @Column({ type: "timestamp", nullable: true })
+  startedAt: Date | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  completedAt: Date | null;
+
+  @Column({ type: "int", nullable: true })
+  durationMs: number | null;
+
+  @Column({ type: "int", default: 0 })
+  totalRecords: number;
+
+  @Column({ type: "int", default: 0 })
+  processedRecords: number;
+
+  @Column({ type: "int", default: 0 })
+  successfulRecords: number;
+
+  @Column({ type: "int", default: 0 })
+  failedRecords: number;
+
+  @Column({ type: "text", nullable: true })
+  errorMessage: string | null;
+
+  @Column({ type: "jsonb", default: {} })
+  config: {
+    filters?: Record<string, unknown>;
+    mapping?: Record<string, unknown>;
+    batchSize?: number;
+    [key: string]: unknown;
+  };
+
+  @Column({ type: "jsonb", default: {} })
+  results: {
+    errors?: Array<{ recordId?: string; error?: string }>;
+    warnings?: string[];
+    summary?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+
+  @Column({ type: "uuid", nullable: true })
+  triggeredById: string | null;
+}
+
+// ============================================================================
+// API KEY ENTITY
+// ============================================================================
+
+export enum ApiKeyStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  REVOKED = "revoked",
+  EXPIRED = "expired",
+}
+
+@Entity("api_keys")
+@Index(["organizationId"])
+@Index(["status"])
+@Unique(["keyHash"])
+@Unique(["keyPrefix"])
+export class ApiKey extends BaseEntity {
+  @Column({ type: "uuid" })
+  organizationId: string;
+
+  @Column({ type: "varchar", length: 100 })
+  name: string;
+
+  @Column({ type: "varchar", length: 64 })
+  keyHash: string;
+
+  @Column({ type: "varchar", length: 16 })
+  keyPrefix: string; // First 8 chars for identification
+
+  @Column({ type: "uuid" })
+  userId: string;
+
+  @Column({
+    type: "enum",
+    enum: ApiKeyStatus,
+    default: ApiKeyStatus.ACTIVE,
+  })
+  status: ApiKeyStatus;
+
+  @Column({ type: "timestamp", nullable: true })
+  expiresAt: Date | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  lastUsedAt: Date | null;
+
+  @Column({ type: "int", default: 0 })
+  usageCount: number;
+
+  @Column({ type: "int", nullable: true })
+  rateLimit: number | null; // Requests per minute
+
+  @Column({ type: "jsonb", default: [] })
+  scopes: string[]; // ['read:products', 'write:orders', etc.]
+
+  @Column({ type: "jsonb", default: {} })
+  metadata: {
+    ipWhitelist?: string[];
+    allowedOrigins?: string[];
+    description?: string;
+    [key: string]: unknown;
+  };
 }

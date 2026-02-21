@@ -1,18 +1,20 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from "@nestjs/config";
+import { HttpModule } from "@nestjs/axios";
 import {
   Integration,
   IntegrationTemplate,
   IntegrationLog,
   IntegrationWebhook,
-} from './entities/integration.entity';
-import { IntegrationsController } from './integrations.controller';
-import { IntegrationService } from './services/integration.service';
-import { AIParserService } from './services/ai-parser.service';
-import { PaymentExecutorService } from './services/payment-executor.service';
-import { IntegrationTesterService } from './services/integration-tester.service';
+  SyncJob,
+  ApiKey,
+} from "./entities/integration.entity";
+import { IntegrationsController } from "./integrations.controller";
+import { IntegrationService } from "./services/integration.service";
+import { AIParserService } from "./services/ai-parser.service";
+import { PaymentExecutorService } from "./services/payment-executor.service";
+import { IntegrationTesterService } from "./services/integration-tester.service";
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { IntegrationTesterService } from './services/integration-tester.service'
       IntegrationTemplate,
       IntegrationLog,
       IntegrationWebhook,
+      SyncJob,
+      ApiKey,
     ]),
     ConfigModule,
     HttpModule,
@@ -32,9 +36,6 @@ import { IntegrationTesterService } from './services/integration-tester.service'
     PaymentExecutorService,
     IntegrationTesterService,
   ],
-  exports: [
-    IntegrationService,
-    PaymentExecutorService,
-  ],
+  exports: [IntegrationService, PaymentExecutorService],
 })
 export class IntegrationsModule {}
