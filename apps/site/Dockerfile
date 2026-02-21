@@ -84,16 +84,15 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3100
 
-# Copy static files
-COPY --from=builder /app/apps/site/public ./public
+# Copy standalone build (monorepo structure preserved in standalone output)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/site/.next/standalone ./
+
+# Copy static assets into the correct monorepo path
+COPY --from=builder --chown=nextjs:nodejs /app/apps/site/.next/static ./apps/site/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/site/public ./apps/site/public
 
 # Set correct permissions for prerender cache
-RUN mkdir -p .next && chown nextjs:nodejs .next
-
-# Copy standalone build
-COPY --from=builder --chown=nextjs:nodejs /app/apps/site/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/site/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/site/public ./public
+RUN mkdir -p apps/site/.next && chown nextjs:nodejs apps/site/.next
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
@@ -105,5 +104,6 @@ USER nextjs
 EXPOSE 3100
 
 # Use dumb-init to handle signals properly
+# In monorepo standalone, server.js may be at root or apps/site/server.js
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "if [ -f server.js ]; then exec node server.js; else exec node apps/site/server.js; fi"]

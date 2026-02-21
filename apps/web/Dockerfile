@@ -20,7 +20,26 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 # ==================================================
-# Stage 2: Builder
+# Stage 2: Development (for docker-compose dev mode)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["pnpm", "--filter", "@vendhub/web", "dev"]
+
+# ==================================================
+# Stage 3: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -47,7 +66,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm --filter @vendhub/web build
 
 # ==================================================
-# Stage 3: Production Runner
+# Stage 4: Production Runner (MUST be last for Railway)
 FROM node:20-alpine AS production
 WORKDIR /app
 
@@ -63,16 +82,15 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-# Copy static files
-COPY --from=builder /app/apps/web/public ./public
+# Copy standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+
+# Copy static assets into the correct monorepo path within standalone
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 # Set correct permissions for prerender cache
-RUN mkdir -p .next && chown nextjs:nodejs .next
-
-# Copy standalone build - standalone output creates a server.js at the root
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
+RUN mkdir -p apps/web/.next && chown nextjs:nodejs apps/web/.next
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
@@ -84,25 +102,6 @@ USER nextjs
 EXPOSE 3000
 
 # Use dumb-init to handle signals properly
-# Next.js standalone creates server.js at the root of the standalone folder
+# In monorepo standalone, server.js may be at root or apps/web/server.js
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
-
-# ==================================================
-# Stage 4: Development
-FROM node:20-alpine AS development
-WORKDIR /app
-
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/shared/package.json ./packages/shared/
-
-RUN pnpm install
-
-COPY . .
-
-EXPOSE 3000
-
-CMD ["pnpm", "--filter", "@vendhub/web", "dev"]
+CMD ["sh", "-c", "if [ -f server.js ]; then exec node server.js; else exec node apps/web/server.js; fi"]
