@@ -11,10 +11,21 @@ import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
 import { CookieService } from "./services/cookie.service";
 import { UserSession, PasswordResetToken } from "./entities/auth.entity";
+import {
+  User,
+  TwoFactorAuth,
+  LoginAttempt,
+} from "../users/entities/user.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserSession, PasswordResetToken]),
+    TypeOrmModule.forFeature([
+      UserSession,
+      PasswordResetToken,
+      User,
+      TwoFactorAuth,
+      LoginAttempt,
+    ]),
     UsersModule,
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
