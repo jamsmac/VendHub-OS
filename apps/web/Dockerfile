@@ -48,11 +48,15 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 # Copy deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source
 COPY apps/web ./apps/web
 COPY packages ./packages
 COPY tsconfig.base.json ./
+
+# Build shared package first (web imports from @vendhub/shared)
+RUN pnpm --filter @vendhub/shared build
 
 # Build environment
 ENV NODE_ENV=production
@@ -62,7 +66,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Build
+# Build web
 RUN pnpm --filter @vendhub/web build
 
 # ==================================================
