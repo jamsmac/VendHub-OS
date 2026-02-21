@@ -18,6 +18,8 @@ export enum LeaveType {
   MATERNITY = "maternity",
   PATERNITY = "paternity",
   BEREAVEMENT = "bereavement",
+  EMERGENCY = "emergency",
+  COMPENSATORY = "compensatory",
   STUDY = "study",
   OTHER = "other",
 }

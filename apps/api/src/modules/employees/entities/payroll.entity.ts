@@ -58,6 +58,9 @@ export class Payroll extends BaseEntity {
   bonuses: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
+  allowances: number;
+
+  @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
   deductions: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2, default: 0 })
@@ -104,6 +107,9 @@ export class Payroll extends BaseEntity {
 
   @Column({ type: "integer" })
   workedDays: number;
+
+  @Column({ type: "integer", default: 0 })
+  absentDays: number;
 
   @Column({ type: "decimal", precision: 5, scale: 2, default: 0 })
   overtimeHours: number;

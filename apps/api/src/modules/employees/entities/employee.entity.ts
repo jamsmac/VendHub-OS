@@ -23,6 +23,14 @@ export enum EmployeeRole {
   SUPERVISOR = "supervisor",
 }
 
+export enum EmploymentType {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+  CONTRACT = "contract",
+  INTERN = "intern",
+  TEMPORARY = "temporary",
+}
+
 export enum EmployeeStatus {
   ACTIVE = "active",
   ON_LEAVE = "on_leave",
@@ -76,11 +84,24 @@ export class Employee extends BaseEntity {
   @Column({ length: 255, nullable: true })
   email: string;
 
+  @Column({ type: "date", nullable: true })
+  dateOfBirth: Date | null;
+
+  @Column({ type: "varchar", length: 10, nullable: true })
+  gender: string | null;
+
   @Column({
     type: "enum",
     enum: EmployeeRole,
   })
   employeeRole: EmployeeRole;
+
+  @Column({
+    type: "enum",
+    enum: EmploymentType,
+    default: EmploymentType.FULL_TIME,
+  })
+  employmentType: EmploymentType;
 
   @Column({
     type: "enum",
@@ -113,6 +134,12 @@ export class Employee extends BaseEntity {
     nullable: true,
   })
   salaryFrequency: SalaryFrequency;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  bankAccount: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  taxId: string | null; // INN (ИНН) for Uzbekistan
 
   // Department & Position
   @Column({ type: "uuid", nullable: true })

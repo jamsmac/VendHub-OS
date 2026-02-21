@@ -53,6 +53,9 @@ export class Attendance extends BaseEntity {
   @Column({ type: "decimal", precision: 5, scale: 2, nullable: true })
   overtimeHours: number | null;
 
+  @Column({ type: "integer", default: 0 })
+  breakDurationMinutes: number;
+
   @Column({
     type: "enum",
     enum: AttendanceStatus,

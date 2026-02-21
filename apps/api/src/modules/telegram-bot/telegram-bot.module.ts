@@ -21,6 +21,7 @@ import { TelegramUser } from "./entities/telegram-user.entity";
 import { TelegramMessageLog } from "./entities/telegram-message-log.entity";
 import { TelegramSettings } from "./entities/telegram-settings.entity";
 import { TelegramBotAnalytics } from "./entities/telegram-bot-analytics.entity";
+import { AccessRequest } from "./entities/access-request.entity";
 import { BotHandlersService } from "./services/bot-handlers.service";
 import { BotTaskOpsService } from "./services/bot-task-ops.service";
 import { BotMachineOpsService } from "./services/bot-machine-ops.service";
@@ -41,6 +42,7 @@ import { BotAdminService } from "./services/bot-admin.service";
       TelegramMessageLog,
       TelegramSettings,
       TelegramBotAnalytics,
+      AccessRequest,
     ]),
   ],
   controllers: [TelegramBotController],
