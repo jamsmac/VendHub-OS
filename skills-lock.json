@@ -1,20 +1,820 @@
 {
   "version": 1,
   "skills": {
+    "1password": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "bc52479bf8f290750f7cebf3a9cd9e9624dbecb21c7d5bbfbd2cde6092bbb970"
+    },
     "agent-browser": {
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",
       "computedHash": "69e805b9bba58a76e3f9ac835d506a4f06f18a7867d2ba5e23e40638f6f351eb"
+    },
+    "agent-context-isolation": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "79ef599c827276579d05e7a0f202cf633d08bf4cd28a7359adb5e664ad85ccfb"
+    },
+    "agent-orchestration": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "92b40e391f9ff2fcd4fd16a3a1f53b161fdd4905f05efe8817ed266fbade3bf6"
+    },
+    "agentic-workflow": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "da8b7592ef10ae017b44eebbc2ada9b848765e18e701c81148fc014a4d3c5ada"
+    },
+    "agentica-claude-proxy": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "4d8be6b5e7e5bba2ff958a986e7212d15fb7d5858bd5c3e244ad4f27f5b1eeb5"
+    },
+    "agentica-infrastructure": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "3cbbd29be666147cb0df9271d63dd0a69b89f7a9b4fc52cda17f61a22382b78c"
+    },
+    "agentica-prompts": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "db01a57ec9f908fb573748cf9c8414c75f5dd387648395acbc9c39ce50eebb88"
+    },
+    "agentica-sdk": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "bb0fe0e25dc1381dbe1b91daf060237ea1a4e79ea10d473d3f33a68ffec5a484"
+    },
+    "agentica-server": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "3d397a4d4e8efe12ab0d1531e9ec3c5e98bed87e8c452af18425d65b6f0bc660"
+    },
+    "agentica-spawn": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "8043b65d98d0717b616c9ee87e9330b6c25d3b4d96524b8a7583d9799f5d24dd"
+    },
+    "apple-notes": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "371c0a5c483e44e0718d1d991324b7198a317173a3507fc331cb4aa3d11ec2be"
+    },
+    "apple-reminders": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "4f77d61563c80bfe0c1e12f1e221640f24e17dc59102ebb7b7926ea5268a8ae5"
+    },
+    "ast-grep-find": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "13880149c662ae58270554d2a9240b7cbf1e7e463565aee4fdf2f73fcd9dbb5f"
+    },
+    "async-repl-protocol": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "de6d6c18d1ed859caefe6522f227f70e844cf36a488eff95282d9530cf9942db"
+    },
+    "background-agent-pings": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "d94c8600c53fece8e35f8cd712bed74321a42cd5bf6b131808246834de6f60e0"
+    },
+    "bear-notes": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "3bbe9a4ff745749e2f273cdded717a8a6901c9c94c298bd75aeb9977fdf69b11"
+    },
+    "blogwatcher": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "f74dd900af73d9e8887dde74d939a59b65229b6d05bf6abfcdaa0508e08fad8c"
+    },
+    "blucli": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "721e0c59582e1f35d9d6d7118870f7e5910036f7aadb0df77fb2e4709144f1da"
+    },
+    "bluebubbles": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "75c9497b1deeb97acbdbff067e0b01b26082c241eccc890ae274276050e1c518"
+    },
+    "braintrust-analyze": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "69873a28751f507f106de57655a37851c43a0d70bdd87fd8153aa2f1f3b8a973"
+    },
+    "braintrust-tracing": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "891394219f9587a70f035cb0893910283796cc8ab8009c9638c8c289247636a7"
+    },
+    "build": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "159275ed7f43780e5160a8337d484b46bb75b316f1ef7001e38b4dc3aa5b74e9"
+    },
+    "camsnap": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "fe845409d0fb9d0d44125829958c085b10c2af2f80aa3a3fd6933405af79da16"
+    },
+    "clawhub": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "39ecd276b845daa26201ee6d4e230958bf6307941cec7b134a00f2def1b20c27"
+    },
+    "cli-reference": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "7ad4985f2787acf35c0c7d277fcf7ffc8ac2363c4402b36649cebc77e9568a0b"
+    },
+    "coding-agent": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "8f668cf6bc989191e89d84e6dd49076f8b1c84d2ccae29a16bd211c62774ca2e"
+    },
+    "commit": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "dd7b245cc7e1063d9c6081c4e85c0853f840d3506a59f43b4c8dc812bd2d99f8"
+    },
+    "complete-skill": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "ac412b0926f73fc9fbf744f379e9532fdcacc125b14c1858b61c74bfc983c069"
+    },
+    "completion-check": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "248e41bb6531fd8bd96e3b521a6d4f922912565688f56cfd8021171f136a0761"
+    },
+    "compound-learnings": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "d363e68dea793d6a660aaed61a709b7bf579fb9b94978328be468662344437ca"
+    },
+    "concept-workflow": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "d3eb3456e1fdb4af47046ea535e68136ff8992a22d99fcf6ff195e55d09e6188"
+    },
+    "continuity-ledger": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "5695976c507c8d5355fcc3da01dd8f2bb4ca0fb532a7dcc9b8fffb1dc821a58f"
+    },
+    "create-handoff": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "f359a9e8a03de2404392688e3ad546d601f43480601d85de7db9033b5751fb8f"
+    },
+    "dead-code": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "a8d4f025ee6e04d925e56835c19de1446b4d7ead8e5dfe230e5d54d34a9531ec"
+    },
+    "debug": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "1f1cc092979240f091394d91f7fdb891c1d39210fa4e6072c1a64e9e31e8fb8c"
+    },
+    "debug-hooks": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "06c3ab8bda11ee552ceff112f94180e5e0c93ad6bf783f3c807cc9b330fbf9e4"
+    },
+    "describe-pr": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "82b5506189ce698157ddbc370a77b91c44e539c79357929573df0c86ec0aebff"
+    },
+    "discord": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "92a82a8b558dce67a63b3815ef58d12d9bd6afe698340c44d9ee7b9461da5df9"
+    },
+    "discovery-interview": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "6f194cd10649bdcb62823f0ae3c43070dad725af451e9de8cc6a9b1404b98656"
+    },
+    "eightctl": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "931f37359783deda521160994f2ae39e3b1c2177c082c832bcb33682837360c4"
+    },
+    "environment-triage": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "057da49a3e8c1d6b0fed9d3bddd46fc028be05e6a5cd5cf355029df9d6fdcee4"
+    },
+    "explicit-identity": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "92850ba88d54d36c4efae32c9ec680027a0aa8970ba005b050b3645545bd01c1"
+    },
+    "explore": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "ed8da29eda1272de5b3cb81b51ff0ae160d6fd9f3760b65e351c7e17121fd50a"
+    },
+    "extract-errors": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "b088123d854e6e3c57ab74746bce30c9231daec33dc73782ac57d7b3121519bc"
+    },
+    "fact-check": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "596e4a594da5ea6c0963bce6f722aa498446f5ac2c05ef03d792d4ec147aaeed"
+    },
+    "feature-flags": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "c5335a86f91e81ce4e7035ab48209a4dbb09ef32822796d4778388472f0b0b39"
     },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "computedHash": "6412eb4eb3b91595ebab937f0c69501240e7ba761b3d82510b5cf506ec5c7adc"
     },
-    "skill-creator": {
-      "source": "vercel-labs/agent-browser",
+    "firecrawl-scrape": {
+      "source": "parcadei/Continuous-Claude-v3",
       "sourceType": "github",
-      "computedHash": "0e1196449595117435416d50c130e706cd86010fed959eb3a6d41cf989328506"
+      "computedHash": "467448cac413746a17575412ab54794cef6458f7f95dc9c2754996ef92da665e"
+    },
+    "fix": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "d68147149e12e8358926a58ef51b25d88a1e889233284c5ad849e1ee2b521206"
+    },
+    "flags": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "de69ba8631439d952ce7148c7d438a9de1e6387e7ecd2680b8d406ed31f64e9e"
+    },
+    "flow": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "3358c67bbdee529ceb49a37f260fab3cb507be2dfbdedd073295fcae7f16bc7e"
+    },
+    "gemini": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "da27a56d0f202bb9fcf08ad715ad164009db4ae8bc02dc65cf5b1ffe045fb512"
+    },
+    "gh-issues": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "3f06130ae1cdc25648f6e9f9f3eed8108152eae01e24aa2d8543f164a389bb22"
+    },
+    "gifgrep": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "bea65b55990bb65a95fe518102f33260bc17044fce1d91854177615f71236272"
+    },
+    "git-commits": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "c860cc80e01935583e0804fef994bd7179b292a944321657e46c1fc7a97f6c3b"
+    },
+    "github": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "78c25ef4dbe70f5ec149b7a5d55aadd4b2cb1aa6246c0cfcea66d316bdb5b171"
+    },
+    "github-search": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "f2355cac7f46d7cc5ff283e3b6fc26ba2ec8b45b3c7e2129b0117ec713912a3d"
+    },
+    "gog": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "e428c2ff5b716ac41da72c3218ddf494b0b47f1997f03d21677097d7f07fd12d"
+    },
+    "goplaces": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "733246a4bba4984113bfeb87129c544f88c921b273ccf91280a6e3e1217227b1"
+    },
+    "graceful-degradation": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "6011a36bb187dd21c921d84defd248380f264a718735728af71cdd6955327d19"
+    },
+    "healthcheck": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "53ae8b581b83e4c222d332372e826d8524196641755ee432fffc72fcef50168e"
+    },
+    "help": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "4201e411467dea9565e5b37c4d61aec2e2e03618e500d05e1fb26aab0170f491"
+    },
+    "himalaya": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "0d3baf6039b8f2d19266ec535b114cacca8a6ab1d288b8373a83b1a1585cefb8"
+    },
+    "hook-developer": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "2d528aee0c23109724e8e14d01db51bc69d14f37cf86b0dde2a5e1c9db10428d"
+    },
+    "hooks": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "f6a1ff19a12cab6cb3d06b06b8ce22b80a7786b34fc0f8dbe393bbcf448ddc27"
+    },
+    "idempotent-redundancy": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "454c3b6ecc95ab421143f5ec1ed251225800871b397d5476d184e90c88399db1"
+    },
+    "implement_plan": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "6d9e8982057bf14d36255ac8c130e3b61b96a71b7b2b8f435655bbc13038e9d7"
+    },
+    "implement_plan_micro": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "454a3d98c9c667497b6d8edce72b2b90289825137bda67f242b136ba48fada7d"
+    },
+    "implement_task": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "94a0d02fe11be6c42c69ede77db88b993e5883fba4df077932b8f72a6a43395e"
+    },
+    "imsg": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "44f7089046c7b56f9dde00ddcf761b30f431bb6838f059200975ddeab07d1ded"
+    },
+    "index-at-creation": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "a8af9947ad170cdb62e7087761b75ebc2639b4b60510eda2d78a2261ccf356e0"
+    },
+    "llm-tuning-patterns": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "a8683cf9c917d8833bbda28c86e9eca3206b0e180fd53e829c5d4692ba01e93c"
+    },
+    "loogle-search": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "c7fa7952d296c86e55f4708b94dd679c5ca4861a77ea81526505a61a21dce7fc"
+    },
+    "math": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "13fc5f5bc185198642adea57aaff35a4dcd4bde6c7c0eaa67c7e787e969d6018"
+    },
+    "math-help": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "8d201836d4db09a1c2e299a83545ce27bde5e40a255d71f38d02ad138da2bbc5"
+    },
+    "math-router": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "c34de53d0f74014e3ae56db25cd92ac5abce2ad4ec18eb26a1d88b56c02d99ff"
+    },
+    "mcp-chaining": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "40dd05439e95998b6a82f2f320836aad10850379c45f175f56834b7ef908304c"
+    },
+    "mcp-scripts": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "b6f2823cbda59d427457427eeab0aff9a9b6760cb50fbbebc181562b04dea0dc"
+    },
+    "mcporter": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "295be6858c69890f9566e849aade58e2d8db93c3ce49e11dba40b8ae33dd2419"
+    },
+    "migrate": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "dbc6d7bb43d3e61758b19fa11495c3cbd79f3b19b33371425f3e8d9ecad1fe5f"
+    },
+    "model-usage": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "2bbc6add30bfe98f006723567bd6d9b066e2ea3bd4f81a88439163c2b042ee95"
+    },
+    "modular-code": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "13aaae6ac9acdc6814cd9fe3e07e8391b8f600e48c8c03810e47c4411ed61c37"
+    },
+    "morph-apply": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "ca7c1547a6155706d359850ae611a6dada7c10091c76a77b64e30185f9d2e0c9"
+    },
+    "morph-search": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "7262379c9febb9699ba17a8c6deb3ebb2536364b709b704f18bef1b2bcf65adb"
+    },
+    "mot": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "7b25c6d4a0983104f0103968a5db1cff6f19133b3fb48aebc3a91631bbb683f7"
+    },
+    "nano-banana-pro": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "165246e9b08f1fee54994d2daa15a5aa690b6745bcd26fab2811cd3db6544c17"
+    },
+    "nano-pdf": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "5334fa859b3f536d58d1143fd794307ea3d020f436ae284caae98ed8b670d50d"
+    },
+    "nia-docs": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "15e264b0312c0dee45840afa54b040d6e61bbb3902c64e665bed10cae0cbfa0d"
+    },
+    "no-polling-agents": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "02423f41af9378d0e5d5b6362a98245d3281a99750d3fa1518d0d15501e56539"
+    },
+    "no-task-output": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "d98ea7fab374fba55fea2d70120d51e211b7297321f0f309592c2c329307cd4a"
+    },
+    "notion": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "6d4eaed4c6a023cfc3982c1955d962062f2607ea2246b376bbbd8769836ad4f4"
+    },
+    "observe-before-editing": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "1d05aa1f3d6f9af74ca06e7d747b8ecd3641a04b0b8b5c743a3ee6e98e562858"
+    },
+    "obsidian": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "17e940782ac1862b15a161fc7bd65e8c47c287792dfe2a746bb691f9f9c68556"
+    },
+    "onboard": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "61b5e57a8f5c582784d41d8a7a62cd9e58f764a4dcea6ba0eb92876468f3bbe5"
+    },
+    "opc-architecture": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "182659eee98a002ffd93ea62d125b98d38d7550d3abce8c792ec59f4d7214c29"
+    },
+    "openai-image-gen": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "7c72640b97b973b16c520572aee7edca9df0da86451cf4a0b81739b2dff8aba4"
+    },
+    "openai-whisper": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "5b7f1231d36428d86be33acdd5253c213e4d15083c438cc8e4b0eeafb1afe55a"
+    },
+    "openai-whisper-api": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "8a7bb6b049a7466961719a7d55c2562ea6cd9524a44746cc5b959c4a2dc7c18c"
+    },
+    "openhue": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "931ff98a9e3115f655d9949f6efc8f977cc1905e230ae789c8cbe541c6c1b7c0"
+    },
+    "oracle": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "23bf8a9697b6dba9e93d386dc7d886747c9785a3a8499f3605b228831e869def"
+    },
+    "ordercli": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "a220e038b283f28e33158b6cacce2cae563d38c69596031fa84a73025ebef6e3"
+    },
+    "parallel-agent-contracts": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "78c0ff3c7a217fa7bbeed452089472b942c5d84b8bd5930da03790c166c3b999"
+    },
+    "parallel-agents": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "43d406f2716cff0ec9acb4319768615c51708abb9571b1f3a4cfeb6a470a204e"
+    },
+    "peekaboo": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "904404fca6618cbf0ccf87c1a18a40e779c5c6ddf46f6c59884cd8d3b0f07b9c"
+    },
+    "perplexity-search": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "4022da54cd6b8249fd0a9935c2e2f46ba13ae61f979cf5be8ee66b69c0489162"
+    },
+    "pint-compute": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "2b4fc7130089be8220d8b53a15675bb339fe89947eb013210e093ecc8850b435"
+    },
+    "planning-agent": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "3962b9cfc6f3913ca8f5fc73d3cfb6bdd1712ba6245959c4ba874e35bdd9eb26"
+    },
+    "premortem": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "b8ae1b3213e429b266fe0ff2666fed47018e7445c7a01f7d895754d43d6da5ed"
+    },
+    "prove": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "6d438fe497b6a6afc747135d7af97a6c3de68653e440ecda23559f3b65fb2062"
+    },
+    "qlty-check": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "8e44bc5600baed28ab72be83e5df52254a5bc0c7f3cf354f59e1026968dfa368"
+    },
+    "qlty-during-development": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "424c155ae0f74502732cd82cd635873aa97e8807b78045397a842742a67683ea"
+    },
+    "recall": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "490b29b6ed2dd5259eb47d14f347b2a65241a068f22effca3b24c1d75fa2ec67"
+    },
+    "recall-reasoning": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "03dfee2dfe84d953a340d0aa0ca84b9182063e69657034f42eefe959270502f7"
+    },
+    "refactor": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "eccb02e2ff125347c61fa31e1060b7c5694f42d45a34ccdcd425f90150d9a17d"
+    },
+    "reference-sdk": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "2a1a766b0018ab2229ce18cbc6e26832af5c6e6584a7ddc2745d8b81a9a39f96"
+    },
+    "release": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "8099643c44169466ac1bab0776b05dc5632b5e37389392bd11f80d27dbcd0712"
+    },
+    "remember": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "642666a0cd89d143be8c3ed19d9bc04fc6e274d180b7e54de61b41ad65610a2f"
+    },
+    "repo-research-analyst": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "0677060f06087d1cbbe9407414b916f8d594e8ac8f125aa3d49e3566c19e08be"
+    },
+    "repoprompt": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "1821e522e3d0500a35c73e43c1c72ef5ff41312b527a21a2aa00faa5d73c44b0"
+    },
+    "research": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "77a5f590b83ebba8acc96cf825ead44df686b39c0bfe56512cf65616f7ec28f3"
+    },
+    "research-agent": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "52e65e475653c6d6463346352f53cd2d893f1f830e68a1898fdbecb43c48ebc8"
+    },
+    "research-external": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "48ba19ee2a4510769ba04b9cea71537ddc2d8855433aa2a95438922c8802b993"
+    },
+    "resource-curator": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "2c8d1219448cf1c1b5600e17ca4291735ac47d2c3c33d5ab21fc8da06b2db342"
+    },
+    "resume-handoff": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "9217d8bb5b73f9c1b361e0eec61e07011279054250b0762012c470985af9df69"
+    },
+    "review": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "37f852d9ecdf794b45eda4e47fd69115b4edd2ddffabb4ed6f4d03be08803592"
+    },
+    "router-first-architecture": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "b4933b64f2cb8fc83708f9c65dad9c16a2ca668ea38e423e432f9d2317373a7c"
+    },
+    "sag": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "a3c0f3f7a3d26f0d9f7928d4f8dc497ee21b492cdc80fd071d3a9010cb473561"
+    },
+    "search-hierarchy": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "81e3573b503d91e90adf6e15a101fcc1f0d19b4206fa3df31c2586a075d20c91"
+    },
+    "search-router": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "c785f36ef28c6a1fa0734a0cba465db9c0ac4d365aa381141ddca888793b598a"
+    },
+    "search-tools": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "20d235115d9a9d2dafaefed5732e629ee7b4169a88b015c2345f61d109a81d79"
+    },
+    "security": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "1d7ee7356bc5c50deabe8fc603553f0cb9cbfdd6d14ff8a6350f8f50c2a0903d"
+    },
+    "seo-review": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "1cbe9030721e96d95a39f0437e37d407fa1f6fc94680ae04cac85c66f5eb9f5f"
+    },
+    "session-logs": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "66226da5840d5e85c69ffcdad29c7bf23c260fbbcf3782e663d791500899e2f4"
+    },
+    "shapely-compute": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "449f366d52873c4e74ab94d97a86bb7bc49cff8535eadd6cc33293954ee43863"
+    },
+    "sherpa-onnx-tts": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "89dbb60952d515a9707b2f6b5387aae6d4df8fddfc7f656dc758b93198eba5c3"
+    },
+    "skill-creator": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "4a8e8c6baf6561b7588efd7fea0770411b898ffeffcb78f1795a921fe2807928"
+    },
+    "skill-developer": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "b21b1ed19a257ba93ff9fd12d9e629e3be74d47adabdaf3ef9fadebbf0e9b0fb"
+    },
+    "skill-development": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "af8a0a127a972fa78da96b42f134471dff3873e4b63a065f6c5bd14d0af16765"
+    },
+    "skill-upgrader": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "76eacdb88b0c8be4363bc56edfd05d8487e84000ffc1b4f149b72483b922008f"
+    },
+    "slack": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "c99ed5e9b78bd150e2c9ec59bbac178ce7f97885efd007821fac2b3442c3212a"
+    },
+    "slash-commands": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "55060514162d3c0d58125294f7e5d14fe660530d702e00876e3917b3190f1f1d"
+    },
+    "songsee": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "b40f15c8c4b486c8e0559ffc249818a8509bb56bf956de6efc71faddf7d45e61"
+    },
+    "sonoscli": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "e1c45d3b5ff4982b721eb0eaad0fbfe6782c13412db1bb769ea7bc17e8a3c971"
+    },
+    "spotify-player": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "a40d4ba23f032f1931325cc80a220c0bdf07e6767b1c4103a88e3e9582109037"
+    },
+    "sub-agents": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "baaca34efc1076b276580926f89e94ed3db75a548a8c0cb55c19556852390edb"
+    },
+    "summarize": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "3d4b495c2e6071506ce5e57d4908eff37a3f5506d236f94836e0535c235f9b27"
+    },
+    "system-overview": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "ed6d0273b10dd2f13150c8d1a4e341fe6d6ce922c1108e46a96fac81e5692f7a"
+    },
+    "tdd": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "433ba05784ae008f8720b6763b1eb6f38c0eda30550c80e0505d51628e38ef06"
+    },
+    "tdd-migrate": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "607edcd9eef3492d6cd74f5408c3d1cae742ebd23b50550757b8603e2debdff2"
+    },
+    "tdd-migration-pipeline": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "f2a9d63a9c76db8f4c847e2e366a95151aba49045446930fc25346a4caaeca25"
+    },
+    "test": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "14fabeabacc8be3ea52f7dc209f45d132b2a81d4bdf2a67a73687865594a4d76"
+    },
+    "test-writer": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "faf4af44f1d3cf07075cdf974e0fcdbd5be90ffb71d9983451b84cce1b731fde"
+    },
+    "things-mac": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "41108bcf14e132da6f3d822c2084a367b3494209fa1ff5c4c19cd6020bf2c7c0"
+    },
+    "tldr-code": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "3858c46a341a281c3016adecddded26c63a3145c9b212f4d8c6ff9f9b97deb4b"
+    },
+    "tldr-deep": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "6789a06cb539649634b058bc6cb50f10c0a96375a63a001d0fd7414f32e2a47a"
+    },
+    "tldr-overview": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "a835f7d884adb4ba7d960ff59e7193077e8acaca97017cf1ab3d5b44c31a8bc0"
+    },
+    "tldr-router": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "f2f78e65293129a06710f629a88f55d480da3fd3b913d0e5f86c47540819fef9"
+    },
+    "tldr-stats": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "0a95c1c08452f891446b6acf536c8c36eb4697f5c69f67c991b57ff0910e3e66"
+    },
+    "tmux": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "5c7ec7158f7d7283befbac1ada02ab35fd61cf1c8683fc9adab8674317fa116a"
+    },
+    "tour": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "c411540ac7879009656361b6ef32c4027793237c702d25a7611776a7f01fd433"
+    },
+    "trello": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "4aaab2d3443b2275fc6b9b53d29bcef5d41e3a54f1b97e3f19c1a4434d76e86a"
+    },
+    "validate-agent": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "e4b10e5b49c141fc6e53c1fd16293184a87c71df0813dab386cfc10490b4b97d"
     },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
@@ -31,10 +831,55 @@
       "sourceType": "github",
       "computedHash": "2e9088a7333666d8c2833b8ff58bd51b955501c42b4c7244f72b4cbf22dafcc4"
     },
+    "verify": {
+      "source": "facebook/react",
+      "sourceType": "github",
+      "computedHash": "f8b0daa5cb09d875140d1b9fa0440d969506dfba4365a5b40ef1c4d5f4b59112"
+    },
+    "video-frames": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "043f97d5dee08c0bd96929132b9469091c603b9ae56bbbf51bf22d2b758c6a2a"
+    },
+    "voice-call": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "5468a126696b99614f7ce9bf1e80a8c59d5ae5078ec097c9fb9062eb5b57e145"
+    },
+    "wacli": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "755695ad55e28e03c211e018412ecae390f4a2bf73b75870f9c9a2d3b4d84457"
+    },
+    "weather": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "8c985a61c72b60455743d8d642d6dc665dc0467221c50ef80accd1542dfe51bc"
+    },
     "web-design-guidelines": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+    },
+    "wiring": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "d01ad9ddae4d17d1a77ce2ffdea1bb23e62cfd36f36e3da97dad95c64d3f2f08"
+    },
+    "workflow-router": {
+      "source": "parcadei/Continuous-Claude-v3",
+      "sourceType": "github",
+      "computedHash": "61a37ade703be716304c39e0da1584bf90ab27ed141a0cfd9b5dce95f973bff3"
+    },
+    "write-concept": {
+      "source": "leonardomso/33-js-concepts",
+      "sourceType": "github",
+      "computedHash": "a817373f34045cbebded253a202773ae87bd5c326d64b67c4ff162ccd7784526"
+    },
+    "xurl": {
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "computedHash": "bec9f759f941362069d0746601a80ad074280fe35b1f1ef1e8b3e5ef728b3147"
     }
   }
 }
