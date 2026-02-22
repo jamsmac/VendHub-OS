@@ -420,6 +420,85 @@ export class AlertsService {
   }
 
   // ========================================================================
+  // TOGGLE RULE & STATS
+  // ========================================================================
+
+  async toggleRule(organizationId: string, id: string): Promise<AlertRule> {
+    const rule = await this.findOneRule(organizationId, id);
+    rule.isActive = !rule.isActive;
+    const saved = await this.ruleRepository.save(rule);
+
+    this.eventEmitter.emit("alerts.rule.toggled", {
+      rule: saved,
+      isActive: saved.isActive,
+    });
+    this.logger.log(
+      `Alert rule ${id} toggled to ${saved.isActive ? "active" : "inactive"}`,
+    );
+
+    return saved;
+  }
+
+  async getAlertStats(organizationId: string): Promise<{
+    totalRules: number;
+    activeRules: number;
+    activeAlerts: number;
+    bySeverity: Record<string, number>;
+    last24hTriggered: number;
+  }> {
+    const [totalRules, activeRules] = await Promise.all([
+      this.ruleRepository.count({
+        where: { organizationId },
+      }),
+      this.ruleRepository.count({
+        where: { organizationId, isActive: true },
+      }),
+    ]);
+
+    const activeAlerts = await this.historyRepository
+      .createQueryBuilder("h")
+      .where("h.organizationId = :organizationId", { organizationId })
+      .andWhere("h.status IN (:...statuses)", {
+        statuses: [AlertHistoryStatus.ACTIVE, AlertHistoryStatus.ACKNOWLEDGED],
+      })
+      .andWhere("h.deletedAt IS NULL")
+      .getCount();
+
+    const severityBreakdown = await this.historyRepository
+      .createQueryBuilder("h")
+      .select("h.severity", "severity")
+      .addSelect("COUNT(*)", "count")
+      .where("h.organizationId = :organizationId", { organizationId })
+      .andWhere("h.status IN (:...statuses)", {
+        statuses: [AlertHistoryStatus.ACTIVE, AlertHistoryStatus.ACKNOWLEDGED],
+      })
+      .andWhere("h.deletedAt IS NULL")
+      .groupBy("h.severity")
+      .getRawMany();
+
+    const bySeverity: Record<string, number> = {};
+    for (const row of severityBreakdown) {
+      bySeverity[row.severity] = parseInt(row.count, 10);
+    }
+
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const last24hTriggered = await this.historyRepository
+      .createQueryBuilder("h")
+      .where("h.organizationId = :organizationId", { organizationId })
+      .andWhere("h.triggeredAt >= :since", { since: last24h })
+      .andWhere("h.deletedAt IS NULL")
+      .getCount();
+
+    return {
+      totalRules,
+      activeRules,
+      activeAlerts,
+      bySeverity,
+      last24hTriggered,
+    };
+  }
+
+  // ========================================================================
   // PRIVATE HELPERS
   // ========================================================================
 

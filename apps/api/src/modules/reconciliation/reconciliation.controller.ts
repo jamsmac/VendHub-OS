@@ -127,6 +127,22 @@ export class ReconciliationController {
   }
 
   // ============================================================================
+  // STATS
+  // ============================================================================
+
+  @Get("stats")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "Get reconciliation statistics" })
+  @ApiResponse({
+    status: 200,
+    description:
+      "Reconciliation statistics (run counts, match rates, mismatches)",
+  })
+  async getStats(@CurrentUser("organizationId") organizationId: string) {
+    return this.service.getStats(organizationId);
+  }
+
+  // ============================================================================
   // MISMATCHES
   // ============================================================================
 

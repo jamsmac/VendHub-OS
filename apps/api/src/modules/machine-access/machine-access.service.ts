@@ -372,6 +372,59 @@ export class MachineAccessService {
   }
 
   // ============================================================================
+  // GUARD HELPER
+  // ============================================================================
+
+  /**
+   * Check if a user has active access to a specific machine.
+   * Used by guards and other services to verify machine-level authorization.
+   */
+  async hasAccess(
+    userId: string,
+    machineId: string,
+    organizationId: string,
+  ): Promise<boolean> {
+    const now = new Date();
+
+    const access = await this.accessRepo
+      .createQueryBuilder("ma")
+      .where("ma.userId = :userId", { userId })
+      .andWhere("ma.machineId = :machineId", { machineId })
+      .andWhere("ma.organizationId = :organizationId", { organizationId })
+      .andWhere("ma.isActive = true")
+      .andWhere("ma.deletedAt IS NULL")
+      .andWhere("(ma.validFrom IS NULL OR ma.validFrom <= :now)", { now })
+      .andWhere("(ma.validTo IS NULL OR ma.validTo >= :now)", { now })
+      .getOne();
+
+    return !!access;
+  }
+
+  /**
+   * Get the access role for a user on a specific machine, or null if no access.
+   */
+  async getAccessRole(
+    userId: string,
+    machineId: string,
+    organizationId: string,
+  ): Promise<string | null> {
+    const now = new Date();
+
+    const access = await this.accessRepo
+      .createQueryBuilder("ma")
+      .where("ma.userId = :userId", { userId })
+      .andWhere("ma.machineId = :machineId", { machineId })
+      .andWhere("ma.organizationId = :organizationId", { organizationId })
+      .andWhere("ma.isActive = true")
+      .andWhere("ma.deletedAt IS NULL")
+      .andWhere("(ma.validFrom IS NULL OR ma.validFrom <= :now)", { now })
+      .andWhere("(ma.validTo IS NULL OR ma.validTo >= :now)", { now })
+      .getOne();
+
+    return access?.role ?? null;
+  }
+
+  // ============================================================================
   // APPLY TEMPLATE
   // ============================================================================
 

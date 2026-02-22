@@ -139,6 +139,55 @@ export class AnalyticsController {
   }
 
   // ========================================================================
+  // CHART DATA
+  // ========================================================================
+
+  @Get("top-machines")
+  @Roles("admin", "manager", "accountant")
+  @ApiOperation({ summary: "Get top machines by revenue for date range" })
+  @ApiResponse({ status: 200, description: "Top machines array" })
+  async getTopMachines(
+    @CurrentOrganizationId() organizationId: string,
+    @Query() query: DateRangeQueryDto,
+  ) {
+    return this.analyticsService.getTopMachines(
+      organizationId,
+      query.from,
+      query.to,
+    );
+  }
+
+  @Get("top-products")
+  @Roles("admin", "manager", "accountant")
+  @ApiOperation({ summary: "Get top products by revenue for date range" })
+  @ApiResponse({ status: 200, description: "Top products array" })
+  async getTopProducts(
+    @CurrentOrganizationId() organizationId: string,
+    @Query() query: DateRangeQueryDto,
+  ) {
+    return this.analyticsService.getTopProducts(
+      organizationId,
+      query.from,
+      query.to,
+    );
+  }
+
+  @Get("revenue-trend")
+  @Roles("admin", "manager", "accountant")
+  @ApiOperation({ summary: "Get daily revenue trend for date range" })
+  @ApiResponse({ status: 200, description: "Revenue trend array" })
+  async getRevenueTrend(
+    @CurrentOrganizationId() organizationId: string,
+    @Query() query: DateRangeQueryDto,
+  ) {
+    return this.analyticsService.getRevenueTrend(
+      organizationId,
+      query.from,
+      query.to,
+    );
+  }
+
+  // ========================================================================
   // SNAPSHOTS
   // ========================================================================
 
