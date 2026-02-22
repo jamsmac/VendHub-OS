@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { WarehouseService } from "./warehouse.service";
 import { StockTakeService } from "./stock-take.service";
+import { InventoryBatchService } from "./services/inventory-batch.service";
+import { StockReservationService } from "./services/stock-reservation.service";
 import { WarehouseController } from "./warehouse.controller";
 import {
   Warehouse,
@@ -24,7 +26,17 @@ import {
     ]),
   ],
   controllers: [WarehouseController],
-  providers: [WarehouseService, StockTakeService],
-  exports: [WarehouseService, StockTakeService],
+  providers: [
+    WarehouseService,
+    StockTakeService,
+    InventoryBatchService,
+    StockReservationService,
+  ],
+  exports: [
+    WarehouseService,
+    StockTakeService,
+    InventoryBatchService,
+    StockReservationService,
+  ],
 })
 export class WarehouseModule {}
