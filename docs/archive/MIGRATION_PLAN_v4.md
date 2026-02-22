@@ -186,7 +186,7 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 ### 4.1 Polnaia tablitsa (56 modulei VHM24-repo -> VendHub OS)
 
 | #   | VHM24-repo modul   | VendHub OS modul  | Rezhim | Prioritet |
-| --- | ------------------ | ----------------- | ------ | --------- | --------------------------------------- |
+| --- | ------------------ | ----------------- | ------ | --------- | ---------------------------------------------- |
 | 1   | auth               | auth              | MERGE  | P0        |
 | 2   | users              | users             | MERGE  | P0        |
 | 3   | organizations      | organizations     | MERGE  | P0        |
@@ -195,50 +195,50 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 | 6   | dictionaries       | references        | MERGE  | P0        |
 | 7   | machines           | machines          | MERGE  | P1        |
 | 8   | nomenclature       | products          | MERGE  | P1        |
-| 9   | recipes            | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
+| 9   | recipes            | products          | DONE   | P1        | ABSORBED → products module, gaps filled        |
 | 10  | inventory          | inventory         | MERGE  | P1        |
 | 11  | warehouse          | (net)             | PORT   | P1        |
 | 12  | tasks              | tasks             | MERGE  | P1        |
 | 13  | containers         | (net)             | PORT   | P1        |
-| 14  | ingredient-batches | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
+| 14  | ingredient-batches | products          | DONE   | P1        | ABSORBED → products module, gaps filled        |
 | 15  | transactions       | transactions      | MERGE  | P2        |
 | 16  | reconciliation     | (net)             | PORT   | P2        |
-| 17  | billing            | (net)             | PORT   | P2        |
+| 17  | billing            | billing           | DONE   | P2        | VOS more complete (VHM24 was entity-only stub) |
 | 18  | counterparty       | contractors       | MERGE  | P2        |
-| 19  | analytics          | (net)             | PORT   | P2        |
+| 19  | analytics          | analytics         | MERGE  | P2        |
 | 20  | reports            | reports           | MERGE  | P2        |
 | 21  | equipment          | (net)             | PORT   | P1        |
 | 22  | hr                 | employees         | MERGE  | P2        |
 | 23  | routes             | (net)             | PORT   | P1        |
-| 24  | incidents          | (net)             | PORT   | P1        |
-| 25  | complaints         | complaints        | MERGE  | P1        |
-| 26  | notifications      | notifications     | MERGE  | P1        |
+| 24  | incidents          | incidents         | DONE   | P1        | VOS more complete (1140 vs 267 lines)          |
+| 25  | complaints         | complaints        | DONE   | P1        | VOS more complete (1140 vs 246 lines)          |
+| 26  | notifications      | notifications     | DONE   | P1        | VOS more complete (3 entities, 1314 lines)     |
 | 27  | telegram           | telegram-bot      | MERGE  | P2        |
-| 28  | web-push           | web-push          | PORT   | P3        | **DONE**                                |
+| 28  | web-push           | web-push          | PORT   | P3        | **DONE**                                       |
 | 29  | fcm                | (net)             | PORT   | P3        |
 | 30  | sms                | (net)             | PORT   | P3        |
-| 31  | alerts             | (net)             | PORT   | P2        |
+| 31  | alerts             | alerts            | MERGE  | P2        |
 | 32  | integration        | integrations      | MERGE  | P3        |
 | 33  | intelligent-import | import            | MERGE  | P3        |
-| 34  | sales-import       | (net)             | PORT   | P2        |
+| 34  | sales-import       | sales-import      | MERGE  | P2        |
 | 35  | security           | (net)             | PORT   | P0        |
 | 36  | audit-logs         | audit             | MERGE  | P0        |
-| 37  | websocket          | websocket         | MERGE  | P1        |
-| 38  | files              | storage           | MERGE  | P1        |
+| 37  | websocket          | websocket         | DONE   | P1        | VOS more complete (4 gateways vs 1)            |
+| 38  | files              | storage           | DONE   | P1        | VOS more complete (presigned URLs, 698 lines)  |
 | 39  | operator-ratings   | (net)             | PORT   | P2        |
-| 40  | machine-access     | (net)             | PORT   | P1        |
+| 40  | machine-access     | machine-access    | MERGE  | P1        |
 | 41  | access-requests    | (net)             | PORT   | P1        |
 | 42  | settings           | (net)             | PORT   | P1        |
 | 43  | monitoring         | (net)             | PORT   | P2        |
-| 44  | data-parser        | data-parser       | PORT   | P3        | **DONE**                                |
+| 44  | data-parser        | data-parser       | PORT   | P3        | **DONE**                                       |
 | 45  | opening-balances   | (net)             | PORT   | P2        |
 | 46  | purchase-history   | (net)             | PORT   | P2        |
 | 47  | client             | (net)             | PORT   | P3        |
 | 48  | promo-codes        | (net)             | PORT   | P3        |
-| 49  | bull-board         | (net)             | PORT   | P2        |
+| 49  | bull-board         | bull-board        | DONE   | P2        | Identical in both repos                        |
 | 50  | scheduled-tasks    | (est v health/)   | MERGE  | P1        |
 | 51  | ai-assistant       | ai                | MERGE  | P3        |
-| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | **DONE**                                |
+| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | **DONE**                                       |
 | 53  | material-requests  | material-requests | KEEP   | P2        |
 | 54  | (net)              | fiscal            | KEEP   | P2        |
 | 55  | (net)              | loyalty           | KEEP   | P3        |
@@ -833,5 +833,5 @@ _Plan sozdan: 03 fevralia 2026_
 _Versiia: 4.0 (Audit-corrected)_
 _Tekhnologii: TypeORM 0.3.20 + PostgreSQL 16 + NestJS 11_
 _Status: V protsesse realizatsii_
-_Poslednie izmeneniia: 22 fevralia 2026 — PORT web-push, data-parser, agent-bridge (3/56 modulei)_
-_Vsego migrirovano: ~43 iz 56 modulei_
+_Poslednie izmeneniia: 22 fevralia 2026 — Batch 4: mark 7 modules DONE + MERGE warehouse/analytics/alerts/machine-access/reconciliation/sales-import_
+_Vsego migrirovano: ~50 iz 56 modulei_
