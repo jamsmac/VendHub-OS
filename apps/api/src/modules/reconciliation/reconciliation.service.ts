@@ -447,6 +447,85 @@ export class ReconciliationService {
   }
 
   // ============================================================================
+  // STATS
+  // ============================================================================
+
+  /**
+   * Получить статистику по сверкам организации
+   */
+  async getStats(organizationId: string): Promise<{
+    totalRuns: number;
+    lastRunDate: Date | null;
+    averageMatchRate: number;
+    byStatus: Record<string, number>;
+    totalMismatches: number;
+    unresolvedMismatches: number;
+  }> {
+    const runsQuery = this.runRepo
+      .createQueryBuilder("r")
+      .where("r.organizationId = :organizationId", { organizationId })
+      .andWhere("r.deletedAt IS NULL");
+
+    const totalRuns = await runsQuery.clone().getCount();
+
+    const lastRun = await runsQuery
+      .clone()
+      .orderBy("r.createdAt", "DESC")
+      .getOne();
+
+    // Average match rate from completed runs
+    const avgResult = await this.runRepo
+      .createQueryBuilder("r")
+      .select("AVG((r.summary->>'matchRate')::numeric)", "avgMatchRate")
+      .where("r.organizationId = :organizationId", { organizationId })
+      .andWhere("r.status = :status", {
+        status: ReconciliationStatus.COMPLETED,
+      })
+      .andWhere("r.deletedAt IS NULL")
+      .andWhere("r.summary IS NOT NULL")
+      .getRawOne();
+
+    // Status breakdown
+    const statusCounts = await this.runRepo
+      .createQueryBuilder("r")
+      .select("r.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .where("r.organizationId = :organizationId", { organizationId })
+      .andWhere("r.deletedAt IS NULL")
+      .groupBy("r.status")
+      .getRawMany();
+
+    const byStatus: Record<string, number> = {};
+    for (const row of statusCounts) {
+      byStatus[row.status] = parseInt(row.count, 10);
+    }
+
+    // Mismatch counts
+    const [totalMismatches, unresolvedMismatches] = await Promise.all([
+      this.mismatchRepo
+        .createQueryBuilder("m")
+        .where("m.organizationId = :organizationId", { organizationId })
+        .andWhere("m.deletedAt IS NULL")
+        .getCount(),
+      this.mismatchRepo
+        .createQueryBuilder("m")
+        .where("m.organizationId = :organizationId", { organizationId })
+        .andWhere("m.isResolved = false")
+        .andWhere("m.deletedAt IS NULL")
+        .getCount(),
+    ]);
+
+    return {
+      totalRuns,
+      lastRunDate: lastRun?.createdAt ?? null,
+      averageMatchRate: parseFloat(avgResult?.avgMatchRate || "0"),
+      byStatus,
+      totalMismatches,
+      unresolvedMismatches,
+    };
+  }
+
+  // ============================================================================
   // DELETE RUN
   // ============================================================================
 

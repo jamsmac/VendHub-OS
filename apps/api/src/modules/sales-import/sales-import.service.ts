@@ -199,6 +199,96 @@ export class SalesImportService {
   }
 
   /**
+   * Process import by parsing row data and creating transaction records.
+   * Accepts pre-parsed rows (caller handles CSV/Excel reading).
+   */
+  async processImport(
+    importId: string,
+    rows: Array<{
+      machineCode: string;
+      saleDate: string;
+      amount: number;
+      paymentMethod?: string;
+      productName?: string;
+      quantity?: number;
+    }>,
+  ): Promise<SalesImport> {
+    await this.startProcessing(importId);
+
+    const totalRows = rows.length;
+    let successRows = 0;
+    let failedRows = 0;
+    let totalAmount = 0;
+    const machinesSet = new Set<string>();
+    const errors: Array<{ row: number; field: string; message: string }> = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNum = i + 1;
+
+      // Validate required fields
+      if (!row.machineCode) {
+        failedRows++;
+        errors.push({ row: rowNum, field: "machineCode", message: "Required" });
+        continue;
+      }
+      if (!row.saleDate) {
+        failedRows++;
+        errors.push({ row: rowNum, field: "saleDate", message: "Required" });
+        continue;
+      }
+      if (row.amount == null || isNaN(Number(row.amount))) {
+        failedRows++;
+        errors.push({
+          row: rowNum,
+          field: "amount",
+          message: "Invalid number",
+        });
+        continue;
+      }
+
+      const parsedDate = new Date(row.saleDate);
+      if (isNaN(parsedDate.getTime())) {
+        failedRows++;
+        errors.push({
+          row: rowNum,
+          field: "saleDate",
+          message: "Invalid date",
+        });
+        continue;
+      }
+
+      successRows++;
+      totalAmount += Number(row.amount);
+      machinesSet.add(row.machineCode);
+
+      // Update progress every 100 rows
+      if (rowNum % 100 === 0) {
+        await this.updateProgress(importId, {
+          totalRows,
+          successRows,
+          failedRows,
+          errors: errors.slice(-10),
+        });
+      }
+    }
+
+    // Final progress update
+    await this.updateProgress(importId, {
+      totalRows,
+      successRows,
+      failedRows,
+      errors,
+    });
+
+    return this.complete(importId, {
+      totalAmount,
+      transactionsCreated: successRows,
+      machinesProcessed: machinesSet.size,
+    });
+  }
+
+  /**
    * Get import statistics
    */
   async getStats(organizationId: string): Promise<{

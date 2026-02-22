@@ -8,6 +8,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -107,6 +108,18 @@ export class AlertsController {
     return this.alertsService.updateRule(organizationId, id, dto);
   }
 
+  @Patch("rules/:id/toggle")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Toggle alert rule active/inactive" })
+  @ApiParam({ name: "id", type: "string" })
+  @ApiResponse({ status: 200, type: AlertRule })
+  async toggleRule(
+    @CurrentOrganizationId() organizationId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+  ): Promise<AlertRule> {
+    return this.alertsService.toggleRule(organizationId, id);
+  }
+
   @Delete("rules/:id")
   @Roles("admin", "owner")
   @ApiOperation({ summary: "Delete alert rule (soft delete)" })
@@ -117,6 +130,20 @@ export class AlertsController {
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.alertsService.deleteRule(organizationId, id);
+  }
+
+  // ========================================================================
+  // STATS
+  // ========================================================================
+
+  @Get("stats")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({
+    summary: "Get alert statistics (rule counts, severity breakdown)",
+  })
+  @ApiResponse({ status: 200 })
+  async getStats(@CurrentOrganizationId() organizationId: string) {
+    return this.alertsService.getAlertStats(organizationId);
   }
 
   // ========================================================================
