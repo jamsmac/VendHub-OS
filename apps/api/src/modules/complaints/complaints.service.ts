@@ -464,6 +464,44 @@ export class ComplaintsService {
     return saved;
   }
 
+  async reject(
+    id: string,
+    reason: string,
+    performedById: string,
+  ): Promise<Complaint> {
+    const complaint = await this.findById(id);
+
+    const oldStatus = complaint.status;
+    complaint.status = ComplaintStatus.REJECTED;
+    complaint.resolution = reason;
+    complaint.resolvedAt = new Date();
+
+    const saved = await this.complaintRepo.save(complaint);
+
+    await this.logAction(
+      id,
+      performedById,
+      "reject",
+      oldStatus,
+      ComplaintStatus.REJECTED,
+      reason,
+    );
+
+    this.eventEmitter.emit("complaint.rejected", { complaint: saved, reason });
+
+    return saved;
+  }
+
+  async getNewComplaints(organizationId: string): Promise<Complaint[]> {
+    return this.complaintRepo.find({
+      where: {
+        organizationId,
+        status: ComplaintStatus.NEW,
+      },
+      order: { createdAt: "ASC" },
+    });
+  }
+
   // ============================================================================
   // COMMENTS
   // ============================================================================

@@ -72,3 +72,10 @@ export class RejectRefundReasonDto {
   @Length(1, 500)
   reason: string;
 }
+
+export class RejectComplaintDto {
+  @ApiProperty({ description: "Rejection reason" })
+  @IsString()
+  @Length(1, 1000)
+  reason: string;
+}

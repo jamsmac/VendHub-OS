@@ -10,6 +10,7 @@ import {
   Query,
   ParseUUIDPipe,
   ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
+  ApiQuery,
 } from "@nestjs/swagger";
 import { MachinesService } from "./machines.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
@@ -138,6 +140,105 @@ export class MachinesController {
   })
   getMachinesForMap(@CurrentUser() user: User) {
     return this.machinesService.getMachinesForMap(user.organizationId);
+  }
+
+  @Get("simple")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({
+    summary: "Get lightweight machine list (id, name, number) for dropdowns",
+  })
+  @ApiResponse({ status: 200, description: "Simplified machine list" })
+  findAllSimple(@CurrentUser() user: User) {
+    return this.machinesService.findAllSimple(user.organizationId);
+  }
+
+  @Get("offline")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get machines that are currently offline" })
+  @ApiQuery({
+    name: "minutes",
+    required: false,
+    type: Number,
+    description: "Minutes since last ping to consider offline (default: 10)",
+  })
+  @ApiResponse({ status: 200, description: "List of offline machines" })
+  getOfflineMachines(
+    @CurrentUser() user: User,
+    @Query("minutes") minutes?: number,
+  ) {
+    return this.machinesService.getOfflineMachines(
+      user.organizationId,
+      minutes ? Number(minutes) : undefined,
+    );
+  }
+
+  @Get("by-number/:machineNumber")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Find machine by machine number" })
+  @ApiParam({ name: "machineNumber", type: "string" })
+  @ApiResponse({ status: 200, description: "Machine found" })
+  @ApiResponse({ status: 404, description: "Machine not found" })
+  async findByMachineNumber(
+    @Param("machineNumber") machineNumber: string,
+    @CurrentUser() user: User,
+  ) {
+    const machine = await this.machinesService.findByMachineNumber(
+      machineNumber,
+      user.organizationId,
+    );
+    if (!machine) {
+      throw new NotFoundException(
+        `Machine with number ${machineNumber} not found`,
+      );
+    }
+    return machine;
+  }
+
+  @Get("by-qr/:qrCode")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Find machine by QR code" })
+  @ApiParam({ name: "qrCode", type: "string" })
+  @ApiResponse({ status: 200, description: "Machine found" })
+  @ApiResponse({ status: 404, description: "Machine not found" })
+  async findByQrCode(
+    @Param("qrCode") qrCode: string,
+    @CurrentUser() user: User,
+  ) {
+    const machine = await this.machinesService.findByQrCode(qrCode);
+    if (!machine) {
+      throw new NotFoundException(`Machine with QR code ${qrCode} not found`);
+    }
+    if (
+      machine.organizationId !== user.organizationId &&
+      user.role !== UserRole.OWNER
+    ) {
+      throw new ForbiddenException("Access denied to this machine");
+    }
+    return machine;
   }
 
   @Get(":id")

@@ -139,6 +139,51 @@ export class ContainersController {
     );
   }
 
+  @Get("low-levels/all")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({
+    summary: "Get all containers with low levels across the organization",
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      "Org-wide list of low-level containers with fill percentage and deficit",
+  })
+  checkAllLowLevels(@CurrentUser() user: User) {
+    return this.containersService.checkAllLowLevels(user.organizationId);
+  }
+
+  @Get("by-nomenclature/:nomenclatureId")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+  )
+  @ApiOperation({
+    summary: "Get all containers for a specific nomenclature (ingredient)",
+  })
+  @ApiParam({
+    name: "nomenclatureId",
+    type: "string",
+    format: "uuid",
+    description: "Nomenclature UUID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of containers using this nomenclature",
+  })
+  findByNomenclature(
+    @Param("nomenclatureId", ParseUUIDPipe) nomenclatureId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.containersService.findByNomenclature(
+      nomenclatureId,
+      user.organizationId,
+    );
+  }
+
   @Get(":id")
   @Roles(
     UserRole.OWNER,

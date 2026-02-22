@@ -324,6 +324,51 @@ export class ContainersService {
   }
 
   /**
+   * Check all containers with low levels across the entire organization
+   */
+  async checkAllLowLevels(organizationId: string): Promise<
+    Array<{
+      container: Container;
+      fillPercentage: number;
+      deficit: number;
+    }>
+  > {
+    const containers = await this.containerRepository.find({
+      where: { organizationId, status: ContainerStatus.ACTIVE },
+      relations: ["machine"],
+      order: { machineId: "ASC", slotNumber: "ASC" },
+    });
+
+    return containers
+      .filter((c) => {
+        if (c.minLevel === null || c.minLevel === undefined) return false;
+        return Number(c.currentQuantity) <= Number(c.minLevel);
+      })
+      .map((c) => ({
+        container: c,
+        fillPercentage:
+          Number(c.capacity) > 0
+            ? Math.round((Number(c.currentQuantity) / Number(c.capacity)) * 100)
+            : 0,
+        deficit: Math.max(0, Number(c.capacity) - Number(c.currentQuantity)),
+      }));
+  }
+
+  /**
+   * Find containers by nomenclature (ingredient) across organization
+   */
+  async findByNomenclature(
+    nomenclatureId: string,
+    organizationId: string,
+  ): Promise<Container[]> {
+    return this.containerRepository.find({
+      where: { nomenclatureId, organizationId },
+      relations: ["machine"],
+      order: { machineId: "ASC", slotNumber: "ASC" },
+    });
+  }
+
+  /**
    * Get statistics for containers of a specific machine
    */
   async getStatsByMachine(

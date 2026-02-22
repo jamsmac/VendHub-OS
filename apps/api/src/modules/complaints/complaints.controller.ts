@@ -45,6 +45,7 @@ import {
   AddCommentDto,
   ProcessRefundReferenceDto,
   RejectRefundReasonDto,
+  RejectComplaintDto,
 } from "./dto/complaint-operations.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -154,6 +155,13 @@ export class ComplaintsController {
     });
   }
 
+  @Get("new")
+  @ApiOperation({ summary: "Get unreviewed complaints queue" })
+  @Roles("owner", "admin", "manager")
+  async getNewComplaints(@CurrentOrganizationId() orgId: string) {
+    return this.complaintsService.getNewComplaints(orgId);
+  }
+
   @Get("my")
   @ApiOperation({ summary: "Get complaints assigned to me" })
   @Roles("owner", "admin", "manager", "operator")
@@ -252,6 +260,18 @@ export class ComplaintsController {
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.escalate(id, dto.reason, userId);
+  }
+
+  @Post(":id/reject")
+  @ApiOperation({ summary: "Reject complaint" })
+  @Roles("owner", "admin", "manager")
+  @HttpCode(HttpStatus.OK)
+  async reject(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: RejectComplaintDto,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.complaintsService.reject(id, dto.reason, userId);
   }
 
   @Post(":id/feedback")
