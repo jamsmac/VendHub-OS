@@ -151,10 +151,27 @@ async function main() {
     // Webhook mode for production
     const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
 
-    await bot.telegram.setWebhook(webhookUrl, {
-      secret_token: config.webhookSecret || undefined,
-    });
-    logger.info(`Webhook set: ${webhookUrl}`);
+    // Retry webhook setup with exponential backoff (Telegram rate limits)
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      try {
+        await bot.telegram.setWebhook(webhookUrl, {
+          secret_token: config.webhookSecret || undefined,
+        });
+        logger.info(`Webhook set: ${webhookUrl}`);
+        break;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("429") && attempt < 5) {
+          const delay = attempt * 2000; // 2s, 4s, 6s, 8s
+          logger.warn(
+            `Telegram rate limited (attempt ${attempt}/5), retrying in ${delay}ms...`,
+          );
+          await new Promise((r) => setTimeout(r, delay));
+        } else {
+          throw err;
+        }
+      }
+    }
 
     await bot.launch({
       webhook: {
