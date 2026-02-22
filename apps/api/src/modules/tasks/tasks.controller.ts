@@ -107,6 +107,40 @@ export class TasksController {
     return this.tasksService.getMyTasks(user.id, user.organizationId);
   }
 
+  @Get("stats")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get task statistics (by status, type, priority)" })
+  @ApiQuery({
+    name: "dateFrom",
+    required: false,
+    description: "Filter from date (ISO)",
+  })
+  @ApiQuery({
+    name: "dateTo",
+    required: false,
+    description: "Filter to date (ISO)",
+  })
+  @ApiResponse({ status: 200, description: "Task statistics" })
+  getStats(
+    @CurrentUser() user: ICurrentUser,
+    @Query("dateFrom") dateFrom?: string,
+    @Query("dateTo") dateTo?: string,
+  ) {
+    return this.tasksService.getTaskStats(
+      user.organizationId,
+      dateFrom,
+      dateTo,
+    );
+  }
+
+  @Get("overdue")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get overdue tasks" })
+  @ApiResponse({ status: 200, description: "List of overdue tasks" })
+  getOverdueTasks(@CurrentUser() user: ICurrentUser) {
+    return this.tasksService.getOverdueTasks(user.organizationId);
+  }
+
   // ============================================================================
   // TASK CRUD
   // ============================================================================

@@ -726,6 +726,52 @@ export class MachinesService {
     });
   }
 
+  async findAllSimple(
+    organizationId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      machineNumber: string;
+      status: MachineStatus;
+    }>
+  > {
+    return this.machineRepository
+      .createQueryBuilder("m")
+      .select(["m.id", "m.name", "m.machineNumber", "m.status"])
+      .where("m.organizationId = :organizationId", { organizationId })
+      .orderBy("m.name", "ASC")
+      .getMany();
+  }
+
+  async getOfflineMachines(
+    organizationId: string,
+    minOfflineMinutes = 10,
+  ): Promise<Machine[]> {
+    const threshold = new Date(Date.now() - minOfflineMinutes * 60 * 1000);
+
+    return this.machineRepository
+      .createQueryBuilder("m")
+      .where("m.organizationId = :organizationId", { organizationId })
+      .andWhere("m.status != :disabled", {
+        disabled: MachineStatus.DISABLED,
+      })
+      .andWhere("(m.lastPingAt IS NULL OR m.lastPingAt < :threshold)", {
+        threshold,
+      })
+      .select([
+        "m.id",
+        "m.name",
+        "m.machineNumber",
+        "m.status",
+        "m.lastPingAt",
+        "m.address",
+        "m.locationId",
+      ])
+      .orderBy("m.lastPingAt", "ASC", "NULLS FIRST")
+      .getMany();
+  }
+
   async findByIds(ids: string[]): Promise<Machine[]> {
     if (ids.length === 0) return [];
     return this.machineRepository.find({
