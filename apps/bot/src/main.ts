@@ -151,18 +151,24 @@ async function main() {
     // Webhook mode for production
     const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
 
-    // Retry webhook setup with exponential backoff (Telegram rate limits)
+    // bot.launch() calls setWebhook internally — retry with exponential backoff
+    // to handle Telegram 429 rate limits (common during restart loops)
     for (let attempt = 1; attempt <= 5; attempt++) {
       try {
-        await bot.telegram.setWebhook(webhookUrl, {
-          secret_token: config.webhookSecret || undefined,
+        await bot.launch({
+          webhook: {
+            domain: config.webhookDomain,
+            path: config.webhookPath,
+            port: config.port,
+            secretToken: config.webhookSecret || undefined,
+          },
         });
         logger.info(`Webhook set: ${webhookUrl}`);
         break;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes("429") && attempt < 5) {
-          const delay = attempt * 2000; // 2s, 4s, 6s, 8s
+          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
           logger.warn(
             `Telegram rate limited (attempt ${attempt}/5), retrying in ${delay}ms...`,
           );
@@ -172,15 +178,6 @@ async function main() {
         }
       }
     }
-
-    await bot.launch({
-      webhook: {
-        domain: config.webhookDomain,
-        path: config.webhookPath,
-        port: config.port,
-        secretToken: config.webhookSecret || undefined,
-      },
-    });
 
     logger.info(`Bot started in webhook mode on port ${config.port}`);
 
