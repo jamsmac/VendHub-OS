@@ -104,6 +104,13 @@ export class StorageService {
     );
     this.cdnDomain = this.configService.get("AWS_CLOUDFRONT_DOMAIN");
 
+    if (!S3Client) {
+      this.logger.warn(
+        "AWS S3 SDK not installed. Storage operations will be unavailable. Install @aws-sdk/client-s3 to enable.",
+      );
+      return;
+    }
+
     const endpoint = this.configService.get("STORAGE_ENDPOINT");
     this.s3Client = new S3Client({
       region: this.region,
