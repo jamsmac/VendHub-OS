@@ -66,6 +66,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# Ensure public dir exists (Docker COPY fails if missing)
+RUN mkdir -p apps/web/public
+
 # Build web
 RUN pnpm --filter @vendhub/web build
 
