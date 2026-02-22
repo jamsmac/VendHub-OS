@@ -33,9 +33,6 @@ export class InventoryBatchService {
   // EXPIRY TRACKING
   // ==========================================================================
 
-  /**
-   * Get batches expiring within N days.
-   */
   async getExpiringBatches(
     warehouseId: string,
     organizationId: string,
@@ -56,9 +53,6 @@ export class InventoryBatchService {
       .getMany();
   }
 
-  /**
-   * Get batches that have already expired.
-   */
   async getExpiredBatches(
     warehouseId: string,
     organizationId: string,
@@ -74,10 +68,6 @@ export class InventoryBatchService {
       .getMany();
   }
 
-  /**
-   * Write off all expired stock in a warehouse.
-   * Uses pessimistic locking for safe concurrent access.
-   */
   async writeOffExpiredStock(
     warehouseId: string,
     organizationId: string,
@@ -134,9 +124,6 @@ export class InventoryBatchService {
   // QUARANTINE
   // ==========================================================================
 
-  /**
-   * Quarantine a batch (marks it in metadata, does not deplete).
-   */
   async quarantineBatch(
     batchId: string,
     organizationId: string,
@@ -166,9 +153,6 @@ export class InventoryBatchService {
     return this.batchRepository.save(batch);
   }
 
-  /**
-   * Release a batch from quarantine.
-   */
   async releaseFromQuarantine(
     batchId: string,
     organizationId: string,
@@ -201,9 +185,6 @@ export class InventoryBatchService {
   // STOCK SUMMARY
   // ==========================================================================
 
-  /**
-   * Get aggregate stock summary for a warehouse.
-   */
   async getStockSummary(
     warehouseId: string,
     organizationId: string,
@@ -254,10 +235,6 @@ export class InventoryBatchService {
   // FIFO WRITE-OFF (pessimistic locking)
   // ==========================================================================
 
-  /**
-   * FIFO write-off with pessimistic locking for safe concurrent access.
-   * Returns affected batches and quantities written off.
-   */
   async fifoWriteOff(
     warehouseId: string,
     productId: string,

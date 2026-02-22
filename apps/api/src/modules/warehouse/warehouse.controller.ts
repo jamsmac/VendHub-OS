@@ -21,6 +21,8 @@ import {
 } from "@nestjs/swagger";
 import { WarehouseService } from "./warehouse.service";
 import { StockTakeService } from "./stock-take.service";
+import { InventoryBatchService } from "./services/inventory-batch.service";
+import { StockReservationService } from "./services/stock-reservation.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -33,6 +35,12 @@ import {
 import { CreateStockMovementDto } from "./dto/create-stock-movement.dto";
 import { CreateInventoryBatchDto } from "./dto/create-inventory-batch.dto";
 import { TransferStockDto } from "./dto/warehouse-operations.dto";
+import {
+  CreateReservationDto,
+  FulfillReservationDto,
+  CancelReservationDto,
+  QuarantineBatchDto,
+} from "./dto/stock-reservation.dto";
 import {
   WarehouseType,
   StockMovementType,
@@ -47,6 +55,8 @@ export class WarehouseController {
   constructor(
     private readonly warehouseService: WarehouseService,
     private readonly stockTakeService: StockTakeService,
+    private readonly inventoryBatchService: InventoryBatchService,
+    private readonly stockReservationService: StockReservationService,
   ) {}
 
   // ============================================================================
@@ -179,6 +189,19 @@ export class WarehouseController {
   ) {
     await this.verifyWarehouseAccess(id, user);
     return this.warehouseService.getWarehouseInventory(id, user.organizationId);
+  }
+
+  @Get(":id/stock/summary")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Get stock summary with expiry stats" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Stock summary" })
+  async getStockSummary(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.inventoryBatchService.getStockSummary(id, user.organizationId);
   }
 
   // ============================================================================
@@ -411,6 +434,204 @@ export class WarehouseController {
       user.organizationId,
       body.quantity,
       user.id,
+    );
+  }
+
+  // ============================================================================
+  // BATCH EXPIRY & QUARANTINE
+  // ============================================================================
+
+  @Get(":id/batches/expiring")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Get batches expiring within N days" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiQuery({
+    name: "days",
+    required: false,
+    type: Number,
+    description: "Threshold days (default 30)",
+  })
+  @ApiResponse({ status: 200, description: "Expiring batches" })
+  async getExpiringBatches(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+    @Query("days") days?: string,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.inventoryBatchService.getExpiringBatches(
+      id,
+      user.organizationId,
+      days ? parseInt(days, 10) : 30,
+    );
+  }
+
+  @Get(":id/batches/expired")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Get already-expired batches" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Expired batches" })
+  async getExpiredBatches(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.inventoryBatchService.getExpiredBatches(
+      id,
+      user.organizationId,
+    );
+  }
+
+  @Post(":id/batches/write-off-expired")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Write off all expired stock in warehouse" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Expired stock written off" })
+  async writeOffExpiredStock(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.inventoryBatchService.writeOffExpiredStock(
+      id,
+      user.organizationId,
+      user.id,
+    );
+  }
+
+  @Post("batches/:batchId/quarantine")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Quarantine a batch" })
+  @ApiParam({ name: "batchId", description: "Batch UUID", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Batch quarantined" })
+  async quarantineBatch(
+    @Param("batchId", ParseUUIDPipe) batchId: string,
+    @Body() dto: QuarantineBatchDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.inventoryBatchService.quarantineBatch(
+      batchId,
+      user.organizationId,
+      dto.reason,
+      user.id,
+    );
+  }
+
+  @Post("batches/:batchId/release-quarantine")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Release a batch from quarantine" })
+  @ApiParam({ name: "batchId", description: "Batch UUID", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Batch released from quarantine" })
+  async releaseFromQuarantine(
+    @Param("batchId", ParseUUIDPipe) batchId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.inventoryBatchService.releaseFromQuarantine(
+      batchId,
+      user.organizationId,
+      user.id,
+    );
+  }
+
+  // ============================================================================
+  // STOCK RESERVATIONS
+  // ============================================================================
+
+  @Get(":id/reservations")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Get active reservations for a warehouse" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiQuery({ name: "productId", required: false, type: String })
+  @ApiResponse({ status: 200, description: "Active reservations" })
+  async getActiveReservations(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+    @Query("productId") productId?: string,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.stockReservationService.getActiveReservations(
+      id,
+      user.organizationId,
+      productId,
+    );
+  }
+
+  @Post(":id/reservations")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Create a stock reservation" })
+  @ApiParam({ name: "id", description: "Warehouse UUID", format: "uuid" })
+  @ApiResponse({ status: 201, description: "Reservation created" })
+  @ApiResponse({ status: 400, description: "Insufficient stock" })
+  async createReservation(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateReservationDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyWarehouseAccess(id, user);
+    return this.stockReservationService.createReservation(
+      user.organizationId,
+      id,
+      dto.productId,
+      dto.quantity,
+      dto.unit,
+      dto.reservedFor,
+      user.id,
+      {
+        batchId: dto.batchId,
+        expiresInHours: dto.expiresInHours,
+        notes: dto.notes,
+      },
+    );
+  }
+
+  @Patch("reservations/:reservationId/confirm")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Confirm a pending reservation" })
+  @ApiParam({ name: "reservationId", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Reservation confirmed" })
+  async confirmReservation(
+    @Param("reservationId", ParseUUIDPipe) reservationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.stockReservationService.confirmReservation(
+      reservationId,
+      user.organizationId,
+      user.id,
+    );
+  }
+
+  @Patch("reservations/:reservationId/fulfill")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Fulfill (partially or fully) a reservation" })
+  @ApiParam({ name: "reservationId", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Reservation fulfilled" })
+  async fulfillReservation(
+    @Param("reservationId", ParseUUIDPipe) reservationId: string,
+    @Body() dto: FulfillReservationDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.stockReservationService.fulfillReservation(
+      reservationId,
+      user.organizationId,
+      dto.quantity,
+      user.id,
+    );
+  }
+
+  @Patch("reservations/:reservationId/cancel")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Cancel a reservation" })
+  @ApiParam({ name: "reservationId", format: "uuid" })
+  @ApiResponse({ status: 200, description: "Reservation cancelled" })
+  async cancelReservation(
+    @Param("reservationId", ParseUUIDPipe) reservationId: string,
+    @Body() dto: CancelReservationDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.stockReservationService.cancelReservation(
+      reservationId,
+      user.organizationId,
+      user.id,
+      dto.reason,
     );
   }
 
