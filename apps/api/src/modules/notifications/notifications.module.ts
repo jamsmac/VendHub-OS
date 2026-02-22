@@ -21,6 +21,7 @@ import { FcmToken } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
 import { EmailModule } from "../email/email.module";
 import { SmsModule } from "../sms/sms.module";
+import { WebPushModule } from "../web-push/web-push.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SmsModule } from "../sms/sms.module";
     ConfigModule,
     EmailModule,
     SmsModule,
+    WebPushModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],

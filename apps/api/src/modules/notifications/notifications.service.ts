@@ -33,6 +33,7 @@ import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
 import { EmailService } from "../email/email.service";
 import { SmsService } from "../sms/sms.service";
+import { WebPushService } from "../web-push/web-push.service";
 import { ConfigService } from "@nestjs/config";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -139,6 +140,7 @@ export class NotificationsService {
     private userRepo: Repository<User>,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
+    private readonly webPushService: WebPushService,
     private readonly configService: ConfigService,
     // @InjectQueue('notifications') private notificationQueue: Queue,
   ) {
@@ -971,6 +973,25 @@ export class NotificationsService {
     } catch (error) {
       this.logger.error(
         `Push: FCM send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+
+    // Web Push (browser subscriptions via VAPID)
+    try {
+      const webPushSent = await this.webPushService.sendToUser(
+        notification.userId,
+        notification.content?.title || "VendHub",
+        notification.content?.body || "",
+        notification.content?.actionUrl,
+      );
+      if (webPushSent > 0) {
+        this.logger.log(
+          `Push: web-push sent to ${webPushSent} browser(s) for user ${notification.userId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Push: web-push failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
       );
     }
   }

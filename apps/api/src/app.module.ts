@@ -93,6 +93,9 @@ import { ContainersModule } from "./modules/containers/containers.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { CounterpartyModule } from "./modules/counterparty/counterparty.module";
 import { AccessRequestsModule } from "./modules/access-requests/access-requests.module";
+import { WebPushModule } from "./modules/web-push/web-push.module";
+import { DataParserModule } from "./modules/data-parser/data-parser.module";
+import { AgentBridgeModule } from "./modules/agent-bridge/agent-bridge.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -532,6 +535,15 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Access Request Management (Telegram bot onboarding)
     AccessRequestsModule,
+
+    // Web Push Notifications (VAPID-based browser push)
+    WebPushModule,
+
+    // Data Parser (CSV, Excel, JSON file parsing with UZ validators)
+    DataParserModule,
+
+    // Agent Bridge (AI agent session tracking & progress)
+    AgentBridgeModule,
   ],
   providers: [
     // ============================================
