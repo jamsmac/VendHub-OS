@@ -186,7 +186,7 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 ### 4.1 Polnaia tablitsa (56 modulei VHM24-repo -> VendHub OS)
 
 | #   | VHM24-repo modul   | VendHub OS modul  | Rezhim | Prioritet |
-| --- | ------------------ | ----------------- | ------ | --------- | -------- |
+| --- | ------------------ | ----------------- | ------ | --------- | --------------------------------------- |
 | 1   | auth               | auth              | MERGE  | P0        |
 | 2   | users              | users             | MERGE  | P0        |
 | 3   | organizations      | organizations     | MERGE  | P0        |
@@ -195,12 +195,12 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 | 6   | dictionaries       | references        | MERGE  | P0        |
 | 7   | machines           | machines          | MERGE  | P1        |
 | 8   | nomenclature       | products          | MERGE  | P1        |
-| 9   | recipes            | (net)             | PORT   | P1        |
+| 9   | recipes            | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
 | 10  | inventory          | inventory         | MERGE  | P1        |
 | 11  | warehouse          | (net)             | PORT   | P1        |
 | 12  | tasks              | tasks             | MERGE  | P1        |
 | 13  | containers         | (net)             | PORT   | P1        |
-| 14  | ingredient-batches | (net)             | PORT   | P1        |
+| 14  | ingredient-batches | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
 | 15  | transactions       | transactions      | MERGE  | P2        |
 | 16  | reconciliation     | (net)             | PORT   | P2        |
 | 17  | billing            | (net)             | PORT   | P2        |
@@ -214,7 +214,7 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 | 25  | complaints         | complaints        | MERGE  | P1        |
 | 26  | notifications      | notifications     | MERGE  | P1        |
 | 27  | telegram           | telegram-bot      | MERGE  | P2        |
-| 28  | web-push           | web-push          | PORT   | P3        | **DONE** |
+| 28  | web-push           | web-push          | PORT   | P3        | **DONE**                                |
 | 29  | fcm                | (net)             | PORT   | P3        |
 | 30  | sms                | (net)             | PORT   | P3        |
 | 31  | alerts             | (net)             | PORT   | P2        |
@@ -230,7 +230,7 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 | 41  | access-requests    | (net)             | PORT   | P1        |
 | 42  | settings           | (net)             | PORT   | P1        |
 | 43  | monitoring         | (net)             | PORT   | P2        |
-| 44  | data-parser        | data-parser       | PORT   | P3        | **DONE** |
+| 44  | data-parser        | data-parser       | PORT   | P3        | **DONE**                                |
 | 45  | opening-balances   | (net)             | PORT   | P2        |
 | 46  | purchase-history   | (net)             | PORT   | P2        |
 | 47  | client             | (net)             | PORT   | P3        |
@@ -238,7 +238,7 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 | 49  | bull-board         | (net)             | PORT   | P2        |
 | 50  | scheduled-tasks    | (est v health/)   | MERGE  | P1        |
 | 51  | ai-assistant       | ai                | MERGE  | P3        |
-| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | **DONE** |
+| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | **DONE**                                |
 | 53  | material-requests  | material-requests | KEEP   | P2        |
 | 54  | (net)              | fiscal            | KEEP   | P2        |
 | 55  | (net)              | loyalty           | KEEP   | P3        |
