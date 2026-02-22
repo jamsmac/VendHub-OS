@@ -173,7 +173,7 @@ export class StorageController {
   // DOWNLOAD
   // ========================================================================
 
-  @Get("download/:key(*)")
+  @Get("download/:key")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Download file" })
   @ApiParam({ name: "key", description: "File key" })
@@ -199,7 +199,7 @@ export class StorageController {
     return new StreamableFile(buffer);
   }
 
-  @Get("presigned-download/:key(*)")
+  @Get("presigned-download/:key")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get presigned download URL" })
   @ApiParam({ name: "key", description: "File key" })
@@ -243,7 +243,7 @@ export class StorageController {
     );
   }
 
-  @Get("files/metadata/:key(*)")
+  @Get("files/metadata/:key")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get file metadata" })
   @ApiParam({ name: "key", description: "File key" })
@@ -256,7 +256,7 @@ export class StorageController {
     return this.storageService.getFileMetadata(organizationId, key);
   }
 
-  @Get("files/exists/:key(*)")
+  @Get("files/exists/:key")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Check if file exists" })
   @ApiParam({ name: "key", description: "File key" })
@@ -269,7 +269,7 @@ export class StorageController {
     return { exists };
   }
 
-  @Delete("files/:key(*)")
+  @Delete("files/:key")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Delete file" })
   @ApiParam({ name: "key", description: "File key" })
