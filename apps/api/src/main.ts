@@ -376,7 +376,8 @@ process.on("uncaughtException", (error) => {
 });
 
 bootstrap().catch((error) => {
-  const logger = new Logger("Bootstrap");
-  logger.error(`Failed to start application: ${error.message}`, error.stack);
+  // Use console.error for synchronous output — NestJS Logger may not flush before exit
+  console.error("FATAL: Failed to start application:", error.message);
+  console.error(error.stack);
   process.exit(1);
 });

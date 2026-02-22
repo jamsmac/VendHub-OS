@@ -175,7 +175,10 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         database: configService.get("DB_NAME", "vendhub"),
         entities: [__dirname + "/**/*.entity{.ts,.js}"],
         migrations: [__dirname + "/database/migrations/*{.ts,.js}"],
-        subscribers: [__dirname + "/**/*.subscriber{.ts,.js}"],
+        // Subscribers are managed by NestJS DI (AuditSubscriber self-registers).
+        // Do NOT use file-based subscriber loading — TypeORM's container can't
+        // inject NestJS services (ClsService, etc.), causing runtime crashes.
+        subscribers: [],
         // SECURITY: synchronize MUST always be false in production.
         // Even in development it's off by default -- enable explicitly via DB_SYNCHRONIZE=true.
         synchronize:
