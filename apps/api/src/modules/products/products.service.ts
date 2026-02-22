@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, IsNull, In, LessThanOrEqual } from "typeorm";
+import * as crypto from "crypto";
 import {
   Product,
   Recipe,
@@ -47,6 +48,32 @@ export interface PaginatedResult<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// ============================================================================
+// UNIT CONVERSION
+// ============================================================================
+
+/** Conversion factors between compatible units: [fromUnit][toUnit] = factor */
+const UNIT_CONVERSION: Record<string, Record<string, number>> = {
+  [UnitOfMeasure.GRAM]: { [UnitOfMeasure.KILOGRAM]: 0.001 },
+  [UnitOfMeasure.KILOGRAM]: { [UnitOfMeasure.GRAM]: 1000 },
+  [UnitOfMeasure.MILLILITER]: { [UnitOfMeasure.LITER]: 0.001 },
+  [UnitOfMeasure.LITER]: { [UnitOfMeasure.MILLILITER]: 1000 },
+};
+
+/**
+ * Convert a quantity from one unit to another.
+ * Returns the original quantity if units are the same or incompatible.
+ */
+function convertUnits(
+  quantity: number,
+  fromUnit: string,
+  toUnit: string,
+): number {
+  if (fromUnit === toUnit) return quantity;
+  const factor = UNIT_CONVERSION[fromUnit]?.[toUnit];
+  return factor ? quantity * factor : quantity;
 }
 
 // ============================================================================
@@ -235,6 +262,19 @@ export class ProductsService {
 
     // Add ingredients if provided
     if (dto.ingredients && dto.ingredients.length > 0) {
+      // Validate all referenced products are ingredients
+      const ingredientIds = dto.ingredients.map((i) => i.ingredientId);
+      const ingredientProducts = await this.productRepository.find({
+        where: { id: In(ingredientIds) },
+        select: ["id", "isIngredient", "name"],
+      });
+      const nonIngredients = ingredientProducts.filter((p) => !p.isIngredient);
+      if (nonIngredients.length > 0) {
+        throw new BadRequestException(
+          `Products are not marked as ingredients: ${nonIngredients.map((p) => p.name).join(", ")}`,
+        );
+      }
+
       const ingredientEntities = dto.ingredients.map((ing) =>
         this.recipeIngredientRepository.create({
           recipeId: savedRecipe.id,
@@ -501,25 +541,73 @@ export class ProductsService {
       unitCost: ri.ingredient ? Number(ri.ingredient.purchasePrice) : 0,
     }));
 
+    const snapshotData = {
+      name: recipe.name,
+      description: recipe.description,
+      typeCode: recipe.typeCode,
+      totalCost: Number(recipe.totalCost),
+      preparationTimeSeconds: recipe.preparationTimeSeconds,
+      temperatureCelsius: recipe.temperatureCelsius,
+      servingSizeMl: recipe.servingSizeMl,
+      settings: recipe.settings as Record<string, string | number | boolean>,
+      ingredients: ingredientDetails,
+    };
+
+    const checksum = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(snapshotData))
+      .digest("hex");
+
     const snapshot = this.recipeSnapshotRepository.create({
       recipeId,
       version: recipe.version,
-      snapshot: {
-        name: recipe.name,
-        description: recipe.description,
-        typeCode: recipe.typeCode,
-        totalCost: Number(recipe.totalCost),
-        preparationTimeSeconds: recipe.preparationTimeSeconds,
-        temperatureCelsius: recipe.temperatureCelsius,
-        servingSizeMl: recipe.servingSizeMl,
-        settings: recipe.settings as Record<string, string | number | boolean>,
-        ingredients: ingredientDetails,
-      },
+      snapshot: snapshotData,
+      checksum,
       changeReason,
       createdById: userId,
     });
 
     return this.recipeSnapshotRepository.save(snapshot);
+  }
+
+  async getCurrentSnapshot(recipeId: string): Promise<RecipeSnapshot | null> {
+    return this.recipeSnapshotRepository.findOne({
+      where: { recipeId, validTo: IsNull() },
+    });
+  }
+
+  async getSnapshotByVersion(
+    recipeId: string,
+    version: number,
+  ): Promise<RecipeSnapshot> {
+    const snapshot = await this.recipeSnapshotRepository.findOne({
+      where: { recipeId, version },
+    });
+    if (!snapshot) {
+      throw new NotFoundException(
+        `Snapshot version ${version} not found for recipe ${recipeId}`,
+      );
+    }
+    return snapshot;
+  }
+
+  async getSnapshotAtDate(
+    recipeId: string,
+    date: Date,
+  ): Promise<RecipeSnapshot | null> {
+    return this.recipeSnapshotRepository
+      .createQueryBuilder("s")
+      .where("s.recipeId = :recipeId", { recipeId })
+      .andWhere("s.validFrom <= :date", { date })
+      .andWhere("(s.validTo > :date OR s.validTo IS NULL)")
+      .getOne();
+  }
+
+  async getRecipeSnapshots(recipeId: string): Promise<RecipeSnapshot[]> {
+    return this.recipeSnapshotRepository.find({
+      where: { recipeId },
+      order: { version: "DESC" },
+    });
   }
 
   // ==========================================================================
@@ -571,6 +659,9 @@ export class ProductsService {
     organizationId: string,
     quantityToDeplete: number,
     userId?: string,
+    reason?: string,
+    referenceId?: string,
+    referenceType?: string,
   ): Promise<{
     depletedFrom: { batchId: string; quantity: number }[];
     remaining: number;
@@ -610,15 +701,14 @@ export class ProductsService {
 
       // Audit trail in metadata
       const history = ((batch.metadata as Record<string, unknown>)
-        ?.deductionHistory ?? []) as {
-        date: string;
-        quantity: number;
-        userId: string | null;
-      }[];
+        ?.deductionHistory ?? []) as Record<string, unknown>[];
       history.push({
         date: new Date().toISOString(),
         quantity: toDeduct,
         userId: userId ?? null,
+        ...(reason && { reason }),
+        ...(referenceId && { referenceId }),
+        ...(referenceType && { referenceType }),
       });
       batch.metadata = { ...batch.metadata, deductionHistory: history };
 
@@ -642,6 +732,39 @@ export class ProductsService {
       },
       order: { receivedDate: "ASC", createdAt: "ASC" },
     });
+  }
+
+  async updateBatch(
+    batchId: string,
+    organizationId: string,
+    data: Partial<IngredientBatch>,
+    userId?: string,
+  ): Promise<IngredientBatch> {
+    const batch = await this.ingredientBatchRepository.findOne({
+      where: { id: batchId, organizationId },
+    });
+    if (!batch) {
+      throw new NotFoundException(`Batch with ID ${batchId} not found`);
+    }
+
+    Object.assign(batch, { ...data, updatedById: userId ?? null });
+
+    // Auto-set DEPLETED if remaining reaches 0
+    if (Number(batch.remainingQuantity) <= 0) {
+      batch.status = IngredientBatchStatus.DEPLETED;
+    }
+
+    return this.ingredientBatchRepository.save(batch);
+  }
+
+  async deleteBatch(batchId: string, organizationId: string): Promise<void> {
+    const batch = await this.ingredientBatchRepository.findOne({
+      where: { id: batchId, organizationId },
+    });
+    if (!batch) {
+      throw new NotFoundException(`Batch with ID ${batchId} not found`);
+    }
+    await this.ingredientBatchRepository.softDelete(batchId);
   }
 
   // ==========================================================================
@@ -797,7 +920,7 @@ export class ProductsService {
     const ingredientIds = ingredients.map((ri) => ri.ingredientId);
     const products = await this.productRepository.find({
       where: { id: In(ingredientIds) },
-      select: ["id", "purchasePrice"],
+      select: ["id", "purchasePrice", "unitOfMeasure"],
     });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
@@ -806,7 +929,13 @@ export class ProductsService {
       const ingredient = productMap.get(ri.ingredientId);
       if (ingredient) {
         const unitCost = Number(ingredient.purchasePrice);
-        totalCost += unitCost * Number(ri.quantity);
+        // Convert recipe quantity to the ingredient's purchase-price unit
+        const convertedQty = convertUnits(
+          Number(ri.quantity),
+          ri.unitOfMeasure,
+          ingredient.unitOfMeasure,
+        );
+        totalCost += unitCost * convertedQty;
       }
     }
 
@@ -816,7 +945,7 @@ export class ProductsService {
   /**
    * Recalculate and persist recipe cost.
    */
-  private async recalculateRecipeCost(recipeId: string): Promise<void> {
+  async recalculateRecipeCost(recipeId: string): Promise<void> {
     const totalCost = await this.calculateRecipeCost(recipeId);
     await this.recipeRepository.update(recipeId, { totalCost });
   }

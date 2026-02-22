@@ -32,7 +32,7 @@ import {
   UpdateRecipeDto,
   UpdatePriceDto,
 } from "./dto/create-recipe.dto";
-import { CreateBatchDto } from "./dto/create-batch.dto";
+import { CreateBatchDto, UpdateBatchDto } from "./dto/create-batch.dto";
 import {
   CreateSupplierDto,
   UpdateSupplierDto,
@@ -293,6 +293,68 @@ export class ProductsController {
   }
 
   // ===========================================================================
+  // RECIPE SNAPSHOTS
+  // ===========================================================================
+
+  @Get(":id/recipes/:recipeId/snapshots")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "List all snapshots of a recipe" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
+  getRecipeSnapshots(
+    @Param("id", ParseUUIDPipe) _productId: string,
+    @Param("recipeId", ParseUUIDPipe) recipeId: string,
+  ) {
+    return this.productsService.getRecipeSnapshots(recipeId);
+  }
+
+  @Get(":id/recipes/:recipeId/snapshots/:version")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get a specific snapshot version of a recipe" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
+  @ApiParam({
+    name: "version",
+    description: "Snapshot version number",
+    type: Number,
+  })
+  getSnapshotByVersion(
+    @Param("id", ParseUUIDPipe) _productId: string,
+    @Param("recipeId", ParseUUIDPipe) recipeId: string,
+    @Param("version") version: number,
+  ) {
+    return this.productsService.getSnapshotByVersion(recipeId, Number(version));
+  }
+
+  @Post(":id/recipes/:recipeId/recalculate-cost")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({
+    summary: "Recalculate recipe cost from current ingredient prices",
+  })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
+  async recalculateRecipeCost(
+    @Param("id", ParseUUIDPipe) _productId: string,
+    @Param("recipeId", ParseUUIDPipe) recipeId: string,
+  ) {
+    await this.productsService.recalculateRecipeCost(recipeId);
+    const cost = await this.productsService.calculateRecipeCost(recipeId);
+    return { recipeId, totalCost: cost };
+  }
+
+  // ===========================================================================
   // RECIPE INGREDIENTS
   // ===========================================================================
 
@@ -383,6 +445,38 @@ export class ProductsController {
       productId,
       user.organizationId,
     );
+  }
+
+  @Patch(":id/batches/:batchId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE)
+  @ApiOperation({ summary: "Update an ingredient batch" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  @ApiParam({ name: "batchId", description: "Batch ID", type: String })
+  updateBatch(
+    @Param("id", ParseUUIDPipe) _productId: string,
+    @Param("batchId", ParseUUIDPipe) batchId: string,
+    @Body() dto: UpdateBatchDto,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.updateBatch(
+      batchId,
+      user.organizationId,
+      dto as Parameters<typeof this.productsService.updateBatch>[2],
+      user.id,
+    );
+  }
+
+  @Delete(":id/batches/:batchId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Soft delete an ingredient batch" })
+  @ApiParam({ name: "id", description: "Product ID", type: String })
+  @ApiParam({ name: "batchId", description: "Batch ID", type: String })
+  deleteBatch(
+    @Param("id", ParseUUIDPipe) _productId: string,
+    @Param("batchId", ParseUUIDPipe) batchId: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.deleteBatch(batchId, user.organizationId);
   }
 
   // ===========================================================================

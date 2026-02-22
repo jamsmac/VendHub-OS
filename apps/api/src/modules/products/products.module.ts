@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductsService } from './products.service';
-import { ProductsController, SuppliersController } from './products.controller';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ProductsService } from "./products.service";
+import { RecipeConsumptionService } from "./services/recipe-consumption.service";
+import { ProductsController, SuppliersController } from "./products.controller";
+import { ContainersModule } from "../containers/containers.module";
 import {
   Product,
   Recipe,
@@ -10,7 +12,7 @@ import {
   IngredientBatch,
   ProductPriceHistory,
   Supplier,
-} from './entities/product.entity';
+} from "./entities/product.entity";
 
 @Module({
   imports: [
@@ -23,9 +25,10 @@ import {
       ProductPriceHistory,
       Supplier,
     ]),
+    ContainersModule,
   ],
   controllers: [ProductsController, SuppliersController],
-  providers: [ProductsService],
-  exports: [ProductsService],
+  providers: [ProductsService, RecipeConsumptionService],
+  exports: [ProductsService, RecipeConsumptionService],
 })
 export class ProductsModule {}
