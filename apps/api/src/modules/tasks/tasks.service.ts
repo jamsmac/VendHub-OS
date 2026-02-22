@@ -23,6 +23,12 @@ import {
   CreateTaskComponentDto,
   CreateTaskPhotoDto,
 } from "./dto/task-component.dto";
+import {
+  Incident,
+  IncidentType,
+  IncidentStatus,
+  IncidentPriority,
+} from "../incidents/entities/incident.entity";
 
 @Injectable()
 export class TasksService {
@@ -43,6 +49,9 @@ export class TasksService {
 
     @InjectRepository(TaskPhoto)
     private readonly taskPhotoRepository: Repository<TaskPhoto>,
+
+    @InjectRepository(Incident)
+    private readonly incidentRepository: Repository<Incident>,
 
     private readonly dataSource: DataSource,
   ) {}
@@ -771,18 +780,52 @@ export class TasksService {
         `Found ${overdue.length} overdue task(s): ${overdue.map((t) => t.taskNumber).join(", ")}`,
       );
 
-      // Mark high-priority overdue tasks as urgent
+      // Escalate overdue tasks
       for (const task of overdue) {
+        const overdueMs = task.dueDate
+          ? new Date().getTime() - new Date(task.dueDate).getTime()
+          : 0;
+
+        // Escalate to URGENT after 24h
         if (
           task.priority !== TaskPriority.URGENT &&
-          task.dueDate &&
-          new Date().getTime() - new Date(task.dueDate).getTime() >
-            24 * 60 * 60 * 1000 // overdue > 24h
+          overdueMs > 24 * 60 * 60 * 1000
         ) {
           task.priority = TaskPriority.URGENT;
           await this.taskRepository.save(task);
           this.logger.warn(
             `Escalated task ${task.taskNumber} to URGENT (overdue > 24h)`,
+          );
+        }
+
+        // Auto-create incident after 48h (if machine linked and not already created)
+        const meta = (task.metadata || {}) as Record<string, unknown>;
+        if (
+          overdueMs > 48 * 60 * 60 * 1000 &&
+          task.machineId &&
+          !meta.incidentCreated
+        ) {
+          const incident = this.incidentRepository.create({
+            organizationId: task.organizationId,
+            machineId: task.machineId,
+            type: IncidentType.MECHANICAL_FAILURE,
+            status: IncidentStatus.REPORTED,
+            priority: IncidentPriority.HIGH,
+            title: `Auto-escalated: Task ${task.taskNumber} overdue >48h`,
+            description: `Automatically created from overdue task ${task.taskNumber}. Original due date: ${task.dueDate}`,
+            reportedByUserId:
+              task.createdById || task.assignedToUserId || task.organizationId,
+            reportedAt: new Date(),
+          });
+          const saved = await this.incidentRepository.save(incident);
+          task.metadata = {
+            ...meta,
+            incidentCreated: true,
+            incidentId: saved.id,
+          };
+          await this.taskRepository.save(task);
+          this.logger.warn(
+            `Created incident ${saved.id} for task ${task.taskNumber} (overdue > 48h)`,
           );
         }
       }

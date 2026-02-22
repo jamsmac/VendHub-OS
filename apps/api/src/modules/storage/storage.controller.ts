@@ -330,6 +330,30 @@ export class StorageController {
   }
 
   // ========================================================================
+  // FILE RECORD TRACKING
+  // ========================================================================
+
+  @Get("records/:entityType/:entityId")
+  @ApiOperation({ summary: "Get file records linked to an entity" })
+  @ApiParam({
+    name: "entityType",
+    description: "Entity type (e.g. task, machine)",
+  })
+  @ApiParam({ name: "entityId", description: "Entity UUID" })
+  @ApiResponse({ status: 200, description: "List of file records" })
+  async getFilesByEntity(
+    @CurrentOrganizationId() organizationId: string,
+    @Param("entityType") entityType: string,
+    @Param("entityId") entityId: string,
+  ) {
+    return this.storageService.getFilesByEntity(
+      organizationId,
+      entityType,
+      entityId,
+    );
+  }
+
+  // ========================================================================
   // HELPERS
   // ========================================================================
 

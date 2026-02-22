@@ -3,20 +3,26 @@
  * Evaluates metrics against alert rules, designed for cron job execution
  */
 
-import {
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import {
   AlertRule,
   AlertCondition,
-} from './entities/alert-rule.entity';
-import { AlertsService } from './alerts.service';
-import { Machine } from '../machines/entities/machine.entity';
+  AlertHistory,
+  AlertHistoryStatus,
+} from "./entities/alert-rule.entity";
+import { AlertsService } from "./alerts.service";
+import { Machine } from "../machines/entities/machine.entity";
+import {
+  Incident,
+  IncidentType,
+  IncidentStatus,
+  IncidentPriority,
+} from "../incidents/entities/incident.entity";
 
 @Injectable()
 export class AlertEngineService {
@@ -25,9 +31,14 @@ export class AlertEngineService {
   constructor(
     @InjectRepository(AlertRule)
     private readonly ruleRepository: Repository<AlertRule>,
+    @InjectRepository(AlertHistory)
+    private readonly historyRepository: Repository<AlertHistory>,
     @InjectRepository(Machine)
     private readonly machineRepository: Repository<Machine>,
+    @InjectRepository(Incident)
+    private readonly incidentRepository: Repository<Incident>,
     private readonly alertsService: AlertsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -72,7 +83,9 @@ export class AlertEngineService {
       value: number;
     }[],
   ): Promise<void> {
-    this.logger.log(`Evaluating ${metricsData.length} metric data points against alert rules...`);
+    this.logger.log(
+      `Evaluating ${metricsData.length} metric data points against alert rules...`,
+    );
 
     // Load all active rules grouped by org
     const activeRules = await this.ruleRepository.find({
@@ -80,7 +93,7 @@ export class AlertEngineService {
     });
 
     if (activeRules.length === 0) {
-      this.logger.debug('No active alert rules found');
+      this.logger.debug("No active alert rules found");
       return;
     }
 
@@ -139,7 +152,9 @@ export class AlertEngineService {
       }
     }
 
-    this.logger.log(`Alert evaluation complete: ${triggeredCount} alerts triggered`);
+    this.logger.log(
+      `Alert evaluation complete: ${triggeredCount} alerts triggered`,
+    );
   }
 
   /**
@@ -148,20 +163,26 @@ export class AlertEngineService {
    */
   @Cron(CronExpression.EVERY_5_MINUTES)
   async scheduledCheck(): Promise<void> {
-    this.logger.debug('Scheduled alert check running...');
+    this.logger.debug("Scheduled alert check running...");
 
     try {
       // Collect metrics from all active machines
       const machines = await this.machineRepository.find({
         select: [
-          'id', 'organizationId', 'status', 'currentProductCount',
-          'maxProductSlots', 'currentCashAmount', 'cashCapacity',
-          'lastPingAt', 'totalSalesCount',
+          "id",
+          "organizationId",
+          "status",
+          "currentProductCount",
+          "maxProductSlots",
+          "currentCashAmount",
+          "cashCapacity",
+          "lastPingAt",
+          "totalSalesCount",
         ],
       });
 
       if (machines.length === 0) {
-        this.logger.debug('No active machines found');
+        this.logger.debug("No active machines found");
         return;
       }
 
@@ -180,31 +201,38 @@ export class AlertEngineService {
 
         // Stock level as percentage of capacity
         if (machine.maxProductSlots > 0) {
-          const stockPercent = (machine.currentProductCount / machine.maxProductSlots) * 100;
+          const stockPercent =
+            (machine.currentProductCount / machine.maxProductSlots) * 100;
           metricsData.push({
             organizationId: orgId,
             machineId,
-            metric: 'stock_level',
+            metric: "stock_level",
             value: Math.round(stockPercent),
           });
         }
 
         // Cash amount metric
-        if (machine.currentCashAmount !== undefined && machine.currentCashAmount !== null) {
+        if (
+          machine.currentCashAmount !== undefined &&
+          machine.currentCashAmount !== null
+        ) {
           metricsData.push({
             organizationId: orgId,
             machineId,
-            metric: 'cash_amount',
+            metric: "cash_amount",
             value: Number(machine.currentCashAmount),
           });
 
           // Cash fill percentage
           if (machine.cashCapacity > 0) {
-            const cashPercent = (Number(machine.currentCashAmount) / Number(machine.cashCapacity)) * 100;
+            const cashPercent =
+              (Number(machine.currentCashAmount) /
+                Number(machine.cashCapacity)) *
+              100;
             metricsData.push({
               organizationId: orgId,
               machineId,
-              metric: 'cash_fill_percent',
+              metric: "cash_fill_percent",
               value: Math.round(cashPercent),
             });
           }
@@ -212,11 +240,12 @@ export class AlertEngineService {
 
         // Offline duration metric (minutes since last ping)
         if (machine.lastPingAt) {
-          const offlineMinutes = (now - new Date(machine.lastPingAt).getTime()) / 60000;
+          const offlineMinutes =
+            (now - new Date(machine.lastPingAt).getTime()) / 60000;
           metricsData.push({
             organizationId: orgId,
             machineId,
-            metric: 'offline_duration',
+            metric: "offline_duration",
             value: Math.round(offlineMinutes),
           });
         }
@@ -226,7 +255,7 @@ export class AlertEngineService {
           metricsData.push({
             organizationId: orgId,
             machineId,
-            metric: 'total_sales',
+            metric: "total_sales",
             value: Number(machine.totalSalesCount),
           });
         }
@@ -244,6 +273,102 @@ export class AlertEngineService {
         `Scheduled alert check failed: ${error instanceof Error ? error.message : error}`,
         error instanceof Error ? error.stack : undefined,
       );
+    }
+  }
+
+  /**
+   * Escalate unresolved alerts on a tiered schedule:
+   * Level 0→1 (>1h): emit notification event to org admins
+   * Level 1→2 (>4h): update status to ESCALATED
+   * Level 2→3 (>12h): auto-create incident
+   */
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async checkEscalations(): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    const activeAlerts = await this.historyRepository.find({
+      where: [
+        {
+          status: AlertHistoryStatus.ACTIVE,
+          triggeredAt: LessThan(oneHourAgo),
+        },
+        {
+          status: AlertHistoryStatus.ESCALATED,
+          triggeredAt: LessThan(oneHourAgo),
+        },
+      ],
+      relations: ["rule"],
+    });
+
+    if (activeAlerts.length === 0) return;
+
+    let escalatedCount = 0;
+
+    for (const alert of activeAlerts) {
+      const age = Date.now() - new Date(alert.triggeredAt).getTime();
+
+      try {
+        if (alert.escalationLevel === 0 && age > 60 * 60 * 1000) {
+          // Level 0 → 1: notify admins
+          alert.escalationLevel = 1;
+          alert.escalatedAt = new Date();
+          await this.historyRepository.save(alert);
+          this.eventEmitter.emit("alert.escalated", {
+            alertId: alert.id,
+            organizationId: alert.organizationId,
+            level: 1,
+            message: `Alert unresolved for >1h: ${alert.rule?.name || alert.ruleId}`,
+          });
+          escalatedCount++;
+        } else if (alert.escalationLevel === 1 && age > 4 * 60 * 60 * 1000) {
+          // Level 1 → 2: mark escalated
+          alert.escalationLevel = 2;
+          alert.escalatedAt = new Date();
+          alert.status = AlertHistoryStatus.ESCALATED;
+          await this.historyRepository.save(alert);
+          this.eventEmitter.emit("alert.escalated", {
+            alertId: alert.id,
+            organizationId: alert.organizationId,
+            level: 2,
+            message: `Alert escalated to level 2 (>4h): ${alert.rule?.name || alert.ruleId}`,
+          });
+          escalatedCount++;
+        } else if (
+          alert.escalationLevel === 2 &&
+          age > 12 * 60 * 60 * 1000 &&
+          alert.machineId
+        ) {
+          // Level 2 → 3: auto-create incident
+          const incident = this.incidentRepository.create({
+            organizationId: alert.organizationId,
+            machineId: alert.machineId,
+            type: IncidentType.OTHER,
+            status: IncidentStatus.REPORTED,
+            priority: IncidentPriority.HIGH,
+            title: `Auto-escalated alert: ${alert.rule?.name || "Unknown rule"}`,
+            description: `Alert ${alert.id} unresolved for >12h. Metric value: ${alert.metricSnapshot?.currentValue ?? "N/A"}`,
+            reportedByUserId: alert.organizationId, // system-created
+            reportedAt: new Date(),
+          });
+          const saved = await this.incidentRepository.save(incident);
+          alert.escalationLevel = 3;
+          alert.escalatedAt = new Date();
+          alert.autoCreatedTaskId = saved.id; // reuse field for incident reference
+          await this.historyRepository.save(alert);
+          escalatedCount++;
+          this.logger.warn(
+            `Created incident ${saved.id} for alert ${alert.id} (>12h)`,
+          );
+        }
+      } catch (error) {
+        this.logger.error(
+          `Escalation failed for alert ${alert.id}: ${error instanceof Error ? error.message : error}`,
+        );
+      }
+    }
+
+    if (escalatedCount > 0) {
+      this.logger.log(`Alert escalation: ${escalatedCount} alert(s) escalated`);
     }
   }
 }

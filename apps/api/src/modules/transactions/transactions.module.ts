@@ -16,6 +16,11 @@ import {
   TransactionDailySummary,
   Commission,
 } from "./entities/transaction.entity";
+import {
+  Recipe,
+  RecipeIngredient,
+  IngredientBatch,
+} from "../products/entities/product.entity";
 
 @Module({
   imports: [
@@ -25,6 +30,9 @@ import {
       CollectionRecord,
       TransactionDailySummary,
       Commission,
+      Recipe,
+      RecipeIngredient,
+      IngredientBatch,
     ]),
     // EventEmitterModule is configured in AppModule
   ],

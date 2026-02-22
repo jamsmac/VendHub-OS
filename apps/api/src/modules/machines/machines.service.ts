@@ -5,6 +5,15 @@ import {
   BadRequestException,
   ConflictException,
 } from "@nestjs/common";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+let QRCode: any;
+try {
+  QRCode = require("qrcode");
+} catch {
+  /* qrcode not installed */
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 import { InjectRepository } from "@nestjs/typeorm";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -22,6 +31,7 @@ import {
   MachineMaintenanceSchedule,
   MachineStatus,
   MachineConnectionStatus,
+  DepreciationMethod,
   ComponentStatus,
   MaintenanceStatus,
   MoveReason,
@@ -849,6 +859,177 @@ export class MachinesService {
     );
 
     return { jobs };
+  }
+
+  // ============================================================================
+  // QR CODE
+  // ============================================================================
+
+  async generateQrCode(
+    machineId: string,
+    organizationId: string,
+  ): Promise<Machine> {
+    const machine = await this.ensureMachineExists(machineId);
+    if (machine.organizationId !== organizationId) {
+      throw new BadRequestException(
+        "Machine does not belong to this organization",
+      );
+    }
+
+    const qrData = `vendhub://machine/${machineId}`;
+    machine.qrCode = qrData;
+
+    if (QRCode) {
+      machine.qrCodeUrl = await QRCode.toDataURL(qrData, {
+        width: 300,
+        margin: 2,
+      });
+    } else {
+      this.logger.warn("qrcode package not installed — QR image not generated");
+    }
+
+    return this.machineRepository.save(machine);
+  }
+
+  // ============================================================================
+  // DEPRECIATION
+  // ============================================================================
+
+  calculateDepreciation(machine: Machine): {
+    accumulated: number;
+    bookValue: number;
+  } {
+    if (
+      !machine.purchasePrice ||
+      !machine.depreciationYears ||
+      !machine.purchaseDate
+    ) {
+      return { accumulated: 0, bookValue: machine.purchasePrice || 0 };
+    }
+
+    const purchaseDate = new Date(machine.purchaseDate);
+    const now = new Date();
+    const yearsElapsed =
+      (now.getTime() - purchaseDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+    const price = Number(machine.purchasePrice);
+    const years = machine.depreciationYears;
+
+    let accumulated: number;
+    if (machine.depreciationMethod === DepreciationMethod.DECLINING) {
+      // Declining balance: price * (1 - (1 - 1/years)^elapsed)
+      accumulated = price * (1 - Math.pow(1 - 1 / years, yearsElapsed));
+    } else {
+      // Linear (default): (price / years) * elapsed
+      accumulated = (price / years) * yearsElapsed;
+    }
+
+    accumulated = Math.min(accumulated, price); // Cannot exceed purchase price
+    return {
+      accumulated: Math.round(accumulated * 100) / 100,
+      bookValue: Math.round((price - accumulated) * 100) / 100,
+    };
+  }
+
+  async getDepreciation(
+    machineId: string,
+  ): Promise<{ accumulated: number; bookValue: number; method: string }> {
+    const machine = await this.ensureMachineExists(machineId);
+    const result = this.calculateDepreciation(machine);
+    return {
+      ...result,
+      method: machine.depreciationMethod || DepreciationMethod.LINEAR,
+    };
+  }
+
+  async runDepreciationBatch(
+    organizationId: string,
+  ): Promise<{ updated: number }> {
+    const machines = await this.machineRepository.find({
+      where: { organizationId },
+    });
+
+    let updated = 0;
+    for (const machine of machines) {
+      if (
+        !machine.purchasePrice ||
+        !machine.depreciationYears ||
+        !machine.purchaseDate
+      )
+        continue;
+
+      const { accumulated } = this.calculateDepreciation(machine);
+      if (Number(machine.accumulatedDepreciation) !== accumulated) {
+        machine.accumulatedDepreciation = accumulated;
+        machine.lastDepreciationDate = new Date();
+        await this.machineRepository.save(machine);
+        updated++;
+      }
+    }
+
+    this.logger.log(
+      `Depreciation batch: updated ${updated} machines for org ${organizationId}`,
+    );
+    return { updated };
+  }
+
+  // ============================================================================
+  // CONNECTIVITY
+  // ============================================================================
+
+  async updateConnectivity(machineId: string): Promise<Machine> {
+    const machine = await this.ensureMachineExists(machineId);
+    const previousPing = machine.lastPingAt;
+    machine.lastPingAt = new Date();
+
+    // Detect status change (was offline, now online)
+    if (previousPing) {
+      const wasOffline =
+        Date.now() - new Date(previousPing).getTime() > 10 * 60 * 1000;
+      if (
+        wasOffline &&
+        machine.connectionStatus !== MachineConnectionStatus.ONLINE
+      ) {
+        machine.connectionStatus = MachineConnectionStatus.ONLINE;
+        this.logger.log(`Machine ${machineId} came back online`);
+      }
+    } else {
+      machine.connectionStatus = MachineConnectionStatus.ONLINE;
+    }
+
+    return this.machineRepository.save(machine);
+  }
+
+  async getConnectivityStats(organizationId: string): Promise<{
+    online: number;
+    offline: number;
+    stale: number;
+    total: number;
+  }> {
+    const machines = await this.machineRepository.find({
+      where: { organizationId },
+      select: ["id", "lastPingAt"],
+    });
+
+    const now = Date.now();
+    const tenMinutes = 10 * 60 * 1000;
+    const oneHour = 60 * 60 * 1000;
+
+    let online = 0;
+    let stale = 0;
+    let offline = 0;
+
+    for (const m of machines) {
+      if (!m.lastPingAt) {
+        offline++;
+        continue;
+      }
+      const age = now - new Date(m.lastPingAt).getTime();
+      if (age <= tenMinutes) online++;
+      else if (age <= oneHour) stale++;
+      else offline++;
+    }
+
+    return { online, offline, stale, total: machines.length };
   }
 
   // ============================================================================

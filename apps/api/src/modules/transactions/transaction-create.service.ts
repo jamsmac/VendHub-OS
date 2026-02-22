@@ -26,6 +26,12 @@ import {
   DispenseResultDto,
 } from "./transactions.service";
 import { TransactionQueryService } from "./transaction-query.service";
+import {
+  Recipe,
+  RecipeIngredient,
+  RecipeType,
+  IngredientBatch,
+} from "../products/entities/product.entity";
 
 // Interface for item metadata with dispense status
 interface ItemMetadata {
@@ -50,6 +56,12 @@ export class TransactionCreateService {
     private transactionRepo: Repository<Transaction>,
     @InjectRepository(TransactionItem)
     private itemRepo: Repository<TransactionItem>,
+    @InjectRepository(Recipe)
+    private recipeRepo: Repository<Recipe>,
+    @InjectRepository(RecipeIngredient)
+    private recipeIngredientRepo: Repository<RecipeIngredient>,
+    @InjectRepository(IngredientBatch)
+    private ingredientBatchRepo: Repository<IngredientBatch>,
     private eventEmitter: EventEmitter2,
     private readonly queryService: TransactionQueryService,
   ) {}
@@ -234,6 +246,9 @@ export class TransactionCreateService {
     if (allDispensed) {
       transaction.status = TransactionStatus.COMPLETED;
       this.eventEmitter.emit("transaction.completed", transaction);
+
+      // Deduct ingredients from batches (FIFO) for dispensed items
+      await this.deductIngredients(items);
     } else if (anyFailed) {
       transaction.status = TransactionStatus.PARTIALLY_REFUNDED;
       this.eventEmitter.emit("transaction.partial", transaction);
@@ -420,5 +435,54 @@ export class TransactionCreateService {
 
     await this.transactionRepo.softDelete(id);
     this.logger.log(`Transaction ${id} soft deleted`);
+  }
+
+  /**
+   * Deduct recipe ingredients from batches using FIFO for dispensed items
+   */
+  private async deductIngredients(items: TransactionItem[]): Promise<void> {
+    for (const item of items) {
+      try {
+        const recipe = await this.recipeRepo.findOne({
+          where: { productId: item.productId, typeCode: RecipeType.PRIMARY },
+        });
+        if (!recipe) continue;
+
+        const ingredients = await this.recipeIngredientRepo.find({
+          where: { recipeId: recipe.id },
+        });
+
+        for (const ingredient of ingredients) {
+          let remaining = Number(ingredient.quantity) * item.quantity;
+
+          // FIFO: oldest batches first
+          const batches = await this.ingredientBatchRepo.find({
+            where: { productId: ingredient.ingredientId },
+            order: { createdAt: "ASC" },
+          });
+
+          for (const batch of batches) {
+            if (remaining <= 0) break;
+            const available = Number(batch.remainingQuantity);
+            if (available <= 0) continue;
+
+            const deduct = Math.min(available, remaining);
+            batch.remainingQuantity = available - deduct;
+            remaining -= deduct;
+            await this.ingredientBatchRepo.save(batch);
+          }
+
+          if (remaining > 0) {
+            this.logger.warn(
+              `Insufficient ingredient stock for product ${item.productId}, ingredient ${ingredient.ingredientId}: short by ${remaining}`,
+            );
+          }
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to deduct ingredients for item ${item.id}: ${error instanceof Error ? error.message : error}`,
+        );
+      }
+    }
   }
 }

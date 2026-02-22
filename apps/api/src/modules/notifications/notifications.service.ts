@@ -33,6 +33,16 @@ import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
 import { EmailService } from "../email/email.service";
 import { SmsService } from "../sms/sms.service";
+import { ConfigService } from "@nestjs/config";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+let firebaseAdmin: any;
+try {
+  firebaseAdmin = require("firebase-admin");
+} catch {
+  /* firebase-admin not installed */
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ============================================================================
 // DTOs
@@ -129,8 +139,48 @@ export class NotificationsService {
     private userRepo: Repository<User>,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
+    private readonly configService: ConfigService,
     // @InjectQueue('notifications') private notificationQueue: Queue,
-  ) {}
+  ) {
+    this.initFirebase();
+  }
+
+  private firebaseInitialized = false;
+
+  private initFirebase(): void {
+    if (!firebaseAdmin) {
+      this.logger.warn(
+        "firebase-admin not installed — push notifications disabled",
+      );
+      return;
+    }
+    if (this.firebaseInitialized) return;
+
+    const serviceAccountKey = this.configService.get<string>(
+      "FIREBASE_SERVICE_ACCOUNT_KEY",
+    );
+    if (!serviceAccountKey) {
+      this.logger.warn(
+        "FIREBASE_SERVICE_ACCOUNT_KEY not set — push notifications disabled",
+      );
+      return;
+    }
+
+    try {
+      const credential = JSON.parse(serviceAccountKey);
+      if (firebaseAdmin.apps.length === 0) {
+        firebaseAdmin.initializeApp({
+          credential: firebaseAdmin.credential.cert(credential),
+        });
+      }
+      this.firebaseInitialized = true;
+      this.logger.log("Firebase Admin initialized for push notifications");
+    } catch (error) {
+      this.logger.error(
+        `Firebase init failed: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+  }
 
   // ============================================================================
   // NOTIFICATION CRUD
@@ -872,10 +922,57 @@ export class NotificationsService {
       return;
     }
 
-    // TODO: integrate firebase-admin for actual FCM dispatch
-    this.logger.log(
-      `Push: would send "${notification.content?.title}" to ${tokens.length} device(s) for user ${notification.userId}`,
-    );
+    if (!firebaseAdmin || !this.firebaseInitialized) {
+      this.logger.log(
+        `Push: firebase not available — would send "${notification.content?.title}" to ${tokens.length} device(s)`,
+      );
+      return;
+    }
+
+    const tokenStrings = tokens.map((t) => t.token);
+    const message = {
+      notification: {
+        title: notification.content?.title || "VendHub",
+        body: notification.content?.body || "",
+      },
+      data: {
+        notificationId: notification.id,
+        type: notification.type,
+        ...(notification.content?.actionUrl
+          ? { actionUrl: notification.content.actionUrl }
+          : {}),
+      },
+      tokens: tokenStrings,
+    };
+
+    try {
+      const response = await firebaseAdmin
+        .messaging()
+        .sendEachForMulticast(message);
+      this.logger.log(
+        `Push: sent to ${response.successCount}/${tokenStrings.length} device(s) for user ${notification.userId}`,
+      );
+
+      // Mark failed tokens as inactive
+      if (response.responses) {
+        for (let i = 0; i < response.responses.length; i++) {
+          const resp = response.responses[i];
+          if (
+            !resp.success &&
+            resp.error?.code === "messaging/registration-token-not-registered"
+          ) {
+            const staleToken = tokens[i];
+            staleToken.isActive = false;
+            await this.fcmTokenRepo.save(staleToken);
+            this.logger.warn(`Deactivated stale FCM token ${staleToken.id}`);
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Push: FCM send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
+      );
+    }
   }
 
   private async sendEmail(notification: Notification): Promise<void> {

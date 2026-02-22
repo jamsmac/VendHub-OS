@@ -10,7 +10,10 @@ import {
   NotFoundException,
   ForbiddenException,
 } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
+import { FileRecord } from "./entities/file.entity";
 // AWS SDK is optional - provide mock types if not installed
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -96,7 +99,11 @@ export class StorageService {
     default: 100 * 1024 * 1024, // 100 MB
   };
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @InjectRepository(FileRecord)
+    private readonly fileRecordRepository: Repository<FileRecord>,
+    private readonly configService: ConfigService,
+  ) {
     this.region = this.configService.get("AWS_REGION", "us-east-1");
     this.bucket = this.configService.get(
       "STORAGE_BUCKET",
@@ -522,6 +529,70 @@ export class StorageService {
       this.logger.error(`Failed to list files in ${prefix}`, error);
       throw new BadRequestException("Failed to list files");
     }
+  }
+
+  // ========================================================================
+  // FILE RECORD TRACKING
+  // ========================================================================
+
+  async trackFileUpload(
+    organizationId: string,
+    uploadResult: UploadResult,
+    userId: string,
+    entityType: string,
+    entityId: string,
+    categoryCode: string = "general",
+    originalFilename?: string,
+  ): Promise<FileRecord> {
+    const record = this.fileRecordRepository.create({
+      organizationId,
+      originalFilename:
+        originalFilename || uploadResult.key.split("/").pop() || "unknown",
+      storedFilename: uploadResult.key.split("/").pop() || "",
+      filePath: uploadResult.key,
+      mimeType: uploadResult.mimeType,
+      fileSize: uploadResult.size,
+      categoryCode,
+      entityType,
+      entityId,
+      uploadedByUserId: userId,
+      url: uploadResult.cdnUrl || uploadResult.url,
+    });
+
+    return this.fileRecordRepository.save(record);
+  }
+
+  async getFilesByEntity(
+    organizationId: string,
+    entityType: string,
+    entityId: string,
+  ): Promise<FileRecord[]> {
+    return this.fileRecordRepository.find({
+      where: { organizationId, entityType, entityId },
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async getFileRecordById(
+    organizationId: string,
+    id: string,
+  ): Promise<FileRecord> {
+    const record = await this.fileRecordRepository.findOne({
+      where: { id, organizationId },
+    });
+    if (!record) {
+      throw new NotFoundException("File record not found");
+    }
+    return record;
+  }
+
+  async softDeleteFileRecord(
+    organizationId: string,
+    id: string,
+  ): Promise<void> {
+    const record = await this.getFileRecordById(organizationId, id);
+    await this.deleteFile(organizationId, record.filePath);
+    await this.fileRecordRepository.softDelete(id);
   }
 
   // ========================================================================

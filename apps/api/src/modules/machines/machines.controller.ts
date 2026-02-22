@@ -657,6 +657,60 @@ export class MachinesController {
   }
 
   // ============================================================================
+  // QR CODE, DEPRECIATION, CONNECTIVITY
+  // ============================================================================
+
+  @Get("connectivity-stats")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Get machine connectivity stats for organization" })
+  @ApiResponse({ status: 200, description: "Connectivity stats" })
+  async getConnectivityStats(@CurrentUser() user: User) {
+    return this.machinesService.getConnectivityStats(user.organizationId);
+  }
+
+  @Post(":id/generate-qr")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Generate QR code for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "Machine with QR code" })
+  async generateQrCode(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.generateQrCode(id, user.organizationId);
+  }
+
+  @Get(":id/depreciation")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
+  @ApiOperation({ summary: "Get depreciation info for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "Depreciation details" })
+  async getDepreciation(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.getDepreciation(id);
+  }
+
+  @Post("run-depreciation")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.ACCOUNTANT)
+  @ApiOperation({ summary: "Run depreciation batch for all machines" })
+  @ApiResponse({ status: 200, description: "Batch result" })
+  async runDepreciationBatch(@CurrentUser() user: User) {
+    return this.machinesService.runDepreciationBatch(user.organizationId);
+  }
+
+  @Post(":id/ping")
+  @ApiOperation({ summary: "Update machine connectivity (telemetry ping)" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "Machine updated" })
+  async pingMachine(@Param("id", ParseUUIDPipe) id: string) {
+    return this.machinesService.updateConnectivity(id);
+  }
+
+  // ============================================================================
   // HELPERS
   // ============================================================================
 
