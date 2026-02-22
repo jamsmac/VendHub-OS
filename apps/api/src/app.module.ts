@@ -96,6 +96,7 @@ import { AccessRequestsModule } from "./modules/access-requests/access-requests.
 import { WebPushModule } from "./modules/web-push/web-push.module";
 import { DataParserModule } from "./modules/data-parser/data-parser.module";
 import { AgentBridgeModule } from "./modules/agent-bridge/agent-bridge.module";
+import { FcmModule } from "./modules/fcm/fcm.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -544,6 +545,9 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Agent Bridge (AI agent session tracking & progress)
     AgentBridgeModule,
+
+    // Firebase Cloud Messaging (Mobile Push Notifications)
+    FcmModule,
   ],
   providers: [
     // ============================================

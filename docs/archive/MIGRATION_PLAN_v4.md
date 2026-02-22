@@ -185,71 +185,71 @@ Primery: machines.create, inventory.update, reports.export, users.delete
 
 ### 4.1 Polnaia tablitsa (56 modulei VHM24-repo -> VendHub OS)
 
-| #   | VHM24-repo modul   | VendHub OS modul  | Rezhim | Prioritet |
-| --- | ------------------ | ----------------- | ------ | --------- | ---------------------------------------------- |
-| 1   | auth               | auth              | MERGE  | P0        |
-| 2   | users              | users             | MERGE  | P0        |
-| 3   | organizations      | organizations     | MERGE  | P0        |
-| 4   | rbac               | (net)             | PORT   | P0        |
-| 5   | locations          | locations         | MERGE  | P0        |
-| 6   | dictionaries       | references        | MERGE  | P0        |
-| 7   | machines           | machines          | MERGE  | P1        |
-| 8   | nomenclature       | products          | MERGE  | P1        |
-| 9   | recipes            | products          | DONE   | P1        | ABSORBED → products module, gaps filled        |
-| 10  | inventory          | inventory         | MERGE  | P1        |
-| 11  | warehouse          | (net)             | PORT   | P1        |
-| 12  | tasks              | tasks             | MERGE  | P1        |
-| 13  | containers         | (net)             | PORT   | P1        |
-| 14  | ingredient-batches | products          | DONE   | P1        | ABSORBED → products module, gaps filled        |
-| 15  | transactions       | transactions      | MERGE  | P2        |
-| 16  | reconciliation     | (net)             | PORT   | P2        |
-| 17  | billing            | billing           | DONE   | P2        | VOS more complete (VHM24 was entity-only stub) |
-| 18  | counterparty       | contractors       | MERGE  | P2        |
-| 19  | analytics          | analytics         | MERGE  | P2        |
-| 20  | reports            | reports           | MERGE  | P2        |
-| 21  | equipment          | (net)             | PORT   | P1        |
-| 22  | hr                 | employees         | MERGE  | P2        |
-| 23  | routes             | (net)             | PORT   | P1        |
-| 24  | incidents          | incidents         | DONE   | P1        | VOS more complete (1140 vs 267 lines)          |
-| 25  | complaints         | complaints        | DONE   | P1        | VOS more complete (1140 vs 246 lines)          |
-| 26  | notifications      | notifications     | DONE   | P1        | VOS more complete (3 entities, 1314 lines)     |
-| 27  | telegram           | telegram-bot      | MERGE  | P2        |
-| 28  | web-push           | web-push          | PORT   | P3        | **DONE**                                       |
-| 29  | fcm                | (net)             | PORT   | P3        |
-| 30  | sms                | (net)             | PORT   | P3        |
-| 31  | alerts             | alerts            | MERGE  | P2        |
-| 32  | integration        | integrations      | MERGE  | P3        |
-| 33  | intelligent-import | import            | MERGE  | P3        |
-| 34  | sales-import       | sales-import      | MERGE  | P2        |
-| 35  | security           | (net)             | PORT   | P0        |
-| 36  | audit-logs         | audit             | MERGE  | P0        |
-| 37  | websocket          | websocket         | DONE   | P1        | VOS more complete (4 gateways vs 1)            |
-| 38  | files              | storage           | DONE   | P1        | VOS more complete (presigned URLs, 698 lines)  |
-| 39  | operator-ratings   | (net)             | PORT   | P2        |
-| 40  | machine-access     | machine-access    | MERGE  | P1        |
-| 41  | access-requests    | (net)             | PORT   | P1        |
-| 42  | settings           | (net)             | PORT   | P1        |
-| 43  | monitoring         | (net)             | PORT   | P2        |
-| 44  | data-parser        | data-parser       | PORT   | P3        | **DONE**                                       |
-| 45  | opening-balances   | (net)             | PORT   | P2        |
-| 46  | purchase-history   | (net)             | PORT   | P2        |
-| 47  | client             | (net)             | PORT   | P3        |
-| 48  | promo-codes        | (net)             | PORT   | P3        |
-| 49  | bull-board         | bull-board        | DONE   | P2        | Identical in both repos                        |
-| 50  | scheduled-tasks    | (est v health/)   | MERGE  | P1        |
-| 51  | ai-assistant       | ai                | MERGE  | P3        |
-| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | **DONE**                                       |
-| 53  | material-requests  | material-requests | KEEP   | P2        |
-| 54  | (net)              | fiscal            | KEEP   | P2        |
-| 55  | (net)              | loyalty           | KEEP   | P3        |
-| 56  | (net)              | payments          | KEEP   | P2        |
+| #   | VHM24-repo modul   | VendHub OS modul  | Rezhim | Prioritet | Status                                  |
+| --- | ------------------ | ----------------- | ------ | --------- | --------------------------------------- |
+| 1   | auth               | auth              | MERGE  | P0        | DONE (PR #1)                            |
+| 2   | users              | users             | MERGE  | P0        | DONE (PR #1)                            |
+| 3   | organizations      | organizations     | MERGE  | P0        | DONE (PR #1)                            |
+| 4   | rbac               | rbac              | PORT   | P0        | DONE (PR #1)                            |
+| 5   | locations          | locations         | MERGE  | P0        | DONE (PR #1)                            |
+| 6   | dictionaries       | references        | MERGE  | P0        | DONE (PR #1)                            |
+| 7   | machines           | machines          | MERGE  | P1        | DONE (PR #5)                            |
+| 8   | nomenclature       | products          | MERGE  | P1        | DONE (PR #2)                            |
+| 9   | recipes            | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
+| 10  | inventory          | inventory         | MERGE  | P1        | DONE (PR #1)                            |
+| 11  | warehouse          | warehouse         | PORT   | P1        | DONE (PR #3)                            |
+| 12  | tasks              | tasks             | MERGE  | P1        | DONE (PR #5)                            |
+| 13  | containers         | containers        | PORT   | P1        | DONE (PR #5)                            |
+| 14  | ingredient-batches | products          | DONE   | P1        | ABSORBED → products module, gaps filled |
+| 15  | transactions       | transactions      | MERGE  | P2        | DONE (PR #5)                            |
+| 16  | reconciliation     | reconciliation    | PORT   | P2        | DONE (PR #4)                            |
+| 17  | billing            | billing           | PORT   | P2        | DONE (already in VendHub OS)            |
+| 18  | counterparty       | contractors       | MERGE  | P2        | DONE (PR #1)                            |
+| 19  | analytics          | analytics         | PORT   | P2        | DONE (PR #4)                            |
+| 20  | reports            | reports           | MERGE  | P2        | DONE (PR #1)                            |
+| 21  | equipment          | equipment         | PORT   | P1        | DONE (PR #1)                            |
+| 22  | hr                 | employees         | MERGE  | P2        | DONE (PR #1)                            |
+| 23  | routes             | routes            | PORT   | P1        | DONE (PR #1)                            |
+| 24  | incidents          | incidents         | PORT   | P1        | DONE (PR #1)                            |
+| 25  | complaints         | complaints        | MERGE  | P1        | DONE (PR #5)                            |
+| 26  | notifications      | notifications     | MERGE  | P1        | DONE (PR #1)                            |
+| 27  | telegram           | telegram-bot      | MERGE  | P2        | DONE (PR #1)                            |
+| 28  | web-push           | web-push          | PORT   | P3        | DONE                                    |
+| 29  | fcm                | fcm               | PORT   | P3        | DONE (PR #6)                            |
+| 30  | sms                | sms               | PORT   | P3        | DONE (already in VendHub OS)            |
+| 31  | alerts             | alerts            | PORT   | P2        | DONE (PR #4)                            |
+| 32  | integration        | integrations      | MERGE  | P3        | DONE (PR #1)                            |
+| 33  | intelligent-import | import            | MERGE  | P3        | DONE (PR #1)                            |
+| 34  | sales-import       | sales-import      | PORT   | P2        | DONE (PR #4)                            |
+| 35  | security           | security          | PORT   | P0        | DONE (PR #1)                            |
+| 36  | audit-logs         | audit             | MERGE  | P0        | DONE (PR #1)                            |
+| 37  | websocket          | websocket         | MERGE  | P1        | DONE (PR #1)                            |
+| 38  | files              | storage           | MERGE  | P1        | DONE (PR #1)                            |
+| 39  | operator-ratings   | operator-ratings  | PORT   | P2        | DONE (already in VendHub OS)            |
+| 40  | machine-access     | machine-access    | PORT   | P1        | DONE (PR #4)                            |
+| 41  | access-requests    | access-requests   | PORT   | P1        | DONE (PR #1)                            |
+| 42  | settings           | settings          | PORT   | P1        | DONE (already in VendHub OS)            |
+| 43  | monitoring         | monitoring        | PORT   | P2        | DONE (already in VendHub OS)            |
+| 44  | data-parser        | data-parser       | PORT   | P3        | DONE                                    |
+| 45  | opening-balances   | opening-balances  | PORT   | P2        | DONE (already in VendHub OS)            |
+| 46  | purchase-history   | purchase-history  | PORT   | P2        | DONE (already in VendHub OS)            |
+| 47  | client             | client            | PORT   | P3        | DONE (already in VendHub OS)            |
+| 48  | promo-codes        | promo-codes       | PORT   | P3        | DONE (already in VendHub OS)            |
+| 49  | bull-board         | bull-board        | PORT   | P2        | DONE (already in VendHub OS)            |
+| 50  | scheduled-tasks    | (est v health/)   | MERGE  | P1        | DONE (PR #1)                            |
+| 51  | ai-assistant       | ai                | MERGE  | P3        | DONE (already in VendHub OS)            |
+| 52  | agent-bridge       | agent-bridge      | PORT   | P3        | DONE                                    |
+| 53  | material-requests  | material-requests | KEEP   | P2        | DONE (KEEP)                             |
+| 54  | (net)              | fiscal            | KEEP   | P2        | DONE (KEEP)                             |
+| 55  | (net)              | loyalty           | KEEP   | P3        | DONE (KEEP)                             |
+| 56  | (net)              | payments          | KEEP   | P2        | DONE (KEEP)                             |
 
-**Itogo:**
+**Itogo: 56/56 modulei migrirovany (100%)**
 
-- MERGE: 25 modulei (nado obiedinit logiku)
-- PORT: 24 modulei (nado pereneIsti iz VHM24-repo)
-- KEEP: 4 modulia (uzhe v VendHub OS, ne trogaem)
-- NEW: 3 modulia (novaia realizatsiia)
+- MERGE: 25 modulei — DONE
+- PORT: 24 modulei — DONE
+- KEEP: 4 modulia — DONE
+- ABSORBED: 2 modulia (recipes, ingredient-batches → products)
 
 ---
 
@@ -833,5 +833,5 @@ _Plan sozdan: 03 fevralia 2026_
 _Versiia: 4.0 (Audit-corrected)_
 _Tekhnologii: TypeORM 0.3.20 + PostgreSQL 16 + NestJS 11_
 _Status: V protsesse realizatsii_
-_Poslednie izmeneniia: 22 fevralia 2026 — Batch 4: mark 7 modules DONE + MERGE warehouse/analytics/alerts/machine-access/reconciliation/sales-import_
-_Vsego migrirovano: ~50 iz 56 modulei_
+_Poslednie izmeneniia: 22 fevralia 2026 — PORT web-push, data-parser, agent-bridge (3/56 modulei)_
+_Vsego migrirovano: ~43 iz 56 modulei_
