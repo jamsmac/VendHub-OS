@@ -23,10 +23,7 @@ import {
 } from "@nestjs/swagger";
 import {
   ReportsService,
-  GenerateReportDto,
-  CreateScheduledReportDto,
-  CreateDashboardDto,
-  CreateWidgetDto,
+  CreateWidgetDto as ServiceCreateWidgetDto,
 } from "./reports.service";
 import {
   ReportType,
@@ -37,6 +34,12 @@ import {
 } from "./entities/report.entity";
 import {
   CreateReportDefinitionDto,
+  GenerateReportBodyDto,
+  CreateScheduledReportBodyDto,
+  CreateDashboardBodyDto,
+  CreateWidgetBodyDto,
+  SaveFilterDto,
+  ReorderWidgetsDto,
   UpdateScheduledReportDto,
   UpdateDashboardDto,
   UpdateWidgetDto,
@@ -100,7 +103,7 @@ export class ReportsController {
   @Roles("owner", "admin", "manager", "accountant")
   @HttpCode(HttpStatus.CREATED)
   async generate(
-    @Body() dto: GenerateReportDto,
+    @Body() dto: GenerateReportBodyDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
@@ -109,7 +112,16 @@ export class ReportsController {
       user.role === UserRole.OWNER && dto.organizationId
         ? dto.organizationId
         : orgId;
-    return this.reportsService.generate({ ...dto, organizationId }, userId);
+    return this.reportsService.generate(
+      {
+        ...dto,
+        organizationId,
+        format: dto.format,
+        dateFrom: dto.dateFrom ? new Date(dto.dateFrom) : undefined,
+        dateTo: dto.dateTo ? new Date(dto.dateTo) : undefined,
+      },
+      userId,
+    );
   }
 
   @Get("generated")
@@ -160,7 +172,7 @@ export class ReportsController {
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createScheduledReport(
-    @Body() dto: CreateScheduledReportDto,
+    @Body() dto: CreateScheduledReportBodyDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
@@ -170,7 +182,7 @@ export class ReportsController {
         ? dto.organizationId
         : orgId;
     return this.reportsService.createScheduledReport(
-      { ...dto, organizationId },
+      { ...dto, organizationId, parameters: dto.parameters ?? {} },
       userId,
     );
   }
@@ -227,7 +239,7 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async createDashboard(
-    @Body() dto: CreateDashboardDto,
+    @Body() dto: CreateDashboardBodyDto,
     @CurrentOrganizationId() orgId: string,
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
@@ -285,10 +297,13 @@ export class ReportsController {
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async createWidget(
-    @Body() dto: CreateWidgetDto,
+    @Body() dto: CreateWidgetBodyDto,
     @CurrentOrganizationId() orgId: string,
   ) {
-    return this.reportsService.createWidget(dto, orgId);
+    return this.reportsService.createWidget(
+      { ...dto, organizationId: orgId } as ServiceCreateWidgetDto,
+      orgId,
+    );
   }
 
   @Patch("widgets/:id")
@@ -324,9 +339,9 @@ export class ReportsController {
   async reorderWidgets(
     @Param("id", ParseUUIDPipe) dashboardId: string,
     @CurrentOrganizationId() orgId: string,
-    @Body("widgetIds") widgetIds: string[],
+    @Body() dto: ReorderWidgetsDto,
   ) {
-    await this.reportsService.reorderWidgets(dashboardId, orgId, widgetIds);
+    await this.reportsService.reorderWidgets(dashboardId, orgId, dto.widgetIds);
     return { success: true };
   }
 
@@ -350,23 +365,17 @@ export class ReportsController {
   @Roles("owner", "admin", "manager", "accountant")
   @HttpCode(HttpStatus.CREATED)
   async saveFilter(
-    @Body()
-    body: {
-      reportDefinitionId: string;
-      name: string;
-      filters: Record<string, unknown>;
-      isDefault?: boolean;
-    },
+    @Body() dto: SaveFilterDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.reportsService.saveFilter(
       userId,
       orgId,
-      body.reportDefinitionId,
-      body.name,
-      body.filters,
-      body.isDefault,
+      dto.reportDefinitionId,
+      dto.name,
+      dto.filters,
+      dto.isDefault,
     );
   }
 

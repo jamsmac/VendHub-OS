@@ -187,7 +187,10 @@ export class ReportsService {
     // Get definition if provided
     let definition: ReportDefinition | null = null;
     if (dto.reportDefinitionId) {
-      definition = await this.getDefinition(dto.reportDefinitionId, dto.organizationId);
+      definition = await this.getDefinition(
+        dto.reportDefinitionId,
+        dto.organizationId,
+      );
     }
 
     const reportType = dto.type || definition?.type || ReportType.CUSTOM;
@@ -798,19 +801,22 @@ export class ReportsService {
     // Create widgets
     if (dto.widgets?.length) {
       for (const widgetDto of dto.widgets) {
-        await this.createWidget({
-          dashboardId: saved.id,
-          organizationId: dto.organizationId,
-          title: widgetDto.title,
-          chartType: widgetDto.chartType,
-          positionX: widgetDto.positionX,
-          positionY: widgetDto.positionY,
-          width: widgetDto.width,
-          height: widgetDto.height,
-          definitionId: widgetDto.definitionId,
-          chartConfig: widgetDto.chartConfig,
-          kpiConfig: widgetDto.kpiConfig,
-        });
+        await this.createWidget(
+          {
+            dashboardId: saved.id,
+            organizationId: dto.organizationId,
+            title: widgetDto.title,
+            chartType: widgetDto.chartType,
+            positionX: widgetDto.positionX,
+            positionY: widgetDto.positionY,
+            width: widgetDto.width,
+            height: widgetDto.height,
+            definitionId: widgetDto.definitionId,
+            chartConfig: widgetDto.chartConfig,
+            kpiConfig: widgetDto.kpiConfig,
+          },
+          dto.organizationId,
+        );
       }
     }
 
@@ -864,11 +870,17 @@ export class ReportsService {
     organizationId: string,
     dashboardId: string,
   ): Promise<void> {
+    // Verify dashboard belongs to this org
+    await this.getDashboard(dashboardId, organizationId);
+
     // Remove default from all others
     await this.dashboardRepo.update({ organizationId }, { isDefault: false });
 
-    // Set new default
-    await this.dashboardRepo.update(dashboardId, { isDefault: true });
+    // Set new default (scoped to org)
+    await this.dashboardRepo.update(
+      { id: dashboardId, organizationId },
+      { isDefault: true },
+    );
   }
 
   // ============================================================================
@@ -877,19 +889,18 @@ export class ReportsService {
 
   async createWidget(
     dto: CreateWidgetDto,
-    organizationId?: string,
+    organizationId: string,
   ): Promise<DashboardWidget> {
-    // Get dashboard and verify ownership
-    const where = organizationId
-      ? { id: dto.dashboardId, organizationId }
-      : { id: dto.dashboardId };
-    const dashboard = await this.dashboardRepo.findOne({ where });
+    // Get dashboard and verify ownership (always scoped to org)
+    const dashboard = await this.dashboardRepo.findOne({
+      where: { id: dto.dashboardId, organizationId },
+    });
     if (!dashboard) {
       throw new NotFoundException(`Dashboard ${dto.dashboardId} not found`);
     }
 
     const widget = this.widgetRepo.create({
-      organizationId: dto.organizationId || dashboard.organizationId,
+      organizationId: dashboard.organizationId,
       dashboardId: dto.dashboardId,
       title: dto.title,
       chartType: (dto.chartType || "kpi") as ChartType,
@@ -941,7 +952,11 @@ export class ReportsService {
     // Verify dashboard ownership
     await this.getDashboard(dashboardId, organizationId);
     for (let i = 0; i < widgetIds.length; i++) {
-      await this.widgetRepo.update(widgetIds[i], { positionY: i });
+      // Scope update to widgets belonging to this dashboard
+      await this.widgetRepo.update(
+        { id: widgetIds[i], dashboardId },
+        { positionY: i },
+      );
     }
   }
 

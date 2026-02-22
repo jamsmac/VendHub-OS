@@ -166,7 +166,6 @@ describe("ReportsService", () => {
       });
     });
 
-
     it("should throw NotFoundException when definition not found", async () => {
       definitionRepo.findOne!.mockResolvedValue(null);
 
@@ -570,7 +569,6 @@ describe("ReportsService", () => {
       );
     });
 
-
     it("should throw NotFoundException when dashboard not found", async () => {
       dashboardRepo.findOne!.mockResolvedValue(null);
 
@@ -672,7 +670,7 @@ describe("ReportsService", () => {
       expect(widgetRepo.create).toHaveBeenCalled();
     });
 
-    it("should create a widget without org filter (internal call)", async () => {
+    it("should always scope widget creation to organization", async () => {
       const dashboard = { id: "d1", organizationId: "org-1" };
       dashboardRepo.findOne!.mockResolvedValue(dashboard);
 
@@ -689,11 +687,11 @@ describe("ReportsService", () => {
       widgetRepo.create!.mockReturnValue(created);
       widgetRepo.save!.mockResolvedValue(created);
 
-      const result = await service.createWidget(widgetData);
+      const result = await service.createWidget(widgetData, "org-1");
 
       expect(result.id).toBe("w1");
       expect(dashboardRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "d1" },
+        where: { id: "d1", organizationId: "org-1" },
       });
     });
 

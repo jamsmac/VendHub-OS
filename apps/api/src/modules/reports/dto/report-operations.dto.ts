@@ -11,10 +11,16 @@ import {
   IsNumber,
   IsObject,
   IsArray,
+  IsUUID,
+  IsDateString,
+  IsInt,
+  IsIn,
   Min,
   Max,
   Length,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   ReportType,
@@ -203,4 +209,293 @@ export class UpdateWidgetDto {
   @IsOptional()
   @IsBoolean()
   isVisible?: boolean;
+}
+
+// ============================================================================
+// REPORT GENERATION (replaces interface GenerateReportDto from service)
+// ============================================================================
+
+class DeliveryConfigDto {
+  @ApiProperty({ enum: ["download", "email", "storage"] })
+  @IsIn(["download", "email", "storage"])
+  method: "download" | "email" | "storage";
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  emails?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  storagePath?: string;
+}
+
+export class GenerateReportBodyDto {
+  @ApiPropertyOptional({ description: "Report definition ID" })
+  @IsOptional()
+  @IsUUID()
+  reportDefinitionId?: string;
+
+  @ApiPropertyOptional({ description: "Organization ID (owner only)" })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @ApiPropertyOptional({ enum: ReportType })
+  @IsOptional()
+  @IsEnum(ReportType)
+  type?: ReportType;
+
+  @ApiPropertyOptional({ description: "Report name" })
+  @IsOptional()
+  @IsString()
+  @Length(1, 255)
+  name?: string;
+
+  @ApiProperty({ enum: ExportFormat })
+  @IsEnum(ExportFormat)
+  format: ExportFormat;
+
+  @ApiPropertyOptional({ description: "Report parameters" })
+  @IsOptional()
+  @IsObject()
+  parameters?: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: "Start date" })
+  @IsOptional()
+  @IsDateString()
+  dateFrom?: string;
+
+  @ApiPropertyOptional({ description: "End date" })
+  @IsOptional()
+  @IsDateString()
+  dateTo?: string;
+
+  @ApiPropertyOptional({ description: "Delivery configuration" })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DeliveryConfigDto)
+  delivery?: DeliveryConfigDto;
+}
+
+// ============================================================================
+// SCHEDULED REPORT CREATE (replaces interface CreateScheduledReportDto)
+// ============================================================================
+
+class ScheduleConfigDto {
+  @ApiPropertyOptional({ description: "Time of day (HH:mm)" })
+  @IsOptional()
+  @IsString()
+  time?: string;
+
+  @ApiPropertyOptional({ description: "Day of week (0=Sun, 6=Sat)" })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(6)
+  dayOfWeek?: number;
+
+  @ApiPropertyOptional({ description: "Day of month (1-31)" })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(31)
+  dayOfMonth?: number;
+
+  @ApiPropertyOptional({ description: "Timezone" })
+  @IsOptional()
+  @IsString()
+  timezone?: string;
+}
+
+class ScheduleDeliveryConfigDto {
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  emails?: string[];
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  telegramChatIds?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  webhookUrl?: string;
+}
+
+export class CreateScheduledReportBodyDto {
+  @ApiPropertyOptional({ description: "Organization ID (owner only)" })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @ApiProperty({ description: "Report definition ID" })
+  @IsUUID()
+  reportDefinitionId: string;
+
+  @ApiProperty({ description: "Schedule name" })
+  @IsString()
+  @Length(1, 255)
+  name: string;
+
+  @ApiProperty({ enum: ReportFrequency })
+  @IsEnum(ReportFrequency)
+  frequency: ReportFrequency;
+
+  @ApiProperty({ description: "Schedule configuration" })
+  @ValidateNested()
+  @Type(() => ScheduleConfigDto)
+  scheduleConfig: ScheduleConfigDto;
+
+  @ApiPropertyOptional({ description: "Report parameters" })
+  @IsOptional()
+  @IsObject()
+  parameters?: Record<string, unknown>;
+
+  @ApiProperty({ enum: ExportFormat })
+  @IsEnum(ExportFormat)
+  format: ExportFormat;
+
+  @ApiProperty({ enum: ["email", "telegram", "webhook"] })
+  @IsIn(["email", "telegram", "webhook"])
+  deliveryMethod: "email" | "telegram" | "webhook";
+
+  @ApiProperty({ description: "Delivery configuration" })
+  @ValidateNested()
+  @Type(() => ScheduleDeliveryConfigDto)
+  deliveryConfig: ScheduleDeliveryConfigDto;
+}
+
+// ============================================================================
+// DASHBOARD CREATE (replaces interface CreateDashboardDto)
+// ============================================================================
+
+export class CreateDashboardBodyDto {
+  @ApiPropertyOptional({ description: "Organization ID (owner only)" })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @ApiProperty({ description: "Dashboard name" })
+  @IsString()
+  @Length(1, 255)
+  name: string;
+
+  @ApiPropertyOptional({ description: "Dashboard description" })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ enum: ["grid", "freeform"] })
+  @IsOptional()
+  @IsIn(["grid", "freeform"])
+  layout?: "grid" | "freeform";
+
+  @ApiPropertyOptional({ description: "Grid columns (1-24)" })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(24)
+  columns?: number;
+
+  @ApiPropertyOptional({ description: "Public visibility" })
+  @IsOptional()
+  @IsBoolean()
+  isPublic?: boolean;
+}
+
+// ============================================================================
+// WIDGET CREATE (replaces interface CreateWidgetDto)
+// ============================================================================
+
+export class CreateWidgetBodyDto {
+  @ApiProperty({ description: "Dashboard ID" })
+  @IsUUID()
+  dashboardId: string;
+
+  @ApiProperty({ description: "Widget title" })
+  @IsString()
+  @Length(1, 255)
+  title: string;
+
+  @ApiPropertyOptional({ description: "Chart type" })
+  @IsOptional()
+  @IsString()
+  chartType?: string;
+
+  @ApiProperty({ description: "Position X" })
+  @IsNumber()
+  @Min(0)
+  positionX: number;
+
+  @ApiProperty({ description: "Position Y" })
+  @IsNumber()
+  @Min(0)
+  positionY: number;
+
+  @ApiProperty({ description: "Widget width" })
+  @IsNumber()
+  @Min(1)
+  width: number;
+
+  @ApiProperty({ description: "Widget height" })
+  @IsNumber()
+  @Min(1)
+  height: number;
+
+  @ApiPropertyOptional({ description: "Report definition ID" })
+  @IsOptional()
+  @IsUUID()
+  definitionId?: string;
+
+  @ApiPropertyOptional({ description: "Chart configuration" })
+  @IsOptional()
+  @IsObject()
+  chartConfig?: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: "KPI configuration" })
+  @IsOptional()
+  @IsObject()
+  kpiConfig?: Record<string, unknown>;
+}
+
+// ============================================================================
+// SAVED FILTER (replaces inline body type in controller)
+// ============================================================================
+
+export class SaveFilterDto {
+  @ApiProperty({ description: "Report definition ID" })
+  @IsUUID()
+  reportDefinitionId: string;
+
+  @ApiProperty({ description: "Filter name" })
+  @IsString()
+  @Length(1, 255)
+  name: string;
+
+  @ApiProperty({ description: "Filter configuration" })
+  @IsObject()
+  filters: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: "Set as default filter" })
+  @IsOptional()
+  @IsBoolean()
+  isDefault?: boolean;
+}
+
+// ============================================================================
+// REORDER WIDGETS
+// ============================================================================
+
+export class ReorderWidgetsDto {
+  @ApiProperty({ description: "Ordered array of widget UUIDs" })
+  @IsArray()
+  @IsUUID("4", { each: true })
+  widgetIds: string[];
 }
