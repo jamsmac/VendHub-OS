@@ -15,7 +15,10 @@ import {
   ParseUUIDPipe,
   HttpStatus,
   HttpCode,
+  UseGuards,
 } from "@nestjs/common";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../../common/guards/roles.guard";
 import {
   ApiTags,
   ApiOperation,
@@ -41,6 +44,7 @@ import {
 
 @ApiTags("Washing Schedules")
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("washing-schedules")
 export class WashingScheduleController {
   constructor(
