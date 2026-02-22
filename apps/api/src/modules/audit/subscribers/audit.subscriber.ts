@@ -52,7 +52,10 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     @InjectDataSource() private dataSource: DataSource,
     private readonly cls: ClsService,
   ) {
-    dataSource.subscribers.push(this);
+    // Guard: TypeORM's own container may instantiate this before NestJS DI is ready
+    if (dataSource?.subscribers) {
+      dataSource.subscribers.push(this);
+    }
   }
 
   /**
