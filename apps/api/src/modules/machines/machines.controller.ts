@@ -43,6 +43,7 @@ import {
   CompleteMaintenanceDto,
 } from "./dto/machine-location.dto";
 import { MachineStatus } from "./entities/machine.entity";
+import { UpdateMachineStatusDto } from "./dto/machine-operations.dto";
 
 @ApiTags("machines")
 @Controller("machines")
@@ -196,7 +197,7 @@ export class MachinesController {
   @ApiResponse({ status: 200, description: "Status updated" })
   async updateStatus(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("status") status: MachineStatus,
+    @Body() dto: UpdateMachineStatusDto,
     @CurrentUser() user: User,
   ) {
     const machine = await this.machinesService.findById(id);
@@ -206,7 +207,7 @@ export class MachinesController {
       }
     }
 
-    return this.machinesService.updateStatus(id, status);
+    return this.machinesService.updateStatus(id, dto.status);
   }
 
   @Patch(":id/telemetry")

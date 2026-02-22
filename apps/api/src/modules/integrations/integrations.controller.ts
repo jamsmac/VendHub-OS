@@ -31,12 +31,19 @@ import {
   CreatePaymentRequest,
 } from "./services/payment-executor.service";
 import {
-  IntegrationStatus,
   IntegrationCategory,
   PaymentIntegrationConfig,
   AIParseRequest,
 } from "./types/integration.types";
 import { templates, getTemplate, searchTemplates } from "./templates";
+import {
+  CreateIntegrationBodyDto,
+  UpdateIntegrationBodyDto,
+  UpdateCredentialsDto,
+  UpdateIntegrationStatusDto,
+  StartAISessionDto,
+  SendAIMessageDto,
+} from "./dto/integration-operations.dto";
 
 @ApiTags("Integrations")
 @Controller("integrations")
@@ -79,20 +86,12 @@ export class IntegrationsController {
   @Roles("admin")
   @ApiOperation({ summary: "Create new integration" })
   async create(
-    @Body()
-    data: {
-      name: string;
-      displayName: string;
-      category: IntegrationCategory;
-      description?: string;
-      templateId?: string;
-      documentationUrl?: string;
-    },
+    @Body() dto: CreateIntegrationBodyDto,
     @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.create(
       req.user.organizationId,
-      data,
+      dto,
       req.user.id,
     );
   }
@@ -102,19 +101,13 @@ export class IntegrationsController {
   @ApiOperation({ summary: "Update integration" })
   async update(
     @Param("id") id: string,
-    @Body()
-    data: Partial<{
-      displayName: string;
-      description: string;
-      priority: number;
-      sandboxMode: boolean;
-    }>,
+    @Body() dto: UpdateIntegrationBodyDto,
     @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.update(
       id,
       req.user.organizationId,
-      data,
+      dto,
       req.user.id,
     );
   }
@@ -140,18 +133,14 @@ export class IntegrationsController {
   @ApiOperation({ summary: "Update integration credentials" })
   async updateCredentials(
     @Param("id") id: string,
-    @Body()
-    data: {
-      credentials: Record<string, string>;
-      isSandbox: boolean;
-    },
+    @Body() dto: UpdateCredentialsDto,
     @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.updateCredentials(
       id,
       req.user.organizationId,
-      data.credentials,
-      data.isSandbox,
+      dto.credentials,
+      dto.isSandbox,
       req.user.id,
     );
   }
@@ -161,13 +150,13 @@ export class IntegrationsController {
   @ApiOperation({ summary: "Update integration status" })
   async updateStatus(
     @Param("id") id: string,
-    @Body() data: { status: IntegrationStatus },
+    @Body() dto: UpdateIntegrationStatusDto,
     @Req() req: Request & { user: ICurrentUser },
   ) {
     return this.integrationService.updateStatus(
       id,
       req.user.organizationId,
-      data.status,
+      dto.status,
       req.user.id,
     );
   }
@@ -248,7 +237,7 @@ export class IntegrationsController {
   @ApiOperation({ summary: "Start AI configuration session" })
   async startAISession(
     @Param("id") id: string,
-    @Body() data: { documentationUrl?: string },
+    @Body() dto: StartAISessionDto,
     @Req() req: Request & { user: ICurrentUser },
   ) {
     const integration = await this.integrationService.findOne(
@@ -258,7 +247,7 @@ export class IntegrationsController {
     return this.aiParserService.startConfigSession(
       id,
       integration.config,
-      data.documentationUrl,
+      dto.documentationUrl,
     );
   }
 
@@ -267,9 +256,9 @@ export class IntegrationsController {
   @ApiOperation({ summary: "Send message to AI configuration session" })
   async sendAIMessage(
     @Param("sessionId") sessionId: string,
-    @Body() data: { message: string },
+    @Body() dto: SendAIMessageDto,
   ) {
-    return this.aiParserService.continueConversation(sessionId, data.message);
+    return this.aiParserService.continueConversation(sessionId, dto.message);
   }
 
   @Get("ai/session/:sessionId")

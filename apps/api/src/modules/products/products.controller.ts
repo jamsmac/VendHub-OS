@@ -170,10 +170,12 @@ export class ProductsController {
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() data: UpdateProductDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.productsService.update(
       id,
-      data as Parameters<typeof this.productsService.update>[1],
+      user.organizationId,
+      data as Parameters<typeof this.productsService.update>[2],
     );
   }
 
@@ -181,8 +183,11 @@ export class ProductsController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete product" })
   @ApiParam({ name: "id", type: String })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.productsService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.remove(id, user.organizationId);
   }
 
   // ===========================================================================

@@ -9,7 +9,7 @@ import {
   UseGuards,
   Query,
   ParseUUIDPipe,
-  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -122,13 +122,7 @@ export class RoutesController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    const route = await this.routesService.findById(id);
-    if (route && route.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this route");
-      }
-    }
-    return route;
+    return this.routesService.findById(id, user.organizationId);
   }
 
   @Patch(":id")
@@ -379,11 +373,12 @@ export class RoutesController {
   // ============================================================================
 
   private async verifyRouteAccess(routeId: string, user: User): Promise<void> {
-    const route = await this.routesService.findById(routeId);
-    if (route && route.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this route");
-      }
+    const route = await this.routesService.findById(
+      routeId,
+      user.organizationId,
+    );
+    if (!route) {
+      throw new NotFoundException(`Route with ID ${routeId} not found`);
     }
   }
 }

@@ -47,6 +47,7 @@ import {
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
+import { CleanupNotificationsDto } from "./dto/notification-operations.dto";
 
 @ApiTags("Notifications")
 @ApiBearerAuth()
@@ -356,8 +357,10 @@ export class NotificationsController {
   @ApiOperation({ summary: "Cleanup old notifications" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
-  async cleanup(@Body("olderThanDays") days: number = 90) {
-    const deleted = await this.notificationsService.deleteOld(days);
+  async cleanup(@Body() dto: CleanupNotificationsDto) {
+    const deleted = await this.notificationsService.deleteOld(
+      dto.olderThanDays ?? 90,
+    );
     return { deleted };
   }
 

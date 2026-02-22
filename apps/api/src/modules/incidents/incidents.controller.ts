@@ -42,6 +42,7 @@ import {
   CurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
+import { ResolveIncidentDto } from "./dto/incident-operations.dto";
 
 @ApiTags("Incidents")
 @ApiBearerAuth()
@@ -177,11 +178,11 @@ export class IncidentsController {
   @HttpCode(HttpStatus.OK)
   async resolve(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("resolution") resolution: string,
+    @Body() dto: ResolveIncidentDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
-    return this.incidentsService.resolve(id, resolution, userId, orgId);
+    return this.incidentsService.resolve(id, dto.resolution, userId, orgId);
   }
 
   @Post(":id/close")

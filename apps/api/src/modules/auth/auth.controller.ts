@@ -24,6 +24,12 @@ import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { Verify2FADto } from "./dto/two-factor.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import {
+  Complete2FALoginDto,
+  FirstLoginChangePasswordDto,
+  ValidateResetTokenDto,
+  Disable2FADto,
+} from "./dto/auth-operations.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
@@ -159,14 +165,14 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "Login completed" })
   @ApiResponse({ status: 401, description: "Invalid 2FA code" })
   async complete2FALogin(
-    @Body() body: { userId: string; totpCode?: string; backupCode?: string },
+    @Body() dto: Complete2FALoginDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") userAgent: string,
   ) {
     return this.authService.complete2FALogin(
-      body.userId,
-      body.totpCode,
-      body.backupCode,
+      dto.userId,
+      dto.totpCode,
+      dto.backupCode,
       ipAddress,
       userAgent,
     );
@@ -183,15 +189,14 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: "Password change not required" })
   async firstLoginChangePassword(
-    @Body()
-    body: { userId: string; currentPassword: string; newPassword: string },
+    @Body() dto: FirstLoginChangePasswordDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") userAgent: string,
   ) {
     return this.authService.firstLoginChangePassword(
-      body.userId,
-      body.currentPassword,
-      body.newPassword,
+      dto.userId,
+      dto.currentPassword,
+      dto.newPassword,
       ipAddress,
       userAgent,
     );
@@ -203,8 +208,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Validate password reset token" })
   @ApiResponse({ status: 200, description: "Token validation result" })
-  async validateResetToken(@Body("token") token: string) {
-    return this.authService.validateResetToken(token);
+  async validateResetToken(@Body() dto: ValidateResetTokenDto) {
+    return this.authService.validateResetToken(dto.token);
   }
 
   // ============================================================================
@@ -238,11 +243,8 @@ export class AuthController {
   @ApiOperation({ summary: "Disable two-factor authentication" })
   @ApiResponse({ status: 200, description: "2FA disabled successfully" })
   @ApiResponse({ status: 400, description: "Invalid password" })
-  async disable2FA(
-    @CurrentUser() user: User,
-    @Body("password") password: string,
-  ) {
-    return this.authService.disable2FA(user.id, password);
+  async disable2FA(@CurrentUser() user: User, @Body() dto: Disable2FADto) {
+    return this.authService.disable2FA(user.id, dto.password);
   }
 
   @Post("2fa/backup-codes")

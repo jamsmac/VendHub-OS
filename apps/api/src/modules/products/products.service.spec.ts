@@ -258,7 +258,7 @@ describe("ProductsService", () => {
       productRepository.findOne.mockResolvedValue(mockProduct);
       productRepository.save.mockResolvedValue(updatedProduct);
 
-      const result = await service.update("product-uuid-1", {
+      const result = await service.update("product-uuid-1", "org-1", {
         name: "Espresso",
       });
 
@@ -269,7 +269,7 @@ describe("ProductsService", () => {
       productRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update("non-existent", { name: "Espresso" }),
+        service.update("non-existent", "org-1", { name: "Espresso" }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -280,7 +280,7 @@ describe("ProductsService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       productRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("product-uuid-1");
+      await service.remove("product-uuid-1", "org-1");
 
       expect(productRepository.softDelete).toHaveBeenCalledWith(
         "product-uuid-1",
@@ -290,7 +290,7 @@ describe("ProductsService", () => {
     it("should throw NotFoundException when product not found", async () => {
       productRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove("non-existent")).rejects.toThrow(
+      await expect(service.remove("non-existent", "org-1")).rejects.toThrow(
         NotFoundException,
       );
     });

@@ -85,8 +85,11 @@ export class AccessRequestsController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get access request by ID" })
   @ApiParam({ name: "id", type: String })
-  findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.accessRequestsService.findById(id);
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.accessRequestsService.findById(id, user.organizationId);
   }
 
   @Post(":id/approve")
@@ -121,6 +124,11 @@ export class AccessRequestsController {
     @Body() dto: RejectAccessRequestDto,
     @CurrentUser() user: ICurrentUser,
   ) {
-    return this.accessRequestsService.reject(id, user.id, dto);
+    return this.accessRequestsService.reject(
+      id,
+      user.id,
+      user.organizationId,
+      dto,
+    );
   }
 }

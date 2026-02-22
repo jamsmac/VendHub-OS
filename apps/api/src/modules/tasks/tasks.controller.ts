@@ -38,6 +38,10 @@ import {
   PostponeTaskDto,
   RejectTaskDto,
 } from "./dto/task-component.dto";
+import {
+  UploadPhotoBeforeDto,
+  UploadPhotoAfterDto,
+} from "./dto/task-operations.dto";
 
 @ApiTags("tasks")
 @Controller("tasks")
@@ -286,13 +290,13 @@ export class TasksController {
   @ApiResponse({ status: 404, description: "Task not found" })
   uploadPhotoBefore(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() data: { photoUrl: string; latitude?: number; longitude?: number },
+    @Body() dto: UploadPhotoBeforeDto,
   ) {
     const location =
-      data.latitude !== undefined && data.longitude !== undefined
-        ? { latitude: data.latitude, longitude: data.longitude }
+      dto.latitude !== undefined && dto.longitude !== undefined
+        ? { latitude: dto.latitude, longitude: dto.longitude }
         : undefined;
-    return this.tasksService.uploadPhotoBefore(id, data.photoUrl, location);
+    return this.tasksService.uploadPhotoBefore(id, dto.photoUrl, location);
   }
 
   @Post(":id/photo-after")
@@ -307,22 +311,16 @@ export class TasksController {
   @ApiResponse({ status: 404, description: "Task not found" })
   uploadPhotoAfter(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body()
-    data: {
-      photoUrl: string;
-      completionNotes?: string;
-      latitude?: number;
-      longitude?: number;
-    },
+    @Body() dto: UploadPhotoAfterDto,
   ) {
     const location =
-      data.latitude !== undefined && data.longitude !== undefined
-        ? { latitude: data.latitude, longitude: data.longitude }
+      dto.latitude !== undefined && dto.longitude !== undefined
+        ? { latitude: dto.latitude, longitude: dto.longitude }
         : undefined;
     return this.tasksService.uploadPhotoAfter(
       id,
-      data.photoUrl,
-      data.completionNotes,
+      dto.photoUrl,
+      dto.completionNotes,
       location,
     );
   }

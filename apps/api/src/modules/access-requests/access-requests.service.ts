@@ -104,12 +104,20 @@ export class AccessRequestsService {
     };
   }
 
-  async findById(id: string): Promise<AccessRequest> {
+  async findById(id: string, organizationId?: string): Promise<AccessRequest> {
     const request = await this.accessRequestRepository.findOne({
       where: { id },
       relations: ["processedBy", "createdUser"],
     });
     if (!request) {
+      throw new NotFoundException(`Access request with ID ${id} not found`);
+    }
+    // If orgId provided, verify request belongs to this org (or is unclaimed)
+    if (
+      organizationId &&
+      request.organizationId &&
+      request.organizationId !== organizationId
+    ) {
       throw new NotFoundException(`Access request with ID ${id} not found`);
     }
     return request;
@@ -121,7 +129,7 @@ export class AccessRequestsService {
     organizationId: string,
     dto: ApproveAccessRequestDto,
   ): Promise<AccessRequest> {
-    const request = await this.findById(id);
+    const request = await this.findById(id, organizationId);
 
     if (request.status !== AccessRequestStatus.NEW) {
       throw new BadRequestException(
@@ -157,9 +165,10 @@ export class AccessRequestsService {
   async reject(
     id: string,
     adminUserId: string,
+    organizationId: string,
     dto: RejectAccessRequestDto,
   ): Promise<AccessRequest> {
-    const request = await this.findById(id);
+    const request = await this.findById(id, organizationId);
 
     if (request.status !== AccessRequestStatus.NEW) {
       throw new BadRequestException(

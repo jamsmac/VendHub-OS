@@ -45,6 +45,10 @@ import {
   FavoriteStatusDto,
   FavoriteStatusBulkDto,
 } from "./dto/favorite.dto";
+import {
+  CheckProductStatusBulkDto,
+  CheckMachineStatusBulkDto,
+} from "./dto/favorite-operations.dto";
 
 @ApiTags("Favorites")
 @ApiBearerAuth()
@@ -247,12 +251,12 @@ export class FavoritesController {
   })
   async checkProductsStatusBulk(
     @CurrentUser() user: User,
-    @Body() body: { productIds: string[] },
+    @Body() dto: CheckProductStatusBulkDto,
   ): Promise<FavoriteStatusBulkDto> {
     return this.favoritesService.isFavoriteBulk(
       user.id,
       FavoriteType.PRODUCT,
-      body.productIds,
+      dto.productIds,
     );
   }
 
@@ -264,12 +268,12 @@ export class FavoritesController {
   })
   async checkMachinesStatusBulk(
     @CurrentUser() user: User,
-    @Body() body: { machineIds: string[] },
+    @Body() dto: CheckMachineStatusBulkDto,
   ): Promise<FavoriteStatusBulkDto> {
     return this.favoritesService.isFavoriteBulk(
       user.id,
       FavoriteType.MACHINE,
-      body.machineIds,
+      dto.machineIds,
     );
   }
 

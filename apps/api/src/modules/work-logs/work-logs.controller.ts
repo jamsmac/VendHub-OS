@@ -52,6 +52,7 @@ import {
 } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
+import { BulkApproveWorkLogsDto } from "./dto/work-log-operations.dto";
 
 @ApiTags("Work Logs")
 @ApiBearerAuth()
@@ -233,11 +234,10 @@ export class WorkLogsController {
   @ApiOperation({ summary: "Bulk approve work logs" })
   async bulkApprove(
     @CurrentOrganizationId() organizationId: string,
-
     @CurrentUser() user: ICurrentUser,
-    @Body("ids") ids: string[],
+    @Body() dto: BulkApproveWorkLogsDto,
   ) {
-    return this.workLogsService.bulkApprove(organizationId, ids, user.id);
+    return this.workLogsService.bulkApprove(organizationId, dto.ids, user.id);
   }
 
   // ========================================================================

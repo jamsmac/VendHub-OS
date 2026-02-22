@@ -23,27 +23,29 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from "@nestjs/swagger";
-import {
-  TransactionsService,
-  CreateTransactionDto,
-  ProcessPaymentDto,
-  DispenseResultDto,
-  QueryTransactionsDto,
-} from "./transactions.service";
+import { TransactionsService } from "./transactions.service";
 import {
   TransactionStatus,
   PaymentMethod,
   CommissionStatus,
 } from "./entities/transaction.entity";
+import {
+  CreateTransactionBodyDto,
+  ProcessPaymentBodyDto,
+  DispenseResultBodyDto,
+  CancelTransactionDto,
+  CreateRefundDto,
+  ProcessRefundDto,
+  QueryTransactionsBodyDto,
+  FiscalDataDto,
+} from "./dto/transaction-operations.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentOrganizationId,
   CurrentUserId,
-  CurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
-import { UserRole } from "../../common/enums";
 import {
   CreateCollectionRecordDto,
   VerifyCollectionDto,
@@ -72,18 +74,12 @@ export class TransactionsController {
   @ApiOperation({ summary: "Create new transaction" })
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @Body() dto: CreateTransactionDto,
+    @Body() dto: CreateTransactionBodyDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
     return this.transactionsService.create({
       ...dto,
-      organizationId,
+      organizationId: orgId,
     });
   }
 
@@ -93,7 +89,7 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   async processPayment(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() dto: Omit<ProcessPaymentDto, "transactionId">,
+    @Body() dto: ProcessPaymentBodyDto,
   ) {
     return this.transactionsService.processPayment({
       ...dto,
@@ -107,7 +103,7 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   async recordDispense(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() dto: Omit<DispenseResultDto, "transactionId">,
+    @Body() dto: DispenseResultBodyDto,
   ) {
     return this.transactionsService.recordDispense({
       ...dto,
@@ -121,9 +117,9 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   async cancel(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("reason") reason: string,
+    @Body() dto: CancelTransactionDto,
   ) {
-    return this.transactionsService.cancel(id, reason);
+    return this.transactionsService.cancel(id, dto.reason);
   }
 
   // ============================================================================
@@ -152,7 +148,7 @@ export class TransactionsController {
   @ApiQuery({ name: "limit", required: false })
   @Roles("owner", "admin", "manager", "accountant")
   async query(
-    @Query() query: Omit<QueryTransactionsDto, "organizationId">,
+    @Query() query: QueryTransactionsBodyDto,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.transactionsService.query({
@@ -348,15 +344,21 @@ export class TransactionsController {
   @Get(":id")
   @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Get transaction by ID" })
-  async findById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.transactionsService.findById(id);
+  async findById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.transactionsService.findById(id, orgId);
   }
 
   @Get("number/:number")
   @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Get transaction by number" })
-  async findByNumber(@Param("number") number: string) {
-    return this.transactionsService.findByNumber(number);
+  async findByNumber(
+    @Param("number") number: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.transactionsService.findByNumber(number, orgId);
   }
 
   // ============================================================================
@@ -369,9 +371,9 @@ export class TransactionsController {
   @HttpCode(HttpStatus.CREATED)
   async createRefund(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { amount: number; reason: string },
+    @Body() dto: CreateRefundDto,
   ) {
-    return this.transactionsService.createRefund(id, body.amount, body.reason);
+    return this.transactionsService.createRefund(id, dto.amount, dto.reason);
   }
 
   @Post("refunds/:refundId/process")
@@ -380,12 +382,12 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   async processRefund(
     @Param("refundId", ParseUUIDPipe) refundId: string,
-    @Body() body: { success: boolean; referenceNumber?: string },
+    @Body() dto: ProcessRefundDto,
   ) {
     return this.transactionsService.processRefund(
       refundId,
-      body.success,
-      body.referenceNumber,
+      dto.success,
+      dto.referenceNumber,
     );
   }
 
@@ -399,14 +401,8 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   async fiscalize(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body()
-    fiscalData: Partial<{
-      receiptNumber: string;
-      fiscalSign: string;
-      qrCode: string;
-      ofdName: string;
-    }>,
+    @Body() dto: FiscalDataDto,
   ) {
-    return this.transactionsService.fiscalize(id, fiscalData);
+    return this.transactionsService.fiscalize(id, dto);
   }
 }

@@ -122,9 +122,13 @@ export class RoutesService {
     };
   }
 
-  async findById(id: string): Promise<Route | null> {
+  async findById(id: string, organizationId?: string): Promise<Route | null> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     return this.routeRepository.findOne({
-      where: { id },
+      where,
       relations: ["stops"],
       order: { stops: { sequence: "ASC" } },
     });

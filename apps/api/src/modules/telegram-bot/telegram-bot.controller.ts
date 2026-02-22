@@ -41,6 +41,7 @@ import {
   QueryAnalyticsDto,
   QueryMessagesDto,
 } from "./dto/telegram-settings.dto";
+import { SendNotificationBodyDto } from "./dto/telegram-bot-operations.dto";
 
 @ApiTags("Telegram Bot")
 @Controller("telegram-bot")
@@ -91,10 +92,10 @@ export class TelegramBotController {
   @ApiParam({ name: "userId", description: "User UUID" })
   async sendNotification(
     @Param("userId") _userId: string,
-    @Body() _body: { message: string },
+    @Body() _dto: SendNotificationBodyDto,
   ) {
     // This would require auth guard in production
-    // await this.telegramBotService.sendDirectMessage(userId, body.message);
+    // await this.telegramBotService.sendDirectMessage(userId, dto.message);
     return { sent: true };
   }
 

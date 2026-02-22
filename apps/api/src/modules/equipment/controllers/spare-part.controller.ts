@@ -33,6 +33,7 @@ import {
   SparePartQueryDto,
 } from "../dto/create-spare-part.dto";
 import { SparePart } from "../entities/equipment-component.entity";
+import { AdjustQuantityDto } from "../dto/spare-part-operations.dto";
 
 import { Roles } from "../../../common/decorators/roles.decorator";
 import {
@@ -108,9 +109,13 @@ export class SparePartController {
   async adjustQuantity(
     @CurrentOrganizationId() organizationId: string,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("adjustment") adjustment: number,
+    @Body() dto: AdjustQuantityDto,
   ): Promise<SparePart> {
-    return this.sparePartService.adjustQuantity(organizationId, id, adjustment);
+    return this.sparePartService.adjustQuantity(
+      organizationId,
+      id,
+      dto.adjustment,
+    );
   }
 
   @Delete(":id")

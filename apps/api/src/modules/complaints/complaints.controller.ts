@@ -38,6 +38,14 @@ import {
   ComplaintSource,
 } from "./entities/complaint.entity";
 import { CreatePublicComplaintDto } from "./dto/create-public-complaint.dto";
+import {
+  ResolveComplaintDto,
+  EscalateComplaintDto,
+  SubmitFeedbackDto,
+  AddCommentDto,
+  ProcessRefundReferenceDto,
+  RejectRefundReasonDto,
+} from "./dto/complaint-operations.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
@@ -228,10 +236,10 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.OK)
   async resolve(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("resolution") resolution: string,
+    @Body() dto: ResolveComplaintDto,
     @CurrentUserId() userId: string,
   ) {
-    return this.complaintsService.resolve(id, resolution, userId);
+    return this.complaintsService.resolve(id, dto.resolution, userId);
   }
 
   @Post(":id/escalate")
@@ -240,10 +248,10 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.OK)
   async escalate(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("reason") reason: string,
+    @Body() dto: EscalateComplaintDto,
     @CurrentUserId() userId: string,
   ) {
-    return this.complaintsService.escalate(id, reason, userId);
+    return this.complaintsService.escalate(id, dto.reason, userId);
   }
 
   @Post(":id/feedback")
@@ -253,9 +261,9 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.OK)
   async submitFeedback(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { rating: number; comment?: string },
+    @Body() dto: SubmitFeedbackDto,
   ) {
-    return this.complaintsService.submitFeedback(id, body.rating, body.comment);
+    return this.complaintsService.submitFeedback(id, dto.rating, dto.comment);
   }
 
   // ============================================================================
@@ -287,16 +295,15 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.CREATED)
   async addComment(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body()
-    body: { content: string; isInternal?: boolean; attachments?: string[] },
+    @Body() dto: AddCommentDto,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.addComment({
       complaintId: id,
       userId,
-      isInternal: body.isInternal || false,
-      content: body.content,
-      attachments: body.attachments,
+      isInternal: dto.isInternal || false,
+      content: dto.content,
+      attachments: dto.attachments,
     });
   }
 
@@ -337,13 +344,13 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.OK)
   async processRefund(
     @Param("refundId", ParseUUIDPipe) refundId: string,
-    @Body("referenceNumber") referenceNumber: string,
+    @Body() dto: ProcessRefundReferenceDto,
     @CurrentUserId() userId: string,
   ) {
     return this.complaintsService.processRefund(
       refundId,
       userId,
-      referenceNumber,
+      dto.referenceNumber,
     );
   }
 
@@ -353,10 +360,10 @@ export class ComplaintsController {
   @HttpCode(HttpStatus.OK)
   async rejectRefund(
     @Param("refundId", ParseUUIDPipe) refundId: string,
-    @Body("reason") reason: string,
+    @Body() dto: RejectRefundReasonDto,
     @CurrentUserId() userId: string,
   ) {
-    return this.complaintsService.rejectRefund(refundId, userId, reason);
+    return this.complaintsService.rejectRefund(refundId, userId, dto.reason);
   }
 
   // ============================================================================

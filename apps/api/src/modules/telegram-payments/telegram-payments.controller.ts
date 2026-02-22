@@ -34,7 +34,6 @@ import {
   CreateInvoiceDto,
   CreateInvoiceLinkDto,
   PreCheckoutQueryDto,
-  SuccessfulPaymentDto,
   RefundPaymentDto,
   PaymentFilterDto,
   InvoiceResponseDto,
@@ -43,6 +42,7 @@ import {
   PaymentStatsDto,
   WebhookResponseDto,
 } from "./dto/telegram-payment.dto";
+import { HandleSuccessfulPaymentBodyDto } from "./dto/telegram-payment-operations.dto";
 
 @ApiTags("Telegram Payments")
 @Controller("telegram-payments")
@@ -165,12 +165,12 @@ export class TelegramPaymentsController {
   @ApiResponse({ status: 200, type: PaymentDto })
   async handleSuccessfulPayment(
     @Headers("x-telegram-bot-api-secret-token") secretToken: string,
-    @Body() body: { telegramUserId: number; payment: SuccessfulPaymentDto },
+    @Body() dto: HandleSuccessfulPaymentBodyDto,
   ): Promise<PaymentDto> {
     this.validateWebhookSecret(secretToken);
     return this.paymentsService.handleSuccessfulPayment(
-      body.telegramUserId,
-      body.payment,
+      dto.telegramUserId,
+      dto.payment,
     );
   }
 

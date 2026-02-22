@@ -81,8 +81,8 @@ export interface QueryTransactionsDto {
   operatorId?: string;
   status?: TransactionStatus[];
   paymentMethod?: PaymentMethod[];
-  dateFrom?: Date;
-  dateTo?: Date;
+  dateFrom?: Date | string;
+  dateTo?: Date | string;
   minAmount?: number;
   maxAmount?: number;
   hasError?: boolean;
@@ -196,12 +196,15 @@ export class TransactionsService {
   // QUERIES (delegated to TransactionQueryService)
   // ============================================================================
 
-  async findById(id: string): Promise<Transaction> {
-    return this.queryService.findById(id);
+  async findById(id: string, organizationId?: string): Promise<Transaction> {
+    return this.queryService.findById(id, organizationId);
   }
 
-  async findByNumber(transactionNumber: string): Promise<Transaction> {
-    return this.queryService.findByNumber(transactionNumber);
+  async findByNumber(
+    transactionNumber: string,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    return this.queryService.findByNumber(transactionNumber, organizationId);
   }
 
   async query(query: QueryTransactionsDto) {

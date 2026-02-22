@@ -30,9 +30,13 @@ export class TransactionQueryService {
     private itemRepo: Repository<TransactionItem>,
   ) {}
 
-  async findById(id: string): Promise<Transaction> {
+  async findById(id: string, organizationId?: string): Promise<Transaction> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     const transaction = await this.transactionRepo.findOne({
-      where: { id },
+      where,
       relations: ["items"],
     });
 
@@ -43,9 +47,16 @@ export class TransactionQueryService {
     return transaction;
   }
 
-  async findByNumber(transactionNumber: string): Promise<Transaction> {
+  async findByNumber(
+    transactionNumber: string,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    const where: Record<string, unknown> = { transactionNumber };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     const transaction = await this.transactionRepo.findOne({
-      where: { transactionNumber },
+      where,
       relations: ["items"],
     });
 

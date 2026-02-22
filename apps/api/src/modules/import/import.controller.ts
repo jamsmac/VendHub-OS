@@ -56,6 +56,7 @@ import {
   QueryImportSessionsDto,
   QueryAuditLogDto,
 } from "./dto/import-session.dto";
+import { ValidateImportDataDto } from "./dto/import-operations.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -214,21 +215,21 @@ export class ImportController {
   async validateImport(
     @CurrentOrganizationId() organizationId: string,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { rows: ImportRowData[]; mapping?: Record<string, string> },
+    @Body() dto: ValidateImportDataDto,
   ) {
     const job = await this.importService.getImportJob(organizationId, id);
 
     const result = await this.importService.validateImportData(
       organizationId,
       id,
-      body.rows,
+      dto.rows,
       job.importType,
-      body.mapping,
+      dto.mapping,
     );
 
     return {
       jobId: id,
-      totalRows: body.rows.length,
+      totalRows: dto.rows.length,
       validRows: result.validRows.length,
       invalidRows: result.invalidRows.length,
       errors: result.invalidRows.flatMap((r) =>
@@ -250,7 +251,7 @@ export class ImportController {
     @CurrentOrganizationId() organizationId: string,
     @CurrentUser() user: ICurrentUser,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() _body: { rows: ImportRowData[]; mapping?: Record<string, string> },
+    @Body() _dto: ValidateImportDataDto,
   ) {
     // This would trigger the actual import process
     // For a full implementation, this would be a background job

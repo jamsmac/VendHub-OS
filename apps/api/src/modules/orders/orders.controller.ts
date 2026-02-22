@@ -33,6 +33,7 @@ import {
 } from "./dto/order.dto";
 import { CurrentUser, Roles } from "../../common/decorators";
 import { OrderStatus } from "./entities/order.entity";
+import { CancelOrderDto } from "./dto/order-operations.dto";
 
 @ApiTags("Orders")
 @ApiBearerAuth()
@@ -258,11 +259,11 @@ export class OrdersController {
   async cancel(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser("organizationId") organizationId: string,
-    @Body("reason") reason?: string,
+    @Body() dto: CancelOrderDto,
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
       status: OrderStatus.CANCELLED,
-      reason,
+      reason: dto.reason,
     });
   }
 }

@@ -32,6 +32,7 @@ import {
   MapMachinesResultDto,
   StaticMapResultDto,
 } from "./dto/geo.dto";
+import { CalculateDistanceDto } from "./dto/geo-operations.dto";
 
 @ApiTags("Geo")
 @Controller("geo")
@@ -304,12 +305,10 @@ export class GeoController {
     summary: "Calculate distance",
     description: "Рассчитать расстояние между двумя точками",
   })
-  async calculateDistance(
-    @Body() body: { from: CoordinatesDto; to: CoordinatesDto },
-  ) {
+  async calculateDistance(@Body() dto: CalculateDistanceDto) {
     const distance = this.geoService.calculateDistance(
-      { latitude: body.from.lat, longitude: body.from.lng },
-      { latitude: body.to.lat, longitude: body.to.lng },
+      { latitude: dto.from.lat, longitude: dto.from.lng },
+      { latitude: dto.to.lat, longitude: dto.to.lng },
     );
     return {
       distance,

@@ -32,6 +32,7 @@ import {
 } from "./dto/create-warehouse.dto";
 import { CreateStockMovementDto } from "./dto/create-stock-movement.dto";
 import { CreateInventoryBatchDto } from "./dto/create-inventory-batch.dto";
+import { TransferStockDto } from "./dto/warehouse-operations.dto";
 import {
   WarehouseType,
   StockMovementType,
@@ -302,29 +303,21 @@ export class WarehouseController {
   @ApiResponse({ status: 404, description: "Warehouse not found" })
   async transferStock(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body()
-    body: {
-      toWarehouseId: string;
-      productId: string;
-      quantity: number;
-      referenceNumber?: string;
-      cost?: number;
-      notes?: string;
-    },
+    @Body() dto: TransferStockDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyWarehouseAccess(id, user);
     return this.warehouseService.transferStock(
       user.organizationId,
       id,
-      body.toWarehouseId,
-      body.productId,
-      body.quantity,
+      dto.toWarehouseId,
+      dto.productId,
+      dto.quantity,
       user.id,
       {
-        referenceNumber: body.referenceNumber,
-        cost: body.cost,
-        notes: body.notes,
+        referenceNumber: dto.referenceNumber,
+        cost: dto.cost,
+        notes: dto.notes,
       },
     );
   }

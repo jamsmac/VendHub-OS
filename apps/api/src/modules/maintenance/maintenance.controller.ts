@@ -59,6 +59,7 @@ import {
 } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
+import { CancelMaintenanceDto } from "./dto/maintenance-operations.dto";
 
 @ApiTags("Maintenance")
 @ApiBearerAuth()
@@ -265,9 +266,14 @@ export class MaintenanceController {
     @CurrentOrganizationId() organizationId: string,
     @CurrentUser() user: ICurrentUser,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("reason") reason: string,
+    @Body() dto: CancelMaintenanceDto,
   ): Promise<MaintenanceRequest> {
-    return this.maintenanceService.cancel(organizationId, id, user.id, reason);
+    return this.maintenanceService.cancel(
+      organizationId,
+      id,
+      user.id,
+      dto.reason,
+    );
   }
 
   // ========================================================================
