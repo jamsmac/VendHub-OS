@@ -143,6 +143,10 @@ export class Trip extends BaseEntity {
   @Column({ type: "bigint", nullable: true })
   telegramMessageId: number | null;
 
+  // Taxi / cost tracking
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
+  taxiTotalAmount: number | null;
+
   // Notes
   @Column({ type: "text", nullable: true })
   notes: string | null;
