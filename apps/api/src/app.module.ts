@@ -11,6 +11,7 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as Joi from "joi";
+import { databaseConfig, redisConfig, appConfig } from "./config/env.config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
@@ -123,6 +124,7 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
       isGlobal: true,
       envFilePath: [".env.local", ".env"],
       cache: true,
+      load: [databaseConfig, redisConfig, appConfig],
       validationSchema: Joi.object({
         // Server
         NODE_ENV: Joi.string()
