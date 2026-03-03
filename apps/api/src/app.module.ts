@@ -97,6 +97,10 @@ import { WebPushModule } from "./modules/web-push/web-push.module";
 import { DataParserModule } from "./modules/data-parser/data-parser.module";
 import { AgentBridgeModule } from "./modules/agent-bridge/agent-bridge.module";
 import { FcmModule } from "./modules/fcm/fcm.module";
+import { CashFinanceModule } from "./modules/cash-finance/cash-finance.module";
+import { CollectionsModule } from "./modules/collections/collections.module";
+import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
+import { Vhm24IntegrationModule } from "./modules/vhm24-integration/vhm24-integration.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -270,7 +274,9 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const isAgent = configService.get("AGENT_MODE") === "true";
+        const isAgent =
+          configService.get("AGENT_MODE") === "true" &&
+          configService.get("NODE_ENV") !== "production";
         return {
           throttlers: isAgent
             ? [{ name: "agent", ttl: 1000, limit: 10000 }]
@@ -548,6 +554,18 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Firebase Cloud Messaging (Mobile Push Notifications)
     FcmModule,
+
+    // Cash & Finance Management
+    CashFinanceModule,
+
+    // Collections & Payment Recovery
+    CollectionsModule,
+
+    // Trip Analytics & Performance Metrics
+    TripAnalyticsModule,
+
+    // VHM24 System Integration
+    Vhm24IntegrationModule,
   ],
   providers: [
     // ============================================

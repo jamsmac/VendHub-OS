@@ -30,7 +30,17 @@ import { AppModule } from "./app.module";
 import { AppLoggerService } from "./common/services/logger.service";
 import { SanitizePipe } from "./common/pipes/sanitize.pipe";
 
-const isAgentMode = process.env.AGENT_MODE === "true";
+const isAgentMode =
+  process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
+
+if (
+  process.env.AGENT_MODE === "true" &&
+  process.env.NODE_ENV === "production"
+) {
+  console.error(
+    "⛔ CRITICAL: AGENT_MODE cannot be enabled in production! Ignoring.",
+  );
+}
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");

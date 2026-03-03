@@ -21,7 +21,8 @@ const AGENT_USER: ICurrentUser = {
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
-  private readonly agentMode = process.env.AGENT_MODE === "true";
+  private readonly agentMode =
+    process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
 
   constructor(private reflector: Reflector) {
     super();

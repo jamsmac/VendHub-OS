@@ -47,8 +47,11 @@ export class CsrfGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    // Agent mode: skip CSRF entirely (no browser context)
-    if (process.env.AGENT_MODE === "true") {
+    // Agent mode: skip CSRF entirely (no browser context) — NEVER in production
+    if (
+      process.env.AGENT_MODE === "true" &&
+      process.env.NODE_ENV !== "production"
+    ) {
       return true;
     }
 
