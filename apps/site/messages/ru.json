@@ -1,0 +1,1105 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "saving": "Сохранение...",
+    "sending": "Отправка...",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "add": "Добавить",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "close": "Закрыть",
+    "all": "Все",
+    "yes": "Да",
+    "no": "Нет",
+    "errorOccurred": "Произошла ошибка",
+    "retry": "Попробовать снова",
+    "duplicate": "Дублировать",
+    "deleting": "Удаление...",
+    "kcal": "ккал",
+    "errorFallback": "Что-то пошло не так. Попробуйте обновить страницу."
+  },
+
+  "seo": {
+    "title": "VendHub — Кофе из автоматов в пару кликов",
+    "description": "25+ видов напитков. 16 автоматов в больницах, университетах и общественных местах Ташкента. Программа лояльности и скидки.",
+    "ogDescription": "25+ видов напитков. 16 автоматов в Ташкенте.",
+    "ogImageAlt": "VendHub — Кофе из автоматов в Ташкенте",
+    "ogSubtitle": "Кофе из автоматов в пару кликов",
+    "ogStatBeverages": "25+ напитков",
+    "ogStatMachines": "16 автоматов",
+    "ogStatRating": "4.8 рейтинг",
+    "jsonLdDescription": "Сеть вендинговых автоматов в Ташкенте — кофе, чай, снеки",
+    "jsonLdArea": "Ташкент",
+    "skipToContent": "Перейти к содержимому"
+  },
+
+  "nav": {
+    "home": "Главная",
+    "machines": "Автоматы",
+    "menu": "Меню",
+    "benefits": "Выгода",
+    "partner": "Партнёрство",
+    "about": "О нас",
+    "login": "Войти"
+  },
+
+  "header": {
+    "brandTagline": "Кофе и снэки",
+    "mobileAppSoon": "Скоро! Мобильное приложение в разработке",
+    "closeMenu": "Закрыть меню",
+    "openMenu": "Открыть меню"
+  },
+
+  "hero": {
+    "morning": "☀️ Доброе утро!",
+    "afternoon": "🌤️ Добрый день!",
+    "evening": "🌙 Добрый вечер!",
+    "title": "Кофе из автоматов в пару кликов",
+    "subtitle": "25+ видов напитков. 16 автоматов в больницах, университетах и общественных местах Ташкента.",
+    "findMachine": "Найти автомат",
+    "viewMenu": "Смотреть меню",
+    "machineImageAlt": "Кофейный автомат VendHub"
+  },
+
+  "stats": {
+    "ariaLabel": "Статистика",
+    "machinesValue": "16",
+    "machines": "автоматов",
+    "drinksValue": "25+",
+    "drinks": "напитков",
+    "ordersValue": "10K+",
+    "orders": "заказов",
+    "ratingValue": "4.8",
+    "rating": "рейтинг"
+  },
+
+  "quickActions": {
+    "ariaLabel": "Быстрые действия",
+    "catalog": "Каталог",
+    "catalogDesc": "Все напитки и снэки",
+    "machines": "Автоматы",
+    "machinesDesc": "Найти рядом"
+  },
+
+  "popularProducts": {
+    "title": "Популярные товары",
+    "clickDetails": "Нажмите для подробностей"
+  },
+
+  "whyVendHub": {
+    "title": "Почему VendHub?",
+    "drinks": "25+ напитков",
+    "drinksDesc": "Эспрессо, латте, капучино, матча и холодные напитки",
+    "machines": "16 автоматов",
+    "machinesDesc": "Больницы, университеты, госучреждения, маркеты, ЖК",
+    "loyalty": "Программа лояльности",
+    "loyaltyDesc": "Баллы, скидки до 10% и эксклюзивные бонусы",
+    "order": "Быстрый заказ",
+    "orderDesc": "Закажите заранее через Telegram Mini App"
+  },
+
+  "menu": {
+    "title": "Наше меню",
+    "itemsOf": "{filtered} из {total} позиций",
+    "items": "{count} позиций",
+    "categories": {
+      "all": "Все",
+      "coffee": "Кофе",
+      "tea": "Чай",
+      "other": "Другое",
+      "snack": "Снэки"
+    },
+    "temperature": {
+      "all": "Все",
+      "hot": "🔥 Горячие",
+      "cold": "🧊 Холодные"
+    },
+    "card": {
+      "unavailable": "Нет в наличии",
+      "new": "NEW",
+      "hot": "Горячий",
+      "cold": "Холодный",
+      "clickDetails": "Нажмите для подробностей",
+      "comingSoon": "Скоро"
+    },
+    "empty": {
+      "title": "Ничего не найдено",
+      "subtitle": "Попробуйте изменить фильтры",
+      "reset": "Сбросить фильтры"
+    }
+  },
+
+  "machines": {
+    "title": "Наши автоматы",
+    "onlineCount": "{online} из {total} автоматов работают",
+    "mapLoading": "Загрузка карты...",
+    "mapRetry": "Попробовать снова",
+    "myLocation": "Моё местоположение",
+    "locationError": "Не удалось определить местоположение",
+    "nearest": "Ближайшие",
+    "tabs": {
+      "map": "Карта",
+      "types": "Типы автоматов"
+    },
+    "searchPlaceholder": "Поиск по названию или адресу...",
+    "clearSearch": "Очистить поиск",
+    "filters": {
+      "all": "Все",
+      "online": "Работают",
+      "promotion": "С акцией",
+      "coffee": "Кофе Автомат",
+      "snack": "Снэк Автомат",
+      "cold": "Холодные"
+    },
+    "card": {
+      "online": "Работает",
+      "offline": "Не работает",
+      "promotion": "Акция",
+      "items": "позиций",
+      "openLocation": "Открыть локацию",
+      "distance": "{distance}"
+    },
+    "empty": {
+      "title": "Ничего не найдено",
+      "subtitle": "Попробуйте изменить параметры поиска"
+    },
+    "types": {
+      "coffeeMachine": "Кофе Автомат",
+      "snackMachine": "Снэк Автомат",
+      "coldDrinks": "Холодные Напитки",
+      "count": "{count} штук",
+      "dimensions": "Размеры:",
+      "display": "Дисплей:",
+      "payment": "Оплата:",
+      "features": "Особенности:",
+      "dimensionsValue": "730×730×1960 мм, ~240 кг",
+      "displayValue": "43\" сенсорный с промороликами",
+      "paymentValue": "PAYME, CLICK, UZUM, наличные",
+      "featuresValue": "льдогенератор, закрытая крышка, свой стакан, UV-стерилизация, корзина",
+      "snackDimensionsValue": "1940×1042×890 мм, 330 кг",
+      "snackDisplayValue": "49\" сенсорный рекламный экран",
+      "snackPaymentValue": "купюры, монеты, карты, QR, Apple/Google/Samsung Pay",
+      "snackFeaturesValue": "до 240 товаров, 48 ячеек, +4°C...+25°C, MDB/DEX",
+      "coldDimensionsValue": "1000×910×1960 мм, ~350 кг",
+      "coldDisplayValue": "55\" 4K сенсорный экран",
+      "coldPaymentValue": "наличные, карта, QR (опция), VIP-карта (опция)",
+      "coldFeaturesValue": "встроенная заморозка -10°C...0°C, 5×8 спиралей, 4G/Wi-Fi/LAN",
+      "viewDetails": "Подробнее о модели →",
+      "infoSoon": "Информация скоро будет доступна"
+    },
+    "typeAlt": {
+      "coffee": "Кофейный автомат",
+      "snack": "Снэк автомат",
+      "cold": "Автомат холодных напитков"
+    },
+    "detail": {
+      "specs": "Технические характеристики",
+      "advantages": "Ключевые преимущества",
+      "gallery": "Галерея",
+      "close": "Закрыть"
+    }
+  },
+
+  "benefits": {
+    "title": "Выгода",
+    "subtitle": "Акции, промокоды и программа лояльности VendHub",
+    "tabs": {
+      "promotions": "Акции",
+      "bonuses": "Бонусы"
+    }
+  },
+
+  "promotions": {
+    "validUntil": "до {date}",
+    "howToUse": "Как использовать промокод?",
+    "copied": "Промокод скопирован!",
+    "conditions": "Условия",
+    "steps": {
+      "copy": "1. Скопируйте код",
+      "copyDesc": "Нажмите на промокод выше",
+      "enter": "2. Введите в боте",
+      "enterDesc": "Откройте @vendhub_bot в Telegram",
+      "discount": "3. Получите скидку",
+      "discountDesc": "Скидка применится при следующем заказе"
+    }
+  },
+
+  "promoBanner": {
+    "ariaLabel": "Акция",
+    "badge": "Акция",
+    "more": "Подробнее →"
+  },
+
+  "loyalty": {
+    "overview": {
+      "pointValue": "1 балл = 1 UZS",
+      "cashback": "Кэшбэк 1%",
+      "levels": "4 уровня привилегий"
+    },
+    "tier": {
+      "current": "Текущий",
+      "from": "от {threshold} UZS",
+      "discount": "{percent}% скидка",
+      "cashback": "{percent}% кэшбэк"
+    },
+    "privileges": {
+      "title": "Привилегии по уровням",
+      "header": "Привилегия"
+    },
+    "earn": {
+      "title": "Как заработать баллы"
+    },
+    "spend": {
+      "title": "Как тратить баллы"
+    },
+    "cta": {
+      "title": "Зарегистрируйтесь в Telegram-боте",
+      "subtitle": "и получите 15 000 бонусов на счёт!",
+      "button": "Открыть @vendhub_bot"
+    }
+  },
+
+  "partner": {
+    "title": "Партнёрство",
+    "subtitle": "Развиваем бизнес вместе",
+    "moreInfo": "Подробнее",
+    "leaveRequest": "Оставить заявку",
+    "trustedBy": "Нам доверяют",
+    "models": {
+      "locations": {
+        "title": "Локациям",
+        "description": "У вас есть помещение с трафиком? Мы установим автомат бесплатно, вы получаете процент с продаж.",
+        "benefits": [
+          "Бесплатная установка и обслуживание",
+          "Ежемесячные выплаты от продаж",
+          "Привлечение посетителей",
+          "Нет минимальных требований по площади"
+        ]
+      },
+      "suppliers": {
+        "title": "Поставщикам",
+        "description": "Поставляете кофе, снеки или расходники? Станьте нашим партнёром-поставщиком.",
+        "benefits": [
+          "Стабильные закупки",
+          "Долгосрочные контракты",
+          "Оплата в срок",
+          "Расширение географии поставок"
+        ]
+      },
+      "investors": {
+        "title": "Инвесторам",
+        "description": "Стабильный доход от сети автоматов. Окупаемость от 12 месяцев.",
+        "benefits": [
+          "ROI от 12 месяцев",
+          "Прозрачная отчётность",
+          "Пассивный доход",
+          "Масштабируемая модель"
+        ]
+      },
+      "franchise": {
+        "title": "Франшиза",
+        "description": "Запустите VendHub в своём городе. Полная поддержка и обучение.",
+        "benefits": [
+          "Готовая бизнес-модель",
+          "Обучение и поддержка",
+          "Маркетинговые материалы",
+          "Техническая инфраструктура"
+        ]
+      }
+    },
+    "form": {
+      "model": "Модель сотрудничества",
+      "name": "Имя *",
+      "phone": "Телефон *",
+      "comment": "Комментарий",
+      "modelOptions": {
+        "locations": "Предоставление локации",
+        "suppliers": "Поставка товаров",
+        "investors": "Инвестиции",
+        "franchise": "Франшиза"
+      },
+      "namePlaceholder": "Ваше имя",
+      "phonePlaceholder": "+998 XX XXX XX XX",
+      "commentPlaceholder": "Расскажите подробнее (необязательно)",
+      "submit": "Отправить заявку",
+      "sending": "Отправка...",
+      "nameRequired": "Укажите имя",
+      "phoneInvalid": "Телефон должен начинаться с +998",
+      "success": "Заявка успешно отправлена!",
+      "error": "Ошибка отправки. Попробуйте ещё раз."
+    }
+  },
+
+  "about": {
+    "title": "О компании",
+    "subtitle": "VendHub — сеть вендинговых автоматов в Ташкенте",
+    "description": "VendHub — оператор сети современных кофейных и снэк-автоматов в Ташкенте. Автоматы в больницах, университетах, госучреждениях и жилых комплексах. Круглосуточный доступ к качественным горячим и холодным напиткам.",
+    "contacts": {
+      "phone": "Телефон",
+      "phoneValue": "+998 71 200 39 99",
+      "email": "Email",
+      "emailValue": "info@vendhub.uz",
+      "telegram": "Telegram",
+      "telegramValue": "@vendhub_support",
+      "address": "Адрес",
+      "addressValue": "Ташкент, Узбекистан",
+      "support": "Поддержка",
+      "supportHours": "24/7 поддержка"
+    }
+  },
+
+  "footer": {
+    "navigation": "Навигация",
+    "contacts": "Контакты",
+    "social": "Мы в соцсетях",
+    "location": "Ташкент, Узбекистан",
+    "supportHours": "Поддержка 24/7",
+    "tagline": "Кофе из вендинговых автоматов в пару кликов. Ташкент.",
+    "copyright": "© VendHub {year}. Все права защищены."
+  },
+
+  "productModal": {
+    "options": "{count} опций",
+    "hot": "Горячие",
+    "cold": "Холодные",
+    "tempHot": "Горячий",
+    "tempCold": "Холодный",
+    "tempBoth": "Горячий/Холодный",
+    "tempNone": "Нейтральный",
+    "detailTitle": "Подробнее",
+    "surcharge": "+{price} UZS",
+    "ratePrompt": "Оцените этот напиток",
+    "ratingThanks": "Спасибо за оценку!",
+    "findNearest": "Найти ближайший автомат",
+    "starSingular": "звезда",
+    "starPlural": "звёзд"
+  },
+
+  "machineModal": {
+    "menu": "Меню этого автомата",
+    "online": "Работает",
+    "offline": "Не работает",
+    "buildRoute": "Построить маршрут",
+    "distance": "{distance} от вас",
+    "orderInApp": "Заказать в приложении →",
+    "floor": "Этаж: {floor}"
+  },
+
+  "navigation": {
+    "title": "Построить маршрут",
+    "subtitle": "Выберите навигатор",
+    "close": "Закрыть",
+    "googleMaps": "Google Maps",
+    "yandexMaps": "Яндекс Карты",
+    "twoGis": "2ГИС",
+    "appleMaps": "Apple Maps",
+    "waze": "Waze"
+  },
+
+  "machineModel": {
+    "back": "Назад к автоматам",
+    "badge": "Кофе Автомат",
+    "imageAlt": "Кофейный автомат JQ-002-A",
+    "subtitle": "Кофейный автомат нового поколения с 43\" сенсорным экраном, встроенным льдогенератором и 36+ видами напитков",
+    "quickStats": {
+      "beverages": "36+ напитков",
+      "iceMaker": "Льдогенератор",
+      "display": "43\" тачскрин"
+    },
+    "specsTitle": "Технические характеристики",
+    "specs": {
+      "model": "Модель",
+      "dimensions": "Размеры (Ш×Г×В)",
+      "weight": "Вес",
+      "display": "Дисплей",
+      "displayValue": "43\" сенсорный с промороликами",
+      "cupCapacity": "Ёмкость стаканов",
+      "cupCapacityValue": "~800 одноразовых стаканов",
+      "beverages": "Количество напитков",
+      "beveragesValue": "36+ видов (кофе, чай, какао, фруктовые)",
+      "canisters": "Канистры",
+      "canistersValue": "8 порошковых + контейнер сахара",
+      "iceMaker": "Льдогенератор",
+      "iceMakerValue": "Встроенный",
+      "payment": "Оплата",
+      "paymentValue": "PAYME, CLICK, UZUM, наличные, NFC",
+      "power": "Питание"
+    },
+    "featuresTitle": "Ключевые особенности",
+    "features": {
+      "display": "43\" тачскрин",
+      "displayDesc": "Сенсорный экран с промороликами и удобным интерфейсом выбора",
+      "iceMaker": "Льдогенератор",
+      "iceMakerDesc": "Встроенный генератор льда для холодных напитков",
+      "uv": "UV-стерилизация",
+      "uvDesc": "Ультрафиолетовая стерилизация системы подачи напитков",
+      "payment": "Все виды оплаты",
+      "paymentDesc": "PAYME, CLICK, UZUM, наличные, купюры и монеты",
+      "beverages": "36+ напитков",
+      "beveragesDesc": "Кофе, чай, какао, фруктовые и молочные напитки",
+      "capacity": "800 стаканов",
+      "capacityDesc": "Большая ёмкость для непрерывной работы 24/7",
+      "ownCup": "Свой стакан",
+      "ownCupDesc": "Возможность использовать свой многоразовый стакан",
+      "promo": "Промо-экран",
+      "promoDesc": "Показ рекламных роликов и акций на экране"
+    },
+    "cta": {
+      "title": "16 автоматов JQ-002-A по всему Ташкенту",
+      "subtitle": "Найдите ближайший автомат и закажите любимый напиток",
+      "button": "Посмотреть автоматы на карте"
+    }
+  },
+
+  "machineModelSlushy": {
+    "back": "Назад к автоматам",
+    "badge": "Slushy Ice Drink",
+    "imageAlt": "Автомат для слаши JS-001-A01",
+    "subtitle": "Профессиональный автомат для слаши и охлаждённых напитков со встроенной заморозкой и 55\" 4K сенсорным экраном",
+    "quickStats": {
+      "tempRange": "-10°C...0°C",
+      "display": "55\" 4K тачскрин",
+      "capacity": "5 полок × 8 секций"
+    },
+    "galleryTitle": "Фото модели",
+    "gallery": {
+      "sizeAlt": "Габариты JS-001-A01",
+      "featuresAlt": "Преимущества JS-001-A01"
+    },
+    "specsTitle": "Технические характеристики",
+    "specs": {
+      "model": "Артикул",
+      "dimensions": "Габариты (Ш×Г×В)",
+      "weight": "Вес нетто",
+      "voltage": "Напряжение",
+      "voltageValue": "220–240 В / 50 Гц; 220–230 В / 60 Гц; 110 В / 60 Гц (опция)",
+      "power": "Мощность",
+      "tempRange": "Диапазон рабочих температур",
+      "capacity": "Стандартная вместимость",
+      "capacityValue": "5 полок × 8 спиральных секций (шаг регулируется)",
+      "display": "Рекламный экран",
+      "displayValue": "55\" 4K, сенсорный",
+      "connectivity": "Подключение",
+      "connectivityValue": "4G SIM-карта, LAN-кабель, Wi-Fi",
+      "payment": "Способы оплаты",
+      "paymentValue": "Купюры, монеты, банковская карта, QR-код (опция), VIP-карта (опция)",
+      "assortment": "Ассортимент",
+      "assortmentValue": "Слаши, газированные и консервированные напитки, пиво и другое"
+    },
+    "featuresTitle": "Ключевые преимущества",
+    "features": {
+      "freeze": "Встроенная система заморозки",
+      "freezeDesc": "Стабильный диапазон -10°C...0°C для правильного slush-эффекта.",
+      "display": "55\" 4K сенсорный экран",
+      "displayDesc": "Большой экран для выбора напитка и показа рекламы 24/7.",
+      "payment": "Гибкая оплата",
+      "paymentDesc": "Наличные, банковская карта, QR-код и VIP-карта постоянного клиента.",
+      "capacity": "Гибкая вместимость",
+      "capacityDesc": "5 полок по 8 спиралей с регулировкой шага под формат упаковки.",
+      "connectivity": "4G, Wi-Fi и LAN",
+      "connectivityDesc": "Постоянное подключение к системе управления автоматом.",
+      "remote": "Удалённый мониторинг",
+      "remoteDesc": "Контроль остатков, инкассации и обновление рекламы из одного кабинета.",
+      "reliable": "Стабильная работа",
+      "reliableDesc": "Промышленная конфигурация для торговых зон с высокой проходимостью.",
+      "revenue": "Рекламный носитель 24/7",
+      "revenueDesc": "Экран одновременно продаёт напитки и показывает брендовый контент."
+    },
+    "cta": {
+      "title": "JS-001-A01 для точек с высоким трафиком",
+      "subtitle": "ТЦ, кинотеатры, парки, фудкорты и спортивные объекты",
+      "button": "Посмотреть автоматы на карте"
+    }
+  },
+
+  "machineModelSnack": {
+    "back": "Назад к автоматам",
+    "badge": "Снэк Автомат",
+    "imageAlt": "Снэковый автомат TCN CSC-8C(V49)",
+    "subtitle": "Умный вендинговый автомат с 49\" сенсорным рекламным экраном, холодильной системой и поддержкой современных способов оплаты.",
+    "descriptionTitle": "Описание модели",
+    "descriptionShort": "TCN CSC-8C(V49) — это современный автомат нового поколения для беспилотной торговли в оживлённых местах. 49-дюймовый сенсорный экран одновременно работает как витрина товаров и рекламный дисплей.",
+    "descriptionLong": "Автомат вмещает до 240 единиц товара в 48 ячейках на 6 полках, поддерживает регулируемую температуру +4°C...+25°C и совместим с MDB/DEX. Поддерживаются наличные, карты и мобильные платежи, а бесплатная облачная система управления позволяет удалённо контролировать остатки, цены и продажи.",
+    "quickStats": {
+      "screen": "49\" Touch Screen",
+      "capacity": "до 240 товаров",
+      "temperature": "+4°C...+25°C"
+    },
+    "specsTitle": "Технические характеристики",
+    "specs": {
+      "model": "Модель",
+      "type": "Тип",
+      "typeValue": "Вендинговый автомат с сенсорным экраном",
+      "display": "Экран",
+      "displayValue": "49\" сенсорный дисплей (Touch Screen)",
+      "dimensions": "Габариты (В×Ш×Г)",
+      "weight": "Вес",
+      "slots": "Количество ячеек",
+      "slotsValue": "48 (максимум)",
+      "shelves": "Количество полок",
+      "capacity": "Ёмкость",
+      "dispense": "Механизм выдачи",
+      "dispenseValue": "Спираль / конвейер / толкатель",
+      "temperature": "Температура внутри",
+      "powerCool": "Мощность (хол. режим)",
+      "powerNormal": "Мощность (норм. режим)",
+      "powerSupply": "Питание",
+      "payment": "Способы оплаты",
+      "paymentValue": "Купюры, монеты, банк. карты, QR, Apple Pay, Google Pay, Samsung Pay",
+      "protocol": "Протокол",
+      "warranty": "Гарантия",
+      "warrantyValue": "1 год"
+    },
+    "featuresTitle": "Ключевые преимущества",
+    "features": {
+      "screen": "49\" сенсорный экран",
+      "screenDesc": "Большой экран для витрины товаров и рекламного контента.",
+      "cooling": "Встроенная холодильная система",
+      "coolingDesc": "Регулируемая температура +4°C...+25°C для напитков и снеков.",
+      "sensor": "Фотоэлектрический датчик выдачи",
+      "sensorDesc": "Контроль успешной выдачи и снижение спорных транзакций.",
+      "payment": "Современные оплаты",
+      "paymentDesc": "Наличные, карты, QR и мобильные кошельки.",
+      "cloud": "Бесплатная облачная система",
+      "cloudDesc": "Удалённый контроль остатков, цен и продаж в реальном времени.",
+      "capacity": "48 ячеек / до 240 товаров",
+      "capacityDesc": "Подходит для снеков, напитков и комбо-позиций.",
+      "cabinet": "Стальной усиленный корпус",
+      "cabinetDesc": "Надёжная конструкция для интенсивной эксплуатации.",
+      "efficiency": "Энергоэффективная работа",
+      "efficiencyDesc": "60 Вт в обычном режиме и 458 Вт в режиме охлаждения."
+    },
+    "applicationsTitle": "Где применяется",
+    "applications": {
+      "banks": "Банки",
+      "supermarkets": "Супермаркеты",
+      "airports": "Аэропорты",
+      "stations": "Вокзалы",
+      "hospitals": "Больницы",
+      "malls": "Торговые центры",
+      "parks": "Парки и зоопарки",
+      "offices": "Офисы",
+      "hotels": "Отели",
+      "metro": "Станции метро",
+      "schools": "Школы",
+      "pharmacies": "Аптеки"
+    },
+    "galleryTitle": "Фото и чертежи",
+    "galleryAltPrefix": "TCN CSC-8C(V49), фото",
+    "cta": {
+      "title": "TCN CSC-8C(V49) для снэков и напитков",
+      "subtitle": "Подходит для локаций с высоким трафиком и формата 24/7",
+      "button": "Посмотреть автоматы на карте"
+    }
+  },
+
+  "admin": {
+    "sidebar": {
+      "dashboard": "Дашборд",
+      "products": "Продукты",
+      "machines": "Автоматы",
+      "machineTypes": "Типы автоматов",
+      "promotions": "Акции",
+      "partnership": "Партнёрство",
+      "loyalty": "Лояльность",
+      "content": "Контент",
+      "bonusActions": "Бонусные действия",
+      "backToSite": "Вернуться на сайт",
+      "closeSidebar": "Закрыть меню",
+      "adminPanel": "Админ-панель",
+      "logout": "Выход"
+    },
+    "login": {
+      "title": "Вход в админ-панель",
+      "email": "Email",
+      "password": "Пароль",
+      "submit": "Войти",
+      "logging": "Вход...",
+      "error": "Ошибка авторизации",
+      "tooManyAttempts": "Слишком много попыток. Подождите минуту."
+    },
+    "dashboard": {
+      "products": "Продукты",
+      "available": "{count} доступно",
+      "machines": "Автоматы",
+      "online": "{count} online",
+      "newRequests": "Новые заявки",
+      "activePromotions": "Активные акции",
+      "partners": "{count} партнёров",
+      "quickActions": "Быстрые действия",
+      "manageProducts": "Управление продуктами",
+      "manageMachines": "Управление автоматами",
+      "editContent": "Редактировать контент",
+      "viewRequests": "Просмотреть заявки"
+    },
+    "products": {
+      "add": "Добавить продукт",
+      "searchPlaceholder": "Поиск по названию...",
+      "filters": {
+        "allCategories": "Все категории",
+        "coffee": "Кофе",
+        "tea": "Чай",
+        "other": "Другое",
+        "snack": "Снеки"
+      },
+      "table": {
+        "name": "Название",
+        "category": "Категория",
+        "price": "Цена",
+        "rating": "Рейтинг",
+        "status": "Статус",
+        "actions": "Действия"
+      },
+      "available": "Доступен",
+      "unavailable": "Скрыт",
+      "empty": "Продукты не найдены",
+      "deleteTitle": "Удалить продукт?",
+      "deleteMessage": "Продукт «{name}» будет удалён безвозвратно.",
+      "loadError": "Ошибка загрузки продуктов",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Продукт удалён",
+      "form": {
+        "createTitle": "Новый продукт",
+        "editTitle": "Редактировать продукт",
+        "name": "Название *",
+        "price": "Цена (UZS) *",
+        "category": "Категория",
+        "temperature": "Температура",
+        "image": "Изображение",
+        "description": "Описание",
+        "nameUz": "Название (UZ)",
+        "descriptionUz": "Описание (UZ)",
+        "detailDescription": "Детальное описание",
+        "detailDescriptionUz": "Детальное описание (UZ)",
+        "detailDescriptionHint": "Состав, ингредиенты, способ приготовления...",
+        "calories": "Калорийность (ккал)",
+        "rating": "Рейтинг (0-5)",
+        "discount": "Скидка (%)",
+        "sortOrder": "Порядок сортировки",
+        "popular": "Популярный",
+        "available": "Доступен",
+        "isNew": "Новинка",
+        "options": "Опции",
+        "addOption": "Добавить",
+        "optionName": "Название",
+        "optionSurcharge": "Наценка",
+        "optionSurchargeHint": "+0 = базовая цена",
+        "optionHot": "Горячий",
+        "optionCold": "Холодный",
+        "updated": "Продукт обновлён",
+        "created": "Продукт добавлен",
+        "saveError": "Ошибка сохранения",
+        "nameRequired": "Название обязательно",
+        "priceRequired": "Цена должна быть больше 0",
+        "ratingRange": "Рейтинг от 0 до 5",
+        "discountRange": "Скидка от 0 до 100%",
+        "temperatureLabels": {
+          "hot": "Горячий",
+          "cold": "Холодный",
+          "both": "Оба",
+          "none": "Нет"
+        },
+        "categoryLabels": {
+          "coffee": "Кофе",
+          "tea": "Чай",
+          "other": "Другое",
+          "snack": "Снеки"
+        }
+      }
+    },
+    "machines": {
+      "add": "Добавить автомат",
+      "searchPlaceholder": "Поиск по названию или адресу...",
+      "table": {
+        "name": "Название",
+        "address": "Адрес",
+        "type": "Тип",
+        "status": "Статус",
+        "rating": "Рейтинг",
+        "actions": "Действия"
+      },
+      "typeLabels": {
+        "coffee": "Кофейный",
+        "snack": "Снековый",
+        "cold": "Холодные напитки"
+      },
+      "online": "Online",
+      "offline": "Offline",
+      "empty": "Автоматы не найдены",
+      "deleteTitle": "Удалить автомат?",
+      "deleteMessage": "Автомат «{name}» будет удалён безвозвратно.",
+      "loadError": "Ошибка загрузки автоматов",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Автомат удалён",
+      "form": {
+        "createTitle": "Новый автомат",
+        "editTitle": "Редактировать автомат",
+        "name": "Название *",
+        "address": "Адрес *",
+        "type": "Тип",
+        "status": "Статус",
+        "latitude": "Широта",
+        "longitude": "Долгота",
+        "rating": "Рейтинг (0-5)",
+        "reviewCount": "Кол-во отзывов",
+        "floor": "Этаж",
+        "hours": "Часы работы",
+        "productCount": "Кол-во продуктов",
+        "locationType": "Тип локации",
+        "image": "Фото автомата",
+        "hasPromotion": "Есть акция",
+        "updated": "Автомат обновлён",
+        "created": "Автомат добавлен",
+        "saveError": "Ошибка сохранения",
+        "nameRequired": "Название обязательно",
+        "addressRequired": "Адрес обязателен",
+        "latitudeRange": "Широта должна быть 37-46 (Узбекистан)",
+        "longitudeRange": "Долгота должна быть 56-74 (Узбекистан)",
+        "ratingRange": "Рейтинг от 0 до 5",
+        "locationTypes": {
+          "hospital": "Больница",
+          "university": "Университет",
+          "market": "Рынок",
+          "government": "Гос. учреждение",
+          "residential": "Жилой район"
+        }
+      }
+    },
+    "machineTypes": {
+      "add": "Добавить тип",
+      "searchPlaceholder": "Поиск по названию или модели...",
+      "table": {
+        "name": "Название",
+        "model": "Модель",
+        "slug": "Slug",
+        "specs": "Хар-ки",
+        "status": "Статус",
+        "actions": "Действия"
+      },
+      "active": "Активен",
+      "inactive": "Неактивен",
+      "activate": "Активировать",
+      "deactivate": "Деактивировать",
+      "empty": "Типы автоматов не найдены",
+      "deleteTitle": "Удалить тип автомата?",
+      "deleteMessage": "Тип «{name}» будет удалён безвозвратно.",
+      "loadError": "Ошибка загрузки типов",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Тип удалён",
+      "saveError": "Ошибка сохранения",
+      "form": {
+        "createTitle": "Новый тип автомата",
+        "editTitle": "Редактировать тип",
+        "name": "Название *",
+        "slug": "Slug (идентификатор)",
+        "modelName": "Модель",
+        "badge": "Бейдж",
+        "badgePlaceholder": "Скоро, Новинка и т.д.",
+        "description": "Описание",
+        "heroImage": "Фото автомата",
+        "specs": "Технические характеристики",
+        "addSpec": "Добавить",
+        "specLabel": "Параметр",
+        "specValue": "Значение",
+        "noSpecs": "Нет характеристик. Нажмите «Добавить» чтобы создать.",
+        "advantages": "Ключевые преимущества",
+        "addAdvantage": "Добавить",
+        "advTitle": "Заголовок",
+        "advDesc": "Описание",
+        "noAdvantages": "Нет преимуществ. Нажмите «Добавить» чтобы создать.",
+        "gallery": "Галерея фото",
+        "isActive": "Активен (показывать на сайте)",
+        "sortOrder": "Порядок сортировки",
+        "updated": "Тип обновлён",
+        "created": "Тип добавлен",
+        "saveError": "Ошибка сохранения",
+        "nameRequired": "Название и slug обязательны"
+      }
+    },
+    "promotions": {
+      "add": "Добавить акцию",
+      "duplicate": "Дублировать",
+      "duplicated": "Акция продублирована",
+      "table": {
+        "title": "Название",
+        "badge": "Бейдж",
+        "promoCode": "Промокод",
+        "active": "Активна",
+        "validUntil": "Действует до",
+        "visibility": "Тип",
+        "actions": "Действия"
+      },
+      "activeYes": "Да",
+      "activeNo": "Нет",
+      "noExpiry": "Бессрочно",
+      "visibilityVisible": "Код",
+      "visibilityAction": "Действие",
+      "count": "{count} акций",
+      "empty": "Акции не найдены",
+      "deleteTitle": "Удалить акцию?",
+      "deleteMessage": "Акция «{name}» будет удалена безвозвратно.",
+      "loadError": "Ошибка загрузки акций",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Акция удалена",
+      "updated": "Акция обновлена",
+      "created": "Акция добавлена",
+      "saveError": "Ошибка сохранения",
+      "editTitle": "Редактировать акцию",
+      "newTitle": "Новая акция",
+      "form": {
+        "description": "Описание",
+        "gradient": "Градиент (CSS)",
+        "sortOrder": "Порядок сортировки",
+        "conditions": "Условия",
+        "visibilityType": "Тип видимости",
+        "visibilityVisible": "Код виден сразу",
+        "visibilityAction": "Требуется действие",
+        "actionInstruction": "Инструкция для пользователя",
+        "actionInstructionPlaceholder": "Например: Зарегистрируйтесь в Telegram-боте",
+        "discountType": "Тип скидки",
+        "discountTypeNone": "Не указана",
+        "discountTypePercent": "Процент",
+        "discountTypeFixed": "Фиксированная",
+        "discountTypeSpecial": "Специальная",
+        "discountValue": "Значение скидки",
+        "discountValuePlaceholder": "20 или 5 000 UZS"
+      }
+    },
+    "cooperation": {
+      "modelFilters": {
+        "all": "Все модели",
+        "locations": "Локации",
+        "suppliers": "Поставщики",
+        "investors": "Инвесторы",
+        "franchise": "Франшиза"
+      },
+      "statusFilters": {
+        "all": "Все статусы",
+        "new": "Новые",
+        "read": "Прочитанные",
+        "processed": "Обработанные"
+      },
+      "statusLabels": {
+        "new": "Новая",
+        "read": "Прочитана",
+        "processed": "Обработана"
+      },
+      "count": "{count} заявок",
+      "table": {
+        "model": "Модель",
+        "name": "Имя",
+        "phone": "Телефон",
+        "comment": "Комментарий",
+        "status": "Статус",
+        "date": "Дата"
+      },
+      "empty": "Заявки не найдены",
+      "loadError": "Ошибка загрузки заявок",
+      "statusError": "Ошибка обновления статуса",
+      "statusUpdated": "Статус обновлён",
+      "saveError": "Ошибка сохранения",
+      "adminNotes": "Заметка администратора",
+      "notesPlaceholder": "Добавьте заметку...",
+      "notesSaved": "Заметка сохранена",
+      "details": "Детали заявки"
+    },
+    "partners": {
+      "add": "Добавить партнёра",
+      "count": "{count} партнёров",
+      "table": {
+        "name": "Название",
+        "logo": "Лого",
+        "website": "Сайт",
+        "sortOrder": "Порядок",
+        "actions": "Действия"
+      },
+      "empty": "Нет партнёров",
+      "deleteTitle": "Удалить партнёра?",
+      "deleteMessage": "Партнёр «{name}» будет удалён безвозвратно.",
+      "loadError": "Ошибка загрузки партнёров",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Партнёр удалён",
+      "updated": "Партнёр обновлён",
+      "created": "Партнёр добавлен",
+      "saveError": "Ошибка сохранения",
+      "form": {
+        "createTitle": "Новый партнёр",
+        "editTitle": "Редактировать партнёра",
+        "name": "Название *",
+        "logo": "Логотип",
+        "website": "Сайт (URL)",
+        "description": "Описание",
+        "sortOrder": "Порядок сортировки"
+      }
+    },
+    "partnership": {
+      "tabs": {
+        "models": "Модели",
+        "requests": "Заявки",
+        "partners": "Партнёры"
+      },
+      "models": {
+        "title": "Модели партнёрства",
+        "add": "Добавить модель",
+        "count": "{count} моделей",
+        "table": {
+          "icon": "Иконка",
+          "title": "Название",
+          "color": "Цвет",
+          "benefits": "Бенефиты",
+          "active": "Активна",
+          "sort": "Порядок",
+          "actions": "Действия"
+        },
+        "empty": "Модели не найдены",
+        "loadError": "Ошибка загрузки моделей",
+        "created": "Модель создана",
+        "updated": "Модель обновлена",
+        "deleted": "Модель удалена",
+        "deleteError": "Ошибка удаления",
+        "saveError": "Ошибка сохранения",
+        "deleteTitle": "Удалить модель?",
+        "deleteMessage": "Модель «{name}» будет удалена безвозвратно.",
+        "activeYes": "Активна",
+        "activeNo": "Неактивна",
+        "newTitle": "Новая модель",
+        "editTitle": "Редактировать модель",
+        "form": {
+          "key": "Ключ (slug)",
+          "keyPlaceholder": "например: custom-type",
+          "title": "Название (RU) *",
+          "titleUz": "Название (UZ)",
+          "description": "Описание (RU)",
+          "descriptionUz": "Описание (UZ)",
+          "icon": "Иконка",
+          "colorScheme": "Цветовая схема",
+          "benefits": "Бенефиты (RU)",
+          "benefitsUz": "Бенефиты (UZ)",
+          "addBenefit": "Добавить бенефит",
+          "benefitPlaceholder": "Введите текст бенефита",
+          "sortOrder": "Порядок сортировки",
+          "isActive": "Активна"
+        }
+      },
+      "requests": {
+        "delete": "Удалить",
+        "deleteTitle": "Удалить заявку?",
+        "deleteMessage": "Заявка от «{name}» будет удалена безвозвратно.",
+        "deleted": "Заявка удалена",
+        "deleteError": "Ошибка удаления заявки"
+      }
+    },
+    "loyalty": {
+      "title": "Уровни лояльности",
+      "addTier": "Добавить уровень",
+      "table": {
+        "level": "Уровень",
+        "emoji": "Эмодзи",
+        "discount": "Скидка %",
+        "threshold": "Порог (UZS)",
+        "cashback": "Кэшбэк %",
+        "actions": "Действия"
+      },
+      "empty": "Уровни не найдены",
+      "loadError": "Ошибка загрузки уровней",
+      "updated": "Уровень обновлён",
+      "created": "Уровень добавлен",
+      "deleted": "Уровень удалён",
+      "saveError": "Ошибка сохранения",
+      "deleteError": "Ошибка удаления",
+      "deleteTierTitle": "Удалить уровень?",
+      "deleteTierMessage": "Уровень «{name}» будет удалён безвозвратно.",
+      "editTierTitle": "Редактировать уровень",
+      "newTierTitle": "Новый уровень",
+      "inactive": "Неактивна",
+      "privilegeMatrix": "Привилегии по уровням",
+      "managePrivileges": "Управление привилегиями",
+      "privilegeKey": "Ключ (slug)",
+      "privilegeLabel": "Отображаемое имя",
+      "addPrivilege": "Добавить привилегию",
+      "privilegeCreated": "Привилегия добавлена",
+      "privilegeUpdated": "Привилегия обновлена",
+      "privilegeDeleted": "Привилегия удалена",
+      "privilegeDeleteTitle": "Удалить привилегию?",
+      "privilegeDeleteMessage": "Привилегия «{name}» будет удалена из всех уровней.",
+      "form": {
+        "level": "Название уровня",
+        "emoji": "Эмодзи",
+        "discount": "Скидка %",
+        "threshold": "Порог (UZS)",
+        "cashback": "Кэшбэк %",
+        "sortOrder": "Порядок"
+      }
+    },
+    "bonusActions": {
+      "add": "Добавить действие",
+      "tabs": {
+        "all": "Все",
+        "earn": "Заработать",
+        "spend": "Потратить"
+      },
+      "count": "{count} действий",
+      "table": {
+        "title": "Название",
+        "icon": "Иконка",
+        "points": "Баллы",
+        "type": "Тип",
+        "active": "Активно",
+        "sort": "Порядок",
+        "actions": "Действия"
+      },
+      "typeEarn": "Заработок",
+      "typeSpend": "Трата",
+      "activeYes": "Да",
+      "activeNo": "Нет",
+      "empty": "Действия не найдены",
+      "deleteTitle": "Удалить действие?",
+      "deleteMessage": "Действие «{name}» будет удалено безвозвратно.",
+      "loadError": "Ошибка загрузки действий",
+      "deleteError": "Ошибка удаления",
+      "deleted": "Действие удалено",
+      "updated": "Действие обновлено",
+      "created": "Действие добавлено",
+      "saveError": "Ошибка сохранения",
+      "editTitle": "Редактировать действие",
+      "newTitle": "Новое действие",
+      "form": {
+        "title": "Название",
+        "description": "Описание",
+        "icon": "Иконка (Lucide)",
+        "pointsAmount": "Количество баллов",
+        "pointsAmountPlaceholder": "20 000, 1%, x3...",
+        "type": "Тип",
+        "sortOrder": "Порядок сортировки"
+      }
+    },
+    "content": {
+      "description": "Редактируйте текстовое содержимое сайта. Каждое поле сохраняется отдельно.",
+      "sections": {
+        "hero": "Главный экран",
+        "stats": "Статистика",
+        "about": "О нас",
+        "footer": "Футер",
+        "partnership": "Партнёрство"
+      },
+      "empty": "Контент не найден",
+      "loadError": "Ошибка загрузки контента",
+      "updated": "Контент обновлён",
+      "saveError": "Ошибка сохранения"
+    },
+    "imageUpload": {
+      "uploading": "Загрузка...",
+      "dragOrClick": "Перетащите или нажмите",
+      "dropHere": "Отпустите файл",
+      "formats": "JPEG, PNG, WebP • до 5 МБ",
+      "preview": "Превью изображения",
+      "remove": "Удалить изображение"
+    },
+    "pagination": {
+      "of": "из",
+      "prev": "Назад",
+      "next": "Далее"
+    }
+  }
+}

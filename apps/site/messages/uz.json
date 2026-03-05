@@ -1,0 +1,1105 @@
+{
+  "common": {
+    "loading": "Yuklanmoqda...",
+    "saving": "Saqlanmoqda...",
+    "sending": "Yuborilmoqda...",
+    "cancel": "Bekor qilish",
+    "save": "Saqlash",
+    "add": "Qo'shish",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "close": "Yopish",
+    "all": "Barchasi",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "errorOccurred": "Xatolik yuz berdi",
+    "retry": "Qayta urinish",
+    "duplicate": "Nusxalash",
+    "deleting": "O'chirilmoqda...",
+    "kcal": "kkal",
+    "errorFallback": "Nimadir xato ketdi. Sahifani yangilashga urinib ko'ring."
+  },
+
+  "seo": {
+    "title": "VendHub — Avtomatlardan kofe bir necha bosishda",
+    "description": "25+ xil ichimlik. Toshkentdagi kasalxonalar, universitetlar va jamoat joylarida 16 ta avtomat. Sodiqlik dasturi va chegirmalar.",
+    "ogDescription": "25+ xil ichimlik. Toshkentda 16 ta avtomat.",
+    "ogImageAlt": "VendHub — Toshkentda avtomat kofe",
+    "ogSubtitle": "Avtomatlardan kofe bir necha bosishda",
+    "ogStatBeverages": "25+ ichimlik",
+    "ogStatMachines": "16 ta avtomat",
+    "ogStatRating": "4.8 reyting",
+    "jsonLdDescription": "Toshkentdagi vending avtomatlari tarmog'i — kofe, choy, gazaklar",
+    "jsonLdArea": "Toshkent",
+    "skipToContent": "Asosiy mazmunga o'tish"
+  },
+
+  "nav": {
+    "home": "Bosh sahifa",
+    "machines": "Avtomatlar",
+    "menu": "Menyu",
+    "benefits": "Foyda",
+    "partner": "Hamkorlik",
+    "about": "Biz haqimizda",
+    "login": "Kirish"
+  },
+
+  "header": {
+    "brandTagline": "Kofe va gazaklar",
+    "mobileAppSoon": "Tez kunda! Mobil ilova ishlab chiqilmoqda",
+    "closeMenu": "Menyuni yopish",
+    "openMenu": "Menyuni ochish"
+  },
+
+  "hero": {
+    "morning": "☀️ Xayrli tong!",
+    "afternoon": "🌤️ Xayrli kun!",
+    "evening": "🌙 Xayrli kech!",
+    "title": "Avtomatlardan kofe bir necha bosishda",
+    "subtitle": "25+ turdagi ichimliklar. Toshkentdagi kasalxonalar, universitetlar va jamoat joylarida 16 ta avtomat.",
+    "findMachine": "Avtomat topish",
+    "viewMenu": "Menyuni ko'rish",
+    "machineImageAlt": "VendHub kofe avtomati"
+  },
+
+  "stats": {
+    "ariaLabel": "Statistika",
+    "machinesValue": "16",
+    "machines": "avtomatlar",
+    "drinksValue": "25+",
+    "drinks": "ichimliklar",
+    "ordersValue": "10K+",
+    "orders": "buyurtmalar",
+    "ratingValue": "4.8",
+    "rating": "reyting"
+  },
+
+  "quickActions": {
+    "ariaLabel": "Tezkor harakatlar",
+    "catalog": "Katalog",
+    "catalogDesc": "Barcha ichimliklar va gazaklar",
+    "machines": "Avtomatlar",
+    "machinesDesc": "Yaqindagini topish"
+  },
+
+  "popularProducts": {
+    "title": "Mashhur mahsulotlar",
+    "clickDetails": "Batafsil uchun bosing"
+  },
+
+  "whyVendHub": {
+    "title": "Nima uchun VendHub?",
+    "drinks": "25+ ichimlik",
+    "drinksDesc": "Espresso, latte, cappuccino, matcha va sovuq ichimliklar",
+    "machines": "16 ta avtomat",
+    "machinesDesc": "Kasalxonalar, universitetlar, davlat muassasalari, supermarketlar, turar-joy majmualari",
+    "loyalty": "Sodiqlik dasturi",
+    "loyaltyDesc": "Ballar, 10% gacha chegirmalar va eksklyuziv bonuslar",
+    "order": "Tezkor buyurtma",
+    "orderDesc": "Telegram Mini App orqali oldindan buyurtma bering"
+  },
+
+  "menu": {
+    "title": "Bizning menyu",
+    "itemsOf": "{total} tadan {filtered} ta pozitsiya",
+    "items": "{count} ta pozitsiya",
+    "categories": {
+      "all": "Barchasi",
+      "coffee": "Kofe",
+      "tea": "Choy",
+      "other": "Boshqa",
+      "snack": "Gazaklar"
+    },
+    "temperature": {
+      "all": "Barchasi",
+      "hot": "🔥 Issiq",
+      "cold": "🧊 Sovuq"
+    },
+    "card": {
+      "unavailable": "Mavjud emas",
+      "new": "YANGI",
+      "hot": "Issiq",
+      "cold": "Sovuq",
+      "clickDetails": "Batafsil ma'lumot uchun bosing",
+      "comingSoon": "Tez kunda"
+    },
+    "empty": {
+      "title": "Hech narsa topilmadi",
+      "subtitle": "Filtrlarni o'zgartirib ko'ring",
+      "reset": "Filtrlarni tiklash"
+    }
+  },
+
+  "machines": {
+    "title": "Bizning avtomatlar",
+    "onlineCount": "{total} ta avtomatdan {online} tasi ishlaydi",
+    "mapLoading": "Xarita yuklanmoqda...",
+    "mapRetry": "Qayta urinish",
+    "myLocation": "Mening joylashuvim",
+    "locationError": "Joylashuvni aniqlab bo'lmadi",
+    "nearest": "Eng yaqin",
+    "tabs": {
+      "map": "Xarita",
+      "types": "Avtomat turlari"
+    },
+    "searchPlaceholder": "Nomi yoki manzili bo'yicha qidirish...",
+    "clearSearch": "Qidiruvni tozalash",
+    "filters": {
+      "all": "Barchasi",
+      "online": "Ishlaydi",
+      "promotion": "Aksiya bilan",
+      "coffee": "Kofe avtomati",
+      "snack": "Gazak avtomati",
+      "cold": "Sovuq ichimliklar"
+    },
+    "card": {
+      "online": "Ishlaydi",
+      "offline": "Ishlamaydi",
+      "promotion": "Aksiya",
+      "items": "ta pozitsiya",
+      "openLocation": "Joylashuvni ochish",
+      "distance": "{distance}"
+    },
+    "empty": {
+      "title": "Hech narsa topilmadi",
+      "subtitle": "Qidiruv parametrlarini o'zgartirib ko'ring"
+    },
+    "types": {
+      "coffeeMachine": "Kofe avtomati",
+      "snackMachine": "Gazak avtomati",
+      "coldDrinks": "Sovuq ichimliklar",
+      "count": "{count} ta",
+      "dimensions": "O'lchamlari:",
+      "display": "Displey:",
+      "payment": "To'lov:",
+      "features": "Xususiyatlari:",
+      "dimensionsValue": "730×730×1960 mm, ~240 kg",
+      "displayValue": "43\" sensorli promo-roliklari bilan",
+      "paymentValue": "PAYME, CLICK, UZUM, naqd pul",
+      "featuresValue": "muz generatori, yopiq qopqoq, o'z stakani, UV-sterilizatsiya, savat",
+      "snackDimensionsValue": "1940×1042×890 mm, 330 kg",
+      "snackDisplayValue": "49\" sensorli reklama ekrani",
+      "snackPaymentValue": "kupyura, tanga, karta, QR, Apple/Google/Samsung Pay",
+      "snackFeaturesValue": "240 tagacha mahsulot, 48 hujayra, +4°C...+25°C, MDB/DEX",
+      "coldDimensionsValue": "1000×910×1960 mm, ~350 kg",
+      "coldDisplayValue": "55\" 4K sensorli ekran",
+      "coldPaymentValue": "naqd pul, karta, QR (opsiya), VIP-karta (opsiya)",
+      "coldFeaturesValue": "o'rnatilgan muzlatish -10°C...0°C, 5×8 spiral, 4G/Wi-Fi/LAN",
+      "viewDetails": "Model haqida batafsil →",
+      "infoSoon": "Ma'lumot tez kunda mavjud bo'ladi"
+    },
+    "typeAlt": {
+      "coffee": "Kofe avtomati",
+      "snack": "Gazak avtomati",
+      "cold": "Sovuq ichimliklar avtomati"
+    },
+    "detail": {
+      "specs": "Texnik xususiyatlari",
+      "advantages": "Asosiy afzalliklar",
+      "gallery": "Galereya",
+      "close": "Yopish"
+    }
+  },
+
+  "benefits": {
+    "title": "Foyda",
+    "subtitle": "VendHub aksiyalari, promokodlari va sodiqlik dasturi",
+    "tabs": {
+      "promotions": "Aksiyalar",
+      "bonuses": "Bonuslar"
+    }
+  },
+
+  "promotions": {
+    "validUntil": "{date} gacha",
+    "howToUse": "Promokodni qanday ishlatish mumkin?",
+    "copied": "Promokod nusxalandi!",
+    "conditions": "Shartlar",
+    "steps": {
+      "copy": "1. Kodni nusxalang",
+      "copyDesc": "Yuqoridagi promokodni bosing",
+      "enter": "2. Botga kiriting",
+      "enterDesc": "Telegramda @vendhub_bot ni oching",
+      "discount": "3. Chegirma oling",
+      "discountDesc": "Chegirma keyingi buyurtmada qo'llaniladi"
+    }
+  },
+
+  "promoBanner": {
+    "ariaLabel": "Aksiya",
+    "badge": "Aksiya",
+    "more": "Batafsil →"
+  },
+
+  "loyalty": {
+    "overview": {
+      "pointValue": "1 ball = 1 UZS",
+      "cashback": "Keshbek 1%",
+      "levels": "4 darajali imtiyozlar"
+    },
+    "tier": {
+      "current": "Joriy",
+      "from": "{threshold} UZS dan",
+      "discount": "{percent}% chegirma",
+      "cashback": "{percent}% keshbek"
+    },
+    "privileges": {
+      "title": "Darajalar bo'yicha imtiyozlar",
+      "header": "Imtiyoz"
+    },
+    "earn": {
+      "title": "Ballarni qanday to'plash mumkin"
+    },
+    "spend": {
+      "title": "Ballarni qanday sarflash mumkin"
+    },
+    "cta": {
+      "title": "Telegram-botda ro'yxatdan o'ting",
+      "subtitle": "va hisobingizga 15 000 bonus oling!",
+      "button": "@vendhub_bot ni ochish"
+    }
+  },
+
+  "partner": {
+    "title": "Hamkorlik",
+    "subtitle": "Biznesni birga rivojlantiramiz",
+    "moreInfo": "Batafsil",
+    "leaveRequest": "Ariza qoldirish",
+    "trustedBy": "Bizga ishonishadi",
+    "models": {
+      "locations": {
+        "title": "Joylashuvlarga",
+        "description": "Sizda odamlar ko'p keladigan joy bormi? Biz avtomatni bepul o'rnatamiz, siz sotuvdan foiz olasiz.",
+        "benefits": [
+          "Bepul o'rnatish va xizmat ko'rsatish",
+          "Sotuvdan oylik to'lovlar",
+          "Tashrifchilarni jalb qilish",
+          "Maydon bo'yicha minimal talablar yo'q"
+        ]
+      },
+      "suppliers": {
+        "title": "Yetkazib beruvchilarga",
+        "description": "Kofe, gazaklar yoki sarf materiallarini yetkazib berasizmi? Bizning hamkor-yetkazib beruvchimiz bo'ling.",
+        "benefits": [
+          "Barqaror xaridlar",
+          "Uzoq muddatli shartnomalar",
+          "O'z vaqtida to'lov",
+          "Yetkazib berish geografiyasini kengaytirish"
+        ]
+      },
+      "investors": {
+        "title": "Investorlarga",
+        "description": "Avtomatlar tarmog'idan barqaror daromad. O'zini qoplash 12 oydan.",
+        "benefits": [
+          "ROI 12 oydan",
+          "Shaffof hisobot",
+          "Passiv daromad",
+          "Kengaytirilishi mumkin bo'lgan model"
+        ]
+      },
+      "franchise": {
+        "title": "Franchayzing",
+        "description": "O'z shahringizda VendHub-ni ishga tushiring. To'liq qo'llab-quvvatlash va o'qitish.",
+        "benefits": [
+          "Tayyor biznes-model",
+          "O'qitish va qo'llab-quvvatlash",
+          "Marketing materiallari",
+          "Texnik infratuzilma"
+        ]
+      }
+    },
+    "form": {
+      "model": "Hamkorlik modeli",
+      "name": "Ism *",
+      "phone": "Telefon *",
+      "comment": "Izoh",
+      "modelOptions": {
+        "locations": "Joylashuv taqdim etish",
+        "suppliers": "Tovarlar yetkazib berish",
+        "investors": "Investitsiyalar",
+        "franchise": "Franchayzing"
+      },
+      "namePlaceholder": "Ismingiz",
+      "phonePlaceholder": "+998 XX XXX XX XX",
+      "commentPlaceholder": "Batafsilroq aytib bering (ixtiyoriy)",
+      "submit": "Ariza yuborish",
+      "sending": "Yuborilmoqda...",
+      "nameRequired": "Ismni kiriting",
+      "phoneInvalid": "Telefon +998 bilan boshlanishi kerak",
+      "success": "Ariza muvaffaqiyatli yuborildi!",
+      "error": "Yuborishda xatolik. Qayta urinib ko'ring."
+    }
+  },
+
+  "about": {
+    "title": "Kompaniya haqida",
+    "subtitle": "VendHub — Toshkentdagi vending avtomatlari tarmog'i",
+    "description": "VendHub — Toshkentdagi zamonaviy kofe va gazak avtomatlari tarmog'i operatori. Avtomatlar kasalxonalar, universitetlar, davlat muassasalari va turar-joy majmualarida joylashgan. Sifatli issiq va sovuq ichimliklarga kunduzi-kechasi kirish imkoniyati.",
+    "contacts": {
+      "phone": "Telefon",
+      "phoneValue": "+998 71 200 39 99",
+      "email": "Email",
+      "emailValue": "info@vendhub.uz",
+      "telegram": "Telegram",
+      "telegramValue": "@vendhub_support",
+      "address": "Manzil",
+      "addressValue": "Toshkent, O'zbekiston",
+      "support": "Qo'llab-quvvatlash",
+      "supportHours": "24/7 qo'llab-quvvatlash"
+    }
+  },
+
+  "footer": {
+    "navigation": "Navigatsiya",
+    "contacts": "Kontaktlar",
+    "social": "Biz ijtimoiy tarmoqlarda",
+    "location": "Toshkent, O'zbekiston",
+    "supportHours": "24/7 qo'llab-quvvatlash",
+    "tagline": "Vending avtomatlaridan kofe bir necha bosishda. Toshkent.",
+    "copyright": "© VendHub {year}. Barcha huquqlar himoyalangan."
+  },
+
+  "productModal": {
+    "options": "{count} ta variant",
+    "hot": "Issiq",
+    "cold": "Sovuq",
+    "tempHot": "Issiq",
+    "tempCold": "Sovuq",
+    "tempBoth": "Issiq/Sovuq",
+    "tempNone": "Neytral",
+    "detailTitle": "Batafsil",
+    "surcharge": "+{price} UZS",
+    "ratePrompt": "Bu ichimlikni baholang",
+    "ratingThanks": "Bahoyingiz uchun rahmat!",
+    "findNearest": "Eng yaqin avtomatni topish",
+    "starSingular": "yulduz",
+    "starPlural": "yulduz"
+  },
+
+  "machineModal": {
+    "menu": "Bu avtomatning menyusi",
+    "online": "Ishlaydi",
+    "offline": "Ishlamaydi",
+    "buildRoute": "Yo'nalish qurish",
+    "distance": "Sizdan {distance}",
+    "orderInApp": "Ilovada buyurtma berish →",
+    "floor": "Qavat: {floor}"
+  },
+
+  "navigation": {
+    "title": "Yo'nalish qurish",
+    "subtitle": "Navigatorni tanlang",
+    "close": "Yopish",
+    "googleMaps": "Google Maps",
+    "yandexMaps": "Yandex Xaritalar",
+    "twoGis": "2GIS",
+    "appleMaps": "Apple Maps",
+    "waze": "Waze"
+  },
+
+  "machineModel": {
+    "back": "Avtomatlarga qaytish",
+    "badge": "Kofe avtomati",
+    "imageAlt": "JQ-002-A kofe avtomati",
+    "subtitle": "Yangi avlod kofe avtomati — 43\" sensorli ekran, o'rnatilgan muz generatori va 36+ turdagi ichimliklar",
+    "quickStats": {
+      "beverages": "36+ ichimlik",
+      "iceMaker": "Muz generatori",
+      "display": "43\" sensor"
+    },
+    "specsTitle": "Texnik xususiyatlar",
+    "specs": {
+      "model": "Model",
+      "dimensions": "O'lchamlari (E×C×B)",
+      "weight": "Og'irligi",
+      "display": "Displey",
+      "displayValue": "43\" sensorli promo-roliklari bilan",
+      "cupCapacity": "Stakan sig'imi",
+      "cupCapacityValue": "~800 ta bir martalik stakan",
+      "beverages": "Ichimliklar soni",
+      "beveragesValue": "36+ tur (kofe, choy, kakao, mevali)",
+      "canisters": "Kanistralar",
+      "canistersValue": "8 ta kukun konteyneri + shakar",
+      "iceMaker": "Muz generatori",
+      "iceMakerValue": "O'rnatilgan",
+      "payment": "To'lov",
+      "paymentValue": "PAYME, CLICK, UZUM, naqd pul, NFC",
+      "power": "Quvvat"
+    },
+    "featuresTitle": "Asosiy xususiyatlar",
+    "features": {
+      "display": "43\" sensor ekran",
+      "displayDesc": "Promo-roliklar va qulay tanlash interfeysi bilan sensorli ekran",
+      "iceMaker": "Muz generatori",
+      "iceMakerDesc": "Sovuq ichimliklar uchun o'rnatilgan muz generatori",
+      "uv": "UV-sterilizatsiya",
+      "uvDesc": "Ichimlik berish tizimining ultrabinafsha sterilizatsiyasi",
+      "payment": "Barcha to'lov turlari",
+      "paymentDesc": "PAYME, CLICK, UZUM, naqd pul, banknotlar va tangalar",
+      "beverages": "36+ ichimlik",
+      "beveragesDesc": "Kofe, choy, kakao, mevali va sut ichimliklar",
+      "capacity": "800 stakan",
+      "capacityDesc": "24/7 uzluksiz ishlash uchun katta sig'im",
+      "ownCup": "O'z stakani",
+      "ownCupDesc": "Ko'p martalik stakandan foydalanish imkoniyati",
+      "promo": "Promo-ekran",
+      "promoDesc": "Ekranda reklama roliklari va aksiyalarni ko'rsatish"
+    },
+    "cta": {
+      "title": "Toshkent bo'ylab 16 ta JQ-002-A avtomati",
+      "subtitle": "Eng yaqin avtomatni toping va sevimli ichimligingizni buyurtma bering",
+      "button": "Xaritada avtomatlarni ko'rish"
+    }
+  },
+
+  "machineModelSlushy": {
+    "back": "Avtomatlarga qaytish",
+    "badge": "Slushy Ice Drink",
+    "imageAlt": "JS-001-A01 slushy avtomati",
+    "subtitle": "Slushy va sovutilgan ichimliklar uchun professional avtomat: o'rnatilgan muzlatish tizimi va 55\" 4K sensorli ekran",
+    "quickStats": {
+      "tempRange": "-10°C...0°C",
+      "display": "55\" 4K sensor",
+      "capacity": "5 javon × 8 seksiya"
+    },
+    "galleryTitle": "Model fotosuratlari",
+    "gallery": {
+      "sizeAlt": "JS-001-A01 o'lchamlari",
+      "featuresAlt": "JS-001-A01 afzalliklari"
+    },
+    "specsTitle": "Texnik xususiyatlar",
+    "specs": {
+      "model": "Artikul",
+      "dimensions": "O'lchamlari (E×C×B)",
+      "weight": "Sof og'irligi",
+      "voltage": "Kuchlanish",
+      "voltageValue": "220–240 V / 50 Hz; 220–230 V / 60 Hz; 110 V / 60 Hz (opsiya)",
+      "power": "Quvvat",
+      "tempRange": "Ishchi harorat diapazoni",
+      "capacity": "Standart sig'im",
+      "capacityValue": "5 javon × 8 spiral seksiya (spiral qadami sozlanadi)",
+      "display": "Reklama ekrani",
+      "displayValue": "55\" 4K, sensorli",
+      "connectivity": "Ulanish",
+      "connectivityValue": "4G SIM-karta, LAN-kabel, Wi-Fi",
+      "payment": "To'lov usullari",
+      "paymentValue": "Kupyura, tanga, bank kartasi, QR-kod (opsiya), VIP-karta (opsiya)",
+      "assortment": "Assortiment",
+      "assortmentValue": "Slushy, gazli va konserva ichimliklar, pivo va boshqalar"
+    },
+    "featuresTitle": "Asosiy afzalliklar",
+    "features": {
+      "freeze": "O'rnatilgan muzlatish tizimi",
+      "freezeDesc": "To'g'ri slush-effekt uchun -10°C...0°C oralig'ini barqaror ushlab turadi.",
+      "display": "55\" 4K sensorli ekran",
+      "displayDesc": "Ichimlik tanlash va 24/7 reklama ko'rsatish uchun katta ekran.",
+      "payment": "Moslashuvchan to'lov",
+      "paymentDesc": "Naqd pul, bank kartasi, QR-kod va doimiy mijoz uchun VIP-karta.",
+      "capacity": "Moslashuvchan sig'im",
+      "capacityDesc": "5 javon, har birida 8 spiral; qadamni qadoq formatiga moslash mumkin.",
+      "connectivity": "4G, Wi-Fi va LAN",
+      "connectivityDesc": "Avtomat boshqaruv tizimi bilan doimiy aloqa.",
+      "remote": "Masofaviy monitoring",
+      "remoteDesc": "Qoldiq, inkassatsiya va reklama kontentini bitta paneldan boshqarish.",
+      "reliable": "Barqaror ishlash",
+      "reliableDesc": "Yuqori oqimli savdo nuqtalari uchun sanoat darajasidagi konfiguratsiya.",
+      "revenue": "24/7 reklama tashuvchisi",
+      "revenueDesc": "Ekran bir vaqtning o'zida ichimlik sotadi va brend kontentini namoyish etadi."
+    },
+    "cta": {
+      "title": "JS-001-A01 yuqori oqim nuqtalari uchun",
+      "subtitle": "Savdo markazlari, kinoteatrlar, parklar, fudkortlar va sport obyektlari",
+      "button": "Xaritada avtomatlarni ko'rish"
+    }
+  },
+
+  "machineModelSnack": {
+    "back": "Avtomatlarga qaytish",
+    "badge": "Gazak avtomati",
+    "imageAlt": "TCN CSC-8C(V49) gazak avtomati",
+    "subtitle": "49\" sensorli reklama ekrani, sovutish tizimi va zamonaviy to'lovlarni qo'llab-quvvatlaydigan aqlli vending avtomati.",
+    "descriptionTitle": "Model tavsifi",
+    "descriptionShort": "TCN CSC-8C(V49) — odam ko'p bo'ladigan joylarda avtomatik savdo uchun mo'ljallangan yangi avlod vending avtomati. 49 dyuymli sensorli ekran mahsulot vitrinasi va reklama displeyi sifatida bir vaqtda ishlaydi.",
+    "descriptionLong": "Avtomat 6 ta javonda 48 ta hujayrada 240 tagacha mahsulot joylashtiradi, +4°C...+25°C diapazonida haroratni sozlaydi va MDB/DEX bilan mos ishlaydi. Naqd pul, kartalar va mobil to'lovlar qo'llab-quvvatlanadi, bepul bulutli boshqaruv esa qoldiq, narx va savdoni masofadan nazorat qilish imkonini beradi.",
+    "quickStats": {
+      "screen": "49\" Touch Screen",
+      "capacity": "240 tagacha mahsulot",
+      "temperature": "+4°C...+25°C"
+    },
+    "specsTitle": "Texnik xususiyatlar",
+    "specs": {
+      "model": "Model",
+      "type": "Turi",
+      "typeValue": "Sensorli ekranli vending avtomat",
+      "display": "Ekran",
+      "displayValue": "49\" sensorli displey (Touch Screen)",
+      "dimensions": "O'lchamlari (E×C×B)",
+      "weight": "Og'irligi",
+      "slots": "Hujayralar soni",
+      "slotsValue": "48 (maks.)",
+      "shelves": "Javonlar soni",
+      "capacity": "Sig'im",
+      "dispense": "Berish mexanizmi",
+      "dispenseValue": "Spiral / konveyer / itargich",
+      "temperature": "Ichki harorat",
+      "powerCool": "Quvvat (sovutish rejimi)",
+      "powerNormal": "Quvvat (oddiy rejim)",
+      "powerSupply": "Elektr ta'minoti",
+      "payment": "To'lov usullari",
+      "paymentValue": "Kupyura, tanga, karta, QR, Apple Pay, Google Pay, Samsung Pay",
+      "protocol": "Protokol",
+      "warranty": "Kafolat",
+      "warrantyValue": "1 yil"
+    },
+    "featuresTitle": "Asosiy afzalliklar",
+    "features": {
+      "screen": "49\" sensorli ekran",
+      "screenDesc": "Mahsulot vitrinasi va reklama kontenti uchun katta ekran.",
+      "cooling": "O'rnatilgan sovutish tizimi",
+      "coolingDesc": "Ichimlik va gazaklar uchun +4°C...+25°C harorat sozlanadi.",
+      "sensor": "Fotoelektrik berish sensori",
+      "sensorDesc": "Muvaffaqiyatli berishni nazorat qiladi va xatolarni kamaytiradi.",
+      "payment": "Zamonaviy to'lovlar",
+      "paymentDesc": "Naqd pul, karta, QR va mobil hamyonlar qo'llab-quvvatlanadi.",
+      "cloud": "Bepul bulutli boshqaruv",
+      "cloudDesc": "Qoldiq, narx va savdoni real vaqtda masofadan boshqarish.",
+      "capacity": "48 hujayra / 240 tagacha mahsulot",
+      "capacityDesc": "Gazak, ichimlik va kombinatsiyalangan mahsulotlar uchun mos.",
+      "cabinet": "Mustahkam po'lat korpus",
+      "cabinetDesc": "Yuqori yuklama sharoitlari uchun ishonchli konstruktsiya.",
+      "efficiency": "Energiya samaradorligi",
+      "efficiencyDesc": "Oddiy rejimda 60 Vt, sovutish rejimida 458 Vt."
+    },
+    "applicationsTitle": "Qo'llanish joylari",
+    "applications": {
+      "banks": "Banklar",
+      "supermarkets": "Supermarketlar",
+      "airports": "Aeroportlar",
+      "stations": "Vokzallar",
+      "hospitals": "Kasalxonalar",
+      "malls": "Savdo markazlari",
+      "parks": "Parklar va hayvonot bog'lari",
+      "offices": "Ofislar",
+      "hotels": "Mehmonxonalar",
+      "metro": "Metro stansiyalari",
+      "schools": "Maktablar",
+      "pharmacies": "Dorixonalar"
+    },
+    "galleryTitle": "Rasmlar va chizmalar",
+    "galleryAltPrefix": "TCN CSC-8C(V49), rasm",
+    "cta": {
+      "title": "TCN CSC-8C(V49) gazak va ichimliklar uchun",
+      "subtitle": "Yuqori oqimli joylar va 24/7 format uchun mos yechim",
+      "button": "Xaritada avtomatlarni ko'rish"
+    }
+  },
+
+  "admin": {
+    "sidebar": {
+      "dashboard": "Boshqaruv paneli",
+      "products": "Mahsulotlar",
+      "machines": "Avtomatlar",
+      "machineTypes": "Avtomat turlari",
+      "promotions": "Aksiyalar",
+      "partnership": "Hamkorlik",
+      "loyalty": "Sodiqlik",
+      "content": "Kontent",
+      "bonusActions": "Bonus amallar",
+      "backToSite": "Saytga qaytish",
+      "closeSidebar": "Menyuni yopish",
+      "adminPanel": "Admin panel",
+      "logout": "Chiqish"
+    },
+    "login": {
+      "title": "Admin panelga kirish",
+      "email": "Email",
+      "password": "Parol",
+      "submit": "Kirish",
+      "logging": "Kirilmoqda...",
+      "error": "Avtorizatsiya xatosi",
+      "tooManyAttempts": "Juda ko'p urinish. Bir daqiqa kuting."
+    },
+    "dashboard": {
+      "products": "Mahsulotlar",
+      "available": "{count} ta mavjud",
+      "machines": "Avtomatlar",
+      "online": "{count} ta online",
+      "newRequests": "Yangi arizalar",
+      "activePromotions": "Faol aksiyalar",
+      "partners": "{count} ta hamkor",
+      "quickActions": "Tezkor harakatlar",
+      "manageProducts": "Mahsulotlarni boshqarish",
+      "manageMachines": "Avtomatlarni boshqarish",
+      "editContent": "Kontentni tahrirlash",
+      "viewRequests": "Arizalarni ko'rish"
+    },
+    "products": {
+      "add": "Mahsulot qo'shish",
+      "searchPlaceholder": "Nomi bo'yicha qidirish...",
+      "filters": {
+        "allCategories": "Barcha kategoriyalar",
+        "coffee": "Kofe",
+        "tea": "Choy",
+        "other": "Boshqa",
+        "snack": "Gazaklar"
+      },
+      "table": {
+        "name": "Nomi",
+        "category": "Kategoriya",
+        "price": "Narx",
+        "rating": "Reyting",
+        "status": "Holat",
+        "actions": "Amallar"
+      },
+      "available": "Mavjud",
+      "unavailable": "Yashirin",
+      "empty": "Mahsulotlar topilmadi",
+      "deleteTitle": "Mahsulotni o'chirish?",
+      "deleteMessage": "«{name}» mahsuloti butunlay o'chiriladi.",
+      "loadError": "Mahsulotlarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Mahsulot o'chirildi",
+      "form": {
+        "createTitle": "Yangi mahsulot",
+        "editTitle": "Mahsulotni tahrirlash",
+        "name": "Nomi *",
+        "nameUz": "Nomi (UZ)",
+        "price": "Narx (UZS) *",
+        "category": "Kategoriya",
+        "temperature": "Harorat",
+        "image": "Rasm",
+        "description": "Tavsif",
+        "descriptionUz": "Tavsif (UZ)",
+        "detailDescription": "Batafsil tavsif",
+        "detailDescriptionUz": "Batafsil tavsif (UZ)",
+        "detailDescriptionHint": "Tarkibi, ingredientlar, tayyorlash usuli...",
+        "calories": "Kaloriya (kkal)",
+        "rating": "Reyting (0-5)",
+        "discount": "Chegirma (%)",
+        "sortOrder": "Saralash tartibi",
+        "popular": "Mashhur",
+        "available": "Mavjud",
+        "isNew": "Yangilik",
+        "options": "Variantlar",
+        "addOption": "Qo'shish",
+        "optionName": "Nomi",
+        "optionSurcharge": "Ustama",
+        "optionSurchargeHint": "+0 = asosiy narx",
+        "optionHot": "Issiq",
+        "optionCold": "Sovuq",
+        "updated": "Mahsulot yangilandi",
+        "created": "Mahsulot qo'shildi",
+        "saveError": "Saqlashda xatolik",
+        "nameRequired": "Nom majburiy",
+        "priceRequired": "Narx 0 dan katta bo'lishi kerak",
+        "ratingRange": "Reyting 0 dan 5 gacha",
+        "discountRange": "Chegirma 0 dan 100% gacha",
+        "temperatureLabels": {
+          "hot": "Issiq",
+          "cold": "Sovuq",
+          "both": "Ikkala",
+          "none": "Yo'q"
+        },
+        "categoryLabels": {
+          "coffee": "Kofe",
+          "tea": "Choy",
+          "other": "Boshqa",
+          "snack": "Gazaklar"
+        }
+      }
+    },
+    "machines": {
+      "add": "Avtomat qo'shish",
+      "searchPlaceholder": "Nomi yoki manzili bo'yicha qidirish...",
+      "table": {
+        "name": "Nomi",
+        "address": "Manzil",
+        "type": "Turi",
+        "status": "Holat",
+        "rating": "Reyting",
+        "actions": "Amallar"
+      },
+      "typeLabels": {
+        "coffee": "Kofe",
+        "snack": "Gazak",
+        "cold": "Sovuq ichimliklar"
+      },
+      "online": "Online",
+      "offline": "Offline",
+      "empty": "Avtomatlar topilmadi",
+      "deleteTitle": "Avtomatni o'chirish?",
+      "deleteMessage": "«{name}» avtomati butunlay o'chiriladi.",
+      "loadError": "Avtomatlarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Avtomat o'chirildi",
+      "form": {
+        "createTitle": "Yangi avtomat",
+        "editTitle": "Avtomatni tahrirlash",
+        "name": "Nomi *",
+        "address": "Manzil *",
+        "type": "Turi",
+        "status": "Holat",
+        "latitude": "Kenglik",
+        "longitude": "Uzunlik",
+        "rating": "Reyting (0-5)",
+        "reviewCount": "Sharhlar soni",
+        "floor": "Qavat",
+        "hours": "Ish vaqti",
+        "productCount": "Mahsulotlar soni",
+        "locationType": "Joylashuv turi",
+        "image": "Avtomat rasmi",
+        "hasPromotion": "Aksiya bor",
+        "updated": "Avtomat yangilandi",
+        "created": "Avtomat qo'shildi",
+        "saveError": "Saqlashda xatolik",
+        "nameRequired": "Nom majburiy",
+        "addressRequired": "Manzil majburiy",
+        "latitudeRange": "Kenglik 37-46 bo'lishi kerak (O'zbekiston)",
+        "longitudeRange": "Uzunlik 56-74 bo'lishi kerak (O'zbekiston)",
+        "ratingRange": "Reyting 0 dan 5 gacha",
+        "locationTypes": {
+          "hospital": "Kasalxona",
+          "university": "Universitet",
+          "market": "Bozor",
+          "government": "Davlat muassasasi",
+          "residential": "Turar joy"
+        }
+      }
+    },
+    "machineTypes": {
+      "add": "Tur qo'shish",
+      "searchPlaceholder": "Nom yoki model bo'yicha qidirish...",
+      "table": {
+        "name": "Nomi",
+        "model": "Model",
+        "slug": "Slug",
+        "specs": "Xus.",
+        "status": "Holat",
+        "actions": "Amallar"
+      },
+      "active": "Faol",
+      "inactive": "Nofaol",
+      "activate": "Faollashtirish",
+      "deactivate": "Nofaol qilish",
+      "empty": "Avtomat turlari topilmadi",
+      "deleteTitle": "Avtomat turini o'chirish?",
+      "deleteMessage": "«{name}» turi butunlay o'chiriladi.",
+      "loadError": "Turlarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Tur o'chirildi",
+      "saveError": "Saqlashda xatolik",
+      "form": {
+        "createTitle": "Yangi avtomat turi",
+        "editTitle": "Turni tahrirlash",
+        "name": "Nomi *",
+        "slug": "Slug (identifikator)",
+        "modelName": "Model",
+        "badge": "Badge",
+        "badgePlaceholder": "Tez kunda, Yangi va h.k.",
+        "description": "Tavsif",
+        "heroImage": "Avtomat surati",
+        "specs": "Texnik xususiyatlari",
+        "addSpec": "Qo'shish",
+        "specLabel": "Parametr",
+        "specValue": "Qiymat",
+        "noSpecs": "Xususiyatlar yo'q. Yaratish uchun «Qo'shish» tugmasini bosing.",
+        "advantages": "Asosiy afzalliklar",
+        "addAdvantage": "Qo'shish",
+        "advTitle": "Sarlavha",
+        "advDesc": "Tavsif",
+        "noAdvantages": "Afzalliklar yo'q. Yaratish uchun «Qo'shish» tugmasini bosing.",
+        "gallery": "Foto galereyasi",
+        "isActive": "Faol (saytda ko'rsatish)",
+        "sortOrder": "Tartib raqami",
+        "updated": "Tur yangilandi",
+        "created": "Tur qo'shildi",
+        "saveError": "Saqlashda xatolik",
+        "nameRequired": "Nom va slug majburiy"
+      }
+    },
+    "promotions": {
+      "add": "Aksiya qo'shish",
+      "duplicate": "Nusxa olish",
+      "duplicated": "Aksiya nusxalandi",
+      "table": {
+        "title": "Nomi",
+        "badge": "Belgi",
+        "promoCode": "Promokod",
+        "active": "Faol",
+        "validUntil": "Amal qiladi",
+        "visibility": "Turi",
+        "actions": "Amallar"
+      },
+      "activeYes": "Ha",
+      "activeNo": "Yo'q",
+      "noExpiry": "Muddatsiz",
+      "visibilityVisible": "Kod",
+      "visibilityAction": "Amal",
+      "count": "{count} ta aksiya",
+      "empty": "Aksiyalar topilmadi",
+      "deleteTitle": "Aksiyani o'chirish?",
+      "deleteMessage": "«{name}» aksiyasi butunlay o'chiriladi.",
+      "loadError": "Aksiyalarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Aksiya o'chirildi",
+      "updated": "Aksiya yangilandi",
+      "created": "Aksiya qo'shildi",
+      "saveError": "Saqlashda xatolik",
+      "editTitle": "Aksiyani tahrirlash",
+      "newTitle": "Yangi aksiya",
+      "form": {
+        "description": "Tavsif",
+        "gradient": "Gradient (CSS)",
+        "sortOrder": "Saralash tartibi",
+        "conditions": "Shartlar",
+        "visibilityType": "Ko'rinish turi",
+        "visibilityVisible": "Kod darhol ko'rinadi",
+        "visibilityAction": "Amal talab qilinadi",
+        "actionInstruction": "Foydalanuvchi uchun ko'rsatma",
+        "actionInstructionPlaceholder": "Masalan: Telegram-botda ro'yxatdan o'ting",
+        "discountType": "Chegirma turi",
+        "discountTypeNone": "Ko'rsatilmagan",
+        "discountTypePercent": "Foiz",
+        "discountTypeFixed": "Belgilangan",
+        "discountTypeSpecial": "Maxsus",
+        "discountValue": "Chegirma qiymati",
+        "discountValuePlaceholder": "20 yoki 5 000 UZS"
+      }
+    },
+    "cooperation": {
+      "modelFilters": {
+        "all": "Barcha modellar",
+        "locations": "Joylashuvlar",
+        "suppliers": "Yetkazib beruvchilar",
+        "investors": "Investorlar",
+        "franchise": "Franchayzing"
+      },
+      "statusFilters": {
+        "all": "Barcha holatlar",
+        "new": "Yangilar",
+        "read": "O'qilganlar",
+        "processed": "Ishlov berilganlar"
+      },
+      "statusLabels": {
+        "new": "Yangi",
+        "read": "O'qildi",
+        "processed": "Ishlov berildi"
+      },
+      "count": "{count} ta ariza",
+      "table": {
+        "model": "Model",
+        "name": "Ism",
+        "phone": "Telefon",
+        "comment": "Izoh",
+        "status": "Holat",
+        "date": "Sana"
+      },
+      "empty": "Arizalar topilmadi",
+      "loadError": "Arizalarni yuklashda xatolik",
+      "statusError": "Holatni yangilashda xatolik",
+      "statusUpdated": "Holat yangilandi",
+      "saveError": "Saqlashda xatolik",
+      "adminNotes": "Administrator eslatmasi",
+      "notesPlaceholder": "Eslatma qo'shing...",
+      "notesSaved": "Eslatma saqlandi",
+      "details": "Ariza tafsilotlari"
+    },
+    "partners": {
+      "add": "Hamkor qo'shish",
+      "count": "{count} ta hamkor",
+      "table": {
+        "name": "Nomi",
+        "logo": "Logo",
+        "website": "Veb-sayt",
+        "sortOrder": "Tartib",
+        "actions": "Amallar"
+      },
+      "empty": "Hamkorlar yo'q",
+      "deleteTitle": "Hamkorni o'chirish?",
+      "deleteMessage": "«{name}» hamkori butunlay o'chiriladi.",
+      "loadError": "Hamkorlarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Hamkor o'chirildi",
+      "updated": "Hamkor yangilandi",
+      "created": "Hamkor qo'shildi",
+      "saveError": "Saqlashda xatolik",
+      "form": {
+        "createTitle": "Yangi hamkor",
+        "editTitle": "Hamkorni tahrirlash",
+        "name": "Nomi *",
+        "logo": "Logotip",
+        "website": "Veb-sayt (URL)",
+        "description": "Tavsif",
+        "sortOrder": "Saralash tartibi"
+      }
+    },
+    "partnership": {
+      "tabs": {
+        "models": "Modellar",
+        "requests": "Arizalar",
+        "partners": "Hamkorlar"
+      },
+      "models": {
+        "title": "Hamkorlik modellari",
+        "add": "Model qo'shish",
+        "count": "{count} ta model",
+        "table": {
+          "icon": "Belgi",
+          "title": "Nomi",
+          "color": "Rang",
+          "benefits": "Afzalliklar",
+          "active": "Faol",
+          "sort": "Tartib",
+          "actions": "Amallar"
+        },
+        "empty": "Modellar topilmadi",
+        "loadError": "Modellarni yuklashda xatolik",
+        "created": "Model yaratildi",
+        "updated": "Model yangilandi",
+        "deleted": "Model o'chirildi",
+        "deleteError": "O'chirishda xatolik",
+        "saveError": "Saqlashda xatolik",
+        "deleteTitle": "Modelni o'chirish?",
+        "deleteMessage": "«{name}» modeli butunlay o'chiriladi.",
+        "activeYes": "Faol",
+        "activeNo": "Nofaol",
+        "newTitle": "Yangi model",
+        "editTitle": "Modelni tahrirlash",
+        "form": {
+          "key": "Kalit (slug)",
+          "keyPlaceholder": "masalan: custom-type",
+          "title": "Nomi (RU) *",
+          "titleUz": "Nomi (UZ)",
+          "description": "Tavsif (RU)",
+          "descriptionUz": "Tavsif (UZ)",
+          "icon": "Belgi",
+          "colorScheme": "Rang sxemasi",
+          "benefits": "Afzalliklar (RU)",
+          "benefitsUz": "Afzalliklar (UZ)",
+          "addBenefit": "Afzallik qo'shish",
+          "benefitPlaceholder": "Afzallik matnini kiriting",
+          "sortOrder": "Saralash tartibi",
+          "isActive": "Faol"
+        }
+      },
+      "requests": {
+        "delete": "O'chirish",
+        "deleteTitle": "Arizani o'chirish?",
+        "deleteMessage": "«{name}» arizasi butunlay o'chiriladi.",
+        "deleted": "Ariza o'chirildi",
+        "deleteError": "Arizani o'chirishda xatolik"
+      }
+    },
+    "loyalty": {
+      "title": "Sodiqlik darajalari",
+      "addTier": "Daraja qo'shish",
+      "table": {
+        "level": "Daraja",
+        "emoji": "Emoji",
+        "discount": "Chegirma %",
+        "threshold": "Chegara (UZS)",
+        "cashback": "Keshbek %",
+        "actions": "Amallar"
+      },
+      "empty": "Darajalar topilmadi",
+      "loadError": "Darajalarni yuklashda xatolik",
+      "updated": "Daraja yangilandi",
+      "created": "Daraja qo'shildi",
+      "deleted": "Daraja o'chirildi",
+      "saveError": "Saqlashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleteTierTitle": "Darajani o'chirish?",
+      "deleteTierMessage": "«{name}» darajasi butunlay o'chiriladi.",
+      "editTierTitle": "Darajani tahrirlash",
+      "newTierTitle": "Yangi daraja",
+      "inactive": "Nofaol",
+      "privilegeMatrix": "Darajalar bo'yicha imtiyozlar",
+      "managePrivileges": "Imtiyozlarni boshqarish",
+      "privilegeKey": "Kalit (slug)",
+      "privilegeLabel": "Ko'rsatiladigan nom",
+      "addPrivilege": "Imtiyoz qo'shish",
+      "privilegeCreated": "Imtiyoz qo'shildi",
+      "privilegeUpdated": "Imtiyoz yangilandi",
+      "privilegeDeleted": "Imtiyoz o'chirildi",
+      "privilegeDeleteTitle": "Imtiyozni o'chirish?",
+      "privilegeDeleteMessage": "«{name}» imtiyozi barcha darajalardan o'chiriladi.",
+      "form": {
+        "level": "Daraja nomi",
+        "emoji": "Emoji",
+        "discount": "Chegirma %",
+        "threshold": "Chegara (UZS)",
+        "cashback": "Keshbek %",
+        "sortOrder": "Tartib"
+      }
+    },
+    "bonusActions": {
+      "add": "Amal qo'shish",
+      "tabs": {
+        "all": "Barchasi",
+        "earn": "To'plash",
+        "spend": "Sarflash"
+      },
+      "count": "{count} ta amal",
+      "table": {
+        "title": "Nomi",
+        "icon": "Belgi",
+        "points": "Ballar",
+        "type": "Turi",
+        "active": "Faol",
+        "sort": "Tartib",
+        "actions": "Amallar"
+      },
+      "typeEarn": "To'plash",
+      "typeSpend": "Sarflash",
+      "activeYes": "Ha",
+      "activeNo": "Yo'q",
+      "empty": "Amallar topilmadi",
+      "deleteTitle": "Amalni o'chirish?",
+      "deleteMessage": "«{name}» amali butunlay o'chiriladi.",
+      "loadError": "Amallarni yuklashda xatolik",
+      "deleteError": "O'chirishda xatolik",
+      "deleted": "Amal o'chirildi",
+      "updated": "Amal yangilandi",
+      "created": "Amal qo'shildi",
+      "saveError": "Saqlashda xatolik",
+      "editTitle": "Amalni tahrirlash",
+      "newTitle": "Yangi amal",
+      "form": {
+        "title": "Nomi",
+        "description": "Tavsif",
+        "icon": "Belgi (Lucide)",
+        "pointsAmount": "Ballar miqdori",
+        "pointsAmountPlaceholder": "20 000, 1%, x3...",
+        "type": "Turi",
+        "sortOrder": "Saralash tartibi"
+      }
+    },
+    "content": {
+      "description": "Sayt matn kontentini tahrirlang. Har bir maydon alohida saqlanadi.",
+      "sections": {
+        "hero": "Asosiy ekran",
+        "stats": "Statistika",
+        "about": "Biz haqimizda",
+        "footer": "Futer",
+        "partnership": "Hamkorlik"
+      },
+      "empty": "Kontent topilmadi",
+      "loadError": "Kontentni yuklashda xatolik",
+      "updated": "Kontent yangilandi",
+      "saveError": "Saqlashda xatolik"
+    },
+    "imageUpload": {
+      "uploading": "Yuklanmoqda...",
+      "dragOrClick": "Sudrab tashlang yoki bosing",
+      "dropHere": "Faylni shu yerga tashlang",
+      "formats": "JPEG, PNG, WebP • 5 MB gacha",
+      "preview": "Rasm ko'rinishi",
+      "remove": "Rasmni o'chirish"
+    },
+    "pagination": {
+      "of": "dan",
+      "prev": "Oldingi",
+      "next": "Keyingi"
+    }
+  }
+}
