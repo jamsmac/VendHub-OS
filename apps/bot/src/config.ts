@@ -24,8 +24,9 @@ export function validateConfig(): void {
     throw new Error("TELEGRAM_BOT_TOKEN is required");
   }
   if (!config.apiToken) {
-    throw new Error(
-      "BOT_API_TOKEN is required — generate a JWT for the bot service account",
+    console.warn(
+      "[WARN] BOT_API_TOKEN is not set — API calls will be skipped. " +
+        "Set BOT_API_TOKEN to a valid service account JWT for full functionality.",
     );
   }
   // In production, ensure no localhost URLs and HTTPS webhooks
