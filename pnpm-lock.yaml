@@ -841,6 +841,9 @@ importers:
         specifier: ^5.0.0
         version: 5.0.10(@types/react@19.2.14)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
+      "@types/google.maps":
+        specifier: ^3.58.1
+        version: 3.58.1
       "@types/leaflet":
         specifier: ^1.9.21
         version: 1.9.21
@@ -6748,6 +6751,12 @@ packages:
     resolution:
       {
         integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==,
+      }
+
+  "@types/google.maps@3.58.1":
+    resolution:
+      {
+        integrity: sha512-X9QTSvGJ0nCfMzYOnaVs/k6/4L+7F5uCS+4iUmkLEls6J9S/Phv+m/i3mDeyc49ZBgwab3EFO1HEoBY7k98EGQ==,
       }
 
   "@types/graceful-fs@4.1.9":
@@ -22074,6 +22083,8 @@ snapshots:
       "@types/serve-static": 2.2.0
 
   "@types/geojson@7946.0.16": {}
+
+  "@types/google.maps@3.58.1": {}
 
   "@types/graceful-fs@4.1.9":
     dependencies:
