@@ -11,7 +11,12 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as Joi from "joi";
-import { databaseConfig, redisConfig, appConfig } from "./config/env.config";
+import {
+  databaseConfig,
+  redisConfig,
+  appConfig,
+  parseDatabaseUrl,
+} from "./config/env.config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
@@ -26,8 +31,10 @@ import { CustomTypeOrmLogger } from "./common/utils/typeorm-logger";
 
 // Core Modules
 import { CommonModule } from "./common/common.module";
+import { TracingModule } from "./common/tracing/tracing.module";
 
 // Feature Modules
+import { MetricsModule } from "./modules/metrics/metrics.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UsersModule } from "./modules/users/users.module";
 import { OrganizationsModule } from "./modules/organizations/organizations.module";
@@ -68,6 +75,8 @@ import { FiscalModule } from "./modules/fiscal/fiscal.module";
 import { RbacModule } from "./modules/rbac/rbac.module";
 import { SecurityModule } from "./modules/security/security.module";
 import { SettingsModule } from "./modules/settings/settings.module";
+import { WebsiteConfigModule } from "./modules/website-config/website-config.module";
+import { CmsModule } from "./modules/cms/cms.module";
 import { WarehouseModule } from "./modules/warehouse/warehouse.module";
 import { RoutesModule } from "./modules/routes/routes.module";
 import { EquipmentModule } from "./modules/equipment/equipment.module";
@@ -132,20 +141,27 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
           .default("development"),
         PORT: Joi.number().default(4000),
 
-        // Database (required in production)
-        DB_HOST: Joi.string().default("localhost"),
-        DB_PORT: Joi.number().default(5432),
-        DB_USER: Joi.string().default("vendhub"),
-        DB_PASSWORD: Joi.string().allow("").default(""),
-        DB_NAME: Joi.string().default("vendhub"),
+        // Database — either DATABASE_URL (Supabase/Railway) or individual vars
+        DATABASE_URL: Joi.string().uri().optional(),
+        DB_HOST: Joi.string().optional().default("localhost"),
+        DB_PORT: Joi.number().optional().default(5432),
+        DB_USER: Joi.string().optional().default("vendhub"),
+        DB_PASSWORD: Joi.string().allow("").optional().default(""),
+        DB_NAME: Joi.string().optional().default("vendhub"),
         DB_SSL: Joi.string().valid("true", "false").optional(),
+        DB_SSL_REJECT_UNAUTHORIZED: Joi.string()
+          .valid("true", "false")
+          .optional(),
         DB_SYNCHRONIZE: Joi.string().valid("true", "false").optional(),
         DB_LOGGING: Joi.string().valid("true", "false").optional(),
         DB_POOL_SIZE: Joi.number().default(10),
+        DB_MIGRATIONS_RUN: Joi.string().valid("true", "false").optional(),
 
-        // Redis
-        REDIS_HOST: Joi.string().default("localhost"),
-        REDIS_PORT: Joi.number().default(6379),
+        // Redis — either REDIS_URL (Upstash/Railway) or individual vars
+        // No defaults: if not set, Redis features gracefully degrade
+        REDIS_URL: Joi.string().optional(),
+        REDIS_HOST: Joi.string().optional(),
+        REDIS_PORT: Joi.number().optional(),
         REDIS_PASSWORD: Joi.string().allow("").optional(),
 
         // JWT (required)
@@ -154,9 +170,16 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         JWT_REFRESH_SECRET: Joi.string().optional(),
         JWT_REFRESH_EXPIRES_IN: Joi.string().default("7d"),
 
+        // CORS
+        CORS_ORIGINS: Joi.string().optional(),
+
+        // Swagger
+        SWAGGER_ENABLED: Joi.string().valid("true", "false").optional(),
+
         // Optional services
         SENTRY_DSN: Joi.string().uri().optional(),
         TELEGRAM_BOT_TOKEN: Joi.string().optional(),
+        TELEGRAM_CUSTOMER_BOT_TOKEN: Joi.string().optional(),
         STORAGE_ENDPOINT: Joi.string().optional(),
         STORAGE_ACCESS_KEY: Joi.string().optional(),
         STORAGE_SECRET_KEY: Joi.string().optional(),
@@ -175,51 +198,77 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: "postgres",
-        namingStrategy: new SnakeNamingStrategy(),
-        host: configService.get("DB_HOST", "localhost"),
-        port: configService.get<number>("DB_PORT", 5432),
-        username: configService.get("DB_USER", "postgres"),
-        password: configService.get("DB_PASSWORD", "postgres"),
-        database: configService.get("DB_NAME", "vendhub"),
-        entities: [__dirname + "/**/*.entity{.ts,.js}"],
-        migrations: [__dirname + "/database/migrations/*{.ts,.js}"],
-        // Subscribers are managed by NestJS DI (AuditSubscriber self-registers).
-        // Do NOT use file-based subscriber loading — TypeORM's container can't
-        // inject NestJS services (ClsService, etc.), causing runtime crashes.
-        subscribers: [],
-        // SECURITY: synchronize MUST always be false in production.
-        // Even in development it's off by default -- enable explicitly via DB_SYNCHRONIZE=true.
-        synchronize:
-          configService.get("NODE_ENV") !== "production" &&
-          configService.get("DB_SYNCHRONIZE", "false") === "true",
-        logging:
-          configService.get("DB_LOGGING", "false") === "true"
-            ? true
-            : ["error", "warn", "migration"],
-        logger: new CustomTypeOrmLogger(
-          configService.get<number>("DB_SLOW_QUERY_THRESHOLD", 1000),
-        ),
-        maxQueryExecutionTime: configService.get<number>(
-          "DB_SLOW_QUERY_THRESHOLD",
-          1000,
-        ),
-        ssl:
-          configService.get("NODE_ENV") === "production" ||
-          configService.get("DB_SSL") === "true"
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>("DATABASE_URL");
+        const isProduction = configService.get("NODE_ENV") === "production";
+        const poolSize = configService.get<number>("DB_POOL_SIZE", 10);
+
+        // Parse DATABASE_URL if provided (Supabase, Railway, Neon)
+        const dbConnection = databaseUrl
+          ? parseDatabaseUrl(databaseUrl)
+          : {
+              host: configService.get("DB_HOST", "localhost"),
+              port: configService.get<number>("DB_PORT", 5432),
+              username: configService.get("DB_USER", "postgres"),
+              password: configService.get("DB_PASSWORD", "postgres"),
+              database: configService.get("DB_NAME", "vendhub"),
+              ssl: false,
+            };
+
+        // SSL: auto-enable in production, respect DATABASE_URL ?sslmode, or DB_SSL env
+        const useSsl =
+          isProduction ||
+          dbConnection.ssl ||
+          configService.get("DB_SSL") === "true";
+
+        return {
+          type: "postgres" as const,
+          namingStrategy: new SnakeNamingStrategy(),
+          host: dbConnection.host,
+          port: dbConnection.port,
+          username: dbConnection.username,
+          password: dbConnection.password,
+          database: dbConnection.database,
+          entities: [__dirname + "/**/*.entity{.ts,.js}"],
+          migrations: [__dirname + "/database/migrations/*{.ts,.js}"],
+          // Subscribers are managed by NestJS DI (AuditSubscriber self-registers).
+          // Do NOT use file-based subscriber loading — TypeORM's container can't
+          // inject NestJS services (ClsService, etc.), causing runtime crashes.
+          subscribers: [],
+          // SECURITY: synchronize MUST always be false in production.
+          synchronize:
+            !isProduction &&
+            configService.get("DB_SYNCHRONIZE", "false") === "true",
+          logging:
+            configService.get("DB_LOGGING", "false") === "true"
+              ? true
+              : (["error", "warn", "migration"] as const),
+          logger: new CustomTypeOrmLogger(
+            configService.get<number>("DB_SLOW_QUERY_THRESHOLD", 1000),
+          ),
+          maxQueryExecutionTime: configService.get<number>(
+            "DB_SLOW_QUERY_THRESHOLD",
+            1000,
+          ),
+          ssl: useSsl
             ? {
                 rejectUnauthorized:
                   configService.get("DB_SSL_REJECT_UNAUTHORIZED") !== "false",
               }
             : false,
-        poolSize: configService.get<number>("DB_POOL_SIZE", 20),
-        extra: {
-          max: configService.get<number>("DB_POOL_SIZE", 20),
-          connectionTimeoutMillis: 10000,
-          idleTimeoutMillis: 30000,
-        },
-      }),
+          // Connection pool: respect Supabase/PgBouncer limits
+          // Free tier: max ~10, Pro tier: max ~50
+          poolSize,
+          extra: {
+            max: poolSize,
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 30000,
+          },
+          // Auto-run migrations on startup if DB_MIGRATIONS_RUN=true
+          migrationsRun:
+            configService.get("DB_MIGRATIONS_RUN", "false") === "true",
+        };
+      },
     }),
 
     // ============================================
@@ -232,18 +281,35 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const redisUrl = configService.get("REDIS_URL");
-        const store = await redisStore({
-          url: redisUrl || undefined,
-          socket: !redisUrl
-            ? {
-                host: configService.get("REDIS_HOST", "localhost"),
-                port: configService.get<number>("REDIS_PORT", 6379),
-              }
-            : undefined,
-          password: configService.get("REDIS_PASSWORD") || undefined,
-          ttl: configService.get<number>("CACHE_TTL", 300) * 1000,
-        });
-        return { store };
+        const redisHost = configService.get("REDIS_HOST");
+        const ttl = configService.get<number>("CACHE_TTL", 300) * 1000;
+
+        // If Redis is configured, use Redis store; otherwise fall back to in-memory
+        if (redisUrl || redisHost) {
+          try {
+            const store = await redisStore({
+              url: redisUrl || undefined,
+              socket: !redisUrl
+                ? {
+                    host: redisHost,
+                    port: configService.get<number>("REDIS_PORT", 6379),
+                  }
+                : undefined,
+              password: configService.get("REDIS_PASSWORD") || undefined,
+              ttl,
+            });
+            return { store };
+          } catch (error) {
+            // If Redis connection fails, gracefully fall back to in-memory
+            console.warn(
+              `⚠️ Redis cache unavailable, using in-memory cache: ${error instanceof Error ? error.message : error}`,
+            );
+            return { ttl };
+          }
+        }
+
+        // No Redis configured — use in-memory cache (default cache-manager store)
+        return { ttl };
       },
     }),
 
@@ -256,15 +322,24 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get("REDIS_URL");
-        return {
-          connection: redisUrl
-            ? { url: redisUrl }
-            : {
-                host: configService.get("REDIS_HOST", "localhost"),
-                port: configService.get<number>("REDIS_PORT", 6379),
-                password: configService.get("REDIS_PASSWORD"),
-              },
-        };
+        const redisHost = configService.get("REDIS_HOST");
+
+        // BullMQ requires Redis — configure connection with retry logic
+        const connection = redisUrl
+          ? {
+              url: redisUrl,
+              maxRetriesPerRequest: null as null,
+              retryStrategy: (times: number) => Math.min(times * 500, 5000),
+            }
+          : {
+              host: redisHost || "localhost",
+              port: configService.get<number>("REDIS_PORT", 6379),
+              password: configService.get("REDIS_PASSWORD"),
+              maxRetriesPerRequest: null as null,
+              retryStrategy: (times: number) => Math.min(times * 500, 5000),
+            };
+
+        return { connection };
       },
     }),
 
@@ -344,10 +419,14 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
     // ============================================
 
     CommonModule,
+    TracingModule,
 
     // ============================================
     // FEATURE MODULES
     // ============================================
+
+    // Prometheus Metrics
+    MetricsModule,
 
     // Authentication & Authorization
     AuthModule,
@@ -468,6 +547,12 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // System Settings & Configuration
     SettingsModule,
+
+    // Website Configuration (SEO, Theme, Analytics, etc.)
+    WebsiteConfigModule,
+
+    // Content Management System (Articles, Help Content)
+    CmsModule,
 
     // Warehouse & Stock Management
     WarehouseModule,

@@ -1,9 +1,19 @@
 #!/bin/bash
 # =============================================================================
-# VendHub OS — Set Railway Variables for BOT service
-# Railway CLI v4 syntax (--set flag instead of 'set' subcommand)
+# VendHub OS — Set Railway Variables for BOT service (DEPRECATED)
 #
-# BEFORE RUNNING:
+# ⚠️  DEPRECATED — This standalone bot service is no longer the primary bot.
+#
+# The two-bot architecture has been moved INTO the API service:
+#   • @vendhub24bot (staff)   → TELEGRAM_BOT_TOKEN          in @vendhub/api
+#   • @vendhubbot   (customers) → TELEGRAM_CUSTOMER_BOT_TOKEN in @vendhub/api
+#
+# To set those tokens, run: scripts/railway-set-vars.sh
+#
+# This script is kept for reference only. The Railway `bot` service can be
+# disabled or removed once the API service is confirmed stable in production.
+#
+# If you still need to run the standalone bot for legacy reasons:
 #   1. Get your TELEGRAM_BOT_TOKEN from @BotFather on Telegram
 #      → /newbot  (or /mybots to retrieve existing token)
 #   2. Edit this script and replace REPLACE_WITH_YOUR_BOT_TOKEN below
