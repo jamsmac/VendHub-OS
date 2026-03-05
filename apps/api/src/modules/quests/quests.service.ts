@@ -74,6 +74,7 @@ export class QuestsService {
     const quest = this.questRepo.create({
       organizationId,
       ...dto,
+      additionalRewards: dto.additionalRewards as Quest["additionalRewards"],
       difficulty: dto.difficulty || QuestDifficulty.MEDIUM,
     });
 
@@ -397,8 +398,9 @@ export class QuestsService {
    */
   @OnEvent("order.completed")
   async handleOrderCompleted(payload: Record<string, unknown>): Promise<void> {
-    const { userId, orderId, amount, productIds, machineId, categoryIds } =
-      payload;
+    const { userId, amount, productIds, categoryIds } = payload;
+    const orderId = payload.orderId as string | undefined;
+    const machineId = payload.machineId as string | undefined;
 
     // ORDER_COUNT
     await this.updateProgress({
@@ -444,7 +446,7 @@ export class QuestsService {
         organizationId: payload.organizationId as string,
         eventType: QuestType.ORDER_MACHINE,
         value: 1,
-        metadata: { orderId, machineId: machineId as unknown as string },
+        metadata: { orderId, machineId },
       });
 
       // VISIT (unique machines)
@@ -453,7 +455,7 @@ export class QuestsService {
         organizationId: payload.organizationId as string,
         eventType: QuestType.VISIT,
         value: 1,
-        metadata: { machineId: machineId as unknown as string },
+        metadata: { machineId },
       });
     }
 
@@ -470,7 +472,7 @@ export class QuestsService {
           organizationId: payload.organizationId as string,
           eventType: QuestType.ORDER_CATEGORY,
           value: 1,
-          metadata: { orderId, categoryId: categoryId as unknown as string },
+          metadata: { orderId, categoryId: categoryId as string },
         });
       }
     }
@@ -484,7 +486,7 @@ export class QuestsService {
           organizationId: payload.organizationId as string,
           eventType: QuestType.ORDER_PRODUCT,
           value: 1,
-          metadata: { orderId, productId: productId as unknown as string },
+          metadata: { orderId, productId: productId as string },
         });
       }
 

@@ -224,8 +224,10 @@ export class NotificationsService {
     return saved;
   }
 
-  async findById(id: string): Promise<Notification> {
-    const notification = await this.notificationRepo.findOne({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<Notification> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
+    const notification = await this.notificationRepo.findOne({ where });
     if (!notification) {
       throw new NotFoundException(`Уведомление ${id} не найдено`);
     }
@@ -1214,13 +1216,13 @@ export class NotificationsService {
           if (Number(value) >= Number(condition.value)) return false;
           break;
         case "in":
-          if (!condition.value.includes(value)) return false;
+          if (!(condition.value as unknown[]).includes(value)) return false;
           break;
         case "not_in":
-          if (condition.value.includes(value)) return false;
+          if ((condition.value as unknown[]).includes(value)) return false;
           break;
         case "contains":
-          if (!String(value).includes(condition.value)) return false;
+          if (!String(value).includes(String(condition.value))) return false;
           break;
       }
     }

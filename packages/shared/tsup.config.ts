@@ -13,9 +13,4 @@ export default defineConfig({
   clean: true,
   splitting: false,
   sourcemap: true,
-  // treeshake removed: with multiple entry points tsup eliminates barrel
-  // re-exports (export * from './types') from dist/index.d.ts because the
-  // bundler treats them as redundant — types/index is already its own entry.
-  // This caused UserRole and all domain types to be missing from the root
-  // package import (@vendhub/shared), breaking apps/web and apps/api.
 });

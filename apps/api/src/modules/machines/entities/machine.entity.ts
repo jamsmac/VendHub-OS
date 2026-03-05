@@ -296,8 +296,7 @@ export class Machine extends BaseEntity {
 
   // Relations (string-based to avoid circular imports)
   @OneToMany("MachineSlot", "machine")
-  // circular import prevention
-  slots: unknown[];
+  slots: MachineSlot[];
 
   @OneToMany("MachineLocationHistory", "machine")
   // circular import prevention

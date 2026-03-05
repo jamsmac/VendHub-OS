@@ -249,9 +249,11 @@ export class TasksService {
   /**
    * Find task by ID with all relations
    */
-  async findById(id: string): Promise<Task | null> {
+  async findById(id: string, organizationId?: string): Promise<Task | null> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
     return this.taskRepository.findOne({
-      where: { id },
+      where,
       relations: [
         "machine",
         "assignedTo",

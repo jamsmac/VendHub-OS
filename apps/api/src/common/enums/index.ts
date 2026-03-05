@@ -1,13 +1,64 @@
 /**
- * Shared Enums - Re-exported from @vendhub/shared
+ * Shared Enums — defined locally for the API app.
  *
- * All shared enums are now defined in @vendhub/shared package (packages/shared)
- * and re-exported here to maintain backwards compatibility with existing imports.
- *
- * Do NOT define duplicate enums in entity files or service files.
+ * These are kept in sync with @vendhub/shared (packages/shared/src/types/).
+ * Defined locally because tsup bundling loses barrel re-exports from the
+ * shared package's main entry point (dist/index.d.ts).
  */
 
-// Re-export from shared package — single source of truth
-export { UserRole } from "@vendhub/shared";
-export { PaymentMethod } from "@vendhub/shared";
-export { CommissionType, ContractType, ContractStatus } from "@vendhub/shared";
+export enum UserRole {
+  OWNER = "owner",
+  ADMIN = "admin",
+  MANAGER = "manager",
+  OPERATOR = "operator",
+  WAREHOUSE = "warehouse",
+  ACCOUNTANT = "accountant",
+  VIEWER = "viewer",
+}
+
+export enum PaymentMethod {
+  CASH = "cash",
+  CARD = "card",
+  PAYME = "payme",
+  CLICK = "click",
+  QR = "qr",
+  UZCARD = "uzcard",
+  HUMO = "humo",
+  VISA = "visa",
+  MASTERCARD = "mastercard",
+  NFC = "nfc",
+  UZUM = "uzum",
+  TELEGRAM = "telegram",
+  BONUS = "bonus",
+  MIXED = "mixed",
+}
+
+export enum CommissionType {
+  PERCENTAGE = "percentage",
+  FIXED = "fixed",
+  TIERED = "tiered",
+  HYBRID = "hybrid",
+}
+
+export enum ContractType {
+  FRANCHISE = "franchise",
+  PARTNERSHIP = "partnership",
+  LEASE = "lease",
+  SERVICE = "service",
+  RENT = "rent",
+  REVENUE_SHARE = "revenue_share",
+  HYBRID = "hybrid",
+  FREE = "free",
+  COMMISSION = "commission",
+}
+
+export enum ContractStatus {
+  DRAFT = "draft",
+  PENDING_APPROVAL = "pending_approval",
+  ACTIVE = "active",
+  SUSPENDED = "suspended",
+  EXPIRING_SOON = "expiring_soon",
+  EXPIRED = "expired",
+  TERMINATED = "terminated",
+  RENEWED = "renewed",
+}

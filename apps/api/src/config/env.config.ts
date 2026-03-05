@@ -97,7 +97,13 @@ export const appConfig = registerAs("app", () => ({
   agentMode:
     process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production",
   sentryDsn: process.env.SENTRY_DSN || undefined,
-  jwtSecret: process.env.JWT_SECRET || "change-me",
+  jwtSecret: (() => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET must be set in production");
+    }
+    return secret || "change-me-dev-only";
+  })(),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   apiUrl: process.env.API_URL || "http://localhost:4000",
 }));

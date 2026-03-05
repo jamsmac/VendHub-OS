@@ -93,9 +93,14 @@ export class WarehouseService {
     };
   }
 
-  async findById(id: string): Promise<Warehouse | null> {
+  async findById(
+    id: string,
+    organizationId?: string,
+  ): Promise<Warehouse | null> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
     return this.warehouseRepository.findOne({
-      where: { id },
+      where,
     });
   }
 

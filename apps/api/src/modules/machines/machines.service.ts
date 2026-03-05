@@ -6,7 +6,14 @@ import {
   ConflictException,
 } from "@nestjs/common";
 
-let QRCode: unknown;
+let QRCode:
+  | {
+      toDataURL: (
+        data: string,
+        opts?: Record<string, unknown>,
+      ) => Promise<string>;
+    }
+  | undefined;
 try {
   QRCode = require("qrcode");
 } catch {
@@ -182,9 +189,11 @@ export class MachinesService {
     };
   }
 
-  async findById(id: string): Promise<Machine | null> {
+  async findById(id: string, organizationId?: string): Promise<Machine | null> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
     return this.machineRepository.findOne({
-      where: { id },
+      where,
       relations: ["slots", "slots.product"],
     });
   }
@@ -415,8 +424,8 @@ export class MachinesService {
 
     await this.machineRepository.update(
       machineId,
-      updateData as unknown as Partial<Machine>,
-    ); // TypeORM QueryDeepPartialEntity vs Partial<Machine> mismatch for entity with jsonb columns
+      updateData as Record<string, unknown>,
+    );
 
     return savedHistory;
   }
@@ -556,7 +565,7 @@ export class MachinesService {
     const unresolvedCount = await this.errorLogRepository.count({
       where: {
         machineId: errorLog.machineId,
-        resolvedAt: null as unknown as Date | null, // TypeORM FindOptionsWhere: null check for nullable Date column
+        resolvedAt: null as unknown as Date, // TypeORM FindOptionsWhere: null check for nullable Date column
       },
     });
 

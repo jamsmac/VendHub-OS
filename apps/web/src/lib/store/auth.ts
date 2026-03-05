@@ -55,7 +55,9 @@ export const useAuthStore = create<AuthState>()(
 
           localStorage.setItem("vendhub_access_token", data.accessToken);
           localStorage.setItem("vendhub_refresh_token", data.refreshToken);
-          document.cookie = `vendhub_access_token=${data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+          const secure =
+            window.location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `vendhub_access_token=${data.accessToken}; path=/; max-age=86400; SameSite=Lax${secure}`;
 
           set({
             user: data.user,

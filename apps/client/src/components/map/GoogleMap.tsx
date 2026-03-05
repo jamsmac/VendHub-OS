@@ -109,7 +109,6 @@ function MapInner({
             weight: 2.5,
             fillOpacity: 1,
           }}
-          zIndexOffset={1000}
         >
           <Popup>{t("mapYouAreHere")}</Popup>
         </CircleMarker>

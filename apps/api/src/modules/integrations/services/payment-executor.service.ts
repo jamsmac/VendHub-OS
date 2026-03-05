@@ -537,17 +537,20 @@ export class PaymentExecutorService {
     data: unknown,
   ): PaymentResponse {
     const mapping = endpoint.responseMapping;
+    const d = data as Record<string, unknown>;
 
     if (!mapping) {
       // Default parsing
       return {
         success: true,
-        paymentId: data.id || data.payment_id || data.transaction_id,
-        status: this.mapStatus(data.status || data.state),
-        amount: data.amount,
-        currency: data.currency,
-        redirectUrl: data.redirect_url || data.checkout_url || data.pay_url,
-        qrCode: data.qr_code || data.qr_data,
+        paymentId: String(d.id || d.payment_id || d.transaction_id || ""),
+        status: this.mapStatus(String(d.status || d.state || "")),
+        amount: Number(d.amount) || 0,
+        currency: String(d.currency || "UZS"),
+        redirectUrl: String(
+          d.redirect_url || d.checkout_url || d.pay_url || "",
+        ),
+        qrCode: String(d.qr_code || d.qr_data || ""),
         rawResponse: data,
       };
     }
@@ -570,22 +573,22 @@ export class PaymentExecutorService {
 
       switch (field.target) {
         case "paymentId":
-          response.paymentId = transformedValue;
+          response.paymentId = String(transformedValue);
           break;
         case "status":
-          response.status = this.mapStatus(transformedValue);
+          response.status = this.mapStatus(String(transformedValue));
           break;
         case "amount":
-          response.amount = transformedValue;
+          response.amount = Number(transformedValue);
           break;
         case "currency":
-          response.currency = transformedValue;
+          response.currency = String(transformedValue);
           break;
         case "redirectUrl":
-          response.redirectUrl = transformedValue;
+          response.redirectUrl = String(transformedValue);
           break;
         case "qrCode":
-          response.qrCode = transformedValue;
+          response.qrCode = String(transformedValue);
           break;
       }
     }
@@ -665,37 +668,40 @@ export class PaymentExecutorService {
   }
 
   private applyTransform(value: unknown, transform: unknown): unknown {
-    switch (transform.type) {
+    const t = transform as Record<string, unknown>;
+    const v = Number(value) || 0;
+
+    switch (t.type) {
       case "format":
-        if (transform.format === "cents") {
-          return Math.round(value * 100);
+        if (t.format === "cents") {
+          return Math.round(v * 100);
         }
-        if (transform.format === "tiyn") {
-          return Math.round(value * 100);
+        if (t.format === "tiyn") {
+          return Math.round(v * 100);
         }
         return value;
 
       case "convert":
-        // Safe predefined conversions instead of eval()
-        if (transform.operation) {
+        // Safe predefined conversions (safeCalculate uses a fixed allowlist of operations)
+        if (t.operation) {
           return this.safeCalculate(
-            value,
-            transform.operation,
-            transform.operand,
+            v,
+            t.operation as string,
+            t.operand as number | undefined,
           );
         }
         return value;
 
       case "multiply":
-        return value * (transform.factor || 1);
+        return v * (Number(t.factor) || 1);
 
       case "divide":
-        return transform.divisor ? value / transform.divisor : value;
+        return t.divisor ? v / Number(t.divisor) : value;
 
       case "round":
         return (
-          Math.round(value * (transform.precision || 1)) /
-          (transform.precision || 1)
+          Math.round(v * (Number(t.precision) || 1)) /
+          (Number(t.precision) || 1)
         );
 
       default:
@@ -742,7 +748,15 @@ export class PaymentExecutorService {
   }
 
   private getNestedValue(obj: unknown, path: string): unknown {
-    return path.split(".").reduce((current, key) => current?.[key], obj);
+    return path
+      .split(".")
+      .reduce(
+        (current: Record<string, unknown> | undefined, key) =>
+          (current as Record<string, unknown> | undefined)?.[key] as
+            | Record<string, unknown>
+            | undefined,
+        obj as Record<string, unknown>,
+      );
   }
 
   private handleError(error: unknown, config: PaymentIntegrationConfig): Error {
