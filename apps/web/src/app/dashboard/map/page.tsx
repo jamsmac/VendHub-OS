@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
@@ -34,6 +35,28 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { machinesApi } from "@/lib/api";
+
+// ============================================================================
+// Leaflet map — dynamic import required (Leaflet uses window on import)
+// ============================================================================
+
+const LeafletDashboardMap = dynamic(
+  () =>
+    import("./LeafletDashboardMap").then((m) => ({
+      default: m.LeafletDashboardMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border bg-muted flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <MapPin className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+          <p className="text-sm">Загрузка карты…</p>
+        </div>
+      </div>
+    ),
+  },
+);
 
 // ============================================================================
 // Types
@@ -99,8 +122,6 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const TASHKENT_CENTER = { lat: 41.2995, lng: 69.2401 };
-
 // ============================================================================
 // Component
 // ============================================================================
@@ -109,16 +130,10 @@ export default function MapPage() {
   const t = useTranslations("map");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [selectedMachine, setSelectedMachine] = useState<MachineMapItem | null>(
     null,
   );
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
-  const mapRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const googleMapRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markersRef = useRef<any[]>([]);
 
   // Fetch machines map data
   const {
@@ -138,7 +153,6 @@ export default function MapPage() {
     if (statusFilter !== "all" && m.status !== statusFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-
       return (
         m.machineNumber.toLowerCase().includes(q) ||
         m.name.toLowerCase().includes(q) ||
@@ -158,119 +172,6 @@ export default function MapPage() {
     },
     { total: 0 } as Record<string, number>,
   );
-
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!mapRef.current || viewMode !== "map") return;
-
-    // Check if Google Maps is already loaded
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof window !== "undefined" && (window as any).google?.maps) {
-      initMap();
-      return;
-    }
-
-    // Load Google Maps script
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-    if (!apiKey) return; // Show placeholder if no API key
-
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
-    script.async = true;
-    script.onload = initMap;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup markers
-
-      markersRef.current.forEach((m) => m.setMap?.(null));
-      markersRef.current = [];
-    };
-  }, [viewMode]);
-
-  const initMap = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!mapRef.current || !(window as any).google?.maps) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const google = (window as any).google;
-
-    googleMapRef.current = new google.maps.Map(mapRef.current, {
-      center: TASHKENT_CENTER,
-      zoom: 12,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }],
-        },
-      ],
-    });
-  }, []);
-
-  // Update markers when data changes
-  useEffect(() => {
-    if (!googleMapRef.current || !machines.length) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const google = (window as any).google;
-
-    if (!google?.maps) return;
-
-    // Clear existing markers
-    markersRef.current.forEach((m) => m.setMap(null));
-    markersRef.current = [];
-
-    // Add new markers
-    const bounds = new google.maps.LatLngBounds();
-
-    machines.forEach((machine) => {
-      if (!machine.latitude || !machine.longitude) return;
-
-      const statusConfig =
-        STATUS_CONFIG[machine.status] || STATUS_CONFIG.offline;
-      const position = { lat: machine.latitude, lng: machine.longitude };
-      bounds.extend(position);
-
-      const marker = new google.maps.Marker({
-        position,
-        map: googleMapRef.current,
-        title: `${machine.machineNumber} — ${machine.name}`,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: statusConfig.bgColor.replace("bg-", "").includes("green")
-            ? "#22c55e"
-            : statusConfig.bgColor.includes("red")
-              ? "#ef4444"
-              : statusConfig.bgColor.includes("yellow")
-                ? "#eab308"
-                : statusConfig.bgColor.includes("blue")
-                  ? "#3b82f6"
-                  : "#9ca3af",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        },
-      });
-
-      marker.addListener("click", () => setSelectedMachine(machine));
-      markersRef.current.push(marker);
-    });
-
-    if (machines.length > 1) {
-      googleMapRef.current.fitBounds(bounds, { padding: 50 });
-    } else if (machines.length === 1 && machines[0].latitude) {
-      googleMapRef.current.setCenter({
-        lat: machines[0].latitude,
-        lng: machines[0].longitude,
-      });
-      googleMapRef.current.setZoom(15);
-    }
-  }, [machines, googleMapRef.current]);
 
   return (
     <div className="space-y-4">
@@ -306,7 +207,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Status Summary */}
+      {/* Status filters */}
       <div className="flex flex-wrap gap-2">
         <Button
           variant={statusFilter === "all" ? "default" : "outline"}
@@ -343,35 +244,17 @@ export default function MapPage() {
       {/* Map View */}
       {viewMode === "map" ? (
         <div className="relative">
-          <div
-            ref={mapRef}
-            className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border bg-muted"
-          >
-            {/* Placeholder when no Google Maps API key */}
-            {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY && (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <MapPin className="h-16 w-16 mb-4" />
-                <p className="text-lg font-medium">
-                  {t("apiKeyNotConfigured")}
-                </p>
-                <p className="text-sm">{t("addApiKeyHint")}</p>
-                <p className="text-sm mt-4">
-                  {t("machinesFound", { count: machines.length })}
-                </p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4 mr-2" />
-                  {t("listView")}
-                </Button>
-              </div>
-            )}
-          </div>
+          {/* Leaflet map — no API key needed, uses OpenStreetMap */}
+          <LeafletDashboardMap
+            machines={machines}
+            onMachineClick={(clicked) =>
+              setSelectedMachine(machines.find((m) => m.id === clicked.id) ?? null)
+            }
+            className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border"
+          />
 
-          {/* Floating Stats */}
-          <div className="absolute top-3 right-3 bg-card/95 backdrop-blur border rounded-lg p-3 shadow-lg">
+          {/* Floating stats overlay — z-[1000] to stay above Leaflet tiles */}
+          <div className="absolute top-3 right-3 z-[1000] bg-card/95 backdrop-blur border rounded-lg p-3 shadow-lg">
             <p className="text-sm font-medium mb-1">
               {t("machinesCount", { count: machines.length })}
             </p>
@@ -495,7 +378,8 @@ export default function MapPage() {
               const stockPercent =
                 m.slotsCount > 0
                   ? Math.round(
-                      ((m.slotsCount - m.emptySlotsCount) / m.slotsCount) * 100,
+                      ((m.slotsCount - m.emptySlotsCount) / m.slotsCount) *
+                        100,
                     )
                   : 0;
 
