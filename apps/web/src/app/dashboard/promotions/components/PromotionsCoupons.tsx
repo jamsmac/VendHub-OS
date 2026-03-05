@@ -1,0 +1,208 @@
+"use client";
+
+import { useState } from "react";
+import { Copy, Download, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { Coupon } from "./types";
+
+interface PromotionsCouponsProps {
+  couponStats: {
+    totalIssued: number;
+    totalUsed: number;
+    activeRate: number;
+    totalExpired: number;
+  };
+  coupons: Coupon[];
+}
+
+export function PromotionsCoupons({
+  couponStats,
+  coupons,
+}: PromotionsCouponsProps) {
+  const [couponFilter, setCouponFilter] = useState<
+    "all" | "active" | "used" | "expired"
+  >("all");
+
+  const filteredCoupons = coupons.filter((c) => {
+    if (couponFilter === "all") return true;
+    return c.status === couponFilter;
+  });
+
+  return (
+    <>
+      {/* Coupon stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          {
+            label: "Выдано",
+            value: couponStats.totalIssued,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+          },
+          {
+            label: "Использовано",
+            value: couponStats.totalUsed,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+          {
+            label: "Активных",
+            value: couponStats.activeRate + "%",
+            color: "text-purple-600",
+            bg: "bg-purple-50",
+          },
+          {
+            label: "Истекло",
+            value: couponStats.totalExpired,
+            color: "text-red-600",
+            bg: "bg-red-50",
+          },
+        ].map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="p-5">
+              <p className="text-sm text-espresso-light">{stat.label}</p>
+              <p className="mt-1 text-2xl font-bold text-espresso-dark font-display">
+                {stat.value}
+              </p>
+              <div className={`rounded-lg ${stat.bg} mt-3 h-2`} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Coupon generator */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Генератор купонов</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label className="block text-sm font-medium text-espresso-dark mb-2">
+                Префикс
+              </label>
+              <Input placeholder="е.г. MORNING" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-espresso-dark mb-2">
+                Количество
+              </label>
+              <Input type="number" placeholder="100" defaultValue="100" />
+            </div>
+            <div className="flex items-end">
+              <Button className="w-full gap-2 bg-espresso hover:bg-espresso-dark">
+                <Sparkles className="h-4 w-4" /> Сгенерировать
+              </Button>
+            </div>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-sm text-amber-900">
+              ✨ Будет создано 100 уникальных кодов формата:{" "}
+              <code className="font-mono font-semibold">MORNING_XXXXXX</code>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Coupons list */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Список купонов</CardTitle>
+            <Button variant="outline" size="sm" className="gap-1">
+              <Download className="h-3.5 w-3.5" /> Экспорт
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 mb-4">
+            {(["all", "active", "used", "expired"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setCouponFilter(f)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                  couponFilter === f
+                    ? "bg-espresso text-white"
+                    : "bg-espresso-50 text-espresso-light"
+                }`}
+              >
+                {f === "all"
+                  ? "Все"
+                  : f === "active"
+                    ? "Активные"
+                    : f === "used"
+                      ? "Использованные"
+                      : "Истекшие"}
+              </button>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-espresso/10">
+                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                    Код
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                    Статус
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                    Создан
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                    Использован
+                  </th>
+                  <th className="text-right py-3 px-4 font-semibold text-espresso-dark">
+                    Действия
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCoupons.map((coupon) => (
+                  <tr
+                    key={coupon.id}
+                    className="border-b border-espresso/10 hover:bg-espresso-50"
+                  >
+                    <td className="py-3 px-4">
+                      <code className="font-mono font-semibold text-espresso-dark">
+                        {coupon.code}
+                      </code>
+                    </td>
+                    <td className="py-3 px-4">
+                      {coupon.status === "active" && (
+                        <Badge variant="success">Активен</Badge>
+                      )}
+                      {coupon.status === "used" && (
+                        <Badge variant="default">Использован</Badge>
+                      )}
+                      {coupon.status === "expired" && (
+                        <Badge variant="outline">Истёк</Badge>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-espresso-light text-xs">
+                      {new Date(coupon.createdAt).toLocaleDateString("ru-RU")}
+                    </td>
+                    <td className="py-3 px-4 text-espresso-light text-xs">
+                      {coupon.usedAt
+                        ? new Date(coupon.usedAt).toLocaleDateString("ru-RU")
+                        : "—"}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <Button variant="ghost" size="sm" className="gap-1">
+                        <Copy className="h-3.5 w-3.5" /> Скопировать
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
