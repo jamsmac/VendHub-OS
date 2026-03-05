@@ -5,7 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, IsNull } from "typeorm";
+import { Repository, IsNull, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
 import {
   Counterparty,
   Contract,
@@ -326,14 +326,11 @@ export class CounterpartyService {
       deletedAt: IsNull(),
     };
 
-    if (fromDate || toDate) {
-      query.periodStart = {};
-      if (fromDate) {
-        query.periodStart[">="] = fromDate;
-      }
-      if (toDate) {
-        query.periodEnd = { "<=": toDate };
-      }
+    if (fromDate) {
+      query.periodStart = MoreThanOrEqual(fromDate);
+    }
+    if (toDate) {
+      query.periodEnd = LessThanOrEqual(toDate);
     }
 
     return this.commissionRepository.find({

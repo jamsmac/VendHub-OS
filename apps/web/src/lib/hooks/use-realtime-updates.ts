@@ -184,7 +184,7 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
         io: (
           url: string,
           opts: Record<string, unknown>,
-        ) => typeof socketRef.current;
+        ) => NonNullable<typeof socketRef.current>;
       }
     ).io(`${WS_URL}${namespace}`, {
       auth: { token },
@@ -212,15 +212,16 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
       });
     });
 
-    socket.on("disconnect", (reason: string) => {
+    socket.on("disconnect", (...args: unknown[]) => {
       setIsConnected(false);
-      console.log(`[WebSocket] Disconnected from ${namespace}:`, reason);
+      console.log(`[WebSocket] Disconnected from ${namespace}:`, args[0]);
     });
 
-    socket.on("connect_error", (error: Error) => {
+    socket.on("connect_error", (...args: unknown[]) => {
+      const error = args[0] as Error | undefined;
       console.warn(
         `[WebSocket] Connection error on ${namespace}:`,
-        error.message,
+        error?.message,
       );
       setIsConnected(false);
     });

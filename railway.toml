@@ -1,0 +1,25 @@
+# Railway project configuration
+# https://docs.railway.app/reference/config-as-code
+#
+# NOTE: This file is read per-service. Each Railway service should
+# configure its own build/deploy settings in the dashboard:
+#   - Root Directory (optional)
+#   - Dockerfile Path (if using Docker builds)
+#   - Build/Start commands (if overriding)
+#
+# For Railpack (auto-detection), pnpm workspaces are auto-detected.
+# Each service runs: pnpm --filter <package-name> build / start
+#
+# Service overview:
+#   api     → @vendhub/api     (NestJS, port 4000)
+#   web     → @vendhub/web     (Next.js admin, port 3000)
+#   client  → @vendhub/client  (Vite SPA, served via npx serve)
+#   bot     → @vendhub/bot     (Telegram bot, no HTTP)
+#   site    → @vendhub/site    (Next.js landing, port 3100)
+
+[build]
+buildCommand = ""
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
