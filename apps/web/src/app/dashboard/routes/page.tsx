@@ -38,8 +38,11 @@ interface RouteItem {
   name: string;
   description?: string;
   status: "draft" | "active" | "inactive";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stops?: any[];
+  stops?: Array<{
+    id: string;
+    sequenceNumber: number;
+    machine?: { id: string; name: string };
+  }>;
   stopsCount?: number;
   totalDistanceKm?: number;
   createdAt: string;

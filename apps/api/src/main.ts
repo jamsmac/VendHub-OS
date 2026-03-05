@@ -29,6 +29,10 @@ import * as Sentry from "@sentry/node";
 import { AppModule } from "./app.module";
 import { AppLoggerService } from "./common/services/logger.service";
 import { SanitizePipe } from "./common/pipes/sanitize.pipe";
+import { MetricsInterceptor } from "./common/interceptors/metrics.interceptor";
+import { MetricsService } from "./modules/metrics/metrics.service";
+import { TracingInterceptor } from "./common/tracing/tracing.interceptor";
+import { TracingService } from "./common/tracing/tracing.service";
 
 const isAgentMode =
   process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
@@ -134,10 +138,36 @@ async function bootstrap() {
   // ============================================
 
   const corsOrigins = configService.get<string>("CORS_ORIGINS", "");
+  const nodeEnv = configService.get<string>("NODE_ENV", "development");
+
+  let corsOriginConfig: string[] | boolean;
+
+  if (corsOrigins) {
+    // Explicit CORS_ORIGINS set — parse comma-separated list
+    corsOriginConfig = corsOrigins
+      .split(",")
+      .map((origin: string) => origin.trim())
+      .filter(Boolean);
+  } else if (nodeEnv === "production") {
+    // Production WITHOUT CORS_ORIGINS — warn and block all (safe default)
+    logger.warn(
+      "⚠️ CORS_ORIGINS not set in production! Cross-origin requests will be blocked. " +
+        "Set CORS_ORIGINS=https://your-admin.railway.app,https://your-pwa.railway.app",
+    );
+    corsOriginConfig = [];
+  } else {
+    // Development — allow common localhost ports
+    corsOriginConfig = [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:3100",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5173",
+    ];
+  }
+
   app.enableCors({
-    origin: corsOrigins
-      ? corsOrigins.split(",").map((origin: string) => origin.trim())
-      : [],
+    origin: corsOriginConfig,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -189,7 +219,13 @@ async function bootstrap() {
   // ============================================
 
   const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
+  const metricsService = app.get(MetricsService);
+  const tracingService = app.get(TracingService);
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(reflector),
+    new TracingInterceptor(tracingService),
+    new MetricsInterceptor(metricsService),
+  );
 
   // ============================================
   // SWAGGER DOCUMENTATION

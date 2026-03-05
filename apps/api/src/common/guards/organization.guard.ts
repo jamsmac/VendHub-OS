@@ -18,12 +18,15 @@ export const SKIP_ORG_CHECK_KEY = "skipOrgCheck";
  * Decorator to skip organization check (for cross-org operations)
  */
 export const SkipOrgCheck = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+  return (target: unknown, key?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(SKIP_ORG_CHECK_KEY, true, descriptor.value);
     } else {
-      Reflect.defineMetadata(SKIP_ORG_CHECK_KEY, true, target);
+      Reflect.defineMetadata(
+        SKIP_ORG_CHECK_KEY,
+        true,
+        target as Record<string, unknown>,
+      );
     }
     return descriptor || target;
   };
@@ -88,18 +91,19 @@ export class OrganizationGuard implements CanActivate {
   /**
    * Check if user has access to multiple organizations
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private hasMultiOrgAccess(user: any): boolean {
+
+  private hasMultiOrgAccess(user: unknown): boolean {
+    const u = user as Record<string, unknown>;
     // Owner and Admin of headquarters can access franchise orgs
     if (
-      user.organizationType === "headquarters" &&
-      [UserRole.OWNER, UserRole.ADMIN].includes(user.role)
+      u.organizationType === "headquarters" &&
+      [UserRole.OWNER, UserRole.ADMIN].includes(u.role as UserRole)
     ) {
       return true;
     }
 
     // User with explicit multi-org flag
-    if (user.hasMultiOrgAccess) {
+    if (u.hasMultiOrgAccess) {
       return true;
     }
 

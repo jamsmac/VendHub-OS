@@ -8,74 +8,74 @@
 // ============================================================================
 
 export enum NotificationChannel {
-  IN_APP = 'in_app',
-  PUSH = 'push',
-  EMAIL = 'email',
-  SMS = 'sms',
-  TELEGRAM = 'telegram',
-  WHATSAPP = 'whatsapp',
-  WEBHOOK = 'webhook',
+  IN_APP = "in_app",
+  PUSH = "push",
+  EMAIL = "email",
+  SMS = "sms",
+  TELEGRAM = "telegram",
+  WHATSAPP = "whatsapp",
+  WEBHOOK = "webhook",
 }
 
 export enum NotificationStatus {
-  PENDING = 'pending',
-  QUEUED = 'queued',
-  SENT = 'sent',
-  DELIVERED = 'delivered',
-  READ = 'read',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  QUEUED = "queued",
+  SENT = "sent",
+  DELIVERED = "delivered",
+  READ = "read",
+  FAILED = "failed",
+  CANCELLED = "cancelled",
 }
 
 export enum NotificationPriority {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  NORMAL = "normal",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export enum NotificationType {
   // System
-  SYSTEM_ALERT = 'system_alert',
-  SYSTEM_UPDATE = 'system_update',
+  SYSTEM_ALERT = "system_alert",
+  SYSTEM_UPDATE = "system_update",
 
   // Machine
-  MACHINE_OFFLINE = 'machine_offline',
-  MACHINE_ONLINE = 'machine_online',
-  MACHINE_LOW_STOCK = 'machine_low_stock',
-  MACHINE_ERROR = 'machine_error',
-  MACHINE_MAINTENANCE = 'machine_maintenance',
+  MACHINE_OFFLINE = "machine_offline",
+  MACHINE_ONLINE = "machine_online",
+  MACHINE_LOW_STOCK = "machine_low_stock",
+  MACHINE_ERROR = "machine_error",
+  MACHINE_MAINTENANCE = "machine_maintenance",
 
   // Tasks
-  TASK_ASSIGNED = 'task_assigned',
-  TASK_UPDATED = 'task_updated',
-  TASK_COMPLETED = 'task_completed',
-  TASK_OVERDUE = 'task_overdue',
+  TASK_ASSIGNED = "task_assigned",
+  TASK_UPDATED = "task_updated",
+  TASK_COMPLETED = "task_completed",
+  TASK_OVERDUE = "task_overdue",
 
   // Complaints
-  COMPLAINT_NEW = 'complaint_new',
-  COMPLAINT_UPDATED = 'complaint_updated',
-  COMPLAINT_RESOLVED = 'complaint_resolved',
-  COMPLAINT_SLA_WARNING = 'complaint_sla_warning',
+  COMPLAINT_NEW = "complaint_new",
+  COMPLAINT_UPDATED = "complaint_updated",
+  COMPLAINT_RESOLVED = "complaint_resolved",
+  COMPLAINT_SLA_WARNING = "complaint_sla_warning",
 
   // Inventory
-  INVENTORY_LOW = 'inventory_low',
-  INVENTORY_EXPIRING = 'inventory_expiring',
-  INVENTORY_RECEIVED = 'inventory_received',
+  INVENTORY_LOW = "inventory_low",
+  INVENTORY_EXPIRING = "inventory_expiring",
+  INVENTORY_RECEIVED = "inventory_received",
 
   // Financial
-  TRANSACTION_COMPLETED = 'transaction_completed',
-  PAYMENT_FAILED = 'payment_failed',
-  DAILY_REPORT = 'daily_report',
-  REVENUE_ALERT = 'revenue_alert',
+  TRANSACTION_COMPLETED = "transaction_completed",
+  PAYMENT_FAILED = "payment_failed",
+  DAILY_REPORT = "daily_report",
+  REVENUE_ALERT = "revenue_alert",
 
   // User
-  USER_WELCOME = 'user_welcome',
-  PASSWORD_RESET = 'password_reset',
-  ACCOUNT_SECURITY = 'account_security',
+  USER_WELCOME = "user_welcome",
+  PASSWORD_RESET = "password_reset",
+  ACCOUNT_SECURITY = "account_security",
 
   // Custom
-  CUSTOM = 'custom',
+  CUSTOM = "custom",
 }
 
 // ============================================================================
@@ -92,7 +92,7 @@ export interface INotification {
   // Content
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   imageUrl?: string;
   actionUrl?: string;
 
@@ -101,12 +101,15 @@ export interface INotification {
   status: NotificationStatus;
 
   // Status tracking per channel
-  channelStatuses?: Record<NotificationChannel, {
-    status: NotificationStatus;
-    sentAt?: Date;
-    deliveredAt?: Date;
-    errorMessage?: string;
-  }>;
+  channelStatuses?: Record<
+    NotificationChannel,
+    {
+      status: NotificationStatus;
+      sentAt?: Date;
+      deliveredAt?: Date;
+      errorMessage?: string;
+    }
+  >;
 
   // Scheduling
   scheduledFor?: Date;
@@ -151,8 +154,17 @@ export interface INotificationTemplate {
 
 export interface INotificationCondition {
   field: string;
-  operator: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'nin' | 'contains';
-  value: any;
+  operator:
+    | "eq"
+    | "neq"
+    | "gt"
+    | "lt"
+    | "gte"
+    | "lte"
+    | "in"
+    | "nin"
+    | "contains";
+  value: unknown;
 }
 
 export interface IUserNotificationSettings {
@@ -167,19 +179,25 @@ export interface IUserNotificationSettings {
   quietHoursEnd?: string; // HH:mm
 
   // Channel preferences
-  channelSettings: Record<NotificationChannel, {
-    enabled: boolean;
-    address?: string; // email, phone, telegram chat id
-  }>;
+  channelSettings: Record<
+    NotificationChannel,
+    {
+      enabled: boolean;
+      address?: string; // email, phone, telegram chat id
+    }
+  >;
 
   // Type preferences (which types to receive)
-  typeSettings: Record<NotificationType, {
-    enabled: boolean;
-    channels?: NotificationChannel[];
-  }>;
+  typeSettings: Record<
+    NotificationType,
+    {
+      enabled: boolean;
+      channels?: NotificationChannel[];
+    }
+  >;
 
   // Language preference
-  language: 'ru' | 'uz' | 'en';
+  language: "ru" | "uz" | "en";
 
   updatedAt: Date;
 }
@@ -202,7 +220,7 @@ export interface INotificationRule {
   priority: NotificationPriority;
 
   // Recipients
-  recipientType: 'user' | 'role' | 'dynamic';
+  recipientType: "user" | "role" | "dynamic";
   recipientIds?: string[];
   recipientRoles?: string[];
   recipientExpression?: string;
@@ -225,18 +243,18 @@ export interface INotificationCampaign {
   templateId?: string;
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 
   // Targeting
-  targetType: 'all' | 'role' | 'custom' | 'filter';
+  targetType: "all" | "role" | "custom" | "filter";
   targetRoles?: string[];
   targetUserIds?: string[];
-  targetFilter?: Record<string, any>;
+  targetFilter?: Record<string, unknown>;
 
   // Delivery
   channels: NotificationChannel[];
   scheduledFor?: Date;
-  status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'cancelled';
+  status: "draft" | "scheduled" | "sending" | "completed" | "cancelled";
 
   // Stats
   totalRecipients: number;
@@ -261,7 +279,7 @@ export interface INotificationCreate {
   priority?: NotificationPriority;
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   imageUrl?: string;
   actionUrl?: string;
   channels: NotificationChannel[];
@@ -276,7 +294,7 @@ export interface ISendNotificationDto {
   recipientEmail?: string;
   recipientPhone?: string;
   recipientTelegramId?: string;
-  variables: Record<string, any>;
+  variables: Record<string, unknown>;
   channels?: NotificationChannel[];
   priority?: NotificationPriority;
   scheduledFor?: Date;
@@ -286,60 +304,144 @@ export interface ISendNotificationDto {
 // LABELS
 // ============================================================================
 
-export const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, { ru: string; uz: string }> = {
-  [NotificationChannel.IN_APP]: { ru: 'В приложении', uz: 'Ilovada' },
-  [NotificationChannel.PUSH]: { ru: 'Push-уведомление', uz: 'Push-xabar' },
-  [NotificationChannel.EMAIL]: { ru: 'Email', uz: 'Email' },
-  [NotificationChannel.SMS]: { ru: 'SMS', uz: 'SMS' },
-  [NotificationChannel.TELEGRAM]: { ru: 'Telegram', uz: 'Telegram' },
-  [NotificationChannel.WHATSAPP]: { ru: 'WhatsApp', uz: 'WhatsApp' },
-  [NotificationChannel.WEBHOOK]: { ru: 'Webhook', uz: 'Webhook' },
+export const NOTIFICATION_CHANNEL_LABELS: Record<
+  NotificationChannel,
+  { ru: string; uz: string }
+> = {
+  [NotificationChannel.IN_APP]: { ru: "В приложении", uz: "Ilovada" },
+  [NotificationChannel.PUSH]: { ru: "Push-уведомление", uz: "Push-xabar" },
+  [NotificationChannel.EMAIL]: { ru: "Email", uz: "Email" },
+  [NotificationChannel.SMS]: { ru: "SMS", uz: "SMS" },
+  [NotificationChannel.TELEGRAM]: { ru: "Telegram", uz: "Telegram" },
+  [NotificationChannel.WHATSAPP]: { ru: "WhatsApp", uz: "WhatsApp" },
+  [NotificationChannel.WEBHOOK]: { ru: "Webhook", uz: "Webhook" },
 };
 
-export const NOTIFICATION_STATUS_LABELS: Record<NotificationStatus, { ru: string; uz: string }> = {
-  [NotificationStatus.PENDING]: { ru: 'Ожидает', uz: 'Kutmoqda' },
-  [NotificationStatus.QUEUED]: { ru: 'В очереди', uz: 'Navbatda' },
-  [NotificationStatus.SENT]: { ru: 'Отправлено', uz: 'Yuborildi' },
-  [NotificationStatus.DELIVERED]: { ru: 'Доставлено', uz: 'Yetkazildi' },
-  [NotificationStatus.READ]: { ru: 'Прочитано', uz: "O'qildi" },
-  [NotificationStatus.FAILED]: { ru: 'Ошибка', uz: 'Xato' },
-  [NotificationStatus.CANCELLED]: { ru: 'Отменено', uz: 'Bekor qilindi' },
+export const NOTIFICATION_STATUS_LABELS: Record<
+  NotificationStatus,
+  { ru: string; uz: string }
+> = {
+  [NotificationStatus.PENDING]: { ru: "Ожидает", uz: "Kutmoqda" },
+  [NotificationStatus.QUEUED]: { ru: "В очереди", uz: "Navbatda" },
+  [NotificationStatus.SENT]: { ru: "Отправлено", uz: "Yuborildi" },
+  [NotificationStatus.DELIVERED]: { ru: "Доставлено", uz: "Yetkazildi" },
+  [NotificationStatus.READ]: { ru: "Прочитано", uz: "O'qildi" },
+  [NotificationStatus.FAILED]: { ru: "Ошибка", uz: "Xato" },
+  [NotificationStatus.CANCELLED]: { ru: "Отменено", uz: "Bekor qilindi" },
 };
 
-export const NOTIFICATION_PRIORITY_LABELS: Record<NotificationPriority, { ru: string; uz: string }> = {
-  [NotificationPriority.LOW]: { ru: 'Низкий', uz: 'Past' },
-  [NotificationPriority.NORMAL]: { ru: 'Обычный', uz: 'Oddiy' },
-  [NotificationPriority.HIGH]: { ru: 'Высокий', uz: 'Yuqori' },
-  [NotificationPriority.URGENT]: { ru: 'Срочный', uz: 'Shoshilinch' },
+export const NOTIFICATION_PRIORITY_LABELS: Record<
+  NotificationPriority,
+  { ru: string; uz: string }
+> = {
+  [NotificationPriority.LOW]: { ru: "Низкий", uz: "Past" },
+  [NotificationPriority.NORMAL]: { ru: "Обычный", uz: "Oddiy" },
+  [NotificationPriority.HIGH]: { ru: "Высокий", uz: "Yuqori" },
+  [NotificationPriority.URGENT]: { ru: "Срочный", uz: "Shoshilinch" },
 };
 
-export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, { ru: string; uz: string }> = {
-  [NotificationType.SYSTEM_ALERT]: { ru: 'Системное оповещение', uz: 'Tizim ogohlantirishlari' },
-  [NotificationType.SYSTEM_UPDATE]: { ru: 'Обновление системы', uz: 'Tizim yangilanishi' },
-  [NotificationType.MACHINE_OFFLINE]: { ru: 'Автомат оффлайн', uz: 'Avtomat oflayn' },
-  [NotificationType.MACHINE_ONLINE]: { ru: 'Автомат онлайн', uz: 'Avtomat onlayn' },
-  [NotificationType.MACHINE_LOW_STOCK]: { ru: 'Низкий запас', uz: 'Kam zaxira' },
-  [NotificationType.MACHINE_ERROR]: { ru: 'Ошибка автомата', uz: 'Avtomat xatosi' },
-  [NotificationType.MACHINE_MAINTENANCE]: { ru: 'Обслуживание', uz: "Texnik xizmat" },
-  [NotificationType.TASK_ASSIGNED]: { ru: 'Задача назначена', uz: 'Vazifa tayinlandi' },
-  [NotificationType.TASK_UPDATED]: { ru: 'Задача обновлена', uz: 'Vazifa yangilandi' },
-  [NotificationType.TASK_COMPLETED]: { ru: 'Задача завершена', uz: 'Vazifa yakunlandi' },
-  [NotificationType.TASK_OVERDUE]: { ru: 'Просроченная задача', uz: 'Muddati o\'tgan vazifa' },
-  [NotificationType.COMPLAINT_NEW]: { ru: 'Новая жалоба', uz: 'Yangi shikoyat' },
-  [NotificationType.COMPLAINT_UPDATED]: { ru: 'Жалоба обновлена', uz: 'Shikoyat yangilandi' },
-  [NotificationType.COMPLAINT_RESOLVED]: { ru: 'Жалоба решена', uz: 'Shikoyat hal qilindi' },
-  [NotificationType.COMPLAINT_SLA_WARNING]: { ru: 'Предупреждение SLA', uz: 'SLA ogohlantirishi' },
-  [NotificationType.INVENTORY_LOW]: { ru: 'Низкий запас на складе', uz: 'Omborda kam zaxira' },
-  [NotificationType.INVENTORY_EXPIRING]: { ru: 'Истекающий срок годности', uz: 'Yaroqlilik muddati tugayapti' },
-  [NotificationType.INVENTORY_RECEIVED]: { ru: 'Товар получен', uz: 'Mahsulot qabul qilindi' },
-  [NotificationType.TRANSACTION_COMPLETED]: { ru: 'Транзакция завершена', uz: 'Tranzaksiya yakunlandi' },
-  [NotificationType.PAYMENT_FAILED]: { ru: 'Ошибка платежа', uz: "To'lov xatosi" },
-  [NotificationType.DAILY_REPORT]: { ru: 'Ежедневный отчет', uz: 'Kunlik hisobot' },
-  [NotificationType.REVENUE_ALERT]: { ru: 'Уведомление о выручке', uz: 'Daromad haqida xabar' },
-  [NotificationType.USER_WELCOME]: { ru: 'Приветствие', uz: 'Xush kelibsiz' },
-  [NotificationType.PASSWORD_RESET]: { ru: 'Сброс пароля', uz: 'Parolni tiklash' },
-  [NotificationType.ACCOUNT_SECURITY]: { ru: 'Безопасность аккаунта', uz: 'Hisob xavfsizligi' },
-  [NotificationType.CUSTOM]: { ru: 'Пользовательское', uz: 'Maxsus' },
+export const NOTIFICATION_TYPE_LABELS: Record<
+  NotificationType,
+  { ru: string; uz: string }
+> = {
+  [NotificationType.SYSTEM_ALERT]: {
+    ru: "Системное оповещение",
+    uz: "Tizim ogohlantirishlari",
+  },
+  [NotificationType.SYSTEM_UPDATE]: {
+    ru: "Обновление системы",
+    uz: "Tizim yangilanishi",
+  },
+  [NotificationType.MACHINE_OFFLINE]: {
+    ru: "Автомат оффлайн",
+    uz: "Avtomat oflayn",
+  },
+  [NotificationType.MACHINE_ONLINE]: {
+    ru: "Автомат онлайн",
+    uz: "Avtomat onlayn",
+  },
+  [NotificationType.MACHINE_LOW_STOCK]: {
+    ru: "Низкий запас",
+    uz: "Kam zaxira",
+  },
+  [NotificationType.MACHINE_ERROR]: {
+    ru: "Ошибка автомата",
+    uz: "Avtomat xatosi",
+  },
+  [NotificationType.MACHINE_MAINTENANCE]: {
+    ru: "Обслуживание",
+    uz: "Texnik xizmat",
+  },
+  [NotificationType.TASK_ASSIGNED]: {
+    ru: "Задача назначена",
+    uz: "Vazifa tayinlandi",
+  },
+  [NotificationType.TASK_UPDATED]: {
+    ru: "Задача обновлена",
+    uz: "Vazifa yangilandi",
+  },
+  [NotificationType.TASK_COMPLETED]: {
+    ru: "Задача завершена",
+    uz: "Vazifa yakunlandi",
+  },
+  [NotificationType.TASK_OVERDUE]: {
+    ru: "Просроченная задача",
+    uz: "Muddati o'tgan vazifa",
+  },
+  [NotificationType.COMPLAINT_NEW]: {
+    ru: "Новая жалоба",
+    uz: "Yangi shikoyat",
+  },
+  [NotificationType.COMPLAINT_UPDATED]: {
+    ru: "Жалоба обновлена",
+    uz: "Shikoyat yangilandi",
+  },
+  [NotificationType.COMPLAINT_RESOLVED]: {
+    ru: "Жалоба решена",
+    uz: "Shikoyat hal qilindi",
+  },
+  [NotificationType.COMPLAINT_SLA_WARNING]: {
+    ru: "Предупреждение SLA",
+    uz: "SLA ogohlantirishi",
+  },
+  [NotificationType.INVENTORY_LOW]: {
+    ru: "Низкий запас на складе",
+    uz: "Omborda kam zaxira",
+  },
+  [NotificationType.INVENTORY_EXPIRING]: {
+    ru: "Истекающий срок годности",
+    uz: "Yaroqlilik muddati tugayapti",
+  },
+  [NotificationType.INVENTORY_RECEIVED]: {
+    ru: "Товар получен",
+    uz: "Mahsulot qabul qilindi",
+  },
+  [NotificationType.TRANSACTION_COMPLETED]: {
+    ru: "Транзакция завершена",
+    uz: "Tranzaksiya yakunlandi",
+  },
+  [NotificationType.PAYMENT_FAILED]: {
+    ru: "Ошибка платежа",
+    uz: "To'lov xatosi",
+  },
+  [NotificationType.DAILY_REPORT]: {
+    ru: "Ежедневный отчет",
+    uz: "Kunlik hisobot",
+  },
+  [NotificationType.REVENUE_ALERT]: {
+    ru: "Уведомление о выручке",
+    uz: "Daromad haqida xabar",
+  },
+  [NotificationType.USER_WELCOME]: { ru: "Приветствие", uz: "Xush kelibsiz" },
+  [NotificationType.PASSWORD_RESET]: {
+    ru: "Сброс пароля",
+    uz: "Parolni tiklash",
+  },
+  [NotificationType.ACCOUNT_SECURITY]: {
+    ru: "Безопасность аккаунта",
+    uz: "Hisob xavfsizligi",
+  },
+  [NotificationType.CUSTOM]: { ru: "Пользовательское", uz: "Maxsus" },
 };
 
 // ============================================================================
@@ -347,40 +449,40 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, { ru: string; uz
 // ============================================================================
 
 export const NOTIFICATION_CHANNEL_ICONS: Record<NotificationChannel, string> = {
-  [NotificationChannel.IN_APP]: '📱',
-  [NotificationChannel.PUSH]: '🔔',
-  [NotificationChannel.EMAIL]: '📧',
-  [NotificationChannel.SMS]: '📲',
-  [NotificationChannel.TELEGRAM]: '✈️',
-  [NotificationChannel.WHATSAPP]: '💬',
-  [NotificationChannel.WEBHOOK]: '🔗',
+  [NotificationChannel.IN_APP]: "📱",
+  [NotificationChannel.PUSH]: "🔔",
+  [NotificationChannel.EMAIL]: "📧",
+  [NotificationChannel.SMS]: "📲",
+  [NotificationChannel.TELEGRAM]: "✈️",
+  [NotificationChannel.WHATSAPP]: "💬",
+  [NotificationChannel.WEBHOOK]: "🔗",
 };
 
 export const NOTIFICATION_TYPE_ICONS: Record<NotificationType, string> = {
-  [NotificationType.SYSTEM_ALERT]: '⚠️',
-  [NotificationType.SYSTEM_UPDATE]: '🔄',
-  [NotificationType.MACHINE_OFFLINE]: '🔴',
-  [NotificationType.MACHINE_ONLINE]: '🟢',
-  [NotificationType.MACHINE_LOW_STOCK]: '📦',
-  [NotificationType.MACHINE_ERROR]: '❌',
-  [NotificationType.MACHINE_MAINTENANCE]: '🔧',
-  [NotificationType.TASK_ASSIGNED]: '📋',
-  [NotificationType.TASK_UPDATED]: '✏️',
-  [NotificationType.TASK_COMPLETED]: '✅',
-  [NotificationType.TASK_OVERDUE]: '⏰',
-  [NotificationType.COMPLAINT_NEW]: '🆕',
-  [NotificationType.COMPLAINT_UPDATED]: '📝',
-  [NotificationType.COMPLAINT_RESOLVED]: '✅',
-  [NotificationType.COMPLAINT_SLA_WARNING]: '⚠️',
-  [NotificationType.INVENTORY_LOW]: '📉',
-  [NotificationType.INVENTORY_EXPIRING]: '⏳',
-  [NotificationType.INVENTORY_RECEIVED]: '📥',
-  [NotificationType.TRANSACTION_COMPLETED]: '💰',
-  [NotificationType.PAYMENT_FAILED]: '💳',
-  [NotificationType.DAILY_REPORT]: '📊',
-  [NotificationType.REVENUE_ALERT]: '💵',
-  [NotificationType.USER_WELCOME]: '👋',
-  [NotificationType.PASSWORD_RESET]: '🔑',
-  [NotificationType.ACCOUNT_SECURITY]: '🔒',
-  [NotificationType.CUSTOM]: '📢',
+  [NotificationType.SYSTEM_ALERT]: "⚠️",
+  [NotificationType.SYSTEM_UPDATE]: "🔄",
+  [NotificationType.MACHINE_OFFLINE]: "🔴",
+  [NotificationType.MACHINE_ONLINE]: "🟢",
+  [NotificationType.MACHINE_LOW_STOCK]: "📦",
+  [NotificationType.MACHINE_ERROR]: "❌",
+  [NotificationType.MACHINE_MAINTENANCE]: "🔧",
+  [NotificationType.TASK_ASSIGNED]: "📋",
+  [NotificationType.TASK_UPDATED]: "✏️",
+  [NotificationType.TASK_COMPLETED]: "✅",
+  [NotificationType.TASK_OVERDUE]: "⏰",
+  [NotificationType.COMPLAINT_NEW]: "🆕",
+  [NotificationType.COMPLAINT_UPDATED]: "📝",
+  [NotificationType.COMPLAINT_RESOLVED]: "✅",
+  [NotificationType.COMPLAINT_SLA_WARNING]: "⚠️",
+  [NotificationType.INVENTORY_LOW]: "📉",
+  [NotificationType.INVENTORY_EXPIRING]: "⏳",
+  [NotificationType.INVENTORY_RECEIVED]: "📥",
+  [NotificationType.TRANSACTION_COMPLETED]: "💰",
+  [NotificationType.PAYMENT_FAILED]: "💳",
+  [NotificationType.DAILY_REPORT]: "📊",
+  [NotificationType.REVENUE_ALERT]: "💵",
+  [NotificationType.USER_WELCOME]: "👋",
+  [NotificationType.PASSWORD_RESET]: "🔑",
+  [NotificationType.ACCOUNT_SECURITY]: "🔒",
+  [NotificationType.CUSTOM]: "📢",
 };

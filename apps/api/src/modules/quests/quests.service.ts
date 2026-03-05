@@ -369,8 +369,7 @@ export class QuestsService {
     }
 
     let totalPoints = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allRewards: any[] = [];
+    const allRewards: unknown[] = [];
 
     for (const uq of completedQuests) {
       const result = await this.claimReward(userId, uq.id);
@@ -397,15 +396,14 @@ export class QuestsService {
    * Обработать событие для обновления прогресса квестов
    */
   @OnEvent("order.completed")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleOrderCompleted(payload: any): Promise<void> {
+  async handleOrderCompleted(payload: Record<string, unknown>): Promise<void> {
     const { userId, orderId, amount, productIds, machineId, categoryIds } =
       payload;
 
     // ORDER_COUNT
     await this.updateProgress({
-      userId,
-      organizationId: payload.organizationId,
+      userId: userId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.ORDER_COUNT,
       value: 1,
       metadata: { orderId },
@@ -413,27 +411,27 @@ export class QuestsService {
 
     // ORDER_AMOUNT
     await this.updateProgress({
-      userId,
-      organizationId: payload.organizationId,
+      userId: userId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.ORDER_AMOUNT,
-      value: amount,
-      metadata: { orderId, amount },
+      value: amount as number,
+      metadata: { orderId },
     });
 
     // ORDER_SINGLE
     await this.updateProgress({
-      userId,
-      organizationId: payload.organizationId,
+      userId: userId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.ORDER_SINGLE,
-      value: amount,
-      metadata: { orderId, amount },
+      value: amount as number,
+      metadata: { orderId },
     });
 
     // ORDER_TIME
     const hour = new Date().getUTCHours();
     await this.updateProgress({
-      userId,
-      organizationId: payload.organizationId,
+      userId: userId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.ORDER_TIME,
       value: 1,
       metadata: { orderId, hour },
@@ -442,79 +440,85 @@ export class QuestsService {
     // ORDER_MACHINE
     if (machineId) {
       await this.updateProgress({
-        userId,
-        organizationId: payload.organizationId,
+        userId: userId as string,
+        organizationId: payload.organizationId as string,
         eventType: QuestType.ORDER_MACHINE,
         value: 1,
-        metadata: { orderId, machineId },
+        metadata: { orderId, machineId: machineId as unknown as string },
       });
 
       // VISIT (unique machines)
       await this.updateProgress({
-        userId,
-        organizationId: payload.organizationId,
+        userId: userId as string,
+        organizationId: payload.organizationId as string,
         eventType: QuestType.VISIT,
         value: 1,
-        metadata: { machineId },
+        metadata: { machineId: machineId as unknown as string },
       });
     }
 
     // ORDER_CATEGORY
-    if (categoryIds?.length) {
+    if (
+      categoryIds &&
+      typeof categoryIds === "object" &&
+      Array.isArray(categoryIds) &&
+      categoryIds.length > 0
+    ) {
       for (const categoryId of categoryIds) {
         await this.updateProgress({
-          userId,
-          organizationId: payload.organizationId,
+          userId: userId as string,
+          organizationId: payload.organizationId as string,
           eventType: QuestType.ORDER_CATEGORY,
           value: 1,
-          metadata: { orderId, categoryId },
+          metadata: { orderId, categoryId: categoryId as unknown as string },
         });
       }
     }
 
     // ORDER_PRODUCT & COLLECTOR
-    if (productIds?.length) {
-      for (const productId of productIds) {
+    const productsArray = Array.isArray(productIds) ? productIds : [];
+    if (productsArray.length > 0) {
+      for (const productId of productsArray) {
         await this.updateProgress({
-          userId,
-          organizationId: payload.organizationId,
+          userId: userId as string,
+          organizationId: payload.organizationId as string,
           eventType: QuestType.ORDER_PRODUCT,
           value: 1,
-          metadata: { orderId, productId },
+          metadata: { orderId, productId: productId as unknown as string },
         });
       }
 
       await this.updateProgress({
-        userId,
-        organizationId: payload.organizationId,
+        userId: userId as string,
+        organizationId: payload.organizationId as string,
         eventType: QuestType.COLLECTOR,
-        value: productIds.length,
+        value: productsArray.length,
         metadata: { productIds },
       });
     }
   }
 
   @OnEvent("referral.completed")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleReferralCompleted(payload: any): Promise<void> {
+  async handleReferralCompleted(
+    payload: Record<string, unknown>,
+  ): Promise<void> {
     await this.updateProgress({
-      userId: payload.referrerId,
-      organizationId: payload.organizationId,
+      userId: payload.referrerId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.REFERRAL,
       value: 1,
-      metadata: { referredUserId: payload.referredUserId },
+      metadata: { referredUserId: payload.referredUserId as unknown as string },
     });
   }
 
   @OnEvent("loyalty.level_up")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleLevelUp(payload: any): Promise<void> {
+  async handleLevelUp(payload: Record<string, unknown>): Promise<void> {
     await this.updateProgress({
-      userId: payload.userId,
-      organizationId: payload.organizationId,
+      userId: payload.userId as string,
+      organizationId: payload.organizationId as string,
       eventType: QuestType.LOYAL_CUSTOMER,
       value: 1,
-      metadata: { newLevel: payload.newLevel },
+      metadata: { newLevel: payload.newLevel as unknown },
     });
   }
 
@@ -742,8 +746,7 @@ export class QuestsService {
     // Get or create quests
     let quests = await this.questRepo.find({
       where: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
+        organizationId: In([organizationId, null as unknown as string]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         period,
         isActive: true,
       },
@@ -795,8 +798,7 @@ export class QuestsService {
     // Get achievements
     let achievements = await this.questRepo.find({
       where: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
+        organizationId: In([organizationId, null as unknown as string]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         period: QuestPeriod.ONE_TIME,
         isActive: true,
       },
@@ -974,14 +976,14 @@ export class QuestsService {
     dateTo: Date,
   ): Promise<QuestStatsDto> {
     const totalQuests = await this.questRepo.count({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { organizationId: In([organizationId, null as any]) }, // TypeORM In() null for global+org queries
+      where: {
+        organizationId: In([organizationId, null as unknown as string]),
+      }, // TypeORM In() null for global+org queries
     });
 
     const activeQuests = await this.questRepo.count({
       where: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        organizationId: In([organizationId, null as any]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
+        organizationId: In([organizationId, null as unknown as string]), // TypeORM In() doesn't accept null in type system but works at runtime for global+org queries
         isActive: true,
       },
     });

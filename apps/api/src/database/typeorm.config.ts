@@ -1,12 +1,17 @@
 /**
  * TypeORM Configuration for VendHub OS
  * Used for migrations and CLI commands
+ *
+ * Supports two connection modes:
+ * 1. DATABASE_URL (Supabase, Railway, Neon) — single connection string
+ * 2. Individual vars (DB_HOST, DB_PORT, etc.) — traditional approach
  */
 
 import { DataSource, DataSourceOptions } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { config } from "dotenv";
 import { join } from "path";
+import { parseDatabaseUrl } from "../config/env.config";
 
 // Load environment variables
 config({ path: join(__dirname, "../../../../.env") });
@@ -16,14 +21,33 @@ const entitiesPath = join(__dirname, "../**/*.entity{.ts,.js}");
 const migrationsPath = join(__dirname, "./migrations/*{.ts,.js}");
 const subscribersPath = join(__dirname, "./subscribers/*{.ts,.js}");
 
+// Parse connection from DATABASE_URL or individual vars
+const databaseUrl = process.env.DATABASE_URL;
+const dbConnection = databaseUrl
+  ? parseDatabaseUrl(databaseUrl)
+  : {
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT || "5432", 10),
+      username: process.env.DB_USER || "vendhub",
+      password: process.env.DB_PASSWORD || "",
+      database: process.env.DB_NAME || "vendhub",
+      ssl: false,
+    };
+
+const isProduction = process.env.NODE_ENV === "production";
+const useSsl =
+  isProduction ||
+  (databaseUrl && dbConnection.ssl) ||
+  process.env.DB_SSL === "true";
+
 export const dataSourceOptions: DataSourceOptions = {
   type: "postgres",
   namingStrategy: new SnakeNamingStrategy(),
-  host: process.env.DB_HOST || "localhost",
-  port: parseInt(process.env.DB_PORT || "5432", 10),
-  username: process.env.DB_USER || "vendhub",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "vendhub",
+  host: dbConnection.host,
+  port: dbConnection.port,
+  username: dbConnection.username,
+  password: dbConnection.password,
+  database: dbConnection.database,
 
   // Entity and migration paths
   entities: [entitiesPath],
@@ -31,9 +55,7 @@ export const dataSourceOptions: DataSourceOptions = {
   subscribers: [subscribersPath],
 
   // Schema synchronization (NEVER use in production!)
-  synchronize:
-    process.env.NODE_ENV !== "production" &&
-    process.env.DB_SYNCHRONIZE === "true",
+  synchronize: !isProduction && process.env.DB_SYNCHRONIZE === "true",
 
   // Logging
   logging:
@@ -48,32 +70,33 @@ export const dataSourceOptions: DataSourceOptions = {
     connectionTimeoutMillis: 10000,
   },
 
-  // SSL (always enabled in production, opt-in in development with DB_SSL=true)
-  ssl:
-    process.env.NODE_ENV === "production" || process.env.DB_SSL === "true"
-      ? {
-          rejectUnauthorized:
-            process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false",
-        }
-      : false,
+  // SSL (auto-enable in production or with DATABASE_URL sslmode)
+  ssl: useSsl
+    ? {
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false",
+      }
+    : false,
 
   // Migration settings
   migrationsRun: process.env.DB_MIGRATIONS_RUN === "true",
   migrationsTableName: "typeorm_migrations",
   migrationsTransactionMode: "each",
 
-  // Cache (using Redis)
-  cache: process.env.REDIS_HOST
-    ? {
-        type: "redis",
-        options: {
-          host: process.env.REDIS_HOST,
-          port: parseInt(process.env.REDIS_PORT || "6379", 10),
-          password: process.env.REDIS_PASSWORD || undefined,
-        },
-        duration: 60000, // 1 minute default cache
-      }
-    : false,
+  // Cache (using Redis if available)
+  cache:
+    process.env.REDIS_URL || process.env.REDIS_HOST
+      ? {
+          type: "redis" as const,
+          options: process.env.REDIS_URL
+            ? { url: process.env.REDIS_URL }
+            : {
+                host: process.env.REDIS_HOST,
+                port: parseInt(process.env.REDIS_PORT || "6379", 10),
+                password: process.env.REDIS_PASSWORD || undefined,
+              },
+          duration: 60000, // 1 minute default cache
+        }
+      : false,
 };
 
 // DataSource for CLI commands

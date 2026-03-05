@@ -684,13 +684,28 @@ export class ReportsService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async processScheduledReports(): Promise<void> {
-    const due = await this.scheduledRepo.find({
-      where: {
-        isActive: true,
-        nextRunAt: LessThan(new Date()),
-      },
-      take: 10,
-    });
+    let due: ScheduledReport[];
+    try {
+      due = await this.scheduledRepo.find({
+        where: {
+          isActive: true,
+          nextRunAt: LessThan(new Date()),
+        },
+        take: 10,
+      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("does not exist") ||
+        msg.includes("relation") ||
+        msg.includes("Max client") ||
+        msg.includes("MaxClients")
+      ) {
+        return; // Table not yet created — skip silently
+      }
+      this.logger.error(`Failed to query scheduled reports: ${msg}`);
+      return;
+    }
 
     for (const scheduled of due) {
       try {

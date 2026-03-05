@@ -59,3 +59,13 @@ apps/mobile/ios/GoogleService-Info.plist
 .cache/
 tmp/
 temp/
+
+# AI agent tooling — generated/cached content, not source code
+# These dirs contain AI-generated files, skill caches, and agent state
+# that should not be tracked in version control.
+.agents/
+.agent/
+.skills/
+.serena/
+.claude/
+.cline/

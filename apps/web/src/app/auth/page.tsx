@@ -52,7 +52,7 @@ export default function AuthPage() {
     try {
       const result = await login(data.email, data.password, data.twoFactorCode);
 
-      if (result.requiresTwoFactor) {
+      if ("requiresTwoFactor" in result && result.requiresTwoFactor) {
         setRequires2FA(true);
         toast.info(t("twoFactorPrompt"));
         return;

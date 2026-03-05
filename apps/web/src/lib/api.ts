@@ -32,6 +32,11 @@ function clearTokens() {
   document.cookie = "vendhub_access_token=; path=/; max-age=0";
 }
 
+export function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("vendhub_access_token");
+}
+
 export { setTokens, clearTokens };
 
 // Request interceptor - add auth token
@@ -140,6 +145,7 @@ export const authApi = {
   resetPassword: (token: string, password: string) =>
     api.post("/auth/password/reset", { token, password }),
   getPasswordRequirements: () => api.get("/auth/password/requirements"),
+  logout: () => api.post("/auth/logout"),
 };
 
 export const machinesApi = {
@@ -231,7 +237,7 @@ export const tasksApi = {
 };
 
 export const usersApi = {
-  getAll: () => api.get("/users"),
+  getAll: (params?: QueryParams) => api.get("/users", { params }),
   getById: (id: string) => api.get(`/users/${id}`),
   create: (data: RequestBody) => api.post("/users", data),
   update: (id: string, data: RequestBody) => api.patch(`/users/${id}`, data),
@@ -272,6 +278,8 @@ export const reportsApi = {
   getTasks: (params?: QueryParams) => api.get("/reports/tasks", { params }),
   getFinancial: (params?: QueryParams) =>
     api.get("/reports/financial", { params }),
+  getDefinitions: (params?: QueryParams) =>
+    api.get("/reports/definitions", { params }),
 };
 
 export const equipmentApi = {
@@ -672,6 +680,16 @@ export const loyaltyApi = {
     api.get("/loyalty/leaderboard", { params }),
 };
 
+export const settingsApi = {
+  getAll: (params?: QueryParams) => api.get("/settings", { params }),
+  getPublic: () => api.get("/settings/public"),
+  getByKey: (key: string) => api.get(`/settings/${key}`),
+  create: (data: RequestBody) => api.post("/settings", data),
+  update: (key: string, data: RequestBody) =>
+    api.patch(`/settings/${key}`, data),
+  delete: (key: string) => api.delete(`/settings/${key}`),
+};
+
 export const achievementsApi = {
   // Admin CRUD
   getAll: (params?: QueryParams) => api.get("/achievements", { params }),
@@ -1019,4 +1037,35 @@ export const directoriesApi = {
     api.get(`/directories/${dirId}/audit`, { params }),
   getEntryAudit: (dirId: string, entryId: string, params?: QueryParams) =>
     api.get(`/directories/${dirId}/entries/${entryId}/audit`, { params }),
+};
+
+export const websiteConfigApi = {
+  getAll: (params?: QueryParams) =>
+    api.get("/website-config", { params }).then((r) => r.data),
+  getBySection: (section: string, params?: QueryParams) =>
+    api.get(`/website-config/${section}`, { params }).then((r) => r.data),
+  getByKey: (key: string) =>
+    api.get(`/website-config/key/${key}`).then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/website-config", data).then((r) => r.data),
+  updateByKey: (key: string, data: RequestBody) =>
+    api.patch(`/website-config/${key}`, data).then((r) => r.data),
+  bulkUpdate: (configs: RequestBody[]) =>
+    api.patch("/website-config/bulk/update", configs).then((r) => r.data),
+  deleteByKey: (key: string) =>
+    api.delete(`/website-config/${key}`).then((r) => r.data),
+};
+
+export const cmsApi = {
+  listArticles: (params?: QueryParams) =>
+    api.get("/cms/articles", { params }).then((r) => r.data),
+  getArticle: (idOrSlug: string) =>
+    api.get(`/cms/articles/${idOrSlug}`).then((r) => r.data),
+  getByCategory: (category: string) =>
+    api.get(`/cms/articles/category/${category}`).then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/cms/articles", data).then((r) => r.data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/cms/articles/${id}`, data).then((r) => r.data),
+  delete: (id: string) => api.delete(`/cms/articles/${id}`).then((r) => r.data),
 };

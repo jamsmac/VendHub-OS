@@ -90,8 +90,7 @@ export class ImportSessionService {
     }
 
     // Parse file to extract headers and sample data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let parsed: { headers: string[]; rows: Record<string, any>[] };
+    let parsed: { headers: string[]; rows: Record<string, unknown>[] };
 
     if (fileType === "csv") {
       parsed = await this.parserService.parseCSV(file.buffer);
@@ -413,8 +412,7 @@ export class ImportSessionService {
     );
 
     // Get the data rows from fileMetadata
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allRows: Record<string, any>[] =
+    const allRows: Record<string, unknown>[] =
       session.fileMetadata?.sampleData || [];
     const columnMapping = session.columnMapping || {};
     const totalRows = session.fileMetadata?.rows || allRows.length;
@@ -434,8 +432,7 @@ export class ImportSessionService {
       const row = allRows[i];
 
       // Map source columns to target fields
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mappedRow: Record<string, any> = {};
+      const mappedRow: Record<string, unknown> = {};
       for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
         if (row[sourceCol] !== undefined) {
           mappedRow[targetField] = row[sourceCol];
@@ -672,8 +669,7 @@ export class ImportSessionService {
 
     const startTime = Date.now();
     const columnMapping = session.columnMapping || {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allRows: Record<string, any>[] =
+    const allRows: Record<string, unknown>[] =
       session.fileMetadata?.sampleData || [];
 
     let successful = 0;
@@ -705,8 +701,7 @@ export class ImportSessionService {
         const row = allRows[i];
 
         // Map source columns to target fields
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mappedRow: Record<string, any> = {};
+        const mappedRow: Record<string, unknown> = {};
         for (const [sourceCol, targetField] of Object.entries(columnMapping)) {
           if (row[sourceCol] !== undefined) {
             mappedRow[targetField] = row[sourceCol];
@@ -758,9 +753,10 @@ export class ImportSessionService {
           await queryRunner.manager.save(ImportAuditLog, auditLog);
 
           successful++;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (rowError: any) {
+        } catch (rowError: unknown) {
           // Create audit log for failed row
+          const errorMsg =
+            rowError instanceof Error ? rowError.message : String(rowError);
           const auditLog = this.auditLogRepo.create({
             sessionId,
             organizationId,
@@ -773,13 +769,13 @@ export class ImportSessionService {
             rowNumber,
             executedAt: new Date(),
             executedByUserId: userId,
-            errorMessage: rowError.message,
+            errorMessage: errorMsg,
             success: false,
           });
           await queryRunner.manager.save(ImportAuditLog, auditLog);
 
           failed++;
-          this.logger.warn(`Row ${rowNumber} failed: ${rowError.message}`);
+          this.logger.warn(`Row ${rowNumber} failed: ${errorMsg}`);
         }
       }
 
@@ -960,8 +956,7 @@ export class ImportSessionService {
    * Get schema definitions, optionally filtered by domain.
    */
   async getSchemaDefinitions(domain?: DomainType): Promise<SchemaDefinition[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isActive: true };
+    const where: Record<string, unknown> = { isActive: true };
     if (domain) {
       where.domain = domain;
     }

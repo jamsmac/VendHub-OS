@@ -225,28 +225,35 @@ export default function LoyaltyTransactionsPage() {
         <CardContent>
           {statsData?.timeline && statsData.timeline.length > 0 ? (
             <div className="space-y-2">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {statsData.timeline.map((item: any) => (
-                <div
-                  key={item.date}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <span className="text-sm text-muted-foreground">
-                    {new Date(item.date).toLocaleDateString("ru-RU")}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-green-600">
-                      +{item.earned.toLocaleString()}
+              {statsData.timeline.map((item: unknown) => {
+                const i = item as {
+                  date?: string;
+                  earned?: number;
+                  spent?: number;
+                  newMembers?: number;
+                };
+                return (
+                  <div
+                    key={i.date}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(i.date || "").toLocaleDateString("ru-RU")}
                     </span>
-                    <span className="text-sm text-red-600">
-                      -{item.spent.toLocaleString()}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">
-                      {t("newMembers", { count: item.newMembers })}
-                    </Badge>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-green-600">
+                        +{(i.earned || 0).toLocaleString()}
+                      </span>
+                      <span className="text-sm text-red-600">
+                        -{(i.spent || 0).toLocaleString()}
+                      </span>
+                      <Badge variant="secondary" className="text-xs">
+                        {t("newMembers", { count: i.newMembers || 0 })}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="h-32 flex items-center justify-center text-muted-foreground">
@@ -263,29 +270,37 @@ export default function LoyaltyTransactionsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {(statsData?.topEarnSources || []).map((source: any) => (
-              <div
-                key={source.source}
-                className="flex items-center justify-between py-2 border-b last:border-0"
-              >
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {SOURCE_KEYS.includes(source.source)
-                      ? t(`source_${source.source}`)
-                      : source.source}
-                  </Badge>
+            {(statsData?.topEarnSources || []).map((source: unknown) => {
+              const s = source as {
+                source?: string;
+                total?: number;
+                percent?: number;
+              };
+              return (
+                <div
+                  key={s.source}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {SOURCE_KEYS.includes(
+                        s.source as (typeof SOURCE_KEYS)[number],
+                      )
+                        ? t(`source_${s.source}`)
+                        : s.source}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium">
+                      {(s.total || 0).toLocaleString()}
+                    </span>
+                    <span className="text-xs text-muted-foreground w-12 text-right">
+                      {(s.percent || 0).toFixed(1)}%
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">
-                    {source.total.toLocaleString()}
-                  </span>
-                  <span className="text-xs text-muted-foreground w-12 text-right">
-                    {source.percent.toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -313,13 +328,19 @@ export default function LoyaltyTransactionsPage() {
                   {(Array.isArray(usersData)
                     ? usersData
                     : usersData?.data || []
-                  )
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    .map((user: any) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName} ({user.email})
+                  ).map((user: unknown) => {
+                    const u = user as {
+                      id?: string;
+                      firstName?: string;
+                      lastName?: string;
+                      email?: string;
+                    };
+                    return (
+                      <SelectItem key={u.id} value={u.id || ""}>
+                        {u.firstName} {u.lastName} ({u.email})
                       </SelectItem>
-                    ))}
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

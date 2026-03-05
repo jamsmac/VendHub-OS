@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@vendhub/shared": "workspace:*",
-    "axios": "^1.7.0",
+    "axios": "^1.13.5",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.0",
     "ioredis": "^5.4.1",

@@ -21,8 +21,10 @@ interface AuthState {
     email: string,
     password: string,
     twoFactorCode?: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) => Promise<any>;
+  ) => Promise<
+    | { requiresTwoFactor?: boolean }
+    | { accessToken: string; refreshToken: string; user: User }
+  >;
   logout: () => void;
   checkAuth: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -62,10 +64,10 @@ export const useAuthStore = create<AuthState>()(
           });
 
           return data;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
+        } catch (error: unknown) {
           set({ isLoading: false });
-          throw new Error(error.response?.data?.message || "Login failed");
+          const err = error as { response?: { data?: { message?: string } } };
+          throw new Error(err.response?.data?.message || "Login failed");
         }
       },
 

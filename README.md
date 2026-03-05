@@ -42,19 +42,19 @@ VendHub OS is a comprehensive vending machine management platform designed speci
 
 ## Tech Stack
 
-| Layer | Technology | Version | Purpose |
-|-------|------------|---------|---------|
-| **Backend API** | NestJS | 11.x | REST + WebSocket API |
-| **Admin Panel** | Next.js | 16.x | Admin dashboard |
-| **Client Web** | React + Vite | 19.x | Telegram Mini App |
-| **Mobile App** | React Native + Expo | 52.x | Staff mobile app |
-| **Database** | PostgreSQL | 16 | Primary database |
-| **Cache** | Redis | 7 | Caching & sessions |
-| **Queue** | BullMQ | 5.x | Background jobs |
-| **ORM** | TypeORM | 0.3.x | Database ORM |
-| **Bot** | Telegraf | 4.x | Telegram bot |
-| **Monorepo** | Turborepo | 2.5.x | Build orchestration |
-| **Package Manager** | pnpm | 9.x | Fast package manager |
+| Layer               | Technology          | Version | Purpose              |
+| ------------------- | ------------------- | ------- | -------------------- |
+| **Backend API**     | NestJS              | 11.x    | REST + WebSocket API |
+| **Admin Panel**     | Next.js             | 16.x    | Admin dashboard      |
+| **Client Web**      | React + Vite        | 19.x    | Telegram Mini App    |
+| **Mobile App**      | React Native + Expo | 52.x    | Staff mobile app     |
+| **Database**        | PostgreSQL          | 16      | Primary database     |
+| **Cache**           | Redis               | 7       | Caching & sessions   |
+| **Queue**           | BullMQ              | 5.x     | Background jobs      |
+| **ORM**             | TypeORM             | 0.3.x   | Database ORM         |
+| **Bot**             | Telegraf            | 4.x     | Telegram bot         |
+| **Monorepo**        | Turborepo           | 2.5.x   | Build orchestration  |
+| **Package Manager** | pnpm                | 9.x     | Fast package manager |
 
 ---
 
@@ -210,13 +210,13 @@ pnpm dev --filter=@vendhub/client   # Mini App only
 
 ### 5. Access Applications
 
-| Application | URL | Description |
-|-------------|-----|-------------|
-| API Server | http://localhost:4000 | Backend API |
-| API Docs | http://localhost:4000/docs | Swagger UI |
-| Admin Panel | http://localhost:3000 | Dashboard |
-| Mini App | http://localhost:5173 | Client PWA |
-| MinIO Console | http://localhost:9001 | File storage |
+| Application   | URL                        | Description  |
+| ------------- | -------------------------- | ------------ |
+| API Server    | http://localhost:4000      | Backend API  |
+| API Docs      | http://localhost:4000/docs | Swagger UI   |
+| Admin Panel   | http://localhost:3000      | Dashboard    |
+| Mini App      | http://localhost:5173      | Client PWA   |
+| MinIO Console | http://localhost:9001      | File storage |
 
 ### Default Credentials
 
@@ -229,6 +229,126 @@ Admin Login:
 Demo User:
   Phone: +998901234567
   OTP: 123456 (development only)
+```
+
+---
+
+## Quick Start (Development)
+
+### Prerequisites
+
+- **Node.js** >= 20.11.0 (LTS recommended)
+- **pnpm** >= 9.15.0 (`npm install -g pnpm@9.15.0`)
+- **Docker** & Docker Compose
+- **Git**
+
+### Setup
+
+1. **Clone & Install**:
+
+   ```bash
+   git clone <repo-url>
+   cd vendhub-unified
+   pnpm install
+   ```
+
+2. **Start Infrastructure** (PostgreSQL, Redis, MinIO):
+
+   ```bash
+   docker compose up -d postgres redis minio
+
+   # Wait for services to be ready (optional - check logs)
+   docker compose logs -f postgres  # Watch for "database system is ready"
+   ```
+
+3. **Configure Environment**:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your local values (database credentials, JWT secrets, etc.)
+   ```
+
+4. **Run Database Migrations & Seed**:
+
+   ```bash
+   pnpm --filter api migration:run
+   pnpm --filter api db:seed
+   ```
+
+5. **Start All Dev Servers**:
+
+   ```bash
+   pnpm dev
+   ```
+
+   This starts:
+   - NestJS API on port 4000
+   - Next.js Admin Panel on port 3000
+   - Vite Client Mini App on port 5173
+   - Telegram Bot
+   - React Native (if configured)
+
+### Access Points
+
+| Service             | URL                            | Purpose                       |
+| ------------------- | ------------------------------ | ----------------------------- |
+| **API**             | http://localhost:4000          | Backend API server            |
+| **API Docs**        | http://localhost:4000/api/docs | Swagger/OpenAPI documentation |
+| **Admin Panel**     | http://localhost:3000          | Admin dashboard (Next.js)     |
+| **Mini App**        | http://localhost:5173          | Client PWA (Vite)             |
+| **MinIO Console**   | http://localhost:9001          | File storage management       |
+| **Adminer**         | http://localhost:8080          | Database web UI               |
+| **Redis Commander** | http://localhost:8081          | Redis GUI                     |
+
+### Default Credentials
+
+```
+Admin Login:
+  Email: admin@vendhub.uz
+  Password: Admin123! (change after first login!)
+
+MinIO S3:
+  Access Key: minioadmin
+  Secret Key: minioadmin
+
+Demo User (Development):
+  Phone: +998901234567
+  OTP: 123456 (auto-accepted in dev mode)
+```
+
+### Troubleshooting
+
+**Port already in use:**
+
+```bash
+# Kill process on specific port (e.g., 4000)
+lsof -ti:4000 | xargs kill -9
+
+# Or use different ports in .env
+API_PORT=4001
+```
+
+**Database connection failed:**
+
+```bash
+# Ensure PostgreSQL is running
+docker compose ps postgres
+
+# View logs
+docker compose logs postgres
+
+# Reset database
+pnpm db:reset
+```
+
+**Redis connection error:**
+
+```bash
+# Check Redis status
+docker compose logs redis
+
+# Restart Redis
+docker compose restart redis
 ```
 
 ---
@@ -291,6 +411,7 @@ chore: maintenance task
 ### IDE Setup
 
 **VSCode Extensions:**
+
 - ESLint
 - Prettier
 - TypeScript Vue Plugin (Volar)
@@ -299,6 +420,7 @@ chore: maintenance task
 - GitLens
 
 **Settings (`.vscode/settings.json`):**
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -339,20 +461,20 @@ helm install vendhub ./infrastructure/helm/vendhub \
 
 ### Environment-Specific Configuration
 
-| Environment | Config File | Description |
-|-------------|-------------|-------------|
-| Development | `.env` | Local development |
-| Staging | `k8s/overlays/staging/` | Testing environment |
-| Production | `k8s/overlays/production/` | Live environment |
+| Environment | Config File                | Description         |
+| ----------- | -------------------------- | ------------------- |
+| Development | `.env`                     | Local development   |
+| Staging     | `k8s/overlays/staging/`    | Testing environment |
+| Production  | `k8s/overlays/production/` | Live environment    |
 
 ### Required Services
 
-| Service | Purpose | Recommended |
-|---------|---------|-------------|
-| PostgreSQL | Database | 16+ with pgvector |
-| Redis | Cache & Sessions | 7+ with persistence |
-| MinIO/S3 | File Storage | S3-compatible |
-| NGINX | Reverse Proxy | With rate limiting |
+| Service    | Purpose          | Recommended         |
+| ---------- | ---------------- | ------------------- |
+| PostgreSQL | Database         | 16+ with pgvector   |
+| Redis      | Cache & Sessions | 7+ with persistence |
+| MinIO/S3   | File Storage     | S3-compatible       |
+| NGINX      | Reverse Proxy    | With rate limiting  |
 
 ---
 
@@ -401,65 +523,65 @@ Accept-Language: uz  # uz, ru, en
 
 ### Main Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| **Auth** |||
-| POST | `/auth/login` | Login |
-| POST | `/auth/register` | Register |
-| POST | `/auth/refresh` | Refresh token |
-| POST | `/auth/2fa/setup` | Setup 2FA |
-| POST | `/auth/2fa/verify` | Verify 2FA |
-| **Machines** |||
-| GET | `/machines` | List machines |
-| GET | `/machines/:id` | Get machine |
-| POST | `/machines` | Create machine |
-| PUT | `/machines/:id` | Update machine |
-| GET | `/machines/:id/status` | Get status |
-| GET | `/machines/nearby` | Find nearby |
-| **Products** |||
-| GET | `/products` | List products |
-| GET | `/products/:id` | Get product |
-| POST | `/products` | Create product |
-| PUT | `/products/:id` | Update product |
-| GET | `/products/categories` | Categories |
-| **Orders** |||
-| GET | `/orders` | List orders |
-| GET | `/orders/:id` | Get order |
-| POST | `/orders` | Create order |
-| PUT | `/orders/:id/status` | Update status |
-| **Inventory** |||
-| GET | `/inventory/warehouse` | Warehouse stock |
-| GET | `/inventory/machine/:id` | Machine stock |
-| POST | `/inventory/transfer` | Transfer stock |
-| POST | `/inventory/replenish` | Replenish machine |
-| **Loyalty** |||
-| GET | `/loyalty/points` | Get points |
-| GET | `/loyalty/tiers` | Get tiers |
-| POST | `/loyalty/redeem` | Redeem reward |
-| GET | `/loyalty/history` | Points history |
+| Method        | Endpoint                 | Description       |
+| ------------- | ------------------------ | ----------------- |
+| **Auth**      |                          |                   |
+| POST          | `/auth/login`            | Login             |
+| POST          | `/auth/register`         | Register          |
+| POST          | `/auth/refresh`          | Refresh token     |
+| POST          | `/auth/2fa/setup`        | Setup 2FA         |
+| POST          | `/auth/2fa/verify`       | Verify 2FA        |
+| **Machines**  |                          |                   |
+| GET           | `/machines`              | List machines     |
+| GET           | `/machines/:id`          | Get machine       |
+| POST          | `/machines`              | Create machine    |
+| PUT           | `/machines/:id`          | Update machine    |
+| GET           | `/machines/:id/status`   | Get status        |
+| GET           | `/machines/nearby`       | Find nearby       |
+| **Products**  |                          |                   |
+| GET           | `/products`              | List products     |
+| GET           | `/products/:id`          | Get product       |
+| POST          | `/products`              | Create product    |
+| PUT           | `/products/:id`          | Update product    |
+| GET           | `/products/categories`   | Categories        |
+| **Orders**    |                          |                   |
+| GET           | `/orders`                | List orders       |
+| GET           | `/orders/:id`            | Get order         |
+| POST          | `/orders`                | Create order      |
+| PUT           | `/orders/:id/status`     | Update status     |
+| **Inventory** |                          |                   |
+| GET           | `/inventory/warehouse`   | Warehouse stock   |
+| GET           | `/inventory/machine/:id` | Machine stock     |
+| POST          | `/inventory/transfer`    | Transfer stock    |
+| POST          | `/inventory/replenish`   | Replenish machine |
+| **Loyalty**   |                          |                   |
+| GET           | `/loyalty/points`        | Get points        |
+| GET           | `/loyalty/tiers`         | Get tiers         |
+| POST          | `/loyalty/redeem`        | Redeem reward     |
+| GET           | `/loyalty/history`       | Points history    |
 
 ### WebSocket Events
 
 ```javascript
 // Connect
-const socket = io('wss://api.vendhub.uz', {
-  auth: { token: 'Bearer ...' }
+const socket = io("wss://api.vendhub.uz", {
+  auth: { token: "Bearer ..." },
 });
 
 // Subscribe to machine updates
-socket.emit('machine:subscribe', { machineIds: ['m1', 'm2'] });
+socket.emit("machine:subscribe", { machineIds: ["m1", "m2"] });
 
 // Listen for events
-socket.on('machine:status', (data) => {
-  console.log('Machine status:', data);
+socket.on("machine:status", (data) => {
+  console.log("Machine status:", data);
 });
 
-socket.on('machine:sale', (data) => {
-  console.log('New sale:', data);
+socket.on("machine:sale", (data) => {
+  console.log("New sale:", data);
 });
 
-socket.on('order:status', (data) => {
-  console.log('Order update:', data);
+socket.on("order:status", (data) => {
+  console.log("Order update:", data);
 });
 ```
 
@@ -569,15 +691,15 @@ Organization (Franchise)
 
 ### User Roles (7-Level RBAC)
 
-| Role | Level | Permissions |
-|------|-------|-------------|
-| `owner` | 100 | Full system control, billing |
-| `admin` | 90 | All except ownership transfer |
-| `manager` | 70 | Tasks, reports, team management |
-| `accountant` | 60 | Financial reports, transactions |
-| `operator` | 50 | Tasks, machine service |
-| `warehouse` | 40 | Inventory management |
-| `viewer` | 10 | Read-only access |
+| Role         | Level | Permissions                     |
+| ------------ | ----- | ------------------------------- |
+| `owner`      | 100   | Full system control, billing    |
+| `admin`      | 90    | All except ownership transfer   |
+| `manager`    | 70    | Tasks, reports, team management |
+| `accountant` | 60    | Financial reports, transactions |
+| `operator`   | 50    | Tasks, machine service          |
+| `warehouse`  | 40    | Inventory management            |
+| `viewer`     | 10    | Read-only access                |
 
 ---
 
@@ -585,50 +707,50 @@ Organization (Franchise)
 
 ### Core Modules
 
-| Module | Description | Key Features |
-|--------|-------------|--------------|
-| **Auth** | Authentication | JWT, Refresh tokens, 2FA TOTP, Password reset |
-| **Users** | User management | CRUD, Roles, Permissions, Avatar |
-| **Organizations** | Multi-tenant | Franchises, Settings, Branding |
-| **Machines** | Vending machines | CRUD, Status, Telemetry, Maintenance |
-| **Products** | Product catalog | Categories, Pricing, Images, Barcode |
-| **Locations** | Location management | Addresses, Contracts, Working hours |
-| **References** | Uzbekistan codes | MXIK, IKPU, VAT, Package types |
+| Module            | Description         | Key Features                                  |
+| ----------------- | ------------------- | --------------------------------------------- |
+| **Auth**          | Authentication      | JWT, Refresh tokens, 2FA TOTP, Password reset |
+| **Users**         | User management     | CRUD, Roles, Permissions, Avatar              |
+| **Organizations** | Multi-tenant        | Franchises, Settings, Branding                |
+| **Machines**      | Vending machines    | CRUD, Status, Telemetry, Maintenance          |
+| **Products**      | Product catalog     | Categories, Pricing, Images, Barcode          |
+| **Locations**     | Location management | Addresses, Contracts, Working hours           |
+| **References**    | Uzbekistan codes    | MXIK, IKPU, VAT, Package types                |
 
 ### Operations Modules
 
-| Module | Description | Key Features |
-|--------|-------------|--------------|
-| **Inventory** | 3-Level system | Warehouse → Operator → Machine |
-| **Tasks** | Task management | Assignment, Photo validation, SLA |
-| **Orders** | Customer orders | Create, Status, Payment, Delivery |
-| **Transactions** | Sales & payments | Recording, Refunds, Reports |
-| **Complaints** | Customer service | QR submission, SLA tracking, Resolution |
-| **Maintenance** | Equipment care | Scheduling, Parts, History |
-| **Material Requests** | Supplies | Request → Approve → Deliver flow |
+| Module                | Description      | Key Features                            |
+| --------------------- | ---------------- | --------------------------------------- |
+| **Inventory**         | 3-Level system   | Warehouse → Operator → Machine          |
+| **Tasks**             | Task management  | Assignment, Photo validation, SLA       |
+| **Orders**            | Customer orders  | Create, Status, Payment, Delivery       |
+| **Transactions**      | Sales & payments | Recording, Refunds, Reports             |
+| **Complaints**        | Customer service | QR submission, SLA tracking, Resolution |
+| **Maintenance**       | Equipment care   | Scheduling, Parts, History              |
+| **Material Requests** | Supplies         | Request → Approve → Deliver flow        |
 
 ### Loyalty & Engagement
 
-| Module | Description | Key Features |
-|--------|-------------|--------------|
-| **Loyalty** | Points system | Earn, Redeem, Tiers, History |
-| **Quests** | Gamification | Daily/Weekly challenges, Rewards |
-| **Referrals** | User referrals | Codes, Tracking, Bonuses |
-| **Favorites** | User preferences | Machines, Products, Quick access |
-| **Recommendations** | AI suggestions | Based on history, Location |
+| Module              | Description      | Key Features                     |
+| ------------------- | ---------------- | -------------------------------- |
+| **Loyalty**         | Points system    | Earn, Redeem, Tiers, History     |
+| **Quests**          | Gamification     | Daily/Weekly challenges, Rewards |
+| **Referrals**       | User referrals   | Codes, Tracking, Bonuses         |
+| **Favorites**       | User preferences | Machines, Products, Quick access |
+| **Recommendations** | AI suggestions   | Based on history, Location       |
 
 ### Integration Modules
 
-| Module | Description | Key Features |
-|--------|-------------|--------------|
-| **Telegram Bot** | Messaging | Commands, Notifications, Mini App |
-| **Payments** | Payment gateways | Payme, Click, Uzum, Stars |
-| **SMS** | SMS notifications | Eskiz, PlayMobile providers |
-| **Email** | Email service | SMTP, Templates, Queue |
-| **Storage** | File storage | S3/MinIO, Images, Documents |
-| **Maps** | Geolocation | Google Maps, Machine finder |
-| **Webhooks** | External events | Retry logic, Signatures |
-| **AI** | Intelligence | Image parsing, Anomaly detection |
+| Module           | Description       | Key Features                      |
+| ---------------- | ----------------- | --------------------------------- |
+| **Telegram Bot** | Messaging         | Commands, Notifications, Mini App |
+| **Payments**     | Payment gateways  | Payme, Click, Uzum, Stars         |
+| **SMS**          | SMS notifications | Eskiz, PlayMobile providers       |
+| **Email**        | Email service     | SMTP, Templates, Queue            |
+| **Storage**      | File storage      | S3/MinIO, Images, Documents       |
+| **Maps**         | Geolocation       | Google Maps, Machine finder       |
+| **Webhooks**     | External events   | Retry logic, Signatures           |
+| **AI**           | Intelligence      | Image parsing, Anomaly detection  |
 
 ---
 
@@ -677,13 +799,13 @@ pnpm test -- auth.service.spec.ts
 
 ### Test Coverage Requirements
 
-| Module | Min Coverage |
-|--------|-------------|
-| Auth | 90% |
-| Users | 85% |
-| Orders | 85% |
-| Payments | 95% |
-| Other | 80% |
+| Module   | Min Coverage |
+| -------- | ------------ |
+| Auth     | 90%          |
+| Users    | 85%          |
+| Orders   | 85%          |
+| Payments | 95%          |
+| Other    | 80%          |
 
 ---
 
@@ -691,12 +813,12 @@ pnpm test -- auth.service.spec.ts
 
 ### Stack
 
-| Component | Purpose | Port |
-|-----------|---------|------|
-| Prometheus | Metrics collection | 9090 |
-| Grafana | Dashboards | 3001 |
-| Loki | Log aggregation | 3100 |
-| Alertmanager | Alert routing | 9093 |
+| Component    | Purpose            | Port |
+| ------------ | ------------------ | ---- |
+| Prometheus   | Metrics collection | 9090 |
+| Grafana      | Dashboards         | 3001 |
+| Loki         | Log aggregation    | 3100 |
+| Alertmanager | Alert routing      | 9093 |
 
 ### Start Monitoring
 
@@ -711,14 +833,14 @@ open http://localhost:3001
 
 ### Key Metrics
 
-| Metric | Description | Alert Threshold |
-|--------|-------------|-----------------|
-| `http_request_duration_seconds` | Request latency | > 1s |
-| `http_requests_total` | Request count | Rate > 1000/min |
-| `db_connections_active` | DB connections | > 80% pool |
-| `redis_memory_used_bytes` | Redis memory | > 80% |
-| `machine_offline_count` | Offline machines | > 5 |
-| `order_failed_count` | Failed orders | > 10/hour |
+| Metric                          | Description      | Alert Threshold |
+| ------------------------------- | ---------------- | --------------- |
+| `http_request_duration_seconds` | Request latency  | > 1s            |
+| `http_requests_total`           | Request count    | Rate > 1000/min |
+| `db_connections_active`         | DB connections   | > 80% pool      |
+| `redis_memory_used_bytes`       | Redis memory     | > 80%           |
+| `machine_offline_count`         | Offline machines | > 5             |
+| `order_failed_count`            | Failed orders    | > 10/hour       |
 
 ### Alerts
 

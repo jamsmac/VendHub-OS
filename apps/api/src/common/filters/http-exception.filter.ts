@@ -105,7 +105,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof QueryFailedError) {
       statusCode = HttpStatus.BAD_REQUEST;
       errorCode = ErrorCode.BAD_REQUEST;
-      message = this.handleDatabaseError(exception);
+      const errorCodeRef = { code: errorCode };
+      message = this.handleDatabaseError(exception, errorCodeRef);
+      errorCode = errorCodeRef.code;
 
       // -----------------------------------------------------------------
       // 4. TypeORM EntityNotFoundError
@@ -186,20 +188,29 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   /**
    * Handle database-specific errors (PostgreSQL error codes).
+   * Updates errorCode to the specific DB error code enum value.
    */
-  private handleDatabaseError(error: QueryFailedError): string {
+  private handleDatabaseError(
+    error: QueryFailedError,
+    errorCodeRef: { code: string },
+  ): string {
     const driverError = error.driverError as { code?: string; detail?: string };
 
     switch (driverError?.code) {
       case "23505": // unique_violation
+        errorCodeRef.code = ErrorCode.DB_UNIQUE_VIOLATION;
         return this.extractUniqueViolationMessage(driverError);
       case "23503": // foreign_key_violation
+        errorCodeRef.code = ErrorCode.DB_FOREIGN_KEY_VIOLATION;
         return "Referenced record does not exist";
       case "23502": // not_null_violation
+        errorCodeRef.code = ErrorCode.DB_NOT_NULL_VIOLATION;
         return "Required field is missing";
       case "22P02": // invalid_text_representation
+        errorCodeRef.code = ErrorCode.DB_INVALID_DATA;
         return "Invalid data format";
       case "22001": // string_data_right_truncation
+        errorCodeRef.code = ErrorCode.DB_INVALID_DATA;
         return "Field value exceeds maximum length";
       default:
         return "Database error";

@@ -39,7 +39,7 @@ jobs:
         run: pnpm --filter "@vendhub/shared" build
 
       - name: Run security audit
-        run: pnpm audit --audit-level=critical
+        run: pnpm audit --audit-level=high
 
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -84,7 +84,7 @@ jobs:
         run: pnpm --filter "@vendhub/shared" build
 
       - name: Run unit tests
-        run: pnpm --filter api test:unit -- --forceExit --passWithNoTests
+        run: pnpm --filter api test:unit -- --coverage --coverageThreshold='{"global":{"branches":60,"functions":60,"lines":60,"statements":60}}' --forceExit --passWithNoTests
         env:
           CI: true
 
@@ -92,8 +92,10 @@ jobs:
         uses: codecov/codecov-action@v3
         if: always()
         with:
-          files: ./coverage/lcov.info
+          files: ./apps/api/coverage/lcov.info
           fail_ci_if_error: false
+          flags: unittests
+          name: api-coverage
 
   # ========================================
   # Build
@@ -547,49 +549,65 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ========================================
-  # Deploy to Staging
+  # Deploy to Railway
+  # Project: 8ed97e59-3bb0-4224-99ef-de6355057b15
+  # GitHub Secret required: RAILWAY_TOKEN
   # ========================================
-  deploy-staging:
-    name: Deploy to Staging
+  deploy-railway:
+    name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: [test-integration, test-e2e, docker-build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment: staging
+    environment: production
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to staging server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script_stop: true
-          envs: IMAGE_TAG
-          script: |
-            cd /opt/vendhub
-            git pull origin main
-            export IMAGE_TAG=${IMAGE_TAG}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec api pnpm migration:run
-            echo "Deployed IMAGE_TAG=${IMAGE_TAG} at $(date)"
-        env:
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy API service
+        working-directory: apps/api
+        run: railway up --service api --environment production --detach
+
+      - name: Deploy Web (admin panel)
+        working-directory: apps/web
+        run: railway up --service web --environment production --detach
+
+      - name: Deploy Client PWA
+        working-directory: apps/client
+        run: railway up --service client --environment production --detach
+
+      - name: Deploy Bot
+        working-directory: apps/bot
+        run: railway up --service bot --environment production --detach
+
+      - name: Run database migrations
+        working-directory: apps/api
+        run: |
+          echo "Waiting 30s for API to come up..."
+          sleep 30
+          railway run --service api --environment production -- pnpm db:migrate
 
       - name: Notify Telegram
         if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         uses: appleboy/telegram-action@v0.1.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            VendHub Staging Deployment
+            VendHub Railway Deployment
 
             Status: ${{ job.status }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
 
-            https://staging.vendhub.uz
+            Project: 8ed97e59-3bb0-4224-99ef-de6355057b15

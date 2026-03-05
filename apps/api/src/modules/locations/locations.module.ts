@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { LocationsService } from "./locations.service";
 import { LocationsController } from "./locations.controller";
+import { GeocodingService } from "./geocoding.service";
 import { Location } from "./entities/location.entity";
 import { LocationZone } from "./entities/location-zone.entity";
 import {
@@ -25,7 +26,7 @@ import { LocationVisit } from "./entities/location-visit.entity";
     ]),
   ],
   controllers: [LocationsController],
-  providers: [LocationsService],
+  providers: [LocationsService, GeocodingService],
   exports: [LocationsService],
 })
 export class LocationsModule {}

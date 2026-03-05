@@ -16,10 +16,16 @@ services:
       POSTGRES_USER: ${DB_USER:-vendhub}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+      # WAL Archiving Configuration
+      POSTGRES_WAL_LEVEL: ${POSTGRES_WAL_LEVEL:-replica}
+      POSTGRES_ARCHIVE_MODE: ${POSTGRES_ARCHIVE_MODE:-on}
+      POSTGRES_ARCHIVE_COMMAND: ${POSTGRES_ARCHIVE_COMMAND:-test ! -f /backups/wal_archive/%f && cp %p /backups/wal_archive/%f}
+      POSTGRES_ARCHIVE_TIMEOUT: ${POSTGRES_ARCHIVE_TIMEOUT:-300}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_wal_archive:/backups/wal_archive
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./infrastructure/postgres/extensions.sql:/docker-entrypoint-initdb.d/02-extensions.sql
     healthcheck:
@@ -529,6 +535,43 @@ services:
     profiles:
       - production
 
+  # PostgreSQL Backup Service (Scheduled)
+  db-backup:
+    image: postgres:16-alpine
+    container_name: vendhub-db-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-vendhub}
+      DB_USER: ${DB_USER:-vendhub}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      BACKUP_DIR: /backups/postgresql
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ./scripts/backup-db.sh:/usr/local/bin/backup-db.sh:ro
+      - db_backups:/backups/postgresql
+    command: |
+      sh -c "
+      chmod +x /usr/local/bin/backup-db.sh
+      while true; do
+        /usr/local/bin/backup-db.sh
+        sleep 86400
+      done
+      "
+    networks:
+      - vendhub-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - production
+
 # ============================================================================
 # VOLUMES
 # ============================================================================
@@ -536,10 +579,14 @@ services:
 volumes:
   postgres_data:
     name: vendhub-postgres-data
+  postgres_wal_archive:
+    name: vendhub-postgres-wal-archive
   redis_data:
     name: vendhub-redis-data
   minio_data:
     name: vendhub-minio-data
+  db_backups:
+    name: vendhub-db-backups
   api_node_modules:
     name: vendhub-api-node-modules
   api_dist:

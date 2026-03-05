@@ -78,7 +78,7 @@ spec:
           {{- if .Values.api.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /health
+              path: /api/v1/health/live
               port: http
             initialDelaySeconds: {{ .Values.api.startupProbe.initialDelaySeconds | default 5 }}
             periodSeconds: {{ .Values.api.startupProbe.periodSeconds | default 5 }}
@@ -88,7 +88,7 @@ spec:
           {{- if .Values.api.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /health
+              path: /api/v1/health/live
               port: http
             periodSeconds: {{ .Values.api.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.api.livenessProbe.timeoutSeconds }}
@@ -97,7 +97,7 @@ spec:
           {{- if .Values.api.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /api/v1/health/ready
               port: http
             periodSeconds: {{ .Values.api.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.api.readinessProbe.timeoutSeconds }}

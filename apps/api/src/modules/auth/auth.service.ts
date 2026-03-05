@@ -976,18 +976,34 @@ export class AuthService {
    * Cleanup expired/used password reset tokens (runs daily at 3 AM)
    */
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  async cleanupExpiredResetTokens(): Promise<number> {
-    const result = await this.passwordResetRepository.softDelete({
-      expiresAt: LessThan(new Date()),
-    });
-    const count = result.affected || 0;
-    if (count > 0) {
-      this.logger.log(`Cleaned up ${count} expired password reset tokens`);
-    }
-    return count;
-  }
 
-  // ==================== Helper Methods ====================
+  /**
+   * Cleanup expired/used password reset tokens (runs daily at 3 AM)
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupExpiredResetTokens(): Promise<number> {
+    try {
+      const result = await this.passwordResetRepository.softDelete({
+        expiresAt: LessThan(new Date()),
+      });
+      const count = result.affected || 0;
+      if (count > 0) {
+        this.logger.log(`Cleaned up ${count} expired password reset tokens`);
+      }
+      return count;
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("does not exist") ||
+        msg.includes("relation") ||
+        msg.includes("Max client") ||
+        msg.includes("MaxClients")
+      )
+        return 0;
+      this.logger.error(`cleanupExpiredResetTokens failed: ${msg}`);
+      return 0;
+    }
+  }
 
   private async createSession(
     user: User,

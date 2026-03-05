@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Migration: CreateRbacTables
@@ -14,7 +14,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * are included on roles and permissions tables.
  */
 export class CreateRbacTables1707200000000 implements MigrationInterface {
-  name = 'CreateRbacTables1707200000000';
+  name = "CreateRbacTables1707200000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure uuid-ossp extension exists (idempotent)
@@ -125,23 +125,45 @@ export class CreateRbacTables1707200000000 implements MigrationInterface {
     // ========================================================================
     // INDEXES
     // ========================================================================
-    await queryRunner.query(`CREATE INDEX "IDX_roles_organization_id" ON "roles" ("organization_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_roles_name" ON "roles" ("name")`);
-    await queryRunner.query(`CREATE INDEX "IDX_roles_is_active" ON "roles" ("is_active")`);
-    await queryRunner.query(`CREATE INDEX "IDX_roles_is_system" ON "roles" ("is_system")`);
-    await queryRunner.query(`CREATE INDEX "IDX_permissions_resource" ON "permissions" ("resource")`);
-    await queryRunner.query(`CREATE INDEX "IDX_permissions_action" ON "permissions" ("action")`);
-    await queryRunner.query(`CREATE INDEX "IDX_permissions_is_active" ON "permissions" ("is_active")`);
-    await queryRunner.query(`CREATE INDEX "IDX_role_permissions_permission_id" ON "role_permissions" ("permission_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_user_roles_role_id" ON "user_roles" ("role_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_roles_organization_id" ON "roles" ("organization_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_roles_name" ON "roles" ("name")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_roles_is_active" ON "roles" ("is_active")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_roles_is_system" ON "roles" ("is_system")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_permissions_resource" ON "permissions" ("resource")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_permissions_action" ON "permissions" ("action")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_permissions_is_active" ON "permissions" ("is_active")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_role_permissions_permission_id" ON "role_permissions" ("permission_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_user_roles_role_id" ON "user_roles" ("role_id")`,
+    );
 
-    console.log('CreateRbacTables migration completed successfully');
+    console.log(
+      "[Migration] CreateRbacTables migration completed successfully",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_roles_role_id"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_role_permissions_permission_id"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "IDX_role_permissions_permission_id"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_permissions_is_active"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_permissions_action"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_permissions_resource"`);
@@ -156,6 +178,6 @@ export class CreateRbacTables1707200000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "permissions" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "roles" CASCADE`);
 
-    console.log('CreateRbacTables migration reverted successfully');
+    console.log("[Migration] CreateRbacTables migration reverted successfully");
   }
 }

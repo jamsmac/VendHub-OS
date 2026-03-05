@@ -5,10 +5,10 @@
  * Revert: npm run migration:revert
  */
 
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddInventoryAndAuditTables1704153600000 implements MigrationInterface {
-  name = 'AddInventoryAndAuditTables1704153600000';
+  name = "AddInventoryAndAuditTables1704153600000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ========================================================================
@@ -351,64 +351,122 @@ export class AddInventoryAndAuditTables1704153600000 implements MigrationInterfa
     // ========================================================================
 
     // Inventory indexes
-    await queryRunner.query(`CREATE INDEX "idx_inventories_product" ON "inventories"("product_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_inventories_org_level" ON "inventories"("organization_id", "level")`);
-    await queryRunner.query(`CREATE INDEX "idx_inventories_machine" ON "inventories"("machine_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_inventories_operator" ON "inventories"("operator_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_inventories_low_stock" ON "inventories"("quantity", "minimum_quantity") WHERE "is_active" = true`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_inventories_product" ON "inventories"("product_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_inventories_org_level" ON "inventories"("organization_id", "level")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_inventories_machine" ON "inventories"("machine_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_inventories_operator" ON "inventories"("operator_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_inventories_low_stock" ON "inventories"("quantity", "minimum_quantity") WHERE "is_active" = true`,
+    );
 
     // Movement indexes
-    await queryRunner.query(`CREATE INDEX "idx_movements_product" ON "inventory_movements"("product_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_movements_org_type" ON "inventory_movements"("organization_id", "type")`);
-    await queryRunner.query(`CREATE INDEX "idx_movements_date" ON "inventory_movements"("created_at")`);
-    await queryRunner.query(`CREATE INDEX "idx_movements_task" ON "inventory_movements"("task_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_movements_product" ON "inventory_movements"("product_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_movements_org_type" ON "inventory_movements"("organization_id", "type")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_movements_date" ON "inventory_movements"("created_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_movements_task" ON "inventory_movements"("task_id")`,
+    );
 
     // Reports indexes
-    await queryRunner.query(`CREATE INDEX "idx_reports_org_type" ON "reports"("organization_id", "type")`);
-    await queryRunner.query(`CREATE INDEX "idx_reports_status" ON "reports"("status")`);
-    await queryRunner.query(`CREATE INDEX "idx_reports_scheduled" ON "reports"("next_generation_at") WHERE "is_scheduled" = true`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_reports_org_type" ON "reports"("organization_id", "type")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_reports_status" ON "reports"("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_reports_scheduled" ON "reports"("next_generation_at") WHERE "is_scheduled" = true`,
+    );
 
     // Audit indexes
-    await queryRunner.query(`CREATE INDEX "idx_audit_org_date" ON "audit_logs"("organization_id", "created_at")`);
-    await queryRunner.query(`CREATE INDEX "idx_audit_entity" ON "audit_logs"("entity_type", "entity_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_audit_user" ON "audit_logs"("user_id", "created_at")`);
-    await queryRunner.query(`CREATE INDEX "idx_audit_action" ON "audit_logs"("action", "created_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_audit_org_date" ON "audit_logs"("organization_id", "created_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_audit_entity" ON "audit_logs"("entity_type", "entity_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_audit_user" ON "audit_logs"("user_id", "created_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_audit_action" ON "audit_logs"("action", "created_at")`,
+    );
 
     // Transaction items indexes
-    await queryRunner.query(`CREATE INDEX "idx_tx_items_transaction" ON "transaction_items"("transaction_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_tx_items_product" ON "transaction_items"("product_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_tx_items_transaction" ON "transaction_items"("transaction_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_tx_items_product" ON "transaction_items"("product_id")`,
+    );
 
     // Complaint comments indexes
-    await queryRunner.query(`CREATE INDEX "idx_complaint_comments_complaint" ON "complaint_comments"("complaint_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_complaint_comments_complaint" ON "complaint_comments"("complaint_id")`,
+    );
 
     // Task history indexes
-    await queryRunner.query(`CREATE INDEX "idx_task_history_task" ON "task_history"("task_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_task_history_task" ON "task_history"("task_id")`,
+    );
 
     // Planogram indexes
-    await queryRunner.query(`CREATE INDEX "idx_planogram_machine" ON "machine_planograms"("machine_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_planogram_product" ON "machine_planograms"("product_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_planogram_machine" ON "machine_planograms"("machine_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_planogram_product" ON "machine_planograms"("product_id")`,
+    );
 
     // Contract indexes
-    await queryRunner.query(`CREATE INDEX "idx_contracts_location" ON "location_contracts"("location_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_contracts_org_status" ON "location_contracts"("organization_id", "status")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_contracts_location" ON "location_contracts"("location_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_contracts_org_status" ON "location_contracts"("organization_id", "status")`,
+    );
 
     // Cash collection indexes
-    await queryRunner.query(`CREATE INDEX "idx_collections_machine_date" ON "cash_collections"("machine_id", "collected_at")`);
-    await queryRunner.query(`CREATE INDEX "idx_collections_org_date" ON "cash_collections"("organization_id", "collected_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_collections_machine_date" ON "cash_collections"("machine_id", "collected_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_collections_org_date" ON "cash_collections"("organization_id", "collected_at")`,
+    );
 
-    console.log('✅ Inventory and Audit tables migration completed successfully');
+    console.log(
+      "[Migration] ✅ Inventory and Audit tables migration completed successfully",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_collections_org_date"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_collections_machine_date"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "idx_collections_machine_date"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_contracts_org_status"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_contracts_location"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_planogram_product"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_planogram_machine"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_task_history_task"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_complaint_comments_complaint"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "idx_complaint_comments_complaint"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_tx_items_product"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_tx_items_transaction"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_audit_action"`);
@@ -430,14 +488,22 @@ export class AddInventoryAndAuditTables1704153600000 implements MigrationInterfa
 
     // Drop tables
     await queryRunner.query(`DROP TABLE IF EXISTS "cash_collections" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "location_contracts" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "machine_planograms" CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "location_contracts" CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "machine_planograms" CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "task_history" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "complaint_comments" CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "complaint_comments" CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "transaction_items" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "audit_logs" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "reports" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "inventory_movements" CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "inventory_movements" CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "inventories" CASCADE`);
 
     // Drop enums
@@ -447,6 +513,8 @@ export class AddInventoryAndAuditTables1704153600000 implements MigrationInterfa
     await queryRunner.query(`DROP TYPE IF EXISTS "movement_type_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "inventory_level_enum"`);
 
-    console.log('✅ Inventory and Audit tables migration reverted successfully');
+    console.log(
+      "[Migration] ✅ Inventory and Audit tables migration reverted successfully",
+    );
   }
 }

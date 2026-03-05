@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Migration: SeedDefaultRolesAndPermissions
@@ -18,7 +18,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Actions (5): read, create, update, delete, manage
  */
 export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInterface {
-  name = 'SeedDefaultRolesAndPermissions1707200001000';
+  name = "SeedDefaultRolesAndPermissions1707200001000";
 
   // ========================================================================
   // Fixed UUIDs for deterministic seeding (allows reliable rollback)
@@ -26,25 +26,45 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
 
   // Role UUIDs (prefixed with r100xxxx pattern for readability)
   private static readonly ROLE_IDS = {
-    owner:      'r1000000-0000-4000-a000-000000000001',
-    admin:      'r1000000-0000-4000-a000-000000000002',
-    manager:    'r1000000-0000-4000-a000-000000000003',
-    accountant: 'r1000000-0000-4000-a000-000000000004',
-    warehouse:  'r1000000-0000-4000-a000-000000000005',
-    operator:   'r1000000-0000-4000-a000-000000000006',
-    viewer:     'r1000000-0000-4000-a000-000000000007',
+    owner: "r1000000-0000-4000-a000-000000000001",
+    admin: "r1000000-0000-4000-a000-000000000002",
+    manager: "r1000000-0000-4000-a000-000000000003",
+    accountant: "r1000000-0000-4000-a000-000000000004",
+    warehouse: "r1000000-0000-4000-a000-000000000005",
+    operator: "r1000000-0000-4000-a000-000000000006",
+    viewer: "r1000000-0000-4000-a000-000000000007",
   } as const;
 
   // Resources and actions
   private static readonly RESOURCES = [
-    'users', 'organizations', 'locations', 'machines', 'products',
-    'inventory', 'transactions', 'reports', 'settings', 'tasks',
-    'complaints', 'notifications', 'audit', 'payments', 'orders',
-    'maintenance', 'employees', 'contractors', 'loyalty', 'referrals',
+    "users",
+    "organizations",
+    "locations",
+    "machines",
+    "products",
+    "inventory",
+    "transactions",
+    "reports",
+    "settings",
+    "tasks",
+    "complaints",
+    "notifications",
+    "audit",
+    "payments",
+    "orders",
+    "maintenance",
+    "employees",
+    "contractors",
+    "loyalty",
+    "referrals",
   ] as const;
 
   private static readonly ACTIONS = [
-    'read', 'create', 'update', 'delete', 'manage',
+    "read",
+    "create",
+    "update",
+    "delete",
+    "manage",
   ] as const;
 
   /**
@@ -53,32 +73,84 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
    * where RRRR = resource index (0-padded) and AAAA = action index (0-padded)
    */
   private static permissionId(resourceIdx: number, actionIdx: number): string {
-    const r = String(resourceIdx).padStart(4, '0');
-    const a = String(actionIdx).padStart(4, '0');
+    const r = String(resourceIdx).padStart(4, "0");
+    const a = String(actionIdx).padStart(4, "0");
     return `p100${r}-0000-4000-a000-0000000${a}`;
   }
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const { ROLE_IDS, RESOURCES, ACTIONS } = SeedDefaultRolesAndPermissions1707200001000;
+    const { ROLE_IDS, RESOURCES, ACTIONS } =
+      SeedDefaultRolesAndPermissions1707200001000;
 
     // ========================================================================
     // 1. SEED ROLES
     // ========================================================================
-    const roles: Array<{ key: string; id: string; name: string; description: string; level: number }> = [
-      { key: 'owner',      id: ROLE_IDS.owner,      name: 'owner',      description: 'System-wide full access, organization management', level: 100 },
-      { key: 'admin',      id: ROLE_IDS.admin,      name: 'admin',      description: 'Full organization access, user management',       level: 90  },
-      { key: 'manager',    id: ROLE_IDS.manager,    name: 'manager',    description: 'Operations, reports, tasks management',            level: 70  },
-      { key: 'accountant', id: ROLE_IDS.accountant, name: 'accountant', description: 'Finance, reports, reconciliation',                 level: 50  },
-      { key: 'warehouse',  id: ROLE_IDS.warehouse,  name: 'warehouse',  description: 'Inventory, warehouse, stock management',           level: 40  },
-      { key: 'operator',   id: ROLE_IDS.operator,   name: 'operator',   description: 'Machines, inventory, tasks (assigned)',             level: 30  },
-      { key: 'viewer',     id: ROLE_IDS.viewer,     name: 'viewer',     description: 'Read-only access to all resources',                level: 10  },
+    const roles: Array<{
+      key: string;
+      id: string;
+      name: string;
+      description: string;
+      level: number;
+    }> = [
+      {
+        key: "owner",
+        id: ROLE_IDS.owner,
+        name: "owner",
+        description: "System-wide full access, organization management",
+        level: 100,
+      },
+      {
+        key: "admin",
+        id: ROLE_IDS.admin,
+        name: "admin",
+        description: "Full organization access, user management",
+        level: 90,
+      },
+      {
+        key: "manager",
+        id: ROLE_IDS.manager,
+        name: "manager",
+        description: "Operations, reports, tasks management",
+        level: 70,
+      },
+      {
+        key: "accountant",
+        id: ROLE_IDS.accountant,
+        name: "accountant",
+        description: "Finance, reports, reconciliation",
+        level: 50,
+      },
+      {
+        key: "warehouse",
+        id: ROLE_IDS.warehouse,
+        name: "warehouse",
+        description: "Inventory, warehouse, stock management",
+        level: 40,
+      },
+      {
+        key: "operator",
+        id: ROLE_IDS.operator,
+        name: "operator",
+        description: "Machines, inventory, tasks (assigned)",
+        level: 30,
+      },
+      {
+        key: "viewer",
+        id: ROLE_IDS.viewer,
+        name: "viewer",
+        description: "Read-only access to all resources",
+        level: 10,
+      },
     ];
 
     for (const role of roles) {
-      await queryRunner.query(`
+      await queryRunner.query(
+        `
         INSERT INTO "roles" ("id", "name", "description", "is_active", "is_system", "organization_id", "level")
         VALUES ($1, $2, $3, true, true, NULL, $4)
-      `, [role.id, role.name, role.description, role.level]);
+      `,
+        [role.id, role.name, role.description, role.level],
+      );
     }
 
     // ========================================================================
@@ -88,14 +160,20 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
       const resource = RESOURCES[ri];
       for (let ai = 0; ai < ACTIONS.length; ai++) {
         const action = ACTIONS[ai];
-        const id = SeedDefaultRolesAndPermissions1707200001000.permissionId(ri, ai);
+        const id = SeedDefaultRolesAndPermissions1707200001000.permissionId(
+          ri,
+          ai,
+        );
         const name = `${resource}:${action}`;
         const description = `${action.charAt(0).toUpperCase() + action.slice(1)} access to ${resource}`;
 
-        await queryRunner.query(`
+        await queryRunner.query(
+          `
           INSERT INTO "permissions" ("id", "name", "resource", "action", "description", "is_active")
           VALUES ($1, $2, $3, $4, $5, true)
-        `, [id, name, resource, action, description]);
+        `,
+          [id, name, resource, action, description],
+        );
       }
     }
 
@@ -104,12 +182,22 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
     // ========================================================================
 
     // Helper: insert role_permissions row
-    const assign = async (roleId: string, resourceIdx: number, actionIdx: number) => {
-      const permId = SeedDefaultRolesAndPermissions1707200001000.permissionId(resourceIdx, actionIdx);
-      await queryRunner.query(`
+    const assign = async (
+      roleId: string,
+      resourceIdx: number,
+      actionIdx: number,
+    ) => {
+      const permId = SeedDefaultRolesAndPermissions1707200001000.permissionId(
+        resourceIdx,
+        actionIdx,
+      );
+      await queryRunner.query(
+        `
         INSERT INTO "role_permissions" ("role_id", "permission_id")
         VALUES ($1, $2)
-      `, [roleId, permId]);
+      `,
+        [roleId, permId],
+      );
     };
 
     // Helper: assign ALL actions for a resource to a role
@@ -125,7 +213,10 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
     };
 
     // Helper: assign read + create + update for a resource to a role
-    const assignReadCreateUpdate = async (roleId: string, resourceIdx: number) => {
+    const assignReadCreateUpdate = async (
+      roleId: string,
+      resourceIdx: number,
+    ) => {
       await assign(roleId, resourceIdx, 0); // read
       await assign(roleId, resourceIdx, 1); // create
       await assign(roleId, resourceIdx, 2); // update
@@ -256,9 +347,13 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
       await assignRead(ROLE_IDS.viewer, ri);
     }
 
-    console.log('SeedDefaultRolesAndPermissions migration completed successfully');
-    console.log(`  Roles seeded: ${roles.length}`);
-    console.log(`  Permissions seeded: ${RESOURCES.length * ACTIONS.length}`);
+    console.log(
+      "[Migration] SeedDefaultRolesAndPermissions migration completed successfully",
+    );
+    console.log(`[Migration]   Roles seeded: ${roles.length}`);
+    console.log(
+      `[Migration]   Permissions seeded: ${RESOURCES.length * ACTIONS.length}`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -266,10 +361,13 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
     const roleIds = Object.values(ROLE_IDS);
 
     // Delete role_permissions for seeded roles
-    await queryRunner.query(`
+    await queryRunner.query(
+      `
       DELETE FROM "role_permissions"
       WHERE "role_id" = ANY($1::uuid[])
-    `, [roleIds]);
+    `,
+      [roleIds],
+    );
 
     // Delete seeded permissions (all with our deterministic ID prefix)
     await queryRunner.query(`
@@ -278,11 +376,16 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
     `);
 
     // Delete seeded roles
-    await queryRunner.query(`
+    await queryRunner.query(
+      `
       DELETE FROM "roles"
       WHERE "id" = ANY($1::uuid[])
-    `, [roleIds]);
+    `,
+      [roleIds],
+    );
 
-    console.log('SeedDefaultRolesAndPermissions migration reverted successfully');
+    console.log(
+      "[Migration] SeedDefaultRolesAndPermissions migration reverted successfully",
+    );
   }
 }

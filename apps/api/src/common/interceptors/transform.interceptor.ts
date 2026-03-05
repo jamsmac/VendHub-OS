@@ -53,8 +53,7 @@ export class TransformInterceptor<T> implements NestInterceptor<
  */
 @Injectable()
 export class PaginationInterceptor implements NestInterceptor {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       map((data) => {
         // Check if response has pagination structure

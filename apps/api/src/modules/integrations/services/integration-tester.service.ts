@@ -103,21 +103,21 @@ export class IntegrationTesterService {
         case "createPayment":
           response = await this.paymentExecutor.createPayment(
             integration,
-            testCase.requestData as CreatePaymentRequest,
+            testCase.requestData as unknown as CreatePaymentRequest,
           );
           break;
 
         case "checkStatus":
           response = await this.paymentExecutor.checkPaymentStatus(
             integration,
-            testCase.requestData.paymentId,
+            String(testCase.requestData.paymentId),
           );
           break;
 
         case "cancelPayment":
           response = await this.paymentExecutor.cancelPayment(
             integration,
-            testCase.requestData.paymentId,
+            String(testCase.requestData.paymentId),
           );
           break;
 
@@ -420,11 +420,14 @@ export class IntegrationTesterService {
         return actual === assertion.expected;
 
       case "contains":
-        if (typeof actual === "string") {
+        if (
+          typeof actual === "string" &&
+          typeof assertion.expected === "string"
+        ) {
           return actual.includes(assertion.expected);
         }
         if (Array.isArray(actual)) {
-          return actual.includes(assertion.expected);
+          return actual.includes(assertion.expected as unknown);
         }
         return false;
 
@@ -437,7 +440,7 @@ export class IntegrationTesterService {
         return typeof actual === assertion.expected;
 
       case "regex":
-        return new RegExp(assertion.expected).test(String(actual));
+        return new RegExp(String(assertion.expected)).test(String(actual));
 
       default:
         return false;

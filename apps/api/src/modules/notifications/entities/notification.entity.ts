@@ -267,8 +267,7 @@ interface TriggerCondition {
     | "less_than"
     | "in"
     | "not_in";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: any;
+  value: unknown;
 }
 
 /**
@@ -333,8 +332,7 @@ interface TemplateVariables {
   datetime?: string;
 
   // Кастомные
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============================================================================
@@ -448,8 +446,7 @@ export class Notification extends BaseEntity {
     batchId?: string; // ID пакетной отправки
     campaignId?: string; // ID кампании
     retryOf?: string; // Повтор какого уведомления
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   @Column({ type: "simple-array", nullable: true })
@@ -581,8 +578,7 @@ export class NotificationTemplate extends BaseEntity {
     name: string;
     description: string;
     required: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    defaultValue?: any;
+    defaultValue?: unknown;
   }[];
 
   // Действия
@@ -879,8 +875,7 @@ export class NotificationQueue extends BaseEntity {
     body: string;
     htmlBody?: string;
     actionUrl?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    attachments?: any[];
+    attachments?: unknown[];
   };
 
   // ===== Расписание =====

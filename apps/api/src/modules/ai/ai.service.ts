@@ -142,7 +142,7 @@ Return JSON:
   "rawText": "original text snippet"
 }`;
 
-    return this.callTextLLM(prompt);
+    return (await this.callTextLLM(prompt)) as ProductImportResult;
   }
 
   // ========================================================================
@@ -184,7 +184,7 @@ Return JSON:
   "suggestedPriority": "high"
 }`;
 
-    return this.callTextLLM(prompt);
+    return (await this.callTextLLM(prompt)) as SentimentResult;
   }
 
   /**
@@ -223,7 +223,9 @@ Requirements:
 
 Return only the response text.`;
 
-    const result = await this.callTextLLM(prompt);
+    const result = (await this.callTextLLM(prompt)) as
+      | string
+      | Record<string, unknown>;
     return typeof result === "string" ? result : JSON.stringify(result);
   }
 
@@ -283,7 +285,7 @@ Return JSON:
   "recommendation": "..."
 }`;
 
-      return this.callTextLLM(prompt);
+      return (await this.callTextLLM(prompt)) as AnomalyResult;
     }
 
     return {
@@ -352,7 +354,7 @@ Return JSON:
   "mxikCode": "10710001001000000"
 }`;
 
-    return this.callTextLLM(prompt);
+    return (await this.callTextLLM(prompt)) as CategorySuggestion;
   }
 
   /**
@@ -377,10 +379,10 @@ Return JSON array with same order:
 ]`;
 
       try {
-        const batchResults = await this.callTextLLM(prompt);
+        const batchResults = (await this.callTextLLM(prompt)) as unknown[];
         if (Array.isArray(batchResults)) {
           batch.forEach((product, idx) => {
-            results.set(product.id, batchResults[idx]);
+            results.set(product.id, batchResults[idx] as CategorySuggestion);
           });
         }
       } catch (error: unknown) {
@@ -421,7 +423,7 @@ Consider:
 Return JSON array of 5-10 product suggestions:
 ["Coca-Cola 0.5л", "Сникерс", "Lay's классические", ...]`;
 
-    return this.callTextLLM(prompt);
+    return (await this.callTextLLM(prompt)) as string[];
   }
 
   /**
@@ -453,15 +455,18 @@ Return JSON:
   "suggestedPrice": ${Math.round(costPrice * 1.6)}
 }`;
 
-    return this.callTextLLM(prompt);
+    return (await this.callTextLLM(prompt)) as {
+      minPrice: number;
+      maxPrice: number;
+      suggestedPrice: number;
+    };
   }
 
   // ========================================================================
   // PRIVATE METHODS - LLM CALLS
   // ========================================================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async callTextLLM(prompt: string): Promise<any> {
+  private async callTextLLM(prompt: string): Promise<unknown> {
     if (this.preferredProvider === "openai" && this.openaiApiKey) {
       return this.callOpenAI(prompt);
     } else if (this.anthropicApiKey) {
@@ -473,8 +478,7 @@ Return JSON:
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async callOpenAI(prompt: string): Promise<any> {
+  private async callOpenAI(prompt: string): Promise<unknown> {
     try {
       const response = await firstValueFrom(
         this.httpService.post(
@@ -516,8 +520,7 @@ Return JSON:
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- external API response shape unknown
-  private async callAnthropic(prompt: string): Promise<any> {
+  private async callAnthropic(prompt: string): Promise<unknown> {
     try {
       const response = await firstValueFrom(
         this.httpService.post(
@@ -647,8 +650,7 @@ Return JSON:
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data shape varies by prompt
-  private getMockResponse(prompt: string): any {
+  private getMockResponse(prompt: string): unknown {
     // Development fallback
     // Check sentiment/complaint first
     if (prompt.includes("sentiment") || prompt.includes("complaint")) {

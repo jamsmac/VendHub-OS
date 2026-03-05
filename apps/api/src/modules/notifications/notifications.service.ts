@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In, IsNull, LessThan, MoreThan } from "typeorm";
+import { HttpService } from "@nestjs/axios";
 // BullMQ is optional - queue functionality can be disabled
 // import { InjectQueue } from '@nestjs/bullmq';
 // import { Queue } from 'bullmq';
@@ -142,6 +143,7 @@ export class NotificationsService {
     private readonly smsService: SmsService,
     private readonly webPushService: WebPushService,
     private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
     // @InjectQueue('notifications') private notificationQueue: Queue,
   ) {
     this.initFirebase();
@@ -1065,15 +1067,73 @@ export class NotificationsService {
       return;
     }
 
-    // TODO: inject TelegramBotService.sendMessage when generic method is available
-    this.logger.log(
-      `Telegram: would send "${notification.content?.title}" to chatId ${user.telegramId}`,
-    );
+    const telegramBotToken =
+      this.configService.get<string>("TELEGRAM_BOT_TOKEN");
+    if (!telegramBotToken) {
+      this.logger.warn("Telegram: TELEGRAM_BOT_TOKEN not configured");
+      return;
+    }
+
+    try {
+      const message = notification.content?.title
+        ? `${notification.content.title}${notification.content?.body ? `\n\n${notification.content.body}` : ""}`
+        : notification.content?.body || "Notification";
+
+      await this.httpService.axiosRef.post(
+        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
+        {
+          chat_id: user.telegramId,
+          text: message,
+          parse_mode: "HTML",
+        },
+      );
+      this.logger.log(
+        `Telegram: sent "${notification.content?.title}" to user ${notification.userId}`,
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Telegram: failed to send to user ${notification.userId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   private async sendWebhook(notification: Notification): Promise<void> {
-    // TODO: implement webhook call via HttpService
-    this.logger.log(`Webhook: ${notification.content?.title}`);
+    if (!notification.recipient?.webhookUrl) {
+      this.logger.warn("Webhook: no webhookUrl in recipient, skipping");
+      return;
+    }
+
+    try {
+      const payload = {
+        id: notification.id,
+        notificationId: notification.notificationId,
+        type: notification.type,
+        priority: notification.priority,
+        title: notification.content?.title,
+        body: notification.content?.body,
+        timestamp: new Date().toISOString(),
+        organizationId: notification.organizationId,
+        metadata: notification.metadata,
+      };
+
+      await this.httpService.axiosRef.post(
+        notification.recipient.webhookUrl,
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+          timeout: 10000,
+        },
+      );
+      this.logger.log(
+        `Webhook: sent notification ${notification.notificationId} to ${notification.recipient.webhookUrl}`,
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Webhook: failed to call ${notification.recipient?.webhookUrl}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   // ============================================================================

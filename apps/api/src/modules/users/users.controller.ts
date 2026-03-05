@@ -41,7 +41,25 @@ export class UsersController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Get all users" })
-  @ApiResponse({ status: 200, description: "List of users" })
+  @ApiResponse({
+    status: 200,
+    description: "List of users",
+    schema: {
+      example: {
+        data: [
+          {
+            id: "550e8400-e29b-41d4-a716-446655440000",
+            email: "user@example.com",
+            firstName: "John",
+            lastName: "Doe",
+            role: "manager",
+            organizationId: "550e8400-e29b-41d4-a716-446655440001",
+          },
+        ],
+        total: 1,
+      },
+    },
+  })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   findAll(@CurrentUser() user: any) {
     // Admin sees only their organization's users
@@ -54,7 +72,20 @@ export class UsersController {
   @Get(":id")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get user by ID" })
-  @ApiResponse({ status: 200, description: "User found" })
+  @ApiResponse({
+    status: 200,
+    description: "User found",
+    schema: {
+      example: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        email: "user@example.com",
+        firstName: "John",
+        lastName: "Doe",
+        role: "manager",
+        organizationId: "550e8400-e29b-41d4-a716-446655440001",
+      },
+    },
+  })
   @ApiResponse({ status: 404, description: "User not found" })
   findOne(@Param("id", ParseUUIDPipe) id: string) {
     return this.usersService.findById(id);

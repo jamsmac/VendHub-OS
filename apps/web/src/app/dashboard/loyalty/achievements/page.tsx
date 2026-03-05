@@ -149,8 +149,10 @@ export default function AchievementsPage() {
   const { data: achievementsData, isLoading } = useQuery({
     queryKey: ["achievements", categoryFilter],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params: any = {};
+      const params: Record<
+        string,
+        string | number | boolean | null | undefined
+      > = {};
       if (categoryFilter !== "all") params.category = categoryFilter;
       const res = await achievementsApi.getAll(params);
       return (res.data?.data || res.data || []) as Achievement[];
@@ -168,8 +170,8 @@ export default function AchievementsPage() {
 
   // Create mutation
   const createMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => achievementsApi.create(data),
+    mutationFn: (data: unknown) =>
+      achievementsApi.create(data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeForm();
@@ -178,9 +180,8 @@ export default function AchievementsPage() {
 
   // Update mutation
   const updateMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      achievementsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
+      achievementsApi.update(id, data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeForm();
@@ -431,8 +432,13 @@ export default function AchievementsPage() {
                       {t(`category_${ach.category}`)}
                     </Badge>
                     <Badge
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      variant={rarityStyle.badge as any}
+                      variant={
+                        rarityStyle.badge as
+                          | "default"
+                          | "secondary"
+                          | "destructive"
+                          | "outline"
+                      }
                       className={`text-xs ${rarityStyle.color}`}
                     >
                       {t(`rarity_${ach.rarity}`)}

@@ -48,8 +48,13 @@ export class InventoryReportGenerator {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  buildIngredientByMonths(transactions: TransactionData[]): any[] {
+  buildIngredientByMonths(
+    transactions: TransactionData[],
+  ): Array<{
+    month: string;
+    ingredients: Record<string, number>;
+    totalCost: number;
+  }> {
     const monthlyData = new Map<string, Record<string, number>>();
 
     for (const t of transactions) {
@@ -81,8 +86,13 @@ export class InventoryReportGenerator {
       .sort((a, b) => a.month.localeCompare(b.month));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  buildIngredientByMachines(transactions: TransactionData[]): any[] {
+  buildIngredientByMachines(transactions: TransactionData[]): Array<{
+    machineId: string;
+    machineCode: string;
+    address: string;
+    ingredients: Record<string, number>;
+    totalCost: number;
+  }> {
     const machineData = new Map<
       string,
       { code: string; address: string; ingredients: Record<string, number> }
@@ -123,8 +133,9 @@ export class InventoryReportGenerator {
     }));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  buildIngredientByDays(transactions: TransactionData[]): any[] {
+  buildIngredientByDays(
+    transactions: TransactionData[],
+  ): Array<Record<string, Record<string, number>>> {
     const dailyData = new Map<string, Record<string, number>>();
 
     for (const t of transactions) {
@@ -143,7 +154,11 @@ export class InventoryReportGenerator {
     }
 
     return Array.from(dailyData.entries())
-      .map(([date, ingredients]) => ({ date, ...ingredients }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .map(([date, ingredients]) => ({ [date]: ingredients }))
+      .sort((a, b) => {
+        const aKey = Object.keys(a)[0];
+        const bKey = Object.keys(b)[0];
+        return aKey.localeCompare(bKey);
+      });
   }
 }

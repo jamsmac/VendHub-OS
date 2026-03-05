@@ -111,8 +111,7 @@ export interface FieldConfig {
   type: FieldType;
   required: boolean;
   description?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValue?: any;
+  defaultValue?: unknown;
   enumValues?: string[];
   validation?: ValidationRule[];
   mapping?: string; // Maps to internal field name
@@ -132,8 +131,7 @@ export interface ValidationRule {
     | "email"
     | "url"
     | "custom";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value?: any;
+  value?: unknown;
   message: string;
   customValidator?: string; // JS code for custom validation
 }
@@ -431,11 +429,9 @@ export interface IntegrationTestCase {
   description: string;
   endpoint: string;
   method: HttpMethod;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic test payloads
-  requestData: Record<string, any>;
+  requestData: Record<string, unknown>;
   expectedStatus: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic test responses
-  expectedResponse?: Record<string, any>;
+  expectedResponse?: Record<string, unknown>;
   assertions: TestAssertion[];
 }
 
@@ -445,8 +441,7 @@ export interface IntegrationTestCase {
 export interface TestAssertion {
   type: "equals" | "contains" | "exists" | "type" | "regex";
   path: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  expected: any;
+  expected: unknown;
   message: string;
 }
 
@@ -461,20 +456,17 @@ export interface TestResult {
     url: string;
     method: string;
     headers: Record<string, string>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    body?: any;
+    body?: unknown;
   };
   response: {
     status: number;
     headers: Record<string, string>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    body: any;
+    body: unknown;
   };
   assertions: {
     assertion: TestAssertion;
     passed: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    actual: any;
+    actual: unknown;
   }[];
   error?: string;
 }

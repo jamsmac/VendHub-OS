@@ -81,8 +81,25 @@ export class FinancialReportGenerator {
     transactions: TransactionData[],
     structureA: VendHubReportStructureA,
     structureB: VendHubReportStructureB,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): any {
+  ): {
+    topProducts: Array<{ name: string; revenue: number; count: number }>;
+    topMachines: Array<{ code: string; address: string; revenue: number }>;
+    trends: {
+      revenueGrowth: number;
+      orderGrowth: number;
+      marginTrend: number;
+    };
+    alerts: Array<{
+      type:
+        | "low_stock"
+        | "high_failure_rate"
+        | "margin_decline"
+        | "qr_discrepancy";
+      severity: "info" | "warning" | "critical";
+      message: string;
+      data?: Record<string, unknown>;
+    }>;
+  } {
     // Top products
     const topProducts = structureB.byProducts.slice(0, 10).map((p) => ({
       name: p.productName,
@@ -123,8 +140,16 @@ export class FinancialReportGenerator {
     }
 
     // Alerts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const alerts: any[] = [];
+    const alerts: Array<{
+      type:
+        | "low_stock"
+        | "high_failure_rate"
+        | "margin_decline"
+        | "qr_discrepancy";
+      severity: "info" | "warning" | "critical";
+      message: string;
+      data?: Record<string, unknown>;
+    }> = [];
 
     // Check QR reconciliation
     for (const qr of structureA.qrReconciliation) {
@@ -133,14 +158,14 @@ export class FinancialReportGenerator {
           type: "qr_discrepancy",
           severity: "critical",
           message: `Критическое расхождение QR в ${qr.month}: ${qr.differencePercent}%`,
-          data: qr,
+          data: qr as unknown as Record<string, unknown>,
         });
       } else if (qr.status === "WARNING") {
         alerts.push({
           type: "qr_discrepancy",
           severity: "warning",
           message: `Расхождение QR в ${qr.month}: ${qr.differencePercent}%`,
-          data: qr,
+          data: qr as unknown as Record<string, unknown>,
         });
       }
     }
@@ -478,8 +503,18 @@ export class FinancialReportGenerator {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildDeliveryFailures(transactions: TransactionData[]): any[] {
+  private buildDeliveryFailures(transactions: TransactionData[]): Array<{
+    date: string;
+    time: string;
+    machineId: string;
+    machineCode: string;
+    address: string;
+    productName: string;
+    flavor: string;
+    price: number;
+    paymentType: string;
+    status: string;
+  }> {
     return transactions
       .filter(
         (t) => !VERIFICATION_RULES.INGREDIENT_FILTER.includes(t.brewStatus),

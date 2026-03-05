@@ -43,6 +43,7 @@ describe("OrganizationsService", () => {
             save: jest.fn(),
             remove: jest.fn(),
             softDelete: jest.fn(),
+            count: jest.fn(),
           },
         },
       ],
@@ -214,6 +215,7 @@ describe("OrganizationsService", () => {
   describe("remove", () => {
     it("should soft delete organization when found", async () => {
       organizationRepository.findOne.mockResolvedValue(mockOrganization);
+      organizationRepository.count.mockResolvedValue(0);
       organizationRepository.softDelete.mockResolvedValue({
         affected: 1,
       } as unknown as ReturnType<
@@ -239,6 +241,7 @@ describe("OrganizationsService", () => {
 
     it("should call findById internally before soft deleting", async () => {
       organizationRepository.findOne.mockResolvedValue(mockOrganization);
+      organizationRepository.count.mockResolvedValue(0);
       organizationRepository.softDelete.mockResolvedValue({
         affected: 1,
       } as unknown as ReturnType<

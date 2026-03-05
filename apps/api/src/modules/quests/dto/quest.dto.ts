@@ -79,8 +79,7 @@ export class CreateQuestDto {
   @ApiPropertyOptional({ description: "Additional rewards" })
   @IsArray()
   @IsOptional()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  additionalRewards?: any[];
+  additionalRewards?: unknown[];
 
   @ApiPropertyOptional({ description: "Quest metadata" })
   @IsObject()
@@ -224,8 +223,7 @@ export class QuestInfoDto {
   @ApiProperty({ enum: QuestDifficulty }) difficulty: QuestDifficulty;
   @ApiProperty() targetValue: number;
   @ApiProperty() rewardPoints: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @ApiProperty() additionalRewards: any[];
+  @ApiProperty() additionalRewards: unknown[];
   @ApiProperty() icon: string;
   @ApiProperty() color: string;
   @ApiProperty() imageUrl: string;
@@ -295,8 +293,7 @@ export class ClaimResultDto {
   @ApiProperty() success: boolean;
   @ApiProperty() pointsEarned: number;
   @ApiProperty() newBalance: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @ApiProperty() additionalRewards: any[];
+  @ApiProperty() additionalRewards: unknown[];
   @ApiProperty() message: string;
 }
 

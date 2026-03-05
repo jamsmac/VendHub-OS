@@ -1,1 +1,12 @@
+#!/bin/sh
+
+# Prevent committing secrets (exclude test/spec/mock files and .example files)
+SECRETS=$(git diff --cached --diff-filter=ACM --name-only | grep -v -E '\.(spec|test|e2e-spec)\.(ts|js)$' | grep -v '__mocks__' | grep -v '\.example$' | xargs -I{} git diff --cached -- {} 2>/dev/null | grep -iE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"][^'\"]{8,}" | grep -v 'example' | grep -v '\.\.\.' || true)
+if [ -n "$SECRETS" ]; then
+  echo "$SECRETS"
+  echo "ERROR: Potential secret detected in staged files!"
+  echo "Please remove secrets before committing."
+  exit 1
+fi
+
 npx lint-staged

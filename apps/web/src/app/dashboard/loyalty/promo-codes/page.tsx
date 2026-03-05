@@ -128,8 +128,8 @@ export default function PromoCodesPage() {
 
   // CRUD mutations
   const createMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => promoCodesApi.create(data),
+    mutationFn: (data: unknown) =>
+      promoCodesApi.create(data as Record<string, unknown>),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promo-codes"] });
@@ -138,9 +138,8 @@ export default function PromoCodesPage() {
   });
 
   const updateMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      promoCodesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
+      promoCodesApi.update(id, data as Record<string, unknown>),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promo-codes"] });
@@ -472,8 +471,16 @@ export default function PromoCodesPage() {
                 {}
                 <Select
                   value={form.type}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  onValueChange={(v: any) => setForm({ ...form, type: v })}
+                  onValueChange={(v: unknown) =>
+                    setForm({
+                      ...form,
+                      type: v as
+                        | "fixed_discount"
+                        | "percent_discount"
+                        | "bonus_points"
+                        | "free_product",
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -584,27 +591,38 @@ export default function PromoCodesPage() {
           </DialogHeader>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {redemptionsData?.data?.length > 0 ? (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              redemptionsData.data.map((r: any) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {r.userName || r.userId}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(r.createdAt).toLocaleString("ru-RU")}
-                    </p>
+              redemptionsData.data.map((r: unknown) => {
+                const redemption = r as {
+                  id?: string;
+                  userName?: string;
+                  userId?: string;
+                  createdAt?: string;
+                  discount?: number;
+                  pointsEarned?: number;
+                };
+                return (
+                  <div
+                    key={redemption.id}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {redemption.userName || redemption.userId}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(redemption.createdAt || "").toLocaleString(
+                          "ru-RU",
+                        )}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">
+                      {redemption.discount?.toLocaleString() ||
+                        redemption.pointsEarned?.toLocaleString() ||
+                        "\u2014"}
+                    </Badge>
                   </div>
-                  <Badge variant="secondary">
-                    {r.discount?.toLocaleString() ||
-                      r.pointsEarned?.toLocaleString() ||
-                      "\u2014"}
-                  </Badge>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
                 {t("noRedemptions")}

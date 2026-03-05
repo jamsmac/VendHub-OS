@@ -3,6 +3,8 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { NotificationsService } from "./notifications.service";
+import { ConfigService } from "@nestjs/config";
+import { HttpService } from "@nestjs/axios";
 import {
   Notification,
   NotificationTemplate,
@@ -18,6 +20,10 @@ import {
 } from "./entities/notification.entity";
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
+import { User } from "../users/entities/user.entity";
+import { EmailService } from "../email/email.service";
+import { SmsService } from "../sms/sms.service";
+import { WebPushService } from "../web-push/web-push.service";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -108,6 +114,30 @@ describe("NotificationsService", () => {
           useValue: pushSubscriptionRepo,
         },
         { provide: getRepositoryToken(FcmToken), useValue: fcmTokenRepo },
+        {
+          provide: getRepositoryToken(User),
+          useValue: createMockRepository<User>(),
+        },
+        {
+          provide: EmailService,
+          useValue: { send: jest.fn() },
+        },
+        {
+          provide: SmsService,
+          useValue: { send: jest.fn() },
+        },
+        {
+          provide: WebPushService,
+          useValue: { send: jest.fn() },
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn() },
+        },
+        {
+          provide: HttpService,
+          useValue: { axiosRef: { post: jest.fn() } },
+        },
       ],
     }).compile();
 

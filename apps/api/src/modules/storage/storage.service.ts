@@ -15,7 +15,6 @@ import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { FileRecord } from "./entities/file.entity";
 // AWS SDK is optional - provide mock types if not installed
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let S3Client: any,
   PutObjectCommand: any,
@@ -36,6 +35,7 @@ try {
   ListObjectsV2Command = s3Module.ListObjectsV2Command;
   CopyObjectCommand = s3Module.CopyObjectCommand;
   HeadObjectCommand = s3Module.HeadObjectCommand;
+
   getSignedUrl = require("@aws-sdk/s3-request-presigner").getSignedUrl;
 } catch {
   // AWS SDK not installed - will throw at runtime if used
@@ -307,8 +307,8 @@ export class StorageService {
       const response = await this.s3Client.send(command);
       const chunks: Uint8Array[] = [];
 
-      // @ts-ignore - Body is a readable stream
-      for await (const chunk of response.Body) {
+      const body = response.Body as AsyncIterable<Uint8Array>;
+      for await (const chunk of body) {
         chunks.push(chunk);
       }
 
@@ -512,19 +512,18 @@ export class StorageService {
 
       const response = await this.s3Client.send(command);
 
-      return (response.Contents || []).map(
-        (item: {
-          Key?: string;
-          Size?: number;
-          LastModified?: Date;
-          ETag?: string;
-        }) => ({
-          key: item.Key || "",
-          size: item.Size || 0,
-          lastModified: item.LastModified || new Date(),
-          etag: item.ETag,
-        }),
-      );
+      interface ListItem {
+        Key?: string;
+        Size?: number;
+        LastModified?: Date;
+        ETag?: string;
+      }
+      return (response.Contents || []).map((item: ListItem) => ({
+        key: item.Key || "",
+        size: item.Size || 0,
+        lastModified: item.LastModified || new Date(),
+        etag: item.ETag,
+      }));
     } catch (error: unknown) {
       this.logger.error(`Failed to list files in ${prefix}`, error);
       throw new BadRequestException("Failed to list files");

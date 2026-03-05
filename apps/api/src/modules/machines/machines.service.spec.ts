@@ -142,6 +142,14 @@ describe("MachinesService", () => {
             save: jest.fn(),
           },
         },
+        {
+          provide: "BullQueue_machine-writeoff",
+          useValue: {
+            add: jest.fn(),
+            process: jest.fn(),
+            getJob: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

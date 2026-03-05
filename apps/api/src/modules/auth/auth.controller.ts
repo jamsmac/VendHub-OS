@@ -47,7 +47,20 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   @ApiOperation({ summary: "Register a new user" })
-  @ApiResponse({ status: 201, description: "User registered successfully" })
+  @ApiResponse({
+    status: 201,
+    description: "User registered successfully",
+    schema: {
+      example: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        email: "user@example.com",
+        firstName: "John",
+        lastName: "Doe",
+        role: "viewer",
+        organizationId: "550e8400-e29b-41d4-a716-446655440001",
+      },
+    },
+  })
   @ApiResponse({ status: 400, description: "Bad request" })
   @ApiResponse({ status: 429, description: "Too many requests" })
   async register(
@@ -63,7 +76,23 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Login with email and password" })
-  @ApiResponse({ status: 200, description: "Login successful" })
+  @ApiResponse({
+    status: 200,
+    description: "Login successful",
+    schema: {
+      example: {
+        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        user: {
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          email: "user@example.com",
+          firstName: "John",
+          lastName: "Doe",
+          role: "manager",
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
   @ApiResponse({ status: 429, description: "Too many requests" })
   async login(

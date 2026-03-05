@@ -5,6 +5,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
+import { HttpModule } from "@nestjs/axios";
 import { NotificationsController } from "./notifications.controller";
 import { NotificationsService } from "./notifications.service";
 import {
@@ -38,6 +39,7 @@ import { WebPushModule } from "../web-push/web-push.module";
       User,
     ]),
     ConfigModule,
+    HttpModule,
     EmailModule,
     SmsModule,
     WebPushModule,

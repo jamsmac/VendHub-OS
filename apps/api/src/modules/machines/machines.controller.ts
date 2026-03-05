@@ -61,7 +61,22 @@ export class MachinesController {
   @Post()
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new machine" })
-  @ApiResponse({ status: 201, description: "Machine created successfully" })
+  @ApiResponse({
+    status: 201,
+    description: "Machine created successfully",
+    schema: {
+      example: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        machineNumber: "VM-2024-001",
+        name: "Vending Machine 1",
+        organizationId: "550e8400-e29b-41d4-a716-446655440001",
+        status: "active",
+        capacity: 300,
+        locationId: "550e8400-e29b-41d4-a716-446655440002",
+        createdAt: "2024-03-03T10:00:00Z",
+      },
+    },
+  })
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreateMachineDto, @CurrentUser() user: User) {
@@ -88,7 +103,26 @@ export class MachinesController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get all machines with pagination" })
-  @ApiResponse({ status: 200, description: "List of machines" })
+  @ApiResponse({
+    status: 200,
+    description: "List of machines with pagination",
+    schema: {
+      example: {
+        data: [
+          {
+            id: "550e8400-e29b-41d4-a716-446655440000",
+            machineNumber: "VM-2024-001",
+            name: "Vending Machine 1",
+            status: "active",
+            capacity: 300,
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 10,
+      },
+    },
+  })
   findAll(@CurrentUser() user: User, @Query() query: QueryMachinesDto) {
     const organizationId =
       user.role === UserRole.OWNER && query.organizationId
@@ -253,7 +287,20 @@ export class MachinesController {
   )
   @ApiOperation({ summary: "Get machine by ID" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
-  @ApiResponse({ status: 200, description: "Machine found" })
+  @ApiResponse({
+    status: 200,
+    description: "Machine found",
+    schema: {
+      example: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        machineNumber: "VM-2024-001",
+        name: "Vending Machine 1",
+        status: "active",
+        capacity: 300,
+        createdAt: "2024-03-03T10:00:00Z",
+      },
+    },
+  })
   @ApiResponse({ status: 404, description: "Machine not found" })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,

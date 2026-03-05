@@ -130,7 +130,7 @@ Every module must be registered in `app.module.ts`, have at least one test, and 
 | accountant | Organization | Finance, reports, reconciliation      |
 | viewer     | Organization | Read-only access                      |
 
-## API Module Pattern
+## API Modules Pattern
 
 ```
 src/modules/<module-name>/
@@ -226,6 +226,102 @@ pnpm docker:logs            # View logs
 | bot      | -    | Telegram bot   |
 | site     | 3100 | Next.js site   |
 | mobile   | -    | Expo dev       |
+
+## VendHub24 Integration Status
+
+**Readiness: ~93%** (updated from 88%)
+
+### Landing Site (site app)
+
+- Landing site (vendhub.uz) transferred from VendHub24
+- 13 sections with responsive design
+- i18n support: Uzbek (uz) and Russian (ru)
+- SEO optimization implemented
+
+### New Dashboard Pages (web app)
+
+- **8 new dashboard pages added:**
+  - Investor dashboard
+  - Website analytics dashboard
+  - Finance dashboard
+  - Promotions management
+  - Counterparties/Partners
+  - Help & Support
+  - Dashboard (extended with new sections)
+  - Team (extended with new features)
+
+### UI Component Library
+
+- **24 new shadcn/ui components added:**
+  - Accordion, Alert, Breadcrumb, Calendar
+  - Checkbox, Chart, DataTable, Drawer
+  - Empty state, Form, HoverCard, Pagination
+  - Progress, RadioGroup, ScrollArea, Separator
+  - SlideOver, Slider, Sonner (toast), Spinner
+  - Toggle, ToggleGroup, Tooltip, and custom components
+
+### React Hooks Migration
+
+- **16 adapted React hooks** with Supabase → apiClient migration
+- Ensures consistent API communication across all client apps
+- Improved type safety and error handling
+
+### Backend API Modules
+
+- **4 new API modules created:**
+  - `cash-finance`: Cash flow and financial tracking
+  - `collections`: Collection and payment management
+  - `trip-analytics`: Route and trip data analysis
+  - `vhm24-integration`: VendHub24 legacy system bridge
+
+### Telegram Customer Bot Services
+
+- **7 Telegram customer bot services added:**
+  - Order management
+  - Payment processing
+  - Delivery tracking
+  - Customer support
+  - Promotional notifications
+  - Loyalty program integration
+  - Account management
+
+### Location Services
+
+- **GeocodingService** added to locations module
+- Supports address geocoding and reverse geocoding
+- Integration with mapping services for route optimization
+
+### Deployment & DevOps
+
+- **GitHub Actions CI/CD pipeline** added
+- Health check paths fixed:
+  - Docker Compose health checks updated
+  - Kubernetes liveness/readiness probes verified
+  - Helm chart health check paths corrected
+
+### Service Merges
+
+- **reports.service.ts**: IDOR vulnerability fix + comprehensive try/catch error handling
+- **auth.service.ts**: cleanupExpiredResetTokens with proper error handling
+
+### Package Synchronization
+
+- Shared packages synced across all apps:
+  - Common types and interfaces
+  - Utility functions
+  - Constants and enums
+
+### Documentation
+
+- **16 new documentation files added:**
+  - Entity-Relationship (ER) diagram
+  - Component tree structure
+  - Master data specifications
+  - Loyalty program specifications
+  - API endpoint documentation
+  - Database schema documentation
+  - Integration guides
+  - Deployment procedures
 
 ## Skills (AI Agent Tools)
 

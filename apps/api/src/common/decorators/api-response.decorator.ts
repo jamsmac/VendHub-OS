@@ -45,8 +45,7 @@ export class ApiResponseDto<T> {
 /**
  * Decorator for standard success response
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ApiStandardResponse = <TModel extends Type<any>>(
+export const ApiStandardResponse = <TModel extends Type<unknown>>(
   model: TModel,
   description = "Success",
 ) => {
@@ -72,8 +71,7 @@ export const ApiStandardResponse = <TModel extends Type<any>>(
 /**
  * Decorator for paginated response
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ApiPaginatedResponse = <TModel extends Type<any>>(
+export const ApiPaginatedResponse = <TModel extends Type<unknown>>(
   model: TModel,
   description = "Paginated list",
 ) => {
@@ -113,8 +111,7 @@ export const ApiPaginatedResponse = <TModel extends Type<any>>(
 /**
  * Decorator for created response
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ApiCreated = <TModel extends Type<any>>(
+export const ApiCreated = <TModel extends Type<unknown>>(
   model: TModel,
   description = "Created successfully",
 ) => {
@@ -204,7 +201,8 @@ export const ApiErrorResponses = () => {
 /**
  * Combined decorator for standard CRUD responses
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ApiCrudResponses = <TModel extends Type<any>>(model: TModel) => {
+export const ApiCrudResponses = <TModel extends Type<unknown>>(
+  model: TModel,
+) => {
   return applyDecorators(ApiStandardResponse(model), ApiErrorResponses());
 };

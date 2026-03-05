@@ -1,6 +1,26 @@
-import { useEffect, useRef, MutableRefObject } from "react";
+/**
+ * GoogleMap — Leaflet + OpenStreetMap drop-in replacement.
+ * Keeps the same export name so MapPage.tsx requires no import changes.
+ * No API key required.
+ */
+
+import { useEffect, MutableRefObject } from "react";
 import { useTranslation } from "react-i18next";
-import { Wrapper, Status } from "@googlemaps/react-wrapper";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  CircleMarker,
+  Popup,
+  useMap,
+} from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// ============================================================================
+// Types
+// ============================================================================
 
 interface GoogleMapProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,180 +28,151 @@ interface GoogleMapProps {
   userLocation: { latitude: number; longitude: number } | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onMachineClick?: (machine: any) => void;
-  mapRef?: MutableRefObject<google.maps.Map | null>;
+  mapRef?: MutableRefObject<L.Map | null>;
 }
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+// ============================================================================
+// Constants
+// ============================================================================
 
-// Tashkent center as default
-const DEFAULT_CENTER = { lat: 41.2995, lng: 69.2401 };
+const DEFAULT_CENTER: [number, number] = [41.2995, 69.2401]; // Tashkent
 const DEFAULT_ZOOM = 13;
 
-function MapComponent({
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/** Exposes the Leaflet Map instance to the parent via mapRef */
+function MapRefSetter({ mapRef }: { mapRef?: MutableRefObject<L.Map | null> }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (mapRef) mapRef.current = map;
+    return () => {
+      if (mapRef) mapRef.current = null;
+    };
+  }, [map, mapRef]);
+
+  return null;
+}
+
+/** Custom circular machine icon — matches the machine type with an emoji */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createMachineIcon(machine: any) {
+  const color = machine.status === "active" ? "#43302b" : "#9ca3af";
+  const emoji =
+    machine.type === "coffee" ? "☕" : machine.type === "snack" ? "🍫" : "🥤";
+
+  return L.divIcon({
+    className: "", // suppress default leaflet styles
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -24],
+    html: `<div style="
+      width:40px;height:40px;border-radius:50%;
+      background:${color};border:3px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;line-height:1;
+    ">${emoji}</div>`,
+  });
+}
+
+// ============================================================================
+// Inner map content — must be a descendant of <MapContainer>
+// ============================================================================
+
+function MapInner({
   machines,
   userLocation,
   onMachineClick,
   mapRef,
 }: GoogleMapProps) {
   const { t } = useTranslation();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const localMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
-  const userMarkerRef = useRef<google.maps.Marker | null>(null);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const map = new google.maps.Map(containerRef.current, {
-      center: userLocation
-        ? { lat: userLocation.latitude, lng: userLocation.longitude }
-        : DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
-      disableDefaultUI: true,
-      zoomControl: true,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }],
-        },
-      ],
-    });
-
-    localMapRef.current = map;
-    if (mapRef) {
-      mapRef.current = map;
-    }
-
-    return () => {
-      markersRef.current.forEach((m) => m.setMap(null));
-      userMarkerRef.current?.setMap(null);
-    };
-  }, []);
-
-  // Update user location marker
-  useEffect(() => {
-    if (!localMapRef.current || !userLocation) return;
-
-    if (userMarkerRef.current) {
-      userMarkerRef.current.setPosition({
-        lat: userLocation.latitude,
-        lng: userLocation.longitude,
-      });
-    } else {
-      userMarkerRef.current = new google.maps.Marker({
-        position: {
-          lat: userLocation.latitude,
-          lng: userLocation.longitude,
-        },
-        map: localMapRef.current,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#4285F4",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        },
-        zIndex: 1000,
-        title: t("mapYouAreHere"),
-      });
-    }
-  }, [userLocation]);
-
-  // Update machine markers
-  useEffect(() => {
-    if (!localMapRef.current) return;
-
-    // Clear existing markers
-    markersRef.current.forEach((m) => m.setMap(null));
-    markersRef.current = [];
-
-    // Add new markers
-    machines.forEach((machine) => {
-      if (!machine.latitude || !machine.longitude) return;
-
-      const marker = new google.maps.Marker({
-        position: { lat: machine.latitude, lng: machine.longitude },
-        map: localMapRef.current!,
-        icon: {
-          url: `data:image/svg+xml,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="18" fill="${
-                machine.status === "active" ? "#43302b" : "#9ca3af"
-              }" stroke="white" stroke-width="3"/>
-              <text x="20" y="26" text-anchor="middle" font-size="16">${
-                machine.type === "coffee"
-                  ? "☕"
-                  : machine.type === "snack"
-                    ? "🍫"
-                    : "🥤"
-              }</text>
-            </svg>
-          `)}`,
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 20),
-        },
-        title: machine.name,
-        zIndex: machine.status === "active" ? 100 : 50,
-      });
-
-      marker.addListener("click", () => {
-        onMachineClick?.(machine);
-      });
-
-      markersRef.current.push(marker);
-    });
-  }, [machines, onMachineClick]);
-
-  return <div ref={containerRef} className="w-full h-full" />;
-}
-
-function LoadingRender() {
-  const { t } = useTranslation();
   return (
-    <div className="w-full h-full flex items-center justify-center bg-muted">
-      <div className="text-center">
-        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">{t("mapLoading")}</p>
-      </div>
-    </div>
+    <>
+      {/* OpenStreetMap tiles — free, no API key */}
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {/* User location — blue dot */}
+      {userLocation && (
+        <CircleMarker
+          center={[userLocation.latitude, userLocation.longitude]}
+          radius={9}
+          pathOptions={{
+            fillColor: "#4285F4",
+            color: "#ffffff",
+            weight: 2.5,
+            fillOpacity: 1,
+          }}
+          zIndexOffset={1000}
+        >
+          <Popup>{t("mapYouAreHere")}</Popup>
+        </CircleMarker>
+      )}
+
+      {/* Clustered machine markers */}
+      <MarkerClusterGroup chunkedLoading>
+        {machines
+          .filter((m) => m.latitude && m.longitude)
+          .map((machine) => (
+            <Marker
+              key={machine.id}
+              position={[machine.latitude, machine.longitude]}
+              icon={createMachineIcon(machine)}
+              title={machine.name}
+              eventHandlers={{ click: () => onMachineClick?.(machine) }}
+            >
+              <Popup>
+                <div>
+                  <p style={{ fontWeight: 600, margin: 0 }}>{machine.name}</p>
+                  {machine.address && (
+                    <p
+                      style={{
+                        margin: "2px 0 0",
+                        fontSize: 12,
+                        color: "#6b7280",
+                      }}
+                    >
+                      {machine.address}
+                    </p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+      </MarkerClusterGroup>
+
+      {/* Expose Leaflet map instance to parent via mapRef */}
+      <MapRefSetter mapRef={mapRef} />
+    </>
   );
 }
 
-function ErrorRender() {
-  const { t } = useTranslation();
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-muted">
-      <p className="text-sm text-destructive">{t("mapError")}</p>
-    </div>
-  );
-}
+// ============================================================================
+// Main export — drop-in replacement for the Google Maps version
+// ============================================================================
 
 export function GoogleMap(props: GoogleMapProps) {
-  const { t } = useTranslation();
+  const { userLocation } = props;
 
-  const render = (status: Status) => {
-    switch (status) {
-      case Status.LOADING:
-        return <LoadingRender />;
-      case Status.FAILURE:
-        return <ErrorRender />;
-      case Status.SUCCESS:
-        return <MapComponent {...props} />;
-    }
-  };
+  // Use user location as initial center if available, otherwise default to Tashkent
+  const initialCenter: [number, number] = userLocation
+    ? [userLocation.latitude, userLocation.longitude]
+    : DEFAULT_CENTER;
 
-  if (!GOOGLE_MAPS_API_KEY) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted">
-        <p className="text-sm text-muted-foreground">{t("mapApiKeyMissing")}</p>
-      </div>
-    );
-  }
-
-  return <Wrapper apiKey={GOOGLE_MAPS_API_KEY} render={render} />;
+  return (
+    <MapContainer
+      center={initialCenter}
+      zoom={DEFAULT_ZOOM}
+      className="w-full h-full"
+      style={{ zIndex: 0 }}
+    >
+      <MapInner {...props} />
+    </MapContainer>
+  );
 }

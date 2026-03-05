@@ -29,16 +29,23 @@ export class ImportValidatorService {
    * Get validator for import type
    */
   getValidator(importType: ImportType): (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     orgId: string,
     row: number,
   ) => Promise<{
     errors: { field: string; message: string }[];
     warnings: { field: string; message: string }[];
   }> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const validators: Record<ImportType, any> = {
+    type ValidatorFn = (
+      data: Record<string, unknown>,
+      orgId: string,
+      row: number,
+    ) => Promise<{
+      errors: { field: string; message: string }[];
+      warnings: { field: string; message: string }[];
+    }>;
+
+    const validators: Record<ImportType, ValidatorFn> = {
       [ImportType.PRODUCTS]: this.validateProduct.bind(this),
       [ImportType.MACHINES]: this.validateMachine.bind(this),
       [ImportType.USERS]: this.validateUser.bind(this),
@@ -60,13 +67,10 @@ export class ImportValidatorService {
    * Apply mapping to row data
    */
   applyMapping(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     mapping: Record<string, string>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Record<string, any> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: Record<string, any> = {};
+  ): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
 
     for (const [sourceField, targetField] of Object.entries(mapping)) {
       if (data[sourceField] !== undefined) {
@@ -112,8 +116,7 @@ export class ImportValidatorService {
    * Get validation rules, optionally filtered by domain.
    */
   async getValidationRules(domain?: DomainType): Promise<ValidationRule[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isActive: true };
+    const where: Record<string, unknown> = { isActive: true };
     if (domain) {
       where.domain = domain;
     }
@@ -129,10 +132,8 @@ export class ImportValidatorService {
    */
   applyValidationRule(
     rule: ValidationRule,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    row: Record<string, any>,
+    value: unknown,
+    row: Record<string, unknown>,
     rowNumber: number,
   ): { valid: boolean; message: string } {
     const def = rule.ruleDefinition;
@@ -167,7 +168,7 @@ export class ImportValidatorService {
       }
 
       case ValidationRuleType.RANGE: {
-        const numValue = parseFloat(value);
+        const numValue = parseFloat(String(value ?? ""));
         if (isNaN(numValue)) {
           return {
             valid: false,
@@ -287,7 +288,7 @@ export class ImportValidatorService {
           }
         }
         if (def.format === "date") {
-          const dateValue = new Date(value);
+          const dateValue = new Date(value as string | number | Date);
           if (isNaN(dateValue.getTime())) {
             return {
               valid: false,
@@ -351,8 +352,7 @@ export class ImportValidatorService {
   // ========================================================================
 
   private async validateProduct(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -367,7 +367,7 @@ export class ImportValidatorService {
     }
 
     if (data.price !== undefined && data.price !== "") {
-      const price = parseFloat(data.price);
+      const price = parseFloat(String(data.price));
       if (isNaN(price) || price < 0) {
         errors.push({ field: "price", message: "Invalid price value" });
       }
@@ -391,8 +391,7 @@ export class ImportValidatorService {
   }
 
   private async validateMachine(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -417,8 +416,7 @@ export class ImportValidatorService {
   }
 
   private async validateUser(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -428,7 +426,7 @@ export class ImportValidatorService {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
-    if (!data.email || !this.isValidEmail(data.email)) {
+    if (!data.email || !this.isValidEmail(String(data.email))) {
       errors.push({ field: "email", message: "Valid email is required" });
     }
 
@@ -440,8 +438,7 @@ export class ImportValidatorService {
   }
 
   private async validateEmployee(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -470,8 +467,7 @@ export class ImportValidatorService {
   }
 
   private async validateTransaction(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -481,7 +477,7 @@ export class ImportValidatorService {
     const errors: { field: string; message: string }[] = [];
     const warnings: { field: string; message: string }[] = [];
 
-    if (!data.amount || isNaN(parseFloat(data.amount))) {
+    if (!data.amount || isNaN(parseFloat(String(data.amount)))) {
       errors.push({ field: "amount", message: "Valid amount is required" });
     }
 
@@ -496,8 +492,7 @@ export class ImportValidatorService {
   }
 
   private async validateSale(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -518,7 +513,7 @@ export class ImportValidatorService {
       errors.push({ field: "saleDate", message: "Sale date is required" });
     }
 
-    if (!data.amount || isNaN(parseFloat(data.amount))) {
+    if (!data.amount || isNaN(parseFloat(String(data.amount)))) {
       errors.push({ field: "amount", message: "Valid amount is required" });
     }
 
@@ -526,8 +521,7 @@ export class ImportValidatorService {
   }
 
   private async validateInventory(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -544,7 +538,7 @@ export class ImportValidatorService {
       });
     }
 
-    if (!data.quantity || isNaN(parseFloat(data.quantity))) {
+    if (!data.quantity || isNaN(parseFloat(String(data.quantity)))) {
       errors.push({ field: "quantity", message: "Valid quantity is required" });
     }
 
@@ -552,8 +546,7 @@ export class ImportValidatorService {
   }
 
   private async validateCustomer(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -567,7 +560,7 @@ export class ImportValidatorService {
       errors.push({ field: "phone", message: "Phone or email is required" });
     }
 
-    if (data.email && !this.isValidEmail(data.email)) {
+    if (data.email && !this.isValidEmail(String(data.email))) {
       errors.push({ field: "email", message: "Invalid email format" });
     }
 
@@ -575,8 +568,7 @@ export class ImportValidatorService {
   }
 
   private async validatePrice(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -595,8 +587,8 @@ export class ImportValidatorService {
 
     if (
       !data.price ||
-      isNaN(parseFloat(data.price)) ||
-      parseFloat(data.price) < 0
+      isNaN(parseFloat(String(data.price))) ||
+      parseFloat(String(data.price)) < 0
     ) {
       errors.push({
         field: "price",
@@ -608,8 +600,7 @@ export class ImportValidatorService {
   }
 
   private async validateCategory(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -627,8 +618,7 @@ export class ImportValidatorService {
   }
 
   private async validateLocation(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -649,8 +639,7 @@ export class ImportValidatorService {
   }
 
   private async validateContractor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{
@@ -678,8 +667,7 @@ export class ImportValidatorService {
   }
 
   private async validateGeneric(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _data: Record<string, any>,
+    _data: Record<string, unknown>,
     _orgId: string,
     _row: number,
   ): Promise<{

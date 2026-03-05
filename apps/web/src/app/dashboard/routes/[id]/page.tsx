@@ -135,8 +135,8 @@ export default function RouteDetailPage({
   });
 
   const updateMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => routesApi.update(id, data),
+    mutationFn: (data: unknown) =>
+      routesApi.update(id, data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id] });
       setIsEditing(false);
@@ -193,8 +193,8 @@ export default function RouteDetailPage({
   });
 
   const addStopMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => routesApi.addStop(id, data),
+    mutationFn: (data: unknown) =>
+      routesApi.addStop(id, data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
       setIsAddStopOpen(false);
@@ -218,8 +218,8 @@ export default function RouteDetailPage({
   });
 
   const reorderMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => routesApi.reorderStops(id, data),
+    mutationFn: (data: unknown) =>
+      routesApi.reorderStops(id, data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes", id, "stops"] });
       toast.success(t("toastOrderUpdated"));
@@ -275,7 +275,7 @@ export default function RouteDetailPage({
   const stopList: RouteStop[] = Array.isArray(stops) ? stops : [];
 
   const handleMoveStop = (stopIndex: number, direction: "up" | "down") => {
-    const newOrder = stopList.map((s: RouteStop) => s.id);
+    const newOrder = stopList.map((s) => s.id);
     const swapIndex = direction === "up" ? stopIndex - 1 : stopIndex + 1;
     if (swapIndex < 0 || swapIndex >= newOrder.length) return;
     [newOrder[stopIndex], newOrder[swapIndex]] = [
@@ -499,7 +499,7 @@ export default function RouteDetailPage({
             </div>
           ) : (
             <div className="space-y-2">
-              {stopList.map((stop: RouteStop, index: number) => (
+              {stopList.map((stop, index) => (
                 <div
                   key={stop.id}
                   className="flex items-center gap-3 p-3 border rounded-lg"

@@ -10,7 +10,7 @@ export interface IPaginationParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -36,7 +36,7 @@ export interface IPaginatedResponse<T> {
 /**
  * Standard API response wrapper
  */
-export interface IApiResponse<T = any> {
+export interface IApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -50,7 +50,7 @@ export interface IApiResponse<T = any> {
 export interface IApiError {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   stack?: string;
 }
 
@@ -64,13 +64,13 @@ export interface IFilterParams {
   dateFrom?: string;
   dateTo?: string;
   organizationId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
  * Bulk operation request
  */
-export interface IBulkOperationRequest<T = any> {
+export interface IBulkOperationRequest<T = unknown> {
   ids: string[];
   action: string;
   data?: T;
@@ -95,36 +95,36 @@ export interface IBulkOperationResponse {
  */
 export enum WebhookEventType {
   // Machine events
-  MACHINE_STATUS_CHANGED = 'machine.status_changed',
-  MACHINE_ERROR = 'machine.error',
-  MACHINE_OFFLINE = 'machine.offline',
-  MACHINE_LOW_STOCK = 'machine.low_stock',
+  MACHINE_STATUS_CHANGED = "machine.status_changed",
+  MACHINE_ERROR = "machine.error",
+  MACHINE_OFFLINE = "machine.offline",
+  MACHINE_LOW_STOCK = "machine.low_stock",
 
   // Transaction events
-  TRANSACTION_COMPLETED = 'transaction.completed',
-  TRANSACTION_FAILED = 'transaction.failed',
-  TRANSACTION_REFUNDED = 'transaction.refunded',
+  TRANSACTION_COMPLETED = "transaction.completed",
+  TRANSACTION_FAILED = "transaction.failed",
+  TRANSACTION_REFUNDED = "transaction.refunded",
 
   // Task events
-  TASK_CREATED = 'task.created',
-  TASK_ASSIGNED = 'task.assigned',
-  TASK_COMPLETED = 'task.completed',
-  TASK_FAILED = 'task.failed',
+  TASK_CREATED = "task.created",
+  TASK_ASSIGNED = "task.assigned",
+  TASK_COMPLETED = "task.completed",
+  TASK_FAILED = "task.failed",
 
   // Inventory events
-  INVENTORY_LOW = 'inventory.low',
-  INVENTORY_CRITICAL = 'inventory.critical',
-  INVENTORY_EXPIRED = 'inventory.expired',
+  INVENTORY_LOW = "inventory.low",
+  INVENTORY_CRITICAL = "inventory.critical",
+  INVENTORY_EXPIRED = "inventory.expired",
 
   // Collection events
-  COLLECTION_COMPLETED = 'collection.completed',
-  COLLECTION_DISCREPANCY = 'collection.discrepancy',
+  COLLECTION_COMPLETED = "collection.completed",
+  COLLECTION_DISCREPANCY = "collection.discrepancy",
 }
 
 /**
  * Webhook payload structure
  */
-export interface IWebhookPayload<T = any> {
+export interface IWebhookPayload<T = unknown> {
   id: string;
   event: WebhookEventType;
   organizationId: string;
@@ -151,7 +151,7 @@ export interface IFileUploadResponse {
  * Export request parameters
  */
 export interface IExportRequest {
-  format: 'csv' | 'xlsx' | 'pdf';
+  format: "csv" | "xlsx" | "pdf";
   fields?: string[];
   filters?: IFilterParams;
   dateRange?: {
@@ -165,7 +165,7 @@ export interface IExportRequest {
  */
 export interface IExportResponse {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   format: string;
   downloadUrl?: string;
   expiresAt?: string;
@@ -176,14 +176,14 @@ export interface IExportResponse {
  * Health check response
  */
 export interface IHealthCheckResponse {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   version: string;
   uptime: number;
   timestamp: string;
   services: {
-    database: 'up' | 'down';
-    redis: 'up' | 'down';
-    queue: 'up' | 'down';
+    database: "up" | "down";
+    redis: "up" | "down";
+    queue: "up" | "down";
   };
 }
 
@@ -201,41 +201,41 @@ export interface IApiVersionInfo {
 // Error codes
 export const API_ERROR_CODES = {
   // Authentication errors
-  UNAUTHORIZED: 'AUTH_001',
-  INVALID_TOKEN: 'AUTH_002',
-  TOKEN_EXPIRED: 'AUTH_003',
-  INVALID_CREDENTIALS: 'AUTH_004',
-  TWO_FACTOR_REQUIRED: 'AUTH_005',
-  INVALID_TWO_FACTOR: 'AUTH_006',
+  UNAUTHORIZED: "AUTH_001",
+  INVALID_TOKEN: "AUTH_002",
+  TOKEN_EXPIRED: "AUTH_003",
+  INVALID_CREDENTIALS: "AUTH_004",
+  TWO_FACTOR_REQUIRED: "AUTH_005",
+  INVALID_TWO_FACTOR: "AUTH_006",
 
   // Authorization errors
-  FORBIDDEN: 'AUTHZ_001',
-  INSUFFICIENT_PERMISSIONS: 'AUTHZ_002',
+  FORBIDDEN: "AUTHZ_001",
+  INSUFFICIENT_PERMISSIONS: "AUTHZ_002",
 
   // Validation errors
-  VALIDATION_ERROR: 'VAL_001',
-  INVALID_INPUT: 'VAL_002',
-  MISSING_REQUIRED_FIELD: 'VAL_003',
+  VALIDATION_ERROR: "VAL_001",
+  INVALID_INPUT: "VAL_002",
+  MISSING_REQUIRED_FIELD: "VAL_003",
 
   // Resource errors
-  NOT_FOUND: 'RES_001',
-  ALREADY_EXISTS: 'RES_002',
-  CONFLICT: 'RES_003',
+  NOT_FOUND: "RES_001",
+  ALREADY_EXISTS: "RES_002",
+  CONFLICT: "RES_003",
 
   // Business logic errors
-  INSUFFICIENT_STOCK: 'BUS_001',
-  INVALID_STATUS_TRANSITION: 'BUS_002',
-  MACHINE_OFFLINE: 'BUS_003',
-  PAYMENT_FAILED: 'BUS_004',
+  INSUFFICIENT_STOCK: "BUS_001",
+  INVALID_STATUS_TRANSITION: "BUS_002",
+  MACHINE_OFFLINE: "BUS_003",
+  PAYMENT_FAILED: "BUS_004",
 
   // System errors
-  INTERNAL_ERROR: 'SYS_001',
-  SERVICE_UNAVAILABLE: 'SYS_002',
-  DATABASE_ERROR: 'SYS_003',
-  EXTERNAL_SERVICE_ERROR: 'SYS_004',
+  INTERNAL_ERROR: "SYS_001",
+  SERVICE_UNAVAILABLE: "SYS_002",
+  DATABASE_ERROR: "SYS_003",
+  EXTERNAL_SERVICE_ERROR: "SYS_004",
 
   // Rate limiting
-  RATE_LIMIT_EXCEEDED: 'RATE_001',
+  RATE_LIMIT_EXCEEDED: "RATE_001",
 } as const;
 
 // HTTP status codes mapping

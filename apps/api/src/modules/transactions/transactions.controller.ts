@@ -146,6 +146,27 @@ export class TransactionsController {
   @ApiQuery({ name: "dateTo", required: false })
   @ApiQuery({ name: "page", required: false })
   @ApiQuery({ name: "limit", required: false })
+  @ApiResponse({
+    status: 200,
+    description: "List of transactions",
+    schema: {
+      example: {
+        data: [
+          {
+            id: "550e8400-e29b-41d4-a716-446655440000",
+            machineId: "550e8400-e29b-41d4-a716-446655440001",
+            status: "completed",
+            amount: 50000,
+            paymentMethod: "card",
+            createdAt: "2024-03-03T10:00:00Z",
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 10,
+      },
+    },
+  })
   @Roles("owner", "admin", "manager", "accountant")
   async query(
     @Query() query: QueryTransactionsBodyDto,
@@ -344,6 +365,21 @@ export class TransactionsController {
   @Get(":id")
   @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Get transaction by ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Transaction found",
+    schema: {
+      example: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        machineId: "550e8400-e29b-41d4-a716-446655440001",
+        status: "completed",
+        amount: 50000,
+        paymentMethod: "card",
+        createdAt: "2024-03-03T10:00:00Z",
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: "Transaction not found" })
   async findById(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentOrganizationId() orgId: string,

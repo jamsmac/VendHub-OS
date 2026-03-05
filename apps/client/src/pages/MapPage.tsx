@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Locate, List, Map as MapIcon } from "lucide-react";
+import type { Map as LeafletMap } from "leaflet";
 import { GoogleMap } from "@/components/map/GoogleMap";
 import { MachineCard } from "@/components/machine/MachineCard";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -14,7 +15,7 @@ export function MapPage() {
   const [view, setView] = useState<"map" | "list">("map");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedMachine, setSelectedMachine] = useState<any>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
 
   const { data: machines, isLoading } = useQuery({
     queryKey: ["machines"],
@@ -27,10 +28,8 @@ export function MapPage() {
   const handleCenterOnUser = useCallback(() => {
     getCurrentPosition();
     if (position && mapRef.current) {
-      mapRef.current.panTo({
-        lat: position.latitude,
-        lng: position.longitude,
-      });
+      // Leaflet uses [lat, lng] array (not {lat, lng} object)
+      mapRef.current.panTo([position.latitude, position.longitude]);
     }
   }, [position, getCurrentPosition]);
 
@@ -38,10 +37,7 @@ export function MapPage() {
   const handleMachineClick = useCallback((machine: any) => {
     setSelectedMachine(machine);
     if (mapRef.current) {
-      mapRef.current.panTo({
-        lat: machine.latitude,
-        lng: machine.longitude,
-      });
+      mapRef.current.panTo([machine.latitude, machine.longitude]);
       mapRef.current.setZoom(16);
     }
   }, []);

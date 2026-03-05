@@ -296,28 +296,28 @@ export class Machine extends BaseEntity {
 
   // Relations (string-based to avoid circular imports)
   @OneToMany("MachineSlot", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  slots: any[];
+  // circular import prevention
+  slots: unknown[];
 
   @OneToMany("MachineLocationHistory", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  locationHistory: any[];
+  // circular import prevention
+  locationHistory: unknown[];
 
   @OneToMany("MachineInventory", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  inventory: any[];
+  // circular import prevention
+  inventory: unknown[];
 
   @OneToMany("Task", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  tasks: any[];
+  // circular import prevention
+  tasks: unknown[];
 
   @OneToMany("Transaction", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  transactions: any[];
+  // circular import prevention
+  transactions: unknown[];
 
   @OneToMany("Complaint", "machine")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular import prevention
-  complaints: any[];
+  // circular import prevention
+  complaints: unknown[];
 
   // Computed properties
   get isOnline(): boolean {

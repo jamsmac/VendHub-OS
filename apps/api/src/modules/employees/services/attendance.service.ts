@@ -50,8 +50,7 @@ export class AttendanceService {
     const existing = await this.attendanceRepo.findOne({
       where: {
         employeeId: dto.employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
+        date: new Date(dateStr) as unknown as Date, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
         organizationId,
       },
     });
@@ -101,8 +100,7 @@ export class AttendanceService {
     const attendance = await this.attendanceRepo.findOne({
       where: {
         employeeId: dto.employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: new Date(dateStr) as any, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
+        date: new Date(dateStr) as unknown as Date, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
         organizationId,
       },
     });
@@ -205,8 +203,7 @@ export class AttendanceService {
     const date = dateStr || new Date().toISOString().split("T")[0];
 
     const records = await this.attendanceRepo.find({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { organizationId, date: new Date(date) as any }, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
+      where: { organizationId, date: new Date(date) as unknown as Date }, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
     });
 
     const totalEmployees = await this.employeeRepo.count({
@@ -266,8 +263,7 @@ export class AttendanceService {
       where: {
         organizationId,
         employeeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        date: Between(startDate, endDate) as any, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
+        date: Between(startDate, endDate) as unknown as Date, // TypeORM FindOptionsWhere doesn't resolve FindOperator<Date> correctly
       },
       order: { date: "ASC" },
     });

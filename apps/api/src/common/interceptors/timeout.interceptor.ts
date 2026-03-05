@@ -30,8 +30,7 @@ const DEFAULT_TIMEOUT = 30000; // 30 seconds
 export class TimeoutInterceptor implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const customTimeout = this.reflector.getAllAndOverride<number>(
       TIMEOUT_KEY,
       [context.getHandler(), context.getClass()],

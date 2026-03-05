@@ -40,8 +40,7 @@ export function TemplateForm({
   const toggleChannel = (ch: string) => {
     setFormData({
       ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
+      channels: formData.channels.includes(ch)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
     });
@@ -55,8 +54,7 @@ export function TemplateForm({
         .split(",")
         .map((v) => v.trim())
         .filter(Boolean),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as Record<string, unknown>);
   };
 
   return (
@@ -75,8 +73,18 @@ export function TemplateForm({
           <label className="text-sm font-medium">{t("form_type")}</label>
           <Select
             value={formData.type}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onValueChange={(v) => setFormData({ ...formData, type: v as any })}
+            onValueChange={(v) =>
+              setFormData({
+                ...formData,
+                type: v as
+                  | "alert"
+                  | "task"
+                  | "maintenance"
+                  | "inventory"
+                  | "system"
+                  | "payment",
+              })
+            }
           >
             <SelectTrigger>
               <SelectValue />

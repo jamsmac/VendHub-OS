@@ -615,6 +615,8 @@ describe("ReportsService", () => {
 
   describe("setDefaultDashboard", () => {
     it("should clear default flag then set new default", async () => {
+      const dashboard = { id: "d1", organizationId: "org-1" };
+      dashboardRepo.findOne!.mockResolvedValue(dashboard);
       dashboardRepo.update!.mockResolvedValue({
         affected: 1,
         raw: {},
@@ -627,9 +629,10 @@ describe("ReportsService", () => {
         { organizationId: "org-1" },
         { isDefault: false },
       );
-      expect(dashboardRepo.update).toHaveBeenCalledWith("d1", {
-        isDefault: true,
-      });
+      expect(dashboardRepo.update).toHaveBeenCalledWith(
+        { id: "d1", organizationId: "org-1" },
+        { isDefault: true },
+      );
     });
   });
 
@@ -755,9 +758,18 @@ describe("ReportsService", () => {
         where: { id: "d1", organizationId: "org-1" },
         relations: ["widgets"],
       });
-      expect(widgetRepo.update).toHaveBeenCalledWith("w3", { positionY: 0 });
-      expect(widgetRepo.update).toHaveBeenCalledWith("w1", { positionY: 1 });
-      expect(widgetRepo.update).toHaveBeenCalledWith("w2", { positionY: 2 });
+      expect(widgetRepo.update).toHaveBeenCalledWith(
+        { id: "w3", dashboardId: "d1" },
+        { positionY: 0 },
+      );
+      expect(widgetRepo.update).toHaveBeenCalledWith(
+        { id: "w1", dashboardId: "d1" },
+        { positionY: 1 },
+      );
+      expect(widgetRepo.update).toHaveBeenCalledWith(
+        { id: "w2", dashboardId: "d1" },
+        { positionY: 2 },
+      );
     });
 
     it("should throw NotFoundException when dashboard not owned by org", async () => {

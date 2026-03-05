@@ -30,6 +30,7 @@ export default tseslint.config(
       },
       parser: tseslint.parser,
       parserOptions: {
+        project: true,
         ecmaFeatures: {
           jsx: true,
         },
@@ -37,7 +38,7 @@ export default tseslint.config(
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
     },
     settings: {
@@ -51,6 +52,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
       }],
       '@typescript-eslint/no-require-imports': 'off',
 

@@ -73,8 +73,7 @@ export default function ResetPasswordPage() {
       await authApi.forgotPassword(data.email);
       setEmailSent(true);
       toast.success(t("resetEmailSentToast"));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (_error: any) {
+    } catch {
       // Don't reveal whether email exists
       setEmailSent(true);
       toast.success(t("resetEmailSentFallback"));
@@ -90,9 +89,9 @@ export default function ResetPasswordPage() {
       await authApi.resetPassword(token, data.password);
       setResetDone(true);
       toast.success(t("passwordChanged"));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || t("invalidResetLink"));
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || t("invalidResetLink"));
     } finally {
       setIsSubmitting(false);
     }

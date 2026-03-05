@@ -545,14 +545,15 @@ export class SeedInitialData1704240000000 implements MigrationInterface {
       )
     `);
 
-    console.log("✅ Seed data migration completed successfully");
+    console.log("[Migration] ✅ Seed data migration completed successfully");
     if (process.env.NODE_ENV !== "production") {
-      console.log("");
-      console.log("📋 Default admin credentials:");
-      console.log("   Email: admin@vendhub.uz");
-      console.log("   Phone: +998901234567");
-      console.log("   Password: Admin123!");
-      console.log("");
+      console.log("[Migration]");
+      console.log("[Migration] 📋 Default admin credentials:");
+      console.log("[Migration]    Email: admin@vendhub.uz");
+      console.log("[Migration]    Phone: +998901234567");
+      console.log("[Migration]    Password: Admin123!");
+      // ⚠️ CHANGE DEFAULT CREDENTIALS AFTER FIRST DEPLOY
+      console.log("[Migration]");
     }
   }
 
@@ -576,6 +577,6 @@ export class SeedInitialData1704240000000 implements MigrationInterface {
       `DELETE FROM "organizations" WHERE "id" LIKE 'a0000000%'`,
     );
 
-    console.log("✅ Seed data migration reverted successfully");
+    console.log("[Migration] ✅ Seed data migration reverted successfully");
   }
 }

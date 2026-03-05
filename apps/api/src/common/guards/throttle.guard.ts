@@ -27,13 +27,16 @@ export interface ThrottleOptions {
  * Decorator to set custom throttle limits for an endpoint
  */
 export const Throttle = (limit: number, ttl: number, keyPrefix?: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+  return (target: unknown, key?: string, descriptor?: PropertyDescriptor) => {
     const options: ThrottleOptions = { limit, ttl, keyPrefix };
     if (descriptor) {
       Reflect.defineMetadata(THROTTLE_KEY, options, descriptor.value);
     } else {
-      Reflect.defineMetadata(THROTTLE_KEY, options, target);
+      Reflect.defineMetadata(
+        THROTTLE_KEY,
+        options,
+        target as Record<string, unknown>,
+      );
     }
     return descriptor || target;
   };
@@ -43,12 +46,15 @@ export const Throttle = (limit: number, ttl: number, keyPrefix?: string) => {
  * Decorator to skip throttling
  */
 export const SkipThrottle = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+  return (target: unknown, key?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(THROTTLE_KEY, null, descriptor.value);
     } else {
-      Reflect.defineMetadata(THROTTLE_KEY, null, target);
+      Reflect.defineMetadata(
+        THROTTLE_KEY,
+        null,
+        target as Record<string, unknown>,
+      );
     }
     return descriptor || target;
   };

@@ -48,11 +48,9 @@ interface AuditLog {
   category?: string;
   severity?: string;
   description?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  oldValues?: Record<string, any>;
+  oldValues?: Record<string, unknown>;
   newValues?: Record<string, unknown>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  changes?: { field: string; oldValue: any; newValue: any }[];
+  changes?: { field: string; oldValue: unknown; newValue: unknown }[];
 
   ipAddress?: string;
   isSuccess: boolean;

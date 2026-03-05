@@ -56,8 +56,7 @@ const roleStyleConfig: Record<string, { color: string; bgColor: string }> = {
 
 const statusStyleConfig: Record<
   string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  { color: string; icon: any }
+  { color: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   active: { color: "text-green-600", icon: CheckCircle },
   inactive: {
@@ -90,15 +89,14 @@ export default function UserDetailPage() {
     try {
       // Remove empty password
       const payload = { ...data };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!payload.password) delete (payload as any).password;
+      if (!payload.password) delete (payload as Partial<UserFormData>).password;
       await usersApi.update(userId, payload);
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
       toast.success(tl("updateSuccess"));
       setIsEditing(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || tl("updateError"));
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || tl("updateError"));
     } finally {
       setIsSubmitting(false);
     }

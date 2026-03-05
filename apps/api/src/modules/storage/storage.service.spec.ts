@@ -5,7 +5,9 @@ import {
   ForbiddenException,
   NotFoundException,
 } from "@nestjs/common";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { StorageService } from "./storage.service";
+import { FileRecord } from "./entities/file.entity";
 
 // Mock S3 commands and client
 const mockSend = jest.fn();
@@ -56,6 +58,10 @@ describe("StorageService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StorageService,
+        {
+          provide: getRepositoryToken(FileRecord),
+          useValue: {},
+        },
         {
           provide: ConfigService,
           useValue: {

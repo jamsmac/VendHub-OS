@@ -8,8 +8,7 @@ export interface BatchOptions {
   delayMs?: number;
   concurrency?: number;
   onProgress?: (progress: BatchProgress) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onError?: (error: Error, item: any, index: number) => "skip" | "abort";
+  onError?: (error: Error, item: unknown, index: number) => "skip" | "abort";
 }
 
 export interface BatchProgress {
@@ -26,8 +25,7 @@ export interface BatchProgress {
 
 export interface BatchResult<T> {
   successful: T[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  failed: Array<{ item: any; error: Error; index: number }>;
+  failed: Array<{ item: unknown; error: Error; index: number }>;
   totalProcessed: number;
   durationMs: number;
 }
@@ -61,8 +59,7 @@ export async function processBatch<T, R>(
 
   const startTime = Date.now();
   const successful: R[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const failed: Array<{ item: any; error: Error; index: number }> = [];
+  const failed: Array<{ item: unknown; error: Error; index: number }> = [];
   let processedCount = 0;
 
   const batches = chunk(items, batchSize);
@@ -271,8 +268,7 @@ export interface UpsertOptions {
 export function generateBatchUpsertSQL(
   tableName: string,
   columns: string[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  values: any[][],
+  values: unknown[][],
   options: UpsertOptions,
 ): string {
   const { conflictColumns, updateColumns, chunkSize = 1000 } = options;

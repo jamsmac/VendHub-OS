@@ -6,14 +6,12 @@ import {
   ConflictException,
 } from "@nestjs/common";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let QRCode: any;
+let QRCode: unknown;
 try {
   QRCode = require("qrcode");
 } catch {
   /* qrcode not installed */
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 import { InjectRepository } from "@nestjs/typeorm";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -235,8 +233,9 @@ export class MachinesService {
     return this.machineRepository.count({ where: { organizationId } });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getStatsByOrganization(organizationId: string): Promise<any> {
+  async getStatsByOrganization(
+    organizationId: string,
+  ): Promise<Record<string, number>> {
     const stats = await this.machineRepository
       .createQueryBuilder("machine")
       .select("machine.status", "status")
@@ -414,8 +413,10 @@ export class MachinesService {
       updateData.address = dto.address;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await this.machineRepository.update(machineId, updateData as any); // TypeORM QueryDeepPartialEntity vs Partial<Machine> mismatch for entity with jsonb columns
+    await this.machineRepository.update(
+      machineId,
+      updateData as unknown as Partial<Machine>,
+    ); // TypeORM QueryDeepPartialEntity vs Partial<Machine> mismatch for entity with jsonb columns
 
     return savedHistory;
   }
@@ -555,7 +556,7 @@ export class MachinesService {
     const unresolvedCount = await this.errorLogRepository.count({
       where: {
         machineId: errorLog.machineId,
-        resolvedAt: null as unknown as Date, // TypeORM FindOptionsWhere: null check for nullable Date column
+        resolvedAt: null as unknown as Date | null, // TypeORM FindOptionsWhere: null check for nullable Date column
       },
     });
 
@@ -710,8 +711,11 @@ export class MachinesService {
     machineNumber: string,
     organizationId?: string,
   ): Promise<Machine | null> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { machineNumber };
+    interface WhereClause {
+      machineNumber: string;
+      organizationId?: string;
+    }
+    const where: WhereClause = { machineNumber };
     if (organizationId) where.organizationId = organizationId;
     return this.machineRepository.findOne({
       where,
@@ -726,9 +730,7 @@ export class MachinesService {
     });
   }
 
-  async findAllSimple(
-    organizationId: string,
-  ): Promise<
+  async findAllSimple(organizationId: string): Promise<
     Array<{
       id: string;
       name: string;
@@ -784,8 +786,11 @@ export class MachinesService {
     connectionStatus: MachineConnectionStatus,
     lastSeenAt?: Date,
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const update: any = { connectionStatus };
+    interface UpdateData {
+      connectionStatus: MachineConnectionStatus;
+      lastSeenAt?: Date;
+    }
+    const update: UpdateData = { connectionStatus };
     if (lastSeenAt) {
       update.lastSeenAt = lastSeenAt;
     }

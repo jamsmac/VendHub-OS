@@ -76,15 +76,27 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
 
     this.bot = new Telegraf<BotContext>(token);
 
-    // Middleware: Auth
+    // Global error handler
+    this.bot.catch((err: unknown, ctx) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Staff bot error for ${ctx.from?.username || "unknown"}: ${msg}`,
+      );
+    });
+
+    // Middleware: Auth (safe — skips if users table doesn't exist)
     this.bot.use(async (ctx, next) => {
       if (ctx.from) {
-        const user = await this.userRepository.findOne({
-          where: { telegramId: ctx.from.id.toString() },
-        });
-        if (user) {
-          ctx.user = user;
-          ctx.organizationId = user.organizationId;
+        try {
+          const user = await this.userRepository.findOne({
+            where: { telegramId: ctx.from.id.toString() },
+          });
+          if (user) {
+            ctx.user = user;
+            ctx.organizationId = user.organizationId;
+          }
+        } catch {
+          // DB table may not exist yet — continue without auth
         }
       }
       return next();
@@ -104,16 +116,36 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     // Handlers service registers all bot commands/callbacks/messages
     this.handlersService.setBot(this.bot, this.sessions);
 
-    // Start bot
-    try {
-      await this.bot.launch();
-      this.logger.log("Telegram bot started");
-    } catch (error: unknown) {
-      this.logger.error(
-        "Failed to start bot:",
-        error instanceof Error ? error.stack : error,
-      );
-    }
+    // Start bot in background — don't block NestJS startup / health checks
+    this.launchBotInBackground();
+  }
+
+  private launchBotInBackground() {
+    (async () => {
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          await this.bot.launch();
+          this.logger.log("Telegram staff bot started");
+          return;
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : String(error);
+          if (
+            (msg.includes("409") || msg.includes("Conflict")) &&
+            attempt < 5
+          ) {
+            this.logger.warn(
+              `Staff bot 409 Conflict (attempt ${attempt}/5) — retrying in 10s...`,
+            );
+            await new Promise((r) => setTimeout(r, 10_000));
+          } else {
+            this.logger.error(`Failed to start staff bot: ${msg}`);
+            return;
+          }
+        }
+      }
+    })().catch((err) => {
+      this.logger.error(`Staff bot background launch error: ${err}`);
+    });
   }
 
   async onModuleDestroy() {

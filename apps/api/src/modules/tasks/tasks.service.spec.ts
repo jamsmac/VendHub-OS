@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, DataSource } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { TasksService } from "./tasks.service";
@@ -12,6 +12,7 @@ import {
   TaskPhoto,
   TaskStatus,
 } from "./entities/task.entity";
+import { Incident } from "../incidents/entities/incident.entity";
 
 describe("TasksService", () => {
   let service: TasksService;
@@ -20,6 +21,7 @@ describe("TasksService", () => {
   let taskCommentRepository: jest.Mocked<Repository<TaskComment>>;
   let _taskComponentRepository: jest.Mocked<Repository<TaskComponent>>;
   let _taskPhotoRepository: jest.Mocked<Repository<TaskPhoto>>;
+  let dataSourceMock: jest.Mocked<DataSource>;
 
   const orgId = "org-uuid-1";
 
@@ -128,6 +130,21 @@ describe("TasksService", () => {
             save: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(Incident),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -137,6 +154,7 @@ describe("TasksService", () => {
     taskCommentRepository = module.get(getRepositoryToken(TaskComment));
     _taskComponentRepository = module.get(getRepositoryToken(TaskComponent));
     _taskPhotoRepository = module.get(getRepositoryToken(TaskPhoto));
+    dataSourceMock = module.get(DataSource) as jest.Mocked<DataSource>;
   });
 
   it("should be defined", () => {
@@ -186,8 +204,23 @@ describe("TasksService", () => {
 
   describe("create", () => {
     it("should create a new task", async () => {
-      taskRepository.create.mockReturnValue(mockTask);
-      taskRepository.save.mockResolvedValue(mockTask);
+      const mockManager = {
+        create: jest.fn().mockReturnValue(mockTask),
+        save: jest.fn().mockResolvedValue(mockTask),
+      };
+
+      // Set up the DataSource transaction mock
+      dataSourceMock.transaction = jest
+        .fn()
+        .mockImplementation(async (callback) => {
+          const result = await callback(mockManager);
+          return result ?? mockTask.id;
+        });
+
+      // Mock findOne for the active task check and for findByIdOrFail
+      taskRepository.findOne
+        .mockResolvedValueOnce(null) // No existing active task
+        .mockResolvedValueOnce(mockTask); // For findByIdOrFail
 
       const result = await service.create({
         organizationId: orgId,
@@ -198,8 +231,6 @@ describe("TasksService", () => {
       } as any);
 
       expect(result).toEqual(mockTask);
-      expect(taskRepository.create).toHaveBeenCalled();
-      expect(taskRepository.save).toHaveBeenCalled();
     });
   });
 

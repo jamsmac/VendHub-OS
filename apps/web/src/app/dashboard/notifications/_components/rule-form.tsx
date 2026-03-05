@@ -27,15 +27,15 @@ export function RuleForm({ rule, onSubmit, isPending }: RuleFormProps) {
     event: rule?.event || "",
     conditions: rule?.conditions || "",
     recipients: rule?.recipients || "",
-    channels: rule?.channels || ([] as string[]),
+    channels:
+      rule?.channels || ([] as ("push" | "email" | "sms" | "telegram")[]),
     is_active: rule?.is_active ?? true,
   });
 
-  const toggleChannel = (ch: string) => {
+  const toggleChannel = (ch: "push" | "email" | "sms" | "telegram") => {
     setFormData({
       ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
+      channels: formData.channels.includes(ch)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
     });
@@ -43,8 +43,7 @@ export function RuleForm({ rule, onSubmit, isPending }: RuleFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onSubmit(formData as any);
+    onSubmit(formData);
   };
 
   return (

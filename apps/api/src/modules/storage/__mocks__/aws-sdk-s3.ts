@@ -4,34 +4,26 @@
  */
 export class S3Client {
   send = jest.fn();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(_config?: any) {}
+  constructor(_config?: unknown) {}
 }
 export class PutObjectCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class GetObjectCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class DeleteObjectCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class ListObjectsV2Command {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class CopyObjectCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class HeadObjectCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }
 export class DeleteObjectsCommand {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(public input: any) {}
+  constructor(public input: unknown) {}
 }

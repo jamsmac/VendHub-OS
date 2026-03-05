@@ -46,6 +46,10 @@ import {
   KeyRound,
   DollarSign,
   BookOpen,
+  TrendingUp,
+  Globe,
+  Tag,
+  HelpCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
@@ -90,6 +94,12 @@ const navigation: NavItem[] = [
     nameKey: "dashboard",
     fallback: "Дашборд",
     href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    nameKey: "dashboardExtended",
+    fallback: "Расширенный обзор",
+    href: "/dashboard/dashboard",
     icon: LayoutDashboard,
   },
 
@@ -216,6 +226,13 @@ const navigation: NavItem[] = [
     roles: FINANCE,
   },
   {
+    nameKey: "finance",
+    fallback: "Финансы",
+    href: "/dashboard/finance",
+    icon: DollarSign,
+    roles: FINANCE,
+  },
+  {
     nameKey: "fiscal",
     fallback: "Фискализация",
     href: "/dashboard/fiscal",
@@ -237,7 +254,23 @@ const navigation: NavItem[] = [
     roles: FINANCE,
   },
 
-  // ── HR ────────────────────────────────────────────────────
+  // ── Marketing & Sales ─────────────────────────────────────
+  {
+    nameKey: "promotions",
+    fallback: "Акции",
+    href: "/dashboard/promotions",
+    icon: Tag,
+    roles: MANAGEMENT,
+  },
+  {
+    nameKey: "investor",
+    fallback: "Инвесторы",
+    href: "/dashboard/investor",
+    icon: TrendingUp,
+    roles: MANAGEMENT,
+  },
+
+  // ── HR & Management ───────────────────────────────────────
   {
     nameKey: "employees",
     fallback: "Сотрудники",
@@ -253,6 +286,20 @@ const navigation: NavItem[] = [
     roles: MANAGEMENT,
   },
   {
+    nameKey: "counterparties",
+    fallback: "Контрагенты",
+    href: "/dashboard/counterparties",
+    icon: Building,
+    roles: MANAGEMENT,
+  },
+  {
+    nameKey: "team",
+    fallback: "Команда+",
+    href: "/dashboard/team",
+    icon: Users,
+    roles: MANAGEMENT,
+  },
+  {
     nameKey: "workLogs",
     fallback: "Табель",
     href: "/dashboard/work-logs",
@@ -260,7 +307,7 @@ const navigation: NavItem[] = [
     roles: MANAGEMENT,
   },
 
-  // ── Admin ─────────────────────────────────────────────────
+  // ── Admin & Configuration ─────────────────────────────────
   {
     nameKey: "organizations",
     fallback: "Организации",
@@ -290,6 +337,13 @@ const navigation: NavItem[] = [
     roles: MANAGEMENT,
   },
   {
+    nameKey: "website",
+    fallback: "Сайт",
+    href: "/dashboard/website",
+    icon: Globe,
+    roles: MANAGEMENT,
+  },
+  {
     nameKey: "map",
     fallback: "Карта",
     href: "/dashboard/map",
@@ -311,6 +365,14 @@ const navigation: NavItem[] = [
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+  },
+
+  // ── Support & Help ────────────────────────────────────────
+  {
+    nameKey: "help",
+    fallback: "Помощь",
+    href: "/dashboard/help",
+    icon: HelpCircle,
   },
 
   // ── System ────────────────────────────────────────────────

@@ -43,8 +43,7 @@ export interface PaymentResponse {
   currency: string;
   redirectUrl?: string;
   qrCode?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rawResponse?: any;
+  rawResponse?: unknown;
   error?: {
     code: string;
     message: string;
@@ -535,8 +534,7 @@ export class PaymentExecutorService {
   private parsePaymentResponse(
     config: PaymentIntegrationConfig,
     endpoint: EndpointConfig,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any,
+    data: unknown,
   ): PaymentResponse {
     const mapping = endpoint.responseMapping;
 
@@ -666,8 +664,7 @@ export class PaymentExecutorService {
     return hmac.digest(format);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private applyTransform(value: any, transform: any): any {
+  private applyTransform(value: unknown, transform: unknown): unknown {
     switch (transform.type) {
       case "format":
         if (transform.format === "cents") {
@@ -744,8 +741,7 @@ export class PaymentExecutorService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getNestedValue(obj: any, path: string): any {
+  private getNestedValue(obj: unknown, path: string): unknown {
     return path.split(".").reduce((current, key) => current?.[key], obj);
   }
 

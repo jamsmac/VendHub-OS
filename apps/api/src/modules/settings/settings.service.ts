@@ -49,7 +49,7 @@ export class SettingsService {
 
     @InjectRepository(AiProviderKey)
     private readonly aiProviderKeyRepository: Repository<AiProviderKey>,
-  ) { }
+  ) {}
 
   // ============================================================================
   // SYSTEM SETTINGS
@@ -82,8 +82,9 @@ export class SettingsService {
     category: SettingCategory,
     organizationId?: string,
   ): Promise<SystemSetting[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { category };
+    const where: { category: SettingCategory; organizationId?: string } = {
+      category,
+    };
 
     if (organizationId) {
       where.organizationId = organizationId;
@@ -102,8 +103,10 @@ export class SettingsService {
     organizationId?: string,
     category?: SettingCategory,
   ): Promise<SystemSetting[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: {
+      organizationId?: string;
+      category?: SettingCategory;
+    } = {};
 
     if (organizationId) {
       where.organizationId = organizationId;
@@ -222,8 +225,7 @@ export class SettingsService {
    * API keys are masked in the response for security.
    */
   async getAiProviderKeys(organizationId?: string): Promise<AiProviderKey[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: { organizationId?: string } = {};
 
     if (organizationId) {
       where.organizationId = organizationId;
@@ -245,7 +247,10 @@ export class SettingsService {
    * Get a single AI provider key by ID.
    * API key is masked in the response.
    */
-  async getAiProviderKey(id: string, organizationId: string): Promise<AiProviderKey> {
+  async getAiProviderKey(
+    id: string,
+    organizationId: string,
+  ): Promise<AiProviderKey> {
     const providerKey = await this.aiProviderKeyRepository.findOne({
       where: { id, organizationId },
     });

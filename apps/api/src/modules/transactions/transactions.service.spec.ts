@@ -18,6 +18,11 @@ import {
   TransactionDailySummary,
   Commission,
 } from "./entities/transaction.entity";
+import {
+  Recipe,
+  RecipeIngredient,
+  IngredientBatch,
+} from "../products/entities/product.entity";
 
 describe("TransactionsService", () => {
   let service: TransactionsService;
@@ -148,6 +153,36 @@ describe("TransactionsService", () => {
         },
         {
           provide: getRepositoryToken(Commission),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(Recipe),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(RecipeIngredient),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(IngredientBatch),
           useValue: {
             findOne: jest.fn(),
             find: jest.fn(),

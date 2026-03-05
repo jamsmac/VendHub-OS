@@ -30,15 +30,15 @@ export function CampaignForm({
     name: campaign?.name || "",
     message: campaign?.message || "",
     audience_filter: "all",
-    channels: campaign?.channels || ([] as string[]),
+    channels:
+      campaign?.channels || ([] as ("push" | "email" | "sms" | "telegram")[]),
     scheduled_at: campaign?.scheduled_at || "",
   });
 
-  const toggleChannel = (ch: string) => {
+  const toggleChannel = (ch: "push" | "email" | "sms" | "telegram") => {
     setFormData({
       ...formData,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channels: formData.channels.includes(ch as any)
+      channels: formData.channels.includes(ch)
         ? formData.channels.filter((c) => c !== ch)
         : [...formData.channels, ch],
     });
@@ -46,8 +46,7 @@ export function CampaignForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onSubmit(formData as any);
+    onSubmit(formData);
   };
 
   return (

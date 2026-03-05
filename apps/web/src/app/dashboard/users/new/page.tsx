@@ -21,9 +21,9 @@ export default function CreateUserPage() {
       await usersApi.create(data);
       toast.success(t("createSuccess"));
       router.push("/dashboard/users");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || t("createError"));
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || t("createError"));
     } finally {
       setIsSubmitting(false);
     }

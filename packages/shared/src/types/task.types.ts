@@ -9,50 +9,50 @@
 
 export enum TaskType {
   // Basic operations
-  REFILL = 'refill',                    // Stock replenishment
-  COLLECTION = 'collection',            // Cash collection
-  CLEANING = 'cleaning',                // Machine cleaning/washing
-  REPAIR = 'repair',                    // Repair/maintenance
-  INSTALL = 'install',                  // Machine installation
-  REMOVAL = 'removal',                  // Machine removal/decommission
-  AUDIT = 'audit',                      // Inventory audit
-  INSPECTION = 'inspection',            // Machine inspection
+  REFILL = "refill", // Stock replenishment
+  COLLECTION = "collection", // Cash collection
+  CLEANING = "cleaning", // Machine cleaning/washing
+  REPAIR = "repair", // Repair/maintenance
+  INSTALL = "install", // Machine installation
+  REMOVAL = "removal", // Machine removal/decommission
+  AUDIT = "audit", // Inventory audit
+  INSPECTION = "inspection", // Machine inspection
 
   // Component replacement
-  REPLACE_HOPPER = 'replace_hopper',    // Hopper replacement
-  REPLACE_GRINDER = 'replace_grinder',  // Grinder replacement
-  REPLACE_BREW_UNIT = 'replace_brew_unit', // Brew unit replacement
-  REPLACE_MIXER = 'replace_mixer',      // Mixer replacement
+  REPLACE_HOPPER = "replace_hopper", // Hopper replacement
+  REPLACE_GRINDER = "replace_grinder", // Grinder replacement
+  REPLACE_BREW_UNIT = "replace_brew_unit", // Brew unit replacement
+  REPLACE_MIXER = "replace_mixer", // Mixer replacement
 }
 
 export enum TaskStatus {
-  PENDING = 'pending',          // Awaiting assignment
-  ASSIGNED = 'assigned',        // Assigned to operator
-  IN_PROGRESS = 'in_progress',  // Being executed
-  COMPLETED = 'completed',      // Successfully completed
-  REJECTED = 'rejected',        // Rejected by admin (rollback done)
-  POSTPONED = 'postponed',      // Postponed by operator
-  CANCELLED = 'cancelled',      // Cancelled
+  PENDING = "pending", // Awaiting assignment
+  ASSIGNED = "assigned", // Assigned to operator
+  IN_PROGRESS = "in_progress", // Being executed
+  COMPLETED = "completed", // Successfully completed
+  REJECTED = "rejected", // Rejected by admin (rollback done)
+  POSTPONED = "postponed", // Postponed by operator
+  CANCELLED = "cancelled", // Cancelled
 }
 
 export enum TaskPriority {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  NORMAL = "normal",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export enum ComponentRole {
-  OLD = 'old',        // Component being removed
-  NEW = 'new',        // Component being installed
-  TARGET = 'target',  // Target component (for inspection)
+  OLD = "old", // Component being removed
+  NEW = "new", // Component being installed
+  TARGET = "target", // Target component (for inspection)
 }
 
 export enum TaskPhotoCategory {
-  BEFORE = 'before',
-  AFTER = 'after',
-  DURING = 'during',
-  OTHER = 'other',
+  BEFORE = "before",
+  AFTER = "after",
+  DURING = "during",
+  OTHER = "other",
 }
 
 // ============================================================================
@@ -61,8 +61,16 @@ export enum TaskPhotoCategory {
 
 export const VALID_TASK_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   [TaskStatus.PENDING]: [TaskStatus.ASSIGNED, TaskStatus.CANCELLED],
-  [TaskStatus.ASSIGNED]: [TaskStatus.IN_PROGRESS, TaskStatus.POSTPONED, TaskStatus.CANCELLED],
-  [TaskStatus.IN_PROGRESS]: [TaskStatus.COMPLETED, TaskStatus.POSTPONED, TaskStatus.CANCELLED],
+  [TaskStatus.ASSIGNED]: [
+    TaskStatus.IN_PROGRESS,
+    TaskStatus.POSTPONED,
+    TaskStatus.CANCELLED,
+  ],
+  [TaskStatus.IN_PROGRESS]: [
+    TaskStatus.COMPLETED,
+    TaskStatus.POSTPONED,
+    TaskStatus.CANCELLED,
+  ],
   [TaskStatus.POSTPONED]: [TaskStatus.ASSIGNED, TaskStatus.CANCELLED],
   [TaskStatus.COMPLETED]: [TaskStatus.REJECTED],
   [TaskStatus.CANCELLED]: [],
@@ -131,7 +139,7 @@ export interface ITask {
   actualDuration?: number;
 
   // Metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   // Relations (optional, populated on request)
   items?: ITaskItem[];
@@ -187,7 +195,7 @@ export interface ITaskComponent {
   role: ComponentRole;
   serialNumber?: string;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -228,7 +236,7 @@ export interface ITaskCreate {
   items?: ITaskItemCreate[];
   components?: ITaskComponentCreate[];
   checklist?: ITaskChecklistItem[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ITaskUpdate {
@@ -239,7 +247,7 @@ export interface ITaskUpdate {
   dueDate?: Date;
   estimatedDuration?: number;
   checklist?: ITaskChecklistItem[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ITaskItemCreate {
@@ -314,8 +322,8 @@ export interface ITaskFilter {
   search?: string;
   limit?: number;
   offset?: number;
-  sortBy?: 'dueDate' | 'createdAt' | 'priority' | 'status';
-  sortOrder?: 'ASC' | 'DESC';
+  sortBy?: "dueDate" | "createdAt" | "priority" | "status";
+  sortOrder?: "ASC" | "DESC";
 }
 
 export interface ITaskStats {
@@ -347,35 +355,35 @@ export interface IOperatorTaskStats {
 // ============================================================================
 
 export const TASK_TYPE_LABELS: Record<TaskType, string> = {
-  [TaskType.REFILL]: 'Пополнение',
-  [TaskType.COLLECTION]: 'Инкассация',
-  [TaskType.CLEANING]: 'Мойка',
-  [TaskType.REPAIR]: 'Ремонт',
-  [TaskType.INSTALL]: 'Установка',
-  [TaskType.REMOVAL]: 'Снятие',
-  [TaskType.AUDIT]: 'Ревизия',
-  [TaskType.INSPECTION]: 'Осмотр',
-  [TaskType.REPLACE_HOPPER]: 'Замена бункера',
-  [TaskType.REPLACE_GRINDER]: 'Замена гриндера',
-  [TaskType.REPLACE_BREW_UNIT]: 'Замена вар. блока',
-  [TaskType.REPLACE_MIXER]: 'Замена миксера',
+  [TaskType.REFILL]: "Пополнение",
+  [TaskType.COLLECTION]: "Инкассация",
+  [TaskType.CLEANING]: "Мойка",
+  [TaskType.REPAIR]: "Ремонт",
+  [TaskType.INSTALL]: "Установка",
+  [TaskType.REMOVAL]: "Снятие",
+  [TaskType.AUDIT]: "Ревизия",
+  [TaskType.INSPECTION]: "Осмотр",
+  [TaskType.REPLACE_HOPPER]: "Замена бункера",
+  [TaskType.REPLACE_GRINDER]: "Замена гриндера",
+  [TaskType.REPLACE_BREW_UNIT]: "Замена вар. блока",
+  [TaskType.REPLACE_MIXER]: "Замена миксера",
 };
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  [TaskStatus.PENDING]: 'Ожидает',
-  [TaskStatus.ASSIGNED]: 'Назначена',
-  [TaskStatus.IN_PROGRESS]: 'Выполняется',
-  [TaskStatus.COMPLETED]: 'Завершена',
-  [TaskStatus.REJECTED]: 'Отклонена',
-  [TaskStatus.POSTPONED]: 'Отложена',
-  [TaskStatus.CANCELLED]: 'Отменена',
+  [TaskStatus.PENDING]: "Ожидает",
+  [TaskStatus.ASSIGNED]: "Назначена",
+  [TaskStatus.IN_PROGRESS]: "Выполняется",
+  [TaskStatus.COMPLETED]: "Завершена",
+  [TaskStatus.REJECTED]: "Отклонена",
+  [TaskStatus.POSTPONED]: "Отложена",
+  [TaskStatus.CANCELLED]: "Отменена",
 };
 
 export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
-  [TaskPriority.LOW]: 'Низкий',
-  [TaskPriority.NORMAL]: 'Обычный',
-  [TaskPriority.HIGH]: 'Высокий',
-  [TaskPriority.URGENT]: 'Срочный',
+  [TaskPriority.LOW]: "Низкий",
+  [TaskPriority.NORMAL]: "Обычный",
+  [TaskPriority.HIGH]: "Высокий",
+  [TaskPriority.URGENT]: "Срочный",
 };
 
 // ============================================================================
@@ -383,28 +391,28 @@ export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
 // ============================================================================
 
 export const TASK_TYPE_LABELS_UZ: Record<TaskType, string> = {
-  [TaskType.REFILL]: 'To\'ldirish',
-  [TaskType.COLLECTION]: 'Inkassatsiya',
-  [TaskType.CLEANING]: 'Yuvish',
-  [TaskType.REPAIR]: 'Ta\'mirlash',
-  [TaskType.INSTALL]: 'O\'rnatish',
-  [TaskType.REMOVAL]: 'Olib tashlash',
-  [TaskType.AUDIT]: 'Reviziya',
-  [TaskType.INSPECTION]: 'Ko\'rik',
-  [TaskType.REPLACE_HOPPER]: 'Bunker almashtirish',
-  [TaskType.REPLACE_GRINDER]: 'Grinder almashtirish',
-  [TaskType.REPLACE_BREW_UNIT]: 'Qaynatgich almashtirish',
-  [TaskType.REPLACE_MIXER]: 'Mikser almashtirish',
+  [TaskType.REFILL]: "To'ldirish",
+  [TaskType.COLLECTION]: "Inkassatsiya",
+  [TaskType.CLEANING]: "Yuvish",
+  [TaskType.REPAIR]: "Ta'mirlash",
+  [TaskType.INSTALL]: "O'rnatish",
+  [TaskType.REMOVAL]: "Olib tashlash",
+  [TaskType.AUDIT]: "Reviziya",
+  [TaskType.INSPECTION]: "Ko'rik",
+  [TaskType.REPLACE_HOPPER]: "Bunker almashtirish",
+  [TaskType.REPLACE_GRINDER]: "Grinder almashtirish",
+  [TaskType.REPLACE_BREW_UNIT]: "Qaynatgich almashtirish",
+  [TaskType.REPLACE_MIXER]: "Mikser almashtirish",
 };
 
 export const TASK_STATUS_LABELS_UZ: Record<TaskStatus, string> = {
-  [TaskStatus.PENDING]: 'Kutmoqda',
-  [TaskStatus.ASSIGNED]: 'Tayinlangan',
-  [TaskStatus.IN_PROGRESS]: 'Bajarilmoqda',
-  [TaskStatus.COMPLETED]: 'Tugallangan',
-  [TaskStatus.REJECTED]: 'Rad etilgan',
-  [TaskStatus.POSTPONED]: 'Kechiktirilgan',
-  [TaskStatus.CANCELLED]: 'Bekor qilingan',
+  [TaskStatus.PENDING]: "Kutmoqda",
+  [TaskStatus.ASSIGNED]: "Tayinlangan",
+  [TaskStatus.IN_PROGRESS]: "Bajarilmoqda",
+  [TaskStatus.COMPLETED]: "Tugallangan",
+  [TaskStatus.REJECTED]: "Rad etilgan",
+  [TaskStatus.POSTPONED]: "Kechiktirilgan",
+  [TaskStatus.CANCELLED]: "Bekor qilingan",
 };
 
 // ============================================================================
@@ -412,25 +420,25 @@ export const TASK_STATUS_LABELS_UZ: Record<TaskStatus, string> = {
 // ============================================================================
 
 export const TASK_TYPE_ICONS: Record<TaskType, string> = {
-  [TaskType.REFILL]: '📦',
-  [TaskType.COLLECTION]: '💰',
-  [TaskType.CLEANING]: '🧹',
-  [TaskType.REPAIR]: '🔧',
-  [TaskType.INSTALL]: '🏗️',
-  [TaskType.REMOVAL]: '📤',
-  [TaskType.AUDIT]: '📋',
-  [TaskType.INSPECTION]: '🔍',
-  [TaskType.REPLACE_HOPPER]: '🪣',
-  [TaskType.REPLACE_GRINDER]: '⚙️',
-  [TaskType.REPLACE_BREW_UNIT]: '☕',
-  [TaskType.REPLACE_MIXER]: '🌀',
+  [TaskType.REFILL]: "📦",
+  [TaskType.COLLECTION]: "💰",
+  [TaskType.CLEANING]: "🧹",
+  [TaskType.REPAIR]: "🔧",
+  [TaskType.INSTALL]: "🏗️",
+  [TaskType.REMOVAL]: "📤",
+  [TaskType.AUDIT]: "📋",
+  [TaskType.INSPECTION]: "🔍",
+  [TaskType.REPLACE_HOPPER]: "🪣",
+  [TaskType.REPLACE_GRINDER]: "⚙️",
+  [TaskType.REPLACE_BREW_UNIT]: "☕",
+  [TaskType.REPLACE_MIXER]: "🌀",
 };
 
 export const TASK_PRIORITY_ICONS: Record<TaskPriority, string> = {
-  [TaskPriority.LOW]: '🔵',
-  [TaskPriority.NORMAL]: '🟢',
-  [TaskPriority.HIGH]: '🟠',
-  [TaskPriority.URGENT]: '🔴',
+  [TaskPriority.LOW]: "🔵",
+  [TaskPriority.NORMAL]: "🟢",
+  [TaskPriority.HIGH]: "🟠",
+  [TaskPriority.URGENT]: "🔴",
 };
 
 // ============================================================================
@@ -438,35 +446,35 @@ export const TASK_PRIORITY_ICONS: Record<TaskPriority, string> = {
 // ============================================================================
 
 export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
-  [TaskStatus.PENDING]: 'bg-gray-100 text-gray-800',
-  [TaskStatus.ASSIGNED]: 'bg-blue-100 text-blue-800',
-  [TaskStatus.IN_PROGRESS]: 'bg-yellow-100 text-yellow-800',
-  [TaskStatus.COMPLETED]: 'bg-green-100 text-green-800',
-  [TaskStatus.REJECTED]: 'bg-red-100 text-red-800',
-  [TaskStatus.POSTPONED]: 'bg-orange-100 text-orange-800',
-  [TaskStatus.CANCELLED]: 'bg-gray-100 text-gray-500',
+  [TaskStatus.PENDING]: "bg-gray-100 text-gray-800",
+  [TaskStatus.ASSIGNED]: "bg-blue-100 text-blue-800",
+  [TaskStatus.IN_PROGRESS]: "bg-yellow-100 text-yellow-800",
+  [TaskStatus.COMPLETED]: "bg-green-100 text-green-800",
+  [TaskStatus.REJECTED]: "bg-red-100 text-red-800",
+  [TaskStatus.POSTPONED]: "bg-orange-100 text-orange-800",
+  [TaskStatus.CANCELLED]: "bg-gray-100 text-gray-500",
 };
 
 export const TASK_PRIORITY_COLORS: Record<TaskPriority, string> = {
-  [TaskPriority.LOW]: 'bg-gray-100 text-gray-800',
-  [TaskPriority.NORMAL]: 'bg-blue-100 text-blue-800',
-  [TaskPriority.HIGH]: 'bg-orange-100 text-orange-800',
-  [TaskPriority.URGENT]: 'bg-red-100 text-red-800',
+  [TaskPriority.LOW]: "bg-gray-100 text-gray-800",
+  [TaskPriority.NORMAL]: "bg-blue-100 text-blue-800",
+  [TaskPriority.HIGH]: "bg-orange-100 text-orange-800",
+  [TaskPriority.URGENT]: "bg-red-100 text-red-800",
 };
 
 export const TASK_TYPE_COLORS: Record<TaskType, string> = {
-  [TaskType.REFILL]: 'bg-green-100 text-green-800',
-  [TaskType.COLLECTION]: 'bg-yellow-100 text-yellow-800',
-  [TaskType.CLEANING]: 'bg-cyan-100 text-cyan-800',
-  [TaskType.REPAIR]: 'bg-red-100 text-red-800',
-  [TaskType.INSTALL]: 'bg-purple-100 text-purple-800',
-  [TaskType.REMOVAL]: 'bg-gray-100 text-gray-800',
-  [TaskType.AUDIT]: 'bg-indigo-100 text-indigo-800',
-  [TaskType.INSPECTION]: 'bg-blue-100 text-blue-800',
-  [TaskType.REPLACE_HOPPER]: 'bg-orange-100 text-orange-800',
-  [TaskType.REPLACE_GRINDER]: 'bg-orange-100 text-orange-800',
-  [TaskType.REPLACE_BREW_UNIT]: 'bg-orange-100 text-orange-800',
-  [TaskType.REPLACE_MIXER]: 'bg-orange-100 text-orange-800',
+  [TaskType.REFILL]: "bg-green-100 text-green-800",
+  [TaskType.COLLECTION]: "bg-yellow-100 text-yellow-800",
+  [TaskType.CLEANING]: "bg-cyan-100 text-cyan-800",
+  [TaskType.REPAIR]: "bg-red-100 text-red-800",
+  [TaskType.INSTALL]: "bg-purple-100 text-purple-800",
+  [TaskType.REMOVAL]: "bg-gray-100 text-gray-800",
+  [TaskType.AUDIT]: "bg-indigo-100 text-indigo-800",
+  [TaskType.INSPECTION]: "bg-blue-100 text-blue-800",
+  [TaskType.REPLACE_HOPPER]: "bg-orange-100 text-orange-800",
+  [TaskType.REPLACE_GRINDER]: "bg-orange-100 text-orange-800",
+  [TaskType.REPLACE_BREW_UNIT]: "bg-orange-100 text-orange-800",
+  [TaskType.REPLACE_MIXER]: "bg-orange-100 text-orange-800",
 };
 
 // ============================================================================
@@ -476,7 +484,10 @@ export const TASK_TYPE_COLORS: Record<TaskType, string> = {
 /**
  * Check if status transition is valid
  */
-export function isValidTaskTransition(from: TaskStatus, to: TaskStatus): boolean {
+export function isValidTaskTransition(
+  from: TaskStatus,
+  to: TaskStatus,
+): boolean {
   return VALID_TASK_TRANSITIONS[from]?.includes(to) ?? false;
 }
 

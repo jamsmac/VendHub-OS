@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { Repository, DataSource } from 'typeorm';
-import { CollectionsService } from './collections.service';
+} from "@nestjs/common";
+import { Repository, DataSource } from "typeorm";
+import { CollectionsService } from "./collections.service";
 import {
   Collection,
   CollectionHistory,
   CollectionStatus,
   CollectionSource,
-} from './entities/collection.entity';
+} from "./entities/collection.entity";
+import { MachinesService } from "../machines/machines.service";
 
-describe('CollectionsService', () => {
+describe("CollectionsService", () => {
   let service: CollectionsService;
   let _collectionRepo: jest.Mocked<Repository<Collection>>;
   let _historyRepo: jest.Mocked<Repository<CollectionHistory>>;
@@ -41,6 +42,10 @@ describe('CollectionsService', () => {
     transaction: jest.fn(),
   };
 
+  const mockMachinesService = {
+    findOne: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -57,6 +62,10 @@ describe('CollectionsService', () => {
           provide: DataSource,
           useValue: mockDataSource,
         },
+        {
+          provide: MachinesService,
+          useValue: mockMachinesService,
+        },
       ],
     }).compile();
 
@@ -70,7 +79,7 @@ describe('CollectionsService', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -78,19 +87,19 @@ describe('CollectionsService', () => {
   // create
   // ==========================================================================
 
-  describe('create', () => {
-    const orgId = 'org-uuid-1';
-    const operatorId = 'operator-uuid-1';
+  describe("create", () => {
+    const orgId = "org-uuid-1";
+    const operatorId = "operator-uuid-1";
     const dto = {
-      machineId: 'machine-uuid-1',
-      collectedAt: '2026-03-01T10:00:00Z',
-      notes: 'Regular collection',
+      machineId: "machine-uuid-1",
+      collectedAt: "2026-03-01T10:00:00Z",
+      notes: "Regular collection",
       skipDuplicateCheck: false,
     };
 
-    it('should create a collection successfully', async () => {
+    it("should create a collection successfully", async () => {
       const created = {
-        id: 'coll-uuid-1',
+        id: "coll-uuid-1",
         organizationId: orgId,
         machineId: dto.machineId,
         operatorId,
@@ -118,9 +127,9 @@ describe('CollectionsService', () => {
       expect(result).toEqual(created);
     });
 
-    it('should throw ConflictException when duplicate exists', async () => {
+    it("should throw ConflictException when duplicate exists", async () => {
       const existingCollection = {
-        id: 'existing-coll-uuid',
+        id: "existing-coll-uuid",
         machineId: dto.machineId,
       };
 
@@ -131,10 +140,10 @@ describe('CollectionsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('should skip duplicate check when skipDuplicateCheck is true', async () => {
+    it("should skip duplicate check when skipDuplicateCheck is true", async () => {
       const dtoSkip = { ...dto, skipDuplicateCheck: true };
       const created = {
-        id: 'coll-uuid-2',
+        id: "coll-uuid-2",
         organizationId: orgId,
         machineId: dto.machineId,
         operatorId,
@@ -155,13 +164,13 @@ describe('CollectionsService', () => {
   // receive
   // ==========================================================================
 
-  describe('receive', () => {
-    const collId = 'coll-uuid-1';
-    const orgId = 'org-uuid-1';
-    const managerId = 'manager-uuid-1';
-    const dto = { amount: 150000, notes: 'Counted and verified' };
+  describe("receive", () => {
+    const collId = "coll-uuid-1";
+    const orgId = "org-uuid-1";
+    const managerId = "manager-uuid-1";
+    const dto = { amount: 150000, notes: "Counted and verified" };
 
-    it('should receive a COLLECTED collection successfully', async () => {
+    it("should receive a COLLECTED collection successfully", async () => {
       const existingColl = {
         id: collId,
         organizationId: orgId,
@@ -176,18 +185,27 @@ describe('CollectionsService', () => {
       mockDataSource.transaction.mockImplementation(async (callback) => {
         const mockManager = {
           findOne: jest.fn().mockResolvedValue({ ...existingColl }),
-          save: jest.fn().mockImplementation((_entity, data) => Promise.resolve(data)),
+          save: jest
+            .fn()
+            .mockImplementation((_entity, data) => Promise.resolve(data)),
         };
         return callback(mockManager as any);
       });
 
-      const result = await service.receive(collId, orgId, managerId, dto as any);
+      const result = await service.receive(
+        collId,
+        orgId,
+        managerId,
+        dto as any,
+      );
 
-      expect(mockDataSource.transaction).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockDataSource.transaction).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
       expect(result).toBeDefined();
     });
 
-    it('should throw NotFoundException when collection does not exist', async () => {
+    it("should throw NotFoundException when collection does not exist", async () => {
       mockDataSource.transaction.mockImplementation(async (callback) => {
         const mockManager = {
           findOne: jest.fn().mockResolvedValue(null),
@@ -200,7 +218,7 @@ describe('CollectionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when collection is not COLLECTED', async () => {
+    it("should throw BadRequestException when collection is not COLLECTED", async () => {
       mockDataSource.transaction.mockImplementation(async (callback) => {
         const mockManager = {
           findOne: jest.fn().mockResolvedValue({
@@ -222,35 +240,41 @@ describe('CollectionsService', () => {
   // edit
   // ==========================================================================
 
-  describe('edit', () => {
-    const collId = 'coll-uuid-1';
-    const orgId = 'org-uuid-1';
-    const userId = 'user-uuid-1';
+  describe("edit", () => {
+    const collId = "coll-uuid-1";
+    const orgId = "org-uuid-1";
+    const userId = "user-uuid-1";
 
-    it('should edit amount and notes on a RECEIVED collection', async () => {
+    it("should edit amount and notes on a RECEIVED collection", async () => {
       const existing = {
         id: collId,
         organizationId: orgId,
         status: CollectionStatus.RECEIVED,
         amount: 100000,
-        notes: 'old notes',
+        notes: "old notes",
         updatedById: null,
       };
-      const dto = { amount: 120000, notes: 'corrected amount', reason: 'recount' };
+      const dto = {
+        amount: 120000,
+        notes: "corrected amount",
+        reason: "recount",
+      };
 
       mockCollectionRepo.findOne.mockResolvedValue({ ...existing } as any);
-      mockCollectionRepo.save.mockImplementation((entity) => Promise.resolve(entity));
+      mockCollectionRepo.save.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
       mockHistoryRepo.create.mockImplementation((data) => data as any);
       mockHistoryRepo.save.mockResolvedValue([] as any);
 
       const result = await service.edit(collId, orgId, userId, dto as any);
 
       expect(result.amount).toBe(120000);
-      expect(result.notes).toBe('corrected amount');
+      expect(result.notes).toBe("corrected amount");
       expect(result.updatedById).toBe(userId);
     });
 
-    it('should throw NotFoundException when collection does not exist', async () => {
+    it("should throw NotFoundException when collection does not exist", async () => {
       mockCollectionRepo.findOne.mockResolvedValue(null);
 
       await expect(
@@ -258,7 +282,7 @@ describe('CollectionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException when collection is not RECEIVED', async () => {
+    it("should throw BadRequestException when collection is not RECEIVED", async () => {
       mockCollectionRepo.findOne.mockResolvedValue({
         id: collId,
         organizationId: orgId,
@@ -270,20 +294,20 @@ describe('CollectionsService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should return unchanged collection when no fields differ', async () => {
+    it("should return unchanged collection when no fields differ", async () => {
       const existing = {
         id: collId,
         organizationId: orgId,
         status: CollectionStatus.RECEIVED,
         amount: 100000,
-        notes: 'same notes',
+        notes: "same notes",
       };
 
       mockCollectionRepo.findOne.mockResolvedValue({ ...existing } as any);
 
       const result = await service.edit(collId, orgId, userId, {
         amount: 100000,
-        notes: 'same notes',
+        notes: "same notes",
       } as any);
 
       expect(mockCollectionRepo.save).not.toHaveBeenCalled();
@@ -295,12 +319,12 @@ describe('CollectionsService', () => {
   // cancel
   // ==========================================================================
 
-  describe('cancel', () => {
-    const collId = 'coll-uuid-1';
-    const orgId = 'org-uuid-1';
-    const userId = 'user-uuid-1';
+  describe("cancel", () => {
+    const collId = "coll-uuid-1";
+    const orgId = "org-uuid-1";
+    const userId = "user-uuid-1";
 
-    it('should cancel a non-cancelled collection', async () => {
+    it("should cancel a non-cancelled collection", async () => {
       const existing = {
         id: collId,
         organizationId: orgId,
@@ -309,34 +333,38 @@ describe('CollectionsService', () => {
       };
 
       mockCollectionRepo.findOne.mockResolvedValue({ ...existing } as any);
-      mockCollectionRepo.save.mockImplementation((entity) => Promise.resolve(entity));
+      mockCollectionRepo.save.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
       mockHistoryRepo.create.mockImplementation((data) => data as any);
       mockHistoryRepo.save.mockResolvedValue({} as any);
 
-      const result = await service.cancel(collId, orgId, userId, { reason: 'test' } as any);
+      const result = await service.cancel(collId, orgId, userId, {
+        reason: "test",
+      } as any);
 
       expect(result.status).toBe(CollectionStatus.CANCELLED);
       expect(result.updatedById).toBe(userId);
     });
 
-    it('should throw NotFoundException when collection does not exist', async () => {
+    it("should throw NotFoundException when collection does not exist", async () => {
       mockCollectionRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.cancel(collId, orgId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.cancel(collId, orgId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
-    it('should throw BadRequestException when already cancelled', async () => {
+    it("should throw BadRequestException when already cancelled", async () => {
       mockCollectionRepo.findOne.mockResolvedValue({
         id: collId,
         organizationId: orgId,
         status: CollectionStatus.CANCELLED,
       } as any);
 
-      await expect(
-        service.cancel(collId, orgId, userId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.cancel(collId, orgId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -344,11 +372,11 @@ describe('CollectionsService', () => {
   // findOne
   // ==========================================================================
 
-  describe('findOne', () => {
-    const collId = 'coll-uuid-1';
-    const orgId = 'org-uuid-1';
+  describe("findOne", () => {
+    const collId = "coll-uuid-1";
+    const orgId = "org-uuid-1";
 
-    it('should return a collection with history', async () => {
+    it("should return a collection with history", async () => {
       const collection = {
         id: collId,
         organizationId: orgId,
@@ -362,20 +390,20 @@ describe('CollectionsService', () => {
 
       expect(mockCollectionRepo.findOne).toHaveBeenCalledWith({
         where: { id: collId, organizationId: orgId },
-        relations: ['history'],
+        relations: ["history"],
       });
       expect(result).toEqual(collection);
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it("should throw NotFoundException when not found", async () => {
       mockCollectionRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.findOne(collId, orgId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(collId, orgId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
-    it('should work without organizationId', async () => {
+    it("should work without organizationId", async () => {
       const collection = {
         id: collId,
         status: CollectionStatus.COLLECTED,
@@ -388,7 +416,7 @@ describe('CollectionsService', () => {
 
       expect(mockCollectionRepo.findOne).toHaveBeenCalledWith({
         where: { id: collId },
-        relations: ['history'],
+        relations: ["history"],
       });
       expect(result).toEqual(collection);
     });
@@ -398,13 +426,13 @@ describe('CollectionsService', () => {
   // findPending
   // ==========================================================================
 
-  describe('findPending', () => {
-    const orgId = 'org-uuid-1';
+  describe("findPending", () => {
+    const orgId = "org-uuid-1";
 
-    it('should return collections with COLLECTED status', async () => {
+    it("should return collections with COLLECTED status", async () => {
       const pending = [
-        { id: 'c1', status: CollectionStatus.COLLECTED },
-        { id: 'c2', status: CollectionStatus.COLLECTED },
+        { id: "c1", status: CollectionStatus.COLLECTED },
+        { id: "c2", status: CollectionStatus.COLLECTED },
       ];
 
       mockCollectionRepo.find.mockResolvedValue(pending as any);
@@ -413,7 +441,7 @@ describe('CollectionsService', () => {
 
       expect(mockCollectionRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId, status: CollectionStatus.COLLECTED },
-        order: { collectedAt: 'ASC' },
+        order: { collectedAt: "ASC" },
       });
       expect(result).toHaveLength(2);
     });
@@ -423,20 +451,19 @@ describe('CollectionsService', () => {
   // findAll (paginated)
   // ==========================================================================
 
-  describe('findAll', () => {
-    const orgId = 'org-uuid-1';
+  describe("findAll", () => {
+    const orgId = "org-uuid-1";
 
-    it('should return paginated results with default page/limit', async () => {
+    it("should return paginated results with default page/limit", async () => {
       const mockQb = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([
-          [{ id: 'c1' }, { id: 'c2' }],
-          2,
-        ]),
+        getManyAndCount: jest
+          .fn()
+          .mockResolvedValue([[{ id: "c1" }, { id: "c2" }], 2]),
       };
 
       mockCollectionRepo.createQueryBuilder.mockReturnValue(mockQb as any);
@@ -450,7 +477,7 @@ describe('CollectionsService', () => {
       expect(result.totalPages).toBe(1);
     });
 
-    it('should filter by operator when requester role is operator', async () => {
+    it("should filter by operator when requester role is operator", async () => {
       const mockQb = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -462,12 +489,12 @@ describe('CollectionsService', () => {
 
       mockCollectionRepo.createQueryBuilder.mockReturnValue(mockQb as any);
 
-      await service.findAll(orgId, {} as any, 'op-uuid', 'operator');
+      await service.findAll(orgId, {} as any, "op-uuid", "operator");
 
       // The IDOR guard adds an andWhere for operatorId
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'c.operatorId = :requesterId',
-        { requesterId: 'op-uuid' },
+        "c.operatorId = :requesterId",
+        { requesterId: "op-uuid" },
       );
     });
   });
@@ -476,18 +503,18 @@ describe('CollectionsService', () => {
   // remove (hard delete)
   // ==========================================================================
 
-  describe('remove', () => {
-    const collId = 'coll-uuid-1';
-    const orgId = 'org-uuid-1';
-    const userId = 'admin-uuid-1';
+  describe("remove", () => {
+    const collId = "coll-uuid-1";
+    const orgId = "org-uuid-1";
+    const userId = "admin-uuid-1";
 
-    it('should hard-delete and write audit history', async () => {
+    it("should hard-delete and write audit history", async () => {
       const existing = {
         id: collId,
         organizationId: orgId,
         status: CollectionStatus.RECEIVED,
         amount: 100000,
-        machineId: 'machine-1',
+        machineId: "machine-1",
       };
 
       mockCollectionRepo.findOne.mockResolvedValue(existing as any);
@@ -501,12 +528,12 @@ describe('CollectionsService', () => {
       expect(mockCollectionRepo.remove).toHaveBeenCalledWith(existing);
     });
 
-    it('should throw NotFoundException when collection does not exist', async () => {
+    it("should throw NotFoundException when collection does not exist", async () => {
       mockCollectionRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.remove(collId, orgId, userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.remove(collId, orgId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -514,23 +541,24 @@ describe('CollectionsService', () => {
   // getStats
   // ==========================================================================
 
-  describe('getStats', () => {
-    const orgId = 'org-uuid-1';
+  describe("getStats", () => {
+    const orgId = "org-uuid-1";
 
-    it('should return aggregated statistics', async () => {
+    it("should return aggregated statistics", async () => {
       mockCollectionRepo.count
-        .mockResolvedValueOnce(100)   // totalCollections
-        .mockResolvedValueOnce(80)    // totalReceived
-        .mockResolvedValueOnce(15);   // pendingCount
+        .mockResolvedValueOnce(100) // totalCollections
+        .mockResolvedValueOnce(80) // totalReceived
+        .mockResolvedValueOnce(15); // pendingCount
 
       const mockQb = {
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
-        getRawOne: jest.fn()
-          .mockResolvedValueOnce({ total: '5000000' })     // totalAmount
-          .mockResolvedValueOnce({ count: '10', amount: '500000' }), // today stats
+        getRawOne: jest
+          .fn()
+          .mockResolvedValueOnce({ total: "5000000" }) // totalAmount
+          .mockResolvedValueOnce({ count: "10", amount: "500000" }), // today stats
       };
 
       mockCollectionRepo.createQueryBuilder.mockReturnValue(mockQb as any);
@@ -550,20 +578,20 @@ describe('CollectionsService', () => {
   // getHistory
   // ==========================================================================
 
-  describe('getHistory', () => {
-    it('should return history records for a collection', async () => {
+  describe("getHistory", () => {
+    it("should return history records for a collection", async () => {
       const history = [
-        { id: 'h1', collectionId: 'c1', fieldName: 'status' },
-        { id: 'h2', collectionId: 'c1', fieldName: 'amount' },
+        { id: "h1", collectionId: "c1", fieldName: "status" },
+        { id: "h2", collectionId: "c1", fieldName: "amount" },
       ];
 
       mockHistoryRepo.find.mockResolvedValue(history as any);
 
-      const result = await service.getHistory('c1');
+      const result = await service.getHistory("c1");
 
       expect(mockHistoryRepo.find).toHaveBeenCalledWith({
-        where: { collectionId: 'c1' },
-        order: { createdAt: 'ASC' },
+        where: { collectionId: "c1" },
+        order: { createdAt: "ASC" },
       });
       expect(result).toHaveLength(2);
     });
@@ -573,14 +601,14 @@ describe('CollectionsService', () => {
   // countByMachine
   // ==========================================================================
 
-  describe('countByMachine', () => {
-    it('should return count of collections for a machine', async () => {
+  describe("countByMachine", () => {
+    it("should return count of collections for a machine", async () => {
       mockCollectionRepo.count.mockResolvedValue(42);
 
-      const result = await service.countByMachine('machine-uuid-1');
+      const result = await service.countByMachine("machine-uuid-1");
 
       expect(mockCollectionRepo.count).toHaveBeenCalledWith({
-        where: { machineId: 'machine-uuid-1' },
+        where: { machineId: "machine-uuid-1" },
       });
       expect(result).toBe(42);
     });

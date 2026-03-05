@@ -146,10 +146,8 @@ export interface FiscalReceiptMetadata {
   locationId?: string;
   operatorId?: string;
   comment?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rawRequest?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rawResponse?: any;
+  rawRequest?: unknown;
+  rawResponse?: unknown;
 }
 
 // ============================================
@@ -161,16 +159,14 @@ export interface FiscalQueueItem {
   organizationId: string;
   deviceId: string;
   operation: FiscalQueueOperation;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any;
+  payload: unknown;
   status: FiscalQueueStatus;
   priority: number;
   retryCount: number;
   maxRetries: number;
   nextRetryAt?: string;
   lastError?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  result?: any;
+  result?: unknown;
   processedAt?: string;
   createdAt: string;
   updatedAt: string;

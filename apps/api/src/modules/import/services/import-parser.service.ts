@@ -17,8 +17,7 @@ export const IMPORT_LIMITS = {
 @Injectable()
 export class ImportParserService {
   private enforceRowLimit(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rows: Record<string, any>[],
+    rows: Record<string, unknown>[],
     format: string,
   ): void {
     if (rows.length > IMPORT_LIMITS.MAX_ROWS) {
@@ -36,10 +35,7 @@ export class ImportParserService {
     }
   }
 
-  private truncateCellValues(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rows: Record<string, any>[],
-  ): void {
+  private truncateCellValues(rows: Record<string, unknown>[]): void {
     for (const row of rows) {
       for (const key of Object.keys(row)) {
         if (
@@ -58,8 +54,7 @@ export class ImportParserService {
   async parseCSV(
     buffer: Buffer,
     options?: { delimiter?: string; encoding?: string; headerRow?: number },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     const csvString = buffer.toString(
       (options?.encoding as BufferEncoding) || "utf-8",
     );
@@ -72,8 +67,7 @@ export class ImportParserService {
         transformHeader: (header) => header.trim(),
         complete: (results) => {
           const headers = results.meta.fields || [];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const rows = results.data as Record<string, any>[];
+          const rows = results.data as Record<string, unknown>[];
 
           try {
             this.enforceColumnLimit(headers, "CSV");
@@ -86,9 +80,10 @@ export class ImportParserService {
 
           resolve({ headers, rows });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        error: (error: any) => {
-          reject(new BadRequestException(`CSV parse error: ${error.message}`));
+        error: (error: unknown) => {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          reject(new BadRequestException(`CSV parse error: ${message}`));
         },
       });
     });
@@ -100,8 +95,7 @@ export class ImportParserService {
   async parseExcel(
     buffer: Buffer,
     options?: { sheetName?: string; headerRow?: number; startRow?: number },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     try {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
@@ -125,13 +119,11 @@ export class ImportParserService {
         headers[colNumber - 1] = String(cell.value ?? "").trim();
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rows: Record<string, any>[] = [];
+      const rows: Record<string, unknown>[] = [];
 
       for (let i = startRowIndex; i <= sheet.rowCount; i++) {
         const excelRow = sheet.getRow(i);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const row: Record<string, any> = {};
+        const row: Record<string, unknown> = {};
 
         headers.forEach((header, idx) => {
           const cell = excelRow.getCell(idx + 1);
@@ -162,8 +154,7 @@ export class ImportParserService {
    */
   async parseJSON(
     buffer: Buffer,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     try {
       const data = JSON.parse(buffer.toString("utf-8"));
       const rows = Array.isArray(data) ? data : [data];

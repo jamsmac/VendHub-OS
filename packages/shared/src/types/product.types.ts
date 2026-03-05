@@ -9,75 +9,75 @@
 
 export enum ProductCategory {
   // Coffee & Tea
-  COFFEE_BEANS = 'coffee_beans',
-  COFFEE_INSTANT = 'coffee_instant',
-  TEA = 'tea',
-  CHOCOLATE = 'chocolate',
+  COFFEE_BEANS = "coffee_beans",
+  COFFEE_INSTANT = "coffee_instant",
+  TEA = "tea",
+  CHOCOLATE = "chocolate",
 
   // Ingredients
-  MILK = 'milk',
-  SUGAR = 'sugar',
-  CREAM = 'cream',
-  SYRUP = 'syrup',
-  WATER = 'water',
+  MILK = "milk",
+  SUGAR = "sugar",
+  CREAM = "cream",
+  SYRUP = "syrup",
+  WATER = "water",
 
   // Ready products
-  HOT_DRINKS = 'hot_drinks',
-  COLD_DRINKS = 'cold_drinks',
-  SNACKS = 'snacks',
-  SANDWICHES = 'sandwiches',
-  SALADS = 'salads',
-  ICE_CREAM = 'ice_cream',
+  HOT_DRINKS = "hot_drinks",
+  COLD_DRINKS = "cold_drinks",
+  SNACKS = "snacks",
+  SANDWICHES = "sandwiches",
+  SALADS = "salads",
+  ICE_CREAM = "ice_cream",
 
   // Consumables
-  CUPS = 'cups',
-  LIDS = 'lids',
-  STIRRERS = 'stirrers',
-  NAPKINS = 'napkins',
+  CUPS = "cups",
+  LIDS = "lids",
+  STIRRERS = "stirrers",
+  NAPKINS = "napkins",
 
   // Other
-  OTHER = 'other',
+  OTHER = "other",
 }
 
 export enum ProductStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  DISCONTINUED = 'discontinued',
-  OUT_OF_STOCK = 'out_of_stock',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  DISCONTINUED = "discontinued",
+  OUT_OF_STOCK = "out_of_stock",
 }
 
 export enum UnitOfMeasure {
   // Weight
-  GRAM = 'g',
-  KILOGRAM = 'kg',
+  GRAM = "g",
+  KILOGRAM = "kg",
 
   // Volume
-  MILLILITER = 'ml',
-  LITER = 'l',
+  MILLILITER = "ml",
+  LITER = "l",
 
   // Count
-  PIECE = 'pcs',
-  PACK = 'pack',
-  BOX = 'box',
+  PIECE = "pcs",
+  PACK = "pack",
+  BOX = "box",
 
   // Servings
-  PORTION = 'portion',
-  CUP = 'cup',
+  PORTION = "portion",
+  CUP = "cup",
 }
 
 export enum RecipeType {
-  PRIMARY = 'primary',
-  ALTERNATIVE = 'alternative',
-  PROMOTIONAL = 'promotional',
-  TEST = 'test',
+  PRIMARY = "primary",
+  ALTERNATIVE = "alternative",
+  PROMOTIONAL = "promotional",
+  TEST = "test",
 }
 
 export enum IngredientBatchStatus {
-  IN_STOCK = 'in_stock',
-  DEPLETED = 'depleted',
-  EXPIRED = 'expired',
-  RETURNED = 'returned',
-  RESERVED = 'reserved',
+  IN_STOCK = "in_stock",
+  DEPLETED = "depleted",
+  EXPIRED = "expired",
+  RETURNED = "returned",
+  RESERVED = "reserved",
 }
 
 // ============================================================================
@@ -161,7 +161,7 @@ export interface IProduct {
   tags: string[];
   compatibleMachineTypes: string[];
   priceModifiers: IPriceModifier[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   // Audit
   createdByUserId?: string;
@@ -193,7 +193,7 @@ export interface IRecipe {
   // Settings
   settings: IRecipeSettings;
   version: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   createdByUserId?: string;
   createdAt: Date;
@@ -223,7 +223,7 @@ export interface IRecipeIngredient {
   sortOrder: number;
   isOptional: boolean;
   substituteIngredientId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 
@@ -304,7 +304,7 @@ export interface IIngredientBatch {
   qualityNotes?: string;
 
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   createdByUserId?: string;
   createdAt: Date;
@@ -334,7 +334,7 @@ export interface ISupplier {
   bankAccount?: string;
   isActive: boolean;
   paymentTermDays: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -377,7 +377,7 @@ export interface IProductCreate {
   tags?: string[];
   compatibleMachineTypes?: string[];
   priceModifiers?: IPriceModifier[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IProductUpdate {
@@ -413,7 +413,7 @@ export interface IProductUpdate {
   tags?: string[];
   compatibleMachineTypes?: string[];
   priceModifiers?: IPriceModifier[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IRecipeCreate {
@@ -428,7 +428,7 @@ export interface IRecipeCreate {
   servingSizeMl?: number;
   settings?: IRecipeSettings;
   ingredients: IRecipeIngredientCreate[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IRecipeIngredientCreate {
@@ -451,7 +451,7 @@ export interface IRecipeUpdate {
   servingSizeMl?: number;
   settings?: IRecipeSettings;
   ingredients?: IRecipeIngredientCreate[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IIngredientBatchCreate {
@@ -470,7 +470,7 @@ export interface IIngredientBatchCreate {
   warehouseLocationId?: string;
   storageLocation?: string;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ISupplierCreate {
@@ -484,7 +484,7 @@ export interface ISupplierCreate {
   taxId?: string;
   bankAccount?: string;
   paymentTermDays?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -503,8 +503,8 @@ export interface IProductFilter {
   tags?: string[];
   limit?: number;
   offset?: number;
-  sortBy?: 'name' | 'sku' | 'category' | 'sellingPrice' | 'createdAt';
-  sortOrder?: 'ASC' | 'DESC';
+  sortBy?: "name" | "sku" | "category" | "sellingPrice" | "createdAt";
+  sortOrder?: "ASC" | "DESC";
 }
 
 export interface IProductStats {
@@ -543,60 +543,60 @@ export interface IBatchFilter {
 // ============================================================================
 
 export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
-  [ProductCategory.COFFEE_BEANS]: 'Кофе в зернах',
-  [ProductCategory.COFFEE_INSTANT]: 'Растворимый кофе',
-  [ProductCategory.TEA]: 'Чай',
-  [ProductCategory.CHOCOLATE]: 'Шоколад',
-  [ProductCategory.MILK]: 'Молоко',
-  [ProductCategory.SUGAR]: 'Сахар',
-  [ProductCategory.CREAM]: 'Сливки',
-  [ProductCategory.SYRUP]: 'Сироп',
-  [ProductCategory.WATER]: 'Вода',
-  [ProductCategory.HOT_DRINKS]: 'Горячие напитки',
-  [ProductCategory.COLD_DRINKS]: 'Холодные напитки',
-  [ProductCategory.SNACKS]: 'Снеки',
-  [ProductCategory.SANDWICHES]: 'Сэндвичи',
-  [ProductCategory.SALADS]: 'Салаты',
-  [ProductCategory.ICE_CREAM]: 'Мороженое',
-  [ProductCategory.CUPS]: 'Стаканы',
-  [ProductCategory.LIDS]: 'Крышки',
-  [ProductCategory.STIRRERS]: 'Размешиватели',
-  [ProductCategory.NAPKINS]: 'Салфетки',
-  [ProductCategory.OTHER]: 'Прочее',
+  [ProductCategory.COFFEE_BEANS]: "Кофе в зернах",
+  [ProductCategory.COFFEE_INSTANT]: "Растворимый кофе",
+  [ProductCategory.TEA]: "Чай",
+  [ProductCategory.CHOCOLATE]: "Шоколад",
+  [ProductCategory.MILK]: "Молоко",
+  [ProductCategory.SUGAR]: "Сахар",
+  [ProductCategory.CREAM]: "Сливки",
+  [ProductCategory.SYRUP]: "Сироп",
+  [ProductCategory.WATER]: "Вода",
+  [ProductCategory.HOT_DRINKS]: "Горячие напитки",
+  [ProductCategory.COLD_DRINKS]: "Холодные напитки",
+  [ProductCategory.SNACKS]: "Снеки",
+  [ProductCategory.SANDWICHES]: "Сэндвичи",
+  [ProductCategory.SALADS]: "Салаты",
+  [ProductCategory.ICE_CREAM]: "Мороженое",
+  [ProductCategory.CUPS]: "Стаканы",
+  [ProductCategory.LIDS]: "Крышки",
+  [ProductCategory.STIRRERS]: "Размешиватели",
+  [ProductCategory.NAPKINS]: "Салфетки",
+  [ProductCategory.OTHER]: "Прочее",
 };
 
 export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
-  [ProductStatus.ACTIVE]: 'Активен',
-  [ProductStatus.INACTIVE]: 'Неактивен',
-  [ProductStatus.DISCONTINUED]: 'Снят с производства',
-  [ProductStatus.OUT_OF_STOCK]: 'Нет в наличии',
+  [ProductStatus.ACTIVE]: "Активен",
+  [ProductStatus.INACTIVE]: "Неактивен",
+  [ProductStatus.DISCONTINUED]: "Снят с производства",
+  [ProductStatus.OUT_OF_STOCK]: "Нет в наличии",
 };
 
 export const UNIT_OF_MEASURE_LABELS: Record<UnitOfMeasure, string> = {
-  [UnitOfMeasure.GRAM]: 'грамм',
-  [UnitOfMeasure.KILOGRAM]: 'кг',
-  [UnitOfMeasure.MILLILITER]: 'мл',
-  [UnitOfMeasure.LITER]: 'литр',
-  [UnitOfMeasure.PIECE]: 'шт',
-  [UnitOfMeasure.PACK]: 'уп',
-  [UnitOfMeasure.BOX]: 'кор',
-  [UnitOfMeasure.PORTION]: 'порция',
-  [UnitOfMeasure.CUP]: 'стакан',
+  [UnitOfMeasure.GRAM]: "грамм",
+  [UnitOfMeasure.KILOGRAM]: "кг",
+  [UnitOfMeasure.MILLILITER]: "мл",
+  [UnitOfMeasure.LITER]: "литр",
+  [UnitOfMeasure.PIECE]: "шт",
+  [UnitOfMeasure.PACK]: "уп",
+  [UnitOfMeasure.BOX]: "кор",
+  [UnitOfMeasure.PORTION]: "порция",
+  [UnitOfMeasure.CUP]: "стакан",
 };
 
 export const RECIPE_TYPE_LABELS: Record<RecipeType, string> = {
-  [RecipeType.PRIMARY]: 'Основной',
-  [RecipeType.ALTERNATIVE]: 'Альтернативный',
-  [RecipeType.PROMOTIONAL]: 'Акционный',
-  [RecipeType.TEST]: 'Тестовый',
+  [RecipeType.PRIMARY]: "Основной",
+  [RecipeType.ALTERNATIVE]: "Альтернативный",
+  [RecipeType.PROMOTIONAL]: "Акционный",
+  [RecipeType.TEST]: "Тестовый",
 };
 
 export const BATCH_STATUS_LABELS: Record<IngredientBatchStatus, string> = {
-  [IngredientBatchStatus.IN_STOCK]: 'В наличии',
-  [IngredientBatchStatus.DEPLETED]: 'Израсходована',
-  [IngredientBatchStatus.EXPIRED]: 'Просрочена',
-  [IngredientBatchStatus.RETURNED]: 'Возвращена',
-  [IngredientBatchStatus.RESERVED]: 'Зарезервирована',
+  [IngredientBatchStatus.IN_STOCK]: "В наличии",
+  [IngredientBatchStatus.DEPLETED]: "Израсходована",
+  [IngredientBatchStatus.EXPIRED]: "Просрочена",
+  [IngredientBatchStatus.RETURNED]: "Возвращена",
+  [IngredientBatchStatus.RESERVED]: "Зарезервирована",
 };
 
 // ============================================================================
@@ -604,33 +604,33 @@ export const BATCH_STATUS_LABELS: Record<IngredientBatchStatus, string> = {
 // ============================================================================
 
 export const PRODUCT_CATEGORY_LABELS_UZ: Record<ProductCategory, string> = {
-  [ProductCategory.COFFEE_BEANS]: 'Donali qahva',
-  [ProductCategory.COFFEE_INSTANT]: 'Tez eriydigan qahva',
-  [ProductCategory.TEA]: 'Choy',
-  [ProductCategory.CHOCOLATE]: 'Shokolad',
-  [ProductCategory.MILK]: 'Sut',
-  [ProductCategory.SUGAR]: 'Shakar',
-  [ProductCategory.CREAM]: 'Qaymoq',
-  [ProductCategory.SYRUP]: 'Sirop',
-  [ProductCategory.WATER]: 'Suv',
-  [ProductCategory.HOT_DRINKS]: 'Issiq ichimliklar',
-  [ProductCategory.COLD_DRINKS]: 'Sovuq ichimliklar',
-  [ProductCategory.SNACKS]: 'Sneklar',
-  [ProductCategory.SANDWICHES]: 'Sendvichlar',
-  [ProductCategory.SALADS]: 'Salatlar',
-  [ProductCategory.ICE_CREAM]: 'Muzqaymoq',
-  [ProductCategory.CUPS]: 'Stakanlar',
-  [ProductCategory.LIDS]: 'Qopqoqlar',
-  [ProductCategory.STIRRERS]: 'Aralashtiruvchilar',
-  [ProductCategory.NAPKINS]: 'Salfetka',
-  [ProductCategory.OTHER]: 'Boshqa',
+  [ProductCategory.COFFEE_BEANS]: "Donali qahva",
+  [ProductCategory.COFFEE_INSTANT]: "Tez eriydigan qahva",
+  [ProductCategory.TEA]: "Choy",
+  [ProductCategory.CHOCOLATE]: "Shokolad",
+  [ProductCategory.MILK]: "Sut",
+  [ProductCategory.SUGAR]: "Shakar",
+  [ProductCategory.CREAM]: "Qaymoq",
+  [ProductCategory.SYRUP]: "Sirop",
+  [ProductCategory.WATER]: "Suv",
+  [ProductCategory.HOT_DRINKS]: "Issiq ichimliklar",
+  [ProductCategory.COLD_DRINKS]: "Sovuq ichimliklar",
+  [ProductCategory.SNACKS]: "Sneklar",
+  [ProductCategory.SANDWICHES]: "Sendvichlar",
+  [ProductCategory.SALADS]: "Salatlar",
+  [ProductCategory.ICE_CREAM]: "Muzqaymoq",
+  [ProductCategory.CUPS]: "Stakanlar",
+  [ProductCategory.LIDS]: "Qopqoqlar",
+  [ProductCategory.STIRRERS]: "Aralashtiruvchilar",
+  [ProductCategory.NAPKINS]: "Salfetka",
+  [ProductCategory.OTHER]: "Boshqa",
 };
 
 export const PRODUCT_STATUS_LABELS_UZ: Record<ProductStatus, string> = {
-  [ProductStatus.ACTIVE]: 'Faol',
-  [ProductStatus.INACTIVE]: 'Nofaol',
-  [ProductStatus.DISCONTINUED]: 'Ishlab chiqarilmayapti',
-  [ProductStatus.OUT_OF_STOCK]: 'Mavjud emas',
+  [ProductStatus.ACTIVE]: "Faol",
+  [ProductStatus.INACTIVE]: "Nofaol",
+  [ProductStatus.DISCONTINUED]: "Ishlab chiqarilmayapti",
+  [ProductStatus.OUT_OF_STOCK]: "Mavjud emas",
 };
 
 // ============================================================================
@@ -638,26 +638,26 @@ export const PRODUCT_STATUS_LABELS_UZ: Record<ProductStatus, string> = {
 // ============================================================================
 
 export const PRODUCT_CATEGORY_ICONS: Record<ProductCategory, string> = {
-  [ProductCategory.COFFEE_BEANS]: '☕',
-  [ProductCategory.COFFEE_INSTANT]: '☕',
-  [ProductCategory.TEA]: '🍵',
-  [ProductCategory.CHOCOLATE]: '🍫',
-  [ProductCategory.MILK]: '🥛',
-  [ProductCategory.SUGAR]: '🧂',
-  [ProductCategory.CREAM]: '🥛',
-  [ProductCategory.SYRUP]: '🍯',
-  [ProductCategory.WATER]: '💧',
-  [ProductCategory.HOT_DRINKS]: '🔥',
-  [ProductCategory.COLD_DRINKS]: '🧊',
-  [ProductCategory.SNACKS]: '🍿',
-  [ProductCategory.SANDWICHES]: '🥪',
-  [ProductCategory.SALADS]: '🥗',
-  [ProductCategory.ICE_CREAM]: '🍦',
-  [ProductCategory.CUPS]: '🥤',
-  [ProductCategory.LIDS]: '⭕',
-  [ProductCategory.STIRRERS]: '🥢',
-  [ProductCategory.NAPKINS]: '🧻',
-  [ProductCategory.OTHER]: '📦',
+  [ProductCategory.COFFEE_BEANS]: "☕",
+  [ProductCategory.COFFEE_INSTANT]: "☕",
+  [ProductCategory.TEA]: "🍵",
+  [ProductCategory.CHOCOLATE]: "🍫",
+  [ProductCategory.MILK]: "🥛",
+  [ProductCategory.SUGAR]: "🧂",
+  [ProductCategory.CREAM]: "🥛",
+  [ProductCategory.SYRUP]: "🍯",
+  [ProductCategory.WATER]: "💧",
+  [ProductCategory.HOT_DRINKS]: "🔥",
+  [ProductCategory.COLD_DRINKS]: "🧊",
+  [ProductCategory.SNACKS]: "🍿",
+  [ProductCategory.SANDWICHES]: "🥪",
+  [ProductCategory.SALADS]: "🥗",
+  [ProductCategory.ICE_CREAM]: "🍦",
+  [ProductCategory.CUPS]: "🥤",
+  [ProductCategory.LIDS]: "⭕",
+  [ProductCategory.STIRRERS]: "🥢",
+  [ProductCategory.NAPKINS]: "🧻",
+  [ProductCategory.OTHER]: "📦",
 };
 
 // ============================================================================
@@ -665,18 +665,18 @@ export const PRODUCT_CATEGORY_ICONS: Record<ProductCategory, string> = {
 // ============================================================================
 
 export const PRODUCT_STATUS_COLORS: Record<ProductStatus, string> = {
-  [ProductStatus.ACTIVE]: 'bg-green-100 text-green-800',
-  [ProductStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
-  [ProductStatus.DISCONTINUED]: 'bg-red-100 text-red-800',
-  [ProductStatus.OUT_OF_STOCK]: 'bg-yellow-100 text-yellow-800',
+  [ProductStatus.ACTIVE]: "bg-green-100 text-green-800",
+  [ProductStatus.INACTIVE]: "bg-gray-100 text-gray-800",
+  [ProductStatus.DISCONTINUED]: "bg-red-100 text-red-800",
+  [ProductStatus.OUT_OF_STOCK]: "bg-yellow-100 text-yellow-800",
 };
 
 export const BATCH_STATUS_COLORS: Record<IngredientBatchStatus, string> = {
-  [IngredientBatchStatus.IN_STOCK]: 'bg-green-100 text-green-800',
-  [IngredientBatchStatus.DEPLETED]: 'bg-gray-100 text-gray-800',
-  [IngredientBatchStatus.EXPIRED]: 'bg-red-100 text-red-800',
-  [IngredientBatchStatus.RETURNED]: 'bg-orange-100 text-orange-800',
-  [IngredientBatchStatus.RESERVED]: 'bg-blue-100 text-blue-800',
+  [IngredientBatchStatus.IN_STOCK]: "bg-green-100 text-green-800",
+  [IngredientBatchStatus.DEPLETED]: "bg-gray-100 text-gray-800",
+  [IngredientBatchStatus.EXPIRED]: "bg-red-100 text-red-800",
+  [IngredientBatchStatus.RETURNED]: "bg-orange-100 text-orange-800",
+  [IngredientBatchStatus.RESERVED]: "bg-blue-100 text-blue-800",
 };
 
 // ============================================================================
@@ -697,15 +697,21 @@ export const VAT_RATES = {
  * Calculate recipe cost from ingredients
  */
 export function calculateRecipeCost(
-  ingredients: { quantity: number; unitCost: number }[]
+  ingredients: { quantity: number; unitCost: number }[],
 ): number {
-  return ingredients.reduce((total, ing) => total + ing.quantity * ing.unitCost, 0);
+  return ingredients.reduce(
+    (total, ing) => total + ing.quantity * ing.unitCost,
+    0,
+  );
 }
 
 /**
  * Check if batch is expiring soon
  */
-export function isBatchExpiringSoon(expiryDate: Date | undefined, daysThreshold = 7): boolean {
+export function isBatchExpiringSoon(
+  expiryDate: Date | undefined,
+  daysThreshold = 7,
+): boolean {
   if (!expiryDate) return false;
   const threshold = new Date();
   threshold.setDate(threshold.getDate() + daysThreshold);
@@ -715,18 +721,18 @@ export function isBatchExpiringSoon(expiryDate: Date | undefined, daysThreshold 
 /**
  * Format price with currency
  */
-export function formatPrice(amount: number, currency = 'UZS'): string {
-  if (currency === 'UZS') {
-    return `${amount.toLocaleString('ru-RU')} сум`;
+export function formatPrice(amount: number, currency = "UZS"): string {
+  if (currency === "UZS") {
+    return `${amount.toLocaleString("ru-RU")} сум`;
   }
-  return `${amount.toLocaleString('en-US', { style: 'currency', currency })}`;
+  return `${amount.toLocaleString("en-US", { style: "currency", currency })}`;
 }
 
 /**
  * Generate SKU
  */
 export function generateSku(isIngredient: boolean): string {
-  const prefix = isIngredient ? 'ING' : 'PRD';
+  const prefix = isIngredient ? "ING" : "PRD";
   const timestamp = Date.now().toString(36).toUpperCase();
   return `${prefix}-${timestamp}`;
 }
@@ -737,13 +743,13 @@ export function generateSku(isIngredient: boolean): string {
 export function convertUnit(
   value: number,
   from: UnitOfMeasure,
-  to: UnitOfMeasure
+  to: UnitOfMeasure,
 ): number | null {
   const conversions: Record<string, number> = {
-    'g_kg': 0.001,
-    'kg_g': 1000,
-    'ml_l': 0.001,
-    'l_ml': 1000,
+    g_kg: 0.001,
+    kg_g: 1000,
+    ml_l: 0.001,
+    l_ml: 1000,
   };
 
   const key = `${from}_${to}`;

@@ -175,9 +175,9 @@ export default function IntegrationsPage() {
       setError(null);
       const response = await integrationsApi.getAll();
       setIntegrations(response.data.data || response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      const message = err.response?.data?.message || t("loadFailed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error.response?.data?.message || t("loadFailed");
       setError(message);
       toast.error(message);
     } finally {
@@ -189,10 +189,8 @@ export default function IntegrationsPage() {
     try {
       const response = await integrationsApi.getTemplates();
       setTemplates(response.data.data || response.data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch {
       // Template loading is non-critical; silently ignore
-      void err;
     }
   }, []);
 
@@ -503,9 +501,9 @@ export default function IntegrationsPage() {
             setShowConfigModal(true);
             toast.success(t("integrationCreated"));
             fetchIntegrations();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } catch (err: any) {
-            const message = err.response?.data?.message || t("createFailed");
+          } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const message = error.response?.data?.message || t("createFailed");
             toast.error(message);
           }
         }}
@@ -525,9 +523,11 @@ export default function IntegrationsPage() {
               await integrationsApi.update(updated.id, updated);
               toast.success(t("integrationSaved"));
               fetchIntegrations();
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (err: any) {
-              const message = err.response?.data?.message || t("saveFailed");
+            } catch (err: unknown) {
+              const error = err as {
+                response?: { data?: { message?: string } };
+              };
+              const message = error.response?.data?.message || t("saveFailed");
               toast.error(message);
             }
           }}

@@ -21,8 +21,7 @@ export interface Column<T> {
   header: string;
   sortable?: boolean;
   width?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
   className?: string;
 }
 

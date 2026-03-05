@@ -3,6 +3,13 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
+// Mock bcrypt native module before importing the service
+jest.mock("bcrypt", () => ({
+  hash: jest.fn().mockResolvedValue("hashed-password"),
+  compare: jest.fn().mockResolvedValue(true),
+  genSalt: jest.fn().mockResolvedValue("salt"),
+}));
+
 import { UsersService } from "./users.service";
 import { User, UserStatus } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";

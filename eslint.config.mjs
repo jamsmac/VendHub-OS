@@ -7,12 +7,20 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
+      // Build outputs
       '**/dist/**',
       '**/node_modules/**',
       '**/build/**',
       '**/.next/**',
       '**/coverage/**',
       '**/*.bak',
+      // AI agent tooling dirs — not source code, may contain template syntax
+      // that confuses ESLint's JS parser (e.g. skills, agents, claude prompts).
+      '.agents/**',
+      '.skills/**',
+      '.serena/**',
+      '.claude/**',
+      '.turbo/**',
     ],
   },
   {

@@ -83,8 +83,10 @@ const PERIOD_KEYS = [
   "special",
 ] as const;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PERIOD_CONFIG: Record<string, { color: string; icon: any }> = {
+const PERIOD_CONFIG: Record<
+  string,
+  { color: string; icon: React.ComponentType<{ className?: string }> }
+> = {
   daily: { color: "bg-blue-100 text-blue-700", icon: Clock },
   weekly: { color: "bg-green-100 text-green-700", icon: Calendar },
   monthly: { color: "bg-purple-100 text-purple-700", icon: Calendar },
@@ -152,8 +154,10 @@ export default function QuestsPage() {
   const { data: questsData, isLoading } = useQuery({
     queryKey: ["quests", periodFilter],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params: any = {};
+      const params: Record<
+        string,
+        string | number | boolean | null | undefined
+      > = {};
       if (periodFilter !== "all") params.period = periodFilter;
       const res = await questsApi.getAll(params);
       return (res.data?.data || res.data || []) as Quest[];
@@ -171,8 +175,8 @@ export default function QuestsPage() {
 
   // CRUD mutations
   const createMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => questsApi.create(data),
+    mutationFn: (data: unknown) =>
+      questsApi.create(data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quests"] });
       closeForm();
@@ -180,9 +184,8 @@ export default function QuestsPage() {
   });
 
   const updateMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      questsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
+      questsApi.update(id, data as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quests"] });
       closeForm();

@@ -57,16 +57,16 @@ export class SalesReportGenerator {
       cashSummary: this.buildPaymentTypeDetail(
         paidTransactions,
         PaymentResourceType.CASH,
-      ),
-      qrSummary: this.buildQRDetail(paidTransactions),
-      vipSummary: this.buildVIPSummary(paidTransactions),
-      creditSummary: this.buildCreditSummary(paidTransactions),
+      ) as unknown,
+      qrSummary: this.buildQRDetail(paidTransactions) as unknown,
+      vipSummary: this.buildVIPSummary(paidTransactions) as unknown,
+      creditSummary: this.buildCreditSummary(paidTransactions) as unknown,
 
       qrReconciliation: this.buildQRReconciliation(paidTransactions),
-      crossAnalysis: this.buildCrossAnalysis(paidTransactions),
-      dailyReport: this.buildDailyReport(paidTransactions),
-      averageCheck: this.buildAverageCheckReport(paidTransactions),
-    };
+      crossAnalysis: this.buildCrossAnalysis(paidTransactions) as unknown,
+      dailyReport: this.buildDailyReport(paidTransactions) as unknown,
+      averageCheck: this.buildAverageCheckReport(paidTransactions) as unknown,
+    } as VendHubReportStructureA;
   }
 
   private aggregateByPaymentType(
@@ -219,19 +219,18 @@ export class SalesReportGenerator {
     const qrTransactions = allTransactions.filter(
       (t) => t.paymentType === PaymentResourceType.QR,
     );
-    const qrDetails = this.buildQRPaymentDetails(qrTransactions);
+    const qrDetails = this.buildQRPaymentDetails(qrTransactions) as unknown;
 
     return {
       period: { from: dateFrom, to: dateTo },
       byPaymentType,
       totalPaid,
       testOrderCount,
-      qrDetails,
-    };
+      qrDetails: qrDetails as unknown,
+    } as StructureASummaryDto;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildQRPaymentDetails(qrTransactions: TransactionData[]): any[] {
+  private buildQRPaymentDetails(qrTransactions: TransactionData[]): unknown {
     const total = qrTransactions.reduce(
       (acc, t) => ({ count: acc.count + 1, amount: acc.amount + t.amount }),
       { count: 0, amount: 0 },
@@ -461,8 +460,7 @@ export class SalesReportGenerator {
   private buildPaymentTypeDetail(
     transactions: TransactionData[],
     paymentType: PaymentResourceType,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): any {
+  ): unknown {
     const filtered = transactions.filter((t) => t.paymentType === paymentType);
 
     return {
@@ -472,8 +470,7 @@ export class SalesReportGenerator {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildQRDetail(transactions: TransactionData[]): any {
+  private buildQRDetail(transactions: TransactionData[]): unknown {
     const qrFiltered = transactions.filter(
       (t) => t.paymentType === PaymentResourceType.QR,
     );
@@ -488,8 +485,7 @@ export class SalesReportGenerator {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildQRShareByMachine(transactions: TransactionData[]): any[] {
+  private buildQRShareByMachine(transactions: TransactionData[]): unknown {
     const machineData = new Map<
       string,
       { total: number; qr: number; cash: number }
@@ -515,8 +511,7 @@ export class SalesReportGenerator {
     }));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildVIPSummary(transactions: TransactionData[]): any {
+  private buildVIPSummary(transactions: TransactionData[]): unknown {
     const vipFiltered = transactions.filter(
       (t) => t.paymentType === PaymentResourceType.VIP,
     );
@@ -546,8 +541,7 @@ export class SalesReportGenerator {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildCreditSummary(transactions: TransactionData[]): any {
+  private buildCreditSummary(transactions: TransactionData[]): unknown {
     const creditFiltered = transactions.filter(
       (t) => t.paymentType === PaymentResourceType.CREDIT,
     );
@@ -627,8 +621,7 @@ export class SalesReportGenerator {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildCrossAnalysis(transactions: TransactionData[]): any {
+  private buildCrossAnalysis(transactions: TransactionData[]): unknown {
     // TOP-5 Products
     const productCounts = new Map<string, number>();
     for (const t of transactions) {
@@ -695,10 +688,17 @@ export class SalesReportGenerator {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildDailyReport(transactions: TransactionData[]): any[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dailyData = new Map<string, any>();
+  private buildDailyReport(transactions: TransactionData[]): unknown {
+    const dailyData = new Map<
+      string,
+      {
+        date: string;
+        cash: { count: number; amount: number };
+        qr: { count: number; amount: number };
+        vip: { count: number; amount: number };
+        total: { count: number; amount: number };
+      }
+    >();
 
     for (const t of transactions) {
       const dateKey = ReportGeneratorUtils.getDateKey(t.createdAt);
@@ -713,22 +713,24 @@ export class SalesReportGenerator {
       }
 
       const data = dailyData.get(dateKey);
-      data.total.count++;
-      data.total.amount += t.amount;
+      if (data) {
+        data.total.count++;
+        data.total.amount += t.amount;
 
-      switch (t.paymentType) {
-        case PaymentResourceType.CASH:
-          data.cash.count++;
-          data.cash.amount += t.amount;
-          break;
-        case PaymentResourceType.QR:
-          data.qr.count++;
-          data.qr.amount += t.amount;
-          break;
-        case PaymentResourceType.VIP:
-          data.vip.count++;
-          data.vip.amount += t.amount;
-          break;
+        switch (t.paymentType) {
+          case PaymentResourceType.CASH:
+            data.cash.count++;
+            data.cash.amount += t.amount;
+            break;
+          case PaymentResourceType.QR:
+            data.qr.count++;
+            data.qr.amount += t.amount;
+            break;
+          case PaymentResourceType.VIP:
+            data.vip.count++;
+            data.vip.amount += t.amount;
+            break;
+        }
       }
     }
 
@@ -737,8 +739,7 @@ export class SalesReportGenerator {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildAverageCheckReport(transactions: TransactionData[]): any {
+  private buildAverageCheckReport(transactions: TransactionData[]): unknown {
     // By month
     const byMonth = new Map<string, { count: number; amount: number }>();
     for (const t of transactions) {

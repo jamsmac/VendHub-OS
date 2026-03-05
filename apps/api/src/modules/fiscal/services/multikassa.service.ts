@@ -120,8 +120,7 @@ export class MultiKassaService {
     deviceId: string,
     method: "GET" | "POST",
     path: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data?: any,
+    data?: unknown,
   ): Promise<T> {
     const config = this.getConfig(deviceId);
     const url = `${config.baseUrl}${path}`;
@@ -178,8 +177,11 @@ export class MultiKassaService {
     const cashierName =
       request.cashierName || config.credentials.defaultCashier || "VendHub";
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(deviceId, "POST", "/shift/open", {
+    const response = await this.request<{
+      shift_id: string;
+      shift_number: number;
+      opened_at: string;
+    }>(deviceId, "POST", "/shift/open", {
       cashier_name: cashierName,
     });
 
@@ -197,13 +199,16 @@ export class MultiKassaService {
   async closeShift(deviceId: string): Promise<CloseShiftResponse> {
     this.logger.log(`Closing shift for device ${deviceId}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(
-      deviceId,
-      "POST",
-      "/shift/close",
-      {},
-    );
+    const response = await this.request<{
+      z_report_number: string;
+      z_report_url: string;
+      total_sales: number;
+      total_refunds: number;
+      total_cash?: number;
+      total_card?: number;
+      receipts_count: number;
+      vat_summary?: { rate: number; amount: number }[];
+    }>(deviceId, "POST", "/shift/close", {});
 
     return {
       success: true,
@@ -222,8 +227,19 @@ export class MultiKassaService {
    * Get shift status
    */
   async getShiftStatus(deviceId: string): Promise<ShiftStatusResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(deviceId, "GET", "/shift/status");
+    const response = await this.request<{
+      shift_id: string;
+      shift_number: number;
+      status: "open" | "closed";
+      opened_at: string;
+      closed_at?: string;
+      cashier_name: string;
+      total_sales: number;
+      total_refunds: number;
+      total_cash?: number;
+      total_card?: number;
+      receipts_count: number;
+    }>(deviceId, "GET", "/shift/status");
 
     return {
       success: true,
@@ -245,12 +261,14 @@ export class MultiKassaService {
    * Get X-report (intermediate report)
    */
   async getXReport(deviceId: string): Promise<XReportResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(
-      deviceId,
-      "GET",
-      "/shift/x-report",
-    );
+    const response = await this.request<{
+      total_sales: number;
+      total_refunds: number;
+      total_cash?: number;
+      total_card?: number;
+      receipts_count: number;
+      vat_summary?: { rate: number; amount: number }[];
+    }>(deviceId, "GET", "/shift/x-report");
 
     return {
       success: true,
@@ -278,13 +296,14 @@ export class MultiKassaService {
 
     const payload = this.buildReceiptPayload(request);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(
-      deviceId,
-      "POST",
-      "/receipt/sale",
-      payload,
-    );
+    const response = await this.request<{
+      receipt_id: string;
+      fiscal_number: string;
+      fiscal_sign: string;
+      qr_code_url: string;
+      receipt_url: string;
+      timestamp: string;
+    }>(deviceId, "POST", "/receipt/sale", payload);
 
     return {
       success: true,
@@ -308,13 +327,14 @@ export class MultiKassaService {
 
     const payload = this.buildReceiptPayload({ ...request, type: "refund" });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await this.request<any>(
-      deviceId,
-      "POST",
-      "/receipt/refund",
-      payload,
-    );
+    const response = await this.request<{
+      receipt_id: string;
+      fiscal_number: string;
+      fiscal_sign: string;
+      qr_code_url: string;
+      receipt_url: string;
+      timestamp: string;
+    }>(deviceId, "POST", "/receipt/refund", payload);
 
     return {
       success: true,
@@ -330,8 +350,9 @@ export class MultiKassaService {
   /**
    * Build receipt payload for API
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildReceiptPayload(request: CreateReceiptRequest): any {
+  private buildReceiptPayload(
+    request: CreateReceiptRequest,
+  ): Record<string, unknown> {
     return {
       type: request.type,
       items: request.items.map((item) => ({

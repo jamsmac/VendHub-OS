@@ -8,11 +8,12 @@
  * Generate a random string of specified length
  */
 export function generateRandomString(length: number): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
 
   // Use crypto API if available (browser)
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const array = new Uint8Array(length);
     crypto.getRandomValues(array);
     for (let i = 0; i < length; i++) {
@@ -32,10 +33,10 @@ export function generateRandomString(length: number): string {
  * Generate a random numeric code (for OTP, verification codes, etc.)
  */
 export function generateNumericCode(length: number): string {
-  const chars = '0123456789';
-  let result = '';
+  const chars = "0123456789";
+  let result = "";
 
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const array = new Uint8Array(length);
     crypto.getRandomValues(array);
     for (let i = 0; i < length; i++) {
@@ -54,14 +55,14 @@ export function generateNumericCode(length: number): string {
  * Generate a UUID v4
  */
 export function generateUuid(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
 
   // Fallback implementation
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -101,14 +102,11 @@ export function stringToColor(str: string): string {
  * Base64 encode (URL-safe)
  */
 export function base64Encode(str: string): string {
-  if (typeof btoa !== 'undefined') {
-    return btoa(str)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+  if (typeof btoa !== "undefined") {
+    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
   // Node.js fallback
-  return Buffer.from(str).toString('base64url');
+  return Buffer.from(str).toString("base64url");
 }
 
 /**
@@ -116,29 +114,31 @@ export function base64Encode(str: string): string {
  */
 export function base64Decode(str: string): string {
   // Add padding if needed
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4) {
-    base64 += '=';
+    base64 += "=";
   }
 
-  if (typeof atob !== 'undefined') {
+  if (typeof atob !== "undefined") {
     return atob(base64);
   }
   // Node.js fallback
-  return Buffer.from(base64, 'base64').toString('utf-8');
+  return Buffer.from(base64, "base64").toString("utf-8");
 }
 
 /**
  * Mask sensitive data (e.g., email, phone)
  */
 export function maskEmail(email: string): string {
-  const [localPart, domain] = email.split('@');
+  const [localPart, domain] = email.split("@");
   if (!domain || !localPart) return email;
 
   const maskedLocal =
     localPart.length <= 2
-      ? '*'.repeat(localPart.length)
-      : localPart[0] + '*'.repeat(localPart.length - 2) + localPart[localPart.length - 1];
+      ? "*".repeat(localPart.length)
+      : localPart[0] +
+        "*".repeat(localPart.length - 2) +
+        localPart[localPart.length - 1];
 
   return `${maskedLocal}@${domain}`;
 }
@@ -147,27 +147,27 @@ export function maskEmail(email: string): string {
  * Mask phone number
  */
 export function maskPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length < 4) return '*'.repeat(phone.length);
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 4) return "*".repeat(phone.length);
 
-  return phone.slice(0, 4) + '*'.repeat(phone.length - 8) + phone.slice(-4);
+  return phone.slice(0, 4) + "*".repeat(phone.length - 8) + phone.slice(-4);
 }
 
 /**
  * Mask card number
  */
 export function maskCardNumber(cardNumber: string): string {
-  const digits = cardNumber.replace(/\D/g, '');
-  if (digits.length < 8) return '*'.repeat(cardNumber.length);
+  const digits = cardNumber.replace(/\D/g, "");
+  if (digits.length < 8) return "*".repeat(cardNumber.length);
 
-  return digits.slice(0, 4) + ' **** **** ' + digits.slice(-4);
+  return digits.slice(0, 4) + " **** **** " + digits.slice(-4);
 }
 
 /**
  * Generate API key (64 characters)
  */
 export function generateApiKey(): string {
-  const prefix = 'vhub_';
+  const prefix = "vhub_";
   const key = generateRandomString(64 - prefix.length);
   return prefix + key;
 }
@@ -176,7 +176,7 @@ export function generateApiKey(): string {
  * Generate webhook secret
  */
 export function generateWebhookSecret(): string {
-  return 'whsec_' + generateRandomString(32);
+  return "whsec_" + generateRandomString(32);
 }
 
 /**
@@ -185,25 +185,29 @@ export function generateWebhookSecret(): string {
  */
 export async function calculateHmacSignature(
   payload: string,
-  secret: string
+  secret: string,
 ): Promise<string> {
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
+  if (typeof crypto !== "undefined" && crypto.subtle) {
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       encoder.encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
+      { name: "HMAC", hash: "SHA-256" },
       false,
-      ['sign']
+      ["sign"],
     );
-    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+    const signature = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      encoder.encode(payload),
+    );
     return Array.from(new Uint8Array(signature))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   }
 
   // Fallback - not cryptographically secure, use only for development
-  console.warn('crypto.subtle not available, using insecure fallback');
+  console.warn("crypto.subtle not available, using insecure fallback");
   return simpleHash(payload + secret).toString(16);
 }
 
@@ -213,7 +217,7 @@ export async function calculateHmacSignature(
 export async function verifyHmacSignature(
   payload: string,
   signature: string,
-  secret: string
+  secret: string,
 ): Promise<boolean> {
   const expectedSignature = await calculateHmacSignature(payload, secret);
   return timingSafeEqual(signature, expectedSignature);
@@ -238,28 +242,32 @@ export function timingSafeEqual(a: string, b: string): boolean {
 /**
  * Obfuscate sensitive data for logging
  */
-export function obfuscateForLog(data: Record<string, any>): Record<string, any> {
+export function obfuscateForLog(
+  data: Record<string, unknown>,
+): Record<string, unknown> {
   const sensitiveKeys = [
-    'password',
-    'token',
-    'secret',
-    'apiKey',
-    'api_key',
-    'authorization',
-    'cookie',
-    'cardNumber',
-    'card_number',
-    'cvv',
-    'pin',
+    "password",
+    "token",
+    "secret",
+    "apiKey",
+    "api_key",
+    "authorization",
+    "cookie",
+    "cardNumber",
+    "card_number",
+    "cvv",
+    "pin",
   ];
 
-  const result: Record<string, any> = {};
+  const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(data)) {
-    if (sensitiveKeys.some((k) => key.toLowerCase().includes(k.toLowerCase()))) {
-      result[key] = '[REDACTED]';
-    } else if (typeof value === 'object' && value !== null) {
-      result[key] = obfuscateForLog(value);
+    if (
+      sensitiveKeys.some((k) => key.toLowerCase().includes(k.toLowerCase()))
+    ) {
+      result[key] = "[REDACTED]";
+    } else if (typeof value === "object" && value !== null) {
+      result[key] = obfuscateForLog(value as Record<string, unknown>);
     } else {
       result[key] = value;
     }
