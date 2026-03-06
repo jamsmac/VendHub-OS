@@ -1,6 +1,9 @@
-# VendHub OS — Railway + Supabase Deployment Guide
+# VendHub OS — Railway Deployment Guide
 
-Complete step-by-step guide to deploy all 6 VendHub OS services on Railway with Supabase PostgreSQL.
+Complete step-by-step guide to deploy all VendHub OS services on Railway.
+
+**Database:** Railway Postgres (managed) — no external DB needed
+**Storage:** Supabase S3-compatible storage (`vendhub-media` bucket)
 
 ---
 
@@ -8,7 +11,6 @@ Complete step-by-step guide to deploy all 6 VendHub OS services on Railway with 
 
 - [Railway CLI](https://docs.railway.app/develop/cli) installed: `npm install -g @railway/cli`
 - Railway account linked: `railway login`
-- Supabase project: `gwrfhzvulvkudobtmkrs` (region: ap-southeast-1)
 - Railway project ID: `8ed97e59-3bb0-4224-99ef-de6355057b15`
 
 ---
@@ -19,17 +21,18 @@ Complete step-by-step guide to deploy all 6 VendHub OS services on Railway with 
 Railway Project: VendHub OS
 ├── Service: api      │ Root: apps/api    │ NestJS, port 4000
 ├── Service: web      │ Root: apps/web    │ Next.js admin, port 3000
-├── Service: client   │ Root: apps/client │ Vite SPA via serve, port 5173
+├── Service: client   │ Root: apps/client │ Vite SPA (nginx), dynamic PORT
 ├── Service: bot      │ Root: apps/bot    │ Telegram bot, no HTTP
 ├── Service: site     │ Root: apps/site   │ Next.js landing, port 3100
-└── Service: redis    │ (Railway managed) │ Redis 7
+├── Service: Postgres │ (Railway managed) │ PostgreSQL
+└── Service: Redis    │ (Railway managed) │ Redis 7
 ```
 
 ---
 
 ## Step 1: Run Database Migrations Locally
 
-> **Why locally first?** Railway's `releaseCommand` runs migrations on every deploy. But for the very first deployment, you need the schema to exist before the API starts. Running migrations locally ensures your Supabase database is ready.
+> **Why locally first?** Railway's `releaseCommand` runs migrations on every deploy. But for the very first deployment, you need the schema to exist before the API starts. Running migrations locally ensures the Railway Postgres database is ready.
 
 ### 1.1 Install dependencies
 
@@ -38,13 +41,13 @@ cd /path/to/VendHub-OS
 pnpm install
 ```
 
-### 1.2 Set DATABASE_DIRECT_URL in your .env
+### 1.2 Set DATABASE_URL in your .env
 
-Your `.env` already has this configured (session pooler, IPv4-accessible):
+Use the Railway Postgres **public** URL (for local access):
 
 ```env
-DATABASE_DIRECT_URL=postgresql://postgres.gwrfhzvulvkudobtmkrs:oJm8TOr4uznrJUeS@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
-DB_SSL_REJECT_UNAUTHORIZED=false
+DATABASE_URL=postgresql://postgres:yZNVPRtNvBMDUNuDhikfGQitGCPfjFVw@trolley.proxy.rlwy.net:24266/railway
+DB_SSL=false
 ```
 
 ### 1.3 Run the 50 TypeORM migrations
@@ -150,20 +153,22 @@ APP_NAME=VendHub
 
 Set all variables from `RAILWAY_ENV_VARS.md` in this directory.
 
-**Critical database variables:**
+**Critical database variables (Railway Postgres):**
 
 ```
-DATABASE_URL=postgresql://postgres.gwrfhzvulvkudobtmkrs:oJm8TOr4uznrJUeS@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
-DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
-DB_PORT=6543
-DB_NAME=postgres
-DB_USER=postgres.gwrfhzvulvkudobtmkrs
-DB_PASSWORD=oJm8TOr4uznrJUeS
-DB_SSL=true
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+DB_HOST=${{Postgres.PGHOST}}
+DB_PORT=${{Postgres.PGPORT}}
+DB_NAME=${{Postgres.PGDATABASE}}
+DB_USER=${{Postgres.PGUSER}}
+DB_PASSWORD=${{Postgres.PGPASSWORD}}
+DB_SSL=false
 DB_SSL_REJECT_UNAUTHORIZED=false
 DB_SYNCHRONIZE=false
 DB_POOL_SIZE=10
 ```
+
+> Use Railway variable references (`${{Postgres.*}}`) — Railway resolves them automatically. No SSL needed on internal network.
 
 **Critical Redis variables:**
 
@@ -235,7 +240,9 @@ PORT=3100
 
 ---
 
-## Step 4: Create Supabase Storage Bucket
+## Step 4: Supabase Storage Bucket (for file uploads only)
+
+> Supabase is used **only for S3-compatible file storage** — the database is Railway Postgres.
 
 The API uses `vendhub-media` for storing images, reports, and uploads.
 
@@ -354,15 +361,11 @@ pnpm --filter @vendhub/api migration:run
 
 ### SSL error: "self-signed certificate in certificate chain"
 
-Ensure `DB_SSL_REJECT_UNAUTHORIZED=false` is set in Railway variables for the API service.
-
-### "Tenant or user not found" on pooler
-
-Verify `DB_USER` is `postgres.gwrfhzvulvkudobtmkrs` (with the project ref), not just `postgres`.
+Set `DB_SSL=false` for Railway internal connections (no SSL needed on private network).
 
 ### Redis connection refused
 
-The `redis.railway.internal` hostname only works within Railway's private network. For local development, use `REDIS_PUBLIC_URL` from your `.env`.
+The `redis.railway.internal` hostname only works within Railway's private network. For local development, use the public Redis URL from Railway dashboard.
 
 ### API health check fails
 
@@ -372,16 +375,24 @@ Check build logs for TypeScript compilation errors:
 cd apps/api && npx tsc --noEmit
 ```
 
+### Local DB connection fails
+
+Use the Railway Postgres **public** URL for local access:
+
+```
+postgresql://postgres:yZNVPRtNvBMDUNuDhikfGQitGCPfjFVw@trolley.proxy.rlwy.net:24266/railway
+```
+
+The `postgres.railway.internal` hostname only resolves inside Railway's network.
+
 ---
 
 ## Quick Reference
 
-| URL                                                                                       | Description                     |
-| ----------------------------------------------------------------------------------------- | ------------------------------- |
-| [Railway Dashboard](https://railway.app/project/8ed97e59-3bb0-4224-99ef-de6355057b15)     | Manage services and deployments |
-| [Supabase Dashboard](https://app.supabase.com/project/gwrfhzvulvkudobtmkrs)               | Database, storage, auth         |
-| [Supabase Table Editor](https://app.supabase.com/project/gwrfhzvulvkudobtmkrs/editor)     | View/query tables               |
-| [Supabase Storage](https://app.supabase.com/project/gwrfhzvulvkudobtmkrs/storage/buckets) | Manage file buckets             |
+| URL                                                                                       | Description              |
+| ----------------------------------------------------------------------------------------- | ------------------------ |
+| [Railway Dashboard](https://railway.app/project/8ed97e59-3bb0-4224-99ef-de6355057b15)     | Services and deployments |
+| [Supabase Storage](https://app.supabase.com/project/gwrfhzvulvkudobtmkrs/storage/buckets) | File storage buckets     |
 
 ---
 

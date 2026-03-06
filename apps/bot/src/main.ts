@@ -181,8 +181,8 @@ async function main() {
 
     logger.info(`Bot started in webhook mode on port ${webhookPort}`);
   } else {
-    // Long polling mode for development
-    await bot.launch();
+    // Polling mode — drop pending updates to avoid 409 conflict on restart
+    await bot.launch({ dropPendingUpdates: true });
     logger.info("Bot started in polling mode");
   }
 

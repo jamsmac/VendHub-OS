@@ -99,9 +99,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 # Set correct permissions for prerender cache
 RUN mkdir -p apps/web/.next && chown nextjs:nodejs apps/web/.next
 
-# Health check
+# Health check (uses $PORT at runtime)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/ || exit 1
 
 # Switch to non-root user
 USER nextjs
