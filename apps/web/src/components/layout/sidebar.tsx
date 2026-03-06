@@ -50,6 +50,7 @@ import {
   Globe,
   Tag,
   HelpCircle,
+  Code2,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
@@ -417,6 +418,13 @@ const navigation: NavItem[] = [
     href: "/dashboard/references",
     icon: BookOpen,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+  },
+  {
+    nameKey: "apiDocs",
+    fallback: "API Документация",
+    href: "/dashboard/api-docs",
+    icon: Code2,
+    roles: [UserRole.OWNER],
   },
   {
     nameKey: "audit",

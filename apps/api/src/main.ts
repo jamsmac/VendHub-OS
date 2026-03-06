@@ -33,6 +33,7 @@ import { MetricsInterceptor } from "./common/interceptors/metrics.interceptor";
 import { MetricsService } from "./modules/metrics/metrics.service";
 import { TracingInterceptor } from "./common/tracing/tracing.interceptor";
 import { TracingService } from "./common/tracing/tracing.service";
+import { createSwaggerAuthMiddleware } from "./common/middleware/swagger-auth.middleware";
 
 const isAgentMode =
   process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
@@ -250,12 +251,25 @@ async function bootstrap() {
   );
 
   // ============================================
-  // SWAGGER DOCUMENTATION
+  // SWAGGER DOCUMENTATION (always enabled, protected in production)
   // ============================================
 
-  const swaggerDefault =
-    process.env.NODE_ENV === "production" ? "false" : "true";
-  if (configService.get("SWAGGER_ENABLED", swaggerDefault) === "true") {
+  // Swagger is always available. In production, access is protected
+  // by JWT middleware — only users with "owner" role can view docs.
+  const swaggerEnabled = configService.get("SWAGGER_ENABLED", "true") === "true";
+  if (swaggerEnabled) {
+    // ── Apply auth middleware in production ──────────────────
+    const isProduction = configService.get("NODE_ENV") === "production";
+    if (isProduction) {
+      const jwtSecret = configService.get<string>("JWT_SECRET");
+      if (jwtSecret) {
+        const swaggerAuth = createSwaggerAuthMiddleware(jwtSecret);
+        app.use("/docs", swaggerAuth);
+        logger.log("🔒 Swagger protected with owner-only JWT auth");
+      } else {
+        logger.error("⛔ JWT_SECRET not set — Swagger will be unprotected!");
+      }
+    }
     const config = new DocumentBuilder()
       .setTitle(configService.get("SWAGGER_TITLE", "VendHub API"))
       .setDescription(
