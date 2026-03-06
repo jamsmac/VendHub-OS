@@ -616,10 +616,28 @@ const fmt = (n: number) => n.toLocaleString("ru-RU");
 
 function ContentTab() {
   // Fetch website config from API
-  const { data: _configData, isLoading: _isLoading } = useWebsiteConfig();
-  const _bulkUpdate = useBulkUpdateWebsiteConfig();
+  const { data: configData } = useWebsiteConfig();
+  const bulkUpdate = useBulkUpdateWebsiteConfig();
 
-  const [sections, _setSections] = useState(CONTENT_SECTIONS);
+  // Merge API config values into content sections
+  const configMap = new Map<string, string>();
+  if (Array.isArray(configData)) {
+    for (const c of configData as Array<{ key: string; value: string }>) {
+      configMap.set(c.key, c.value);
+    }
+  }
+
+  const initialSections = CONTENT_SECTIONS.map((sec) => ({
+    ...sec,
+    fields: sec.fields.map((f) => {
+      const apiValue = configMap.get(f.key);
+      return apiValue !== undefined
+        ? { ...f, value: apiValue, saved: true }
+        : f;
+    }),
+  }));
+
+  const [sections, setSections] = useState(initialSections);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["hero"]));
   const [showVersionHistory, setShowVersionHistory] = useState<string | null>(
     null,
@@ -663,9 +681,36 @@ function ContentTab() {
             <Button
               size="sm"
               className="gap-1 bg-espresso hover:bg-espresso-dark"
+              disabled={bulkUpdate.isPending}
+              onClick={() => {
+                const unsavedFields = sections.flatMap((sec) =>
+                  sec.fields
+                    .filter((f) => !f.saved)
+                    .map((f) => ({
+                      key: f.key,
+                      value: f.value,
+                      section: sec.id,
+                    })),
+                );
+                bulkUpdate.mutate(unsavedFields, {
+                  onSuccess: () => {
+                    setSections((prev) =>
+                      prev.map((sec) => ({
+                        ...sec,
+                        fields: sec.fields.map((f) => ({
+                          ...f,
+                          saved: true,
+                        })),
+                      })),
+                    );
+                  },
+                });
+              }}
             >
               <Save className="h-4 w-4" />
-              Опубликовать все ({unsavedCount})
+              {bulkUpdate.isPending
+                ? "Сохранение..."
+                : `Опубликовать все (${unsavedCount})`}
             </Button>
           )}
         </div>

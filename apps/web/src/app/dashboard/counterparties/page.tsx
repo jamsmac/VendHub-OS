@@ -42,7 +42,54 @@ import {
   SlideOverFooter,
 } from "@/components/ui/slide-over";
 import { cn, formatNumber, formatCurrency } from "@/lib/utils";
-import { useCounterparties, useContracts } from "@/lib/hooks";
+import {
+  useCounterparties,
+  useContracts,
+  type DbCounterparty,
+  type DbContract,
+} from "@/lib/hooks";
+
+// DB → UI type mapping
+const DB_TYPE_MAP: Record<DbCounterparty["type"], CounterpartyType> = {
+  supplier: "Поставщик",
+  landlord: "Арендодатель",
+  client: "Клиент",
+  partner: "Партнёр",
+  service: "Сервис",
+};
+
+function mapDbCounterparty(db: DbCounterparty): Counterparty {
+  return {
+    id: db.id,
+    name: db.name,
+    type: DB_TYPE_MAP[db.type] ?? "Поставщик",
+    inn: db.inn ?? "",
+    contactPerson: db.contact_person ?? "",
+    phone: db.phone ?? "",
+    email: db.email ?? "",
+    balance: db.balance,
+    status: db.status,
+    address: db.address ?? undefined,
+    bank: db.bank ?? undefined,
+    account: db.account ?? undefined,
+    mfo: db.mfo ?? undefined,
+    notes: db.notes ?? undefined,
+  };
+}
+
+function mapDbContract(db: DbContract): Contract {
+  return {
+    id: db.id,
+    number: db.number,
+    counterpartyId: db.counterparty_id,
+    counterpartyName: db.counterparty_name ?? "",
+    type: (db.type as ContractType) || "Поставка",
+    startDate: db.start_date,
+    endDate: db.end_date,
+    monthlyAmount: db.monthly_amount,
+    status: db.status,
+  };
+}
 
 // Types
 type CounterpartyType =
@@ -519,8 +566,8 @@ const TABS = [
 ];
 
 export default function CounterpartiesPage() {
-  const { data: _dbCounterparties } = useCounterparties();
-  const { data: _dbContracts } = useContracts();
+  const { data: dbCounterparties } = useCounterparties();
+  const { data: dbContracts } = useContracts();
   const [activeTab, setActiveTab] = useState<CounterpartyTab>("counterparties");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -528,8 +575,17 @@ export default function CounterpartiesPage() {
   const [selectedCounterparty, setSelectedCounterparty] =
     useState<Counterparty | null>(null);
 
+  // Use live data from API, fall back to mock
+  const counterparties: Counterparty[] = dbCounterparties?.length
+    ? (dbCounterparties as DbCounterparty[]).map(mapDbCounterparty)
+    : mockCounterparties;
+
+  const contracts: Contract[] = dbContracts?.length
+    ? (dbContracts as DbContract[]).map(mapDbContract)
+    : mockContracts;
+
   // Filtered counterparties
-  const filteredCounterparties = mockCounterparties.filter((cp) => {
+  const filteredCounterparties = counterparties.filter((cp) => {
     const matchesSearch =
       cp.name.toLowerCase().includes(search.toLowerCase()) ||
       cp.inn.includes(search);
@@ -539,21 +595,19 @@ export default function CounterpartiesPage() {
   });
 
   // Analytics data
-  const totalCounterparties = mockCounterparties.length;
-  const activeContracts = mockContracts.filter(
-    (c) => c.status === "active",
-  ).length;
-  const creditorDebt = mockCounterparties.reduce((sum, cp) => {
+  const totalCounterparties = counterparties.length;
+  const activeContracts = contracts.filter((c) => c.status === "active").length;
+  const creditorDebt = counterparties.reduce((sum, cp) => {
     if (cp.balance < 0) return sum + Math.abs(cp.balance);
     return sum;
   }, 0);
-  const debtorAmount = mockCounterparties.reduce((sum, cp) => {
+  const debtorAmount = counterparties.reduce((sum, cp) => {
     if (cp.balance > 0) return sum + cp.balance;
     return sum;
   }, 0);
 
   // Procurement by supplier (top 5)
-  const procurementData = mockCounterparties
+  const procurementData = counterparties
     .filter((cp) => cp.type === "Поставщик")
     .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
     .slice(0, 5)
@@ -570,7 +624,7 @@ export default function CounterpartiesPage() {
     Партнёр: 0,
     Сервис: 0,
   };
-  mockCounterparties.forEach((cp) => {
+  counterparties.forEach((cp) => {
     if (cp.balance < 0) {
       expensesByType[cp.type] += Math.abs(cp.balance);
     }
@@ -584,7 +638,7 @@ export default function CounterpartiesPage() {
     }));
 
   // Debt summary
-  const debtSummary: DebtSummary[] = mockCounterparties
+  const debtSummary: DebtSummary[] = counterparties
     .filter((cp) => cp.balance !== 0)
     .sort((a, b) => b.balance - a.balance)
     .map((cp) => ({
@@ -594,9 +648,7 @@ export default function CounterpartiesPage() {
     }));
 
   // Expiring contracts warning
-  const expiringContracts = mockContracts.filter(
-    (c) => c.status === "expiring",
-  );
+  const expiringContracts = contracts.filter((c) => c.status === "expiring");
 
   return (
     <div className="flex flex-col gap-6 pb-6">
@@ -834,7 +886,7 @@ export default function CounterpartiesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockContracts.map((contract) => (
+                    {contracts.map((contract) => (
                       <TableRow key={contract.id} className="hover:bg-cream/30">
                         <TableCell className="font-medium text-espresso">
                           {contract.number}

@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Users, Clock, Gift, Sparkles, CheckCircle2 } from "lucide-react";
-import { useTogglePromotionStatus, useDeletePromotion } from "@/lib/hooks";
+import {
+  usePromotions,
+  useTogglePromotionStatus,
+  useDeletePromotion,
+  type DbPromotion,
+} from "@/lib/hooks";
 import { PromotionsHeader } from "./components/PromotionsHeader";
 import { PromotionsKPICards } from "./components/PromotionsKPICards";
 import { PromotionsList } from "./components/PromotionsList";
@@ -617,9 +622,52 @@ const abTests: ABTest[] = [
   },
 ];
 
+// ═══ DB → UI Mapping ═══
+
+const GRADIENTS = [
+  "from-amber-400 to-orange-500",
+  "from-emerald-400 to-teal-500",
+  "from-purple-400 to-pink-500",
+  "from-blue-400 to-indigo-500",
+  "from-cyan-400 to-blue-500",
+  "from-slate-600 to-indigo-800",
+  "from-pink-400 to-rose-500",
+  "from-orange-400 to-red-500",
+];
+
+function mapDbPromotion(db: DbPromotion, idx: number): Promotion {
+  const now = new Date();
+  const endDate = new Date(db.end_date);
+  const isExpired = endDate < now;
+  return {
+    id: db.id,
+    title: db.title,
+    badge: db.badge ?? "",
+    description: db.description,
+    promoCode: db.promo_code ?? "",
+    gradient: db.gradient ?? GRADIENTS[idx % GRADIENTS.length],
+    discountType: db.discount_type === "percent" ? "percent" : "fixed",
+    discountValue: db.discount_value,
+    conditions: [],
+    validUntil: db.end_date,
+    validFrom: db.start_date,
+    isActive: db.is_active,
+    status: !db.is_active ? (isExpired ? "ended" : "draft") : "active",
+    visibilityType: "visible",
+    createdAt: db.created_at,
+    usageCount: db.usage_count,
+    usageLimit: db.max_usage ?? undefined,
+    uniqueUsers: 0,
+    revenueImpact: 0,
+    sortOrder: db.sort_order ?? idx + 1,
+    audience: db.target_audience ? { segment: db.target_audience } : undefined,
+  };
+}
+
 // ═══ Main Page ═══
 
 export default function PromotionsPage() {
+  const { data: dbPromotions } = usePromotions();
   const [activeTab, setActiveTab] = useState<
     "list" | "analytics" | "coupons" | "abtests" | "wizard"
   >("list");
@@ -627,6 +675,11 @@ export default function PromotionsPage() {
   // Mutation hooks
   const toggleMutation = useTogglePromotionStatus();
   const deleteMutation = useDeletePromotion();
+
+  // Use live data from API, fall back to mock
+  const promotions: Promotion[] = dbPromotions?.length
+    ? (dbPromotions as DbPromotion[]).map(mapDbPromotion)
+    : PROMOTIONS;
 
   const analyticsData = {
     usageOverTime30Days,
@@ -657,7 +710,7 @@ export default function PromotionsPage() {
     <div className="space-y-6">
       <PromotionsHeader onNewPromoClick={handleNewPromo} />
 
-      <PromotionsKPICards promotions={PROMOTIONS} />
+      <PromotionsKPICards promotions={promotions} />
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-espresso/10 pb-1 overflow-x-auto">
@@ -685,7 +738,7 @@ export default function PromotionsPage() {
       {/* List Tab */}
       {activeTab === "list" && (
         <PromotionsList
-          promotions={PROMOTIONS}
+          promotions={promotions}
           onToggleStatus={handleToggleStatus}
           onDelete={handleDelete}
         />

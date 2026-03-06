@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import {
   useFinanceTransactions,
   useFinanceStats,
+  useDailyRevenue,
   useCreateFinanceTransaction,
   useUpdateFinanceTransaction,
   useDeleteFinanceTransaction,
 } from "@/lib/hooks";
+import type { Transaction } from "./components/types";
 import {
   tabs,
   dateRanges,
@@ -585,11 +587,81 @@ const budgetData = [
 // ═══ Main Page ═══
 
 export default function FinancePage() {
-  const { data: _dbTransactions } = useFinanceTransactions();
-  const { data: _dbFinStats } = useFinanceStats();
+  const { data: dbTransactions } = useFinanceTransactions();
+  const { data: dbFinStats } = useFinanceStats();
+  const { data: dbDailyRevenue } = useDailyRevenue(7);
   const createTransaction = useCreateFinanceTransaction();
   const _updateTransaction = useUpdateFinanceTransaction();
   const _deleteTransaction = useDeleteFinanceTransaction();
+
+  // Wire API data into overview cards (fall back to mock when API not available)
+  const liveFinancialSummary = dbFinStats
+    ? {
+        totalRevenue: dbFinStats.totalRevenue ?? 0,
+        totalExpenses: dbFinStats.totalExpenses ?? 0,
+        netProfit: dbFinStats.netProfit ?? 0,
+        pendingPayments: dbFinStats.pendingPayouts ?? 0,
+        cashOnHand: 0,
+        accountsReceivable: 0,
+        revenueGrowth: 0,
+        expenseGrowth: 0,
+        profitMargin:
+          dbFinStats.totalRevenue > 0
+            ? +((dbFinStats.netProfit / dbFinStats.totalRevenue) * 100).toFixed(
+                1,
+              )
+            : 0,
+      }
+    : financialSummary;
+
+  // Wire API daily revenue into chart data
+  const liveRevenueByDay: Array<{
+    date: string;
+    income: number;
+    expense: number;
+  }> = dbDailyRevenue?.length
+    ? dbDailyRevenue.map(
+        (d: { date: string; revenue: number; expenses: number }) => ({
+          date: d.date,
+          income: d.revenue,
+          expense: d.expenses,
+        }),
+      )
+    : revenueByDay;
+
+  // Wire API transactions into UI transaction format
+  const liveTransactions: Transaction[] = dbTransactions?.length
+    ? dbTransactions.map(
+        (t: {
+          id: string;
+          type: "income" | "expense" | "transfer";
+          category: string;
+          description: string;
+          amount: number;
+          payment_method: string | null;
+          status: string;
+          created_at: string;
+          counterparty_name?: string | null;
+        }) => ({
+          id: t.id,
+          date: new Date(t.created_at).toLocaleString("ru-RU", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          type: t.type,
+          category: t.category,
+          description: t.description,
+          amount: t.amount,
+          payment: t.payment_method ?? "cash",
+          status: t.status as Transaction["status"],
+          ref: t.id.slice(0, 13).toUpperCase(),
+          collector: t.counterparty_name ?? undefined,
+        }),
+      )
+    : transactions;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [activeRange, setActiveRange] = useState("Месяц");
@@ -600,8 +672,8 @@ export default function FinancePage() {
   const [expandedPayment, setExpandedPayment] = useState<string | null>(null);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
 
-  // Filtering
-  const filteredTx = transactions.filter((tx) => {
+  // Filtering (uses live transactions when available)
+  const filteredTx = liveTransactions.filter((tx) => {
     const matchSearch =
       tx.description.toLowerCase().includes(search.toLowerCase()) ||
       tx.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -617,10 +689,10 @@ export default function FinancePage() {
     txPage * txPerPage,
   );
 
-  const totalIncome = transactions
+  const totalIncome = liveTransactions
     .filter((t) => t.type === "income")
     .reduce((s, t) => s + t.amount, 0);
-  const totalExpense = transactions
+  const totalExpense = liveTransactions
     .filter((t) => t.type === "expense")
     .reduce((s, t) => s + t.amount, 0);
 
@@ -740,8 +812,8 @@ export default function FinancePage() {
             onRangeChange={setActiveRange}
           />
           <OverviewTab
-            financialSummary={financialSummary}
-            revenueByDay={revenueByDay}
+            financialSummary={liveFinancialSummary}
+            revenueByDay={liveRevenueByDay}
             expenseCategories={expenseCategories}
             profitTrend={profitTrend}
             fiscalData={fiscalData}
@@ -769,7 +841,7 @@ export default function FinancePage() {
         <TransactionsTab
           paymentMethodBreakdown={paymentMethodBreakdown}
           dailyTransactionVolume={dailyTransactionVolume}
-          transactions={transactions}
+          transactions={liveTransactions}
           filteredTx={filteredTx}
           search={search}
           onSearchChange={(value) => {
