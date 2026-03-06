@@ -190,6 +190,8 @@ const defaultedNumber = (value: number) =>
         TELEGRAM_BOT_TOKEN: optionalString(),
         TELEGRAM_CUSTOMER_BOT_TOKEN: optionalString(),
         STORAGE_ENDPOINT: optionalString(),
+        STORAGE_PUBLIC_URL: optionalString(),
+        STORAGE_FORCE_PATH_STYLE: optionalBooleanString(),
         STORAGE_ACCESS_KEY: optionalString(),
         STORAGE_SECRET_KEY: optionalString(),
         STORAGE_BUCKET: optionalString(),

@@ -74,6 +74,9 @@ export class StorageService {
   private readonly bucket: string;
   private readonly cdnDomain?: string;
   private readonly region: string;
+  private readonly endpoint?: string;
+  private readonly publicBaseUrl?: string;
+  private readonly forcePathStyle: boolean;
 
   // Allowed MIME types for different categories
   private readonly allowedMimeTypes = {
@@ -109,7 +112,14 @@ export class StorageService {
       "STORAGE_BUCKET",
       this.configService.get("AWS_S3_BUCKET", "vendhub-storage"),
     );
+    this.endpoint = this.normalizeUrl(
+      this.configService.get<string>("STORAGE_ENDPOINT"),
+    );
+    this.forcePathStyle = this.endpoint
+      ? this.configService.get("STORAGE_FORCE_PATH_STYLE", "true") !== "false"
+      : false;
     this.cdnDomain = this.configService.get("AWS_CLOUDFRONT_DOMAIN");
+    this.publicBaseUrl = this.resolvePublicBaseUrl();
 
     if (!S3Client) {
       this.logger.warn(
@@ -118,12 +128,11 @@ export class StorageService {
       return;
     }
 
-    const endpoint = this.configService.get("STORAGE_ENDPOINT");
     this.s3Client = new S3Client({
       region: this.region,
-      ...(endpoint && {
-        endpoint: endpoint.startsWith("http") ? endpoint : `http://${endpoint}`,
-        forcePathStyle: true,
+      ...(this.endpoint && {
+        endpoint: this.endpoint,
+        forcePathStyle: this.forcePathStyle,
       }),
       credentials: {
         accessKeyId: this.configService.get(
@@ -635,6 +644,13 @@ export class StorageService {
    * Get direct S3 URL
    */
   private getS3Url(key: string): string {
+    if (this.endpoint) {
+      const baseUrl = this.forcePathStyle
+        ? `${this.endpoint}/${this.bucket}`
+        : this.endpoint;
+      return this.buildUrl(baseUrl, key);
+    }
+
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
 
@@ -643,8 +659,13 @@ export class StorageService {
    */
   getCdnUrl(key: string): string {
     if (this.cdnDomain) {
-      return `https://${this.cdnDomain}/${key}`;
+      return this.buildUrl(`https://${this.cdnDomain}`, key);
     }
+
+    if (this.publicBaseUrl) {
+      return this.buildUrl(this.publicBaseUrl, key);
+    }
+
     return this.getS3Url(key);
   }
 
@@ -652,9 +673,33 @@ export class StorageService {
    * Extract key from URL
    */
   getKeyFromUrl(url: string): string | null {
+    const normalizedUrl = this.normalizeUrl(url);
+    if (!normalizedUrl) {
+      return null;
+    }
+
     // Handle CDN URL
-    if (this.cdnDomain && url.includes(this.cdnDomain)) {
-      return url.replace(`https://${this.cdnDomain}/`, "");
+    if (this.cdnDomain) {
+      const cdnPrefix = `https://${this.cdnDomain}`;
+      if (normalizedUrl.startsWith(`${cdnPrefix}/`)) {
+        return normalizedUrl.slice(cdnPrefix.length + 1);
+      }
+    }
+
+    if (
+      this.publicBaseUrl &&
+      normalizedUrl.startsWith(`${this.publicBaseUrl}/`)
+    ) {
+      return normalizedUrl.slice(this.publicBaseUrl.length + 1);
+    }
+
+    if (this.endpoint) {
+      const endpointPrefix = this.forcePathStyle
+        ? `${this.endpoint}/${this.bucket}`
+        : this.endpoint;
+      if (normalizedUrl.startsWith(`${endpointPrefix}/`)) {
+        return normalizedUrl.slice(endpointPrefix.length + 1);
+      }
     }
 
     // Handle S3 URL
@@ -693,5 +738,48 @@ export class StorageService {
     category: "image" | "document" | "spreadsheet" | "any",
   ): string[] {
     return this.allowedMimeTypes[category] || [];
+  }
+
+  private resolvePublicBaseUrl(): string | undefined {
+    const configuredPublicUrl = this.normalizeUrl(
+      this.configService.get<string>("STORAGE_PUBLIC_URL"),
+    );
+    if (configuredPublicUrl) {
+      return configuredPublicUrl;
+    }
+
+    const supabaseUrl = this.normalizeUrl(
+      this.configService.get<string>("SUPABASE_URL"),
+    );
+    if (supabaseUrl) {
+      return `${supabaseUrl}/storage/v1/object/public/${this.bucket}`;
+    }
+
+    if (!this.endpoint) {
+      return undefined;
+    }
+
+    const supabaseEndpointMatch = this.endpoint.match(
+      /^(https:\/\/)([^.]+)\.storage\.supabase\.co\/storage\/v1\/s3$/,
+    );
+
+    if (!supabaseEndpointMatch) {
+      return undefined;
+    }
+
+    const [, protocol, projectRef] = supabaseEndpointMatch;
+    return `${protocol}${projectRef}.supabase.co/storage/v1/object/public/${this.bucket}`;
+  }
+
+  private buildUrl(baseUrl: string, key: string): string {
+    return `${baseUrl.replace(/\/+$/, "")}/${key.replace(/^\/+/, "")}`;
+  }
+
+  private normalizeUrl(value?: string | null): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    return value.replace(/[?#].*$/, "").replace(/\/+$/, "");
   }
 }

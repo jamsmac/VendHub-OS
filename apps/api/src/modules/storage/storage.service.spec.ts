@@ -514,6 +514,33 @@ describe("StorageService", () => {
 
       expect(result).toBe("https://cdn.vendhub.test/org-1/images/file.jpg");
     });
+
+    it("should return a Supabase public URL when configured", () => {
+      const customService = new StorageService(
+        {} as never,
+        {
+          get: jest.fn((key: string, defaultValue?: string) => {
+            const configValues: Record<string, string> = {
+              AWS_REGION: "us-east-1",
+              STORAGE_BUCKET: "vendhub-media",
+              STORAGE_ENDPOINT:
+                "https://gwrfhzvulvkudobtmkrs.storage.supabase.co/storage/v1/s3",
+              STORAGE_PUBLIC_URL:
+                "https://gwrfhzvulvkudobtmkrs.supabase.co/storage/v1/object/public/vendhub-media",
+              STORAGE_ACCESS_KEY: "test-access-key",
+              STORAGE_SECRET_KEY: "test-secret-key",
+            };
+            return configValues[key] ?? defaultValue;
+          }),
+        } as unknown as ConfigService,
+      );
+
+      const result = customService.getCdnUrl("org-1/images/file.jpg");
+
+      expect(result).toBe(
+        "https://gwrfhzvulvkudobtmkrs.supabase.co/storage/v1/object/public/vendhub-media/org-1/images/file.jpg",
+      );
+    });
   });
 
   describe("getKeyFromUrl", () => {
@@ -537,6 +564,33 @@ describe("StorageService", () => {
       const result = service.getKeyFromUrl("https://other-domain.com/file.jpg");
 
       expect(result).toBeNull();
+    });
+
+    it("should extract key from Supabase public URL", () => {
+      const customService = new StorageService(
+        {} as never,
+        {
+          get: jest.fn((key: string, defaultValue?: string) => {
+            const configValues: Record<string, string> = {
+              AWS_REGION: "us-east-1",
+              STORAGE_BUCKET: "vendhub-media",
+              STORAGE_ENDPOINT:
+                "https://gwrfhzvulvkudobtmkrs.storage.supabase.co/storage/v1/s3",
+              STORAGE_PUBLIC_URL:
+                "https://gwrfhzvulvkudobtmkrs.supabase.co/storage/v1/object/public/vendhub-media",
+              STORAGE_ACCESS_KEY: "test-access-key",
+              STORAGE_SECRET_KEY: "test-secret-key",
+            };
+            return configValues[key] ?? defaultValue;
+          }),
+        } as unknown as ConfigService,
+      );
+
+      const result = customService.getKeyFromUrl(
+        "https://gwrfhzvulvkudobtmkrs.supabase.co/storage/v1/object/public/vendhub-media/org-1/images/file.jpg",
+      );
+
+      expect(result).toBe("org-1/images/file.jpg");
     });
   });
 
