@@ -124,7 +124,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     (async () => {
       for (let attempt = 1; attempt <= 5; attempt++) {
         try {
-          await this.bot.launch();
+          await this.bot.launch({ dropPendingUpdates: true });
           this.logger.log("Telegram staff bot started");
           return;
         } catch (error: unknown) {

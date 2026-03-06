@@ -92,12 +92,21 @@ export class TelegramCustomerBotService
     this.registerCallbacks();
     this.registerMessages();
 
-    try {
-      await this.bot.launch();
-      this.logger.log("Telegram customer bot started");
-    } catch (error: unknown) {
-      this.logger.error("Failed to start customer bot:", error);
-    }
+    // Launch in background — don't block NestJS startup
+    this.launchBotInBackground();
+  }
+
+  private launchBotInBackground() {
+    (async () => {
+      try {
+        await this.bot.launch({ dropPendingUpdates: true });
+        this.logger.log("Telegram customer bot started");
+      } catch (error: unknown) {
+        this.logger.error("Failed to start customer bot:", error);
+      }
+    })().catch((err) => {
+      this.logger.error(`Customer bot background launch error: ${err}`);
+    });
   }
 
   async onModuleDestroy() {
