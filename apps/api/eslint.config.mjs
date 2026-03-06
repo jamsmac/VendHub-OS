@@ -29,5 +29,13 @@ export default tseslint.config(
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
     },
+  },
+  // Override for test spec files — relax rules that are impractical in test/mock code
+  {
+    files: ['src/**/*.spec.ts', 'test/**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
   }
 );
