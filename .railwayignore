@@ -1,0 +1,12 @@
+# Ignore non-essential directories for Railway deployment
+skills/
+design-craft/
+docs/
+.claude/
+*.md
+!README.md
+apps/mobile/
+infrastructure/
+scripts/
+.github/
+node_modules/

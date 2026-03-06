@@ -1,0 +1,18 @@
+# Railway configuration for VendHub API service
+# Place this file at: apps/api/railway.toml
+# In Railway Dashboard → API service → Settings → Root Directory: apps/api
+
+[build]
+# Railway auto-detects the Dockerfile in apps/api/
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Release command runs AFTER build, BEFORE start — perfect for migrations
+# This runs in the production container (compiled dist/ is available)
+releaseCommand = "node -e \"const ds=require('./dist/database/typeorm.config').default;ds.initialize().then(()=>ds.runMigrations()).then(r=>{console.log('Migrations run:',r.length);process.exit(0)}).catch(e=>{console.error('Migration failed:',e.message);process.exit(1)})\""
+
+startCommand = "node dist/main.js"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

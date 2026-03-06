@@ -1,14 +1,15 @@
 # Railway project configuration
 # https://docs.railway.app/reference/config-as-code
 #
-# NOTE: This file is read per-service. Each Railway service should
-# configure its own build/deploy settings in the dashboard:
-#   - Root Directory (optional)
-#   - Dockerfile Path (if using Docker builds)
-#   - Build/Start commands (if overriding)
+# Monorepo setup: each service in Railway Dashboard must set its Root Directory
 #
-# For Railpack (auto-detection), pnpm workspaces are auto-detected.
-# Each service runs: pnpm --filter <package-name> build / start
+#   Service  | Root Directory | railway.toml location
+#   ---------|----------------|----------------------
+#   api      | apps/api       | apps/api/railway.toml  ← has migration release command
+#   web      | apps/web       | (this file applies)
+#   client   | apps/client    | (this file applies)
+#   bot      | apps/bot       | (this file applies)
+#   site     | apps/site      | (this file applies)
 #
 # Service overview:
 #   api     → @vendhub/api     (NestJS, port 4000)
