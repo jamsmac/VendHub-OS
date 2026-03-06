@@ -1,8 +1,8 @@
 {
-  "name": "vendhub-unified",
+  "name": "vendhub-os",
   "version": "1.0.0",
   "private": true,
-  "description": "VendHub Unified System - Monorepo for vending machine management",
+  "description": "VendHub OS - Unified vending machine management platform for Uzbekistan",
   "author": "VendHub Team",
   "license": "UNLICENSED",
   "workspaces": [

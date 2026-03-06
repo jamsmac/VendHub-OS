@@ -1,4 +1,4 @@
-# VendHub Unified System
+# VendHub OS
 
 > Production-ready unified vending machine management platform for Uzbekistan market.
 
@@ -61,9 +61,9 @@ VendHub OS is a comprehensive vending machine management platform designed speci
 ## Project Structure
 
 ```
-vendhub-unified/
+VendHub OS/
 ├── apps/
-│   ├── api/                    # NestJS Backend (33 modules)
+│   ├── api/                    # NestJS Backend (59 modules)
 │   │   ├── src/
 │   │   │   ├── common/         # Guards, decorators, filters
 │   │   │   ├── config/         # Configuration files
