@@ -8,8 +8,8 @@ import {
   TwoFactorAuth,
   PasswordResetToken,
   LoginAttempt,
-  AccessRequest,
 } from "./entities/user.entity";
+import { AccessRequest } from "../telegram-bot/entities/access-request.entity";
 
 @Module({
   imports: [
