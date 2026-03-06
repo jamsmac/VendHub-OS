@@ -201,7 +201,7 @@ export class FiscalShift extends BaseEntity {
 // ============================================
 
 @Entity("fiscal_receipts")
-@Index(["organizationId", "created_at"])
+@Index(["organizationId", "createdAt"])
 @Index(["shiftId", "type"])
 @Index(["orderId"])
 @Index(["fiscalNumber"])
