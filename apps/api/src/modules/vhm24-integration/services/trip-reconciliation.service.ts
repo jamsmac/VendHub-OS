@@ -15,24 +15,17 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { TripReconciliation } from "../../trips/entities/trip-reconciliation.entity";
+import {
+  TripReconciliation,
+  ReconciliationStatus,
+  MismatchSeverity,
+} from "../../trips/entities/trip-reconciliation.entity";
+import { Trip } from "../../trips/entities/trip.entity";
+import { TripStop } from "../../trips/entities/trip-stop.entity";
+import { TripTaskLink } from "../../trips/entities/trip-task-link.entity";
+import { GpsProcessingService } from "../../trips/services/gps-processing.service";
 
-export enum ReconciliationStatus {
-  MATCHED = "matched",
-  MISMATCHED = "mismatched",
-  PARTIAL = "partial",
-  PENDING = "pending",
-  REVIEW = "review",
-  RESOLVED = "resolved",
-}
-
-export enum MismatchSeverity {
-  INFO = "info",
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-}
+export { ReconciliationStatus, MismatchSeverity };
 
 export interface TripMismatch {
   type: string;
@@ -42,10 +35,6 @@ export interface TripMismatch {
   actual?: unknown;
   details?: unknown;
 }
-import { Trip } from "../../trips/entities/trip.entity";
-import { TripStop } from "../../trips/entities/trip-stop.entity";
-import { TripTaskLink } from "../../trips/entities/trip-task-link.entity";
-import { GpsProcessingService } from "../../trips/services/gps-processing.service";
 
 /** Maximum acceptable GPS-vs-odometer deviation */
 const DISTANCE_TOLERANCE_PERCENT = 15;
@@ -137,7 +126,7 @@ export class TripReconciliationService {
       completedTasks: taskLinks.length, // all linked tasks considered "completed"
       verifiedTasks,
       mismatchTasks,
-      mismatches,
+      mismatches: mismatches as unknown as Record<string, unknown>[],
       overallSeverity,
     });
 
