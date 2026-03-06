@@ -45,6 +45,14 @@ export class AppLoggerService implements NestLoggerService {
   }
 
   log(message: string, context?: string) {
+    // Suppress verbose NestJS route-mapping logs in production (500+ lines in <1s)
+    if (
+      context === "RouterExplorer" ||
+      context === "RoutesResolver" ||
+      context === "InstanceLoader"
+    ) {
+      return;
+    }
     this.logger.info(message, { context });
   }
 
