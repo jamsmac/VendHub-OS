@@ -17,11 +17,11 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@vendhub/shared"],
 
-  // Standalone output for Docker (disabled for Railpack/Railway)
-  // output: "standalone",
+  // Standalone output for Docker
+  output: "standalone",
 
   // Monorepo root for standalone output file tracing
-  // outputFileTracingRoot: path.join(__dirname, "../.."),
+  outputFileTracingRoot: path.join(__dirname, "../.."),
 
   images: {
     remotePatterns: [

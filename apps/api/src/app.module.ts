@@ -263,6 +263,11 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
             max: poolSize,
             connectionTimeoutMillis: 10000,
             idleTimeoutMillis: 30000,
+            // Supabase transaction-mode pooler (port 6543) reuses connections
+            // across requests. Named prepared statements are connection-specific
+            // and fail when PgBouncer assigns a different backend connection.
+            // Setting statement_timeout protects against runaway queries.
+            statement_timeout: 30000,
           },
           // Auto-run migrations on startup if DB_MIGRATIONS_RUN=true
           migrationsRun:
@@ -287,17 +292,30 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         // If Redis is configured, use Redis store; otherwise fall back to in-memory
         if (redisUrl || redisHost) {
           try {
-            const store = await redisStore({
+            const storePromise = redisStore({
               url: redisUrl || undefined,
               socket: !redisUrl
                 ? {
                     host: redisHost,
                     port: configService.get<number>("REDIS_PORT", 6379),
+                    connectTimeout: 5000,
                   }
-                : undefined,
+                : {
+                    connectTimeout: 5000,
+                  },
               password: configService.get("REDIS_PASSWORD") || undefined,
               ttl,
             });
+            // Timeout after 10s to prevent hanging during startup
+            const store = await Promise.race([
+              storePromise,
+              new Promise<never>((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("Redis connection timeout (10s)")),
+                  10000,
+                ),
+              ),
+            ]);
             return { store };
           } catch (error) {
             // If Redis connection fails, gracefully fall back to in-memory
@@ -329,6 +347,7 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
           ? {
               url: redisUrl,
               maxRetriesPerRequest: null as null,
+              connectTimeout: 10000,
               retryStrategy: (times: number) => Math.min(times * 500, 5000),
             }
           : {
@@ -336,6 +355,7 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
               port: configService.get<number>("REDIS_PORT", 6379),
               password: configService.get("REDIS_PASSWORD"),
               maxRetriesPerRequest: null as null,
+              connectTimeout: 10000,
               retryStrategy: (times: number) => Math.min(times * 500, 5000),
             };
 

@@ -114,7 +114,10 @@ async function main() {
   logger.info("Bot commands set");
 
   // Health check HTTP server (for Docker/K8s probes)
-  const healthPort = config.webhookDomain ? config.port + 1 : config.port;
+  // Always listen on config.port so Dockerfile HEALTHCHECK can probe a fixed port.
+  // In webhook mode, Telegraf's built-in HTTP runs on webhookPort (port + 1).
+  const healthPort = config.port;
+  const webhookPort = config.port + 1;
   const healthServer = http.createServer(async (req, res) => {
     if (req.url === "/health" && req.method === "GET") {
       try {
@@ -138,13 +141,10 @@ async function main() {
     }
   });
 
-  // In webhook mode, health runs on port+1 (bot uses the main port for webhook)
-  // In polling mode, health runs on the configured port (no HTTP server for bot)
-  if (!config.webhookDomain) {
-    healthServer.listen(healthPort, () => {
-      logger.info(`Health endpoint ready on port ${healthPort}`);
-    });
-  }
+  // Start health server first on config.port (matches Dockerfile HEALTHCHECK)
+  healthServer.listen(healthPort, () => {
+    logger.info(`Health endpoint ready on port ${healthPort}`);
+  });
 
   // Launch bot
   if (config.webhookDomain) {
@@ -159,7 +159,7 @@ async function main() {
           webhook: {
             domain: config.webhookDomain,
             path: config.webhookPath,
-            port: config.port,
+            port: webhookPort,
             secretToken: config.webhookSecret || undefined,
           },
         });
@@ -179,12 +179,7 @@ async function main() {
       }
     }
 
-    logger.info(`Bot started in webhook mode on port ${config.port}`);
-
-    // Health server on port+1 since bot uses the main port
-    healthServer.listen(healthPort, () => {
-      logger.info(`Health endpoint ready on port ${healthPort}`);
-    });
+    logger.info(`Bot started in webhook mode on port ${webhookPort}`);
   } else {
     // Long polling mode for development
     await bot.launch();

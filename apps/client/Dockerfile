@@ -80,20 +80,23 @@ FROM nginx:alpine AS production
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy custom nginx config
-COPY apps/client/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx config as template (envsubst replaces $PORT at runtime)
+COPY apps/client/nginx.conf /etc/nginx/templates/default.conf.template
 
 # Copy built assets
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 
-# Configure nginx to run as non-root
-RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
+# Configure nginx to run as non-root (templates dir must be readable for envsubst)
+RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /etc/nginx/templates && \
     touch /var/run/nginx.pid && \
     chown nginx:nginx /var/run/nginx.pid
 
-# Add health check script
+# Default port (Railway overrides via $PORT)
+ENV PORT=80
+
+# Add health check script (uses $PORT at runtime)
 RUN echo '#!/bin/sh' > /docker-healthcheck.sh && \
-    echo 'wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1' >> /docker-healthcheck.sh && \
+    echo 'wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1' >> /docker-healthcheck.sh && \
     chmod +x /docker-healthcheck.sh
 
 # Health check
@@ -105,4 +108,5 @@ USER nginx
 
 EXPOSE 80
 
+# nginx entrypoint auto-processes /etc/nginx/templates/*.template via envsubst
 CMD ["nginx", "-g", "daemon off;"]

@@ -68,6 +68,9 @@ export const dataSourceOptions: DataSourceOptions = {
     max: parseInt(process.env.DB_POOL_SIZE || "10", 10),
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
+    // Supabase transaction-mode pooler (port 6543) doesn't support named
+    // prepared statements. statement_timeout guards against runaway queries.
+    statement_timeout: 30000,
   },
 
   // SSL (auto-enable in production or with DATABASE_URL sslmode)
