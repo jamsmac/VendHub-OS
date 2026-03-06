@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddMaterialRequestsSystem1705000005 implements MigrationInterface {
-  name = 'AddMaterialRequestsSystem1705000005';
+export class AddMaterialRequestsSystem1705000005000 implements MigrationInterface {
+  name = "AddMaterialRequestsSystem1705000005000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create material request status enum
@@ -98,10 +98,18 @@ export class AddMaterialRequestsSystem1705000005 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_material_requests_org_status" ON "material_requests" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_material_requests_requester" ON "material_requests" ("requesterId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_material_request_items_request_product" ON "material_request_items" ("requestId", "productId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_material_request_history_request_date" ON "material_request_history" ("requestId", "createdAt")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_material_requests_org_status" ON "material_requests" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_material_requests_requester" ON "material_requests" ("requesterId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_material_request_items_request_product" ON "material_request_items" ("requestId", "productId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_material_request_history_request_date" ON "material_request_history" ("requestId", "createdAt")`,
+    );
 
     // Create foreign keys
     await queryRunner.query(`
@@ -118,10 +126,18 @@ export class AddMaterialRequestsSystem1705000005 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "material_request_history" DROP CONSTRAINT "FK_material_request_history_request"`);
-    await queryRunner.query(`ALTER TABLE "material_request_items" DROP CONSTRAINT "FK_material_request_items_request"`);
-    await queryRunner.query(`DROP INDEX "IDX_material_request_history_request_date"`);
-    await queryRunner.query(`DROP INDEX "IDX_material_request_items_request_product"`);
+    await queryRunner.query(
+      `ALTER TABLE "material_request_history" DROP CONSTRAINT "FK_material_request_history_request"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "material_request_items" DROP CONSTRAINT "FK_material_request_items_request"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_material_request_history_request_date"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_material_request_items_request_product"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_material_requests_requester"`);
     await queryRunner.query(`DROP INDEX "IDX_material_requests_org_status"`);
     await queryRunner.query(`DROP TABLE "material_request_history"`);

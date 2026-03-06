@@ -4,10 +4,17 @@
  * Creates points_transactions table and adds loyalty fields to users table
  */
 
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableColumn, TableForeignKey } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableColumn,
+  TableForeignKey,
+} from "typeorm";
 
-export class AddLoyaltySystem1705000001 implements MigrationInterface {
-  name = 'AddLoyaltySystem1705000001';
+export class AddLoyaltySystem1705000001000 implements MigrationInterface {
+  name = "AddLoyaltySystem1705000001000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ============================================
@@ -53,80 +60,80 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
     // ============================================
     await queryRunner.createTable(
       new Table({
-        name: 'points_transactions',
+        name: "points_transactions",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
+            generationStrategy: "uuid",
+            default: "uuid_generate_v4()",
           },
           {
-            name: 'organizationId',
-            type: 'uuid',
+            name: "organizationId",
+            type: "uuid",
             isNullable: false,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: false,
           },
           {
-            name: 'type',
-            type: 'points_transaction_type_enum',
+            name: "type",
+            type: "points_transaction_type_enum",
             isNullable: false,
           },
           {
-            name: 'amount',
-            type: 'int',
+            name: "amount",
+            type: "int",
             isNullable: false,
           },
           {
-            name: 'balanceAfter',
-            type: 'int',
+            name: "balanceAfter",
+            type: "int",
             isNullable: false,
           },
           {
-            name: 'source',
-            type: 'points_source_enum',
+            name: "source",
+            type: "points_source_enum",
             isNullable: false,
           },
           {
-            name: 'referenceId',
-            type: 'uuid',
+            name: "referenceId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'description',
-            type: 'varchar',
-            length: '500',
+            name: "description",
+            type: "varchar",
+            length: "500",
             isNullable: true,
           },
           {
-            name: 'expiresAt',
-            type: 'timestamp',
+            name: "expiresAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'remainingAmount',
-            type: 'int',
+            name: "remainingAmount",
+            type: "int",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'createdById',
-            type: 'uuid',
+            name: "createdById",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "createdAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
         ],
       }),
@@ -137,44 +144,44 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
     // 5. Create indexes for points_transactions
     // ============================================
     await queryRunner.createIndex(
-      'points_transactions',
+      "points_transactions",
       new TableIndex({
-        name: 'IDX_points_transactions_org_user_created',
-        columnNames: ['organizationId', 'userId', 'createdAt'],
+        name: "IDX_points_transactions_org_user_created",
+        columnNames: ["organizationId", "userId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'points_transactions',
+      "points_transactions",
       new TableIndex({
-        name: 'IDX_points_transactions_user_type',
-        columnNames: ['userId', 'type'],
+        name: "IDX_points_transactions_user_type",
+        columnNames: ["userId", "type"],
       }),
     );
 
     await queryRunner.createIndex(
-      'points_transactions',
+      "points_transactions",
       new TableIndex({
-        name: 'IDX_points_transactions_expiration',
-        columnNames: ['expiresAt', 'remainingAmount'],
+        name: "IDX_points_transactions_expiration",
+        columnNames: ["expiresAt", "remainingAmount"],
         where: '"expiresAt" IS NOT NULL AND "remainingAmount" > 0',
       }),
     );
 
     await queryRunner.createIndex(
-      'points_transactions',
+      "points_transactions",
       new TableIndex({
-        name: 'IDX_points_transactions_reference',
-        columnNames: ['referenceId'],
+        name: "IDX_points_transactions_reference",
+        columnNames: ["referenceId"],
         where: '"referenceId" IS NOT NULL',
       }),
     );
 
     await queryRunner.createIndex(
-      'points_transactions',
+      "points_transactions",
       new TableIndex({
-        name: 'IDX_points_transactions_source',
-        columnNames: ['source'],
+        name: "IDX_points_transactions_source",
+        columnNames: ["source"],
       }),
     );
 
@@ -184,40 +191,40 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
 
     // pointsBalance
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'pointsBalance',
-        type: 'int',
+        name: "pointsBalance",
+        type: "int",
         default: 0,
       }),
     );
 
     // loyaltyLevel
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'loyaltyLevel',
-        type: 'loyalty_level_enum',
+        name: "loyaltyLevel",
+        type: "loyalty_level_enum",
         default: "'bronze'",
       }),
     );
 
     // totalPointsEarned
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'totalPointsEarned',
-        type: 'int',
+        name: "totalPointsEarned",
+        type: "int",
         default: 0,
       }),
     );
 
     // totalSpent
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'totalSpent',
-        type: 'decimal',
+        name: "totalSpent",
+        type: "decimal",
         precision: 15,
         scale: 2,
         default: 0,
@@ -226,71 +233,71 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
 
     // totalOrders
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'totalOrders',
-        type: 'int',
+        name: "totalOrders",
+        type: "int",
         default: 0,
       }),
     );
 
     // welcomeBonusReceived
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'welcomeBonusReceived',
-        type: 'boolean',
+        name: "welcomeBonusReceived",
+        type: "boolean",
         default: false,
       }),
     );
 
     // firstOrderBonusReceived
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'firstOrderBonusReceived',
-        type: 'boolean',
+        name: "firstOrderBonusReceived",
+        type: "boolean",
         default: false,
       }),
     );
 
     // currentStreak
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'currentStreak',
-        type: 'int',
+        name: "currentStreak",
+        type: "int",
         default: 0,
       }),
     );
 
     // longestStreak
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'longestStreak',
-        type: 'int',
+        name: "longestStreak",
+        type: "int",
         default: 0,
       }),
     );
 
     // lastOrderDate
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'lastOrderDate',
-        type: 'date',
+        name: "lastOrderDate",
+        type: "date",
         isNullable: true,
       }),
     );
 
     // referralCode
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'referralCode',
-        type: 'varchar',
-        length: '20',
+        name: "referralCode",
+        type: "varchar",
+        length: "20",
         isNullable: true,
         isUnique: true,
       }),
@@ -298,10 +305,10 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
 
     // referredById
     await queryRunner.addColumn(
-      'users',
+      "users",
       new TableColumn({
-        name: 'referredById',
-        type: 'uuid',
+        name: "referredById",
+        type: "uuid",
         isNullable: true,
       }),
     );
@@ -310,27 +317,27 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
     // 7. Create indexes for users loyalty fields
     // ============================================
     await queryRunner.createIndex(
-      'users',
+      "users",
       new TableIndex({
-        name: 'IDX_users_loyalty_level',
-        columnNames: ['loyaltyLevel'],
+        name: "IDX_users_loyalty_level",
+        columnNames: ["loyaltyLevel"],
       }),
     );
 
     await queryRunner.createIndex(
-      'users',
+      "users",
       new TableIndex({
-        name: 'IDX_users_referral_code',
-        columnNames: ['referralCode'],
+        name: "IDX_users_referral_code",
+        columnNames: ["referralCode"],
         where: '"referralCode" IS NOT NULL',
       }),
     );
 
     await queryRunner.createIndex(
-      'users',
+      "users",
       new TableIndex({
-        name: 'IDX_users_referred_by',
-        columnNames: ['referredById'],
+        name: "IDX_users_referred_by",
+        columnNames: ["referredById"],
         where: '"referredById" IS NOT NULL',
       }),
     );
@@ -341,37 +348,37 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
 
     // points_transactions -> users
     await queryRunner.createForeignKey(
-      'points_transactions',
+      "points_transactions",
       new TableForeignKey({
-        name: 'FK_points_transactions_user',
-        columnNames: ['userId'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        name: "FK_points_transactions_user",
+        columnNames: ["userId"],
+        referencedTableName: "users",
+        referencedColumnNames: ["id"],
+        onDelete: "CASCADE",
       }),
     );
 
     // points_transactions -> organizations
     await queryRunner.createForeignKey(
-      'points_transactions',
+      "points_transactions",
       new TableForeignKey({
-        name: 'FK_points_transactions_organization',
-        columnNames: ['organizationId'],
-        referencedTableName: 'organizations',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        name: "FK_points_transactions_organization",
+        columnNames: ["organizationId"],
+        referencedTableName: "organizations",
+        referencedColumnNames: ["id"],
+        onDelete: "CASCADE",
       }),
     );
 
     // users.referredById -> users
     await queryRunner.createForeignKey(
-      'users',
+      "users",
       new TableForeignKey({
-        name: 'FK_users_referred_by',
-        columnNames: ['referredById'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
+        name: "FK_users_referred_by",
+        columnNames: ["referredById"],
+        referencedTableName: "users",
+        referencedColumnNames: ["id"],
+        onDelete: "SET NULL",
       }),
     );
 
@@ -389,37 +396,43 @@ export class AddLoyaltySystem1705000001 implements MigrationInterface {
     // ============================================
     // 1. Drop foreign keys
     // ============================================
-    await queryRunner.dropForeignKey('users', 'FK_users_referred_by');
-    await queryRunner.dropForeignKey('points_transactions', 'FK_points_transactions_organization');
-    await queryRunner.dropForeignKey('points_transactions', 'FK_points_transactions_user');
+    await queryRunner.dropForeignKey("users", "FK_users_referred_by");
+    await queryRunner.dropForeignKey(
+      "points_transactions",
+      "FK_points_transactions_organization",
+    );
+    await queryRunner.dropForeignKey(
+      "points_transactions",
+      "FK_points_transactions_user",
+    );
 
     // ============================================
     // 2. Drop indexes from users
     // ============================================
-    await queryRunner.dropIndex('users', 'IDX_users_referred_by');
-    await queryRunner.dropIndex('users', 'IDX_users_referral_code');
-    await queryRunner.dropIndex('users', 'IDX_users_loyalty_level');
+    await queryRunner.dropIndex("users", "IDX_users_referred_by");
+    await queryRunner.dropIndex("users", "IDX_users_referral_code");
+    await queryRunner.dropIndex("users", "IDX_users_loyalty_level");
 
     // ============================================
     // 3. Drop loyalty columns from users
     // ============================================
-    await queryRunner.dropColumn('users', 'referredById');
-    await queryRunner.dropColumn('users', 'referralCode');
-    await queryRunner.dropColumn('users', 'lastOrderDate');
-    await queryRunner.dropColumn('users', 'longestStreak');
-    await queryRunner.dropColumn('users', 'currentStreak');
-    await queryRunner.dropColumn('users', 'firstOrderBonusReceived');
-    await queryRunner.dropColumn('users', 'welcomeBonusReceived');
-    await queryRunner.dropColumn('users', 'totalOrders');
-    await queryRunner.dropColumn('users', 'totalSpent');
-    await queryRunner.dropColumn('users', 'totalPointsEarned');
-    await queryRunner.dropColumn('users', 'loyaltyLevel');
-    await queryRunner.dropColumn('users', 'pointsBalance');
+    await queryRunner.dropColumn("users", "referredById");
+    await queryRunner.dropColumn("users", "referralCode");
+    await queryRunner.dropColumn("users", "lastOrderDate");
+    await queryRunner.dropColumn("users", "longestStreak");
+    await queryRunner.dropColumn("users", "currentStreak");
+    await queryRunner.dropColumn("users", "firstOrderBonusReceived");
+    await queryRunner.dropColumn("users", "welcomeBonusReceived");
+    await queryRunner.dropColumn("users", "totalOrders");
+    await queryRunner.dropColumn("users", "totalSpent");
+    await queryRunner.dropColumn("users", "totalPointsEarned");
+    await queryRunner.dropColumn("users", "loyaltyLevel");
+    await queryRunner.dropColumn("users", "pointsBalance");
 
     // ============================================
     // 4. Drop points_transactions table
     // ============================================
-    await queryRunner.dropTable('points_transactions');
+    await queryRunner.dropTable("points_transactions");
 
     // ============================================
     // 5. Drop enum types

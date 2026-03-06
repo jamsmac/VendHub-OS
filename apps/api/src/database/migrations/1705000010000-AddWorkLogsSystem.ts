@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddWorkLogsSystem1705000010 implements MigrationInterface {
-  name = 'AddWorkLogsSystem1705000010';
+export class AddWorkLogsSystem1705000010000 implements MigrationInterface {
+  name = "AddWorkLogsSystem1705000010000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create work log status enum
@@ -136,16 +136,36 @@ export class AddWorkLogsSystem1705000010 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_work_logs_org_employee" ON "work_logs" ("organizationId", "employeeId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_work_logs_org_date" ON "work_logs" ("organizationId", "workDate")`);
-    await queryRunner.query(`CREATE INDEX "IDX_work_logs_employee_date" ON "work_logs" ("employeeId", "workDate")`);
-    await queryRunner.query(`CREATE INDEX "IDX_work_logs_status" ON "work_logs" ("status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_time_off_requests_org_employee" ON "time_off_requests" ("organizationId", "employeeId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_time_off_requests_dates" ON "time_off_requests" ("startDate", "endDate")`);
-    await queryRunner.query(`CREATE INDEX "IDX_time_off_requests_status" ON "time_off_requests" ("status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_timesheets_org_employee" ON "timesheets" ("organizationId", "employeeId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_timesheets_period" ON "timesheets" ("periodStart", "periodEnd")`);
-    await queryRunner.query(`CREATE INDEX "IDX_timesheets_status" ON "timesheets" ("status")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_work_logs_org_employee" ON "work_logs" ("organizationId", "employeeId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_work_logs_org_date" ON "work_logs" ("organizationId", "workDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_work_logs_employee_date" ON "work_logs" ("employeeId", "workDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_work_logs_status" ON "work_logs" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_time_off_requests_org_employee" ON "time_off_requests" ("organizationId", "employeeId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_time_off_requests_dates" ON "time_off_requests" ("startDate", "endDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_time_off_requests_status" ON "time_off_requests" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_timesheets_org_employee" ON "timesheets" ("organizationId", "employeeId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_timesheets_period" ON "timesheets" ("periodStart", "periodEnd")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_timesheets_status" ON "timesheets" ("status")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

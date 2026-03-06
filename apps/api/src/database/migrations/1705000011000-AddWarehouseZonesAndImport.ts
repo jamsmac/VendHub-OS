@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddWarehouseZonesAndImport1705000011 implements MigrationInterface {
-  name = 'AddWarehouseZonesAndImport1705000011';
+export class AddWarehouseZonesAndImport1705000011000 implements MigrationInterface {
+  name = "AddWarehouseZonesAndImport1705000011000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ========================================================================
@@ -110,14 +110,30 @@ export class AddWarehouseZonesAndImport1705000011 implements MigrationInterface 
     `);
 
     // Create indexes for warehouse zones
-    await queryRunner.query(`CREATE UNIQUE INDEX "IDX_warehouse_zones_org_code" ON "warehouse_zones" ("organizationId", "code")`);
-    await queryRunner.query(`CREATE INDEX "IDX_warehouse_zones_org_type" ON "warehouse_zones" ("organizationId", "zoneType")`);
-    await queryRunner.query(`CREATE INDEX "IDX_warehouse_zones_org_status" ON "warehouse_zones" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_warehouse_bins_org_zone" ON "warehouse_bins" ("organizationId", "zoneId")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "IDX_warehouse_bins_org_barcode" ON "warehouse_bins" ("organizationId", "barcode")`);
-    await queryRunner.query(`CREATE INDEX "IDX_warehouse_bins_status" ON "warehouse_bins" ("status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_bin_content_history_bin" ON "bin_content_history" ("binId", "createdAt")`);
-    await queryRunner.query(`CREATE INDEX "IDX_bin_content_history_product" ON "bin_content_history" ("productId")`);
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "IDX_warehouse_zones_org_code" ON "warehouse_zones" ("organizationId", "code")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_warehouse_zones_org_type" ON "warehouse_zones" ("organizationId", "zoneType")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_warehouse_zones_org_status" ON "warehouse_zones" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_warehouse_bins_org_zone" ON "warehouse_bins" ("organizationId", "zoneId")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "IDX_warehouse_bins_org_barcode" ON "warehouse_bins" ("organizationId", "barcode")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_warehouse_bins_status" ON "warehouse_bins" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_bin_content_history_bin" ON "bin_content_history" ("binId", "createdAt")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_bin_content_history_product" ON "bin_content_history" ("productId")`,
+    );
 
     // Create foreign keys for warehouse
     await queryRunner.query(`
@@ -215,10 +231,18 @@ export class AddWarehouseZonesAndImport1705000011 implements MigrationInterface 
     `);
 
     // Create indexes for import
-    await queryRunner.query(`CREATE INDEX "IDX_import_jobs_org_status" ON "import_jobs" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_import_jobs_org_type" ON "import_jobs" ("organizationId", "importType")`);
-    await queryRunner.query(`CREATE INDEX "IDX_import_jobs_created" ON "import_jobs" ("createdAt")`);
-    await queryRunner.query(`CREATE INDEX "IDX_import_templates_org_type" ON "import_templates" ("organizationId", "importType")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_import_jobs_org_status" ON "import_jobs" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_import_jobs_org_type" ON "import_jobs" ("organizationId", "importType")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_import_jobs_created" ON "import_jobs" ("createdAt")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_import_templates_org_type" ON "import_templates" ("organizationId", "importType")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -238,8 +262,12 @@ export class AddWarehouseZonesAndImport1705000011 implements MigrationInterface 
     await queryRunner.query(`DROP TYPE "import_type_enum"`);
 
     // Drop warehouse foreign keys
-    await queryRunner.query(`ALTER TABLE "bin_content_history" DROP CONSTRAINT "FK_bin_content_history_bin"`);
-    await queryRunner.query(`ALTER TABLE "warehouse_bins" DROP CONSTRAINT "FK_warehouse_bins_zone"`);
+    await queryRunner.query(
+      `ALTER TABLE "bin_content_history" DROP CONSTRAINT "FK_bin_content_history_bin"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "warehouse_bins" DROP CONSTRAINT "FK_warehouse_bins_zone"`,
+    );
 
     // Drop warehouse indexes
     await queryRunner.query(`DROP INDEX "IDX_bin_content_history_product"`);

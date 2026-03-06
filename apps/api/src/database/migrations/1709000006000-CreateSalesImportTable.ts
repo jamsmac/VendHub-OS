@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Migration: CreateSalesImportTable
@@ -8,7 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * structured error reporting, and import summary statistics.
  */
 export class CreateSalesImportTable1709000006000 implements MigrationInterface {
-  name = 'CreateSalesImportTable1709000006000';
+  name = "CreateSalesImportTable1709000006000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure uuid-ossp extension is available
@@ -18,13 +18,12 @@ export class CreateSalesImportTable1709000006000 implements MigrationInterface {
     // ENUM: import_status_enum
     // ========================================================================
     await queryRunner.query(`
-      CREATE TYPE import_status_enum AS ENUM (
-        'PENDING',
-        'PROCESSING',
-        'COMPLETED',
-        'FAILED',
-        'PARTIAL'
-      )
+      DO $$ BEGIN
+        CREATE TYPE import_status_enum AS ENUM (
+          'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'PARTIAL'
+        );
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
     `);
 
     // ========================================================================
@@ -54,7 +53,7 @@ export class CreateSalesImportTable1709000006000 implements MigrationInterface {
         file_id uuid,
 
         -- Status
-        status import_status_enum NOT NULL DEFAULT 'PENDING',
+        status import_status_enum NOT NULL DEFAULT 'pending',
 
         -- Row counts
         total_rows int NOT NULL DEFAULT 0,
@@ -120,13 +119,21 @@ export class CreateSalesImportTable1709000006000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // -- Drop foreign key constraints
-    await queryRunner.query(`ALTER TABLE sales_imports DROP CONSTRAINT IF EXISTS fk_sales_imports_uploaded_by_user`);
-    await queryRunner.query(`ALTER TABLE sales_imports DROP CONSTRAINT IF EXISTS fk_sales_imports_organization`);
+    await queryRunner.query(
+      `ALTER TABLE sales_imports DROP CONSTRAINT IF EXISTS fk_sales_imports_uploaded_by_user`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE sales_imports DROP CONSTRAINT IF EXISTS fk_sales_imports_organization`,
+    );
 
     // -- Drop indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_sales_imports_created_at_active`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_sales_imports_created_at_active`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS idx_sales_imports_status`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_sales_imports_organization_id`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_sales_imports_organization_id`,
+    );
 
     // -- Drop table
     await queryRunner.query(`DROP TABLE IF EXISTS sales_imports CASCADE`);

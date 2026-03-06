@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Migration: AddPhase3Indexes
@@ -11,38 +11,49 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - Sales import progress queries
  */
 export class AddPhase3Indexes1709000007000 implements MigrationInterface {
-  name = 'AddPhase3Indexes1709000007000';
+  name = "AddPhase3Indexes1709000007000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ========================================================================
     // TRANSACTIONS: Additional indexes for Phase 3 query patterns
     // ========================================================================
 
-    // -- Index on counterparty_id for expense tracking and supplier-linked transactions
+    // -- Index on counterparty_id (skip if column doesn't exist)
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_transactions_counterparty_id
-        ON transactions(counterparty_id)
-        WHERE counterparty_id IS NOT NULL
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transactions' AND column_name = 'counterparty_id') THEN
+          CREATE INDEX IF NOT EXISTS idx_transactions_counterparty_id ON transactions(counterparty_id) WHERE counterparty_id IS NOT NULL;
+        END IF;
+      END $$
     `);
 
-    // -- Index on contract_id for commission calculation queries
+    // -- Index on contract_id (skip if column doesn't exist)
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_transactions_contract_id
-        ON transactions(contract_id)
-        WHERE contract_id IS NOT NULL
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transactions' AND column_name = 'contract_id') THEN
+          CREATE INDEX IF NOT EXISTS idx_transactions_contract_id ON transactions(contract_id) WHERE contract_id IS NOT NULL;
+        END IF;
+      END $$
     `);
 
     // -- Composite index: organization + type + date range (common report query)
+    // Skip if transaction_date column doesn't exist yet
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_transactions_org_type_date
-        ON transactions(organization_id, type, transaction_date)
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transactions' AND column_name = 'transaction_date') THEN
+          CREATE INDEX IF NOT EXISTS idx_transactions_org_type_date ON transactions(organization_id, type, transaction_date);
+        END IF;
+      END $$
     `);
 
     // -- Composite index: organization + expense_category (expense reports)
+    // Skip if expense_category column doesn't exist yet
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_transactions_org_expense_category
-        ON transactions(organization_id, expense_category)
-        WHERE expense_category IS NOT NULL
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transactions' AND column_name = 'expense_category') THEN
+          CREATE INDEX IF NOT EXISTS idx_transactions_org_expense_category ON transactions(organization_id, expense_category) WHERE expense_category IS NOT NULL;
+        END IF;
+      END $$
     `);
 
     // ========================================================================
@@ -103,22 +114,44 @@ export class AddPhase3Indexes1709000007000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // -- Drop sales_imports composite indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_sales_imports_org_status`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_sales_imports_org_status`,
+    );
 
     // -- Drop stock_opening_balances composite indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_stock_opening_balances_product_warehouse_date`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_stock_opening_balances_org_date`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_stock_opening_balances_org_warehouse_applied`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_stock_opening_balances_product_warehouse_date`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_stock_opening_balances_org_date`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_stock_opening_balances_org_warehouse_applied`,
+    );
 
     // -- Drop purchase_history composite indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_product_warehouse`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_org_supplier_status`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_org_date`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_product_warehouse`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_org_supplier_status`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_org_date`,
+    );
 
     // -- Drop transactions additional indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_transactions_org_expense_category`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_transactions_org_type_date`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_transactions_contract_id`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_transactions_counterparty_id`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_transactions_org_expense_category`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_transactions_org_type_date`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_transactions_contract_id`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_transactions_counterparty_id`,
+    );
   }
 }

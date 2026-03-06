@@ -26,13 +26,13 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
 
   // Role UUIDs (prefixed with r100xxxx pattern for readability)
   private static readonly ROLE_IDS = {
-    owner: "r1000000-0000-4000-a000-000000000001",
-    admin: "r1000000-0000-4000-a000-000000000002",
-    manager: "r1000000-0000-4000-a000-000000000003",
-    accountant: "r1000000-0000-4000-a000-000000000004",
-    warehouse: "r1000000-0000-4000-a000-000000000005",
-    operator: "r1000000-0000-4000-a000-000000000006",
-    viewer: "r1000000-0000-4000-a000-000000000007",
+    owner: "a1000000-0000-4000-a000-000000000001",
+    admin: "a1000000-0000-4000-a000-000000000002",
+    manager: "a1000000-0000-4000-a000-000000000003",
+    accountant: "a1000000-0000-4000-a000-000000000004",
+    warehouse: "a1000000-0000-4000-a000-000000000005",
+    operator: "a1000000-0000-4000-a000-000000000006",
+    viewer: "a1000000-0000-4000-a000-000000000007",
   } as const;
 
   // Resources and actions
@@ -69,13 +69,13 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
 
   /**
    * Generates a deterministic UUID for a permission based on resource + action index.
-   * Format: p100RRRR-0000-4000-a000-00000000AAAA
+   * Format: b100RRRR-0000-4000-a000-000000000AAA
    * where RRRR = resource index (0-padded) and AAAA = action index (0-padded)
    */
   private static permissionId(resourceIdx: number, actionIdx: number): string {
     const r = String(resourceIdx).padStart(4, "0");
     const a = String(actionIdx).padStart(4, "0");
-    return `p100${r}-0000-4000-a000-0000000${a}`;
+    return `b100${r}-0000-4000-a000-00000000${a}`;
   }
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -372,7 +372,7 @@ export class SeedDefaultRolesAndPermissions1707200001000 implements MigrationInt
     // Delete seeded permissions (all with our deterministic ID prefix)
     await queryRunner.query(`
       DELETE FROM "permissions"
-      WHERE "id"::text LIKE 'p100%'
+      WHERE "id"::text LIKE 'b100%'
     `);
 
     // Delete seeded roles

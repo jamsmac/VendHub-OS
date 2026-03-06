@@ -4,10 +4,16 @@
  * Creates quests and user_quests tables
  */
 
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableForeignKey,
+} from "typeorm";
 
-export class AddQuestsSystem1705000002 implements MigrationInterface {
-  name = 'AddQuestsSystem1705000002';
+export class AddQuestsSystem1705000002000 implements MigrationInterface {
+  name = "AddQuestsSystem1705000002000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ============================================
@@ -39,139 +45,139 @@ export class AddQuestsSystem1705000002 implements MigrationInterface {
     // ============================================
     await queryRunner.createTable(
       new Table({
-        name: 'quests',
+        name: "quests",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
+            generationStrategy: "uuid",
+            default: "uuid_generate_v4()",
           },
           {
-            name: 'organizationId',
-            type: 'uuid',
+            name: "organizationId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'title',
-            type: 'varchar',
-            length: '100',
+            name: "title",
+            type: "varchar",
+            length: "100",
           },
           {
-            name: 'titleUz',
-            type: 'varchar',
-            length: '100',
+            name: "titleUz",
+            type: "varchar",
+            length: "100",
             isNullable: true,
           },
           {
-            name: 'description',
-            type: 'varchar',
-            length: '500',
+            name: "description",
+            type: "varchar",
+            length: "500",
           },
           {
-            name: 'descriptionUz',
-            type: 'varchar',
-            length: '500',
+            name: "descriptionUz",
+            type: "varchar",
+            length: "500",
             isNullable: true,
           },
           {
-            name: 'period',
-            type: 'quest_period_enum',
+            name: "period",
+            type: "quest_period_enum",
           },
           {
-            name: 'type',
-            type: 'quest_type_enum',
+            name: "type",
+            type: "quest_type_enum",
           },
           {
-            name: 'difficulty',
-            type: 'quest_difficulty_enum',
+            name: "difficulty",
+            type: "quest_difficulty_enum",
             default: "'medium'",
           },
           {
-            name: 'targetValue',
-            type: 'int',
+            name: "targetValue",
+            type: "int",
           },
           {
-            name: 'rewardPoints',
-            type: 'int',
+            name: "rewardPoints",
+            type: "int",
           },
           {
-            name: 'additionalRewards',
-            type: 'jsonb',
+            name: "additionalRewards",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'requirements',
-            type: 'jsonb',
+            name: "requirements",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'icon',
-            type: 'varchar',
-            length: '10',
+            name: "icon",
+            type: "varchar",
+            length: "10",
             default: "'🎯'",
           },
           {
-            name: 'color',
-            type: 'varchar',
-            length: '20',
+            name: "color",
+            type: "varchar",
+            length: "20",
             default: "'#4CAF50'",
           },
           {
-            name: 'imageUrl',
-            type: 'varchar',
+            name: "imageUrl",
+            type: "varchar",
             isNullable: true,
           },
           {
-            name: 'startsAt',
-            type: 'timestamp',
+            name: "startsAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'endsAt',
-            type: 'timestamp',
+            name: "endsAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'isActive',
-            type: 'boolean',
+            name: "isActive",
+            type: "boolean",
             default: true,
           },
           {
-            name: 'isFeatured',
-            type: 'boolean',
+            name: "isFeatured",
+            type: "boolean",
             default: false,
           },
           {
-            name: 'displayOrder',
-            type: 'int',
+            name: "displayOrder",
+            type: "int",
             default: 0,
           },
           {
-            name: 'totalStarted',
-            type: 'int',
+            name: "totalStarted",
+            type: "int",
             default: 0,
           },
           {
-            name: 'totalCompleted',
-            type: 'int',
+            name: "totalCompleted",
+            type: "int",
             default: 0,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "createdAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
           {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "updatedAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
         ],
       }),
@@ -183,90 +189,90 @@ export class AddQuestsSystem1705000002 implements MigrationInterface {
     // ============================================
     await queryRunner.createTable(
       new Table({
-        name: 'user_quests',
+        name: "user_quests",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
+            generationStrategy: "uuid",
+            default: "uuid_generate_v4()",
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
           },
           {
-            name: 'questId',
-            type: 'uuid',
+            name: "questId",
+            type: "uuid",
           },
           {
-            name: 'status',
-            type: 'quest_status_enum',
+            name: "status",
+            type: "quest_status_enum",
             default: "'in_progress'",
           },
           {
-            name: 'currentValue',
-            type: 'int',
+            name: "currentValue",
+            type: "int",
             default: 0,
           },
           {
-            name: 'targetValue',
-            type: 'int',
+            name: "targetValue",
+            type: "int",
           },
           {
-            name: 'progressDetails',
-            type: 'jsonb',
+            name: "progressDetails",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'periodStart',
-            type: 'date',
+            name: "periodStart",
+            type: "date",
             isNullable: true,
           },
           {
-            name: 'periodEnd',
-            type: 'date',
+            name: "periodEnd",
+            type: "date",
             isNullable: true,
           },
           {
-            name: 'rewardPoints',
-            type: 'int',
+            name: "rewardPoints",
+            type: "int",
           },
           {
-            name: 'pointsClaimed',
-            type: 'int',
+            name: "pointsClaimed",
+            type: "int",
             isNullable: true,
           },
           {
-            name: 'rewardsClaimed',
-            type: 'jsonb',
+            name: "rewardsClaimed",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'startedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "startedAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
           {
-            name: 'completedAt',
-            type: 'timestamp',
+            name: "completedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'claimedAt',
-            type: 'timestamp',
+            name: "claimedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'expiredAt',
-            type: 'timestamp',
+            name: "expiredAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "updatedAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
         ],
       }),
@@ -277,26 +283,26 @@ export class AddQuestsSystem1705000002 implements MigrationInterface {
     // 4. Create indexes for quests
     // ============================================
     await queryRunner.createIndex(
-      'quests',
+      "quests",
       new TableIndex({
-        name: 'IDX_quests_org_period_active',
-        columnNames: ['organizationId', 'period', 'isActive'],
+        name: "IDX_quests_org_period_active",
+        columnNames: ["organizationId", "period", "isActive"],
       }),
     );
 
     await queryRunner.createIndex(
-      'quests',
+      "quests",
       new TableIndex({
-        name: 'IDX_quests_period_dates',
-        columnNames: ['period', 'startsAt', 'endsAt'],
+        name: "IDX_quests_period_dates",
+        columnNames: ["period", "startsAt", "endsAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'quests',
+      "quests",
       new TableIndex({
-        name: 'IDX_quests_organization',
-        columnNames: ['organizationId'],
+        name: "IDX_quests_organization",
+        columnNames: ["organizationId"],
       }),
     );
 
@@ -304,51 +310,51 @@ export class AddQuestsSystem1705000002 implements MigrationInterface {
     // 5. Create indexes for user_quests
     // ============================================
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_user_status',
-        columnNames: ['userId', 'status'],
+        name: "IDX_user_quests_user_status",
+        columnNames: ["userId", "status"],
       }),
     );
 
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_quest_status',
-        columnNames: ['questId', 'status'],
+        name: "IDX_user_quests_quest_status",
+        columnNames: ["questId", "status"],
       }),
     );
 
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_completed',
-        columnNames: ['completedAt'],
+        name: "IDX_user_quests_completed",
+        columnNames: ["completedAt"],
         where: '"completedAt" IS NOT NULL',
       }),
     );
 
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_user',
-        columnNames: ['userId'],
+        name: "IDX_user_quests_user",
+        columnNames: ["userId"],
       }),
     );
 
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_quest',
-        columnNames: ['questId'],
+        name: "IDX_user_quests_quest",
+        columnNames: ["questId"],
       }),
     );
 
     await queryRunner.createIndex(
-      'user_quests',
+      "user_quests",
       new TableIndex({
-        name: 'IDX_user_quests_unique_period',
-        columnNames: ['userId', 'questId', 'periodStart'],
+        name: "IDX_user_quests_unique_period",
+        columnNames: ["userId", "questId", "periodStart"],
         isUnique: true,
       }),
     );
@@ -357,48 +363,48 @@ export class AddQuestsSystem1705000002 implements MigrationInterface {
     // 6. Create foreign keys
     // ============================================
     await queryRunner.createForeignKey(
-      'quests',
+      "quests",
       new TableForeignKey({
-        name: 'FK_quests_organization',
-        columnNames: ['organizationId'],
-        referencedTableName: 'organizations',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        name: "FK_quests_organization",
+        columnNames: ["organizationId"],
+        referencedTableName: "organizations",
+        referencedColumnNames: ["id"],
+        onDelete: "CASCADE",
       }),
     );
 
     await queryRunner.createForeignKey(
-      'user_quests',
+      "user_quests",
       new TableForeignKey({
-        name: 'FK_user_quests_user',
-        columnNames: ['userId'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        name: "FK_user_quests_user",
+        columnNames: ["userId"],
+        referencedTableName: "users",
+        referencedColumnNames: ["id"],
+        onDelete: "CASCADE",
       }),
     );
 
     await queryRunner.createForeignKey(
-      'user_quests',
+      "user_quests",
       new TableForeignKey({
-        name: 'FK_user_quests_quest',
-        columnNames: ['questId'],
-        referencedTableName: 'quests',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        name: "FK_user_quests_quest",
+        columnNames: ["questId"],
+        referencedTableName: "quests",
+        referencedColumnNames: ["id"],
+        onDelete: "CASCADE",
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop foreign keys
-    await queryRunner.dropForeignKey('user_quests', 'FK_user_quests_quest');
-    await queryRunner.dropForeignKey('user_quests', 'FK_user_quests_user');
-    await queryRunner.dropForeignKey('quests', 'FK_quests_organization');
+    await queryRunner.dropForeignKey("user_quests", "FK_user_quests_quest");
+    await queryRunner.dropForeignKey("user_quests", "FK_user_quests_user");
+    await queryRunner.dropForeignKey("quests", "FK_quests_organization");
 
     // Drop tables
-    await queryRunner.dropTable('user_quests');
-    await queryRunner.dropTable('quests');
+    await queryRunner.dropTable("user_quests");
+    await queryRunner.dropTable("quests");
 
     // Drop enum types
     await queryRunner.query(`DROP TYPE "quest_status_enum"`);

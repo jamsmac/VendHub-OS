@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddOrdersSystem1705000008 implements MigrationInterface {
-  name = 'AddOrdersSystem1705000008';
+export class AddOrdersSystem1705000008000 implements MigrationInterface {
+  name = "AddOrdersSystem1705000008000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create order status enum
@@ -28,13 +28,12 @@ export class AddOrdersSystem1705000008 implements MigrationInterface {
 
     // Create payment method enum
     await queryRunner.query(`
-      CREATE TYPE "payment_method_enum" AS ENUM (
-        'cash',
-        'card',
-        'telegram',
-        'qr',
-        'bonus'
-      )
+      DO $$ BEGIN
+        CREATE TYPE "payment_method_enum" AS ENUM (
+          'cash', 'card', 'telegram', 'qr', 'bonus'
+        );
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
     `);
 
     // Create orders table
@@ -89,13 +88,27 @@ export class AddOrdersSystem1705000008 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_orders_org_status" ON "orders" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_orders_user" ON "orders" ("userId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_orders_machine" ON "orders" ("machineId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_orders_created" ON "orders" ("createdAt")`);
-    await queryRunner.query(`CREATE INDEX "IDX_orders_payment_status" ON "orders" ("paymentStatus")`);
-    await queryRunner.query(`CREATE INDEX "IDX_order_items_order" ON "order_items" ("orderId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_order_items_product" ON "order_items" ("productId")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_org_status" ON "orders" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_user" ON "orders" ("userId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_machine" ON "orders" ("machineId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_created" ON "orders" ("createdAt")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_payment_status" ON "orders" ("paymentStatus")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_order_items_order" ON "order_items" ("orderId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_order_items_product" ON "order_items" ("productId")`,
+    );
 
     // Create foreign keys
     await queryRunner.query(`
@@ -106,7 +119,9 @@ export class AddOrdersSystem1705000008 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "order_items" DROP CONSTRAINT "FK_order_items_order"`);
+    await queryRunner.query(
+      `ALTER TABLE "order_items" DROP CONSTRAINT "FK_order_items_order"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_order_items_product"`);
     await queryRunner.query(`DROP INDEX "IDX_order_items_order"`);
     await queryRunner.query(`DROP INDEX "IDX_orders_payment_status"`);

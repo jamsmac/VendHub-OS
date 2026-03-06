@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddContractorsSystem1705000007 implements MigrationInterface {
-  name = 'AddContractorsSystem1705000007';
+export class AddContractorsSystem1705000007000 implements MigrationInterface {
+  name = "AddContractorsSystem1705000007000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create service type enum
@@ -82,11 +82,21 @@ export class AddContractorsSystem1705000007 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_contractors_org_active" ON "contractors" ("organizationId", "isActive")`);
-    await queryRunner.query(`CREATE INDEX "IDX_contractors_service_type" ON "contractors" ("serviceType")`);
-    await queryRunner.query(`CREATE INDEX "IDX_contractor_invoices_org_status" ON "contractor_invoices" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_contractor_invoices_contractor" ON "contractor_invoices" ("contractorId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_contractor_invoices_due_date" ON "contractor_invoices" ("dueDate")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_contractors_org_active" ON "contractors" ("organizationId", "isActive")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_contractors_service_type" ON "contractors" ("serviceType")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_contractor_invoices_org_status" ON "contractor_invoices" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_contractor_invoices_contractor" ON "contractor_invoices" ("contractorId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_contractor_invoices_due_date" ON "contractor_invoices" ("dueDate")`,
+    );
 
     // Create foreign keys
     await queryRunner.query(`
@@ -97,7 +107,9 @@ export class AddContractorsSystem1705000007 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "contractor_invoices" DROP CONSTRAINT "FK_contractor_invoices_contractor"`);
+    await queryRunner.query(
+      `ALTER TABLE "contractor_invoices" DROP CONSTRAINT "FK_contractor_invoices_contractor"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_contractor_invoices_due_date"`);
     await queryRunner.query(`DROP INDEX "IDX_contractor_invoices_contractor"`);
     await queryRunner.query(`DROP INDEX "IDX_contractor_invoices_org_status"`);

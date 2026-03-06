@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Migration: CreatePurchaseHistoryTable
@@ -8,7 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * multi-currency support, batch tracking, and delivery workflow.
  */
 export class CreatePurchaseHistoryTable1709000005000 implements MigrationInterface {
-  name = 'CreatePurchaseHistoryTable1709000005000';
+  name = "CreatePurchaseHistoryTable1709000005000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure uuid-ossp extension is available
@@ -144,28 +144,53 @@ export class CreatePurchaseHistoryTable1709000005000 implements MigrationInterfa
         FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE SET NULL
     `);
 
+    // FK to counterparties — only add if table exists (may be created later by entity sync)
     await queryRunner.query(`
-      ALTER TABLE purchase_history
-        ADD CONSTRAINT fk_purchase_history_supplier
-        FOREIGN KEY (supplier_id) REFERENCES counterparties(id) ON DELETE SET NULL
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'counterparties') THEN
+          ALTER TABLE purchase_history
+            ADD CONSTRAINT fk_purchase_history_supplier
+            FOREIGN KEY (supplier_id) REFERENCES counterparties(id) ON DELETE SET NULL;
+        END IF;
+      END $$
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // -- Drop foreign key constraints
-    await queryRunner.query(`ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_supplier`);
-    await queryRunner.query(`ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_warehouse`);
-    await queryRunner.query(`ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_product`);
-    await queryRunner.query(`ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_organization`);
+    await queryRunner.query(
+      `ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_supplier`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_warehouse`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_product`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS fk_purchase_history_organization`,
+    );
 
     // -- Drop indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_invoice_number`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_invoice_number`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_status`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_purchase_date`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_warehouse_id`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_product_id`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_supplier_id`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_purchase_history_organization_id`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_purchase_date`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_warehouse_id`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_product_id`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_supplier_id`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_purchase_history_organization_id`,
+    );
 
     // -- Drop table
     await queryRunner.query(`DROP TABLE IF EXISTS purchase_history CASCADE`);

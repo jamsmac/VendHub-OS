@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddMaintenanceSystem1705000009 implements MigrationInterface {
-  name = 'AddMaintenanceSystem1705000009';
+export class AddMaintenanceSystem1705000009000 implements MigrationInterface {
+  name = "AddMaintenanceSystem1705000009000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create maintenance status enum
@@ -163,20 +163,48 @@ export class AddMaintenanceSystem1705000009 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_requests_org_status" ON "maintenance_requests" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_requests_machine" ON "maintenance_requests" ("machineId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_requests_technician" ON "maintenance_requests" ("assignedTechnicianId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_requests_scheduled" ON "maintenance_requests" ("scheduledDate")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_requests_priority" ON "maintenance_requests" ("priority")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_parts_request" ON "maintenance_parts" ("maintenanceRequestId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_parts_product" ON "maintenance_parts" ("productId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_work_logs_request" ON "maintenance_work_logs" ("maintenanceRequestId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_work_logs_technician" ON "maintenance_work_logs" ("technicianId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_work_logs_date" ON "maintenance_work_logs" ("workDate")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_schedules_org" ON "maintenance_schedules" ("organizationId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_schedules_machine" ON "maintenance_schedules" ("machineId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_schedules_active" ON "maintenance_schedules" ("isActive")`);
-    await queryRunner.query(`CREATE INDEX "IDX_maintenance_schedules_next_due" ON "maintenance_schedules" ("nextDueDate")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_requests_org_status" ON "maintenance_requests" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_requests_machine" ON "maintenance_requests" ("machineId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_requests_technician" ON "maintenance_requests" ("assignedTechnicianId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_requests_scheduled" ON "maintenance_requests" ("scheduledDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_requests_priority" ON "maintenance_requests" ("priority")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_parts_request" ON "maintenance_parts" ("maintenanceRequestId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_parts_product" ON "maintenance_parts" ("productId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_work_logs_request" ON "maintenance_work_logs" ("maintenanceRequestId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_work_logs_technician" ON "maintenance_work_logs" ("technicianId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_work_logs_date" ON "maintenance_work_logs" ("workDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_schedules_org" ON "maintenance_schedules" ("organizationId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_schedules_machine" ON "maintenance_schedules" ("machineId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_schedules_active" ON "maintenance_schedules" ("isActive")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_maintenance_schedules_next_due" ON "maintenance_schedules" ("nextDueDate")`,
+    );
 
     // Create foreign keys
     await queryRunner.query(`
@@ -194,8 +222,12 @@ export class AddMaintenanceSystem1705000009 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop foreign keys
-    await queryRunner.query(`ALTER TABLE "maintenance_work_logs" DROP CONSTRAINT "FK_maintenance_work_logs_request"`);
-    await queryRunner.query(`ALTER TABLE "maintenance_parts" DROP CONSTRAINT "FK_maintenance_parts_request"`);
+    await queryRunner.query(
+      `ALTER TABLE "maintenance_work_logs" DROP CONSTRAINT "FK_maintenance_work_logs_request"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "maintenance_parts" DROP CONSTRAINT "FK_maintenance_parts_request"`,
+    );
 
     // Drop indexes
     await queryRunner.query(`DROP INDEX "IDX_maintenance_schedules_next_due"`);
@@ -203,7 +235,9 @@ export class AddMaintenanceSystem1705000009 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX "IDX_maintenance_schedules_machine"`);
     await queryRunner.query(`DROP INDEX "IDX_maintenance_schedules_org"`);
     await queryRunner.query(`DROP INDEX "IDX_maintenance_work_logs_date"`);
-    await queryRunner.query(`DROP INDEX "IDX_maintenance_work_logs_technician"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_maintenance_work_logs_technician"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_maintenance_work_logs_request"`);
     await queryRunner.query(`DROP INDEX "IDX_maintenance_parts_product"`);
     await queryRunner.query(`DROP INDEX "IDX_maintenance_parts_request"`);

@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddEmployeesSystem1705000006 implements MigrationInterface {
-  name = 'AddEmployeesSystem1705000006';
+export class AddEmployeesSystem1705000006000 implements MigrationInterface {
+  name = "AddEmployeesSystem1705000006000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create employee role enum
@@ -92,9 +92,15 @@ export class AddEmployeesSystem1705000006 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_employees_org_status" ON "employees" ("organizationId", "status")`);
-    await queryRunner.query(`CREATE INDEX "IDX_employees_telegram" ON "employees" ("telegramUserId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_employee_documents_employee_type" ON "employee_documents" ("employeeId", "documentType")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_employees_org_status" ON "employees" ("organizationId", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_employees_telegram" ON "employees" ("telegramUserId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_employee_documents_employee_type" ON "employee_documents" ("employeeId", "documentType")`,
+    );
 
     // Create foreign keys
     await queryRunner.query(`
@@ -105,8 +111,12 @@ export class AddEmployeesSystem1705000006 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "employee_documents" DROP CONSTRAINT "FK_employee_documents_employee"`);
-    await queryRunner.query(`DROP INDEX "IDX_employee_documents_employee_type"`);
+    await queryRunner.query(
+      `ALTER TABLE "employee_documents" DROP CONSTRAINT "FK_employee_documents_employee"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_employee_documents_employee_type"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_employees_telegram"`);
     await queryRunner.query(`DROP INDEX "IDX_employees_org_status"`);
     await queryRunner.query(`DROP TABLE "employee_documents"`);
