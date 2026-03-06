@@ -35,7 +35,15 @@
       "Bash(git remote add:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm:*)",
+      "Bash(railway status:*)",
+      "Bash(railway service:*)",
+      "Bash(railway version:*)",
+      "Bash(railway:*)",
+      "Read(//Users/js/**)",
+      "Read(//Users/js/.railway/**)"
     ],
     "deny": [],
     "ask": []

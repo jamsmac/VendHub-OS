@@ -93,22 +93,28 @@ async function bootstrap() {
     log: (message: string) => {
       // Suppress verbose route-mapping logs
       if (typeof message === "string" && (message.includes("RouterExplorer") || message.includes("RoutesResolver"))) return;
-      logger.log(message);
+      console.log(`[Bootstrap] ${message}`);
     },
-    error: (message: string, trace?: string) => logger.error(message, trace),
+    error: (message: string, trace?: string) => {
+      console.error(`[Bootstrap] ${message}`);
+      if (trace) {
+        console.error(trace);
+      }
+    },
     warn: (message: string) => {
       // Suppress NestJS 11 path-to-regexp LegacyRouteConverter warnings
       // See: https://github.com/nestjs/nest/issues/14530
       if (typeof message === "string" && message.includes("Unsupported route path")) return;
-      logger.warn(message);
+      console.warn(`[Bootstrap] ${message}`);
     },
-    debug: (message: string) => logger.debug?.(message),
-    verbose: (message: string) => logger.verbose?.(message),
+    debug: (message: string) => console.debug?.(`[Bootstrap] ${message}`),
+    verbose: (message: string) => console.debug?.(`[Bootstrap] ${message}`),
   };
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: bootstrapLogger,
     bufferLogs: false,
+    abortOnError: false,
   });
   logger.log("NestJS application created successfully");
 

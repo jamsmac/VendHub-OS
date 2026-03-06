@@ -39,6 +39,7 @@ const useSsl =
   isProduction ||
   (databaseUrl && dbConnection.ssl) ||
   process.env.DB_SSL === "true";
+const sslRejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED;
 
 export const dataSourceOptions: DataSourceOptions = {
   type: "postgres",
@@ -76,7 +77,12 @@ export const dataSourceOptions: DataSourceOptions = {
   // SSL (auto-enable in production or with DATABASE_URL sslmode)
   ssl: useSsl
     ? {
-        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false",
+        rejectUnauthorized:
+          sslRejectUnauthorized === "true"
+            ? true
+            : sslRejectUnauthorized === "false"
+              ? false
+              : !databaseUrl,
       }
     : false,
 

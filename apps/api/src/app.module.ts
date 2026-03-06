@@ -123,6 +123,15 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
+const optionalString = () => Joi.string().empty("").optional();
+const optionalUri = () => Joi.string().uri().empty("").optional();
+const optionalBooleanString = () =>
+  Joi.string().valid("true", "false").empty("").optional();
+const defaultedString = (value: string) =>
+  Joi.string().empty("").optional().default(value);
+const defaultedNumber = (value: number) =>
+  Joi.number().empty("").optional().default(value);
+
 @Module({
   imports: [
     // ============================================
@@ -139,52 +148,51 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         // Server
         NODE_ENV: Joi.string()
           .valid("development", "production", "test")
+          .empty("")
           .default("development"),
-        PORT: Joi.number().default(4000),
+        PORT: defaultedNumber(4000),
 
         // Database — either DATABASE_URL (Supabase/Railway) or individual vars
-        DATABASE_URL: Joi.string().uri().optional(),
-        DB_HOST: Joi.string().optional().default("localhost"),
-        DB_PORT: Joi.number().optional().default(5432),
-        DB_USER: Joi.string().optional().default("vendhub"),
+        DATABASE_URL: optionalUri(),
+        DB_HOST: defaultedString("localhost"),
+        DB_PORT: defaultedNumber(5432),
+        DB_USER: defaultedString("vendhub"),
         DB_PASSWORD: Joi.string().allow("").optional().default(""),
-        DB_NAME: Joi.string().optional().default("vendhub"),
-        DB_SSL: Joi.string().valid("true", "false").optional(),
-        DB_SSL_REJECT_UNAUTHORIZED: Joi.string()
-          .valid("true", "false")
-          .optional(),
-        DB_SYNCHRONIZE: Joi.string().valid("true", "false").optional(),
-        DB_LOGGING: Joi.string().valid("true", "false").optional(),
-        DB_POOL_SIZE: Joi.number().default(10),
-        DB_MIGRATIONS_RUN: Joi.string().valid("true", "false").optional(),
+        DB_NAME: defaultedString("vendhub"),
+        DB_SSL: optionalBooleanString(),
+        DB_SSL_REJECT_UNAUTHORIZED: optionalBooleanString(),
+        DB_SYNCHRONIZE: optionalBooleanString(),
+        DB_LOGGING: optionalBooleanString(),
+        DB_POOL_SIZE: defaultedNumber(10),
+        DB_MIGRATIONS_RUN: optionalBooleanString(),
 
         // Redis — either REDIS_URL (Upstash/Railway) or individual vars
         // No defaults: if not set, Redis features gracefully degrade
-        REDIS_URL: Joi.string().optional(),
-        REDIS_HOST: Joi.string().optional(),
-        REDIS_PORT: Joi.number().optional(),
+        REDIS_URL: optionalString(),
+        REDIS_HOST: optionalString(),
+        REDIS_PORT: Joi.number().empty("").optional(),
         REDIS_PASSWORD: Joi.string().allow("").optional(),
 
         // JWT (required)
         JWT_SECRET: Joi.string().required(),
-        JWT_EXPIRES_IN: Joi.string().default("1d"),
-        JWT_REFRESH_SECRET: Joi.string().optional(),
-        JWT_REFRESH_EXPIRES_IN: Joi.string().default("7d"),
+        JWT_EXPIRES_IN: defaultedString("1d"),
+        JWT_REFRESH_SECRET: optionalString(),
+        JWT_REFRESH_EXPIRES_IN: defaultedString("7d"),
 
         // CORS
-        CORS_ORIGINS: Joi.string().optional(),
+        CORS_ORIGINS: optionalString(),
 
         // Swagger
-        SWAGGER_ENABLED: Joi.string().valid("true", "false").optional(),
+        SWAGGER_ENABLED: optionalBooleanString(),
 
         // Optional services
-        SENTRY_DSN: Joi.string().uri().optional(),
-        TELEGRAM_BOT_TOKEN: Joi.string().optional(),
-        TELEGRAM_CUSTOMER_BOT_TOKEN: Joi.string().optional(),
-        STORAGE_ENDPOINT: Joi.string().optional(),
-        STORAGE_ACCESS_KEY: Joi.string().optional(),
-        STORAGE_SECRET_KEY: Joi.string().optional(),
-        STORAGE_BUCKET: Joi.string().optional(),
+        SENTRY_DSN: optionalUri(),
+        TELEGRAM_BOT_TOKEN: optionalString(),
+        TELEGRAM_CUSTOMER_BOT_TOKEN: optionalString(),
+        STORAGE_ENDPOINT: optionalString(),
+        STORAGE_ACCESS_KEY: optionalString(),
+        STORAGE_SECRET_KEY: optionalString(),
+        STORAGE_BUCKET: optionalString(),
       }),
       validationOptions: {
         allowUnknown: true,
@@ -203,6 +211,9 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
         const databaseUrl = configService.get<string>("DATABASE_URL");
         const isProduction = configService.get("NODE_ENV") === "production";
         const poolSize = configService.get<number>("DB_POOL_SIZE", 10);
+        const sslRejectUnauthorized = configService.get<string>(
+          "DB_SSL_REJECT_UNAUTHORIZED",
+        );
 
         // Parse DATABASE_URL if provided (Supabase, Railway, Neon)
         const dbConnection = databaseUrl
@@ -253,8 +264,15 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
           ),
           ssl: useSsl
             ? {
+                // Managed Postgres providers commonly terminate TLS with cert
+                // chains that require opting out of strict verification unless
+                // the environment explicitly enables it.
                 rejectUnauthorized:
-                  configService.get("DB_SSL_REJECT_UNAUTHORIZED") !== "false",
+                  sslRejectUnauthorized === "true"
+                    ? true
+                    : sslRejectUnauthorized === "false"
+                      ? false
+                      : !databaseUrl,
               }
             : false,
           // Connection pool: respect Supabase/PgBouncer limits

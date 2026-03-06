@@ -7,14 +7,14 @@
 
 ## Executive Summary
 
-| Metric | Value | Assessment |
-|--------|-------|-----------|
-| **Unit Tests** | 86 spec files | ✅ Strong |
-| **E2E Tests** | 18 integration tests | ⚠️ Moderate |
-| **Service Files** | 134 | Coverage ratio: **64%** (86 tests) |
-| **Controller Files** | 80 | Coverage ratio: **~50%** (test on services mainly) |
-| **Total TypeScript Files** | 836 | **~10% estimated lines covered** |
-| **Overall Status** | Production-Ready | ✅ Critical path tested |
+| Metric                     | Value                | Assessment                                         |
+| -------------------------- | -------------------- | -------------------------------------------------- |
+| **Unit Tests**             | 86 spec files        | ✅ Strong                                          |
+| **E2E Tests**              | 18 integration tests | ⚠️ Moderate                                        |
+| **Service Files**          | 134                  | Coverage ratio: **64%** (86 tests)                 |
+| **Controller Files**       | 80                   | Coverage ratio: **~50%** (test on services mainly) |
+| **Total TypeScript Files** | 836                  | **~10% estimated lines covered**                   |
+| **Overall Status**         | Production-Ready     | ✅ Critical path tested                            |
 
 ---
 
@@ -25,6 +25,7 @@
 **Unit & Integration Tests:** 86 spec files
 
 **Key Modules Tested:**
+
 ```
 ✅ auth/                          → auth.service.spec.ts
 ✅ users/                         → (via auth tests)
@@ -46,6 +47,7 @@
 ```
 
 **Test File Examples:**
+
 - `access-requests.service.spec.ts` — 18KB (comprehensive tests)
 - `agent-bridge.service.spec.ts` — 19KB (extensive mocks and scenarios)
 - `payments.spec.ts` (E2E) — 17.6KB (detailed payment flows)
@@ -54,6 +56,7 @@
 ### 🎨 apps/web (Admin Panel - Next.js)
 
 **E2E Tests:** 2 specs in `e2e/web/`
+
 - Account flows
 - Dashboard interactions
 
@@ -62,6 +65,7 @@
 ### 💻 apps/client (PWA - Vite React)
 
 **E2E Tests:** 1 spec in `e2e/client/`
+
 - Basic client flows
 
 **Coverage:** ⚠️ **Low** — Minimal coverage
@@ -88,6 +92,7 @@
 **Focus:** Business logic, edge cases, error handling
 
 **Example Test Pattern:**
+
 ```typescript
 // From auth.service.spec.ts
 describe('AuthService', () => {
@@ -96,7 +101,7 @@ describe('AuthService', () => {
     it('should throw ConflictException if email exists', async () => { ... });
     it('should enable TOTP if user enables 2FA', async () => { ... });
   });
-  
+
   describe('setupTwoFactor', () => {
     it('should generate QR code with secret', async () => { ... });
     it('should verify TOTP token', async () => { ... });
@@ -105,6 +110,7 @@ describe('AuthService', () => {
 ```
 
 **Key Testing Utilities:**
+
 - ✅ Jest mocking (bcrypt, uuid, qrcode, otplib)
 - ✅ TypeORM repository mocks
 - ✅ NestJS Testing module
@@ -118,6 +124,7 @@ describe('AuthService', () => {
 **Count:** ~16 specs (marked as `.integration.spec.ts`)
 
 **Coverage:**
+
 - Auth flows (signup, login, 2FA, password reset)
 - Payment processing (Payme, Click, Uzum)
 - Access control (RBAC)
@@ -132,14 +139,14 @@ describe('AuthService', () => {
 
 **Covered Flows:**
 
-| Module | File | Size | Scenarios |
-|--------|------|------|-----------|
-| **auth** | `auth.spec.ts` | 3.6KB | Login, logout, password reset |
-| **machines** | `machines.spec.ts` | 3.8KB | Machine CRUD, status updates |
-| **products** | `products.spec.ts` | 4.7KB | Product listing, filters |
-| **loyalty** | `loyalty.spec.ts` | 4.1KB | Loyalty points, redemption |
-| **orders** | `orders.spec.ts` | 6.1KB | Order creation, status flow |
-| **payments** | `payments.spec.ts` | 17.6KB | **Largest** — Payment processing, refunds |
+| Module             | File                     | Size   | Scenarios                                      |
+| ------------------ | ------------------------ | ------ | ---------------------------------------------- |
+| **auth**           | `auth.spec.ts`           | 3.6KB  | Login, logout, password reset                  |
+| **machines**       | `machines.spec.ts`       | 3.8KB  | Machine CRUD, status updates                   |
+| **products**       | `products.spec.ts`       | 4.7KB  | Product listing, filters                       |
+| **loyalty**        | `loyalty.spec.ts`        | 4.1KB  | Loyalty points, redemption                     |
+| **orders**         | `orders.spec.ts`         | 6.1KB  | Order creation, status flow                    |
+| **payments**       | `payments.spec.ts`       | 17.6KB | **Largest** — Payment processing, refunds      |
 | **reconciliation** | `reconciliation.spec.ts` | 26.6KB | **Most comprehensive** — Ledger reconciliation |
 
 ---
@@ -148,13 +155,13 @@ describe('AuthService', () => {
 
 ### 🔐 Security-Critical Modules
 
-| Module | Files | Tests | Status |
-|--------|-------|-------|--------|
-| **auth** | 15 | ✅ Extensive | Protected by: service tests + E2E tests |
-| **rbac** | 12 | ✅ Complete | Role-based access tests |
-| **users** | 18 | ✅ Strong | User lifecycle tests |
-| **security** | 8 | ✅ Full | Encryption, audit logging tested |
-| **access-requests** | 8 | ✅ Full | Multi-tenant filtering validated |
+| Module              | Files | Tests        | Status                                  |
+| ------------------- | ----- | ------------ | --------------------------------------- |
+| **auth**            | 15    | ✅ Extensive | Protected by: service tests + E2E tests |
+| **rbac**            | 12    | ✅ Complete  | Role-based access tests                 |
+| **users**           | 18    | ✅ Strong    | User lifecycle tests                    |
+| **security**        | 8     | ✅ Full      | Encryption, audit logging tested        |
+| **access-requests** | 8     | ✅ Full      | Multi-tenant filtering validated        |
 
 **Risk Level:** 🟢 **LOW** — Critical security paths are well-protected
 
@@ -162,14 +169,14 @@ describe('AuthService', () => {
 
 ### 💰 Financial-Critical Modules
 
-| Module | Files | Tests | Status |
-|--------|-------|-------|--------|
-| **payments** | 22 | ✅ Extensive | Tested via: unit tests + large E2E suite |
-| **transactions** | 16 | ✅ Strong | Transaction isolation validated |
-| **fiscal** | 12 | ✅ Full | OFD integration tested (Multikassa) |
-| **reconciliation** | 14 | ✅ Complete | Largest E2E test (26.6KB) |
-| **cash-finance** | 11 | ⚠️ Partial | Covered in reconciliation tests |
-| **billing** | 9 | ⚠️ Partial | Core logic tested, edge cases may be missing |
+| Module             | Files | Tests        | Status                                       |
+| ------------------ | ----- | ------------ | -------------------------------------------- |
+| **payments**       | 22    | ✅ Extensive | Tested via: unit tests + large E2E suite     |
+| **transactions**   | 16    | ✅ Strong    | Transaction isolation validated              |
+| **fiscal**         | 12    | ✅ Full      | OFD integration tested (Multikassa)          |
+| **reconciliation** | 14    | ✅ Complete  | Largest E2E test (26.6KB)                    |
+| **cash-finance**   | 11    | ⚠️ Partial   | Covered in reconciliation tests              |
+| **billing**        | 9     | ⚠️ Partial   | Core logic tested, edge cases may be missing |
 
 **Risk Level:** 🟡 **MEDIUM-LOW** — Payment flows protected, but billing edge cases uncertain
 
@@ -177,15 +184,15 @@ describe('AuthService', () => {
 
 ### 📊 Operations Modules
 
-| Module | Files | Tests | Status |
-|--------|-------|-------|--------|
-| **machines** | 24 | ✅ Strong | E2E + unit tests |
-| **inventory** | 18 | ✅ Strong | Warehouse tests cover stock logic |
-| **products** | 15 | ✅ Strong | Product filters E2E tested |
-| **tasks** | 12 | ✅ Strong | Task lifecycle tested |
-| **orders** | 14 | ✅ Full | Order flow E2E tested |
-| **routes/trips** | 11 | ⚠️ Partial | Limited E2E coverage |
-| **containers** | 9 | ⚠️ Low | No dedicated tests |
+| Module           | Files | Tests      | Status                            |
+| ---------------- | ----- | ---------- | --------------------------------- |
+| **machines**     | 24    | ✅ Strong  | E2E + unit tests                  |
+| **inventory**    | 18    | ✅ Strong  | Warehouse tests cover stock logic |
+| **products**     | 15    | ✅ Strong  | Product filters E2E tested        |
+| **tasks**        | 12    | ✅ Strong  | Task lifecycle tested             |
+| **orders**       | 14    | ✅ Full    | Order flow E2E tested             |
+| **routes/trips** | 11    | ⚠️ Partial | Limited E2E coverage              |
+| **containers**   | 9     | ⚠️ Low     | No dedicated tests                |
 
 **Risk Level:** 🟡 **MEDIUM** — Core operations covered, edge cases less certain
 
@@ -193,14 +200,14 @@ describe('AuthService', () => {
 
 ### 📡 Integrations & Real-Time
 
-| Module | Files | Tests | Status |
-|--------|-------|-------|--------|
-| **telegram-bot** | 8 | ✅ Full | Service tests cover command handling |
-| **websocket** | 7 | ✅ Full | Connection lifecycle tested |
-| **notifications** | 6 | ⚠️ Partial | Core logic tested |
-| **fcm** | 5 | ⚠️ Partial | Integration tested |
-| **sms** | 5 | ⚠️ Minimal | Mock-only tests |
-| **email** | 8 | ⚠️ Minimal | Configuration tested |
+| Module            | Files | Tests      | Status                               |
+| ----------------- | ----- | ---------- | ------------------------------------ |
+| **telegram-bot**  | 8     | ✅ Full    | Service tests cover command handling |
+| **websocket**     | 7     | ✅ Full    | Connection lifecycle tested          |
+| **notifications** | 6     | ⚠️ Partial | Core logic tested                    |
+| **fcm**           | 5     | ⚠️ Partial | Integration tested                   |
+| **sms**           | 5     | ⚠️ Minimal | Mock-only tests                      |
+| **email**         | 8     | ⚠️ Minimal | Configuration tested                 |
 
 **Risk Level:** 🟡 **MEDIUM** — Critical paths covered, external APIs mocked
 
@@ -208,12 +215,12 @@ describe('AuthService', () => {
 
 ### 📈 Analytics & Reporting
 
-| Module | Files | Tests | Status |
-|--------|-------|-------|--------|
-| **analytics** | 9 | ✅ Full | Metrics service tested |
-| **reports** | 11 | ✅ Strong | Via reconciliation tests |
-| **monitoring** | 7 | ⚠️ Partial | Health checks included |
-| **audit** | 8 | ⚠️ Minimal | Logging tested, query coverage limited |
+| Module         | Files | Tests      | Status                                 |
+| -------------- | ----- | ---------- | -------------------------------------- |
+| **analytics**  | 9     | ✅ Full    | Metrics service tested                 |
+| **reports**    | 11    | ✅ Strong  | Via reconciliation tests               |
+| **monitoring** | 7     | ⚠️ Partial | Health checks included                 |
+| **audit**      | 8     | ⚠️ Minimal | Logging tested, query coverage limited |
 
 **Risk Level:** 🟢 **LOW** — Analytics are read-only, data corruption unlikely
 
@@ -297,6 +304,7 @@ npm run test:watch         # Continuously re-run on changes
 ### CI/CD Integration
 
 ✅ GitHub Actions pipeline (`.github/workflows/ci.yml`)
+
 - Runs on every push
 - Tests run in parallel via Turborepo
 - Coverage reports generated
@@ -338,12 +346,14 @@ npm run test:watch         # Continuously re-run on changes
 ### Immediate Priorities (Before Production Deploy)
 
 1. **Add Controller Tests** (1-2 days)
+
    ```typescript
    // Generate tests for all 80 controllers
    // Focus: request validation, error responses, HTTP status codes
    ```
 
 2. **Create Mobile Test Setup** (2-3 days)
+
    ```bash
    # Add Jest setup for React Native
    # Test core mobile navigation + API integration
@@ -374,17 +384,18 @@ npm run test:watch         # Continuously re-run on changes
 
 ## Summary Table
 
-| Category | Count | Coverage | Quality |
-|----------|-------|----------|---------|
-| **Backend Services** | 77 | 64% | ✅ Strong |
-| **API Controllers** | 80 | 50% | ⚠️ Moderate |
-| **Database Migrations** | 50 | — | ✅ Validated |
-| **E2E User Flows** | 18 | — | ✅ Strong |
-| **UI Components** | ~150 | 0% | ❌ None |
-| **Mobile App** | — | 0% | ❌ None |
-| **Infrastructure** | — | 0% | ❌ None |
+| Category                | Count | Coverage | Quality      |
+| ----------------------- | ----- | -------- | ------------ |
+| **Backend Services**    | 77    | 64%      | ✅ Strong    |
+| **API Controllers**     | 80    | 50%      | ⚠️ Moderate  |
+| **Database Migrations** | 50    | —        | ✅ Validated |
+| **E2E User Flows**      | 18    | —        | ✅ Strong    |
+| **UI Components**       | ~150  | 0%       | ❌ None      |
+| **Mobile App**          | —     | 0%       | ❌ None      |
+| **Infrastructure**      | —     | 0%       | ❌ None      |
 
 **Overall Assessment:** 🟡 **Production-Ready with Caveats**
+
 - Backend is well-tested ✅
 - Frontend needs attention ⚠️
 - Infrastructure untested ❌
@@ -398,4 +409,3 @@ npm run test:watch         # Continuously re-run on changes
 3. ☐ Add missing controller tests
 4. ☐ Set coverage threshold to 80% in Jest config
 5. ☐ Integrate coverage reports into GitHub PR checks
-
