@@ -70,3 +70,8 @@ _tmp_*
 .serena/
 .claude/
 .cline/
+skills/
+design-craft/
+
+# Binary documents
+*.docx
