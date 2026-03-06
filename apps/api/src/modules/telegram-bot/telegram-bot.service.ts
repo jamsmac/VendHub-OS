@@ -116,8 +116,16 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     // Handlers service registers all bot commands/callbacks/messages
     this.handlersService.setBot(this.bot, this.sessions);
 
-    // Start bot in background — don't block NestJS startup / health checks
-    this.launchBotInBackground();
+    // Start bot polling in background — skip if a dedicated bot service handles polling
+    const skipPolling =
+      this.configService.get<string>("DISABLE_BOT_POLLING") === "true";
+    if (skipPolling) {
+      this.logger.log(
+        "DISABLE_BOT_POLLING=true — bot initialized for sending only (no polling)",
+      );
+    } else {
+      this.launchBotInBackground();
+    }
   }
 
   private launchBotInBackground() {
