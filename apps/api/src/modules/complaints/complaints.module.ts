@@ -2,10 +2,10 @@
  * Complaints Module for VendHub OS
  */
 
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ComplaintsController } from './complaints.controller';
-import { ComplaintsService } from './complaints.service';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ComplaintsController } from "./complaints.controller";
+import { ComplaintsService } from "./complaints.service";
 import {
   Complaint,
   ComplaintComment,
@@ -14,7 +14,8 @@ import {
   ComplaintTemplate,
   ComplaintQrCode,
   ComplaintAutomationRule,
-} from './entities/complaint.entity';
+} from "./entities/complaint.entity";
+import { StorageModule } from "../storage/storage.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import {
       ComplaintQrCode,
       ComplaintAutomationRule,
     ]),
+    StorageModule,
     // EventEmitterModule is configured globally in AppModule
   ],
   controllers: [ComplaintsController],

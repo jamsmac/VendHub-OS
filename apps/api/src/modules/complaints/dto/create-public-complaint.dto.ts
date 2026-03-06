@@ -11,19 +11,37 @@ import {
   MaxLength,
   IsEmail,
   Length,
+  IsArray,
+  ValidateIf,
+  Matches,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ComplaintCategory } from "../entities/complaint.entity";
 
+const MACHINE_ID_PATTERN =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 export class CreatePublicComplaintDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "QR-2024-ABC123",
     description: "QR code scanned from the vending machine",
   })
+  @ValidateIf((o) => !o.machineId)
   @IsString()
   @IsNotEmpty()
   @Length(1, 100)
-  qrCode: string;
+  qrCode?: string;
+
+  @ApiPropertyOptional({
+    example: "9e7e1467-a7e3-4ff5-9f4f-37b3dfe0d868",
+    description:
+      "Machine ID when complaint is started from the mobile app (accepts UUID-like production ids)",
+  })
+  @ValidateIf((o) => !o.qrCode)
+  @Matches(MACHINE_ID_PATTERN, {
+    message: "machineId must be a valid machine identifier",
+  })
+  machineId?: string;
 
   @ApiPropertyOptional({
     example: "Иван Петров",
@@ -76,4 +94,13 @@ export class CreatePublicComplaintDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: "Optional pre-uploaded attachment URLs",
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  attachments?: string[];
 }

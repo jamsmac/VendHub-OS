@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
-import { UsersService } from '../../users/users.service';
-import { TokenBlacklistService } from '../services/token-blacklist.service';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { ConfigService } from "@nestjs/config";
+import { Request } from "express";
+import { UsersService } from "../../users/users.service";
+import { TokenBlacklistService } from "../services/token-blacklist.service";
 
 export interface JwtPayload {
   sub: string;
@@ -23,13 +23,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
     private readonly tokenBlacklistService: TokenBlacklistService,
   ) {
-    const jwtSecret = configService.get<string>('JWT_SECRET');
+    const jwtSecret = configService.get<string>("JWT_SECRET");
 
     if (!jwtSecret) {
       throw new Error(
-        'CRITICAL: JWT_SECRET environment variable is not configured. ' +
-        'This is required for secure authentication. ' +
-        'Please set JWT_SECRET in your environment variables.'
+        "CRITICAL: JWT_SECRET environment variable is not configured. " +
+          "This is required for secure authentication. " +
+          "Please set JWT_SECRET in your environment variables.",
       );
     }
 
@@ -50,26 +50,29 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     // Check if specific token is blacklisted (by JTI)
     if (payload.jti) {
-      const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(payload.jti);
+      const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(
+        payload.jti,
+      );
       if (isBlacklisted) {
-        throw new UnauthorizedException('Token has been revoked');
+        throw new UnauthorizedException("Token has been revoked");
       }
     }
 
     // Check if all tokens for user are blacklisted (e.g., after password change)
     if (payload.iat) {
-      const isUserBlacklisted = await this.tokenBlacklistService.isUserBlacklisted(
-        payload.sub,
-        payload.iat,
-      );
+      const isUserBlacklisted =
+        await this.tokenBlacklistService.isUserBlacklisted(
+          payload.sub,
+          payload.iat,
+        );
       if (isUserBlacklisted) {
-        throw new UnauthorizedException('All sessions have been invalidated');
+        throw new UnauthorizedException("All sessions have been invalidated");
       }
     }
 
-    const user = await this.usersService.findById(payload.sub);
+    const user = await this.usersService.findAuthUserById(payload.sub);
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found or inactive');
+      throw new UnauthorizedException("User not found or inactive");
     }
 
     return {

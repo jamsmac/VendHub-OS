@@ -12,6 +12,16 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserRole } from "../../common/enums";
 
+export interface AuthLookupUser {
+  id: string;
+  email: string;
+  role: string;
+  organizationId?: string | null;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -88,6 +98,66 @@ export class UsersService {
       where: { email },
       relations: ["organization"],
     });
+  }
+
+  async findAuthUserById(id: string): Promise<AuthLookupUser | null> {
+    try {
+      const user = await this.findById(id);
+      if (user) {
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          organizationId: user.organizationId,
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          isActive: user.isActive,
+        };
+      }
+    } catch {
+      // Fall back to a narrow raw query for legacy production schemas.
+    }
+
+    const rows = (await this.userRepository.query(
+      `
+        SELECT
+          id,
+          email,
+          role,
+          status,
+          organization_id AS "organizationId",
+          COALESCE(first_name, '') AS "firstName",
+          COALESCE(last_name, '') AS "lastName",
+          COALESCE(is_active, status = 'active') AS "isActive"
+        FROM users
+        WHERE id = $1
+          AND deleted_at IS NULL
+        LIMIT 1
+      `,
+      [id],
+    )) as Array<
+      AuthLookupUser & { status?: string; isActive?: boolean | string }
+    >;
+
+    const user = rows[0];
+    if (!user) {
+      return null;
+    }
+
+    const isActive = user.isActive;
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      isActive:
+        isActive === true ||
+        String(isActive) === "t" ||
+        user.status === UserStatus.ACTIVE,
+    };
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {

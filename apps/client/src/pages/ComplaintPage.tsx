@@ -15,29 +15,43 @@ const complaintTypes = [
     id: "product_not_dispensed",
     labelKey: "complaintProductNotDispensed",
     icon: "💰",
+    category: "product_not_dispensed",
   },
   {
     id: "product_defective",
     labelKey: "complaintProductDefective",
     icon: "⚠️",
+    category: "product_damaged",
   },
   {
     id: "product_not_available",
     labelKey: "complaintProductNotAvailable",
     icon: "❌",
+    category: "product_out_of_stock",
   },
-  { id: "payment_issue", labelKey: "complaintPaymentIssue", icon: "💳" },
+  {
+    id: "payment_issue",
+    labelKey: "complaintPaymentIssue",
+    icon: "💳",
+    category: "payment_failed",
+  },
   {
     id: "machine_malfunction",
     labelKey: "complaintMachineMalfunction",
     icon: "🔧",
+    category: "machine_not_working",
   },
-  { id: "machine_dirty", labelKey: "complaintMachineDirty", icon: "🧹" },
-  { id: "other", labelKey: "complaintOther", icon: "💬" },
+  {
+    id: "machine_dirty",
+    labelKey: "complaintMachineDirty",
+    icon: "🧹",
+    category: "machine_dirty",
+  },
+  { id: "other", labelKey: "complaintOther", icon: "💬", category: "other" },
 ];
 
 export function ComplaintPage() {
-  const { machineId } = useParams();
+  const { machineId, code } = useParams();
   useSearchParams(); // URL params available for future use
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -50,27 +64,54 @@ export function ComplaintPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
+  const selectedComplaint = complaintTypes.find(
+    (type) => type.id === complaintType,
+  );
+
+  const { data: qrCodeInfo, isLoading: isQrLoading } = useQuery({
+    queryKey: ["complaint-qr-code", code],
+    queryFn: () =>
+      api
+        .get(`/complaints/qr-codes/${code}`)
+        .then((res) => res.data?.data ?? res.data),
+    enabled: !!code,
+  });
+
+  const resolvedMachineId = machineId || qrCodeInfo?.machineId;
 
   // Get machine info
-  const { data: machine, isLoading } = useQuery({
-    queryKey: ["machine", machineId],
+  const { data: machine, isLoading: isMachineLoading } = useQuery({
+    queryKey: ["machine", resolvedMachineId],
     queryFn: () =>
-      api.get(`/machines/${machineId}`).then((res) => res.data.data),
-    enabled: !!machineId,
+      api
+        .get(`/complaints/machines/${resolvedMachineId}`)
+        .then((res) => res.data?.data ?? res.data),
+    enabled: !!resolvedMachineId,
   });
 
   // Submit complaint
   const submitMutation = useMutation({
     mutationFn: async () => {
+      if (!selectedComplaint) {
+        throw new Error(t("selectProblemType"));
+      }
+
       const formData = new FormData();
-      formData.append("machineId", machineId!);
-      formData.append("complaintType", complaintType);
+      if (code) {
+        formData.append("qrCode", code);
+      } else if (resolvedMachineId) {
+        formData.append("machineId", resolvedMachineId);
+      } else {
+        throw new Error("Complaint target is missing");
+      }
+      formData.append("category", selectedComplaint.category);
+      formData.append("subject", t(selectedComplaint.labelKey));
       formData.append("description", description);
       formData.append("customerPhone", phone);
       if (email) formData.append("customerEmail", email);
       if (photo) formData.append("photo", photo);
 
-      return api.post("/complaints/public/submit", formData, {
+      return api.post("/complaints/public", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
     },
@@ -90,7 +131,7 @@ export function ComplaintPage() {
     }
   };
 
-  if (isLoading) {
+  if (isQrLoading || isMachineLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>

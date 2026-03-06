@@ -14,7 +14,11 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiTags,
   ApiOperation,
@@ -22,6 +26,8 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
+  ApiConsumes,
+  ApiBody,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import {
@@ -55,12 +61,17 @@ import {
   CurrentOrganizationId,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
+import { StorageService } from "../storage/storage.service";
+import { FileCategory } from "../storage/dto/upload-file.dto";
 
 @ApiTags("Complaints")
 @ApiBearerAuth()
 @Controller("complaints")
 export class ComplaintsController {
-  constructor(private readonly complaintsService: ComplaintsService) {}
+  constructor(
+    private readonly complaintsService: ComplaintsService,
+    private readonly storageService: StorageService,
+  ) {}
 
   // ============================================================================
   // CRUD Operations
@@ -90,25 +101,115 @@ export class ComplaintsController {
   @Post("public")
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 complaints/min per IP -- prevent spam
+  @UseInterceptors(FileInterceptor("photo"))
+  @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Create complaint via QR code (public)" })
   @ApiResponse({ status: 201, description: "Complaint created" })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        qrCode: { type: "string", example: "QR-2024-ABC123" },
+        machineId: {
+          type: "string",
+          format: "uuid",
+          example: "9e7e1467-a7e3-4ff5-9f4f-37b3dfe0d868",
+        },
+        customerName: { type: "string" },
+        customerPhone: { type: "string" },
+        customerEmail: { type: "string" },
+        category: { type: "string", enum: Object.values(ComplaintCategory) },
+        subject: { type: "string" },
+        description: { type: "string" },
+        photo: { type: "string", format: "binary" },
+      },
+    },
+  })
   @HttpCode(HttpStatus.CREATED)
-  async createPublic(@Body() dto: CreatePublicComplaintDto) {
-    // Get QR code info
-    const qrCodeInfo = await this.complaintsService.getQrCodeByCode(dto.qrCode);
+  async createPublic(
+    @Body() dto: CreatePublicComplaintDto,
+    @UploadedFile() photo?: Express.Multer.File,
+  ) {
+    if (!dto.qrCode && !dto.machineId) {
+      throw new BadRequestException("qrCode or machineId is required");
+    }
 
-    return this.complaintsService.create({
-      organizationId: qrCodeInfo.organizationId,
-      machineId: qrCodeInfo.machineId,
-      qrCodeId: qrCodeInfo.id,
+    let organizationId: string;
+    let machineId: string;
+    let qrCodeId: string | undefined;
+    let source: ComplaintSource;
+
+    if (dto.qrCode) {
+      const qrCodeInfo = await this.complaintsService.getQrCodeByCode(
+        dto.qrCode,
+      );
+      organizationId = qrCodeInfo.organizationId;
+      machineId = qrCodeInfo.machineId;
+      qrCodeId = qrCodeInfo.id;
+      source = ComplaintSource.QR_CODE;
+    } else {
+      const machine = await this.complaintsService.getMachineContext(
+        dto.machineId!,
+      );
+      organizationId = machine.organizationId;
+      machineId = machine.id;
+      source = ComplaintSource.MOBILE_APP;
+    }
+
+    const attachments = [...(dto.attachments || [])];
+
+    if (photo) {
+      const allowedMimeTypes = this.storageService.getAllowedMimeTypes(
+        FileCategory.IMAGE,
+      );
+      if (!allowedMimeTypes.includes(photo.mimetype)) {
+        throw new BadRequestException(
+          `MIME type ${photo.mimetype} not allowed for complaint photos`,
+        );
+      }
+
+      if (!this.storageService.validateFileSize(photo.size, "image")) {
+        const maxSize = this.storageService.getMaxFileSize("image");
+        throw new BadRequestException(
+          `File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`,
+        );
+      }
+
+      const uploadResult = await this.storageService.uploadFile(
+        organizationId,
+        "complaints/public",
+        photo.originalname,
+        photo.buffer,
+        photo.mimetype,
+      );
+      attachments.push(uploadResult.cdnUrl || uploadResult.url);
+    }
+
+    return this.complaintsService.createPublicComplaint({
+      organizationId,
+      machineId,
+      qrCodeId,
       customerName: dto.customerName,
       customerPhone: dto.customerPhone,
       customerEmail: dto.customerEmail,
       category: dto.category,
-      source: ComplaintSource.QR_CODE,
+      source,
       subject: dto.subject,
       description: dto.description,
+      attachments,
     });
+  }
+
+  @Get("machines/:machineId")
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: "Get public machine context for complaints" })
+  @ApiParam({
+    name: "machineId",
+    description: "Machine identifier used by public complaint flows",
+  })
+  async getPublicMachineContext(@Param("machineId") machineId: string) {
+    return this.complaintsService.getMachineContext(machineId);
   }
 
   @Get()

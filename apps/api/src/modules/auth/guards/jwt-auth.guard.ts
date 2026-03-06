@@ -2,6 +2,7 @@ import {
   Injectable,
   ExecutionContext,
   UnauthorizedException,
+  Logger,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Reflector } from "@nestjs/core";
@@ -21,6 +22,7 @@ const AGENT_USER: ICurrentUser = {
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
+  private readonly logger = new Logger(JwtAuthGuard.name);
   private readonly agentMode =
     process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
 
@@ -49,9 +51,16 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleRequest(err: any, user: any, _info: any) {
+  handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
-      throw err || new UnauthorizedException("Authentication required");
+      const authMessage =
+        err?.message ||
+        (info instanceof Error ? info.message : info?.message) ||
+        "Authentication required";
+
+      this.logger.warn(`JWT auth failed: ${authMessage}`);
+
+      throw new UnauthorizedException(authMessage);
     }
     return user;
   }

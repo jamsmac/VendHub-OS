@@ -310,11 +310,14 @@ export const referralsApi = {
 export const complaintsApi = {
   submit: (data: {
     machineId?: string;
-    machineCode?: string;
-    type: string;
-    message: string;
-    photoUrl?: string;
-  }) => api.post("/complaints/public/submit", data),
+    qrCode?: string;
+    category: string;
+    subject: string;
+    description: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    attachments?: string[];
+  }) => api.post("/complaints/public", data),
 };
 
 export const authApi = {

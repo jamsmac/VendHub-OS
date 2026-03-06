@@ -127,6 +127,46 @@ export interface ComplaintStatistics {
   satisfactionAverage: number;
 }
 
+export interface PublicComplaintQrLookup {
+  id: string;
+  organizationId: string;
+  machineId: string;
+  code: string;
+  url: string | null;
+  isActive: boolean;
+  scanCount: number;
+  lastScannedAt: Date | null;
+}
+
+export interface PublicComplaintRecord {
+  id: string;
+  ticketNumber: string;
+  organizationId: string;
+  machineId: string | null;
+  source: ComplaintSource;
+  category: ComplaintCategory;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  subject: string;
+  description: string;
+  customer: Record<string, unknown> | null;
+  machineInfo: Record<string, unknown> | null;
+  attachments: Array<{
+    id: string;
+    type: "image" | "video" | "audio" | "document";
+    url: string;
+    filename: string;
+    size: number;
+    mimeType: string;
+    thumbnailUrl?: string;
+    uploadedAt: Date;
+    uploadedBy?: string;
+  }>;
+  resolutionDeadline: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ============================================================================
 // SERVICE
 // ============================================================================
@@ -704,15 +744,102 @@ export class ComplaintsService {
   }
 
   async getQrCodeByCode(code: string): Promise<ComplaintQrCode> {
-    const qrCode = await this.qrCodeRepo.findOne({
-      where: { code, isActive: true },
-    });
+    const qrCodeRows = (await this.complaintRepo.manager
+      .query(
+        `
+          SELECT
+            id,
+            organization_id AS "organizationId",
+            machine_id AS "machineId",
+            code,
+            url,
+            is_active AS "isActive",
+            scan_count AS "scanCount",
+            last_scanned_at AS "lastScannedAt"
+          FROM complaint_qr_codes
+          WHERE code = $1
+            AND is_active = true
+          LIMIT 1
+        `,
+        [code],
+      )
+      .catch((error: unknown) => {
+        if (this.isMissingRelationError(error)) {
+          return [];
+        }
+        throw error;
+      })) as PublicComplaintQrLookup[];
 
-    if (!qrCode) {
+    if (qrCodeRows[0]) {
+      return qrCodeRows[0] as ComplaintQrCode;
+    }
+
+    const machineRows = (await this.complaintRepo.manager.query(
+      `
+        SELECT
+          id,
+          organization_id AS "organizationId",
+          id AS "machineId",
+          COALESCE(NULLIF(split_part(qr_code_complaint, '/c/', 2), ''), code, $1) AS code,
+          qr_code_complaint AS url,
+          true AS "isActive",
+          0 AS "scanCount",
+          NULL::timestamp AS "lastScannedAt"
+        FROM machines
+        WHERE deleted_at IS NULL
+          AND (
+            code = $1
+            OR qr_code_complaint = $1
+            OR split_part(qr_code_complaint, '/c/', 2) = $1
+          )
+        LIMIT 1
+      `,
+      [code],
+    )) as PublicComplaintQrLookup[];
+
+    const machineQr = machineRows[0];
+    if (!machineQr) {
       throw new NotFoundException("QR-код не найден или неактивен");
     }
 
-    return qrCode;
+    return machineQr as ComplaintQrCode;
+  }
+
+  async getMachineContext(machineId: string): Promise<{
+    id: string;
+    organizationId: string;
+    name: string | null;
+    machineNumber: string | null;
+    address: string | null;
+  }> {
+    const rows = (await this.complaintRepo.manager.query(
+      `
+        SELECT
+          id,
+          organization_id AS "organizationId",
+          name,
+          code AS "machineNumber",
+          NULL::text AS address
+        FROM machines
+        WHERE id = $1
+          AND deleted_at IS NULL
+        LIMIT 1
+      `,
+      [machineId],
+    )) as Array<{
+      id: string;
+      organizationId: string;
+      name: string | null;
+      machineNumber: string | null;
+      address: string | null;
+    }>;
+
+    const machine = rows[0];
+    if (!machine) {
+      throw new NotFoundException("Machine not found");
+    }
+
+    return machine;
   }
 
   async getQrCodesForMachine(machineId: string): Promise<ComplaintQrCode[]> {
@@ -872,9 +999,160 @@ export class ComplaintsService {
     return this.complaintRepo.save(complaint);
   }
 
+  async createPublicComplaint(
+    dto: CreateComplaintDto,
+  ): Promise<PublicComplaintRecord> {
+    const priority = dto.priority || ComplaintPriority.MEDIUM;
+    const resolutionDeadline = new Date(
+      Date.now() + DEFAULT_SLA_HOURS[priority] * 60 * 60 * 1000,
+    );
+    const customer = this.buildCustomerPayload(dto);
+    const machineContext = dto.machineId
+      ? await this.getMachineContext(dto.machineId).catch(() => null)
+      : null;
+    const machineInfo = machineContext
+      ? {
+          machineId: machineContext.id,
+          machineCode: machineContext.machineNumber,
+          machineName: machineContext.name,
+          locationAddress: machineContext.address,
+        }
+      : null;
+    const attachments = (dto.attachments || []).map((url) => ({
+      id: "",
+      type: "image" as const,
+      url,
+      filename: "",
+      size: 0,
+      mimeType: "",
+      uploadedAt: new Date(),
+    }));
+
+    let complaint: PublicComplaintRecord | undefined;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const ticketNumber = await this.generatePublicComplaintNumber(
+        dto.organizationId,
+      );
+
+      try {
+        const rows = (await this.complaintRepo.manager.query(
+          `
+            INSERT INTO complaints (
+              organization_id,
+              ticket_number,
+              source,
+              category,
+              priority,
+              status,
+              subject,
+              description,
+              customer,
+              machine_id,
+              machine_info,
+              attachments,
+              resolution_deadline,
+              is_sla_breached,
+              metadata
+            )
+            VALUES (
+              $1::uuid,
+              $2,
+              $3,
+              $4::complaint_category_enum,
+              $5::complaint_priority_enum,
+              $6::complaint_status_enum,
+              $7,
+              $8,
+              $9::jsonb,
+              $10::uuid,
+              $11::jsonb,
+              $12::jsonb,
+              $13::timestamp,
+              false,
+              $14::jsonb
+            )
+            RETURNING
+              id,
+              ticket_number AS "ticketNumber",
+              organization_id AS "organizationId",
+              machine_id AS "machineId",
+              source,
+              category,
+              priority,
+              status,
+              subject,
+              description,
+              customer,
+              machine_info AS "machineInfo",
+              attachments,
+              resolution_deadline AS "resolutionDeadline",
+              created_at AS "createdAt",
+              updated_at AS "updatedAt"
+          `,
+          [
+            dto.organizationId,
+            ticketNumber,
+            dto.source,
+            dto.category,
+            priority,
+            ComplaintStatus.NEW,
+            dto.subject,
+            dto.description,
+            customer ? JSON.stringify(customer) : null,
+            dto.machineId || null,
+            machineInfo ? JSON.stringify(machineInfo) : null,
+            JSON.stringify(attachments),
+            resolutionDeadline,
+            JSON.stringify({
+              publicSubmission: true,
+              qrCodeId: dto.qrCodeId || null,
+            }),
+          ],
+        )) as PublicComplaintRecord[];
+
+        complaint = rows[0];
+        if (complaint) {
+          break;
+        }
+      } catch (error) {
+        if (this.isUniqueViolationError(error)) {
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!complaint) {
+      throw new BadRequestException("Failed to create complaint");
+    }
+
+    try {
+      this.eventEmitter.emit("complaint.created", complaint);
+    } catch (error) {
+      this.logger.warn(
+        `Public complaint created without event delivery: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+    }
+
+    return complaint;
+  }
+
   // ============================================================================
   // PRIVATE METHODS
   // ============================================================================
+
+  private buildCustomerPayload(dto: CreateComplaintDto) {
+    const customer = {
+      name: dto.customerName,
+      phone: dto.customerPhone,
+      email: dto.customerEmail,
+      telegramId: dto.customerTelegramId,
+    };
+
+    return Object.values(customer).some((value) => value) ? customer : null;
+  }
 
   private async generateComplaintNumber(
     organizationId: string,
@@ -893,6 +1171,35 @@ export class ComplaintsService {
     let sequence = 1;
     if (lastComplaint?.ticketNumber) {
       const match = lastComplaint.ticketNumber.match(/(\d+)$/);
+      if (match) {
+        sequence = parseInt(match[1], 10) + 1;
+      }
+    }
+
+    return `${prefix}-${String(sequence).padStart(5, "0")}`;
+  }
+
+  private async generatePublicComplaintNumber(
+    organizationId: string,
+  ): Promise<string> {
+    const date = new Date();
+    const prefix = `CMP-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const rows = (await this.complaintRepo.manager.query(
+      `
+        SELECT ticket_number AS "ticketNumber"
+        FROM complaints
+        WHERE organization_id = $1::uuid
+          AND ticket_number IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [organizationId],
+    )) as Array<{ ticketNumber: string | null }>;
+
+    let sequence = 1;
+    const lastTicketNumber = rows[0]?.ticketNumber;
+    if (lastTicketNumber) {
+      const match = lastTicketNumber.match(/(\d+)$/);
       if (match) {
         sequence = parseInt(match[1], 10) + 1;
       }
@@ -946,6 +1253,22 @@ export class ComplaintsService {
     });
 
     await this.actionRepo.save(action);
+  }
+
+  private isMissingRelationError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      ("code" in error ? (error as { code?: string }).code === "42P01" : false)
+    );
+  }
+
+  private isUniqueViolationError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      ("code" in error ? (error as { code?: string }).code === "23505" : false)
+    );
   }
 
   private async applyAutomationRules(dto: CreateComplaintDto): Promise<{

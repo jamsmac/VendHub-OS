@@ -1,6 +1,6 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 
 /**
  * Redis-based JWT token blacklisting service.
@@ -20,6 +20,34 @@ export class TokenBlacklistService {
 
   constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
+  private async safeGet<T>(key: string): Promise<T | undefined> {
+    try {
+      const value = await this.cacheManager.get<T>(key);
+      return value ?? undefined;
+    } catch (error) {
+      this.logger.warn(
+        `Cache read failed for ${key}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return undefined;
+    }
+  }
+
+  private async safeSet(
+    key: string,
+    value: string,
+    ttlMs: number,
+  ): Promise<boolean> {
+    try {
+      await this.cacheManager.set(key, value, ttlMs);
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Cache write failed for ${key}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return false;
+    }
+  }
+
   /**
    * Blacklist a single token by its JTI.
    * The entry is stored with a TTL that matches the token's remaining lifetime
@@ -30,18 +58,23 @@ export class TokenBlacklistService {
    */
   async blacklist(jti: string, expiresInSeconds: number): Promise<void> {
     if (!jti) {
-      this.logger.warn('Attempted to blacklist a token without JTI — skipping');
+      this.logger.warn("Attempted to blacklist a token without JTI — skipping");
       return;
     }
 
     // cache-manager v5 expects TTL in milliseconds
-    await this.cacheManager.set(
+    const stored = await this.safeSet(
       `bl:${jti}`,
-      '1',
+      "1",
       expiresInSeconds * 1000,
     );
+    if (!stored) {
+      return;
+    }
 
-    this.logger.debug(`Token blacklisted: jti=${jti}, ttl=${expiresInSeconds}s`);
+    this.logger.debug(
+      `Token blacklisted: jti=${jti}, ttl=${expiresInSeconds}s`,
+    );
   }
 
   /**
@@ -50,7 +83,7 @@ export class TokenBlacklistService {
   async isBlacklisted(jti: string): Promise<boolean> {
     if (!jti) return false;
 
-    const result = await this.cacheManager.get(`bl:${jti}`);
+    const result = await this.safeGet(`bl:${jti}`);
     return !!result;
   }
 
@@ -63,17 +96,25 @@ export class TokenBlacklistService {
    * @param expiresInSeconds How long to keep the entry (should match the
    *                         longest possible token lifetime, e.g. refresh TTL)
    */
-  async blacklistAllForUser(userId: string, expiresInSeconds: number): Promise<void> {
+  async blacklistAllForUser(
+    userId: string,
+    expiresInSeconds: number,
+  ): Promise<void> {
     if (!userId) {
-      this.logger.warn('Attempted to blacklist tokens for empty userId — skipping');
+      this.logger.warn(
+        "Attempted to blacklist tokens for empty userId — skipping",
+      );
       return;
     }
 
-    await this.cacheManager.set(
+    const stored = await this.safeSet(
       `bl:user:${userId}`,
       Date.now().toString(),
       expiresInSeconds * 1000,
     );
+    if (!stored) {
+      return;
+    }
 
     this.logger.log(`All tokens blacklisted for user=${userId}`);
   }
@@ -85,10 +126,13 @@ export class TokenBlacklistService {
    * @param userId        User UUID
    * @param tokenIssuedAt The `iat` claim from the JWT (Unix seconds)
    */
-  async isUserBlacklisted(userId: string, tokenIssuedAt: number): Promise<boolean> {
+  async isUserBlacklisted(
+    userId: string,
+    tokenIssuedAt: number,
+  ): Promise<boolean> {
     if (!userId) return false;
 
-    const timestamp = await this.cacheManager.get<string>(`bl:user:${userId}`);
+    const timestamp = await this.safeGet<string>(`bl:user:${userId}`);
     if (!timestamp) return false;
 
     // tokenIssuedAt is in seconds, timestamp is in milliseconds
