@@ -23,5 +23,6 @@ export * from "./use-directories";
 // Business Hooks
 export * from "./use-counterparties";
 export * from "./use-finance";
+export * from "./use-investor";
 export * from "./use-promotions";
 export * from "./use-team";

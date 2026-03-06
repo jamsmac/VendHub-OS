@@ -49,7 +49,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useFinanceStats } from "@/lib/hooks";
+import { useInvestorDashboard } from "@/lib/hooks";
 
 const investorData = {
   name: "Investment Fund Alpha",
@@ -763,8 +763,23 @@ const _DOC_CATEGORIES = ["all", "financial", "legal", "reports"] as const;
 type DocCategory = (typeof _DOC_CATEGORIES)[number];
 
 export default function InvestorPage() {
-  const { data: _dbFinStats } = useFinanceStats();
+  const { data: dbDashboard } = useInvestorDashboard();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+
+  // Wire API data into investor profile (fall back to mock)
+  const liveInvestorData = dbDashboard
+    ? {
+        name: dbDashboard.profile.name,
+        sharePercent: Number(dbDashboard.profile.sharePercent),
+        totalInvested: Number(dbDashboard.profile.totalInvested),
+        currentValue: dbDashboard.currentValue,
+        totalReturn: dbDashboard.totalReturn,
+        roiPercent: dbDashboard.roiPercent,
+        irr: 0,
+        paybackMonths: dbDashboard.profile.paybackMonths ?? 0,
+        totalDividends: dbDashboard.totalDividends,
+      }
+    : investorData;
   const [expandedRisk, setExpandedRisk] = useState<string | null>(null);
   const [docCategory, setDocCategory] = useState<DocCategory>("all");
   const [docSearch, setDocSearch] = useState("");
@@ -789,8 +804,8 @@ export default function InvestorPage() {
               Портал инвестора
             </h1>
             <p className="mt-1 text-sm text-espresso-light">
-              {investorData.name} · Доля: {investorData.sharePercent}% ·
-              Payback: {investorData.paybackMonths} мес.
+              {liveInvestorData.name} · Доля: {liveInvestorData.sharePercent}% ·
+              Payback: {liveInvestorData.paybackMonths} мес.
             </p>
           </div>
         </div>
@@ -819,7 +834,7 @@ export default function InvestorPage() {
               <CardContent className="p-4">
                 <p className="text-xs text-espresso-light">Инвестировано</p>
                 <p className="mt-1 text-2xl font-bold text-espresso-dark">
-                  {fmtShort(investorData.totalInvested)}
+                  {fmtShort(liveInvestorData.totalInvested)}
                 </p>
                 <p className="text-xs text-espresso-light">UZS</p>
               </CardContent>
@@ -828,10 +843,10 @@ export default function InvestorPage() {
               <CardContent className="p-4">
                 <p className="text-xs text-espresso-light">Текущая стоимость</p>
                 <p className="mt-1 text-2xl font-bold text-emerald-600">
-                  {fmtShort(investorData.currentValue)}
+                  {fmtShort(liveInvestorData.currentValue)}
                 </p>
                 <p className="text-xs text-emerald-600">
-                  +{investorData.roiPercent}% ROI
+                  +{liveInvestorData.roiPercent}% ROI
                 </p>
               </CardContent>
             </Card>
@@ -839,10 +854,10 @@ export default function InvestorPage() {
               <CardContent className="p-4">
                 <p className="text-xs text-espresso-light">Общий доход</p>
                 <p className="mt-1 text-2xl font-bold text-espresso-dark">
-                  {fmtShort(investorData.totalReturn)}
+                  {fmtShort(liveInvestorData.totalReturn)}
                 </p>
                 <p className="text-xs text-espresso-light">
-                  Дивиденды: {fmtShort(investorData.totalDividends)}
+                  Дивиденды: {fmtShort(liveInvestorData.totalDividends)}
                 </p>
               </CardContent>
             </Card>
@@ -850,7 +865,7 @@ export default function InvestorPage() {
               <CardContent className="p-4">
                 <p className="text-xs text-espresso-light">IRR</p>
                 <p className="mt-1 text-2xl font-bold text-espresso-dark">
-                  {investorData.irr}%
+                  {liveInvestorData.irr}%
                 </p>
                 <p className="text-xs text-emerald-600">Годовая доходность</p>
               </CardContent>
@@ -957,7 +972,9 @@ export default function InvestorPage() {
                       <div className="flex justify-between text-xs">
                         <span className="text-espresso-light">Сумма:</span>
                         <span className="font-medium text-espresso-dark">
-                          {fmtShort(investorData.totalInvested * s.multiple)}{" "}
+                          {fmtShort(
+                            liveInvestorData.totalInvested * s.multiple,
+                          )}{" "}
                           UZS
                         </span>
                       </div>
@@ -1397,7 +1414,7 @@ export default function InvestorPage() {
                     Всего выплачено дивидендов
                   </span>
                   <span className="text-sm font-bold text-espresso-dark">
-                    {fmtShort(investorData.totalDividends)} UZS
+                    {fmtShort(liveInvestorData.totalDividends)} UZS
                   </span>
                 </div>
               </CardContent>
@@ -1879,7 +1896,9 @@ export default function InvestorPage() {
                     Текущая оценка
                   </p>
                   <p className="text-sm font-bold text-emerald-600">
-                    {fmtShort(investorData.currentValue * (4.583333 / 0.6875))}{" "}
+                    {fmtShort(
+                      liveInvestorData.currentValue * (4.583333 / 0.6875),
+                    )}{" "}
                     UZS
                   </p>
                 </div>
@@ -1890,7 +1909,7 @@ export default function InvestorPage() {
                   <p className="text-sm font-bold text-emerald-600">
                     +
                     {Math.round(
-                      ((investorData.currentValue * (4.583333 / 0.6875) -
+                      ((liveInvestorData.currentValue * (4.583333 / 0.6875) -
                         valuationHistory[0].valuation) /
                         valuationHistory[0].valuation) *
                         100,

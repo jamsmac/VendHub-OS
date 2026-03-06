@@ -109,6 +109,7 @@ import { AgentBridgeModule } from "./modules/agent-bridge/agent-bridge.module";
 import { FcmModule } from "./modules/fcm/fcm.module";
 import { CashFinanceModule } from "./modules/cash-finance/cash-finance.module";
 import { CollectionsModule } from "./modules/collections/collections.module";
+import { InvestorModule } from "./modules/investor/investor.module";
 import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
 import { Vhm24IntegrationModule } from "./modules/vhm24-integration/vhm24-integration.module";
 
@@ -664,6 +665,7 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
     // Cash & Finance Management
     CashFinanceModule,
+    InvestorModule,
 
     // Collections & Payment Recovery
     CollectionsModule,
