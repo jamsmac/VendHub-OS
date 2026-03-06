@@ -5,7 +5,7 @@
   "description": "VendHub Client PWA - React + Vite",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5173",
+    "dev": "vite --host --port ${PORT:-5173}",
     "build": "tsc && vite build",
     "start": "serve dist -s -l ${PORT:-3000}",
     "preview": "vite preview",
