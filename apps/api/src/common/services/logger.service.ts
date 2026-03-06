@@ -61,6 +61,16 @@ export class AppLoggerService implements NestLoggerService {
   }
 
   warn(message: string, context?: string) {
+    // Suppress NestJS 11 internal path-to-regexp v8 warnings.
+    // NestJS auto-converts legacy wildcard routes via LegacyRouteConverter.
+    // See: https://github.com/nestjs/nest/issues/14530
+    if (
+      context === "LegacyRouteConverter" ||
+      (typeof message === "string" &&
+        message.includes("Unsupported route path"))
+    ) {
+      return;
+    }
     this.logger.warn(message, { context });
   }
 

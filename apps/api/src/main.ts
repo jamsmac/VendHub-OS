@@ -84,9 +84,29 @@ async function bootstrap() {
   // Create app with Express
   // Suppress "log" level during creation to avoid Railway's 500 logs/sec rate limit.
   // NestJS RouterExplorer emits 500+ route-mapping lines at "log" level in <1 second.
+  // Also suppress LegacyRouteConverter warnings (NestJS 11 + path-to-regexp v8).
   logger.log("Creating NestJS application...");
+
+  // Custom bootstrap logger to filter known NestJS internal warnings
+  const bootstrapLogger = {
+    log: (message: string) => {
+      // Suppress verbose route-mapping logs
+      if (typeof message === "string" && (message.includes("RouterExplorer") || message.includes("RoutesResolver"))) return;
+      logger.log(message);
+    },
+    error: (message: string, trace?: string) => logger.error(message, trace),
+    warn: (message: string) => {
+      // Suppress NestJS 11 path-to-regexp LegacyRouteConverter warnings
+      // See: https://github.com/nestjs/nest/issues/14530
+      if (typeof message === "string" && message.includes("Unsupported route path")) return;
+      logger.warn(message);
+    },
+    debug: (message: string) => logger.debug?.(message),
+    verbose: (message: string) => logger.verbose?.(message),
+  };
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ["error", "warn"],
+    logger: bootstrapLogger,
     bufferLogs: false,
   });
   logger.log("NestJS application created successfully");
