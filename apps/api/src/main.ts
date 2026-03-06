@@ -82,12 +82,14 @@ async function bootstrap() {
   }
 
   // Create app with Express
+  // Suppress "log" level during creation to avoid Railway's 500 logs/sec rate limit.
+  // NestJS RouterExplorer emits 500+ route-mapping lines at "log" level in <1 second.
+  logger.log("Creating NestJS application...");
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: isAgentMode
-      ? ["error", "warn"]
-      : ["error", "warn", "log", "debug", "verbose"],
-    bufferLogs: true,
+    logger: ["error", "warn"],
+    bufferLogs: false,
   });
+  logger.log("NestJS application created successfully");
 
   const configService = app.get(ConfigService);
 

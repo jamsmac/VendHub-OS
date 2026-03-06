@@ -15,12 +15,33 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import {
-  TripReconciliation,
-  ReconciliationStatus,
-  MismatchSeverity,
-  TripMismatch,
-} from "../entities/trip-reconciliation.entity";
+import { TripReconciliation } from "../../trips/entities/trip-reconciliation.entity";
+
+export enum ReconciliationStatus {
+  MATCHED = "matched",
+  MISMATCHED = "mismatched",
+  PARTIAL = "partial",
+  PENDING = "pending",
+  REVIEW = "review",
+  RESOLVED = "resolved",
+}
+
+export enum MismatchSeverity {
+  INFO = "info",
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  CRITICAL = "critical",
+}
+
+export interface TripMismatch {
+  type: string;
+  severity: MismatchSeverity;
+  description?: string;
+  expected?: unknown;
+  actual?: unknown;
+  details?: unknown;
+}
 import { Trip } from "../../trips/entities/trip.entity";
 import { TripStop } from "../../trips/entities/trip-stop.entity";
 import { TripTaskLink } from "../../trips/entities/trip-task-link.entity";

@@ -5,8 +5,8 @@ export {
   MachineLocationSync,
   SyncStatus,
 } from "./entities/machine-location-sync.entity";
+export { TripReconciliation } from "../trips/entities/trip-reconciliation.entity";
 export {
-  TripReconciliation,
   ReconciliationStatus,
   MismatchSeverity,
-} from "./entities/trip-reconciliation.entity";
+} from "./services/trip-reconciliation.service";

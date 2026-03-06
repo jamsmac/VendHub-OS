@@ -4,7 +4,7 @@ import { TripTaskLink } from "../trips/entities/trip-task-link.entity";
 import { TripStop } from "../trips/entities/trip-stop.entity";
 import { Trip } from "../trips/entities/trip.entity";
 import { MachineLocationSync } from "./entities/machine-location-sync.entity";
-import { TripReconciliation } from "./entities/trip-reconciliation.entity";
+import { TripReconciliation } from "../trips/entities/trip-reconciliation.entity";
 import { Vhm24IntegrationService } from "./vhm24-integration.service";
 import { Vhm24IntegrationController } from "./vhm24-integration.controller";
 import { TripReconciliationService } from "./services/trip-reconciliation.service";
