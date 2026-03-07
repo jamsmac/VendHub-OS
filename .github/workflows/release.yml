@@ -191,7 +191,7 @@ jobs:
       - name: Health check
         run: |
           for i in {1..10}; do
-            if curl -s https://api.vendhub.uz/health | grep -q "ok"; then
+            if curl -s https://vendhubapi-production.up.railway.app/api/v1/health | grep -q "ok"; then
               echo "Health check passed"
               exit 0
             fi

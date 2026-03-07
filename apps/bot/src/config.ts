@@ -8,7 +8,9 @@ export const config: BotConfig = {
   apiToken: process.env.BOT_API_TOKEN || "",
   apiUrl: process.env.API_URL || "http://localhost:4000",
   redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
-  miniAppUrl: process.env.MINI_APP_URL || "https://app.vendhub.uz",
+  miniAppUrl:
+    process.env.MINI_APP_URL ||
+    "https://vendhubclient-production.up.railway.app",
   webhookDomain: process.env.WEBHOOK_DOMAIN || "",
   webhookPath: process.env.WEBHOOK_PATH || "/webhook",
   webhookSecret: process.env.WEBHOOK_SECRET || "",

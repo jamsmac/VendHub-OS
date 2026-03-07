@@ -133,7 +133,7 @@ jobs:
     needs: build-images
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-      url: ${{ github.ref == 'refs/heads/main' && 'https://admin.vendhub.uz' || 'https://staging.vendhub.uz' }}
+      url: ${{ github.ref == 'refs/heads/main' && 'https://vendhubweb-production.up.railway.app' || 'https://staging.vendhub.uz' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -162,8 +162,8 @@ jobs:
 
       - name: Check API health
         run: |
-          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://api.vendhub.uz' || 'https://api-staging.vendhub.uz' }}/api/v1/health || echo "⚠️ API health check failed (may not be configured yet)"
+          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://vendhubapi-production.up.railway.app' || 'https://api-staging.vendhub.uz' }}/api/v1/health || echo "⚠️ API health check failed (may not be configured yet)"
 
       - name: Check Admin Panel
         run: |
-          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://admin.vendhub.uz' || 'https://staging.vendhub.uz' }} || echo "⚠️ Admin panel check failed (may not be configured yet)"
+          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://vendhubweb-production.up.railway.app' || 'https://staging.vendhub.uz' }} || echo "⚠️ Admin panel check failed (may not be configured yet)"

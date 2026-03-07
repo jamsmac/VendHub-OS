@@ -64,7 +64,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - METRICS_API_KEY=${METRICS_API_KEY:-}
       - DB_MIGRATIONS_RUN=true
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.vendhub.uz,https://app.vendhub.uz,https://vendhub.uz}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://vendhubweb-production.up.railway.app,https://vendhubclient-production.up.railway.app}
     ports:
       - "4000:4000"
     depends_on:
@@ -107,13 +107,13 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${API_URL:-https://api.vendhub.uz}
+        - NEXT_PUBLIC_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}
     image: vendhub/web:${IMAGE_TAG:-latest}
     container_name: vendhub-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${API_URL:-https://api.vendhub.uz}
+      - NEXT_PUBLIC_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}
     ports:
       - "3000:3000"
     depends_on:
@@ -148,7 +148,7 @@ services:
       dockerfile: apps/client/Dockerfile
       args:
         - NODE_ENV=production
-        - VITE_API_URL=${API_URL:-https://api.vendhub.uz}
+        - VITE_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}
     image: vendhub/client:${IMAGE_TAG:-latest}
     container_name: vendhub-client
     restart: unless-stopped
@@ -184,7 +184,7 @@ services:
       dockerfile: apps/site/Dockerfile
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${API_URL:-https://api.vendhub.uz}
+        - NEXT_PUBLIC_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}
     image: vendhub/site:${IMAGE_TAG:-latest}
     container_name: vendhub-site
     restart: unless-stopped
