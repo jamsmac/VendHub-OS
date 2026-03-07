@@ -21,7 +21,7 @@ Complete step-by-step guide to deploy all VendHub OS services on Railway.
 Railway Project: VendHub OS
 ├── Service: api      │ Root: apps/api    │ NestJS, port 4000
 ├── Service: web      │ Root: apps/web    │ Next.js admin, port 3000
-├── Service: client   │ Root: apps/client │ Vite SPA (nginx), dynamic PORT
+├── Service: client   │ Root: apps/client │ Vite SPA (serve), dynamic PORT
 ├── Service: bot      │ Root: apps/bot    │ Telegram bot, no HTTP
 ├── Service: site     │ Root: apps/site   │ Next.js landing, port 3100
 ├── Service: Postgres │ (Railway managed) │ PostgreSQL
@@ -74,9 +74,12 @@ query: COMMIT
 Migration 50 completed successfully
 ```
 
-### 1.4 Verify schema in Supabase
+### 1.4 Verify schema in Railway Postgres
 
-Open [Supabase Dashboard → Table Editor](https://app.supabase.com/project/gwrfhzvulvkudobtmkrs/editor) — you should see all VendHub tables.
+```bash
+PGPASSWORD=yZNVPRtNvBMDUNuDhikfGQitGCPfjFVw psql -h trolley.proxy.rlwy.net -p 24266 -U postgres -d railway -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
+# Expected: 148 tables
+```
 
 ---
 
@@ -116,8 +119,8 @@ Go to [Railway Dashboard](https://railway.app/project/8ed97e59-3bb0-4224-99ef-de
 1. Click **New** → **GitHub Repo** → select your repo
 2. Service name: `client`
 3. **Settings → Root Directory**: `apps/client`
-4. Railway auto-detects the `Dockerfile` in `apps/client/`
-5. nginx serves the Vite SPA build, port is set via `$PORT` env var
+4. **Settings → Builder**: Nixpacks (NOT Dockerfile — the Dockerfile.dev is for local docker-compose only)
+5. Build/start commands are in `apps/client/railway.toml` (Nixpacks builds shared + client, serves via `serve`)
 
 ### 2.5 Create service: `bot`
 
@@ -196,18 +199,16 @@ COOKIE_SECRET=m+C5wjEIgg0C9bnSXHuyOq8UoZONhl6Dcj44gFPkE8Xk3UbPe+4hHTij74NT5CWsfV
 ```
 API_PORT=4000
 API_PREFIX=api/v1
-APP_URL=https://web-production-XXXX.up.railway.app
-API_URL=https://api-production-XXXX.up.railway.app
-CORS_ORIGINS=https://web-production-XXXX.up.railway.app,https://client-production-XXXX.up.railway.app
+APP_URL=https://vendhubweb-production.up.railway.app
+API_URL=https://vendhubapi-production.up.railway.app
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,https://vendhubweb-production.up.railway.app,https://vendhubclient-production.up.railway.app
 ```
-
-> Replace `XXXX` with the actual Railway-generated subdomain after first deploy.
 
 ### Web service variables (apps/web)
 
 ```
 NODE_ENV=production
-NEXT_PUBLIC_API_URL=https://api-production-XXXX.up.railway.app/api/v1
+NEXT_PUBLIC_API_URL=https://vendhubapi-production.up.railway.app
 NEXT_PUBLIC_SUPABASE_URL=https://gwrfhzvulvkudobtmkrs.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmZoenZ1bHZrdWRvYnRta3JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2OTg4ODIsImV4cCI6MjA4ODI3NDg4Mn0.mYp4ZbTsPcF2taoNcFq6EgNYYVtQnGhB_ZymUYpnXsM
 PORT=3000
@@ -216,10 +217,10 @@ PORT=3000
 ### Client service variables (apps/client)
 
 ```
-VITE_API_URL=https://api-production-XXXX.up.railway.app/api/v1
+VITE_API_URL=https://vendhubapi-production.up.railway.app
 VITE_SUPABASE_URL=https://gwrfhzvulvkudobtmkrs.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmZoenZ1bHZrdWRvYnRta3JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2OTg4ODIsImV4cCI6MjA4ODI3NDg4Mn0.mYp4ZbTsPcF2taoNcFq6EgNYYVtQnGhB_ZymUYpnXsM
-PORT=5173
+PORT=3000
 ```
 
 ### Bot service variables (apps/bot)
@@ -309,13 +310,13 @@ NestJS application started on port 4000
 ### 6.3 Verify health check
 
 ```bash
-curl https://api-production-XXXX.up.railway.app/api/v1/health
+curl https://vendhubapi-production.up.railway.app/api/v1/health
 # Expected: { "status": "ok", "database": "connected", "redis": "connected" }
 ```
 
 ### 6.4 Verify Swagger docs
 
-Open: `https://api-production-XXXX.up.railway.app/docs`
+Open: `https://vendhubapi-production.up.railway.app/docs`
 
 ---
 
@@ -399,4 +400,4 @@ The `postgres.railway.internal` hostname only resolves inside Railway's network.
 
 ---
 
-_Generated: 2026-03-06 | VendHub OS deployment to Railway + Supabase_
+_Updated: 2026-03-08 | VendHub OS deployment to Railway + Supabase_

@@ -192,25 +192,25 @@ Copy these variables into **Railway Dashboard → Service → Variables** for ea
 
 ## Web Service (`apps/web`)
 
-| Variable                        | Value                                               | Notes                     |
-| ------------------------------- | --------------------------------------------------- | ------------------------- |
-| `NODE_ENV`                      | `production`                                        |                           |
-| `PORT`                          | `3000`                                              |                           |
-| `NEXT_PUBLIC_API_URL`           | `https://api-production-XXXX.up.railway.app/api/v1` | Update after first deploy |
-| `NEXT_PUBLIC_SUPABASE_URL`      | `https://gwrfhzvulvkudobtmkrs.supabase.co`          |                           |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`           | (full key from .env)      |
+| Variable                        | Value                                          | Notes                     |
+| ------------------------------- | ---------------------------------------------- | ------------------------- |
+| `NODE_ENV`                      | `production`                                   |                           |
+| `PORT`                          | `3000`                                         |                           |
+| `NEXT_PUBLIC_API_URL`           | `https://vendhubapi-production.up.railway.app` | Update after first deploy |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `https://gwrfhzvulvkudobtmkrs.supabase.co`     |                           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`      | (full key from .env)      |
 
 ---
 
 ## Client Service (`apps/client`)
 
-| Variable                 | Value                                               | Notes                     |
-| ------------------------ | --------------------------------------------------- | ------------------------- |
-| `NODE_ENV`               | `production`                                        |                           |
-| `PORT`                   | `5173`                                              |                           |
-| `VITE_API_URL`           | `https://api-production-XXXX.up.railway.app/api/v1` | Update after first deploy |
-| `VITE_SUPABASE_URL`      | `https://gwrfhzvulvkudobtmkrs.supabase.co`          |                           |
-| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`           | (full key from .env)      |
+| Variable                 | Value                                          | Notes                     |
+| ------------------------ | ---------------------------------------------- | ------------------------- |
+| `NODE_ENV`               | `production`                                   |                           |
+| `PORT`                   | `3000`                                         | serve uses 3000 default   |
+| `VITE_API_URL`           | `https://vendhubapi-production.up.railway.app` | Update after first deploy |
+| `VITE_SUPABASE_URL`      | `https://gwrfhzvulvkudobtmkrs.supabase.co`     |                           |
+| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`      | (full key from .env)      |
 
 ---
 
@@ -220,7 +220,7 @@ Copy these variables into **Railway Dashboard → Service → Variables** for ea
 | -------------------- | ------------------------------------------------------------------------------ |
 | `NODE_ENV`           | `production`                                                                   |
 | `TELEGRAM_BOT_TOKEN` | `your_telegram_bot_token`                                                      |
-| `API_URL`            | `https://api-production-XXXX.up.railway.app/api/v1`                            |
+| `API_URL`            | `https://vendhubapi-production.up.railway.app`                                 |
 | `REDIS_URL`          | `redis://default:gWQddoaowhHvWQqfTFauXhPqVHrkIwnX@redis.railway.internal:6379` |
 
 ---
