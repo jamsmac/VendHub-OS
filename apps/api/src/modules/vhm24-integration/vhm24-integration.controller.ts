@@ -30,6 +30,10 @@ import {
   CurrentOrganizationId,
 } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { SyncMachinesDto } from "./dto/sync-machines.dto";
+import { LinkTasksDto } from "./dto/link-tasks.dto";
+import { ManualVerifyDto } from "./dto/manual-verify.dto";
+import { ResolveReconciliationDto } from "./dto/resolve-reconciliation.dto";
 
 @ApiTags("VHM24 Integration")
 @ApiBearerAuth()
@@ -61,16 +65,7 @@ export class Vhm24IntegrationController {
   @Post("sync/machines")
   syncMachines(
     @CurrentOrganizationId() organizationId: string,
-    @Body()
-    body: {
-      machines: Array<{
-        machineId: string;
-        machineName?: string;
-        latitude: number;
-        longitude: number;
-        address?: string;
-      }>;
-    },
+    @Body() body: SyncMachinesDto,
   ) {
     return this.integrationService.syncMachines(organizationId, body.machines);
   }
@@ -82,17 +77,7 @@ export class Vhm24IntegrationController {
   @Post("trips/:tripId/tasks")
   linkTasks(
     @Param("tripId", ParseUUIDPipe) tripId: string,
-    @Body()
-    body: {
-      tasks: Array<{
-        vhm24TaskId: string;
-        vhm24TaskType: string;
-        vhm24MachineId: string;
-        expectedLatitude: number;
-        expectedLongitude: number;
-        verificationRadiusM?: number;
-      }>;
-    },
+    @Body() body: LinkTasksDto,
   ) {
     return this.integrationService.linkTasksToTrip(tripId, body.tasks);
   }
@@ -105,7 +90,7 @@ export class Vhm24IntegrationController {
   manualVerify(
     @CurrentUserId() userId: string,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { status: "verified" | "skipped"; notes?: string },
+    @Body() body: ManualVerifyDto,
   ) {
     return this.integrationService.manualVerifyTask(
       id,
@@ -133,7 +118,7 @@ export class Vhm24IntegrationController {
   resolveReconciliation(
     @CurrentUserId() userId: string,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { notes?: string },
+    @Body() body: ResolveReconciliationDto,
   ) {
     return this.reconciliationService.resolve(id, userId, body.notes);
   }
