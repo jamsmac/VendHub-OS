@@ -42,6 +42,11 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
+import {
+  validateMagicBytes,
+  sanitizeFolderPath,
+  sanitizeDownloadFilename,
+} from "../../common/utils/file-validation";
 
 import { UploadFileDto, FileCategory } from "./dto/upload-file.dto";
 import { UploadBase64Dto } from "./dto/upload-base64.dto";
@@ -65,7 +70,11 @@ export class StorageController {
 
   @Post("upload")
   @Roles("operator", "manager", "admin", "owner")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", {
+      limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB hard cap at multer level
+    }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Upload file directly" })
   @ApiBody({
@@ -103,6 +112,13 @@ export class StorageController {
       }
     }
 
+    // Validate magic bytes match claimed MIME type
+    const magicCategory =
+      category !== FileCategory.ANY
+        ? (category as "image" | "document" | "spreadsheet")
+        : undefined;
+    validateMagicBytes(file.buffer, file.mimetype, magicCategory);
+
     // Validate file size
     const sizeCategory =
       category === FileCategory.ANY
@@ -115,9 +131,12 @@ export class StorageController {
       );
     }
 
+    // Sanitize folder path to prevent traversal
+    const safeFolder = sanitizeFolderPath(dto.folder);
+
     return this.storageService.uploadFile(
       organizationId,
-      dto.folder,
+      safeFolder,
       file.originalname,
       file.buffer,
       file.mimetype,
@@ -141,7 +160,7 @@ export class StorageController {
   ): Promise<UploadResult> {
     return this.storageService.uploadBase64(
       organizationId,
-      dto.folder,
+      sanitizeFolderPath(dto.folder),
       dto.base64_data,
       dto.file_name,
     );
@@ -161,7 +180,7 @@ export class StorageController {
   ): Promise<PresignedUrlResult> {
     return this.storageService.getPresignedUploadUrl(
       organizationId,
-      dto.folder,
+      sanitizeFolderPath(dto.folder),
       dto.file_name,
       dto.mime_type,
       dto.category || "any",
@@ -211,11 +230,14 @@ export class StorageController {
     @Query() query: PresignedDownloadQueryDto,
   ): Promise<{ url: string; expiresAt: Date }> {
     const expiresIn = query.expires_in || 3600;
+    const safeFileName = query.file_name
+      ? sanitizeDownloadFilename(query.file_name)
+      : undefined;
     const url = await this.storageService.getPresignedDownloadUrl(
       organizationId,
       key,
       expiresIn,
-      query.file_name,
+      safeFileName,
     );
 
     const expiresAt = new Date();

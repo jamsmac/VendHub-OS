@@ -42,6 +42,7 @@ try {
 }
 import * as crypto from "crypto";
 import * as path from "path";
+import { validateMagicBytes } from "../../common/utils/file-validation";
 
 export interface UploadResult {
   key: string;
@@ -239,6 +240,9 @@ export class StorageService {
 
     const buffer = Buffer.from(matches[2], "base64");
 
+    // Verify magic bytes match the claimed MIME type
+    validateMagicBytes(buffer, mimeType);
+
     return this.uploadFile(organizationId, folder, fileName, buffer, mimeType);
   }
 
@@ -274,6 +278,9 @@ export class StorageService {
           organizationId,
           originalName: fileName,
         },
+        // NOTE: S3 PUT presigned URLs cannot enforce max content-length.
+        // Size enforcement must be done via S3 bucket policy with
+        // s3:content-length-range condition, or by verifying after upload.
       });
 
       const uploadUrl = await getSignedUrl(this.s3Client, command, {
@@ -615,8 +622,8 @@ export class StorageService {
     folder: string,
     fileName: string,
   ): string {
-    const ext = path.extname(fileName);
-    const baseName = path.basename(fileName, ext);
+    const ext = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName, path.extname(fileName));
     const hash = crypto.randomBytes(8).toString("hex");
     const timestamp = Date.now();
 
@@ -626,7 +633,16 @@ export class StorageService {
       .replace(/[^a-z0-9]/g, "-")
       .substring(0, 50);
 
-    return `org/${organizationId}/${folder}/${sanitizedName}-${timestamp}-${hash}${ext}`;
+    // Sanitize folder (defense-in-depth against path traversal)
+    const safeFolder = folder
+      .replace(/\.\./g, "")
+      .replace(/^\/+|\/+$/g, "")
+      .replace(/\/+/g, "/");
+
+    // Sanitize extension (only allow alphanumeric)
+    const safeExt = ext.replace(/[^a-z0-9.]/g, "");
+
+    return `org/${organizationId}/${safeFolder}/${sanitizedName}-${timestamp}-${hash}${safeExt}`;
   }
 
   /**

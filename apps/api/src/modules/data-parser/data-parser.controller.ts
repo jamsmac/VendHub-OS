@@ -34,7 +34,9 @@ export class DataParserController {
 
   @Post("parse")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Parse uploaded file (CSV, Excel, JSON)" })
   @ApiBody({
@@ -61,7 +63,9 @@ export class DataParserController {
 
   @Post("parse/sales")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Parse and validate sales data import" })
   @ApiBody({
@@ -88,7 +92,9 @@ export class DataParserController {
 
   @Post("parse/counterparties")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Parse and validate counterparty data import" })
   @ApiBody({
@@ -119,7 +125,9 @@ export class DataParserController {
 
   @Post("parse/inventory")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Parse and validate inventory data import" })
   @ApiBody({
@@ -150,7 +158,9 @@ export class DataParserController {
 
   @Post("detect-format")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Detect file format without full parsing" })
   @ApiBody({
@@ -168,7 +178,9 @@ export class DataParserController {
 
   @Post("recover")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({
     summary: "Attempt to recover data from a file with parsing errors",

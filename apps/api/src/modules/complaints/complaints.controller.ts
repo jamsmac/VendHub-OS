@@ -63,6 +63,7 @@ import {
 import { UserRole } from "../../common/enums";
 import { StorageService } from "../storage/storage.service";
 import { FileCategory } from "../storage/dto/upload-file.dto";
+import { validateMagicBytes } from "../../common/utils/file-validation";
 
 @ApiTags("Complaints")
 @ApiBearerAuth()
@@ -101,7 +102,11 @@ export class ComplaintsController {
   @Post("public")
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 complaints/min per IP -- prevent spam
-  @UseInterceptors(FileInterceptor("photo"))
+  @UseInterceptors(
+    FileInterceptor("photo", {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB hard cap for public uploads
+    }),
+  )
   @ApiConsumes("multipart/form-data")
   @ApiOperation({ summary: "Create complaint via QR code (public)" })
   @ApiResponse({ status: 201, description: "Complaint created" })
@@ -167,6 +172,9 @@ export class ComplaintsController {
           `MIME type ${photo.mimetype} not allowed for complaint photos`,
         );
       }
+
+      // Verify file content matches claimed MIME via magic bytes
+      validateMagicBytes(photo.buffer, photo.mimetype, "image");
 
       if (!this.storageService.validateFileSize(photo.size, "image")) {
         const maxSize = this.storageService.getMaxFileSize("image");
