@@ -219,6 +219,148 @@ describe("FiscalService", () => {
     });
   });
 
+  describe("updateDevice", () => {
+    it("should update device name and serial number", async () => {
+      const existing = { ...mockDevice };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        name: "Updated Device",
+        serial_number: "SN-NEW",
+      });
+
+      expect(result.name).toBe("Updated Device");
+      expect(result.serialNumber).toBe("SN-NEW");
+    });
+
+    it("should merge credentials without overwriting unset fields", async () => {
+      const existing = {
+        ...mockDevice,
+        credentials: { login: "old", password: "old", companyTin: "111" },
+      };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        credentials: { login: "new_user" },
+      });
+
+      expect(result.credentials.login).toBe("new_user");
+      expect(result.credentials.password).toBe("old");
+      expect(result.credentials.companyTin).toBe("111");
+    });
+
+    it("should merge config without overwriting unset fields", async () => {
+      const existing = {
+        ...mockDevice,
+        config: {
+          baseUrl: "http://old",
+          defaultCashier: "OldCashier",
+          autoOpenShift: false,
+        },
+      };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        config: { base_url: "http://new", auto_open_shift: true },
+      });
+
+      expect(result.config.baseUrl).toBe("http://new");
+      expect(result.config.defaultCashier).toBe("OldCashier");
+      expect(result.config.autoOpenShift).toBe(true);
+    });
+
+    it("should update sandboxMode", async () => {
+      const existing = { ...mockDevice, sandboxMode: true };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        sandbox_mode: false,
+      });
+
+      expect(result.sandboxMode).toBe(false);
+    });
+
+    it("should re-register multikassa device after update", async () => {
+      const existing = { ...mockDevice, provider: "multikassa" };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      await service.updateDevice(deviceId, orgId, { name: "Updated" });
+
+      expect(mockMultikassa.registerDevice).toHaveBeenCalled();
+    });
+
+    it("should not re-register when provider is not multikassa", async () => {
+      const existing = { ...mockDevice, provider: "ofd" };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      await service.updateDevice(deviceId, orgId, { name: "Updated" });
+
+      expect(mockMultikassa.registerDevice).not.toHaveBeenCalled();
+    });
+
+    it("should update terminal_id", async () => {
+      const existing = { ...mockDevice };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        terminal_id: "TERM-NEW",
+      });
+
+      expect(result.terminalId).toBe("TERM-NEW");
+    });
+
+    it("should merge credentials with api_key and company_tin", async () => {
+      const existing = {
+        ...mockDevice,
+        credentials: { login: "u", password: "p" },
+      };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        credentials: { api_key: "key123", company_tin: "999" },
+      });
+
+      expect(result.credentials.apiKey).toBe("key123");
+      expect(result.credentials.companyTin).toBe("999");
+    });
+
+    it("should merge config with close_shift_at and vat_rates", async () => {
+      const existing = { ...mockDevice, config: {} };
+      deviceRepo.findOne!.mockResolvedValue(existing);
+      deviceRepo.save!.mockImplementation(async (d) => d);
+
+      const result = await service.updateDevice(deviceId, orgId, {
+        config: {
+          close_shift_at: "23:59",
+          vat_rates: [12, 0],
+          auto_close_shift: true,
+          default_cashier: "Auto",
+        },
+      });
+
+      expect(result.config.closeShiftAt).toBe("23:59");
+      expect(result.config.vatRates).toEqual([12, 0]);
+      expect(result.config.autoCloseShift).toBe(true);
+      expect(result.config.defaultCashier).toBe("Auto");
+    });
+
+    it("should throw NOT_FOUND when device does not exist", async () => {
+      deviceRepo.findOne!.mockResolvedValue(null);
+
+      await expect(
+        service.updateDevice("missing", orgId, { name: "X" }),
+      ).rejects.toThrow(HttpException);
+    });
+  });
+
   describe("activateDevice", () => {
     it("should set device status to ACTIVE", async () => {
       deviceRepo.findOne!.mockResolvedValue({ ...mockDevice });
@@ -324,6 +466,46 @@ describe("FiscalService", () => {
         HttpException,
       );
     });
+
+    it("should add to queue when multikassa closeShift fails", async () => {
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      shiftRepo.findOne!.mockResolvedValue({ ...mockShift });
+      mockMultikassa.closeShift!.mockRejectedValue(new Error("Timeout"));
+      shiftRepo.save!.mockImplementation(async (d) => d);
+      queueRepo.create!.mockImplementation((d) => d);
+      queueRepo.save!.mockImplementation(async (d) => ({
+        id: "q-close",
+        ...d,
+      }));
+      mockFiscalQueue.add.mockResolvedValue({});
+
+      const result = await service.closeShift(deviceId, orgId);
+
+      expect(result.status).toBe(FiscalShiftStatus.CLOSED);
+      expect(queueRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ operation: "shift_close" }),
+      );
+    });
+
+    it("should close shift without external data when closeShift fails", async () => {
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      const openShift = {
+        ...mockShift,
+        zReportNumber: undefined,
+        totalSales: 0,
+      };
+      shiftRepo.findOne!.mockResolvedValue(openShift);
+      mockMultikassa.closeShift!.mockRejectedValue(new Error("Offline"));
+      shiftRepo.save!.mockImplementation(async (d) => d);
+      queueRepo.create!.mockImplementation((d) => d);
+      queueRepo.save!.mockImplementation(async (d) => ({ id: "q", ...d }));
+      mockFiscalQueue.add.mockResolvedValue({});
+
+      const result = await service.closeShift(deviceId, orgId);
+
+      expect(result.status).toBe(FiscalShiftStatus.CLOSED);
+      expect(result.zReportNumber).toBeUndefined();
+    });
   });
 
   describe("getCurrentShift", () => {
@@ -362,6 +544,78 @@ describe("FiscalService", () => {
     it("should throw NOT_FOUND when device does not exist", async () => {
       deviceRepo.findOne!.mockResolvedValue(null);
       await expect(service.getShiftHistory(deviceId, orgId)).rejects.toThrow(
+        HttpException,
+      );
+    });
+  });
+
+  describe("getXReport", () => {
+    it("should return X-report from multikassa provider", async () => {
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      shiftRepo.findOne!.mockResolvedValue(mockShift);
+      mockMultikassa.getXReport!.mockResolvedValue({
+        success: true,
+        totalSales: 50000,
+        totalRefunds: 2000,
+        totalCash: 30000,
+        totalCard: 20000,
+        receiptsCount: 5,
+      });
+
+      const result = await service.getXReport(deviceId, orgId);
+
+      expect(result.success).toBe(true);
+      expect(result.totalSales).toBe(50000);
+      expect(result.shiftId).toBe(mockShift.id);
+      expect(result.shiftNumber).toBe(mockShift.shiftNumber);
+    });
+
+    it("should calculate X-report from local data when provider is not multikassa", async () => {
+      const ofdDevice = { ...mockDevice, provider: "ofd" };
+      deviceRepo.findOne!.mockResolvedValue(ofdDevice);
+      shiftRepo.findOne!.mockResolvedValue(mockShift);
+      receiptRepo.find!.mockResolvedValue([
+        {
+          type: FiscalReceiptType.SALE,
+          total: 25000,
+          payment: { cash: 15000, card: 10000 },
+        },
+        {
+          type: FiscalReceiptType.SALE,
+          total: 10000,
+          payment: { cash: 5000, card: 5000 },
+        },
+        {
+          type: FiscalReceiptType.REFUND,
+          total: 3000,
+          payment: { cash: 3000, card: 0 },
+        },
+      ]);
+
+      const result = await service.getXReport(deviceId, orgId);
+
+      expect(result.success).toBe(true);
+      expect(result.totalSales).toBe(35000);
+      expect(result.totalRefunds).toBe(3000);
+      expect(result.totalCash).toBe(20000);
+      expect(result.totalCard).toBe(15000);
+      expect(result.receiptsCount).toBe(3);
+      expect(result.shiftId).toBe(mockShift.id);
+    });
+
+    it("should throw BAD_REQUEST when no open shift exists", async () => {
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      shiftRepo.findOne!.mockResolvedValue(null);
+
+      await expect(service.getXReport(deviceId, orgId)).rejects.toThrow(
+        HttpException,
+      );
+    });
+
+    it("should throw NOT_FOUND when device does not exist", async () => {
+      deviceRepo.findOne!.mockResolvedValue(null);
+
+      await expect(service.getXReport(deviceId, orgId)).rejects.toThrow(
         HttpException,
       );
     });
@@ -463,6 +717,184 @@ describe("FiscalService", () => {
       const result = await service.createReceipt(orgId, receiptDto);
 
       expect(result).toBeDefined();
+    });
+  });
+
+  describe("createReceipt — fiscalization failure queuing", () => {
+    const receiptDto: CreateReceiptDto = {
+      device_id: deviceId,
+      order_id: "order-fail",
+      type: FiscalReceiptType.SALE,
+      items: [
+        {
+          name: "Tea",
+          ikpu_code: "10000000001000001",
+          quantity: 2,
+          price: 8000,
+          vat_rate: 12,
+          unit: "pcs",
+        },
+      ],
+      payment: { cash: 16000, card: 0 },
+    };
+
+    it("should add to queue when fiscalization fails", async () => {
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      shiftRepo.findOne!.mockResolvedValue(mockShift);
+      receiptRepo.create!.mockImplementation((d) => d);
+      receiptRepo.save!.mockImplementation(async (d) => ({
+        id: "r-fail",
+        ...d,
+        retryCount: 0,
+        metadata: {},
+      }));
+      mockMultikassa.createSaleReceipt!.mockRejectedValue(
+        new Error("Provider timeout"),
+      );
+      queueRepo.create!.mockImplementation((d) => d);
+      queueRepo.save!.mockImplementation(async (d) => ({ id: "q-fail", ...d }));
+      mockFiscalQueue.add.mockResolvedValue({});
+
+      const result = await service.createReceipt(orgId, receiptDto);
+
+      expect(result).toBeDefined();
+      expect(queueRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operation: "receipt_sale",
+          organizationId: orgId,
+        }),
+      );
+    });
+
+    it("should queue refund operation when refund fiscalization fails", async () => {
+      const refundDto: CreateReceiptDto = {
+        ...receiptDto,
+        type: FiscalReceiptType.REFUND,
+      };
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      shiftRepo.findOne!.mockResolvedValue(mockShift);
+      receiptRepo.create!.mockImplementation((d) => d);
+      receiptRepo.save!.mockImplementation(async (d) => ({
+        id: "r-refund-fail",
+        ...d,
+        retryCount: 0,
+        metadata: {},
+      }));
+      mockMultikassa.createRefundReceipt!.mockRejectedValue(
+        new Error("Provider down"),
+      );
+      queueRepo.create!.mockImplementation((d) => d);
+      queueRepo.save!.mockImplementation(async (d) => ({ id: "q-r", ...d }));
+      mockFiscalQueue.add.mockResolvedValue({});
+
+      const result = await service.createReceipt(orgId, refundDto);
+
+      expect(result).toBeDefined();
+      expect(queueRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ operation: "receipt_refund" }),
+      );
+    });
+  });
+
+  describe("fiscalizeReceipt", () => {
+    const mockReceiptEntity = {
+      id: "r-1",
+      organizationId: orgId,
+      deviceId,
+      type: FiscalReceiptType.SALE,
+      status: FiscalReceiptStatus.PENDING,
+      items: [
+        {
+          name: "Coffee",
+          ikpuCode: "10000000001000000",
+          packageCode: "PKG",
+          quantity: 1,
+          price: 15000,
+          vatRate: 12,
+          unit: "pcs",
+          vatAmount: 1607,
+          total: 15000,
+        },
+      ],
+      payment: { cash: 15000, card: 0 },
+      total: 15000,
+      retryCount: 0,
+      metadata: {},
+    } as unknown as FiscalReceipt;
+
+    it("should set status to SUCCESS on successful fiscalization", async () => {
+      receiptRepo.save!.mockImplementation(async (d) => d);
+      mockMultikassa.createSaleReceipt!.mockResolvedValue({
+        receipt_id: "ext-r1",
+        fiscal_number: "FN-001",
+        fiscal_sign: "FS-001",
+        qr_code_url: "http://qr",
+        receipt_url: "http://receipt",
+      });
+
+      const result = await service.fiscalizeReceipt(
+        { ...mockReceiptEntity },
+        mockDevice as FiscalDevice,
+      );
+
+      expect(result.status).toBe(FiscalReceiptStatus.SUCCESS);
+      expect(result.externalReceiptId).toBe("ext-r1");
+      expect(result.fiscalNumber).toBe("FN-001");
+      expect(result.fiscalSign).toBe("FS-001");
+      expect(result.qrCodeUrl).toBe("http://qr");
+      expect(result.receiptUrl).toBe("http://receipt");
+      expect(result.fiscalizedAt).toBeInstanceOf(Date);
+    });
+
+    it("should call createRefundReceipt for refund type", async () => {
+      const refundReceipt = {
+        ...mockReceiptEntity,
+        type: FiscalReceiptType.REFUND,
+      } as unknown as FiscalReceipt;
+      receiptRepo.save!.mockImplementation(async (d) => d);
+      mockMultikassa.createRefundReceipt!.mockResolvedValue({
+        receipt_id: "ext-ref",
+        fiscal_number: "FN-R1",
+        fiscal_sign: "FS-R1",
+        qr_code_url: "http://qr/r",
+        receipt_url: "http://receipt/r",
+      });
+
+      const result = await service.fiscalizeReceipt(
+        refundReceipt,
+        mockDevice as FiscalDevice,
+      );
+
+      expect(mockMultikassa.createRefundReceipt).toHaveBeenCalled();
+      expect(result.status).toBe(FiscalReceiptStatus.SUCCESS);
+    });
+
+    it("should set status to FAILED and rethrow on error", async () => {
+      receiptRepo.save!.mockImplementation(async (d) => d);
+      mockMultikassa.createSaleReceipt!.mockRejectedValue(
+        new Error("API error"),
+      );
+
+      const receipt = { ...mockReceiptEntity };
+      await expect(
+        service.fiscalizeReceipt(receipt, mockDevice as FiscalDevice),
+      ).rejects.toThrow("API error");
+
+      expect(receipt.status).toBe(FiscalReceiptStatus.FAILED);
+      expect(receipt.lastError).toBe("API error");
+      expect(receipt.retryCount).toBe(1);
+    });
+
+    it("should handle unknown error type in catch block", async () => {
+      receiptRepo.save!.mockImplementation(async (d) => d);
+      mockMultikassa.createSaleReceipt!.mockRejectedValue("string error");
+
+      const receipt = { ...mockReceiptEntity };
+      await expect(
+        service.fiscalizeReceipt(receipt, mockDevice as FiscalDevice),
+      ).rejects.toBe("string error");
+
+      expect(receipt.lastError).toBe("Unknown error");
     });
   });
 
@@ -631,6 +1063,191 @@ describe("FiscalService", () => {
 
       expect(item.status).toBe(FiscalQueueStatus.RETRY);
       expect(item.nextRetryAt).toBeDefined();
+    });
+
+    it("should set status to FAILED when retryCount >= maxRetries", async () => {
+      const item: Record<string, unknown> = {
+        id: "qi",
+        deviceId: "dev",
+        operation: "receipt_sale",
+        payload: { receiptId: "r1" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 4,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(null);
+
+      await service.processQueueItem("qi");
+
+      expect(item.status).toBe(FiscalQueueStatus.FAILED);
+    });
+
+    it("should process receipt_sale operation successfully", async () => {
+      const receipt = {
+        id: "r1",
+        type: FiscalReceiptType.SALE,
+        status: FiscalReceiptStatus.PENDING,
+        items: [
+          {
+            name: "Coffee",
+            ikpuCode: "10000000001000000",
+            quantity: 1,
+            price: 15000,
+            vatRate: 12,
+            unit: "pcs",
+          },
+        ],
+        payment: { cash: 15000, card: 0 },
+        total: 15000,
+        retryCount: 0,
+        metadata: {},
+      };
+      const item: Record<string, unknown> = {
+        id: "qi",
+        deviceId,
+        operation: "receipt_sale",
+        payload: { receiptId: "r1" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      receiptRepo.findOne!.mockResolvedValue(receipt);
+      receiptRepo.save!.mockImplementation(async (d) => d);
+      mockMultikassa.createSaleReceipt!.mockResolvedValue({
+        receipt_id: "ext-r1",
+        fiscal_number: "FN-001",
+        fiscal_sign: "FS-001",
+        qr_code_url: "http://qr",
+        receipt_url: "http://receipt",
+      });
+
+      await service.processQueueItem("qi");
+
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
+      expect(item.processedAt).toBeInstanceOf(Date);
+    });
+
+    it("should process shift_open operation for multikassa", async () => {
+      const item = {
+        id: "qi-shift",
+        deviceId,
+        operation: "shift_open",
+        payload: { cashierName: "Cashier A" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      mockMultikassa.openShift!.mockResolvedValue({ shiftId: "ext-s1" });
+
+      await service.processQueueItem("qi-shift");
+
+      expect(mockMultikassa.openShift).toHaveBeenCalledWith(
+        deviceId,
+        item.payload,
+      );
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
+    });
+
+    it("should process shift_close operation for multikassa", async () => {
+      const item = {
+        id: "qi-close",
+        deviceId,
+        operation: "shift_close",
+        payload: { shiftId: "shift-1" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      mockMultikassa.closeShift!.mockResolvedValue({
+        zReportNumber: "Z-001",
+        totalSales: 100000,
+      });
+
+      await service.processQueueItem("qi-close");
+
+      expect(mockMultikassa.closeShift).toHaveBeenCalledWith(deviceId);
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
+    });
+
+    it("should process x_report operation and store result", async () => {
+      const item: Record<string, unknown> = {
+        id: "qi-xr",
+        deviceId,
+        operation: "x_report",
+        payload: {},
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      const xReportData = {
+        success: true,
+        totalSales: 80000,
+        totalRefunds: 1000,
+        totalCash: 40000,
+        totalCard: 40000,
+        receiptsCount: 8,
+      };
+      mockMultikassa.getXReport!.mockResolvedValue(xReportData);
+
+      await service.processQueueItem("qi-xr");
+
+      expect(item.result).toEqual(xReportData);
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
+    });
+
+    it("should skip receipt processing when receipt not found", async () => {
+      const item = {
+        id: "qi-no-receipt",
+        deviceId,
+        operation: "receipt_sale",
+        payload: { receiptId: "missing" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(mockDevice);
+      receiptRepo.findOne!.mockResolvedValue(null);
+
+      await service.processQueueItem("qi-no-receipt");
+
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
+    });
+
+    it("should not call multikassa for shift_open when provider is not multikassa", async () => {
+      const ofdDevice = { ...mockDevice, provider: "ofd" };
+      const item = {
+        id: "qi-ofd",
+        deviceId,
+        operation: "shift_open",
+        payload: { cashierName: "A" },
+        status: FiscalQueueStatus.PENDING,
+        retryCount: 0,
+        maxRetries: 5,
+      };
+      queueRepo.findOne!.mockResolvedValue(item);
+      queueRepo.save!.mockImplementation(async (d) => d);
+      deviceRepo.findOne!.mockResolvedValue(ofdDevice);
+
+      await service.processQueueItem("qi-ofd");
+
+      expect(mockMultikassa.openShift).not.toHaveBeenCalled();
+      expect(item.status).toBe(FiscalQueueStatus.SUCCESS);
     });
   });
 

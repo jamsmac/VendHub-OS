@@ -19,6 +19,7 @@ resources:
   - site-deployment.yml
   - ingress.yml
   - network-policies.yml
+  - redis-exporter-deployment.yml
   - backup-cronjob.yml
 
 commonLabels:

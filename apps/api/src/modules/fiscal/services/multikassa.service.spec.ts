@@ -472,5 +472,74 @@ describe("MultiKassaService", () => {
       const result = await service.ensureShiftOpen(deviceId, "Cashier");
       expect(result.success).toBe(true);
     });
+
+    it("should open a new shift when shift is closed", async () => {
+      // First call: getShiftStatus for isShiftOpen => closed
+      httpService.request
+        .mockReturnValueOnce(
+          of(
+            makeAxiosResponse({
+              status: "closed",
+              shift_id: "old",
+              shift_number: 5,
+              opened_at: "",
+              cashier_name: "X",
+              total_sales: 0,
+              total_refunds: 0,
+              receipts_count: 0,
+            }),
+          ),
+        )
+        // Second call: openShift
+        .mockReturnValueOnce(
+          of(
+            makeAxiosResponse({
+              shift_id: "new-shift",
+              shift_number: 6,
+              opened_at: "2025-01-15T10:00:00Z",
+            }),
+          ),
+        );
+
+      const result = await service.ensureShiftOpen(deviceId, "NewCashier");
+      expect(result.success).toBe(true);
+      expect((result as { shiftId: string }).shiftId).toBe("new-shift");
+    });
+
+    it("should use default cashier name when not provided", async () => {
+      httpService.request
+        .mockReturnValueOnce(
+          of(
+            makeAxiosResponse({
+              status: "closed",
+              shift_id: "old",
+              shift_number: 5,
+              opened_at: "",
+              cashier_name: "X",
+              total_sales: 0,
+              total_refunds: 0,
+              receipts_count: 0,
+            }),
+          ),
+        )
+        .mockReturnValueOnce(
+          of(
+            makeAxiosResponse({
+              shift_id: "new-shift-2",
+              shift_number: 7,
+              opened_at: "2025-01-15T11:00:00Z",
+            }),
+          ),
+        );
+
+      const result = await service.ensureShiftOpen(deviceId);
+      expect(result.success).toBe(true);
+      // Should use defaultCashier from config: "VendHub"
+      expect(httpService.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { cashier_name: "VendHub" },
+        }),
+      );
+    });
   });
 });

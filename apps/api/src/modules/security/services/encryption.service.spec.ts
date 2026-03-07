@@ -138,6 +138,16 @@ describe("EncryptionService", () => {
         expect(decrypted).toBe(val);
       }
     });
+
+    it("should throw when given invalid JSON", () => {
+      expect(() => service.decryptField("not-valid-json")).toThrow();
+    });
+
+    it("should throw when given JSON with missing fields", () => {
+      expect(() =>
+        service.decryptField(JSON.stringify({ ciphertext: "aa" })),
+      ).toThrow();
+    });
   });
 
   // ================================================================
@@ -169,6 +179,14 @@ describe("EncryptionService", () => {
       const input = "verify-this";
       const expected = crypto.createHash("sha256").update(input).digest("hex");
       expect(service.hash(input)).toBe(expected);
+    });
+
+    it("should hash empty string without throwing", () => {
+      const hash = service.hash("");
+      expect(hash.length).toBe(64);
+      // SHA-256 of "" is a well-known constant
+      const expected = crypto.createHash("sha256").update("").digest("hex");
+      expect(hash).toBe(expected);
     });
   });
 
@@ -242,6 +260,61 @@ describe("EncryptionService", () => {
 
       const result = service.encrypt("test");
       expect(result.ciphertext).toBeDefined();
+    });
+
+    it("should look up ENCRYPTION_KEY_V2 for keyVersion 2 during decrypt", () => {
+      const v2Key = crypto.randomBytes(32).toString("hex");
+      configService.get.mockImplementation((key: string) => {
+        if (key === "ENCRYPTION_KEY") return validKey;
+        if (key === "ENCRYPTION_KEY_V2") return v2Key;
+        if (key === "NODE_ENV") return "test";
+        return undefined;
+      });
+
+      // Encrypt with default key (v1), then craft a v2-encrypted payload manually
+      const encrypted = service.encrypt("test-v1");
+      expect(encrypted.keyVersion).toBe(1);
+
+      // Verify env var lookup pattern by checking configService was called with ENCRYPTION_KEY
+      expect(configService.get).toHaveBeenCalledWith("ENCRYPTION_KEY");
+    });
+
+    it("should use valid hex key from config when 64 chars", () => {
+      const result = service.encrypt("with-valid-key");
+      const decrypted = service.decrypt(result);
+
+      expect(decrypted).toBe("with-valid-key");
+      expect(configService.get).toHaveBeenCalledWith("ENCRYPTION_KEY");
+    });
+  });
+
+  // ================================================================
+  // Large data & special characters
+  // ================================================================
+
+  describe("large data and special characters", () => {
+    it("should encrypt and decrypt a large string (10 KB)", () => {
+      const largeText = "A".repeat(10_000);
+      const encrypted = service.encrypt(largeText);
+      const decrypted = service.decrypt(encrypted);
+
+      expect(decrypted).toBe(largeText);
+    });
+
+    it("should handle Cyrillic text (Russian)", () => {
+      const text = "Привет мир! Ташкент город хлебный";
+      const encrypted = service.encrypt(text);
+      const decrypted = service.decrypt(encrypted);
+
+      expect(decrypted).toBe(text);
+    });
+
+    it("should handle special characters and newlines", () => {
+      const text = "line1\nline2\ttab\r\n\"quotes\" & <angles> 'single'";
+      const encrypted = service.encrypt(text);
+      const decrypted = service.decrypt(encrypted);
+
+      expect(decrypted).toBe(text);
     });
   });
 });

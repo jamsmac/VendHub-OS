@@ -1,0 +1,86 @@
+# ==================================================
+# Redis Exporter Deployment (Prometheus metrics)
+# ==================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: vendhub
+  labels:
+    app: redis-exporter
+    tier: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-exporter
+  template:
+    metadata:
+      labels:
+        app: redis-exporter
+        tier: monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+
+      containers:
+        - name: redis-exporter
+          image: oliver006/redis_exporter:v1.55.0
+          ports:
+            - name: metrics
+              containerPort: 9121
+              protocol: TCP
+
+          env:
+            - name: REDIS_ADDR
+              value: "redis://redis:6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secrets
+                  key: REDIS_PASSWORD
+
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-exporter
+  namespace: vendhub
+  labels:
+    app: redis-exporter
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9121
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app: redis-exporter

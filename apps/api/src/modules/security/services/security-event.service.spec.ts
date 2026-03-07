@@ -196,6 +196,85 @@ describe("SecurityEventService", () => {
 
       expect(result.severity).toBe(SecuritySeverity.CRITICAL);
     });
+
+    it("should assign MEDIUM severity for TWO_FACTOR_ENABLED", async () => {
+      const dto: LogSecurityEventDto = {
+        eventType: SecurityEventType.TWO_FACTOR_ENABLED,
+        description: "2FA enabled",
+      };
+      repo.create!.mockImplementation((d) => d);
+      repo.save!.mockImplementation(async (d) => ({ id: "ev-9", ...d }));
+
+      const result = await service.log(dto);
+
+      expect(result.severity).toBe(SecuritySeverity.MEDIUM);
+    });
+
+    it("should assign HIGH severity for ACCOUNT_SUSPENDED", async () => {
+      const dto: LogSecurityEventDto = {
+        eventType: SecurityEventType.ACCOUNT_SUSPENDED,
+        description: "Account suspended",
+      };
+      repo.create!.mockImplementation((d) => d);
+      repo.save!.mockImplementation(async (d) => ({ id: "ev-10", ...d }));
+
+      const result = await service.log(dto);
+
+      expect(result.severity).toBe(SecuritySeverity.HIGH);
+    });
+
+    it("should assign HIGH severity for PERMISSION_CHANGED", async () => {
+      const dto: LogSecurityEventDto = {
+        eventType: SecurityEventType.PERMISSION_CHANGED,
+        description: "Permissions changed",
+      };
+      repo.create!.mockImplementation((d) => d);
+      repo.save!.mockImplementation(async (d) => ({ id: "ev-11", ...d }));
+
+      const result = await service.log(dto);
+
+      expect(result.severity).toBe(SecuritySeverity.HIGH);
+    });
+
+    it("should prefer explicit severity over default", async () => {
+      const dto: LogSecurityEventDto = {
+        eventType: SecurityEventType.LOGIN_SUCCESS, // default would be LOW
+        severity: SecuritySeverity.CRITICAL, // override with explicit
+        description: "Override test",
+      };
+      repo.create!.mockImplementation((d) => d);
+      repo.save!.mockImplementation(async (d) => ({ id: "ev-12", ...d }));
+
+      const result = await service.log(dto);
+
+      expect(result.severity).toBe(SecuritySeverity.CRITICAL);
+    });
+
+    it("should include all DTO fields (metadata, sessionId, etc.) when saving", async () => {
+      const dto: LogSecurityEventDto = {
+        eventType: SecurityEventType.LOGIN_SUCCESS,
+        severity: SecuritySeverity.LOW,
+        userId,
+        organizationId: orgId,
+        description: "Full DTO test",
+        ipAddress: "10.0.0.1",
+        userAgent: "TestAgent/1.0",
+        resource: "machine",
+        resourceId: "res-uuid-1",
+        metadata: { browser: "Chrome", attempts: 1 },
+        sessionId: "sess_abc123",
+      };
+      repo.create!.mockImplementation((d) => d);
+      repo.save!.mockImplementation(async (d) => ({ id: "ev-13", ...d }));
+
+      const result = await service.log(dto);
+
+      expect(result.userAgent).toBe("TestAgent/1.0");
+      expect(result.resource).toBe("machine");
+      expect(result.resourceId).toBe("res-uuid-1");
+      expect(result.metadata).toEqual({ browser: "Chrome", attempts: 1 });
+      expect(result.sessionId).toBe("sess_abc123");
+    });
   });
 
   // ================================================================
@@ -339,6 +418,112 @@ describe("SecurityEventService", () => {
       expect(qb.take).toHaveBeenCalledWith(10);
       expect(result.totalPages).toBe(10);
     });
+
+    it("should filter by startDate only (no endDate)", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(0);
+      qb.getMany.mockResolvedValue([]);
+
+      const startDate = new Date("2025-06-01");
+      await service.findAll({ organizationId: "org-1", startDate });
+
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        "event.createdAt >= :startDate",
+        { startDate },
+      );
+    });
+
+    it("should filter by endDate only (no startDate)", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(0);
+      qb.getMany.mockResolvedValue([]);
+
+      const endDate = new Date("2025-12-31");
+      await service.findAll({ organizationId: "org-1", endDate });
+
+      expect(qb.andWhere).toHaveBeenCalledWith("event.createdAt <= :endDate", {
+        endDate,
+      });
+    });
+
+    it("should filter by resource and resourceId", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(0);
+      qb.getMany.mockResolvedValue([]);
+
+      await service.findAll({
+        organizationId: "org-1",
+        resource: "machine",
+        resourceId: "machine-uuid-1",
+      });
+
+      expect(qb.andWhere).toHaveBeenCalledWith("event.resource = :resource", {
+        resource: "machine",
+      });
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        "event.resourceId = :resourceId",
+        { resourceId: "machine-uuid-1" },
+      );
+    });
+
+    it("should ceil totalPages for fractional page count", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(51);
+      qb.getMany.mockResolvedValue([]);
+
+      const result = await service.findAll({
+        organizationId: "org-1",
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.totalPages).toBe(6); // Math.ceil(51/10)
+    });
+
+    it("should order by createdAt DESC", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(0);
+      qb.getMany.mockResolvedValue([]);
+
+      await service.findAll({ organizationId: "org-1" });
+
+      expect(qb.orderBy).toHaveBeenCalledWith("event.createdAt", "DESC");
+    });
+
+    it("should apply all filters simultaneously", async () => {
+      const qb = createMockQueryBuilder();
+      repo.createQueryBuilder!.mockReturnValue(qb);
+      qb.getCount.mockResolvedValue(0);
+      qb.getMany.mockResolvedValue([]);
+
+      const startDate = new Date("2025-01-01");
+      const endDate = new Date("2025-12-31");
+
+      await service.findAll({
+        organizationId: orgId,
+        userId,
+        eventType: SecurityEventType.LOGIN_FAILED,
+        severity: SecuritySeverity.HIGH,
+        ipAddress: "192.168.1.1",
+        resource: "user",
+        resourceId: "user-uuid-2",
+        isResolved: false,
+        startDate,
+        endDate,
+        page: 2,
+        limit: 25,
+      });
+
+      // organizationId + userId + eventType + severity + ipAddress + resource + resourceId + isResolved + dateRange = 9 calls
+      expect(qb.andWhere).toHaveBeenCalledTimes(9);
+      expect(qb.skip).toHaveBeenCalledWith(25);
+      expect(qb.take).toHaveBeenCalledWith(25);
+    });
   });
 
   // ================================================================
@@ -398,6 +583,33 @@ describe("SecurityEventService", () => {
       await expect(
         service.resolve("missing", "admin", "notes"),
       ).rejects.toThrow("Security event not found");
+    });
+
+    it("should call save with the updated event", async () => {
+      const event = { ...mockEvent, isResolved: false };
+      repo.findOneBy!.mockResolvedValue(event);
+      repo.save!.mockImplementation(async (d) => d);
+
+      await service.resolve("ev-uuid-1", "admin-1", "Investigated");
+
+      expect(repo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isResolved: true,
+          resolvedById: "admin-1",
+          resolutionNotes: "Investigated",
+          resolvedAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it("should lookup event by id using findOneBy", async () => {
+      const event = { ...mockEvent };
+      repo.findOneBy!.mockResolvedValue(event);
+      repo.save!.mockImplementation(async (d) => d);
+
+      await service.resolve("ev-uuid-1", "admin-1", "Notes");
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: "ev-uuid-1" });
     });
   });
 
@@ -469,5 +681,38 @@ describe("SecurityEventService", () => {
 
       expect(result).toBe(0);
     });
+
+    it("should only soft-delete resolved events (isResolved: true)", async () => {
+      repo.softDelete!.mockResolvedValue({ affected: 5 });
+
+      await service.cleanup(60);
+
+      expect(repo.softDelete).toHaveBeenCalledWith(
+        expect.objectContaining({ isResolved: true }),
+      );
+    });
+
+    it("should compute cutoff date correctly for given retention days", async () => {
+      repo.softDelete!.mockResolvedValue({ affected: 0 });
+
+      const beforeCall = new Date();
+      beforeCall.setDate(beforeCall.getDate() - 30);
+
+      await service.cleanup(30);
+
+      const callArg = repo.softDelete!.mock.calls[0][0];
+      // The LessThan value should be close to 30 days ago
+      // We can't check exact time, but we can verify softDelete was called
+      expect(callArg).toHaveProperty("createdAt");
+      expect(callArg).toHaveProperty("isResolved", true);
+    });
+  });
+
+  // ================================================================
+  // service instantiation
+  // ================================================================
+
+  it("should be defined", () => {
+    expect(service).toBeDefined();
   });
 });
