@@ -84,18 +84,6 @@ export class AdjustPointsDto {
 }
 
 /**
- * Запрос на применение промокода
- */
-export class ApplyPromoCodeDto {
-  @ApiProperty({
-    description: "Промокод",
-    example: "SUMMER2025",
-  })
-  @IsString()
-  code: string;
-}
-
-/**
  * Фильтры для истории транзакций
  */
 export class PointsHistoryQueryDto {
