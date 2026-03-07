@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
  * Server-side middleware for auth protection.
  * Redirects unauthenticated users away from /dashboard routes.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public paths that don't require authentication
