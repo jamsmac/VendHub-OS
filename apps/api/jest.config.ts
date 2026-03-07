@@ -10,6 +10,9 @@ const config: Config = {
   collectCoverageFrom: ["src/**/*.(t|j)s", "!src/**/*.spec.ts", "!src/main.ts"],
   coverageDirectory: "./coverage",
   testEnvironment: "node",
+  transformIgnorePatterns: [
+    "node_modules/(?!(string-width|strip-ansi|ansi-regex|char-regex|emoji-regex|boxen|camelcase|chalk|cli-boxes|widest-line|wrap-ansi|ansi-styles|is-fullwidth-code-point|get-east-asian-width)/)",
+  ],
   moduleNameMapper: {
     "^src/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",

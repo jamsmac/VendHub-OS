@@ -547,8 +547,8 @@ describe("PaymentsController (unit)", () => {
       mockPaymentsService.getTransactions.mockResolvedValue(paginatedResult);
 
       const query = {
-        dateFrom: new Date("2025-01-01"),
-        dateTo: new Date("2025-01-31"),
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-31",
         page: 1,
         limit: 20,
       };

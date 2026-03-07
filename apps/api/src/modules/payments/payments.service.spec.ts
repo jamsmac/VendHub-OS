@@ -231,7 +231,7 @@ describe("PaymentsService", () => {
     it("should return error for unknown method", async () => {
       // Mock valid auth
       configService.get.mockImplementation((key: string) => {
-        if (key === "PAYME_MERCHANT_KEY") return "test-key";
+        if (key === "PAYME_SECRET_KEY") return "test-key";
         if (key === "PAYME_MERCHANT_ID") return "test-merchant";
         return undefined;
       });
@@ -474,7 +474,7 @@ describe("PaymentsService", () => {
       expect(result).toBe(false);
     });
 
-    it("should return false when PAYME_MERCHANT_KEY is not configured", () => {
+    it("should return false when PAYME_SECRET_KEY is not configured", () => {
       configService.get.mockReturnValue(undefined);
 
       const result = service.verifyPaymeSignature("Basic dGVzdA==");
@@ -484,7 +484,7 @@ describe("PaymentsService", () => {
 
     it("should return false when auth header does not start with Basic", () => {
       configService.get.mockImplementation((key: string) => {
-        if (key === "PAYME_MERCHANT_KEY") return "key";
+        if (key === "PAYME_SECRET_KEY") return "key";
         if (key === "PAYME_MERCHANT_ID") return "id";
         return undefined;
       });

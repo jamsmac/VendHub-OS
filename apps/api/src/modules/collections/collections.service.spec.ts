@@ -28,6 +28,7 @@ describe("CollectionsService", () => {
     findOne: jest.fn(),
     count: jest.fn(),
     remove: jest.fn(),
+    softDelete: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
 
@@ -507,7 +508,7 @@ describe("CollectionsService", () => {
     const orgId = "org-uuid-1";
     const userId = "admin-uuid-1";
 
-    it("should hard-delete and write audit history", async () => {
+    it("should soft-delete and write audit history", async () => {
       const existing = {
         id: collId,
         organizationId: orgId,
@@ -519,12 +520,12 @@ describe("CollectionsService", () => {
       mockCollectionRepo.findOne.mockResolvedValue(existing as any);
       mockHistoryRepo.create.mockImplementation((data) => data as any);
       mockHistoryRepo.save.mockResolvedValue({} as any);
-      mockCollectionRepo.remove.mockResolvedValue(existing as any);
+      mockCollectionRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
 
       await service.remove(collId, orgId, userId);
 
       expect(mockHistoryRepo.save).toHaveBeenCalled();
-      expect(mockCollectionRepo.remove).toHaveBeenCalledWith(existing);
+      expect(mockCollectionRepo.softDelete).toHaveBeenCalledWith(collId);
     });
 
     it("should throw NotFoundException when collection does not exist", async () => {

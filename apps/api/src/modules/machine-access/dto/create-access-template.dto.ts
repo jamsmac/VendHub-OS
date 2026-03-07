@@ -105,6 +105,8 @@ export class ApplyTemplateDto {
     description: "User IDs to apply template for",
     type: [String],
   })
+  @IsArray()
+  @ArrayMinSize(1)
   @IsUUID("4", { each: true })
   @IsNotEmpty()
   userIds: string[];

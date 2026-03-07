@@ -13,14 +13,68 @@
  *  ✓ Async processing verification
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import request from 'supertest';
-import { ReconciliationController } from './reconciliation.controller';
-import { ReconciliationService } from './reconciliation.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import {
+  HttpStatus,
+  INestApplication,
+  ValidationPipe,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from "@nestjs/common";
+import { APP_GUARD, Reflector } from "@nestjs/core";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import request from "supertest";
+import { ReconciliationController } from "./reconciliation.controller";
+import { ReconciliationService } from "./reconciliation.service";
+import { ROLES_KEY } from "../../common/decorators/roles.decorator";
 
-describe('ReconciliationController (e2e)', () => {
+// ---------------------------------------------------------------------------
+// Token → user mapping
+// ---------------------------------------------------------------------------
+const USERS: Record<
+  string,
+  { id: string; role: string; organizationId: string }
+> = {
+  "Bearer valid-jwt-token": {
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    role: "admin",
+    organizationId: "550e8400-e29b-41d4-a716-446655440001",
+  },
+  "Bearer admin-jwt-token": {
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    role: "admin",
+    organizationId: "550e8400-e29b-41d4-a716-446655440001",
+  },
+  "Bearer accountant-jwt-token": {
+    id: "550e8400-e29b-41d4-a716-446655440010",
+    role: "accountant",
+    organizationId: "550e8400-e29b-41d4-a716-446655440001",
+  },
+  "Bearer operator-jwt-token": {
+    id: "550e8400-e29b-41d4-a716-446655440020",
+    role: "operator",
+    organizationId: "550e8400-e29b-41d4-a716-446655440001",
+  },
+};
+
+// Role hierarchy (mirrors the real guard)
+const ROLE_HIERARCHY: Record<string, number> = {
+  owner: 100,
+  admin: 90,
+  manager: 70,
+  accountant: 50,
+  warehouse: 40,
+  operator: 30,
+  viewer: 10,
+};
+
+describe("ReconciliationController (e2e)", () => {
   let app: INestApplication;
   let reconciliationService: ReconciliationService;
 
@@ -29,7 +83,7 @@ describe('ReconciliationController (e2e)', () => {
       imports: [
         ThrottlerModule.forRoot([
           {
-            name: 'default',
+            name: "default",
             ttl: 60000,
             limit: 30,
           },
@@ -40,24 +94,91 @@ describe('ReconciliationController (e2e)', () => {
         {
           provide: ReconciliationService,
           useValue: {
-            createReconciliationRun: jest.fn(),
-            getReconciliationRuns: jest.fn(),
-            getReconciliationRunById: jest.fn(),
-            deleteReconciliationRun: jest.fn(),
-            getMismatchesForRun: jest.fn(),
-            getReconciliationStats: jest.fn(),
+            createRun: jest.fn(),
+            findAll: jest.fn(),
+            findOne: jest.fn(),
+            deleteRun: jest.fn(),
+            getMismatches: jest.fn(),
+            getStats: jest.fn(),
             resolveMismatch: jest.fn(),
-            importHwSalesData: jest.fn(),
+            importHwSales: jest.fn(),
             processReconciliation: jest.fn(),
           },
         },
+        // --- Global guards (same order as AppModule) ---
+        {
+          provide: APP_GUARD,
+          useValue: { canActivate: () => true } as CanActivate, // ThrottlerGuard stub
+        },
+        {
+          provide: APP_GUARD,
+          useFactory: () => {
+            const guard: CanActivate = {
+              canActivate(context: ExecutionContext) {
+                const req = context.switchToHttp().getRequest();
+                const auth: string | undefined = req.headers?.authorization;
+                if (
+                  !auth ||
+                  !auth.startsWith("Bearer ") ||
+                  auth === "Bearer invalid-token"
+                ) {
+                  throw new UnauthorizedException();
+                }
+                const user = USERS[auth];
+                if (!user) {
+                  throw new UnauthorizedException();
+                }
+                req.user = user;
+                return true;
+              },
+            };
+            return guard;
+          },
+        },
+        {
+          provide: APP_GUARD,
+          useFactory: () => {
+            const reflector = new Reflector();
+            const guard: CanActivate = {
+              canActivate(context: ExecutionContext) {
+                const requiredRoles = reflector.getAllAndOverride<string[]>(
+                  ROLES_KEY,
+                  [context.getHandler(), context.getClass()],
+                );
+                if (!requiredRoles || requiredRoles.length === 0) {
+                  return true;
+                }
+                const req = context.switchToHttp().getRequest();
+                const user = req.user;
+                if (!user) {
+                  throw new ForbiddenException();
+                }
+                const userLevel = ROLE_HIERARCHY[user.role] || 0;
+                const hasRole = requiredRoles.some((role: string) => {
+                  if (role === user.role) return true;
+                  const requiredLevel = ROLE_HIERARCHY[role] || 100;
+                  return userLevel >= requiredLevel;
+                });
+                if (!hasRole) {
+                  throw new ForbiddenException("Insufficient permissions");
+                }
+                return true;
+              },
+            };
+            return guard;
+          },
+        },
       ],
-    })
-      .overrideGuard(ThrottlerGuard)
-      .useValue({}) // Disable throttling for tests
-      .compile();
+    }).compile();
 
     app = module.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     reconciliationService = module.get<ReconciliationService>(
       ReconciliationService,
     );
@@ -69,132 +190,140 @@ describe('ReconciliationController (e2e)', () => {
     await app.close();
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // processReconciliation is fire-and-forget with .catch(), must return a Promise
+    (
+      reconciliationService.processReconciliation as jest.Mock
+    ).mockResolvedValue(undefined);
+  });
+
   // ============================================================================
   // RECONCILIATION RUNS TESTS
   // ============================================================================
 
-  describe('POST /reconciliation/runs', () => {
-    it('should create reconciliation run with valid data', async () => {
-      const mockUser = {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        organizationId: '550e8400-e29b-41d4-a716-446655440001',
-      };
+  describe("POST /reconciliation/runs", () => {
+    it("should create reconciliation run with valid data", async () => {
+      const mockUser = USERS["Bearer valid-jwt-token"];
 
       const createDto = {
-        startDate: '2024-03-01T00:00:00Z',
-        endDate: '2024-03-31T23:59:59Z',
-        // NOTE: Should reconciliation run cover all machines, or be filtered by region/type?
-        // Consider: organization-wide scope vs. regional reconciliation
+        dateFrom: "2024-03-01T00:00:00Z",
+        dateTo: "2024-03-31T23:59:59Z",
+        sources: ["hw", "payme"],
       };
 
       const expectedResponse = {
-        id: '550e8400-e29b-41d4-a716-446655440002',
+        id: "550e8400-e29b-41d4-a716-446655440002",
         organizationId: mockUser.organizationId,
-        startDate: createDto.startDate,
-        endDate: createDto.endDate,
-        status: 'processing',
+        dateFrom: createDto.dateFrom,
+        dateTo: createDto.dateTo,
+        status: "processing",
         createdById: mockUser.id,
         createdAt: new Date().toISOString(),
       };
 
-      (reconciliationService.createReconciliationRun as jest.Mock).mockResolvedValue(
+      (reconciliationService.createRun as jest.Mock).mockResolvedValue(
         expectedResponse,
       );
 
       const response = await request(app.getHttpServer())
-        .post('/reconciliation/runs')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/runs")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(createDto)
         .expect(HttpStatus.CREATED);
 
       expect(response.body).toEqual(expectedResponse);
-      expect(reconciliationService.createReconciliationRun).toHaveBeenCalledWith(
-        createDto,
-        mockUser.id,
+      // Controller calls: service.createRun(organizationId, userId, dto)
+      expect(reconciliationService.createRun).toHaveBeenCalledWith(
         mockUser.organizationId,
+        mockUser.id,
+        expect.objectContaining({
+          dateFrom: createDto.dateFrom,
+          dateTo: createDto.dateTo,
+        }),
       );
     });
 
-    it('should reject non-accountant roles from creating runs', async () => {
+    it("should reject non-accountant roles from creating runs", async () => {
       const createDto = {
-        startDate: '2024-03-01T00:00:00Z',
-        endDate: '2024-03-31T23:59:59Z',
+        dateFrom: "2024-03-01T00:00:00Z",
+        dateTo: "2024-03-31T23:59:59Z",
+        sources: ["hw"],
       };
 
-      // NOTE: Should operators/warehouse roles be able to request reconciliation?
-      // Consider: permission model - who initiates vs. who reviews reconciliation
-
       await request(app.getHttpServer())
-        .post('/reconciliation/runs')
-        .set('Authorization', 'Bearer operator-jwt-token')
+        .post("/reconciliation/runs")
+        .set("Authorization", "Bearer operator-jwt-token")
         .send(createDto)
         .expect(HttpStatus.FORBIDDEN);
     });
 
-    it('should reject invalid date range', async () => {
+    it("should reject invalid date range", async () => {
       const createDto = {
-        startDate: '2024-03-31T23:59:59Z',
-        endDate: '2024-03-01T00:00:00Z', // End before start
+        dateFrom: "2024-03-31T23:59:59Z",
+        dateTo: "2024-03-01T00:00:00Z", // End before start
+        sources: ["hw"],
       };
 
-      (reconciliationService.createReconciliationRun as jest.Mock).mockRejectedValue(
-        new Error('Invalid date range'),
+      (reconciliationService.createRun as jest.Mock).mockRejectedValue(
+        new BadRequestException("Invalid date range"),
       );
 
       await request(app.getHttpServer())
-        .post('/reconciliation/runs')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/runs")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(createDto)
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should trigger async processing for reconciliation run', async () => {
+    it("should trigger async processing for reconciliation run", async () => {
       const createDto = {
-        startDate: '2024-03-01T00:00:00Z',
-        endDate: '2024-03-31T23:59:59Z',
+        dateFrom: "2024-03-01T00:00:00Z",
+        dateTo: "2024-03-31T23:59:59Z",
+        sources: ["hw"],
       };
 
-      (reconciliationService.createReconciliationRun as jest.Mock).mockResolvedValue({
-        id: 'run-id',
-        status: 'processing',
+      (reconciliationService.createRun as jest.Mock).mockResolvedValue({
+        id: "run-id",
+        status: "processing",
       });
 
       await request(app.getHttpServer())
-        .post('/reconciliation/runs')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/runs")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(createDto)
         .expect(HttpStatus.CREATED);
 
       // Verify async processing was initiated
       expect(reconciliationService.processReconciliation).toHaveBeenCalledWith(
-        'run-id',
+        "run-id",
         expect.any(String), // organizationId
       );
     });
   });
 
-  describe('GET /reconciliation/runs', () => {
-    it('should list reconciliation runs with pagination', async () => {
+  describe("GET /reconciliation/runs", () => {
+    it("should list reconciliation runs with pagination", async () => {
       const mockRuns = [
         {
-          id: '550e8400-e29b-41d4-a716-446655440002',
-          status: 'completed',
-          startDate: '2024-03-01T00:00:00Z',
-          endDate: '2024-03-31T23:59:59Z',
+          id: "550e8400-e29b-41d4-a716-446655440002",
+          status: "completed",
+          dateFrom: "2024-03-01T00:00:00Z",
+          dateTo: "2024-03-31T23:59:59Z",
           mismatches: 5,
           createdAt: new Date().toISOString(),
         },
         {
-          id: '550e8400-e29b-41d4-a716-446655440003',
-          status: 'processing',
-          startDate: '2024-02-01T00:00:00Z',
-          endDate: '2024-02-29T23:59:59Z',
+          id: "550e8400-e29b-41d4-a716-446655440003",
+          status: "processing",
+          dateFrom: "2024-02-01T00:00:00Z",
+          dateTo: "2024-02-29T23:59:59Z",
           mismatches: 0,
           createdAt: new Date().toISOString(),
         },
       ];
 
-      (reconciliationService.getReconciliationRuns as jest.Mock).mockResolvedValue({
+      (reconciliationService.findAll as jest.Mock).mockResolvedValue({
         data: mockRuns,
         total: 2,
         page: 1,
@@ -202,65 +331,67 @@ describe('ReconciliationController (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get('/reconciliation/runs?page=1&limit=10')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/runs?page=1&limit=10")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
       expect(response.body.data).toHaveLength(2);
       expect(response.body.total).toBe(2);
     });
 
-    it('should filter runs by status', async () => {
-      (reconciliationService.getReconciliationRuns as jest.Mock).mockResolvedValue({
+    it("should filter runs by status", async () => {
+      (reconciliationService.findAll as jest.Mock).mockResolvedValue({
         data: [
           {
-            id: 'run-id',
-            status: 'completed',
+            id: "run-id",
+            status: "completed",
           },
         ],
         total: 1,
       });
 
       await request(app.getHttpServer())
-        .get('/reconciliation/runs?status=completed')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/runs?status=completed")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
-      expect(reconciliationService.getReconciliationRuns).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'completed' }),
+      // Controller calls: service.findAll(organizationId, params)
+      expect(reconciliationService.findAll).toHaveBeenCalledWith(
         expect.any(String), // organizationId
+        expect.objectContaining({ status: "completed" }),
       );
     });
 
-    it('should enforce multi-tenant isolation on runs list', async () => {
-      const organizationId = '550e8400-e29b-41d4-a716-446655440001';
+    it("should enforce multi-tenant isolation on runs list", async () => {
+      const organizationId = "550e8400-e29b-41d4-a716-446655440001";
 
-      (reconciliationService.getReconciliationRuns as jest.Mock).mockResolvedValue({
+      (reconciliationService.findAll as jest.Mock).mockResolvedValue({
         data: [],
         total: 0,
       });
 
       await request(app.getHttpServer())
-        .get('/reconciliation/runs')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/runs")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
-      // Verify organizationId is passed to service
-      const callArgs = (reconciliationService.getReconciliationRuns as jest.Mock).mock.calls[0];
-      expect(callArgs[1]).toBe(organizationId);
+      // Controller calls: service.findAll(organizationId, params)
+      const callArgs = (reconciliationService.findAll as jest.Mock).mock
+        .calls[0];
+      expect(callArgs[0]).toBe(organizationId);
     });
   });
 
-  describe('GET /reconciliation/runs/:id', () => {
-    it('should retrieve reconciliation run by ID', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
+  describe("GET /reconciliation/runs/:id", () => {
+    it("should retrieve reconciliation run by ID", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
       const expectedRun = {
         id: runId,
-        organizationId: '550e8400-e29b-41d4-a716-446655440001',
-        startDate: '2024-03-01T00:00:00Z',
-        endDate: '2024-03-31T23:59:59Z',
-        status: 'completed',
+        organizationId: "550e8400-e29b-41d4-a716-446655440001",
+        dateFrom: "2024-03-01T00:00:00Z",
+        dateTo: "2024-03-31T23:59:59Z",
+        status: "completed",
         summary: {
           totalTransactions: 1500,
           totalAmount: 50000000,
@@ -271,52 +402,52 @@ describe('ReconciliationController (e2e)', () => {
         createdAt: new Date().toISOString(),
       };
 
-      (reconciliationService.getReconciliationRunById as jest.Mock).mockResolvedValue(
+      (reconciliationService.findOne as jest.Mock).mockResolvedValue(
         expectedRun,
       );
 
       const response = await request(app.getHttpServer())
         .get(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
       expect(response.body).toEqual(expectedRun);
     });
 
-    it('should return 404 for nonexistent run ID', async () => {
-      const runId = 'nonexistent-id';
+    it("should return 404 for nonexistent run ID", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440099";
 
-      (reconciliationService.getReconciliationRunById as jest.Mock).mockRejectedValue(
-        new Error('Run not found'),
+      (reconciliationService.findOne as jest.Mock).mockRejectedValue(
+        new NotFoundException("Run not found"),
       );
 
       await request(app.getHttpServer())
         .get(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.NOT_FOUND);
     });
 
-    it('should reject invalid UUID format', async () => {
+    it("should reject invalid UUID format", async () => {
       await request(app.getHttpServer())
-        .get('/reconciliation/runs/invalid-uuid')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/runs/invalid-uuid")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should include mismatch summary in run details', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
+    it("should include mismatch summary in run details", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
-      (reconciliationService.getReconciliationRunById as jest.Mock).mockResolvedValue({
+      (reconciliationService.findOne as jest.Mock).mockResolvedValue({
         id: runId,
-        status: 'completed',
+        status: "completed",
         summary: {
           mismatches: 5,
           discrepancy: 25000,
         },
         mismatches: [
           {
-            id: 'mismatch-1',
-            type: 'amount_variance',
+            id: "mismatch-1",
+            type: "amount_variance",
             amount: 5000,
           },
         ],
@@ -324,72 +455,69 @@ describe('ReconciliationController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
       expect(response.body.mismatches).toBeDefined();
-      expect(response.body.mismatches[0].type).toBe('amount_variance');
+      expect(response.body.mismatches[0].type).toBe("amount_variance");
     });
   });
 
-  describe('DELETE /reconciliation/runs/:id', () => {
-    it('should delete reconciliation run as admin', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
+  describe("DELETE /reconciliation/runs/:id", () => {
+    it("should delete reconciliation run as admin", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
-      (reconciliationService.deleteReconciliationRun as jest.Mock).mockResolvedValue(
+      (reconciliationService.deleteRun as jest.Mock).mockResolvedValue(
         undefined,
       );
 
       await request(app.getHttpServer())
         .delete(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer admin-jwt-token')
+        .set("Authorization", "Bearer admin-jwt-token")
         .expect(HttpStatus.NO_CONTENT);
 
-      expect(reconciliationService.deleteReconciliationRun).toHaveBeenCalledWith(
+      expect(reconciliationService.deleteRun).toHaveBeenCalledWith(
         runId,
         expect.any(String), // organizationId
       );
     });
 
-    it('should reject delete from non-admin roles', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
-
-      // NOTE: Should accountant role be able to delete runs they created?
-      // Consider: permission model - creator vs. admin deletion rights
+    it("should reject delete from non-admin roles", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
       await request(app.getHttpServer())
         .delete(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer accountant-jwt-token')
+        .set("Authorization", "Bearer accountant-jwt-token")
         .expect(HttpStatus.FORBIDDEN);
     });
 
-    it('should prevent deletion of runs with resolved mismatches', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
+    it("should prevent deletion of runs with resolved mismatches", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
-      (reconciliationService.deleteReconciliationRun as jest.Mock).mockRejectedValue(
-        new Error('Cannot delete run with resolved mismatches'),
+      (reconciliationService.deleteRun as jest.Mock).mockRejectedValue(
+        new BadRequestException("Cannot delete run with resolved mismatches"),
       );
 
       await request(app.getHttpServer())
         .delete(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer admin-jwt-token')
+        .set("Authorization", "Bearer admin-jwt-token")
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should perform soft delete (preserve audit trail)', async () => {
-      const runId = '550e8400-e29b-41d4-a716-446655440002';
+    it("should perform soft delete (preserve audit trail)", async () => {
+      const runId = "550e8400-e29b-41d4-a716-446655440002";
 
-      (reconciliationService.deleteReconciliationRun as jest.Mock).mockResolvedValue(
+      (reconciliationService.deleteRun as jest.Mock).mockResolvedValue(
         undefined,
       );
 
       await request(app.getHttpServer())
         .delete(`/reconciliation/runs/${runId}`)
-        .set('Authorization', 'Bearer admin-jwt-token')
+        .set("Authorization", "Bearer admin-jwt-token")
         .expect(HttpStatus.NO_CONTENT);
 
       // Verify soft delete (deletedAt timestamp set, no hard deletion)
-      expect(reconciliationService.deleteReconciliationRun).toHaveBeenCalled();
+      expect(reconciliationService.deleteRun).toHaveBeenCalled();
     });
   });
 
@@ -397,8 +525,8 @@ describe('ReconciliationController (e2e)', () => {
   // RECONCILIATION STATS TESTS
   // ============================================================================
 
-  describe('GET /reconciliation/stats', () => {
-    it('should retrieve reconciliation statistics', async () => {
+  describe("GET /reconciliation/stats", () => {
+    it("should retrieve reconciliation statistics", async () => {
       const expectedStats = {
         totalRuns: 15,
         completedRuns: 12,
@@ -412,52 +540,44 @@ describe('ReconciliationController (e2e)', () => {
         discrepancyAmount: 125000,
       };
 
-      (reconciliationService.getReconciliationStats as jest.Mock).mockResolvedValue(
+      (reconciliationService.getStats as jest.Mock).mockResolvedValue(
         expectedStats,
       );
 
       const response = await request(app.getHttpServer())
-        .get('/reconciliation/stats')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/stats")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
       expect(response.body).toEqual(expectedStats);
       expect(response.body.totalRuns).toBe(15);
     });
 
-    it('should filter stats by date range', async () => {
-      (reconciliationService.getReconciliationStats as jest.Mock).mockResolvedValue({
+    it("should return stats filtered by organization", async () => {
+      (reconciliationService.getStats as jest.Mock).mockResolvedValue({
         totalRuns: 5,
         completedRuns: 5,
       });
 
       await request(app.getHttpServer())
-        .get(
-          '/reconciliation/stats?startDate=2024-03-01&endDate=2024-03-31',
-        )
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .get("/reconciliation/stats")
+        .set("Authorization", "Bearer valid-jwt-token")
         .expect(HttpStatus.OK);
 
-      expect(reconciliationService.getReconciliationStats).toHaveBeenCalledWith(
-        expect.objectContaining({
-          startDate: '2024-03-01',
-          endDate: '2024-03-31',
-        }),
-        expect.any(String), // organizationId
+      // Controller calls: service.getStats(organizationId)
+      expect(reconciliationService.getStats).toHaveBeenCalledWith(
+        "550e8400-e29b-41d4-a716-446655440001", // organizationId
       );
     });
 
-    it('should enforce role-based access to stats', async () => {
-      // NOTE: Should operators have visibility into reconciliation statistics?
-      // Consider: transparency vs. security - what data should different roles see?
-
-      (reconciliationService.getReconciliationStats as jest.Mock).mockResolvedValue({
+    it("should enforce role-based access to stats", async () => {
+      (reconciliationService.getStats as jest.Mock).mockResolvedValue({
         totalRuns: 0,
       });
 
       await request(app.getHttpServer())
-        .get('/reconciliation/stats')
-        .set('Authorization', 'Bearer accountant-jwt-token')
+        .get("/reconciliation/stats")
+        .set("Authorization", "Bearer accountant-jwt-token")
         .expect(HttpStatus.OK);
     });
   });
@@ -466,22 +586,20 @@ describe('ReconciliationController (e2e)', () => {
   // MISMATCH RESOLUTION TESTS
   // ============================================================================
 
-  describe('PATCH /reconciliation/mismatches/:id/resolve', () => {
-    it('should resolve mismatch with correction data', async () => {
-      const mismatchId = '550e8400-e29b-41d4-a716-446655440003';
+  describe("PATCH /reconciliation/mismatches/:id/resolve", () => {
+    it("should resolve mismatch with correction data", async () => {
+      const mismatchId = "550e8400-e29b-41d4-a716-446655440003";
 
       const resolveDto = {
-        resolution: 'manual_adjustment',
-        correctedAmount: 5000,
-        notes: 'Corrected inventory count variance',
+        resolutionNotes: "Corrected inventory count variance",
       };
 
       const expectedResponse = {
         id: mismatchId,
-        status: 'resolved',
-        resolution: 'manual_adjustment',
+        status: "resolved",
+        resolutionNotes: "Corrected inventory count variance",
         resolvedAt: new Date().toISOString(),
-        resolvedBy: '550e8400-e29b-41d4-a716-446655440000',
+        resolvedBy: "550e8400-e29b-41d4-a716-446655440000",
       };
 
       (reconciliationService.resolveMismatch as jest.Mock).mockResolvedValue(
@@ -490,43 +608,38 @@ describe('ReconciliationController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/reconciliation/mismatches/${mismatchId}/resolve`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(resolveDto)
         .expect(HttpStatus.OK);
 
-      expect(response.body.status).toBe('resolved');
-      expect(response.body.resolution).toBe('manual_adjustment');
+      expect(response.body.status).toBe("resolved");
+      expect(response.body.resolutionNotes).toBe(
+        "Corrected inventory count variance",
+      );
     });
 
-    it('should reject invalid resolution type', async () => {
-      const mismatchId = '550e8400-e29b-41d4-a716-446655440003';
+    it("should reject empty resolution notes", async () => {
+      const mismatchId = "550e8400-e29b-41d4-a716-446655440003";
 
-      const resolveDto = {
-        resolution: 'invalid_type',
-        correctedAmount: 5000,
-      };
-
-      (reconciliationService.resolveMismatch as jest.Mock).mockRejectedValue(
-        new Error('Invalid resolution type'),
-      );
+      const resolveDto = {};
 
       await request(app.getHttpServer())
         .patch(`/reconciliation/mismatches/${mismatchId}/resolve`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(resolveDto)
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should track resolution audit trail', async () => {
-      const mismatchId = '550e8400-e29b-41d4-a716-446655440003';
+    it("should track resolution audit trail", async () => {
+      const mismatchId = "550e8400-e29b-41d4-a716-446655440003";
 
       (reconciliationService.resolveMismatch as jest.Mock).mockResolvedValue({
         id: mismatchId,
-        status: 'resolved',
+        status: "resolved",
         auditLog: [
           {
-            action: 'resolved',
-            userId: '550e8400-e29b-41d4-a716-446655440000',
+            action: "resolved",
+            userId: "550e8400-e29b-41d4-a716-446655440000",
             timestamp: new Date().toISOString(),
           },
         ],
@@ -534,32 +647,30 @@ describe('ReconciliationController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/reconciliation/mismatches/${mismatchId}/resolve`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .send({
-          resolution: 'manual_adjustment',
-          correctedAmount: 5000,
+          resolutionNotes: "Manual adjustment applied",
         })
         .expect(HttpStatus.OK);
 
       expect(response.body.auditLog).toBeDefined();
-      expect(response.body.auditLog[0].action).toBe('resolved');
+      expect(response.body.auditLog[0].action).toBe("resolved");
     });
 
-    it('should prevent re-resolving already resolved mismatches', async () => {
-      const mismatchId = '550e8400-e29b-41d4-a716-446655440003';
+    it("should prevent re-resolving already resolved mismatches", async () => {
+      const mismatchId = "550e8400-e29b-41d4-a716-446655440003";
 
       (reconciliationService.resolveMismatch as jest.Mock).mockRejectedValue(
-        new Error('Mismatch already resolved'),
+        new ConflictException("Mismatch already resolved"),
       );
 
       await request(app.getHttpServer())
         .patch(`/reconciliation/mismatches/${mismatchId}/resolve`)
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .set("Authorization", "Bearer valid-jwt-token")
         .send({
-          resolution: 'manual_adjustment',
-          correctedAmount: 5000,
+          resolutionNotes: "Attempting re-resolve",
         })
-        .expect(HttpStatus.BAD_REQUEST);
+        .expect(HttpStatus.CONFLICT);
     });
   });
 
@@ -567,115 +678,105 @@ describe('ReconciliationController (e2e)', () => {
   // DATA IMPORT TESTS
   // ============================================================================
 
-  describe('POST /reconciliation/import', () => {
-    it('should import HW sales data for reconciliation', async () => {
+  describe("POST /reconciliation/import", () => {
+    it("should import HW sales data for reconciliation", async () => {
       const importDto = {
-        // NOTE: What data format for bulk HW sales import?
-        // Consider: CSV upload, JSON array, file multipart, batch size limits
-        data: [
+        sales: [
           {
-            machineId: 'HW-001',
-            saleDate: '2024-03-01T10:30:00Z',
+            machineCode: "HW-001",
+            saleDate: "2024-03-01T10:30:00Z",
             amount: 100000,
-            paymentMethod: 'cash',
+            paymentMethod: "cash",
           },
         ],
-        source: 'hardware_device',
+        importSource: "csv",
       };
 
       const expectedResponse = {
-        importId: '550e8400-e29b-41d4-a716-446655440004',
+        importId: "550e8400-e29b-41d4-a716-446655440004",
         recordsImported: 1,
-        status: 'processing',
+        status: "processing",
         createdAt: new Date().toISOString(),
       };
 
-      (reconciliationService.importHwSalesData as jest.Mock).mockResolvedValue(
+      (reconciliationService.importHwSales as jest.Mock).mockResolvedValue(
         expectedResponse,
       );
 
       const response = await request(app.getHttpServer())
-        .post('/reconciliation/import')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/import")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(importDto)
         .expect(HttpStatus.CREATED);
 
-      expect(response.body.status).toBe('processing');
+      expect(response.body.status).toBe("processing");
       expect(response.body.recordsImported).toBe(1);
     });
 
-    it('should reject import with invalid date format', async () => {
+    it("should reject import with invalid importSource", async () => {
       const importDto = {
-        data: [
+        sales: [
           {
-            machineId: 'HW-001',
-            saleDate: 'invalid-date',
+            machineCode: "HW-001",
+            saleDate: "2024-03-01T10:30:00Z",
             amount: 100000,
           },
         ],
-        source: 'hardware_device',
+        importSource: "invalid_source",
       };
 
-      (reconciliationService.importHwSalesData as jest.Mock).mockRejectedValue(
-        new Error('Invalid date format'),
-      );
-
       await request(app.getHttpServer())
-        .post('/reconciliation/import')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/import")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(importDto)
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should validate required fields in import data', async () => {
+    it("should validate required fields in import data", async () => {
       const importDto = {
-        data: [
+        sales: [
           {
-            machineId: 'HW-001',
+            machineCode: "HW-001",
             // Missing saleDate, amount
           },
         ],
-        source: 'hardware_device',
+        importSource: "csv",
       };
 
-      (reconciliationService.importHwSalesData as jest.Mock).mockRejectedValue(
-        new Error('Missing required fields'),
-      );
-
       await request(app.getHttpServer())
-        .post('/reconciliation/import')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/import")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(importDto)
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should handle batch import with partial failures', async () => {
+    it("should handle batch import with partial failures", async () => {
       const importDto = {
-        data: [
+        sales: [
           {
-            machineId: 'HW-001',
-            saleDate: '2024-03-01T10:30:00Z',
+            machineCode: "HW-001",
+            saleDate: "2024-03-01T10:30:00Z",
             amount: 100000,
           },
           {
-            machineId: 'HW-002',
-            saleDate: 'invalid-date', // This record will fail
+            machineCode: "HW-002",
+            saleDate: "2024-03-02T10:30:00Z",
             amount: 50000,
           },
         ],
-        source: 'hardware_device',
+        importSource: "csv",
       };
 
-      (reconciliationService.importHwSalesData as jest.Mock).mockResolvedValue({
-        importId: 'import-id',
+      (reconciliationService.importHwSales as jest.Mock).mockResolvedValue({
+        importId: "import-id",
         recordsImported: 1,
         recordsFailed: 1,
-        status: 'completed_with_errors',
+        status: "completed_with_errors",
       });
 
       const response = await request(app.getHttpServer())
-        .post('/reconciliation/import')
-        .set('Authorization', 'Bearer valid-jwt-token')
+        .post("/reconciliation/import")
+        .set("Authorization", "Bearer valid-jwt-token")
         .send(importDto)
         .expect(HttpStatus.CREATED);
 

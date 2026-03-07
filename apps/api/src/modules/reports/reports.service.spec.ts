@@ -835,10 +835,13 @@ describe("ReportsService", () => {
       const filters = [{ id: "f1" }, { id: "f2" }];
       filterRepo.find!.mockResolvedValue(filters);
 
-      const result = await service.getSavedFilters("user-1");
+      const result = await service.getSavedFilters("user-1", "org-1");
 
       expect(filterRepo.find).toHaveBeenCalledWith({
-        where: { userId: "user-1" },
+        where: [
+          { organizationId: "org-1", userId: "user-1" },
+          { organizationId: "org-1", isShared: true },
+        ],
         order: { isDefault: "DESC", name: "ASC" },
       });
       expect(result).toHaveLength(2);
@@ -847,10 +850,13 @@ describe("ReportsService", () => {
     it("should filter by report definition id when provided", async () => {
       filterRepo.find!.mockResolvedValue([]);
 
-      await service.getSavedFilters("user-1", "def-1");
+      await service.getSavedFilters("user-1", "org-1", "def-1");
 
       expect(filterRepo.find).toHaveBeenCalledWith({
-        where: { userId: "user-1", definitionId: "def-1" },
+        where: [
+          { organizationId: "org-1", definitionId: "def-1", userId: "user-1" },
+          { organizationId: "org-1", definitionId: "def-1", isShared: true },
+        ],
         order: { isDefault: "DESC", name: "ASC" },
       });
     });
@@ -866,10 +872,10 @@ describe("ReportsService", () => {
         generatedMaps: [],
       });
 
-      await service.deleteSavedFilter("f1", "user-1");
+      await service.deleteSavedFilter("f1", "user-1", "org-1");
 
       expect(filterRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "f1", userId: "user-1" },
+        where: { id: "f1", userId: "user-1", organizationId: "org-1" },
       });
       expect(filterRepo.softDelete).toHaveBeenCalledWith("f1");
     });
@@ -878,7 +884,7 @@ describe("ReportsService", () => {
       filterRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.deleteSavedFilter("f1", "wrong-user"),
+        service.deleteSavedFilter("f1", "wrong-user", "org-1"),
       ).rejects.toThrow(NotFoundException);
     });
   });

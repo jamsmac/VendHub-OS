@@ -613,7 +613,7 @@ jobs:
 
   # ========================================
   # Deploy to Railway
-  # Project: 8ed97e59-3bb0-4224-99ef-de6355057b15
+  # Project: [see RAILWAY_PROJECT_ID secret]
   # GitHub Secret required: RAILWAY_TOKEN
   # ========================================
   deploy-railway:
@@ -673,4 +673,4 @@ jobs:
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
 
-            Project: 8ed97e59-3bb0-4224-99ef-de6355057b15
+            Project: [see RAILWAY_PROJECT_ID secret]

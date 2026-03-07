@@ -2,7 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException } from "@nestjs/common";
 import { ImportController } from "./import.controller";
 import { ImportService } from "./import.service";
-import { ImportSource } from "./entities/import-job.entity";
+import {
+  ImportSource,
+  ImportStatus,
+  ImportType,
+} from "./entities/import.entity";
 import { DomainType } from "./entities/import-session.entity";
 
 // ============================================================================
@@ -43,7 +47,9 @@ const mockImportService = {
 const ORG_ID = "org-1";
 const USER_ID = "user-1";
 
-function makeUser(overrides: Partial<{ id: string; organizationId: string }> = {}) {
+function makeUser(
+  overrides: Partial<{ id: string; organizationId: string }> = {},
+) {
   return {
     id: USER_ID,
     organizationId: ORG_ID,
@@ -81,9 +87,7 @@ describe("ImportController (unit)", () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ImportController],
-      providers: [
-        { provide: ImportService, useValue: mockImportService },
-      ],
+      providers: [{ provide: ImportService, useValue: mockImportService }],
     })
       .overrideGuard(require("../auth/guards/jwt-auth.guard").JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -105,7 +109,12 @@ describe("ImportController (unit)", () => {
   describe("uploadAndCreateJob", () => {
     it("should throw BadRequestException when no file provided", async () => {
       await expect(
-        controller.uploadAndCreateJob(ORG_ID, makeUser() as any, undefined as any, {} as any),
+        controller.uploadAndCreateJob(
+          ORG_ID,
+          makeUser() as any,
+          undefined as any,
+          {} as any,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       expect(mockImportService.parseCSV).not.toHaveBeenCalled();
@@ -132,7 +141,9 @@ describe("ImportController (unit)", () => {
         { importType: "products" } as any,
       );
 
-      expect(mockImportService.parseCSV).toHaveBeenCalledWith(file);
+      expect(mockImportService.parseCSV).toHaveBeenCalledWith(file.buffer, {
+        delimiter: undefined,
+      });
       expect(mockImportService.createImportJob).toHaveBeenCalled();
       expect(result.job).toEqual(job);
       expect(result.preview.headers).toEqual(["name", "price"]);
@@ -140,34 +151,36 @@ describe("ImportController (unit)", () => {
 
     it("should route .xlsx to parseExcel", async () => {
       const file = makeFile("data.xlsx");
-      const parsed = { headers: ["col1"], rows: [], source: ImportSource.EXCEL };
+      const parsed = {
+        headers: ["col1"],
+        rows: [],
+        source: ImportSource.EXCEL,
+      };
       const job = { id: "job-2" };
       mockImportService.parseExcel.mockResolvedValue(parsed);
       mockImportService.createImportJob.mockResolvedValue(job);
 
-      await controller.uploadAndCreateJob(
-        ORG_ID,
-        makeUser() as any,
-        file,
-        { importType: "machines" } as any,
-      );
+      await controller.uploadAndCreateJob(ORG_ID, makeUser() as any, file, {
+        importType: "machines",
+      } as any);
 
-      expect(mockImportService.parseExcel).toHaveBeenCalledWith(file);
+      expect(mockImportService.parseExcel).toHaveBeenCalledWith(file.buffer);
       expect(mockImportService.parseCSV).not.toHaveBeenCalled();
     });
 
     it("should route .xls to parseExcel", async () => {
       const file = makeFile("data.xls");
-      const parsed = { headers: ["col1"], rows: [], source: ImportSource.EXCEL };
+      const parsed = {
+        headers: ["col1"],
+        rows: [],
+        source: ImportSource.EXCEL,
+      };
       mockImportService.parseExcel.mockResolvedValue(parsed);
       mockImportService.createImportJob.mockResolvedValue({ id: "job-3" });
 
-      await controller.uploadAndCreateJob(
-        ORG_ID,
-        makeUser() as any,
-        file,
-        { importType: "machines" } as any,
-      );
+      await controller.uploadAndCreateJob(ORG_ID, makeUser() as any, file, {
+        importType: "machines",
+      } as any);
 
       expect(mockImportService.parseExcel).toHaveBeenCalled();
     });
@@ -178,26 +191,20 @@ describe("ImportController (unit)", () => {
       mockImportService.parseJSON.mockResolvedValue(parsed);
       mockImportService.createImportJob.mockResolvedValue({ id: "job-4" });
 
-      await controller.uploadAndCreateJob(
-        ORG_ID,
-        makeUser() as any,
-        file,
-        { importType: "users" } as any,
-      );
+      await controller.uploadAndCreateJob(ORG_ID, makeUser() as any, file, {
+        importType: "users",
+      } as any);
 
-      expect(mockImportService.parseJSON).toHaveBeenCalledWith(file);
+      expect(mockImportService.parseJSON).toHaveBeenCalledWith(file.buffer);
     });
 
     it("should throw BadRequestException for unsupported file extension", async () => {
       const file = makeFile("data.txt");
 
       await expect(
-        controller.uploadAndCreateJob(
-          ORG_ID,
-          makeUser() as any,
-          file,
-          { importType: "products" } as any,
-        ),
+        controller.uploadAndCreateJob(ORG_ID, makeUser() as any, file, {
+          importType: "products",
+        } as any),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -248,7 +255,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.validateImport(ORG_ID, "job-1", dto);
 
-      expect(mockImportService.getImportJob).toHaveBeenCalledWith(ORG_ID, "job-1");
+      expect(mockImportService.getImportJob).toHaveBeenCalledWith(
+        ORG_ID,
+        "job-1",
+      );
       expect(result.jobId).toBe("job-1");
       expect(result.totalRows).toBe(2);
       expect(result.validRows).toBe(1);
@@ -268,7 +278,10 @@ describe("ImportController (unit)", () => {
       mockImportService.getImportJob.mockResolvedValue(job);
       mockImportService.validateImportData.mockResolvedValue(validationResult);
 
-      const dto = { rows: [{ rowNumber: 1 }, { rowNumber: 2 }], fieldMappings: {} } as any;
+      const dto = {
+        rows: [{ rowNumber: 1 }, { rowNumber: 2 }],
+        fieldMappings: {},
+      } as any;
       const result = await controller.validateImport(ORG_ID, "job-2", dto);
 
       expect(result.invalidRows).toBe(0);
@@ -310,7 +323,13 @@ describe("ImportController (unit)", () => {
       const jobs = [{ id: "job-1" }];
       mockImportService.listImportJobs.mockResolvedValue(jobs);
 
-      const result = await controller.listJobs(ORG_ID, undefined, undefined, undefined, undefined);
+      const result = await controller.listJobs(
+        ORG_ID,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(mockImportService.listImportJobs).toHaveBeenCalledWith(
         ORG_ID,
@@ -324,11 +343,17 @@ describe("ImportController (unit)", () => {
     it("should pass explicit page and limit values", async () => {
       mockImportService.listImportJobs.mockResolvedValue([]);
 
-      await controller.listJobs(ORG_ID, "products", "completed", 3, 50);
+      await controller.listJobs(
+        ORG_ID,
+        ImportType.PRODUCTS,
+        ImportStatus.COMPLETED,
+        3,
+        50,
+      );
 
       expect(mockImportService.listImportJobs).toHaveBeenCalledWith(
         ORG_ID,
-        { importType: "products", status: "completed" },
+        { importType: ImportType.PRODUCTS, status: ImportStatus.COMPLETED },
         3,
         50,
       );
@@ -346,7 +371,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.getJob(ORG_ID, "job-1");
 
-      expect(mockImportService.getImportJob).toHaveBeenCalledWith(ORG_ID, "job-1");
+      expect(mockImportService.getImportJob).toHaveBeenCalledWith(
+        ORG_ID,
+        "job-1",
+      );
       expect(result).toEqual(job);
     });
   });
@@ -360,9 +388,17 @@ describe("ImportController (unit)", () => {
       const cancelled = { id: "job-1", status: "cancelled" };
       mockImportService.cancelImportJob.mockResolvedValue(cancelled);
 
-      const result = await controller.cancelJob(ORG_ID, makeUser() as any, "job-1");
+      const result = await controller.cancelJob(
+        ORG_ID,
+        makeUser() as any,
+        "job-1",
+      );
 
-      expect(mockImportService.cancelImportJob).toHaveBeenCalledWith(ORG_ID, "job-1", USER_ID);
+      expect(mockImportService.cancelImportJob).toHaveBeenCalledWith(
+        ORG_ID,
+        "job-1",
+        USER_ID,
+      );
       expect(result).toEqual(cancelled);
     });
   });
@@ -376,10 +412,21 @@ describe("ImportController (unit)", () => {
       const template = { id: "tmpl-1", name: "Product import" };
       mockImportService.createTemplate.mockResolvedValue(template);
 
-      const dto = { name: "Product import", importType: "products" } as any;
-      const result = await controller.createTemplate(ORG_ID, makeUser() as any, dto);
+      const dto = {
+        name: "Product import",
+        importType: ImportType.PRODUCTS,
+      } as any;
+      const result = await controller.createTemplate(
+        ORG_ID,
+        makeUser() as any,
+        dto,
+      );
 
-      expect(mockImportService.createTemplate).toHaveBeenCalledWith(ORG_ID, USER_ID, dto);
+      expect(mockImportService.createTemplate).toHaveBeenCalledWith(
+        ORG_ID,
+        USER_ID,
+        dto,
+      );
       expect(result).toEqual(template);
     });
   });
@@ -395,17 +442,23 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.listTemplates(ORG_ID, undefined);
 
-      expect(mockImportService.getTemplates).toHaveBeenCalledWith(ORG_ID, undefined);
+      expect(mockImportService.getTemplates).toHaveBeenCalledWith(
+        ORG_ID,
+        undefined,
+      );
       expect(result).toEqual(templates);
     });
 
     it("should filter templates by importType", async () => {
-      const templates = [{ id: "tmpl-1", importType: "products" }];
+      const templates = [{ id: "tmpl-1", importType: ImportType.PRODUCTS }];
       mockImportService.getTemplates.mockResolvedValue(templates);
 
-      await controller.listTemplates(ORG_ID, "products");
+      await controller.listTemplates(ORG_ID, ImportType.PRODUCTS);
 
-      expect(mockImportService.getTemplates).toHaveBeenCalledWith(ORG_ID, "products");
+      expect(mockImportService.getTemplates).toHaveBeenCalledWith(
+        ORG_ID,
+        ImportType.PRODUCTS,
+      );
     });
   });
 
@@ -420,7 +473,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.getTemplate(ORG_ID, "tmpl-1");
 
-      expect(mockImportService.getTemplate).toHaveBeenCalledWith(ORG_ID, "tmpl-1");
+      expect(mockImportService.getTemplate).toHaveBeenCalledWith(
+        ORG_ID,
+        "tmpl-1",
+      );
       expect(result).toEqual(template);
     });
   });
@@ -435,7 +491,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.deleteTemplate(ORG_ID, "tmpl-1");
 
-      expect(mockImportService.deleteTemplate).toHaveBeenCalledWith(ORG_ID, "tmpl-1");
+      expect(mockImportService.deleteTemplate).toHaveBeenCalledWith(
+        ORG_ID,
+        "tmpl-1",
+      );
       expect(result).toBeUndefined();
     });
   });
@@ -447,7 +506,12 @@ describe("ImportController (unit)", () => {
   describe("createSession", () => {
     it("should throw BadRequestException when no file provided", async () => {
       await expect(
-        controller.createSession(ORG_ID, makeUser() as any, undefined as any, {} as any),
+        controller.createSession(
+          ORG_ID,
+          makeUser() as any,
+          undefined as any,
+          {} as any,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       expect(mockImportService.createSession).not.toHaveBeenCalled();
@@ -460,7 +524,12 @@ describe("ImportController (unit)", () => {
       const file = makeFile("inventory.csv");
       const dto = { domain: DomainType.PRODUCTS } as any;
 
-      const result = await controller.createSession(ORG_ID, makeUser() as any, file, dto);
+      const result = await controller.createSession(
+        ORG_ID,
+        makeUser() as any,
+        file,
+        dto,
+      );
 
       expect(mockImportService.createSession).toHaveBeenCalledWith(
         file,
@@ -478,7 +547,12 @@ describe("ImportController (unit)", () => {
 
   describe("listSessions", () => {
     it("should delegate to getSessions with query and organizationId", async () => {
-      const paginated = { data: [{ id: "sess-1" }], total: 1, page: 1, limit: 20 };
+      const paginated = {
+        data: [{ id: "sess-1" }],
+        total: 1,
+        page: 1,
+        limit: 20,
+      };
       mockImportService.getSessions.mockResolvedValue(paginated);
 
       const query = { page: 1, limit: 20 } as any;
@@ -500,7 +574,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.getSession(ORG_ID, "sess-1");
 
-      expect(mockImportService.getSession).toHaveBeenCalledWith("sess-1", ORG_ID);
+      expect(mockImportService.getSession).toHaveBeenCalledWith(
+        "sess-1",
+        ORG_ID,
+      );
       expect(result).toEqual(session);
     });
   });
@@ -517,7 +594,11 @@ describe("ImportController (unit)", () => {
       const dto = { domain: DomainType.PRODUCTS, fieldMappings: {} } as any;
       const result = await controller.classifySession(ORG_ID, "sess-1", dto);
 
-      expect(mockImportService.classifySession).toHaveBeenCalledWith("sess-1", dto, ORG_ID);
+      expect(mockImportService.classifySession).toHaveBeenCalledWith(
+        "sess-1",
+        dto,
+        ORG_ID,
+      );
       expect(result).toEqual(classified);
     });
   });
@@ -535,7 +616,10 @@ describe("ImportController (unit)", () => {
       const result = await controller.validateSession(ORG_ID, "sess-1", dto);
 
       // dto is ignored — service only receives id and organizationId
-      expect(mockImportService.validateSession).toHaveBeenCalledWith("sess-1", ORG_ID);
+      expect(mockImportService.validateSession).toHaveBeenCalledWith(
+        "sess-1",
+        ORG_ID,
+      );
       expect(result).toEqual(validated);
     });
   });
@@ -551,7 +635,10 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.submitForApproval(ORG_ID, "sess-1");
 
-      expect(mockImportService.submitForApproval).toHaveBeenCalledWith("sess-1", ORG_ID);
+      expect(mockImportService.submitForApproval).toHaveBeenCalledWith(
+        "sess-1",
+        ORG_ID,
+      );
       expect(result).toEqual(session);
     });
   });
@@ -566,7 +653,12 @@ describe("ImportController (unit)", () => {
       mockImportService.approveSession.mockResolvedValue(session);
 
       const dto = { notes: "Looks good" } as any;
-      const result = await controller.approveSession(ORG_ID, makeUser() as any, "sess-1", dto);
+      const result = await controller.approveSession(
+        ORG_ID,
+        makeUser() as any,
+        "sess-1",
+        dto,
+      );
 
       expect(mockImportService.approveSession).toHaveBeenCalledWith(
         "sess-1",
@@ -588,7 +680,12 @@ describe("ImportController (unit)", () => {
       mockImportService.rejectSession.mockResolvedValue(session);
 
       const dto = { reason: "Data quality issues" } as any;
-      const result = await controller.rejectSession(ORG_ID, makeUser() as any, "sess-1", dto);
+      const result = await controller.rejectSession(
+        ORG_ID,
+        makeUser() as any,
+        "sess-1",
+        dto,
+      );
 
       expect(mockImportService.rejectSession).toHaveBeenCalledWith(
         "sess-1",
@@ -609,7 +706,11 @@ describe("ImportController (unit)", () => {
       const result_data = { id: "sess-1", importedCount: 42, failedCount: 0 };
       mockImportService.executeImportSession.mockResolvedValue(result_data);
 
-      const result = await controller.executeSession(ORG_ID, makeUser() as any, "sess-1");
+      const result = await controller.executeSession(
+        ORG_ID,
+        makeUser() as any,
+        "sess-1",
+      );
 
       expect(mockImportService.executeImportSession).toHaveBeenCalledWith(
         "sess-1",
@@ -630,9 +731,17 @@ describe("ImportController (unit)", () => {
       mockImportService.getAuditLog.mockResolvedValue(log);
 
       const query = { page: 1, limit: 20 } as any;
-      const result = await controller.getSessionAuditLog(ORG_ID, "sess-1", query);
+      const result = await controller.getSessionAuditLog(
+        ORG_ID,
+        "sess-1",
+        query,
+      );
 
-      expect(mockImportService.getAuditLog).toHaveBeenCalledWith("sess-1", query, ORG_ID);
+      expect(mockImportService.getAuditLog).toHaveBeenCalledWith(
+        "sess-1",
+        query,
+        ORG_ID,
+      );
       expect(result).toEqual(log);
     });
   });
@@ -648,7 +757,9 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.listSchemaDefinitions(undefined);
 
-      expect(mockImportService.getSchemaDefinitions).toHaveBeenCalledWith(undefined);
+      expect(mockImportService.getSchemaDefinitions).toHaveBeenCalledWith(
+        undefined,
+      );
       expect(result).toEqual(schemas);
     });
 
@@ -658,7 +769,9 @@ describe("ImportController (unit)", () => {
 
       await controller.listSchemaDefinitions(DomainType.PRODUCTS);
 
-      expect(mockImportService.getSchemaDefinitions).toHaveBeenCalledWith(DomainType.PRODUCTS);
+      expect(mockImportService.getSchemaDefinitions).toHaveBeenCalledWith(
+        DomainType.PRODUCTS,
+      );
     });
   });
 
@@ -673,7 +786,9 @@ describe("ImportController (unit)", () => {
 
       const result = await controller.listValidationRules(DomainType.MACHINES);
 
-      expect(mockImportService.getValidationRules).toHaveBeenCalledWith(DomainType.MACHINES);
+      expect(mockImportService.getValidationRules).toHaveBeenCalledWith(
+        DomainType.MACHINES,
+      );
       expect(result).toEqual(rules);
     });
   });
@@ -684,7 +799,7 @@ describe("ImportController (unit)", () => {
 
   describe("getSampleStructure", () => {
     it("should return sample structure for 'products' without calling service", async () => {
-      const result = await controller.getSampleStructure("products");
+      const result = await controller.getSampleStructure(ImportType.PRODUCTS);
 
       expect(result).toHaveProperty("columns");
       expect(result).toHaveProperty("sampleRow");
@@ -694,7 +809,7 @@ describe("ImportController (unit)", () => {
     });
 
     it("should return sample structure for 'machines' without calling service", async () => {
-      const result = await controller.getSampleStructure("machines");
+      const result = await controller.getSampleStructure(ImportType.MACHINES);
 
       expect(result).toHaveProperty("columns");
       expect(result).toHaveProperty("sampleRow");
@@ -702,14 +817,16 @@ describe("ImportController (unit)", () => {
     });
 
     it("should return empty structure for unknown importType", async () => {
-      const result = await controller.getSampleStructure("unknown_type");
+      const result = await controller.getSampleStructure(
+        "unknown_type" as ImportType,
+      );
 
       expect(result).toMatchObject({ columns: [], sampleRow: {} });
     });
 
     it("should not call any service method for any importType", async () => {
-      await controller.getSampleStructure("users");
-      await controller.getSampleStructure("inventory");
+      await controller.getSampleStructure(ImportType.USERS);
+      await controller.getSampleStructure(ImportType.INVENTORY);
 
       // All service methods should remain uncalled
       Object.values(mockImportService).forEach((mockFn) => {

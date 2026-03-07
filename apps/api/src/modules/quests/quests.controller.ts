@@ -16,6 +16,7 @@ import {
   HttpStatus,
   UseGuards,
   ParseUUIDPipe,
+  BadRequestException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -226,6 +227,11 @@ export class QuestsController {
       ? new Date(dateFrom)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const to = dateTo ? new Date(dateTo) : new Date();
+
+    if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+      throw new BadRequestException("Invalid date format");
+    }
+
     return this.questsService.getStats(user.organizationId, from, to);
   }
 }

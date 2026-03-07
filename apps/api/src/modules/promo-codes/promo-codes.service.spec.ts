@@ -157,7 +157,7 @@ describe("PromoCodesService", () => {
       await service.create(dtoLower as CreatePromoCodeDto, orgId);
 
       expect(promoCodeRepo.findOne).toHaveBeenCalledWith({
-        where: { code: "SUMMER2024" },
+        where: { code: "SUMMER2024", organizationId: orgId },
       });
     });
   });
