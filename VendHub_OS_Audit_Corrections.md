@@ -31,16 +31,26 @@ Based on: VendHub_OS_Audit_Report.docx
 | 5   | turbo.json globalDependencies: [".env"]   | Changed to empty array `[]`. Each task specifies needed `env` vars individually.                 |
 | 6   | 9 failing test suites (221 test failures) | All 157 suites pass, 3588/3588 tests pass                                                        |
 
+### Fixed in Follow-up Session (2026-03-08)
+
+| #   | Finding                                    | Fix Applied                                                                                |
+| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| 7   | Client PWA low test coverage (1 test file) | Added 4 test files (utils, cart-store, user-store, ui-store) — now 5 files, 70 tests       |
+| 11  | BOT_API_TOKEN not documented               | Documented in DEPLOY_RAILWAY.md and RAILWAY_ENV_VARS.md with generation instructions       |
+| 12  | Client PWA running dev server on Railway   | Switched client railway.toml from Docker to Nixpacks (buildCommand/startCommand)           |
+| 13  | CORS_ORIGINS missing Railway domains       | Updated local .env, docker-compose.prod.yml, CI health checks to use Railway domains       |
+| 14  | Hardcoded vendhub.uz in runtime configs    | Updated bot miniAppUrl fallback, deploy.yml, release.yml to use Railway production domains |
+
 ### Confirmed & Acknowledged (not yet fixed)
 
-| #   | Finding                                    | Priority | Plan                                                     |
-| --- | ------------------------------------------ | -------- | -------------------------------------------------------- |
-| 7   | Client PWA low test coverage (1 test file) | HIGH     | Needs Vitest + RTL tests for critical pages              |
-| 8   | Mobile no E2E tests (1 test file)          | HIGH     | Consider Detox or Maestro                                |
-| 9   | Site no tests (0 test files)               | MEDIUM   | Add smoke tests                                          |
-| 10  | DB partitioning for high-volume tables     | MEDIUM   | Future: partition transactions, audit_logs by created_at |
-| 11  | BOT_API_TOKEN not documented               | MEDIUM   | Add to README                                            |
+| #   | Finding                                | Priority | Plan                                                     |
+| --- | -------------------------------------- | -------- | -------------------------------------------------------- |
+| 8   | Mobile no E2E tests (1 test file)      | HIGH     | Consider Detox or Maestro                                |
+| 9   | Site no tests (0 test files)           | MEDIUM   | Add smoke tests                                          |
+| 10  | DB partitioning for high-volume tables | MEDIUM   | Future: partition transactions, audit_logs by created_at |
 
 ## Commit Reference
 
 - `5cdce90` - fix(tests): resolve all 9 failing test suites + audit fixes
+- `3dd90cc` - feat(client): add PWA tests + switch all domains to Railway
+- `916375a` - fix(deploy): switch client to Nixpacks build, document BOT_API_TOKEN
