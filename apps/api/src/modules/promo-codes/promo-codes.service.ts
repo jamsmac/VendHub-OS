@@ -320,7 +320,7 @@ export class PromoCodesService {
 
       // Re-fetch with pessimistic lock to prevent race conditions
       const promoCode = await txPromoCodeRepo.findOne({
-        where: { id: validation.promoCode!.id },
+        where: { id: validation.promoCode!.id, organizationId },
         lock: { mode: "pessimistic_write" },
       });
 

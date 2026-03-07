@@ -13,7 +13,13 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+} from "@nestjs/swagger";
 import {
   Vhm24IntegrationService,
   WebhookPayload,
@@ -25,6 +31,7 @@ import {
 } from "../../common/decorators/current-user.decorator";
 
 @ApiTags("VHM24 Integration")
+@ApiBearerAuth()
 @Controller("integration/vhm24")
 export class Vhm24IntegrationController {
   constructor(
@@ -35,6 +42,7 @@ export class Vhm24IntegrationController {
   // ── Webhook ─────────────────────────────────────────
 
   @ApiOperation({ summary: "Handle VHM24 webhook events" })
+  @ApiOkResponse({ description: "Webhook event processed successfully" })
   @Post("webhook")
   @HttpCode(HttpStatus.OK)
   handleWebhook(
@@ -47,6 +55,7 @@ export class Vhm24IntegrationController {
   // ── Machine Sync ────────────────────────────────────
 
   @ApiOperation({ summary: "Synchronize machine data from VHM24" })
+  @ApiCreatedResponse({ description: "Machine data synchronized successfully" })
   @Post("sync/machines")
   syncMachines(
     @CurrentOrganizationId() organizationId: string,
@@ -67,6 +76,7 @@ export class Vhm24IntegrationController {
   // ── Task Linking ────────────────────────────────────
 
   @ApiOperation({ summary: "Link VHM24 tasks to a trip" })
+  @ApiCreatedResponse({ description: "Tasks linked to trip successfully" })
   @Post("trips/:tripId/tasks")
   linkTasks(
     @Param("tripId", ParseUUIDPipe) tripId: string,
@@ -88,6 +98,7 @@ export class Vhm24IntegrationController {
   // ── Manual Verification ─────────────────────────────
 
   @ApiOperation({ summary: "Manually verify a task link" })
+  @ApiOkResponse({ description: "Task link verified successfully" })
   @Patch("task-links/:id/verify")
   manualVerify(
     @CurrentUserId() userId: string,
@@ -105,6 +116,7 @@ export class Vhm24IntegrationController {
   // ── Reconciliation ──────────────────────────────────
 
   @ApiOperation({ summary: "Reconcile a trip with VHM24 data" })
+  @ApiCreatedResponse({ description: "Trip reconciliation completed" })
   @Post("trips/:tripId/reconcile")
   reconcileTrip(
     @CurrentOrganizationId() organizationId: string,
@@ -114,6 +126,7 @@ export class Vhm24IntegrationController {
   }
 
   @ApiOperation({ summary: "Resolve a reconciliation discrepancy" })
+  @ApiOkResponse({ description: "Reconciliation discrepancy resolved" })
   @Patch("reconciliations/:id/resolve")
   resolveReconciliation(
     @CurrentUserId() userId: string,

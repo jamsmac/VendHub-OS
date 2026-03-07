@@ -108,6 +108,7 @@ export const VALID_TASK_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 @Index(["createdByUserId"])
 @Index(["dueDate"])
 @Index(["pendingPhotos"])
+@Index(["rejectedByUserId"])
 export class Task extends BaseEntity {
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
@@ -487,6 +488,7 @@ export class TaskComponent extends BaseEntity {
 @Entity("task_photos")
 @Index(["taskId"])
 @Index(["category"])
+@Index(["uploadedByUserId"])
 export class TaskPhoto extends BaseEntity {
   @ApiProperty({ description: "Parent task ID" })
   @Column({ type: "uuid" })

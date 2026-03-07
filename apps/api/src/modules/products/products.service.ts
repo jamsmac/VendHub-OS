@@ -235,6 +235,22 @@ export class ProductsService {
   // RECIPE CRUD
   // ==========================================================================
 
+  /**
+   * Verify recipe belongs to organization. Returns the recipe or throws 404.
+   */
+  async findRecipeWithOrgCheck(
+    recipeId: string,
+    organizationId: string,
+  ): Promise<Recipe> {
+    const recipe = await this.recipeRepository.findOne({
+      where: { id: recipeId, organizationId },
+    });
+    if (!recipe) {
+      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
+    }
+    return recipe;
+  }
+
   async createRecipe(
     productId: string,
     organizationId: string,
@@ -265,7 +281,7 @@ export class ProductsService {
       // Validate all referenced products are ingredients
       const ingredientIds = dto.ingredients.map((i) => i.ingredientId);
       const ingredientProducts = await this.productRepository.find({
-        where: { id: In(ingredientIds) },
+        where: { id: In(ingredientIds), organizationId },
         select: ["id", "isIngredient", "name"],
       });
       const nonIngredients = ingredientProducts.filter((p) => !p.isIngredient);
@@ -603,7 +619,20 @@ export class ProductsService {
       .getOne();
   }
 
-  async getRecipeSnapshots(recipeId: string): Promise<RecipeSnapshot[]> {
+  async getRecipeSnapshots(
+    recipeId: string,
+    organizationId?: string,
+  ): Promise<RecipeSnapshot[]> {
+    // Verify recipe belongs to organization when org context is available
+    if (organizationId) {
+      const recipe = await this.recipeRepository.findOne({
+        where: { id: recipeId, organizationId },
+        select: ["id"],
+      });
+      if (!recipe) {
+        throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
+      }
+    }
     return this.recipeSnapshotRepository.find({
       where: { recipeId },
       order: { version: "DESC" },
@@ -917,9 +946,10 @@ export class ProductsService {
     if (ingredients.length === 0) return 0;
 
     // Batch-fetch all ingredient products in one query (N+1 prevention)
+    // Scope to recipe's organization for multi-tenant safety
     const ingredientIds = ingredients.map((ri) => ri.ingredientId);
     const products = await this.productRepository.find({
-      where: { id: In(ingredientIds) },
+      where: { id: In(ingredientIds), organizationId: recipe.organizationId },
       select: ["id", "purchasePrice", "unitOfMeasure"],
     });
     const productMap = new Map(products.map((p) => [p.id, p]));

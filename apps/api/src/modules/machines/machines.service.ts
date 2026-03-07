@@ -89,10 +89,13 @@ export class MachinesService {
   // ============================================================================
 
   async create(data: Partial<Machine>): Promise<Machine> {
-    // Check machineNumber uniqueness
-    if (data.machineNumber) {
+    // Check machineNumber uniqueness within organization
+    if (data.machineNumber && data.organizationId) {
       const existing = await this.machineRepository.findOne({
-        where: { machineNumber: data.machineNumber },
+        where: {
+          machineNumber: data.machineNumber,
+          organizationId: data.organizationId,
+        },
       });
       if (existing) {
         throw new ConflictException(

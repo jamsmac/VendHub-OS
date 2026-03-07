@@ -37,6 +37,7 @@ export class BotTaskOpsService {
 
     const [tasks, total] = await this.taskRepository.findAndCount({
       where: {
+        organizationId: ctx.user.organizationId,
         assignedToUserId: ctx.user.id,
         status: In([
           TaskStatus.PENDING,

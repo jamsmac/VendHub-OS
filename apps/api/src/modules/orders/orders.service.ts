@@ -63,7 +63,7 @@ export class OrdersService {
     private readonly eventEmitter: EventEmitter2,
     private readonly promoCodesService: PromoCodesService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   // ============================================================================
   // CREATE ORDER
@@ -86,7 +86,7 @@ export class OrdersService {
       // Get products
       const productIds = dto.items.map((item) => item.productId);
       const products = await txProductRepo.find({
-        where: { id: In(productIds) },
+        where: { id: In(productIds), organizationId },
       });
 
       if (products.length !== productIds.length) {

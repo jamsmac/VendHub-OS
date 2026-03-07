@@ -14,7 +14,14 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+} from "@nestjs/swagger";
 import { CashFinanceService } from "./cash-finance.service";
 import { CreateDepositDto } from "./dto/create-deposit.dto";
 import {
@@ -24,23 +31,27 @@ import {
 
 // Roles: MANAGER, ADMIN
 @ApiTags("Cash Finance")
+@ApiBearerAuth()
 @Controller("finance")
 export class CashFinanceController {
   constructor(private readonly cashFinanceService: CashFinanceService) {}
 
   @ApiOperation({ summary: "Get current cash balance for the organization" })
+  @ApiOkResponse({ description: "Cash balance retrieved successfully" })
   @Get("balance")
   getBalance(@CurrentOrganizationId() organizationId: string) {
     return this.cashFinanceService.getBalance(organizationId);
   }
 
   @ApiOperation({ summary: "List all cash deposits for the organization" })
+  @ApiOkResponse({ description: "Cash deposits list retrieved successfully" })
   @Get("deposits")
   findAllDeposits(@CurrentOrganizationId() organizationId: string) {
     return this.cashFinanceService.findAllDeposits(organizationId);
   }
 
   @ApiOperation({ summary: "Create a new cash deposit record" })
+  @ApiCreatedResponse({ description: "Cash deposit created successfully" })
   @Post("deposits")
   @HttpCode(HttpStatus.CREATED)
   createDeposit(
@@ -52,6 +63,7 @@ export class CashFinanceController {
   }
 
   @ApiOperation({ summary: "Delete a cash deposit record" })
+  @ApiNoContentResponse({ description: "Cash deposit deleted successfully" })
   @Delete("deposits/:id")
   @HttpCode(HttpStatus.NO_CONTENT)
   removeDeposit(

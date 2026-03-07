@@ -355,9 +355,14 @@ export class ReportsController {
   @Roles("owner", "admin", "manager", "accountant")
   async getSavedFilters(
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
     @Query("reportDefinitionId") reportDefinitionId?: string,
   ) {
-    return this.reportsService.getSavedFilters(userId, reportDefinitionId);
+    return this.reportsService.getSavedFilters(
+      userId,
+      orgId,
+      reportDefinitionId,
+    );
   }
 
   @Post("filters")
@@ -386,8 +391,9 @@ export class ReportsController {
   async deleteSavedFilter(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    await this.reportsService.deleteSavedFilter(id, userId);
+    await this.reportsService.deleteSavedFilter(id, userId, orgId);
   }
 
   // ============================================================================

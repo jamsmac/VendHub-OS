@@ -13,6 +13,7 @@ import {
 } from "typeorm";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import { Organization } from "../../organizations/entities/organization.entity";
 
 // ============================================================================
 // ENUMS
@@ -72,6 +73,10 @@ export class WarehouseZone extends BaseEntity {
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
   organizationId: string;
+
+  @ManyToOne(() => Organization, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "organization_id" })
+  organization: Organization;
 
   @ApiProperty({ example: "A-01", description: "Zone code" })
   @Column({ type: "varchar", length: 20 })
@@ -221,6 +226,10 @@ export class WarehouseBin extends BaseEntity {
   @ApiProperty({ description: "Organization ID" })
   @Column({ type: "uuid" })
   organizationId: string;
+
+  @ManyToOne(() => Organization, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "organization_id" })
+  organization: Organization;
 
   @ApiProperty({ description: "Zone ID" })
   @Column({ type: "uuid" })

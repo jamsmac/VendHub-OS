@@ -1009,22 +1009,37 @@ export class ReportsService {
 
   async getSavedFilters(
     userId: string,
+    organizationId: string,
     reportDefinitionId?: string,
   ): Promise<SavedReportFilter[]> {
-    const where: { userId: string; definitionId?: string } = { userId };
+    const where: {
+      userId?: string;
+      organizationId: string;
+      definitionId?: string;
+      isShared?: boolean;
+    } = { organizationId };
+
     if (reportDefinitionId) {
       where.definitionId = reportDefinitionId;
     }
 
+    // Return user's own filters + shared filters within the organization
     return this.filterRepo.find({
-      where,
+      where: [
+        { ...where, userId },
+        { ...where, isShared: true },
+      ],
       order: { isDefault: "DESC", name: "ASC" },
     });
   }
 
-  async deleteSavedFilter(id: string, userId: string): Promise<void> {
+  async deleteSavedFilter(
+    id: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
     const filter = await this.filterRepo.findOne({
-      where: { id, userId },
+      where: { id, userId, organizationId },
     });
     if (!filter) {
       throw new NotFoundException(`Фильтр ${id} не найден`);

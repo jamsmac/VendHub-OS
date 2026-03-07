@@ -43,6 +43,9 @@ export enum UserStatus {
 @Index(["telegramId"], { unique: true, where: '"telegram_id" IS NOT NULL' })
 @Index(["role"])
 @Index(["status"])
+@Index(["approvedById"])
+@Index(["rejectedById"])
+@Index(["referredById"])
 export class User extends BaseEntity {
   @Column({ unique: true })
   email: string;

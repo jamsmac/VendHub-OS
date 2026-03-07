@@ -4,7 +4,12 @@
  */
 
 import { Controller, Get, Query } from "@nestjs/common";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+} from "@nestjs/swagger";
 import { TripAnalyticsService } from "./trip-analytics.service";
 import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 
@@ -14,6 +19,7 @@ class PeriodQueryDto {
 }
 
 @ApiTags("Trip Analytics")
+@ApiBearerAuth()
 @Controller("analytics/trips")
 export class TripAnalyticsController {
   constructor(private readonly analyticsService: TripAnalyticsService) {}
@@ -27,6 +33,7 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get main trip analytics dashboard" })
+  @ApiOkResponse({ description: "Main trip analytics dashboard data" })
   @Get("dashboard/main")
   getMainDashboard(
     @CurrentOrganizationId() orgId: string,
@@ -37,6 +44,7 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get activity analytics dashboard" })
+  @ApiOkResponse({ description: "Activity analytics dashboard data" })
   @Get("dashboard/activity")
   getActivityDashboard(
     @CurrentOrganizationId() orgId: string,
@@ -47,6 +55,9 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get employee performance analytics dashboard" })
+  @ApiOkResponse({
+    description: "Employee performance analytics dashboard data",
+  })
   @Get("dashboard/employees")
   getEmployeeDashboard(
     @CurrentOrganizationId() orgId: string,
@@ -57,6 +68,9 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get vehicle performance analytics dashboard" })
+  @ApiOkResponse({
+    description: "Vehicle performance analytics dashboard data",
+  })
   @Get("dashboard/vehicles")
   getVehiclesDashboard(
     @CurrentOrganizationId() orgId: string,
@@ -67,6 +81,9 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get anomalies detection analytics dashboard" })
+  @ApiOkResponse({
+    description: "Anomalies detection analytics dashboard data",
+  })
   @Get("dashboard/anomalies")
   getAnomaliesDashboard(
     @CurrentOrganizationId() orgId: string,
@@ -77,6 +94,7 @@ export class TripAnalyticsController {
   }
 
   @ApiOperation({ summary: "Get taxi service analytics dashboard" })
+  @ApiOkResponse({ description: "Taxi service analytics dashboard data" })
   @Get("dashboard/taxi")
   getTaxiDashboard(
     @CurrentOrganizationId() orgId: string,

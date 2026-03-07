@@ -310,8 +310,12 @@ export class ProductsController {
   getRecipeSnapshots(
     @Param("id", ParseUUIDPipe) _productId: string,
     @Param("recipeId", ParseUUIDPipe) recipeId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.productsService.getRecipeSnapshots(recipeId);
+    return this.productsService.getRecipeSnapshots(
+      recipeId,
+      user.organizationId,
+    );
   }
 
   @Get(":id/recipes/:recipeId/snapshots/:version")
@@ -348,9 +352,15 @@ export class ProductsController {
   async recalculateRecipeCost(
     @Param("id", ParseUUIDPipe) _productId: string,
     @Param("recipeId", ParseUUIDPipe) recipeId: string,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    await this.productsService.recalculateRecipeCost(recipeId);
-    const cost = await this.productsService.calculateRecipeCost(recipeId);
+    // Verify recipe belongs to user's organization
+    const recipe = await this.productsService.findRecipeWithOrgCheck(
+      recipeId,
+      user.organizationId,
+    );
+    await this.productsService.recalculateRecipeCost(recipe.id);
+    const cost = await this.productsService.calculateRecipeCost(recipe.id);
     return { recipeId, totalCost: cost };
   }
 

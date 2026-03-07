@@ -9,7 +9,14 @@
  */
 
 import { Controller, Get } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+} from "@nestjs/swagger";
 import { Roles } from "../../common/decorators";
 
 @ApiTags("Admin - Queue Dashboard")
@@ -27,6 +34,11 @@ export class BullBoardController {
     summary: "Queue dashboard access check",
     description:
       "Verifies that the current user has permission to access the queue dashboard. Returns 200 if authorized.",
+  })
+  @ApiOkResponse({ description: "Access granted to queue dashboard" })
+  @ApiUnauthorizedResponse({ description: "JWT token missing or invalid" })
+  @ApiForbiddenResponse({
+    description: "User does not have owner or admin role",
   })
   checkAccess() {
     return {

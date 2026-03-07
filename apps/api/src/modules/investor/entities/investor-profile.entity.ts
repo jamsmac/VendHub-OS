@@ -1,10 +1,15 @@
-import { Entity, Column } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import { Organization } from "../../organizations/entities/organization.entity";
 
 @Entity("investor_profiles")
 export class InvestorProfile extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;
+
+  @ManyToOne(() => Organization, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "organization_id" })
+  organization: Organization;
 
   @Column({ type: "uuid" })
   userId: string;

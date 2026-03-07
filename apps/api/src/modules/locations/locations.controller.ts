@@ -10,7 +10,13 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+} from "@nestjs/swagger";
 import { LocationsService } from "./locations.service";
 import { CreateLocationDto } from "./dto/create-location.dto";
 import { UpdateLocationDto } from "./dto/update-location.dto";
@@ -37,6 +43,7 @@ export class LocationsController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Create a new location" })
+  @ApiCreatedResponse({ description: "Location created successfully" })
   create(
     @Body() createLocationDto: CreateLocationDto,
     @CurrentUser() user: ICurrentUser,
@@ -57,6 +64,7 @@ export class LocationsController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get all locations with pagination" })
+  @ApiOkResponse({ description: "Locations list retrieved successfully" })
   findAll(
     @CurrentUser() user: { organizationId: string },
     @Query() query: QueryLocationsDto,
@@ -73,6 +81,7 @@ export class LocationsController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get nearby locations" })
+  @ApiOkResponse({ description: "Nearby locations retrieved successfully" })
   findNearby(
     @Query() query: QueryNearbyLocationsDto,
     @CurrentUser() user: ICurrentUser,
@@ -95,6 +104,7 @@ export class LocationsController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get location by ID" })
+  @ApiOkResponse({ description: "Location retrieved successfully" })
   findOne(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
@@ -105,6 +115,7 @@ export class LocationsController {
   @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Update location" })
+  @ApiOkResponse({ description: "Location updated successfully" })
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateLocationDto: UpdateLocationDto,
@@ -120,6 +131,7 @@ export class LocationsController {
   @Delete(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete location" })
+  @ApiOkResponse({ description: "Location deleted successfully" })
   remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,

@@ -40,7 +40,10 @@ export class BotMachineOpsService {
     const skip = (page - 1) * pageSize;
 
     const [machines, total] = await this.machineRepository.findAndCount({
-      where: { assignedOperatorId: ctx.user.id },
+      where: {
+        organizationId: ctx.user.organizationId,
+        assignedOperatorId: ctx.user.id,
+      },
       order: { name: "ASC" },
       take: pageSize,
       skip,
