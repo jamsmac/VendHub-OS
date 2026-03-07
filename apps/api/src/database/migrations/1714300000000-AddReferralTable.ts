@@ -4,14 +4,17 @@ export class AddReferralTable1714300000000 implements MigrationInterface {
   name = "AddReferralTable1714300000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create referral_status enum
+    // Create referral_status enum (idempotent — may already exist from earlier migration)
     await queryRunner.query(`
-      CREATE TYPE "referral_status_enum" AS ENUM ('pending', 'completed', 'expired', 'cancelled')
+      DO $$ BEGIN
+        CREATE TYPE "referral_status_enum" AS ENUM ('pending', 'completed', 'expired', 'cancelled');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
     `);
 
-    // Create referrals table
+    // Create referrals table (idempotent — may already exist from earlier migration)
     await queryRunner.query(`
-      CREATE TABLE "referrals" (
+      CREATE TABLE IF NOT EXISTS "referrals" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -31,40 +34,49 @@ export class AddReferralTable1714300000000 implements MigrationInterface {
       )
     `);
 
-    // Create indexes
+    // Create indexes (IF NOT EXISTS for idempotency)
     await queryRunner.query(`
-      CREATE INDEX "IDX_referrals_organization_id" ON "referrals" ("organization_id")
+      CREATE INDEX IF NOT EXISTS "IDX_referrals_organization_id" ON "referrals" ("organization_id")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_referrals_referrer_id" ON "referrals" ("referrer_id")
+      CREATE INDEX IF NOT EXISTS "IDX_referrals_referrer_id" ON "referrals" ("referrer_id")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_referrals_referred_id" ON "referrals" ("referred_id")
+      CREATE INDEX IF NOT EXISTS "IDX_referrals_referred_id" ON "referrals" ("referred_id")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_referrals_organization_status" ON "referrals" ("organization_id", "status")
+      CREATE INDEX IF NOT EXISTS "IDX_referrals_organization_status" ON "referrals" ("organization_id", "status")
     `);
 
-    // Add foreign key constraints
+    // Add foreign key constraints (idempotent — skip if already exist)
     await queryRunner.query(`
-      ALTER TABLE "referrals"
-        ADD CONSTRAINT "FK_referrals_organization"
-        FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL
-    `);
-
-    await queryRunner.query(`
-      ALTER TABLE "referrals"
-        ADD CONSTRAINT "FK_referrals_referrer"
-        FOREIGN KEY ("referrer_id") REFERENCES "users"("id") ON DELETE SET NULL
+      DO $$ BEGIN
+        ALTER TABLE "referrals"
+          ADD CONSTRAINT "FK_referrals_organization"
+          FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL;
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
     `);
 
     await queryRunner.query(`
-      ALTER TABLE "referrals"
-        ADD CONSTRAINT "FK_referrals_referred"
-        FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL
+      DO $$ BEGIN
+        ALTER TABLE "referrals"
+          ADD CONSTRAINT "FK_referrals_referrer"
+          FOREIGN KEY ("referrer_id") REFERENCES "users"("id") ON DELETE SET NULL;
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
+    `);
+
+    await queryRunner.query(`
+      DO $$ BEGIN
+        ALTER TABLE "referrals"
+          ADD CONSTRAINT "FK_referrals_referred"
+          FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL;
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
     `);
   }
 
@@ -81,15 +93,19 @@ export class AddReferralTable1714300000000 implements MigrationInterface {
     );
 
     // Drop indexes
-    await queryRunner.query(`DROP INDEX "IDX_referrals_organization_status"`);
-    await queryRunner.query(`DROP INDEX "IDX_referrals_referred_id"`);
-    await queryRunner.query(`DROP INDEX "IDX_referrals_referrer_id"`);
-    await queryRunner.query(`DROP INDEX "IDX_referrals_organization_id"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "IDX_referrals_organization_status"`,
+    );
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_referrals_referred_id"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_referrals_referrer_id"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "IDX_referrals_organization_id"`,
+    );
 
     // Drop table
-    await queryRunner.query(`DROP TABLE "referrals"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "referrals"`);
 
     // Drop enum
-    await queryRunner.query(`DROP TYPE "referral_status_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "referral_status_enum"`);
   }
 }
