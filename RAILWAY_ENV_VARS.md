@@ -98,10 +98,11 @@ Copy these variables into **Railway Dashboard → Service → Variables** for ea
 
 ### Telegram Bot
 
-| Variable               | Value                                                             | Notes                     |
-| ---------------------- | ----------------------------------------------------------------- | ------------------------- |
-| `TELEGRAM_BOT_TOKEN`   | `your_telegram_bot_token`                                         | Get from @BotFather       |
-| `TELEGRAM_WEBHOOK_URL` | `https://api-production-XXXX.up.railway.app/telegram-bot/webhook` | Update after first deploy |
+| Variable               | Value                                                               | Notes                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`   | `your_telegram_bot_token`                                           | Get from @BotFather                                                                                             |
+| `TELEGRAM_WEBHOOK_URL` | `https://vendhubapi-production.up.railway.app/telegram-bot/webhook` | Update after first deploy                                                                                       |
+| `BOT_API_TOKEN`        | _(JWT token)_                                                       | Service account JWT for bot→API auth. Generate via admin panel or CLI: `pnpm --filter api cli:create-bot-token` |
 
 ### SMS (Uzbekistan)
 

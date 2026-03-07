@@ -227,9 +227,12 @@ PORT=5173
 ```
 NODE_ENV=production
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-API_URL=https://api-production-XXXX.up.railway.app/api/v1
+BOT_API_TOKEN=your_bot_service_account_jwt
+API_URL=https://vendhubapi-production.up.railway.app/api/v1
 REDIS_URL=redis://default:gWQddoaowhHvWQqfTFauXhPqVHrkIwnX@redis.railway.internal:6379
 ```
+
+> **BOT_API_TOKEN**: Required for the bot to authenticate API calls. Generate a long-lived JWT for the bot service account via the admin panel or by running `pnpm --filter api cli:create-bot-token`.
 
 ### Site service variables (apps/site)
 

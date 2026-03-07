@@ -1,8 +1,9 @@
 [build]
-dockerfilePath = "Dockerfile"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @vendhub/shared build && pnpm --filter @vendhub/client build"
 
 [deploy]
-healthcheckPath = "/health"
+startCommand = "pnpm --filter @vendhub/client start"
+healthcheckPath = "/"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
