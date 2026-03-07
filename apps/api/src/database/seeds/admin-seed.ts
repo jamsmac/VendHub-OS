@@ -18,9 +18,24 @@ config({ path: ".env" });
 const logger = new Logger("AdminSeed");
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@vendhub.uz";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const ADMIN_NAME = process.env.ADMIN_NAME || "System Admin";
 const ADMIN_PHONE = process.env.ADMIN_PHONE || "+998901234567";
+
+function getAdminPassword(): string {
+  if (process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ADMIN_PASSWORD env var is REQUIRED in production. Refusing to use a default password.",
+    );
+  }
+  const generated = randomUUID().slice(0, 16);
+  logger.warn(
+    `No ADMIN_PASSWORD set. Generated temporary password: ${generated}`,
+  );
+  return generated;
+}
+
+const ADMIN_PASSWORD = getAdminPassword();
 
 async function seedAdmin() {
   logger.log("Starting admin seed...");
@@ -124,7 +139,9 @@ async function seedAdmin() {
       logger.log("Admin user created successfully!");
       logger.log("═══════════════════════════════════════════════════");
       logger.log(`  Email:     ${ADMIN_EMAIL}`);
-      logger.log(`  Password:  ${ADMIN_PASSWORD}`);
+      logger.log(
+        `  Password:  ${process.env.ADMIN_PASSWORD ? "[from ADMIN_PASSWORD env]" : ADMIN_PASSWORD}`,
+      );
       logger.log(`  Name:      ${ADMIN_NAME}`);
       logger.log(`  Phone:     ${ADMIN_PHONE}`);
       logger.log(`  Org:       VendHub HQ`);

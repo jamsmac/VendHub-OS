@@ -84,12 +84,12 @@ jobs:
         run: pnpm --filter "@vendhub/shared" build
 
       - name: Run unit tests
-        run: pnpm --filter api test:unit -- --coverage --coverageThreshold='{"global":{"branches":60,"functions":60,"lines":60,"statements":60}}' --forceExit --passWithNoTests
+        run: pnpm --filter api test:unit --coverage --coverageThreshold='{"global":{"branches":60,"functions":60,"lines":60,"statements":60}}' --forceExit --passWithNoTests
         env:
           CI: true
 
       - name: Run web unit tests
-        run: pnpm --filter web test -- --runInBand --forceExit
+        run: pnpm --filter web test --runInBand --forceExit
         env:
           CI: true
 
@@ -235,7 +235,7 @@ jobs:
           DB_NAME: vendhub_test
 
       - name: Run integration tests
-        run: pnpm --filter api test:integration -- --forceExit --passWithNoTests
+        run: pnpm --filter api test:integration --forceExit --passWithNoTests
         env:
           DB_HOST: localhost
           DB_PORT: "5432"

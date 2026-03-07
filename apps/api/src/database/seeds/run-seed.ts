@@ -66,7 +66,13 @@ async function runSeed() {
     // ========================================================================
     logger.log("Seeding users...");
 
-    const passwordHash = await bcrypt.hash("Demo123!", 12);
+    const seedPassword = process.env.SEED_PASSWORD || "Demo123!";
+    if (process.env.NODE_ENV === "production") {
+      logger.warn(
+        "Running seed in production — ensure SEED_PASSWORD env var is set to a strong password",
+      );
+    }
+    const passwordHash = await bcrypt.hash(seedPassword, 12);
     const adminId = uuidv4();
     const managerId = uuidv4();
     const operatorId = uuidv4();
@@ -133,13 +139,17 @@ async function runSeed() {
     ];
 
     for (const loc of locations) {
+      const addressJson = JSON.stringify({
+        fullAddress: `${loc.name}, ${loc.city}`,
+        city: loc.city,
+        country: "Uzbekistan",
+      });
       await dataSource.query(
         `
         INSERT INTO locations (id, name, code, type, status, city, latitude, longitude, organization_id, is_active,
           address, monthly_rent, currency, created_at, updated_at)
         VALUES ($1, $2, $3, $4, 'active', $5, $6, $7, $8, true,
-          '{"fullAddress": "${loc.name}, ${loc.city}", "city": "${loc.city}", "country": "Uzbekistan"}',
-          1500000, 'UZS', NOW(), NOW())
+          $9::jsonb, 1500000, 'UZS', NOW(), NOW())
         ON CONFLICT (code) DO NOTHING
       `,
         [
@@ -151,6 +161,7 @@ async function runSeed() {
           loc.latitude,
           loc.longitude,
           orgId,
+          addressJson,
         ],
       );
     }
@@ -489,7 +500,9 @@ async function runSeed() {
     logger.log("Demo credentials:");
     logger.log("  Email: admin@vendhub.uz");
     logger.log("  Phone: +998901234567");
-    logger.log("  Password: Demo123!");
+    logger.log(
+      `  Password: ${process.env.SEED_PASSWORD ? "[from SEED_PASSWORD env]" : seedPassword}`,
+    );
 
     await dataSource.destroy();
     process.exit(0);

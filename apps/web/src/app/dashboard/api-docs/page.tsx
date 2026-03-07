@@ -1,23 +1,19 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   FileText,
   Search,
   ExternalLink,
-  Shield,
   AlertTriangle,
-  Clock,
   Activity,
   RefreshCw,
   ChevronRight,
   ChevronDown,
   Copy,
   Check,
-  Server,
-  Zap,
   Lock,
   Globe,
   Hash,
@@ -119,7 +115,8 @@ const METHOD_COLORS: Record<string, string> = {
   get: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   post: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   put: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  patch: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  patch:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
   delete: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   options: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
   head: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
@@ -159,7 +156,11 @@ function parseSwaggerSpec(spec: SwaggerSpec): {
   if (spec.paths) {
     for (const [path, methods] of Object.entries(spec.paths)) {
       for (const [method, operation] of Object.entries(methods)) {
-        if (["get", "post", "put", "patch", "delete", "options", "head"].includes(method)) {
+        if (
+          ["get", "post", "put", "patch", "delete", "options", "head"].includes(
+            method,
+          )
+        ) {
           const op = operation as SwaggerOperation;
           const endpoint: EndpointInfo = {
             method,
@@ -193,7 +194,7 @@ function parseSwaggerSpec(spec: SwaggerSpec): {
 
             // Count error-class responses (4xx, 5xx)
             const errorResponses = endpoint.responseStatuses.filter(
-              (s) => s.startsWith("4") || s.startsWith("5")
+              (s) => s.startsWith("4") || s.startsWith("5"),
             );
             group.errorCount += errorResponses.length;
           }
@@ -205,7 +206,7 @@ function parseSwaggerSpec(spec: SwaggerSpec): {
   // Calculate stats
   const allResponseStatuses = endpoints.flatMap((e) => e.responseStatuses);
   const errorStatuses = allResponseStatuses.filter(
-    (s) => s.startsWith("4") || s.startsWith("5")
+    (s) => s.startsWith("4") || s.startsWith("5"),
   );
   const statusCounts: Record<string, number> = {};
   for (const status of allResponseStatuses) {
@@ -229,7 +230,7 @@ function parseSwaggerSpec(spec: SwaggerSpec): {
   };
 
   const tagGroups = Array.from(tagMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
+    a.name.localeCompare(b.name),
   );
 
   return { endpoints, tagGroups, stats };
@@ -251,7 +252,9 @@ interface ApiStats {
 export default function ApiDocsPage() {
   const [search, setSearch] = useState("");
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
-  const [selectedEndpoint, setSelectedEndpoint] = useState<EndpointInfo | null>(null);
+  const [selectedEndpoint, setSelectedEndpoint] = useState<EndpointInfo | null>(
+    null,
+  );
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<string | null>(null);
@@ -297,7 +300,7 @@ export default function ApiDocsPage() {
   });
 
   // ── Parse spec ──────────────────────────────────────────────
-  const { endpoints, tagGroups, stats } = useMemo(() => {
+  const { tagGroups, stats } = useMemo(() => {
     if (!swaggerSpec) {
       return {
         endpoints: [],
@@ -409,12 +412,18 @@ export default function ApiDocsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
             <AlertCircle className="h-12 w-12 text-destructive" />
-            <h2 className="text-lg font-semibold">Не удалось загрузить API спецификацию</h2>
+            <h2 className="text-lg font-semibold">
+              Не удалось загрузить API спецификацию
+            </h2>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              Проверьте, что API сервер запущен и Swagger доступен.
-              Возможно, требуется авторизация с ролью owner.
+              Проверьте, что API сервер запущен и Swagger доступен. Возможно,
+              требуется авторизация с ролью owner.
             </p>
-            <Button onClick={() => refetchSpec()} variant="outline" className="gap-2">
+            <Button
+              onClick={() => refetchSpec()}
+              variant="outline"
+              className="gap-2"
+            >
               <RefreshCw className="h-4 w-4" />
               Попробовать снова
             </Button>
@@ -434,7 +443,8 @@ export default function ApiDocsPage() {
             API Documentation
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {swaggerSpec?.info?.title} v{swaggerSpec?.info?.version} • {stats.totalEndpoints} endpoints
+            {swaggerSpec?.info?.title} v{swaggerSpec?.info?.version} •{" "}
+            {stats.totalEndpoints} endpoints
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -566,9 +576,7 @@ export default function ApiDocsPage() {
                 <button
                   key={method}
                   onClick={() =>
-                    setMethodFilter((prev) =>
-                      prev === method ? null : method
-                    )
+                    setMethodFilter((prev) => (prev === method ? null : method))
                   }
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                     METHOD_COLORS[method] || "bg-gray-100 text-gray-800"
@@ -578,9 +586,7 @@ export default function ApiDocsPage() {
                       : "hover:opacity-80"
                   }`}
                 >
-                  <span className="uppercase font-bold text-xs">
-                    {method}
-                  </span>
+                  <span className="uppercase font-bold text-xs">{method}</span>
                   <span className="font-mono">{count}</span>
                 </button>
               ))}
@@ -642,7 +648,7 @@ export default function ApiDocsPage() {
               isExpanded={expandedTags.has(group.name) || !!selectedTag}
               onToggle={() => toggleTag(group.name)}
               onSelectEndpoint={setSelectedEndpoint}
-              onSelectTag={setSelectedTag}
+              _onSelectTag={setSelectedTag}
               copiedPath={copiedPath}
               onCopyPath={copyPath}
             />
@@ -762,7 +768,7 @@ function TagGroupCard({
   isExpanded,
   onToggle,
   onSelectEndpoint,
-  onSelectTag,
+  _onSelectTag,
   copiedPath,
   onCopyPath,
 }: {
@@ -770,7 +776,7 @@ function TagGroupCard({
   isExpanded: boolean;
   onToggle: () => void;
   onSelectEndpoint: (ep: EndpointInfo) => void;
-  onSelectTag: (tag: string) => void;
+  _onSelectTag: (tag: string) => void;
   copiedPath: string | null;
   onCopyPath: (path: string) => void;
 }) {
@@ -793,7 +799,10 @@ function TagGroupCard({
                 {group.endpoints.length}
               </Badge>
               {group.deprecatedCount > 0 && (
-                <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-orange-600 border-orange-300"
+                >
                   {group.deprecatedCount} deprecated
                 </Badge>
               )}
@@ -810,7 +819,7 @@ function TagGroupCard({
           <div className="hidden sm:flex gap-1">
             {["get", "post", "put", "patch", "delete"].map((m) => {
               const count = group.endpoints.filter(
-                (e) => e.method === m
+                (e) => e.method === m,
               ).length;
               if (count === 0) return null;
               return (
@@ -820,7 +829,8 @@ function TagGroupCard({
                     METHOD_COLORS[m] || ""
                   }`}
                 >
-                  {m[0]}{count}
+                  {m[0]}
+                  {count}
                 </span>
               );
             })}
@@ -853,7 +863,10 @@ function TagGroupCard({
               )}
               <div className="flex items-center gap-1.5">
                 {ep.deprecated && (
-                  <Badge variant="outline" className="text-[10px] text-orange-600 border-orange-300">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] text-orange-600 border-orange-300"
+                  >
                     deprecated
                   </Badge>
                 )}
@@ -933,16 +946,17 @@ function EndpointDetailDialog({
           )}
 
           {/* Full description */}
-          {endpoint.description && endpoint.description !== endpoint.summary && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Подробно
-              </h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {endpoint.description}
-              </p>
-            </div>
-          )}
+          {endpoint.description &&
+            endpoint.description !== endpoint.summary && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Подробно
+                </h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {endpoint.description}
+                </p>
+              </div>
+            )}
 
           {/* Operation ID */}
           {endpoint.operationId && (
@@ -984,7 +998,10 @@ function EndpointDetailDialog({
               </Badge>
             )}
             {endpoint.deprecated && (
-              <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-300">
+              <Badge
+                variant="outline"
+                className="gap-1.5 text-orange-600 border-orange-300"
+              >
                 <AlertTriangle className="h-3 w-3" />
                 Deprecated
               </Badge>
