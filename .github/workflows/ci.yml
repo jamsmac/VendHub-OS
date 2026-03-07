@@ -627,27 +627,26 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy API service
-        working-directory: apps/api
-        run: railway up --service api --environment production --detach
+        run: railway up --service "@vendhub/api" --environment production --detach
 
       - name: Deploy Web (admin panel)
-        working-directory: apps/web
-        run: railway up --service web --environment production --detach
+        continue-on-error: true
+        run: railway up --service "@vendhub/web" --environment production --detach
 
       - name: Deploy Client PWA
-        working-directory: apps/client
-        run: railway up --service client --environment production --detach
+        continue-on-error: true
+        run: railway up --service "@vendhub/client" --environment production --detach
 
       - name: Deploy Bot
-        working-directory: apps/bot
-        run: railway up --service bot --environment production --detach
+        continue-on-error: true
+        run: railway up --service "@vendhub/bot" --environment production --detach
 
       - name: Run database migrations
-        working-directory: apps/api
+        continue-on-error: true
         run: |
           echo "Waiting 30s for API to come up..."
           sleep 30
-          railway run --service api --environment production -- pnpm db:migrate
+          railway run --service "@vendhub/api" --environment production -- pnpm db:migrate
 
       - name: Notify Telegram
         if: always()

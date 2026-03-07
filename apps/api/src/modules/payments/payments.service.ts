@@ -491,7 +491,9 @@ export class PaymentsService {
       body: JSON.stringify(rpcPayload),
     });
 
-    const body = await response.json();
+    const body = (await response.json()) as {
+      error?: { code?: number; message?: { en?: string; ru?: string } };
+    };
 
     if (body.error) {
       const errorMsg =
@@ -573,7 +575,11 @@ export class PaymentsService {
       body: JSON.stringify(requestBody),
     });
 
-    const body = await response.json();
+    const body = (await response.json()) as {
+      error?: number;
+      error_note?: string;
+      payment_id?: string;
+    };
 
     if (body.error && body.error !== 0) {
       const errorMsg = body.error_note || `Click error code ${body.error}`;
@@ -647,7 +653,12 @@ export class PaymentsService {
       body: JSON.stringify(requestBody),
     });
 
-    const body = await response.json();
+    const body = (await response.json()) as {
+      error?: string;
+      message?: string;
+      refundId?: string;
+      id?: string;
+    };
 
     if (!response.ok || body.error) {
       const errorMsg =

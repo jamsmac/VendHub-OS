@@ -7,8 +7,9 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  # Disabled auto-push: Railway deploys from source via ci.yml
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       environment:
