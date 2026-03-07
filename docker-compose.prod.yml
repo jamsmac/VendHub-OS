@@ -145,7 +145,7 @@ services:
   client:
     build:
       context: .
-      dockerfile: apps/client/Dockerfile
+      dockerfile: apps/client/Dockerfile.dev
       args:
         - NODE_ENV=production
         - VITE_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}
