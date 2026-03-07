@@ -227,7 +227,6 @@ describe("StorageService", () => {
     });
 
     it("should throw NotFoundException when key does not exist", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error: any = new Error("Not found");
       error.name = "NoSuchKey";
       mockSend.mockRejectedValue(error);
@@ -278,7 +277,6 @@ describe("StorageService", () => {
     });
 
     it("should return false when file does not exist", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error: any = new Error("Not found");
       error.name = "NotFound";
       mockSend.mockRejectedValue(error);
@@ -324,7 +322,6 @@ describe("StorageService", () => {
     });
 
     it("should throw NotFoundException when file not found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error: any = new Error("Not found");
       error.name = "NotFound";
       mockSend.mockRejectedValue(error);

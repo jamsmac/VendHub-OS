@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { TripAnalyticsService } from './trip-analytics.service';
-import { Trip } from '../trips/entities/trip.entity';
-import { TripAnomaly } from '../trips/entities/trip-anomaly.entity';
-import { TripStop } from '../trips/entities/trip-stop.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { TripAnalyticsService } from "./trip-analytics.service";
+import { Trip } from "../trips/entities/trip.entity";
+import { TripAnomaly } from "../trips/entities/trip-anomaly.entity";
+import { TripStop } from "../trips/entities/trip-stop.entity";
 
-describe('TripAnalyticsService', () => {
+describe("TripAnalyticsService", () => {
   let service: TripAnalyticsService;
   let _tripRepo: jest.Mocked<Repository<Trip>>;
   let _anomalyRepo: jest.Mocked<Repository<TripAnomaly>>;
@@ -53,7 +52,7 @@ describe('TripAnalyticsService', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -74,8 +73,12 @@ describe('TripAnalyticsService', () => {
       take: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
       getRawOne: jest.fn().mockResolvedValue(rawResult),
-      getRawMany: jest.fn().mockResolvedValue(Array.isArray(rawResult) ? rawResult : [rawResult]),
-      getMany: jest.fn().mockResolvedValue(Array.isArray(rawResult) ? rawResult : [rawResult]),
+      getRawMany: jest
+        .fn()
+        .mockResolvedValue(Array.isArray(rawResult) ? rawResult : [rawResult]),
+      getMany: jest
+        .fn()
+        .mockResolvedValue(Array.isArray(rawResult) ? rawResult : [rawResult]),
     };
   }
 
@@ -83,22 +86,22 @@ describe('TripAnalyticsService', () => {
   // getMainDashboard
   // ==========================================================================
 
-  describe('getMainDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getMainDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return KPI stats with period comparison', async () => {
+    it("should return KPI stats with period comparison", async () => {
       const periodStats = {
-        totalTrips: '25',
-        totalDistance: '150000',
-        totalAnomalies: '3',
+        totalTrips: "25",
+        totalDistance: "150000",
+        totalAnomalies: "3",
       };
 
       const prevPeriodStats = {
-        totalTrips: '20',
-        totalDistance: '120000',
-        totalAnomalies: '5',
+        totalTrips: "20",
+        totalDistance: "120000",
+        totalAnomalies: "5",
       };
 
       // getPeriodStats is called twice (current + previous)
@@ -121,14 +124,16 @@ describe('TripAnalyticsService', () => {
       expect(result.changePercent.trips).toBe(25); // (25-20)/20 * 100
     });
 
-    it('should handle zero trips gracefully', async () => {
+    it("should handle zero trips gracefully", async () => {
       const zeroStats = {
-        totalTrips: '0',
-        totalDistance: '0',
-        totalAnomalies: '0',
+        totalTrips: "0",
+        totalDistance: "0",
+        totalAnomalies: "0",
       };
 
-      mockTripRepo.createQueryBuilder.mockReturnValue(createMockQb(zeroStats) as any);
+      mockTripRepo.createQueryBuilder.mockReturnValue(
+        createMockQb(zeroStats) as any,
+      );
 
       const result = await service.getMainDashboard(orgId, from, to);
 
@@ -138,16 +143,16 @@ describe('TripAnalyticsService', () => {
       expect(result.changePercent.distance).toBe(0);
     });
 
-    it('should calculate 100% change when previous period is zero', async () => {
+    it("should calculate 100% change when previous period is zero", async () => {
       const currentStats = {
-        totalTrips: '10',
-        totalDistance: '50000',
-        totalAnomalies: '1',
+        totalTrips: "10",
+        totalDistance: "50000",
+        totalAnomalies: "1",
       };
       const prevZero = {
-        totalTrips: '0',
-        totalDistance: '0',
-        totalAnomalies: '0',
+        totalTrips: "0",
+        totalDistance: "0",
+        totalAnomalies: "0",
       };
 
       let callCount = 0;
@@ -167,20 +172,20 @@ describe('TripAnalyticsService', () => {
   // getActivityDashboard
   // ==========================================================================
 
-  describe('getActivityDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getActivityDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return distance by day and trips by hour', async () => {
+    it("should return distance by day and trips by hour", async () => {
       const distanceByDay = [
-        { date: '2026-03-01', distance: '50000', trips: '5' },
-        { date: '2026-03-02', distance: '30000', trips: '3' },
+        { date: "2026-03-01", distance: "50000", trips: "5" },
+        { date: "2026-03-02", distance: "30000", trips: "3" },
       ];
 
       const tripsByHour = [
-        { hour: '8', count: '4' },
-        { hour: '14', count: '6' },
+        { hour: "8", count: "4" },
+        { hour: "14", count: "6" },
       ];
 
       let callCount = 0;
@@ -193,7 +198,7 @@ describe('TripAnalyticsService', () => {
       const result = await service.getActivityDashboard(orgId, from, to);
 
       expect(result.distanceByDay).toHaveLength(2);
-      expect(result.distanceByDay[0].date).toBe('2026-03-01');
+      expect(result.distanceByDay[0].date).toBe("2026-03-01");
       expect(result.distanceByDay[0].distance).toBe(50000);
       expect(result.distanceByDay[0].trips).toBe(5);
       expect(result.tripsByHour).toHaveLength(2);
@@ -206,34 +211,53 @@ describe('TripAnalyticsService', () => {
   // getEmployeeDashboard
   // ==========================================================================
 
-  describe('getEmployeeDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getEmployeeDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return employee rankings', async () => {
+    it("should return employee rankings", async () => {
       const rawResults = [
-        { employeeId: 'emp-1', tripCount: '10', totalDistance: '80000', totalAnomalies: '2' },
-        { employeeId: 'emp-2', tripCount: '5', totalDistance: '40000', totalAnomalies: '0' },
+        {
+          employeeId: "emp-1",
+          tripCount: "10",
+          totalDistance: "80000",
+          totalAnomalies: "2",
+        },
+        {
+          employeeId: "emp-2",
+          tripCount: "5",
+          totalDistance: "40000",
+          totalAnomalies: "0",
+        },
       ];
 
-      mockTripRepo.createQueryBuilder.mockReturnValue(createMockQb(rawResults) as any);
+      mockTripRepo.createQueryBuilder.mockReturnValue(
+        createMockQb(rawResults) as any,
+      );
 
       const result = await service.getEmployeeDashboard(orgId, from, to);
 
       expect(result).toHaveLength(2);
-      expect(result[0].employeeId).toBe('emp-1');
+      expect(result[0].employeeId).toBe("emp-1");
       expect(result[0].tripCount).toBe(10);
       expect(result[0].totalDistance).toBe(80000);
       expect(result[0].avgTripDistance).toBe(8000); // 80000 / 10
     });
 
-    it('should handle employee with zero trips', async () => {
+    it("should handle employee with zero trips", async () => {
       const rawResults = [
-        { employeeId: 'emp-x', tripCount: '0', totalDistance: '0', totalAnomalies: '0' },
+        {
+          employeeId: "emp-x",
+          tripCount: "0",
+          totalDistance: "0",
+          totalAnomalies: "0",
+        },
       ];
 
-      mockTripRepo.createQueryBuilder.mockReturnValue(createMockQb(rawResults) as any);
+      mockTripRepo.createQueryBuilder.mockReturnValue(
+        createMockQb(rawResults) as any,
+      );
 
       const result = await service.getEmployeeDashboard(orgId, from, to);
 
@@ -245,29 +269,41 @@ describe('TripAnalyticsService', () => {
   // getVehiclesDashboard
   // ==========================================================================
 
-  describe('getVehiclesDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getVehiclesDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return vehicle statistics', async () => {
+    it("should return vehicle statistics", async () => {
       const rawResults = [
-        { vehicleId: 'v-1', tripCount: '15', totalDistance: '100000', totalStops: '45' },
-        { vehicleId: 'v-2', tripCount: '8', totalDistance: '60000', totalStops: '24' },
+        {
+          vehicleId: "v-1",
+          tripCount: "15",
+          totalDistance: "100000",
+          totalStops: "45",
+        },
+        {
+          vehicleId: "v-2",
+          tripCount: "8",
+          totalDistance: "60000",
+          totalStops: "24",
+        },
       ];
 
-      mockTripRepo.createQueryBuilder.mockReturnValue(createMockQb(rawResults) as any);
+      mockTripRepo.createQueryBuilder.mockReturnValue(
+        createMockQb(rawResults) as any,
+      );
 
       const result = await service.getVehiclesDashboard(orgId, from, to);
 
       expect(result).toHaveLength(2);
-      expect(result[0].vehicleId).toBe('v-1');
+      expect(result[0].vehicleId).toBe("v-1");
       expect(result[0].tripCount).toBe(15);
       expect(result[0].totalDistance).toBe(100000);
       expect(result[0].totalStops).toBe(45);
     });
 
-    it('should return empty array when no vehicles exist', async () => {
+    it("should return empty array when no vehicles exist", async () => {
       mockTripRepo.createQueryBuilder.mockReturnValue(createMockQb([]) as any);
 
       const result = await service.getVehiclesDashboard(orgId, from, to);
@@ -280,16 +316,31 @@ describe('TripAnalyticsService', () => {
   // getAnomaliesDashboard
   // ==========================================================================
 
-  describe('getAnomaliesDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getAnomaliesDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return anomalies grouped by type and severity', async () => {
+    it("should return anomalies grouped by type and severity", async () => {
       const anomalies = [
-        { id: 'a1', type: 'speed_violation', severity: 'warning', createdAt: new Date() },
-        { id: 'a2', type: 'speed_violation', severity: 'critical', createdAt: new Date() },
-        { id: 'a3', type: 'long_stop', severity: 'warning', createdAt: new Date() },
+        {
+          id: "a1",
+          type: "speed_violation",
+          severity: "warning",
+          createdAt: new Date(),
+        },
+        {
+          id: "a2",
+          type: "speed_violation",
+          severity: "critical",
+          createdAt: new Date(),
+        },
+        {
+          id: "a3",
+          type: "long_stop",
+          severity: "warning",
+          createdAt: new Date(),
+        },
       ];
 
       const mockQb = createMockQb(anomalies);
@@ -308,7 +359,7 @@ describe('TripAnalyticsService', () => {
       expect(result.recent).toHaveLength(3);
     });
 
-    it('should return empty results when no anomalies exist', async () => {
+    it("should return empty results when no anomalies exist", async () => {
       const mockQb = createMockQb([]);
       mockAnomalyRepo.createQueryBuilder.mockReturnValue(mockQb as any);
 
@@ -319,11 +370,11 @@ describe('TripAnalyticsService', () => {
       expect(result.recent).toHaveLength(0);
     });
 
-    it('should limit recent anomalies to 50', async () => {
+    it("should limit recent anomalies to 50", async () => {
       const manyAnomalies = Array.from({ length: 60 }, (_, i) => ({
         id: `a-${i}`,
-        type: 'gps_jump',
-        severity: 'info',
+        type: "gps_jump",
+        severity: "info",
         createdAt: new Date(),
       }));
 
@@ -340,21 +391,21 @@ describe('TripAnalyticsService', () => {
   // getTaxiDashboard
   // ==========================================================================
 
-  describe('getTaxiDashboard', () => {
-    const orgId = 'org-uuid-1';
-    const from = new Date('2026-03-01');
-    const to = new Date('2026-03-07');
+  describe("getTaxiDashboard", () => {
+    const orgId = "org-uuid-1";
+    const from = new Date("2026-03-01");
+    const to = new Date("2026-03-07");
 
-    it('should return taxi expense stats and top users', async () => {
+    it("should return taxi expense stats and top users", async () => {
       const taxiTrips = [
-        { id: 't1', taxiTotalAmount: 50000 },
-        { id: 't2', taxiTotalAmount: 30000 },
-        { id: 't3', taxiTotalAmount: 20000 },
+        { id: "t1", taxiTotalAmount: 50000 },
+        { id: "t2", taxiTotalAmount: 30000 },
+        { id: "t3", taxiTotalAmount: 20000 },
       ];
 
       const topUsers = [
-        { employeeId: 'emp-1', tripCount: '5', totalAmount: '200000' },
-        { employeeId: 'emp-2', tripCount: '2', totalAmount: '80000' },
+        { employeeId: "emp-1", tripCount: "5", totalAmount: "200000" },
+        { employeeId: "emp-2", tripCount: "2", totalAmount: "80000" },
       ];
 
       let callCount = 0;
@@ -374,12 +425,12 @@ describe('TripAnalyticsService', () => {
       expect(result.totalAmount).toBe(100000); // 50000 + 30000 + 20000
       expect(result.avgPerTrip).toBe(Math.round(100000 / 3));
       expect(result.topUsers).toHaveLength(2);
-      expect(result.topUsers[0].employeeId).toBe('emp-1');
+      expect(result.topUsers[0].employeeId).toBe("emp-1");
       expect(result.topUsers[0].tripCount).toBe(5);
       expect(result.topUsers[0].totalAmount).toBe(200000);
     });
 
-    it('should handle zero taxi trips', async () => {
+    it("should handle zero taxi trips", async () => {
       let callCount = 0;
       mockTripRepo.createQueryBuilder.mockImplementation(() => {
         callCount++;
@@ -394,10 +445,10 @@ describe('TripAnalyticsService', () => {
       expect(result.topUsers).toHaveLength(0);
     });
 
-    it('should handle null taxiTotalAmount gracefully', async () => {
+    it("should handle null taxiTotalAmount gracefully", async () => {
       const tripsWithNull = [
-        { id: 't1', taxiTotalAmount: null },
-        { id: 't2', taxiTotalAmount: 40000 },
+        { id: "t1", taxiTotalAmount: null },
+        { id: "t2", taxiTotalAmount: 40000 },
       ];
 
       let callCount = 0;

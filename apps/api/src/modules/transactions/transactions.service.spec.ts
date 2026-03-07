@@ -219,7 +219,6 @@ describe("TransactionsService", () => {
 
   describe("create", () => {
     it("should create a new transaction with items", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const createdTxn = { ...mockTransaction, id: "new-txn-uuid" } as any;
       transactionRepo.create.mockReturnValue(createdTxn);
       transactionRepo.save.mockResolvedValue(createdTxn);
@@ -254,10 +253,8 @@ describe("TransactionsService", () => {
     });
 
     it("should calculate correct subtotal from multiple items", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       transactionRepo.create.mockImplementation((data) => data as any);
       transactionRepo.save.mockImplementation((data) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve({ id: "new-txn-uuid", ...data } as any),
       );
       itemRepo.create.mockReturnValue(mockItem);
@@ -342,7 +339,6 @@ describe("TransactionsService", () => {
         ...mockTransaction,
         status: TransactionStatus.PENDING,
         metadata: {},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       transactionRepo.findOne
         .mockResolvedValueOnce(pendingTxn)
@@ -371,7 +367,6 @@ describe("TransactionsService", () => {
       transactionRepo.findOne.mockResolvedValue({
         ...mockTransaction,
         status: TransactionStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
@@ -394,7 +389,6 @@ describe("TransactionsService", () => {
         ...mockTransaction,
         status: TransactionStatus.PENDING,
         metadata: {},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       transactionRepo.findOne
         .mockResolvedValueOnce(pendingTxn)
@@ -419,7 +413,6 @@ describe("TransactionsService", () => {
       transactionRepo.findOne.mockResolvedValue({
         ...mockTransaction,
         status: TransactionStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(service.cancel("txn-uuid-1", "Too late")).rejects.toThrow(
@@ -518,7 +511,6 @@ describe("TransactionsService", () => {
       const result = await service.getDailySummaries(orgId, {
         page: 1,
         limit: 20,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toHaveProperty("data");
@@ -537,9 +529,8 @@ describe("TransactionsService", () => {
       transactionRepo.findOne.mockResolvedValue({
         ...mockTransaction,
         status: TransactionStatus.CANCELLED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       transactionRepo.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("txn-uuid-1");
@@ -551,7 +542,6 @@ describe("TransactionsService", () => {
       transactionRepo.findOne.mockResolvedValue({
         ...mockTransaction,
         status: TransactionStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(service.remove("txn-uuid-1")).rejects.toThrow(
@@ -577,7 +567,6 @@ describe("TransactionsService", () => {
       collectionRecordRepo.findOne.mockResolvedValue({
         id: "col-uuid-1",
         isVerified: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(

@@ -192,7 +192,6 @@ describe("InventoryService", () => {
 
   describe("getWarehouseInventory", () => {
     it("should return paginated warehouse inventory", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       warehouseRepo.findAndCount.mockResolvedValue([[mockWarehouse as any], 1]);
 
       const result = await service.getWarehouseInventory(orgId, 1, 50);
@@ -239,7 +238,6 @@ describe("InventoryService", () => {
 
   describe("getOperatorInventory", () => {
     it("should return paginated operator inventory", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       operatorRepo.findAndCount.mockResolvedValue([[mockOperator as any], 1]);
 
       const result = await service.getOperatorInventory(
@@ -492,11 +490,10 @@ describe("InventoryService", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       warehouseRepo.createQueryBuilder.mockReturnValue(warehouseQb as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       operatorRepo.createQueryBuilder.mockReturnValue(operatorQb as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       machineRepo.createQueryBuilder.mockReturnValue(machineQb as any);
 
       const result = await service.getInventorySummary(orgId);

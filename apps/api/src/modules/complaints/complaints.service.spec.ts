@@ -209,9 +209,9 @@ describe("ComplaintsService", () => {
       automationRepo.find.mockResolvedValue([]); // no automation rules
       complaintRepo.create.mockReturnValue(mockComplaint);
       complaintRepo.save.mockResolvedValue(mockComplaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       const dto: CreateComplaintDto = {
@@ -256,14 +256,13 @@ describe("ComplaintsService", () => {
           ],
           stopOnMatch: true,
           priority: 1,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ]);
       complaintRepo.create.mockReturnValue(mockComplaint);
       complaintRepo.save.mockResolvedValue(mockComplaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       const dto: CreateComplaintDto = {
@@ -384,12 +383,11 @@ describe("ComplaintsService", () => {
 
   describe("resolve", () => {
     it("should resolve a complaint with resolution text", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       complaintRepo.findOne.mockResolvedValue({ ...mockComplaint } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       const result = await service.resolve(
@@ -410,12 +408,11 @@ describe("ComplaintsService", () => {
 
   describe("escalate", () => {
     it("should escalate complaint to critical priority", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       complaintRepo.findOne.mockResolvedValue({ ...mockComplaint } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       const result = await service.escalate(
@@ -444,12 +441,11 @@ describe("ComplaintsService", () => {
       complaintRepo.findOne.mockResolvedValue({
         ...mockComplaint,
         commentCount: 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       commentRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       commentRepo.save.mockResolvedValue({ id: "comment-uuid-1" } as any);
 
       const dto = {
@@ -473,13 +469,13 @@ describe("ComplaintsService", () => {
   describe("createRefund", () => {
     it("should create a refund for a complaint", async () => {
       complaintRepo.findOne.mockResolvedValue(mockComplaint);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       refundRepo.create.mockReturnValue(mockRefund as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       refundRepo.save.mockResolvedValue(mockRefund as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       const dto = {
@@ -505,7 +501,6 @@ describe("ComplaintsService", () => {
 
   describe("approveRefund", () => {
     it("should approve a pending refund", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       refundRepo.findOne.mockResolvedValue({ ...mockRefund } as any);
       refundRepo.save.mockImplementation(async (r) => r as ComplaintRefund);
 
@@ -527,7 +522,6 @@ describe("ComplaintsService", () => {
       refundRepo.findOne.mockResolvedValue({
         ...mockRefund,
         status: RefundStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
@@ -545,13 +539,12 @@ describe("ComplaintsService", () => {
       complaintRepo.findOne.mockResolvedValue({
         ...mockComplaint,
         status: ComplaintStatus.REJECTED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       complaintRepo.softDelete.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actionRepo.save.mockResolvedValue({} as any);
 
       await service.remove("cmp-uuid-1", USER_ID);
@@ -584,7 +577,6 @@ describe("ComplaintsService", () => {
     it("should submit satisfaction rating for resolved complaint", async () => {
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
 
@@ -609,7 +601,6 @@ describe("ComplaintsService", () => {
     it("should throw BadRequestException for invalid rating", async () => {
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(service.submitFeedback("cmp-uuid-2", 6)).rejects.toThrow(

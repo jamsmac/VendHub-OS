@@ -253,7 +253,6 @@ describe("ProductsService", () => {
 
   describe("update", () => {
     it("should update product when found", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updatedProduct = { ...mockProduct, name: "Espresso" } as any;
       productRepository.findOne.mockResolvedValue(mockProduct);
       productRepository.save.mockResolvedValue(updatedProduct);
@@ -277,7 +276,7 @@ describe("ProductsService", () => {
   describe("remove", () => {
     it("should soft delete product when found", async () => {
       productRepository.findOne.mockResolvedValue(mockProduct);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       productRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("product-uuid-1", "org-1");
@@ -309,12 +308,10 @@ describe("ProductsService", () => {
       recipeRepository.findOne.mockResolvedValue({
         ...mockRecipe,
         ingredients,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       productRepository.find.mockResolvedValue([
         { id: "ing-1", purchasePrice: 1000 },
         { id: "ing-2", purchasePrice: 500 },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any);
 
       const cost = await service.calculateRecipeCost("recipe-uuid-1");
@@ -326,7 +323,6 @@ describe("ProductsService", () => {
       recipeRepository.findOne.mockResolvedValue({
         ...mockRecipe,
         ingredients: [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const cost = await service.calculateRecipeCost("recipe-uuid-1");
@@ -355,7 +351,6 @@ describe("ProductsService", () => {
           remainingQuantity: 5,
           reservedQuantity: 0,
           status: IngredientBatchStatus.IN_STOCK,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
 
         {
@@ -364,12 +359,10 @@ describe("ProductsService", () => {
           reservedQuantity: 0,
 
           status: IngredientBatchStatus.IN_STOCK,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ];
       ingredientBatchRepository.find.mockResolvedValue(batches);
       ingredientBatchRepository.save.mockImplementation((batch) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(batch as any),
       );
 
@@ -401,16 +394,15 @@ describe("ProductsService", () => {
   describe("updatePrice", () => {
     it("should update price and create history record", async () => {
       productRepository.findOne.mockResolvedValue(mockProduct);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       priceHistoryRepository.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       priceHistoryRepository.create.mockReturnValue({} as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       priceHistoryRepository.save.mockResolvedValue({ id: "ph-1" } as any);
       productRepository.save.mockResolvedValue({
         ...mockProduct,
         sellingPrice: 15000,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.updatePrice(
@@ -431,7 +423,7 @@ describe("ProductsService", () => {
         service.updatePrice(
           "product-uuid-1",
           orgId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           {} as any,
           "user-uuid-1",
         ),

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from "@nestjs/testing";
 import { AxiosError, AxiosHeaders } from "axios";
 import { IntegrationTesterService } from "./integration-tester.service";

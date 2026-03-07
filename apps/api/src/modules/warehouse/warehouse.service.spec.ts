@@ -409,7 +409,7 @@ describe("WarehouseService", () => {
   describe("remove", () => {
     it("should soft delete warehouse when found", async () => {
       warehouseRepository.findOne.mockResolvedValue(mockWarehouse);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       warehouseRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("warehouse-uuid-1");

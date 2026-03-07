@@ -36,7 +36,10 @@ interface JwtPayload {
  * Creates Express middleware that protects Swagger routes.
  * Must be applied BEFORE SwaggerModule.setup().
  */
-export function createSwaggerAuthMiddleware(jwtSecret: string, cookieSecret?: string) {
+export function createSwaggerAuthMiddleware(
+  jwtSecret: string,
+  _cookieSecret?: string,
+) {
   const COOKIE_NAME = "swagger_session";
   const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours
 
@@ -182,7 +185,7 @@ function verifyOwnerToken(token: string, secret: string): JwtPayload | null {
     }
 
     return payload;
-  } catch (error) {
+  } catch (_error) {
     // Token expired or invalid — silent fail
     return null;
   }

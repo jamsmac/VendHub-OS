@@ -1,20 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   Vhm24IntegrationService,
   WebhookPayload,
-} from './vhm24-integration.service';
-import { TripTaskLink } from '../trips/entities/trip-task-link.entity';
-import { TripStop } from '../trips/entities/trip-stop.entity';
+} from "./vhm24-integration.service";
+import { TripTaskLink } from "../trips/entities/trip-task-link.entity";
+import { TripStop } from "../trips/entities/trip-stop.entity";
 import {
   MachineLocationSync,
   SyncStatus,
-} from './entities/machine-location-sync.entity';
-import { GpsProcessingService } from '../trips/services/gps-processing.service';
+} from "./entities/machine-location-sync.entity";
+import { GpsProcessingService } from "../trips/services/gps-processing.service";
 
-describe('Vhm24IntegrationService', () => {
+describe("Vhm24IntegrationService", () => {
   let service: Vhm24IntegrationService;
   let _taskLinkRepo: jest.Mocked<Repository<TripTaskLink>>;
   let _stopRepo: jest.Mocked<Repository<TripStop>>;
@@ -77,7 +76,7 @@ describe('Vhm24IntegrationService', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
@@ -85,33 +84,33 @@ describe('Vhm24IntegrationService', () => {
   // linkTasksToTrip
   // ==========================================================================
 
-  describe('linkTasksToTrip', () => {
-    const tripId = 'trip-uuid-1';
+  describe("linkTasksToTrip", () => {
+    const tripId = "trip-uuid-1";
     const tasks = [
       {
-        vhm24TaskId: 'task-1',
-        vhm24TaskType: 'collection',
-        vhm24MachineId: 'machine-1',
+        vhm24TaskId: "task-1",
+        vhm24TaskType: "collection",
+        vhm24MachineId: "machine-1",
         expectedLatitude: 41.3111,
         expectedLongitude: 69.2797,
       },
       {
-        vhm24TaskId: 'task-2',
-        vhm24TaskType: 'filling',
-        vhm24MachineId: 'machine-2',
-        expectedLatitude: 41.3200,
-        expectedLongitude: 69.2900,
+        vhm24TaskId: "task-2",
+        vhm24TaskType: "filling",
+        vhm24MachineId: "machine-2",
+        expectedLatitude: 41.32,
+        expectedLongitude: 69.29,
         verificationRadiusM: 200,
       },
     ];
 
-    it('should create and save task links', async () => {
+    it("should create and save task links", async () => {
       const createdLinks = tasks.map((t, i) => ({
         id: `link-uuid-${i}`,
         tripId,
         ...t,
         verificationRadiusM: t.verificationRadiusM ?? 100,
-        verificationStatus: 'pending',
+        verificationStatus: "pending",
       }));
 
       mockTaskLinkRepo.create.mockImplementation((data) => data as any);
@@ -124,12 +123,12 @@ describe('Vhm24IntegrationService', () => {
       expect(result).toEqual(createdLinks);
     });
 
-    it('should use default verification radius of 100m when not specified', async () => {
+    it("should use default verification radius of 100m when not specified", async () => {
       const singleTask = [
         {
-          vhm24TaskId: 'task-x',
-          vhm24TaskType: 'repair',
-          vhm24MachineId: 'machine-x',
+          vhm24TaskId: "task-x",
+          vhm24TaskType: "repair",
+          vhm24MachineId: "machine-x",
           expectedLatitude: 41.0,
           expectedLongitude: 69.0,
         },
@@ -152,22 +151,22 @@ describe('Vhm24IntegrationService', () => {
   // verifyTaskByStop
   // ==========================================================================
 
-  describe('verifyTaskByStop', () => {
-    const tripId = 'trip-uuid-1';
+  describe("verifyTaskByStop", () => {
+    const tripId = "trip-uuid-1";
     const stop: Partial<TripStop> = {
-      id: 'stop-uuid-1',
+      id: "stop-uuid-1",
       tripId,
       latitude: 41.3111,
       longitude: 69.2797,
       durationSeconds: 300,
     };
 
-    it('should verify tasks within radius', async () => {
+    it("should verify tasks within radius", async () => {
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        vhm24TaskId: 'task-1',
-        verificationStatus: 'pending',
+        vhm24TaskId: "task-1",
+        verificationStatus: "pending",
         expectedLatitude: 41.3112,
         expectedLongitude: 69.2798,
         verificationRadiusM: 100,
@@ -190,18 +189,18 @@ describe('Vhm24IntegrationService', () => {
         pendingLink.expectedLongitude,
       );
       expect(result).toHaveLength(1);
-      expect(result[0].verificationStatus).toBe('verified');
+      expect(result[0].verificationStatus).toBe("verified");
       expect(result[0].actualLatitude).toBe(stop.latitude);
       expect(result[0].distanceFromExpectedM).toBe(15);
       expect(mockTaskLinkRepo.save).toHaveBeenCalled();
     });
 
-    it('should not verify tasks outside radius', async () => {
+    it("should not verify tasks outside radius", async () => {
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        vhm24TaskId: 'task-1',
-        verificationStatus: 'pending',
+        vhm24TaskId: "task-1",
+        verificationStatus: "pending",
         expectedLatitude: 41.5,
         expectedLongitude: 69.5,
         verificationRadiusM: 100,
@@ -216,12 +215,12 @@ describe('Vhm24IntegrationService', () => {
       expect(mockTaskLinkRepo.save).not.toHaveBeenCalled();
     });
 
-    it('should skip tasks without expected coordinates', async () => {
+    it("should skip tasks without expected coordinates", async () => {
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        vhm24TaskId: 'task-1',
-        verificationStatus: 'pending',
+        vhm24TaskId: "task-1",
+        verificationStatus: "pending",
         expectedLatitude: null,
         expectedLongitude: null,
       };
@@ -239,19 +238,31 @@ describe('Vhm24IntegrationService', () => {
   // verifyAllTasksOnTripEnd
   // ==========================================================================
 
-  describe('verifyAllTasksOnTripEnd', () => {
-    const tripId = 'trip-uuid-1';
+  describe("verifyAllTasksOnTripEnd", () => {
+    const tripId = "trip-uuid-1";
 
-    it('should verify pending tasks against all stops', async () => {
+    it("should verify pending tasks against all stops", async () => {
       const stops = [
-        { id: 's1', tripId, latitude: 41.31, longitude: 69.28, startedAt: new Date() },
-        { id: 's2', tripId, latitude: 41.32, longitude: 69.29, startedAt: new Date() },
+        {
+          id: "s1",
+          tripId,
+          latitude: 41.31,
+          longitude: 69.28,
+          startedAt: new Date(),
+        },
+        {
+          id: "s2",
+          tripId,
+          latitude: 41.32,
+          longitude: 69.29,
+          startedAt: new Date(),
+        },
       ];
 
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        verificationStatus: 'pending',
+        verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
         verificationRadiusM: 100,
@@ -264,27 +275,33 @@ describe('Vhm24IntegrationService', () => {
       mockStopRepo.find.mockResolvedValue(stops as any);
       mockTaskLinkRepo.find.mockResolvedValue([pendingLink] as any);
       mockGpsService.haversineDistance
-        .mockReturnValueOnce(10)   // distance to first stop (close)
+        .mockReturnValueOnce(10) // distance to first stop (close)
         .mockReturnValueOnce(1500); // distance to second stop (far)
       mockTaskLinkRepo.save.mockResolvedValue([] as any);
 
       await service.verifyAllTasksOnTripEnd(tripId);
 
-      expect(pendingLink.verificationStatus).toBe('verified');
+      expect(pendingLink.verificationStatus).toBe("verified");
       expect(pendingLink.actualLatitude).toBe(41.31);
       expect(pendingLink.distanceFromExpectedM).toBe(10);
       expect(mockTaskLinkRepo.save).toHaveBeenCalled();
     });
 
-    it('should mark as mismatch when closest stop is beyond radius', async () => {
+    it("should mark as mismatch when closest stop is beyond radius", async () => {
       const stops = [
-        { id: 's1', tripId, latitude: 41.50, longitude: 69.50, startedAt: new Date() },
+        {
+          id: "s1",
+          tripId,
+          latitude: 41.5,
+          longitude: 69.5,
+          startedAt: new Date(),
+        },
       ];
 
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        verificationStatus: 'pending',
+        verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
         verificationRadiusM: 100,
@@ -300,14 +317,14 @@ describe('Vhm24IntegrationService', () => {
 
       await service.verifyAllTasksOnTripEnd(tripId);
 
-      expect(pendingLink.verificationStatus).toBe('mismatch');
+      expect(pendingLink.verificationStatus).toBe("mismatch");
     });
 
-    it('should mark as skipped when no stops exist', async () => {
+    it("should mark as skipped when no stops exist", async () => {
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        verificationStatus: 'pending',
+        verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
         verificationRadiusM: 100,
@@ -319,14 +336,14 @@ describe('Vhm24IntegrationService', () => {
 
       await service.verifyAllTasksOnTripEnd(tripId);
 
-      expect(pendingLink.verificationStatus).toBe('skipped');
+      expect(pendingLink.verificationStatus).toBe("skipped");
     });
 
-    it('should skip tasks without expected coordinates', async () => {
+    it("should skip tasks without expected coordinates", async () => {
       const pendingLink = {
-        id: 'link-1',
+        id: "link-1",
         tripId,
-        verificationStatus: 'pending',
+        verificationStatus: "pending",
         expectedLatitude: null,
         expectedLongitude: null,
       };
@@ -337,7 +354,7 @@ describe('Vhm24IntegrationService', () => {
 
       await service.verifyAllTasksOnTripEnd(tripId);
 
-      expect(pendingLink.verificationStatus).toBe('skipped');
+      expect(pendingLink.verificationStatus).toBe("skipped");
     });
   });
 
@@ -345,21 +362,27 @@ describe('Vhm24IntegrationService', () => {
   // manualVerifyTask
   // ==========================================================================
 
-  describe('manualVerifyTask', () => {
-    it('should update verification status and set override user', async () => {
+  describe("manualVerifyTask", () => {
+    it("should update verification status and set override user", async () => {
       const link = {
-        id: 'link-uuid-1',
-        verificationStatus: 'pending',
+        id: "link-uuid-1",
+        verificationStatus: "pending",
         overriddenById: null,
       };
 
       mockTaskLinkRepo.findOneOrFail.mockResolvedValue(link as any);
-      mockTaskLinkRepo.save.mockImplementation((entity) => Promise.resolve(entity));
+      mockTaskLinkRepo.save.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
 
-      const result = await service.manualVerifyTask('link-uuid-1', 'admin-1', 'verified');
+      const result = await service.manualVerifyTask(
+        "link-uuid-1",
+        "admin-1",
+        "verified",
+      );
 
-      expect(result.verificationStatus).toBe('verified');
-      expect(result.overriddenById).toBe('admin-1');
+      expect(result.verificationStatus).toBe("verified");
+      expect(result.overriddenById).toBe("admin-1");
     });
   });
 
@@ -367,19 +390,19 @@ describe('Vhm24IntegrationService', () => {
   // syncMachines
   // ==========================================================================
 
-  describe('syncMachines', () => {
-    const orgId = 'org-uuid-1';
+  describe("syncMachines", () => {
+    const orgId = "org-uuid-1";
     const machines = [
       {
-        machineId: 'vm-001',
-        machineName: 'Coffee Machine #1',
+        machineId: "vm-001",
+        machineName: "Coffee Machine #1",
         latitude: 41.3111,
         longitude: 69.2797,
-        address: 'Tashkent, Amir Temur 1',
+        address: "Tashkent, Amir Temur 1",
       },
     ];
 
-    it('should create new sync record when machine does not exist', async () => {
+    it("should create new sync record when machine does not exist", async () => {
       mockSyncRepo.findOne.mockResolvedValue(null); // not found
       mockSyncRepo.create.mockImplementation((data) => data as any);
       mockSyncRepo.save.mockResolvedValue({} as any);
@@ -389,8 +412,8 @@ describe('Vhm24IntegrationService', () => {
       expect(mockSyncRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: orgId,
-          vhm24MachineId: 'vm-001',
-          vhm24MachineName: 'Coffee Machine #1',
+          vhm24MachineId: "vm-001",
+          vhm24MachineName: "Coffee Machine #1",
           vhm24Latitude: 41.3111,
           vhm24Longitude: 69.2797,
           syncStatus: SyncStatus.ACTIVE,
@@ -399,12 +422,12 @@ describe('Vhm24IntegrationService', () => {
       expect(result).toEqual({ synced: 1, skipped: 0 });
     });
 
-    it('should update existing sync record', async () => {
+    it("should update existing sync record", async () => {
       const existing = {
-        id: 'sync-uuid-1',
+        id: "sync-uuid-1",
         organizationId: orgId,
-        vhm24MachineId: 'vm-001',
-        vhm24MachineName: 'Old Name',
+        vhm24MachineId: "vm-001",
+        vhm24MachineName: "Old Name",
         vhm24Latitude: 41.0,
         vhm24Longitude: 69.0,
         vhm24Address: null,
@@ -418,20 +441,20 @@ describe('Vhm24IntegrationService', () => {
 
       expect(mockSyncRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
-          vhm24MachineName: 'Coffee Machine #1',
+          vhm24MachineName: "Coffee Machine #1",
           vhm24Latitude: 41.3111,
           vhm24Longitude: 69.2797,
-          vhm24Address: 'Tashkent, Amir Temur 1',
+          vhm24Address: "Tashkent, Amir Temur 1",
         }),
       );
       expect(result).toEqual({ synced: 1, skipped: 0 });
     });
 
-    it('should handle multiple machines', async () => {
+    it("should handle multiple machines", async () => {
       const multipleMachines = [
-        { machineId: 'vm-001', latitude: 41.31, longitude: 69.28 },
-        { machineId: 'vm-002', latitude: 41.32, longitude: 69.29 },
-        { machineId: 'vm-003', latitude: 41.33, longitude: 69.30 },
+        { machineId: "vm-001", latitude: 41.31, longitude: 69.28 },
+        { machineId: "vm-002", latitude: 41.32, longitude: 69.29 },
+        { machineId: "vm-003", latitude: 41.33, longitude: 69.3 },
       ];
 
       mockSyncRepo.findOne.mockResolvedValue(null);
@@ -449,20 +472,20 @@ describe('Vhm24IntegrationService', () => {
   // handleWebhook
   // ==========================================================================
 
-  describe('handleWebhook', () => {
-    const orgId = 'org-uuid-1';
+  describe("handleWebhook", () => {
+    const orgId = "org-uuid-1";
 
-    it('should sync machine on machine.created event with coordinates', async () => {
+    it("should sync machine on machine.created event with coordinates", async () => {
       const payload: WebhookPayload = {
-        event: 'machine.created',
+        event: "machine.created",
         data: {
-          machineId: 'vm-new',
-          name: 'New Machine',
+          machineId: "vm-new",
+          name: "New Machine",
           latitude: 41.31,
           longitude: 69.28,
         },
         timestamp: new Date().toISOString(),
-        source: 'vendhub',
+        source: "vendhub",
       };
 
       // syncMachines internals
@@ -472,28 +495,28 @@ describe('Vhm24IntegrationService', () => {
 
       const result = await service.handleWebhook(orgId, payload);
 
-      expect(result).toEqual({ handled: true, action: 'machine_synced' });
+      expect(result).toEqual({ handled: true, action: "machine_synced" });
     });
 
-    it('should return no_coordinates when machine event lacks coordinates', async () => {
+    it("should return no_coordinates when machine event lacks coordinates", async () => {
       const payload: WebhookPayload = {
-        event: 'machine.updated',
-        data: { machineId: 'vm-1' },
+        event: "machine.updated",
+        data: { machineId: "vm-1" },
         timestamp: new Date().toISOString(),
-        source: 'vendhub',
+        source: "vendhub",
       };
 
       const result = await service.handleWebhook(orgId, payload);
 
-      expect(result).toEqual({ handled: false, action: 'no_coordinates' });
+      expect(result).toEqual({ handled: false, action: "no_coordinates" });
     });
 
-    it('should disable machine on machine.deleted event', async () => {
+    it("should disable machine on machine.deleted event", async () => {
       const payload: WebhookPayload = {
-        event: 'machine.deleted',
-        data: { machineId: 'vm-del' },
+        event: "machine.deleted",
+        data: { machineId: "vm-del" },
         timestamp: new Date().toISOString(),
-        source: 'vendhub',
+        source: "vendhub",
       };
 
       mockSyncRepo.update.mockResolvedValue({ affected: 1 } as any);
@@ -501,49 +524,49 @@ describe('Vhm24IntegrationService', () => {
       const result = await service.handleWebhook(orgId, payload);
 
       expect(mockSyncRepo.update).toHaveBeenCalledWith(
-        { vhm24MachineId: 'vm-del', organizationId: orgId },
+        { vhm24MachineId: "vm-del", organizationId: orgId },
         { syncStatus: SyncStatus.DISABLED },
       );
-      expect(result).toEqual({ handled: true, action: 'machine_disabled' });
+      expect(result).toEqual({ handled: true, action: "machine_disabled" });
     });
 
-    it('should handle task.assigned event', async () => {
+    it("should handle task.assigned event", async () => {
       const payload: WebhookPayload = {
-        event: 'task.assigned',
-        data: { taskId: 't-1', assigneeId: 'u-1' },
+        event: "task.assigned",
+        data: { taskId: "t-1", assigneeId: "u-1" },
         timestamp: new Date().toISOString(),
-        source: 'vendhub',
+        source: "vendhub",
       };
 
       const result = await service.handleWebhook(orgId, payload);
 
-      expect(result).toEqual({ handled: true, action: 'task_noted' });
+      expect(result).toEqual({ handled: true, action: "task_noted" });
     });
 
-    it('should handle task.completed event', async () => {
+    it("should handle task.completed event", async () => {
       const payload: WebhookPayload = {
-        event: 'task.completed',
-        data: { taskId: 't-1' },
+        event: "task.completed",
+        data: { taskId: "t-1" },
         timestamp: new Date().toISOString(),
-        source: 'vendhub',
+        source: "vendhub",
       };
 
       const result = await service.handleWebhook(orgId, payload);
 
-      expect(result).toEqual({ handled: true, action: 'task_noted' });
+      expect(result).toEqual({ handled: true, action: "task_noted" });
     });
 
-    it('should return unknown_event for unrecognized events', async () => {
+    it("should return unknown_event for unrecognized events", async () => {
       const payload = {
-        event: 'order.placed' as any,
+        event: "order.placed" as any,
         data: {},
         timestamp: new Date().toISOString(),
-        source: 'external',
+        source: "external",
       };
 
       const result = await service.handleWebhook(orgId, payload);
 
-      expect(result).toEqual({ handled: false, action: 'unknown_event' });
+      expect(result).toEqual({ handled: false, action: "unknown_event" });
     });
   });
 });

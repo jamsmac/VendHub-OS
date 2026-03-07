@@ -129,7 +129,6 @@ describe("PaymentsService", () => {
         {
           provide: DataSource,
           useValue: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             transaction: jest.fn().mockImplementation((cb: any) =>
               cb({
                 getRepository: jest.fn().mockReturnValue({

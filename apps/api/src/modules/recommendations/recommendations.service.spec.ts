@@ -328,7 +328,7 @@ describe("RecommendationsService", () => {
       // Similar users: returns empty (no orders)
       const similarQb = createMockQueryBuilder();
       similarQb.getRawMany.mockResolvedValue([]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       similarQb.then.mockImplementation((cb: any) => cb([]));
 
       // Popular products: returns some products
@@ -404,7 +404,7 @@ describe("RecommendationsService", () => {
   describe("deduplication and sorting", () => {
     it("should remove duplicates and sort by score descending", () => {
       // Access private method via any-cast for unit testing
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const dedup = (service as any).deduplicateAndSort;
       const recs = [
         { product: { id: "p-1" }, score: 0.5, reason: "a", reasonText: "A" },
@@ -422,7 +422,6 @@ describe("RecommendationsService", () => {
     });
 
     it("should respect limit parameter", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dedup = (service as any).deduplicateAndSort;
       const recs = [
         { product: { id: "p-1" }, score: 0.9 },
@@ -442,7 +441,6 @@ describe("RecommendationsService", () => {
 
   describe("getTimeRange (private)", () => {
     it("should return correct ranges for each time category", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const getRange = (service as any).getTimeRange;
 
       expect(getRange.call(service, "morning")).toEqual({ start: 6, end: 11 });
@@ -455,7 +453,6 @@ describe("RecommendationsService", () => {
     });
 
     it("should default to afternoon for unknown category", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const getRange = (service as any).getTimeRange;
 
       expect(getRange.call(service, "unknown")).toEqual({ start: 12, end: 16 });

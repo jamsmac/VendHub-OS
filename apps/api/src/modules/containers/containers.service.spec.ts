@@ -363,7 +363,6 @@ describe("ContainersService", () => {
         userId,
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const metadata = result.metadata as any;
       expect(metadata.refillHistory).toBeDefined();
       expect(metadata.refillHistory).toHaveLength(1);
@@ -426,7 +425,7 @@ describe("ContainersService", () => {
   describe("remove", () => {
     it("should soft delete container when found", async () => {
       containerRepository.findOne.mockResolvedValue(mockContainer);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       containerRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("container-uuid-1", orgId);

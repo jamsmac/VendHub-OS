@@ -331,21 +331,22 @@ export class AIParserService {
 
     // Remove scripts, styles, and other non-content elements
     // Cheerio type definitions don't expose .remove() / .first() on multi-selector results
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     (
       $(
         "script, style, nav, footer, header, aside, .sidebar, .navigation",
       ) as any
-    ) // eslint-disable-line @typescript-eslint/no-explicit-any -- Cheerio type limitation
-      .remove();
+    ).remove();
 
     // Extract main content
     const mainContent = (
       $(
         "main, article, .content, .documentation, .docs, #content, #docs",
       ) as any
-    ) // eslint-disable-line @typescript-eslint/no-explicit-any -- Cheerio type limitation
+    )
       .first()
       .text();
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     if (mainContent?.trim()) {
       return mainContent.replace(/\s+/g, " ").trim();

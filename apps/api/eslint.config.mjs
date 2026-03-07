@@ -16,7 +16,7 @@ export default tseslint.config(
       },
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
       },
     },
     plugins: {

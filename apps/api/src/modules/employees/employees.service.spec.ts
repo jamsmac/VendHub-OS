@@ -186,7 +186,6 @@ describe("EmployeesService", () => {
         hireDate: "2024-01-15",
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createEmployee(ORG_ID, dto as any);
 
       expect(result).toBeDefined();
@@ -207,7 +206,6 @@ describe("EmployeesService", () => {
       const result = await service.getEmployees(ORG_ID, {
         page: 1,
         limit: 20,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toHaveProperty("items");
@@ -218,7 +216,6 @@ describe("EmployeesService", () => {
     it("should filter by role", async () => {
       await service.getEmployees(ORG_ID, {
         role: EmployeeRole.OPERATOR,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockEmployeeQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -228,7 +225,6 @@ describe("EmployeesService", () => {
     });
 
     it("should filter by search term", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.getEmployees(ORG_ID, { search: "Aziz" } as any);
 
       expect(mockEmployeeQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -267,13 +263,11 @@ describe("EmployeesService", () => {
 
   describe("updateEmployee", () => {
     it("should update employee fields", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       employeeRepo.findOne.mockResolvedValue({ ...mockEmployee } as any);
       employeeRepo.save.mockImplementation(async (emp) => emp as Employee);
 
       const result = await service.updateEmployee("emp-uuid-1", ORG_ID, {
         phone: "+998901111111",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toBeDefined();
@@ -287,7 +281,6 @@ describe("EmployeesService", () => {
       employeeRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateEmployee("non-existent", ORG_ID, {} as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -299,7 +292,6 @@ describe("EmployeesService", () => {
 
   describe("terminateEmployee", () => {
     it("should terminate an active employee", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       employeeRepo.findOne.mockResolvedValue({ ...mockEmployee } as any);
       employeeRepo.save.mockImplementation(async (emp) => emp as Employee);
 
@@ -308,7 +300,7 @@ describe("EmployeesService", () => {
       const result = await service.terminateEmployee(
         "emp-uuid-1",
         ORG_ID,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         dto as any,
       );
 
@@ -323,13 +315,11 @@ describe("EmployeesService", () => {
       employeeRepo.findOne.mockResolvedValue({
         ...mockEmployee,
         status: EmployeeStatus.TERMINATED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
         service.terminateEmployee("emp-uuid-1", ORG_ID, {
           terminationDate: "2024-06-30",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -346,7 +336,7 @@ describe("EmployeesService", () => {
       );
 
       const dto = { name: "Operations", code: "OPS" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await service.createDepartment(ORG_ID, dto as any);
 
       expect(departmentService.createDepartment).toHaveBeenCalledWith(
@@ -363,7 +353,6 @@ describe("EmployeesService", () => {
       );
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.createDepartment(ORG_ID, { name: "Ops", code: "OPS" } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -379,7 +368,6 @@ describe("EmployeesService", () => {
       const result = await service.getDepartments(ORG_ID, {
         page: 1,
         limit: 20,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toHaveProperty("items");
@@ -398,7 +386,7 @@ describe("EmployeesService", () => {
       );
 
       const dto = { employeeId: "emp-uuid-1" };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await service.checkIn(ORG_ID, dto as any);
 
       expect(attendanceService.checkIn).toHaveBeenCalledWith(ORG_ID, dto);
@@ -412,7 +400,6 @@ describe("EmployeesService", () => {
       );
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.checkIn(ORG_ID, { employeeId: "emp-uuid-1" } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -466,7 +453,6 @@ describe("EmployeesService", () => {
     });
 
     it("should throw ConflictException when user already linked to another employee", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const otherEmployee = { ...mockEmployee, id: "emp-uuid-other" } as any;
       employeeRepo.findOne
         .mockResolvedValueOnce(mockEmployee) // findEmployee

@@ -17,7 +17,7 @@ describe("AiService", () => {
     status: 200,
     statusText: "OK",
     headers: {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     config: {} as any,
   });
 
@@ -25,7 +25,6 @@ describe("AiService", () => {
     httpService = {
       post: jest.fn(),
       get: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     configService = {
@@ -41,7 +40,6 @@ describe("AiService", () => {
             return "";
         }
       }),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -514,7 +512,6 @@ describe("AiService", () => {
     beforeEach(async () => {
       const noKeyConfig = {
         get: jest.fn(() => ""),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
       const module = await Test.createTestingModule({
@@ -568,7 +565,6 @@ describe("AiService", () => {
           if (key === "AI_PROVIDER") return "anthropic";
           return "";
         }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
       const module = await Test.createTestingModule({

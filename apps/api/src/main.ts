@@ -92,7 +92,12 @@ async function bootstrap() {
   const bootstrapLogger = {
     log: (message: string) => {
       // Suppress verbose route-mapping logs
-      if (typeof message === "string" && (message.includes("RouterExplorer") || message.includes("RoutesResolver"))) return;
+      if (
+        typeof message === "string" &&
+        (message.includes("RouterExplorer") ||
+          message.includes("RoutesResolver"))
+      )
+        return;
       console.log(`[Bootstrap] ${message}`);
     },
     error: (message: string, trace?: string) => {
@@ -104,11 +109,21 @@ async function bootstrap() {
     warn: (message: string) => {
       // Suppress NestJS 11 path-to-regexp LegacyRouteConverter warnings
       // See: https://github.com/nestjs/nest/issues/14530
-      if (typeof message === "string" && message.includes("Unsupported route path")) return;
+      if (
+        typeof message === "string" &&
+        message.includes("Unsupported route path")
+      )
+        return;
       console.warn(`[Bootstrap] ${message}`);
     },
-    debug: (message: string) => console.debug?.(`[Bootstrap] ${message}`),
-    verbose: (message: string) => console.debug?.(`[Bootstrap] ${message}`),
+    debug: (message: string) => {
+      if (process.env.NODE_ENV === "development")
+        console.log(`[Bootstrap:debug] ${message}`);
+    },
+    verbose: (message: string) => {
+      if (process.env.NODE_ENV === "development")
+        console.log(`[Bootstrap:verbose] ${message}`);
+    },
   };
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -262,7 +277,8 @@ async function bootstrap() {
 
   // Swagger is always available. In production, access is protected
   // by JWT middleware — only users with "owner" role can view docs.
-  const swaggerEnabled = configService.get("SWAGGER_ENABLED", "true") === "true";
+  const swaggerEnabled =
+    configService.get("SWAGGER_ENABLED", "true") === "true";
   if (swaggerEnabled) {
     // ── Apply auth middleware in production ──────────────────
     const isProduction = configService.get("NODE_ENV") === "production";

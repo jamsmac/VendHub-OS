@@ -271,7 +271,6 @@ describe("AuthService", () => {
       passwordPolicyService.validate.mockReturnValue({
         valid: false,
         errors: ["Password too weak"],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
@@ -300,7 +299,7 @@ describe("AuthService", () => {
       userRepository.save.mockResolvedValue(mockUser);
       sessionRepository.create.mockReturnValue(mockSession);
       sessionRepository.save.mockResolvedValue(mockSession);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       sessionRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.login(
@@ -318,7 +317,6 @@ describe("AuthService", () => {
       userRepository.findOne.mockResolvedValue({
         ...mockUser,
         loginAttempts: 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       bcrypt.compare.mockResolvedValue(false);
       userRepository.save.mockResolvedValue(mockUser);
@@ -398,7 +396,6 @@ describe("AuthService", () => {
         hasSms: false,
         hasEmail: false,
         hasBackupCodes: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.login(
@@ -431,7 +428,6 @@ describe("AuthService", () => {
 
   describe("logout", () => {
     it("should logout successfully and blacklist token", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.logout("session-uuid-1", "jti-123");
@@ -448,7 +444,6 @@ describe("AuthService", () => {
     });
 
     it("should logout without blacklisting when no jti provided", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.logout("session-uuid-1");
@@ -466,9 +461,9 @@ describe("AuthService", () => {
     it("should set up TOTP and return secret, QR code, and backup codes", async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       twoFactorRepository.findOne.mockResolvedValue(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       twoFactorRepository.create.mockImplementation((data) => data as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       twoFactorRepository.save.mockResolvedValue({} as any);
 
       const result = await service.setupTotp("user-uuid-1");
@@ -494,7 +489,6 @@ describe("AuthService", () => {
 
   describe("logoutAll", () => {
     it("should revoke all sessions for user", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.logoutAll("user-uuid-1");

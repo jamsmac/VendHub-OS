@@ -5,8 +5,6 @@
  * Tests CRUD operations, sync, audit logging, hierarchy, and inline create.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";

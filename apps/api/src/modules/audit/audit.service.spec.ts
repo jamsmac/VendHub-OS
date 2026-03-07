@@ -472,7 +472,6 @@ describe("AuditService", () => {
 
   describe("updateSessionActivity", () => {
     it("should update session last activity", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionRepo.update.mockResolvedValue({ affected: 1 } as any);
 
       await service.updateSessionActivity("session-uuid-1");
@@ -558,7 +557,6 @@ describe("AuditService", () => {
 
   describe("cleanupExpiredLogs", () => {
     it("should delete expired audit logs", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auditLogRepo.softDelete.mockResolvedValue({ affected: 5 } as any);
 
       const result = await service.cleanupExpiredLogs();
@@ -568,7 +566,6 @@ describe("AuditService", () => {
     });
 
     it("should return 0 when no logs expired", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auditLogRepo.softDelete.mockResolvedValue({ affected: 0 } as any);
 
       const result = await service.cleanupExpiredLogs();
@@ -579,7 +576,6 @@ describe("AuditService", () => {
 
   describe("cleanupExpiredSnapshots", () => {
     it("should delete expired snapshots", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       snapshotRepo.softDelete.mockResolvedValue({ affected: 3 } as any);
 
       const result = await service.cleanupExpiredSnapshots();

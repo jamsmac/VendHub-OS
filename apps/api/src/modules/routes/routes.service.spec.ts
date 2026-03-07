@@ -306,7 +306,7 @@ describe("RoutesService", () => {
   describe("remove", () => {
     it("should soft delete route when found", async () => {
       routeRepository.findOne.mockResolvedValue(mockRoute);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       routeRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("route-uuid-1");
@@ -654,7 +654,7 @@ describe("RoutesService", () => {
   describe("removeStop", () => {
     it("should soft delete stop when found", async () => {
       routeStopRepository.findOne.mockResolvedValue(mockRouteStop);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       routeStopRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.removeStop("stop-uuid-1");

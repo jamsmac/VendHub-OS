@@ -257,7 +257,6 @@ describe("MachinesService", () => {
       machineRepository.save.mockResolvedValue({
         ...mockMachine,
         name: "VM-002",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.update("machine-uuid-1", { name: "VM-002" });
@@ -280,7 +279,6 @@ describe("MachinesService", () => {
       machineRepository.save.mockResolvedValue({
         ...mockMachine,
         status: MachineStatus.MAINTENANCE,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await service.updateStatus(
@@ -295,7 +293,7 @@ describe("MachinesService", () => {
   describe("remove", () => {
     it("should soft delete machine when found", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       machineRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("machine-uuid-1");
@@ -330,7 +328,6 @@ describe("MachinesService", () => {
         productId: "product-uuid-1",
         capacity: 20,
         price: 5000,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockSlot);
@@ -346,7 +343,6 @@ describe("MachinesService", () => {
           productId: "product-uuid-1",
           capacity: 20,
           price: 5000,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -354,16 +350,14 @@ describe("MachinesService", () => {
 
   describe("refillSlot", () => {
     it("should refill slot successfully", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const refilledSlot = { ...mockSlot, currentQuantity: 15 } as any;
       slotRepository.findOne.mockResolvedValue(mockSlot);
       slotRepository.save.mockResolvedValue(refilledSlot);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       machineRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.refillSlot("slot-uuid-1", {
         quantity: 5,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result.currentQuantity).toBe(15);
@@ -373,7 +367,6 @@ describe("MachinesService", () => {
       slotRepository.findOne.mockResolvedValue(mockSlot);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.refillSlot("slot-uuid-1", { quantity: 15 } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -388,7 +381,6 @@ describe("MachinesService", () => {
       maintenanceRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.completeMaintenance("non-existent", {} as any, "user-uuid-1"),
       ).rejects.toThrow(NotFoundException);
     });
@@ -397,11 +389,9 @@ describe("MachinesService", () => {
       maintenanceRepository.findOne.mockResolvedValue({
         id: "maint-uuid-1",
         status: MaintenanceStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.completeMaintenance("maint-uuid-1", {} as any, "user-uuid-1"),
       ).rejects.toThrow(BadRequestException);
     });

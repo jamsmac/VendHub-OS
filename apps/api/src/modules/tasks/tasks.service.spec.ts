@@ -227,7 +227,6 @@ describe("TasksService", () => {
         machineId: "machine-uuid-1",
         typeCode: "refill",
         description: "Refill VM-001",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockTask);
@@ -301,7 +300,6 @@ describe("TasksService", () => {
 
   describe("assignTask", () => {
     it("should assign a pending task to an operator", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingTask = { ...mockTask, status: TaskStatus.PENDING } as any;
       taskRepository.findOne.mockResolvedValue(pendingTask);
       taskRepository.save.mockResolvedValue({
@@ -320,7 +318,6 @@ describe("TasksService", () => {
       const completedTask = {
         ...mockTask,
         status: TaskStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(completedTask);
 
@@ -332,11 +329,9 @@ describe("TasksService", () => {
 
   describe("startTask", () => {
     it("should start an assigned task", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const assignedTask = { ...mockTask, status: TaskStatus.ASSIGNED } as any;
       taskRepository.findOne.mockResolvedValue(assignedTask);
       taskRepository.save.mockImplementation((task) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
@@ -355,11 +350,9 @@ describe("TasksService", () => {
         status: TaskStatus.IN_PROGRESS,
         startedAt,
         requiresPhotoAfter: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(inProgressTask);
       taskRepository.save.mockImplementation((task) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
@@ -378,7 +371,6 @@ describe("TasksService", () => {
         status: TaskStatus.IN_PROGRESS,
         requiresPhotoAfter: true,
         photoAfterUrl: null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
       taskRepository.findOne.mockResolvedValue(inProgressTask);
 
@@ -390,11 +382,9 @@ describe("TasksService", () => {
 
   describe("cancelTask", () => {
     it("should cancel a pending task", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pendingTask = { ...mockTask, status: TaskStatus.PENDING } as any;
       taskRepository.findOne.mockResolvedValue(pendingTask);
       taskRepository.save.mockImplementation((task) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Promise.resolve(task as any),
       );
 
@@ -447,7 +437,6 @@ describe("TasksService", () => {
 
       const result = await service.addComment("task-uuid-1", "user-uuid-1", {
         comment: "Test comment",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(result).toEqual(mockComment);
@@ -466,7 +455,6 @@ describe("TasksService", () => {
       await expect(
         service.addComment("non-existent", "user-uuid-1", {
           comment: "Test",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -479,7 +467,7 @@ describe("TasksService", () => {
   describe("remove", () => {
     it("should soft delete task when found", async () => {
       taskRepository.findOne.mockResolvedValue(mockTask);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       taskRepository.softDelete.mockResolvedValue(undefined as any);
 
       await service.remove("task-uuid-1");

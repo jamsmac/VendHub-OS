@@ -538,7 +538,7 @@ describe("NotificationsService", () => {
 
     it("should create new settings when none exist", async () => {
       settingsRepo.findOne!.mockResolvedValue(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       settingsRepo.create!.mockImplementation((d) => d as any);
       settingsRepo.save!.mockImplementation((s) => Promise.resolve(s));
 
@@ -587,7 +587,6 @@ describe("NotificationsService", () => {
         isSystem: false,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.createTemplate(data as any);
 
       expect(templateRepo.create).toHaveBeenCalledWith(

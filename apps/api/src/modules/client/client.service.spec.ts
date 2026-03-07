@@ -112,7 +112,6 @@ describe("ClientService", () => {
   };
 
   const mockDataSource = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transaction: jest.fn((cb: any) => cb(mockManager)),
   };
 
@@ -132,7 +131,7 @@ describe("ClientService", () => {
     mockManager.save.mockReset();
     mockManager.findOne.mockReset();
     mockManager.update.mockReset();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     mockDataSource.transaction.mockImplementation((cb: any) => cb(mockManager));
 
     const module: TestingModule = await Test.createTestingModule({
@@ -250,7 +249,6 @@ describe("ClientService", () => {
       mockManager.create.mockReturnValue(mockClient);
       mockManager.save.mockResolvedValue(mockClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createClient(dto as any);
 
       expect(result).toEqual(mockClient);
@@ -264,7 +262,6 @@ describe("ClientService", () => {
       await expect(
         service.createClient({
           telegramId: "123456789",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -278,7 +275,6 @@ describe("ClientService", () => {
         service.createClient({
           telegramId: "999",
           phone: "+998901234567",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -294,7 +290,6 @@ describe("ClientService", () => {
           telegramId: "999",
           phone: "+998999999999",
           email: "client@test.com",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -352,7 +347,6 @@ describe("ClientService", () => {
       clientUserRepo.findOne.mockResolvedValue(mockClient);
       clientUserRepo.save.mockResolvedValue(updated as ClientUser);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateClient(clientId, dto as any);
 
       expect(result.firstName).toEqual("Jane");
@@ -367,7 +361,6 @@ describe("ClientService", () => {
       await expect(
         service.updateClient(clientId, {
           telegramId: "taken-id",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -377,7 +370,6 @@ describe("ClientService", () => {
     it("should return paginated clients", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockClient], 1]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getClients({} as any);
 
       expect(result).toEqual({
@@ -391,7 +383,6 @@ describe("ClientService", () => {
     it("should apply search filter", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.getClients({ search: "john" } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -431,7 +422,6 @@ describe("ClientService", () => {
       mockManager.save.mockResolvedValue(mockWallet);
       mockManager.create.mockReturnValue(mockLedgerEntry);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.topUpWallet(clientId, dto as any);
 
       expect(mockManager.save).toHaveBeenCalled();
@@ -442,7 +432,6 @@ describe("ClientService", () => {
       mockManager.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.topUpWallet("non-existent", { amount: 10000 } as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -452,7 +441,6 @@ describe("ClientService", () => {
       mockManager.findOne.mockResolvedValue(inactiveWallet);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.topUpWallet(clientId, { amount: 10000 } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -466,7 +454,6 @@ describe("ClientService", () => {
       mockManager.save.mockResolvedValue(mockWallet);
       mockManager.create.mockReturnValue(mockLedgerEntry);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.adjustWallet(clientId, dto as any, "admin-uuid");
 
       expect(mockManager.save).toHaveBeenCalled();
@@ -478,7 +465,6 @@ describe("ClientService", () => {
       mockManager.findOne.mockResolvedValue(mockWallet);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.adjustWallet(clientId, dto as any, "admin-uuid"),
       ).rejects.toThrow(BadRequestException);
     });

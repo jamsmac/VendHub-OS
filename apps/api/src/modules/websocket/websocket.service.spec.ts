@@ -43,7 +43,6 @@ describe("WebSocketService", () => {
 
   describe("setServer / getServer", () => {
     it("should set and return the server instance", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const newServer = { emit: jest.fn() } as any;
       service.setServer(newServer);
       expect(service.getServer()).toBe(newServer);
@@ -104,11 +103,10 @@ describe("WebSocketService", () => {
 
   describe("getConnectedClientsCount", () => {
     it("should return correct count with multiple clients", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.addClient({ id: "c1" } as any, { userId: "u1" });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       service.addClient({ id: "c2" } as any, { userId: "u2" });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       service.addClient({ id: "c3" } as any, { userId: "u3" });
 
       expect(service.getConnectedClientsCount()).toBe(3);
@@ -169,7 +167,6 @@ describe("WebSocketService", () => {
     });
 
     it("should not throw when server is not set", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service.setServer(undefined as any);
       expect(() => service.emitToAll("event", {})).not.toThrow();
     });

@@ -100,7 +100,6 @@ describe("LoyaltyService", () => {
   };
 
   const mockDataSource = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transaction: jest.fn().mockImplementation((cb: any) => cb(mockManager)),
   };
 
@@ -354,11 +353,11 @@ describe("LoyaltyService", () => {
   describe("earnPoints", () => {
     it("should earn points and apply bonus multiplier for BRONZE (x1)", async () => {
       userRepo.findOne.mockResolvedValue({ ...mockUser } as User);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.earnPoints({
@@ -391,11 +390,11 @@ describe("LoyaltyService", () => {
         pointsBalance: 6000,
       } as User;
       userRepo.findOne.mockResolvedValue(goldUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.earnPoints({
@@ -412,11 +411,11 @@ describe("LoyaltyService", () => {
 
     it("should emit loyalty.points_earned event", async () => {
       userRepo.findOne.mockResolvedValue({ ...mockUser } as User);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       await service.earnPoints({
@@ -443,11 +442,11 @@ describe("LoyaltyService", () => {
         loyaltyLevel: LoyaltyLevel.BRONZE,
       } as User;
       userRepo.findOne.mockResolvedValue(nearLevelUpUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.earnPoints({
@@ -533,7 +532,7 @@ describe("LoyaltyService", () => {
         }),
         update: jest.fn().mockResolvedValue(undefined),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockManager.getRepository.mockImplementation((entity: any) => {
         if (entity === User) return mockUserRepoInTx;
         return mockTxRepo;
@@ -567,7 +566,7 @@ describe("LoyaltyService", () => {
         }),
         update: jest.fn(),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockManager.getRepository.mockImplementation((entity: any) => {
         if (entity === User) return mockUserRepoInTx;
         return mockTxRepo;
@@ -596,7 +595,7 @@ describe("LoyaltyService", () => {
         }),
         update: jest.fn(),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockManager.getRepository.mockImplementation((entity: any) => {
         if (entity === User) return mockUserRepoInTx;
         return mockTxRepo;
@@ -634,7 +633,7 @@ describe("LoyaltyService", () => {
         }),
         update: jest.fn().mockResolvedValue(undefined),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockManager.getRepository.mockImplementation((entity: any) => {
         if (entity === User) return mockUserRepoInTx;
         return mockTxRepo;
@@ -668,7 +667,7 @@ describe("LoyaltyService", () => {
         findOne: jest.fn().mockResolvedValue(null),
         update: jest.fn(),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockManager.getRepository.mockImplementation((entity: any) => {
         if (entity === User) return mockUserRepoInTx;
         return mockTxRepo;
@@ -694,11 +693,11 @@ describe("LoyaltyService", () => {
         ...mockUser,
         pointsBalance: 500,
       } as User);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.adjustPoints(
@@ -726,11 +725,11 @@ describe("LoyaltyService", () => {
         ...mockUser,
         pointsBalance: 500,
       } as User);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.adjustPoints(
@@ -794,11 +793,11 @@ describe("LoyaltyService", () => {
       userRepo.findOne
         .mockResolvedValueOnce(newUser)
         .mockResolvedValueOnce(newUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
 
       const result = await service.processWelcomeBonus("user-uuid-1", orgId);
@@ -845,11 +844,11 @@ describe("LoyaltyService", () => {
       userRepo.findOne
         .mockResolvedValueOnce(newOrderUser) // processFirstOrderBonus check
         .mockResolvedValueOnce(newOrderUser); // earnPoints user lookup
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
 
       const result = await service.processFirstOrderBonus(
@@ -913,11 +912,11 @@ describe("LoyaltyService", () => {
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
 
       // Order of 10000 UZS -> 10000/100 = 100 base points, BRONZE x1 = 100
@@ -964,11 +963,11 @@ describe("LoyaltyService", () => {
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
 
       // minOrderAmount = 5000, order is 3000 -> 0 points
@@ -995,11 +994,11 @@ describe("LoyaltyService", () => {
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser)
         .mockResolvedValueOnce(orderUser);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       userRepo.update.mockResolvedValue(undefined as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
 
       // Huge order: 500000 / 100 = 5000 base points, but max is 1000

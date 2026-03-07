@@ -202,7 +202,6 @@ describe("GeoService", () => {
 
   describe("geocodeAddress", () => {
     it("should geocode an address successfully", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockGeocodingResponse) as any);
 
       const result = await service.geocodeAddress("Tashkent, Uzbekistan");
@@ -244,7 +243,6 @@ describe("GeoService", () => {
 
     it("should return null when no results found", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         of({ data: { status: "ZERO_RESULTS", results: [] } }) as any,
       );
 
@@ -255,7 +253,6 @@ describe("GeoService", () => {
 
     it("should return null on API error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("API Error")) as any,
       );
 
@@ -267,7 +264,6 @@ describe("GeoService", () => {
 
   describe("reverseGeocode", () => {
     it("should reverse geocode coordinates", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockGeocodingResponse) as any);
 
       const result = await service.reverseGeocode(tashkentCoords);
@@ -303,7 +299,6 @@ describe("GeoService", () => {
 
     it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("Network error")) as any,
       );
 
@@ -345,7 +340,6 @@ describe("GeoService", () => {
 
       const calls = mockQueryBuilder.andWhere.mock.calls;
       const onlineFilterCalls = calls.filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (c: any[]) => c[0] === "m.isOnline = :isOnline",
       );
       expect(onlineFilterCalls).toHaveLength(0);
@@ -396,7 +390,6 @@ describe("GeoService", () => {
 
   describe("getDirections", () => {
     it("should return directions between two points", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDirectionsResponse) as any);
 
       const result = await service.getDirections(
@@ -414,7 +407,6 @@ describe("GeoService", () => {
     });
 
     it("should strip HTML tags from step instructions", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDirectionsResponse) as any);
 
       const result = await service.getDirections(
@@ -428,7 +420,6 @@ describe("GeoService", () => {
 
     it("should return null when no routes found", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         of({ data: { status: "ZERO_RESULTS", routes: [] } }) as any,
       );
 
@@ -442,7 +433,6 @@ describe("GeoService", () => {
 
     it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("Directions API error")) as any,
       );
 
@@ -457,7 +447,6 @@ describe("GeoService", () => {
 
   describe("getDistanceMatrix", () => {
     it("should return distance matrix for multiple destinations", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockDistanceMatrixResponse) as any);
 
       const result = await service.getDistanceMatrix(tashkentCoords, [
@@ -479,7 +468,6 @@ describe("GeoService", () => {
 
     it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("Matrix API error")) as any,
       );
 
@@ -497,7 +485,6 @@ describe("GeoService", () => {
 
   describe("autocompleteAddress", () => {
     it("should return autocomplete suggestions", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockAutocompleteResponse) as any);
 
       const result = await service.autocompleteAddress("Tashkent");
@@ -516,7 +503,6 @@ describe("GeoService", () => {
 
     it("should return empty array on error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("Autocomplete error")) as any,
       );
 
@@ -528,7 +514,6 @@ describe("GeoService", () => {
 
   describe("getPlaceDetails", () => {
     it("should return place details", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       httpService.get.mockReturnValue(of(mockPlaceDetailsResponse) as any);
 
       const result = await service.getPlaceDetails("place-1");
@@ -540,7 +525,6 @@ describe("GeoService", () => {
 
     it("should return null on error", async () => {
       httpService.get.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         throwError(() => new Error("Details error")) as any,
       );
 

@@ -143,7 +143,6 @@ describe("ContractorsService", () => {
       contractorRepo.create.mockReturnValue(mockContractor);
       contractorRepo.save.mockResolvedValue(mockContractor);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createContractor(orgId, dto as any);
 
       expect(result).toEqual(
@@ -170,7 +169,6 @@ describe("ContractorsService", () => {
       contractorRepo.create.mockReturnValue(mockContractor);
       contractorRepo.save.mockResolvedValue(mockContractor);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.createContractor(orgId, dto as any);
 
       expect(contractorRepo.create).toHaveBeenCalledWith(
@@ -195,7 +193,7 @@ describe("ContractorsService", () => {
       const result = await service.updateContractor(
         contractorId,
         orgId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         dto as any,
       );
 
@@ -206,7 +204,6 @@ describe("ContractorsService", () => {
       contractorRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateContractor("non-existent", orgId, {} as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -272,7 +269,6 @@ describe("ContractorsService", () => {
     it("should return paginated contractors", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockContractor], 1]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getContractors(orgId, {} as any);
 
       expect(result.total).toEqual(1);
@@ -285,7 +281,6 @@ describe("ContractorsService", () => {
 
       await service.getContractors(orgId, {
         serviceType: ServiceType.REPAIR,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -297,7 +292,6 @@ describe("ContractorsService", () => {
     it("should apply search filter", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await service.getContractors(orgId, { search: "tech" } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -350,7 +344,7 @@ describe("ContractorsService", () => {
       const result = await service.createInvoice(
         contractorId,
         orgId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         dto as any,
       );
 
@@ -372,7 +366,6 @@ describe("ContractorsService", () => {
           amount: 1000,
           issueDate: "2024-01-01",
           dueDate: "2024-02-01",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(ConflictException);
     });
@@ -387,7 +380,7 @@ describe("ContractorsService", () => {
       const result = await service.updateInvoice(
         invoiceId,
         orgId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         { description: "Updated" } as any,
       );
 
@@ -402,7 +395,6 @@ describe("ContractorsService", () => {
       invoiceRepo.findOne.mockResolvedValue(paidInvoice as ContractorInvoice);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateInvoice(invoiceId, orgId, {} as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -462,7 +454,7 @@ describe("ContractorsService", () => {
       const result = await service.recordInvoicePayment(
         invoiceId,
         orgId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         { amount: 1000000 } as any,
       );
 
@@ -484,7 +476,7 @@ describe("ContractorsService", () => {
         service.recordInvoicePayment(
           invoiceId,
           orgId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           { amount: 1000 } as any,
         ),
       ).rejects.toThrow(BadRequestException);

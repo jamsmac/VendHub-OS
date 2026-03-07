@@ -148,7 +148,6 @@ describe("AlertsService", () => {
       ruleRepository.create.mockReturnValue(mockRule);
       ruleRepository.save.mockResolvedValue(mockRule);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createRule(orgId, userId, dto as any);
 
       expect(result).toEqual(mockRule);
@@ -173,7 +172,6 @@ describe("AlertsService", () => {
       };
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.createRule(orgId, userId, dto as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -191,7 +189,6 @@ describe("AlertsService", () => {
       ruleRepository.create.mockReturnValue(mockRule);
       ruleRepository.save.mockResolvedValue(mockRule);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.createRule(orgId, userId, dto as any);
 
       expect(result).toEqual(mockRule);
@@ -202,7 +199,6 @@ describe("AlertsService", () => {
     it("should return paginated alert rules", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockRule], 1]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.findAllRules(orgId, {} as any);
 
       expect(result).toEqual({
@@ -219,7 +215,6 @@ describe("AlertsService", () => {
 
       await service.findAllRules(orgId, {
         metric: AlertMetric.TEMPERATURE,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -233,7 +228,6 @@ describe("AlertsService", () => {
 
       await service.findAllRules(orgId, {
         severity: AlertSeverity.CRITICAL,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -247,7 +241,6 @@ describe("AlertsService", () => {
 
       await service.findAllRules(orgId, {
         search: "stock",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
@@ -286,7 +279,6 @@ describe("AlertsService", () => {
       ruleRepository.findOne.mockResolvedValue(mockRule);
       ruleRepository.save.mockResolvedValue(updatedRule as AlertRule);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.updateRule(orgId, ruleId, dto as any);
 
       expect(result).toEqual(updatedRule);
@@ -299,7 +291,6 @@ describe("AlertsService", () => {
       ruleRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.updateRule(orgId, "non-existent", {} as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -311,7 +302,6 @@ describe("AlertsService", () => {
       await expect(
         service.updateRule(orgId, ruleId, {
           condition: AlertCondition.BETWEEN,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -320,7 +310,7 @@ describe("AlertsService", () => {
   describe("deleteRule", () => {
     it("should soft delete a rule", async () => {
       ruleRepository.findOne.mockResolvedValue(mockRule);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       ruleRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
 
       await service.deleteRule(orgId, ruleId);
@@ -412,7 +402,7 @@ describe("AlertsService", () => {
         orgId,
         alertId,
         userId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         {} as any,
       );
 
@@ -433,7 +423,6 @@ describe("AlertsService", () => {
       );
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.acknowledgeAlert(orgId, alertId, userId, {} as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -442,7 +431,6 @@ describe("AlertsService", () => {
       historyRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.acknowledgeAlert(orgId, "non-existent", userId, {} as any),
       ).rejects.toThrow(NotFoundException);
     });
@@ -462,7 +450,7 @@ describe("AlertsService", () => {
         orgId,
         alertId,
         userId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         {} as any,
       );
 
@@ -493,7 +481,7 @@ describe("AlertsService", () => {
         orgId,
         alertId,
         userId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         {} as any,
       );
 
@@ -508,7 +496,6 @@ describe("AlertsService", () => {
       historyRepository.findOne.mockResolvedValue(dismissed as AlertHistory);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.resolveAlert(orgId, alertId, userId, {} as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -528,7 +515,7 @@ describe("AlertsService", () => {
         orgId,
         alertId,
         userId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         { reason: "False positive" } as any,
       );
 
@@ -547,7 +534,6 @@ describe("AlertsService", () => {
       historyRepository.findOne.mockResolvedValue(resolved as AlertHistory);
 
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service.dismissAlert(orgId, alertId, userId, {} as any),
       ).rejects.toThrow(BadRequestException);
     });
@@ -561,7 +547,6 @@ describe("AlertsService", () => {
     it("should return paginated alert history", async () => {
       mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockAlert], 1]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await service.getAlertHistory(orgId, {} as any);
 
       expect(result).toEqual({
@@ -577,7 +562,6 @@ describe("AlertsService", () => {
 
       await service.getAlertHistory(orgId, {
         status: AlertHistoryStatus.ACTIVE,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
