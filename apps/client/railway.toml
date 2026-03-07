@@ -1,4 +1,5 @@
 [build]
+builder = "nixpacks"
 buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @vendhub/shared build && pnpm --filter @vendhub/client build"
 
 [deploy]
