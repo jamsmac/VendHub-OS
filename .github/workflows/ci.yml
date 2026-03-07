@@ -88,6 +88,16 @@ jobs:
         env:
           CI: true
 
+      - name: Run web unit tests
+        run: pnpm --filter web test -- --runInBand --forceExit
+        env:
+          CI: true
+
+      - name: Run client unit tests
+        run: pnpm --filter client test
+        env:
+          CI: true
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
         if: always()
@@ -340,8 +350,29 @@ jobs:
           NODE_ENV: test
           PORT: "4000"
 
-      - name: Wait for API to be ready
+      - name: Start web server
         run: |
+          nohup pnpm --filter web start > /tmp/web.log 2>&1 &
+          echo $! > /tmp/web.pid
+          echo "Web server started with PID $(cat /tmp/web.pid)"
+        env:
+          HOSTNAME: "0.0.0.0"
+          PORT: "3000"
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NODE_ENV: test
+
+      - name: Start client server
+        run: |
+          nohup pnpm --filter client preview -- --host 0.0.0.0 --port 5173 > /tmp/client.log 2>&1 &
+          echo $! > /tmp/client.pid
+          echo "Client server started with PID $(cat /tmp/client.pid)"
+        env:
+          VITE_API_URL: http://localhost:4000
+          NODE_ENV: test
+
+      - name: Wait for all servers to be ready
+        run: |
+          echo "Waiting for API..."
           timeout 60 bash -c 'until curl -s http://localhost:4000/api/v1/health > /dev/null 2>&1; do
             if ! kill -0 $(cat /tmp/api.pid) 2>/dev/null; then
               echo "API process died! Logs:"
@@ -351,6 +382,28 @@ jobs:
             sleep 2
           done'
           echo "API is healthy"
+
+          echo "Waiting for Web..."
+          timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null 2>&1; do
+            if ! kill -0 $(cat /tmp/web.pid) 2>/dev/null; then
+              echo "Web process died! Logs:"
+              cat /tmp/web.log
+              exit 1
+            fi
+            sleep 2
+          done'
+          echo "Web is healthy"
+
+          echo "Waiting for Client..."
+          timeout 60 bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do
+            if ! kill -0 $(cat /tmp/client.pid) 2>/dev/null; then
+              echo "Client process died! Logs:"
+              cat /tmp/client.log
+              exit 1
+            fi
+            sleep 2
+          done'
+          echo "Client is healthy"
 
       - name: Run E2E tests
         run: pnpm test:e2e

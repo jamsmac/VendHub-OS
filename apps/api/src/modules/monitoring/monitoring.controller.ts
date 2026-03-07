@@ -6,7 +6,7 @@
  * SECURITY:
  * - Metrics endpoints are @Public() (bypass JWT) but protected by METRICS_API_KEY.
  * - Prometheus sends the key via Authorization: Bearer <key> header.
- * - If METRICS_API_KEY is not set, metrics are open (dev mode only).
+ * - If METRICS_API_KEY is not set, metrics endpoints fail closed with 403.
  * - K8s liveness/readiness probes should use the HealthModule endpoints instead.
  */
 
@@ -39,7 +39,11 @@ class MetricsKeyGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const metricsKey = this.configService.get<string>("METRICS_API_KEY");
-    if (!metricsKey) return true; // No key configured = open (dev mode)
+    if (!metricsKey) {
+      throw new ForbiddenException(
+        "METRICS_API_KEY not configured - metrics endpoint disabled",
+      );
+    }
 
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;

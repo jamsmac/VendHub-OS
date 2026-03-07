@@ -20,6 +20,7 @@ import {
 import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
 import { InitiateRefundDto } from "./dto/refund.dto";
 import { QueryTransactionsDto } from "./dto/refund.dto";
+import { Machine } from "../machines/entities/machine.entity";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 
@@ -27,6 +28,7 @@ describe("PaymentsService", () => {
   let service: PaymentsService;
   let transactionRepo: jest.Mocked<Repository<PaymentTransaction>>;
   let refundRepo: jest.Mocked<Repository<PaymentRefund>>;
+  let machineRepo: jest.Mocked<Repository<Machine>>;
   let configService: jest.Mocked<ConfigService>;
 
   const mockTransaction = {
@@ -119,6 +121,12 @@ describe("PaymentsService", () => {
           },
         },
         {
+          provide: getRepositoryToken(Machine),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
           provide: DataSource,
           useValue: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,6 +149,7 @@ describe("PaymentsService", () => {
     service = module.get<PaymentsService>(PaymentsService);
     transactionRepo = module.get(getRepositoryToken(PaymentTransaction));
     refundRepo = module.get(getRepositoryToken(PaymentRefund));
+    machineRepo = module.get(getRepositoryToken(Machine));
     configService = module.get(ConfigService) as jest.Mocked<ConfigService>;
   });
 
@@ -277,6 +286,61 @@ describe("PaymentsService", () => {
       await expect(
         service.createClickTransaction(30000, "order-002", ORG_ID),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ============================================================================
+  // GENERATE QR PAYMENT
+  // ============================================================================
+
+  describe("generateQRPayment", () => {
+    it("should throw NotFoundException when machine does not belong to organization", async () => {
+      machineRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.generateQRPayment(5000, "machine-001", ORG_ID),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(machineRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "machine-001", organizationId: ORG_ID },
+      });
+      expect(transactionRepo.create).not.toHaveBeenCalled();
+    });
+
+    it("should save a QR transaction when machine belongs to organization", async () => {
+      machineRepo.findOne.mockResolvedValue({
+        id: "machine-001",
+        organizationId: ORG_ID,
+      } as Machine);
+      transactionRepo.create.mockReturnValue(mockPendingTransaction);
+      transactionRepo.save.mockResolvedValue(mockPendingTransaction);
+      configService.get.mockReturnValue(undefined);
+
+      const result = await service.generateQRPayment(
+        5000,
+        "machine-001",
+        ORG_ID,
+      );
+
+      expect(transactionRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: ORG_ID,
+          provider: PaymentProvider.CASH,
+          amount: 5000,
+          status: PaymentTransactionStatus.PENDING,
+          machineId: "machine-001",
+          metadata: expect.objectContaining({ type: "qr_payment" }),
+        }),
+      );
+      expect(transactionRepo.save).toHaveBeenCalledWith(mockPendingTransaction);
+      expect(result).toEqual(
+        expect.objectContaining({
+          amount: 5000,
+          machineId: "machine-001",
+          paymentId: expect.any(String),
+          qrCode: expect.any(String),
+        }),
+      );
     });
   });
 

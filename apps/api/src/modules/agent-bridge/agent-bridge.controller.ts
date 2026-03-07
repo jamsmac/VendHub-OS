@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { Roles, UserRole } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import { AgentBridgeService } from "./agent-bridge.service";
@@ -26,6 +28,7 @@ import {
   ReportProgressDto,
 } from "./dto/agent-bridge.dto";
 import { AgentSessionStatus } from "./entities/agent-session.entity";
+import { AgentApiKeyGuard } from "./guards/agent-api-key.guard";
 
 @ApiTags("Agent Bridge")
 @Controller("agent-bridge")
@@ -38,6 +41,8 @@ export class AgentBridgeController {
 
   @Post("sessions")
   @Public()
+  @UseGuards(AgentApiKeyGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register or re-register an agent session" })
   async registerSession(@Body() dto: RegisterSessionDto) {
@@ -46,6 +51,8 @@ export class AgentBridgeController {
 
   @Patch("sessions/:sessionId")
   @Public()
+  @UseGuards(AgentApiKeyGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: "Update session state (agent reports)" })
   @ApiParam({ name: "sessionId", description: "External session ID" })
   async updateSession(
@@ -57,6 +64,8 @@ export class AgentBridgeController {
 
   @Post("sessions/:sessionId/complete")
   @Public()
+  @UseGuards(AgentApiKeyGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Mark session as completed" })
   @ApiParam({ name: "sessionId", description: "External session ID" })
@@ -66,6 +75,8 @@ export class AgentBridgeController {
 
   @Post("sessions/:sessionId/heartbeat")
   @Public()
+  @UseGuards(AgentApiKeyGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Heartbeat to keep session active" })
   @ApiParam({ name: "sessionId", description: "External session ID" })
@@ -75,6 +86,8 @@ export class AgentBridgeController {
 
   @Post("progress")
   @Public()
+  @UseGuards(AgentApiKeyGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Report progress from an agent" })
   async reportProgress(@Body() dto: ReportProgressDto) {

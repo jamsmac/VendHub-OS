@@ -143,16 +143,14 @@ export class AgentBridgeService {
   }
 
   async reportProgress(dto: ReportProgressDto): Promise<AgentProgress> {
-    // Auto-create session if not found
-    let session = await this.sessionRepo.findOne({
+    const session = await this.sessionRepo.findOne({
       where: { sessionId: dto.sessionId },
     });
 
     if (!session) {
-      session = await this.registerSession({
-        sessionId: dto.sessionId,
-        name: `Auto-created: ${dto.sessionId}`,
-      });
+      throw new NotFoundException(
+        `Session ${dto.sessionId} not found. Register session first via POST /sessions.`,
+      );
     }
 
     const progress = this.progressRepo.create({

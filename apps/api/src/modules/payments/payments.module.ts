@@ -18,11 +18,12 @@ import { ClickHandler } from "./click.handler";
 import { UzumHandler } from "./uzum.handler";
 import { PaymentTransaction } from "./entities/payment-transaction.entity";
 import { PaymentRefund } from "./entities/payment-refund.entity";
+import { Machine } from "../machines/entities/machine.entity";
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([PaymentTransaction, PaymentRefund]),
+    TypeOrmModule.forFeature([PaymentTransaction, PaymentRefund, Machine]),
   ],
   controllers: [PaymentsController],
   providers: [

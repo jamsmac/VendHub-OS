@@ -28,6 +28,7 @@ import {
 import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
 import { UzumCreateDto } from "./dto/create-payment.dto";
 import { InitiateRefundDto, QueryTransactionsDto } from "./dto/refund.dto";
+import { Machine } from "../machines/entities/machine.entity";
 import { PaymeHandler } from "./payme.handler";
 import { ClickHandler } from "./click.handler";
 import { UzumHandler } from "./uzum.handler";
@@ -90,6 +91,8 @@ export class PaymentsService {
     private transactionRepo: Repository<PaymentTransaction>,
     @InjectRepository(PaymentRefund)
     private refundRepo: Repository<PaymentRefund>,
+    @InjectRepository(Machine)
+    private machineRepo: Repository<Machine>,
     private readonly paymeHandler: PaymeHandler,
     private readonly clickHandler: ClickHandler,
     private readonly uzumHandler: UzumHandler,
@@ -188,7 +191,7 @@ export class PaymentsService {
   async generateQRPayment(
     amount: number,
     machineId: string,
-    organizationId?: string,
+    organizationId: string,
   ): Promise<{
     qrCode: string;
     paymentId: string;
@@ -202,20 +205,26 @@ export class PaymentsService {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
-    // Store payment request in database
-    if (organizationId) {
-      const transaction = this.transactionRepo.create({
-        organizationId: organizationId,
-        provider: PaymentProvider.CASH,
-        amount,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PENDING,
-        orderId: paymentId,
-        machineId: machineId,
-        metadata: { type: "qr_payment", expires_at: expiresAt.toISOString() },
-      });
-      await this.transactionRepo.save(transaction);
+    const machine = await this.machineRepo.findOne({
+      where: { id: machineId, organizationId },
+    });
+    if (!machine) {
+      throw new NotFoundException(
+        `Machine ${machineId} not found in organization`,
+      );
     }
+
+    const transaction = this.transactionRepo.create({
+      organizationId,
+      provider: PaymentProvider.CASH,
+      amount,
+      currency: "UZS",
+      status: PaymentTransactionStatus.PENDING,
+      orderId: paymentId,
+      machineId,
+      metadata: { type: "qr_payment", expires_at: expiresAt.toISOString() },
+    });
+    await this.transactionRepo.save(transaction);
 
     // Build QR data containing deep links to each payment provider
     const qrPayload = {
@@ -302,6 +311,7 @@ export class PaymentsService {
     const existingRefunds = await this.refundRepo.find({
       where: {
         paymentTransactionId: transaction.id,
+        organizationId,
         status: RefundStatus.COMPLETED,
       },
     });
@@ -342,9 +352,12 @@ export class PaymentsService {
   /**
    * Process refund with the payment provider
    */
-  async processRefund(refundId: string): Promise<PaymentRefund> {
+  async processRefund(
+    refundId: string,
+    organizationId: string,
+  ): Promise<PaymentRefund> {
     const refund = await this.refundRepo.findOne({
-      where: { id: refundId },
+      where: { id: refundId, organizationId },
       relations: ["paymentTransaction"],
     });
 
@@ -420,7 +433,10 @@ export class PaymentsService {
 
       // Update transaction status if fully refunded
       const allRefunds = await this.refundRepo.find({
-        where: { paymentTransactionId: transaction.id },
+        where: {
+          paymentTransactionId: transaction.id,
+          organizationId: transaction.organizationId,
+        },
       });
       const totalRefunded = allRefunds
         .filter(

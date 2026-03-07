@@ -15,6 +15,7 @@ import {
   ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { AccessRequestsService } from "./access-requests.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
@@ -39,6 +40,7 @@ export class AccessRequestsController {
 
   @Post()
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({
     summary: "Submit an access request (public, used by Telegram bot)",
   })

@@ -3,25 +3,24 @@
  * Provides shared guards, interceptors, pipes and filters
  */
 
-import { Module, Global, BadRequestException } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Module, Global, BadRequestException } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
 
 // Filters
-import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
 
 // Interceptors
-import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { TransformInterceptor } from "./interceptors/transform.interceptor";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
+import { TimeoutInterceptor } from "./interceptors/timeout.interceptor";
 
 // Services
-import { AppLoggerService } from './services/logger.service';
+import { AppLoggerService } from "./services/logger.service";
 
 // Guards - kept for reference, can be enabled for global guard setup
 // import { RolesGuard } from './guards/roles.guard';
 // import { OrganizationGuard } from './guards/organization.guard';
-// import { ThrottleGuard } from './guards/throttle.guard';
 
 @Global()
 @Module({
@@ -50,7 +49,7 @@ import { AppLoggerService } from './services/logger.service';
           exceptionFactory: (errors) => {
             const messages = errors.map((error) => {
               const constraints = Object.values(error.constraints || {});
-              return constraints.join(', ');
+              return constraints.join(", ");
             });
             return new BadRequestException(messages);
           },
@@ -74,10 +73,6 @@ import { AppLoggerService } from './services/logger.service';
     // Note: Guards should be applied at controller/route level
     // or via JwtAuthGuard from auth module
     // Uncomment below if you want global guards:
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottleGuard,
-    // },
     // {
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,

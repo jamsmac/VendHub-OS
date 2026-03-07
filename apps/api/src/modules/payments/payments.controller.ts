@@ -153,8 +153,15 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Generate QR payment code for vending machine" })
   @ApiResponse({ status: 201, description: "QR code generated" })
-  generateQR(@Body() dto: GenerateQRDto) {
-    return this.paymentsService.generateQRPayment(dto.amount, dto.machineId);
+  generateQR(
+    @Body() dto: GenerateQRDto,
+    @CurrentUser("organizationId") organizationId: string,
+  ) {
+    return this.paymentsService.generateQRPayment(
+      dto.amount,
+      dto.machineId,
+      organizationId,
+    );
   }
 
   // ============================================

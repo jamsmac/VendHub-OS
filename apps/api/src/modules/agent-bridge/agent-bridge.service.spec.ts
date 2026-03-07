@@ -449,7 +449,7 @@ describe("AgentBridgeService", () => {
       );
     });
 
-    it("should auto-create session if not found", async () => {
+    it("should throw NotFoundException if session is not found", async () => {
       const dto = {
         sessionId: "new-session-123",
         taskId: "task-1",
@@ -458,21 +458,14 @@ describe("AgentBridgeService", () => {
         message: "Starting task",
       };
 
-      const newSession = {
-        ...mockSession,
-        sessionId: "new-session-123",
-      };
-
       sessionRepo.findOne.mockResolvedValue(null);
-      sessionRepo.create.mockReturnValue(newSession);
-      sessionRepo.save.mockResolvedValue(newSession);
-      progressRepo.create.mockReturnValue(mockProgress);
-      progressRepo.save.mockResolvedValue(mockProgress);
 
-      await service.reportProgress(dto);
+      await expect(service.reportProgress(dto)).rejects.toThrow(
+        NotFoundException,
+      );
 
-      expect(sessionRepo.create).toHaveBeenCalled();
-      expect(progressRepo.save).toHaveBeenCalled();
+      expect(sessionRepo.create).not.toHaveBeenCalled();
+      expect(progressRepo.save).not.toHaveBeenCalled();
     });
   });
 

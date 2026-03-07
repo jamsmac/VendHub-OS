@@ -5,6 +5,7 @@
 
 import { Entity, Column, Index, ManyToOne, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import { Organization } from "../../organizations/entities/organization.entity";
 import { PaymentTransaction } from "./payment-transaction.entity";
 
 // ============================================================================
@@ -37,11 +38,15 @@ export class PaymentRefund extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;
 
+  @ManyToOne(() => Organization, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "organization_id" })
+  organization: Organization;
+
   @Column({ type: "uuid" })
   paymentTransactionId: string;
 
   @ManyToOne(() => PaymentTransaction, (tx) => tx.refunds, {
-    onDelete: "SET NULL",
+    onDelete: "CASCADE",
   })
   @JoinColumn({ name: "payment_transaction_id" })
   paymentTransaction: PaymentTransaction;
