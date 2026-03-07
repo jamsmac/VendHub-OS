@@ -244,9 +244,11 @@ export class TripsService {
     });
   }
 
-  async getTripById(id: string): Promise<Trip> {
+  async getTripById(id: string, organizationId?: string): Promise<Trip> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
     const trip = await this.tripRepository.findOne({
-      where: { id },
+      where,
       relations: ["vehicle", "taskLinks", "stops", "anomalies"],
     });
     if (!trip) throw new NotFoundException(`Trip ${id} not found`);

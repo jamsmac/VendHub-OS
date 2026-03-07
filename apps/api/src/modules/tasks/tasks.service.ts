@@ -268,8 +268,8 @@ export class TasksService {
   /**
    * Find task by ID or throw NotFoundException
    */
-  async findByIdOrFail(id: string): Promise<Task> {
-    const task = await this.findById(id);
+  async findByIdOrFail(id: string, organizationId?: string): Promise<Task> {
+    const task = await this.findById(id, organizationId);
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
@@ -279,8 +279,12 @@ export class TasksService {
   /**
    * Update task
    */
-  async update(id: string, data: Partial<Task>): Promise<Task> {
-    const task = await this.findByIdOrFail(id);
+  async update(
+    id: string,
+    data: Partial<Task>,
+    organizationId?: string,
+  ): Promise<Task> {
+    const task = await this.findByIdOrFail(id, organizationId);
 
     // If status is being changed, validate the transition
     if (data.status && data.status !== task.status) {
@@ -294,8 +298,8 @@ export class TasksService {
   /**
    * Soft delete a task
    */
-  async remove(id: string): Promise<void> {
-    const task = await this.findByIdOrFail(id);
+  async remove(id: string, organizationId?: string): Promise<void> {
+    const task = await this.findByIdOrFail(id, organizationId);
     await this.taskRepository.softDelete(task.id);
   }
 

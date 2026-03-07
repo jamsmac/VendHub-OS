@@ -216,8 +216,13 @@ export class TasksController {
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task details" })
   @ApiResponse({ status: 404, description: "Task not found" })
-  findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.tasksService.findByIdOrFail(id);
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.tasksService.findByIdOrFail(id, orgId);
   }
 
   @Patch(":id")
@@ -226,8 +231,18 @@ export class TasksController {
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task updated successfully" })
   @ApiResponse({ status: 404, description: "Task not found" })
-  update(@Param("id", ParseUUIDPipe) id: string, @Body() data: UpdateTaskDto) {
-    return this.tasksService.update(id, data as unknown as Partial<Task>);
+  update(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() data: UpdateTaskDto,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.tasksService.update(
+      id,
+      data as unknown as Partial<Task>,
+      orgId,
+    );
   }
 
   @Delete(":id")
@@ -236,8 +251,13 @@ export class TasksController {
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task deleted successfully" })
   @ApiResponse({ status: 404, description: "Task not found" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.tasksService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.tasksService.remove(id, orgId);
   }
 
   // ============================================================================

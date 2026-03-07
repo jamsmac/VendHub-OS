@@ -92,8 +92,10 @@ export class VehiclesService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findById(id: string): Promise<Vehicle | null> {
-    return this.vehicleRepository.findOne({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<Vehicle | null> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
+    return this.vehicleRepository.findOne({ where });
   }
 
   async update(
