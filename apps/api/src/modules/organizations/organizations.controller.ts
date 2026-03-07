@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  ForbiddenException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -21,6 +22,10 @@ import { UpdateOrganizationDto } from "./dto/update-organization.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles, UserRole } from "../../common/decorators";
+import {
+  CurrentUser,
+  ICurrentUser,
+} from "../../common/decorators/current-user.decorator";
 
 @ApiTags("organizations")
 @Controller("organizations")
@@ -55,7 +60,13 @@ export class OrganizationsController {
   )
   @ApiOperation({ summary: "Get organization by ID" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
-  findOne(@Param("id", ParseUUIDPipe) id: string) {
+  findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    if (user.role !== UserRole.OWNER && user.organizationId !== id) {
+      throw new ForbiddenException("Access denied to this organization");
+    }
     return this.organizationsService.findById(id);
   }
 
@@ -66,7 +77,11 @@ export class OrganizationsController {
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
+    if (user.role !== UserRole.OWNER && user.organizationId !== id) {
+      throw new ForbiddenException("Access denied to this organization");
+    }
     return this.organizationsService.update(id, updateOrganizationDto);
   }
 

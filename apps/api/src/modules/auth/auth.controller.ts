@@ -199,7 +199,7 @@ export class AuthController {
     @Headers("user-agent") userAgent: string,
   ) {
     return this.authService.complete2FALogin(
-      dto.userId,
+      dto.challengeToken,
       dto.totpCode,
       dto.backupCode,
       ipAddress,
@@ -223,7 +223,7 @@ export class AuthController {
     @Headers("user-agent") userAgent: string,
   ) {
     return this.authService.firstLoginChangePassword(
-      dto.userId,
+      dto.challengeToken,
       dto.currentPassword,
       dto.newPassword,
       ipAddress,

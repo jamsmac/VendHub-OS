@@ -1,10 +1,11 @@
-import { IsString, IsOptional, IsUUID, Length } from "class-validator";
+import { IsString, IsOptional, Length } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class Complete2FALoginDto {
-  @ApiProperty({ description: "User ID from initial login step" })
-  @IsUUID()
-  userId: string;
+  @ApiProperty({ description: "Challenge token from initial login step" })
+  @IsString()
+  @Length(1, 2048)
+  challengeToken: string;
 
   @ApiPropertyOptional({ description: "TOTP code from authenticator app" })
   @IsOptional()
@@ -18,9 +19,10 @@ export class Complete2FALoginDto {
 }
 
 export class FirstLoginChangePasswordDto {
-  @ApiProperty({ description: "User ID" })
-  @IsUUID()
-  userId: string;
+  @ApiProperty({ description: "Challenge token from initial login step" })
+  @IsString()
+  @Length(1, 2048)
+  challengeToken: string;
 
   @ApiProperty({ description: "Current temporary password" })
   @IsString()

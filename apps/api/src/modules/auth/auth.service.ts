@@ -84,6 +84,45 @@ export class AuthService {
     };
   }
 
+  // ==================== Challenge Token (prevents IDOR in 2FA/first-login) ====================
+
+  /**
+   * Issue a short-lived signed challenge token for 2FA or first-login flows.
+   * Replaces exposing raw userId in @Public() endpoints.
+   */
+  private issueChallengeToken(
+    userId: string,
+    purpose: "2fa" | "first_login",
+  ): string {
+    return this.jwtService.sign(
+      { sub: userId, purpose },
+      {
+        secret: this.configService.get<string>("JWT_SECRET"),
+        expiresIn: "5m",
+      },
+    );
+  }
+
+  /**
+   * Verify a challenge token and return the userId if valid.
+   */
+  private verifyChallengeToken(
+    token: string,
+    expectedPurpose: "2fa" | "first_login",
+  ): string {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get<string>("JWT_SECRET"),
+      });
+      if (payload.purpose !== expectedPurpose) {
+        throw new UnauthorizedException("Invalid challenge token purpose");
+      }
+      return payload.sub;
+    } catch {
+      throw new UnauthorizedException("Invalid or expired challenge token");
+    }
+  }
+
   /**
    * Register a new user
    */
@@ -245,7 +284,7 @@ export class AuthService {
       if (!dto.totpCode && !dto.backupCode) {
         return {
           requiresTwoFactor: true,
-          userId: user.id,
+          challengeToken: this.issueChallengeToken(user.id, "2fa"),
           methods: await this.getAvailable2FAMethods(user.id),
         };
       }
@@ -293,6 +332,9 @@ export class AuthService {
       tokens,
       sessionId: session.id,
       mustChangePassword: user.mustChangePassword,
+      ...(user.mustChangePassword && {
+        challengeToken: this.issueChallengeToken(user.id, "first_login"),
+      }),
     };
   }
 
@@ -824,12 +866,13 @@ export class AuthService {
    * Complete 2FA login after initial login returned requiresTwoFactor
    */
   async complete2FALogin(
-    userId: string,
+    challengeToken: string,
     totpCode: string | undefined,
     backupCode: string | undefined,
     ipAddress: string,
     userAgent: string,
   ) {
+    const userId = this.verifyChallengeToken(challengeToken, "2fa");
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["organization"],
@@ -873,6 +916,9 @@ export class AuthService {
       tokens,
       sessionId: session.id,
       mustChangePassword: user.mustChangePassword,
+      ...(user.mustChangePassword && {
+        challengeToken: this.issueChallengeToken(user.id, "first_login"),
+      }),
     };
   }
 
@@ -881,12 +927,13 @@ export class AuthService {
    * Forces admin-created users to change their temporary password
    */
   async firstLoginChangePassword(
-    userId: string,
+    challengeToken: string,
     currentPassword: string,
     newPassword: string,
     ipAddress: string,
     userAgent: string,
   ) {
+    const userId = this.verifyChallengeToken(challengeToken, "first_login");
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["organization"],
@@ -971,11 +1018,6 @@ export class AuthService {
     }
     return { valid: true, email: resetToken.user?.email };
   }
-
-  /**
-   * Cleanup expired/used password reset tokens (runs daily at 3 AM)
-   */
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
 
   /**
    * Cleanup expired/used password reset tokens (runs daily at 3 AM)

@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -22,6 +24,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles, UserRole } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { ICurrentUser } from "../../common/decorators/current-user.decorator";
 
 @ApiTags("users")
 @Controller("users")
@@ -87,18 +90,42 @@ export class UsersController {
     },
   })
   @ApiResponse({ status: 404, description: "User not found" })
-  findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.usersService.findById(id);
+  async findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: ICurrentUser,
+  ) {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (
+      currentUser.role !== UserRole.OWNER &&
+      user.organizationId !== currentUser.organizationId
+    ) {
+      throw new ForbiddenException("Access denied to this user");
+    }
+    return user;
   }
 
   @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Update user" })
   @ApiResponse({ status: 200, description: "User updated successfully" })
-  update(
+  async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: ICurrentUser,
   ) {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (
+      currentUser.role !== UserRole.OWNER &&
+      user.organizationId !== currentUser.organizationId
+    ) {
+      throw new ForbiddenException("Access denied to this user");
+    }
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -106,7 +133,20 @@ export class UsersController {
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete user" })
   @ApiResponse({ status: 200, description: "User deleted successfully" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
+  async remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: ICurrentUser,
+  ) {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (
+      currentUser.role !== UserRole.OWNER &&
+      user.organizationId !== currentUser.organizationId
+    ) {
+      throw new ForbiddenException("Access denied to this user");
+    }
     return this.usersService.remove(id);
   }
 }
