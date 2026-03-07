@@ -25,8 +25,8 @@ export default function GlobalError({
       console.error("GlobalError boundary caught:", error);
     }
 
-    // TODO: Send to error reporting service (Sentry, etc.)
-    // reportError({ error, componentStack: error.digest });
+    // When NEXT_PUBLIC_SENTRY_DSN is configured, install @sentry/nextjs
+    // and call: Sentry.captureException(error);
   }, [error]);
 
   return (
