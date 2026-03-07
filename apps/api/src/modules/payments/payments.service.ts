@@ -378,44 +378,16 @@ export class PaymentsService {
     try {
       switch (transaction.provider) {
         case PaymentProvider.PAYME:
-          this.logger.warn(
-            `Payme refund for transaction ${transaction.providerTxId} requires manual processing or webhook confirmation`,
-          );
-          refund.status = RefundStatus.PROCESSING;
+          await this.processPaymeRefund(refund, transaction);
           break;
 
         case PaymentProvider.CLICK:
-          this.logger.warn(
-            `Click refund for transaction ${transaction.providerTxId} requires manual processing or API integration`,
-          );
-          refund.status = RefundStatus.PROCESSING;
+          await this.processClickRefund(refund, transaction);
           break;
 
-        case PaymentProvider.UZUM: {
-          const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
-          const apiUrl = this.configService.get<string>(
-            "UZUM_API_URL",
-            "https://api.uzumbank.uz",
-          );
-
-          if (!secretKey) {
-            throw new InternalServerErrorException(
-              "UZUM_SECRET_KEY not configured",
-            );
-          }
-
-          const signData = `${transaction.id}:${refund.amount}`;
-          const signature = crypto
-            .createHmac("sha256", secretKey)
-            .update(signData)
-            .digest("hex");
-
-          this.logger.warn(
-            `Uzum refund requires API call: ${apiUrl}/refund, tx=${transaction.id}, signature=${signature}. Marked as PROCESSING.`,
-          );
-          refund.status = RefundStatus.PROCESSING;
+        case PaymentProvider.UZUM:
+          await this.processUzumRefund(refund, transaction);
           break;
-        }
 
         case PaymentProvider.CASH:
         case PaymentProvider.WALLET:
@@ -457,6 +429,242 @@ export class PaymentsService {
     }
 
     return this.refundRepo.save(refund);
+  }
+
+  // ============================================
+  // PROVIDER-SPECIFIC REFUND IMPLEMENTATIONS
+  // ============================================
+
+  /**
+   * Payme refund via JSON-RPC receipts.cancel
+   * Auth: Basic merchantId:secretKey
+   */
+  private async processPaymeRefund(
+    refund: PaymentRefund,
+    transaction: PaymentTransaction,
+  ): Promise<void> {
+    const secretKey = this.configService.get<string>("PAYME_SECRET_KEY");
+    const merchantId = this.configService.get<string>("PAYME_MERCHANT_ID");
+
+    if (!secretKey || !merchantId) {
+      this.logger.warn(
+        `Payme refund for transaction ${transaction.providerTxId}: PAYME_SECRET_KEY or PAYME_MERCHANT_ID not configured, leaving as PROCESSING`,
+      );
+      refund.status = RefundStatus.PROCESSING;
+      return;
+    }
+
+    if (!transaction.providerTxId) {
+      throw new InternalServerErrorException(
+        `Payme refund failed: transaction ${transaction.id} has no providerTxId (Payme receipt ID)`,
+      );
+    }
+
+    const apiUrl = this.configService.get<string>(
+      "PAYME_API_URL",
+      "https://checkout.paycom.uz",
+    );
+
+    const basicAuth = Buffer.from(`${merchantId}:${secretKey}`).toString(
+      "base64",
+    );
+
+    const rpcPayload = {
+      id: Date.now(),
+      method: "receipts.cancel",
+      params: {
+        id: transaction.providerTxId,
+        reason: 5, // reason 5 = "other" in Payme's system
+      },
+    };
+
+    this.logger.log(
+      `Payme refund: sending receipts.cancel for receipt ${transaction.providerTxId}, refund ${refund.id}`,
+    );
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${basicAuth}`,
+      },
+      body: JSON.stringify(rpcPayload),
+    });
+
+    const body = await response.json();
+
+    if (body.error) {
+      const errorMsg =
+        body.error.message?.en ||
+        body.error.message?.ru ||
+        JSON.stringify(body.error.message) ||
+        `Payme error code ${body.error.code}`;
+      this.logger.error(
+        `Payme refund failed for receipt ${transaction.providerTxId}: ${errorMsg}`,
+      );
+      refund.status = RefundStatus.FAILED;
+      throw new InternalServerErrorException(
+        `Payme refund failed: ${errorMsg}`,
+      );
+    }
+
+    this.logger.log(
+      `Payme refund successful for receipt ${transaction.providerTxId}, refund ${refund.id}`,
+    );
+    refund.status = RefundStatus.COMPLETED;
+    refund.processedAt = new Date();
+    refund.providerRefundId = transaction.providerTxId;
+  }
+
+  /**
+   * Click refund via REST reversal API
+   * Auth: Header "Auth: merchantId:md5(timestamp + secretKey)"
+   */
+  private async processClickRefund(
+    refund: PaymentRefund,
+    transaction: PaymentTransaction,
+  ): Promise<void> {
+    const secretKey = this.configService.get<string>("CLICK_SECRET_KEY");
+    const merchantId = this.configService.get<string>("CLICK_MERCHANT_ID");
+    const serviceId = this.configService.get<string>("CLICK_SERVICE_ID");
+
+    if (!secretKey || !merchantId || !serviceId) {
+      this.logger.warn(
+        `Click refund for transaction ${transaction.providerTxId}: CLICK_SECRET_KEY, CLICK_MERCHANT_ID, or CLICK_SERVICE_ID not configured, leaving as PROCESSING`,
+      );
+      refund.status = RefundStatus.PROCESSING;
+      return;
+    }
+
+    if (!transaction.providerTxId) {
+      throw new InternalServerErrorException(
+        `Click refund failed: transaction ${transaction.id} has no providerTxId (Click payment ID)`,
+      );
+    }
+
+    const apiUrl = this.configService.get<string>(
+      "CLICK_API_URL",
+      "https://api.click.uz",
+    );
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const authHash = crypto
+      .createHash("md5")
+      .update(`${timestamp}${secretKey}`)
+      .digest("hex");
+
+    const reversalUrl = `${apiUrl}/payment/reversal/${serviceId}/${transaction.providerTxId}`;
+    const requestBody = {
+      service_id: Number(serviceId),
+      payment_id: transaction.providerTxId,
+      timestamp,
+    };
+
+    this.logger.log(
+      `Click refund: sending reversal for payment ${transaction.providerTxId}, refund ${refund.id}`,
+    );
+
+    const response = await fetch(reversalUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Auth: `${merchantId}:${authHash}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const body = await response.json();
+
+    if (body.error && body.error !== 0) {
+      const errorMsg = body.error_note || `Click error code ${body.error}`;
+      this.logger.error(
+        `Click refund failed for payment ${transaction.providerTxId}: ${errorMsg}`,
+      );
+      refund.status = RefundStatus.FAILED;
+      throw new InternalServerErrorException(
+        `Click refund failed: ${errorMsg}`,
+      );
+    }
+
+    this.logger.log(
+      `Click refund successful for payment ${transaction.providerTxId}, refund ${refund.id}`,
+    );
+    refund.status = RefundStatus.COMPLETED;
+    refund.processedAt = new Date();
+    refund.providerRefundId = body.payment_id || transaction.providerTxId;
+  }
+
+  /**
+   * Uzum refund via REST API with HMAC-SHA256 signature
+   * Auth: X-Signature header with HMAC of transactionId:amount
+   */
+  private async processUzumRefund(
+    refund: PaymentRefund,
+    transaction: PaymentTransaction,
+  ): Promise<void> {
+    const secretKey = this.configService.get<string>("UZUM_SECRET_KEY");
+
+    if (!secretKey) {
+      this.logger.warn(
+        `Uzum refund for transaction ${transaction.id}: UZUM_SECRET_KEY not configured, leaving as PROCESSING`,
+      );
+      refund.status = RefundStatus.PROCESSING;
+      return;
+    }
+
+    const apiUrl = this.configService.get<string>(
+      "UZUM_API_URL",
+      "https://api.uzumbank.uz",
+    );
+
+    const paymentId = transaction.providerTxId || transaction.id;
+
+    // Amount in tiyin (1 UZS = 100 tiyin)
+    const amountInTiyin = Math.round(Number(refund.amount) * 100);
+
+    const signData = `${paymentId}:${amountInTiyin}`;
+    const signature = crypto
+      .createHmac("sha256", secretKey)
+      .update(signData)
+      .digest("hex");
+
+    const refundUrl = `${apiUrl}/payments/${paymentId}/refund`;
+    const requestBody = {
+      amount: amountInTiyin,
+      reason: refund.reasonNote || refund.reason || "refund",
+    };
+
+    this.logger.log(
+      `Uzum refund: sending refund for payment ${paymentId}, amount ${amountInTiyin} tiyin, refund ${refund.id}`,
+    );
+
+    const response = await fetch(refundUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Signature": signature,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const body = await response.json();
+
+    if (!response.ok || body.error) {
+      const errorMsg =
+        body.error || body.message || `Uzum HTTP ${response.status}`;
+      this.logger.error(
+        `Uzum refund failed for payment ${paymentId}: ${errorMsg}`,
+      );
+      refund.status = RefundStatus.FAILED;
+      throw new InternalServerErrorException(`Uzum refund failed: ${errorMsg}`);
+    }
+
+    this.logger.log(
+      `Uzum refund successful for payment ${paymentId}, refund ${refund.id}`,
+    );
+    refund.status = RefundStatus.COMPLETED;
+    refund.processedAt = new Date();
+    refund.providerRefundId = body.refundId || body.id || paymentId;
   }
 
   // ============================================

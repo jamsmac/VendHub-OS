@@ -102,9 +102,9 @@ export class PaymeHandler {
       return false;
     }
 
-    const merchantKey = this.configService.get<string>("PAYME_MERCHANT_KEY");
+    const merchantKey = this.configService.get<string>("PAYME_SECRET_KEY");
     if (!merchantKey) {
-      this.logger.error("Payme webhook: PAYME_MERCHANT_KEY not configured");
+      this.logger.error("Payme webhook: PAYME_SECRET_KEY not configured");
       return false;
     }
 
