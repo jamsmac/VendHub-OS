@@ -650,6 +650,7 @@ jobs:
 
       - name: Notify Telegram
         if: always()
+        continue-on-error: true
         env:
           JOB_STATUS: ${{ job.status }}
           REF_NAME: ${{ github.ref_name }}
