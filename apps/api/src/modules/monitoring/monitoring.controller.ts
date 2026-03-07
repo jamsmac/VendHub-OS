@@ -53,7 +53,15 @@ class MetricsKeyGuard implements CanActivate {
       ? authHeader.slice(7)
       : queryKey;
 
-    if (providedKey === metricsKey) return true;
+    if (
+      providedKey &&
+      providedKey.length === metricsKey.length &&
+      require("crypto").timingSafeEqual(
+        Buffer.from(providedKey),
+        Buffer.from(metricsKey),
+      )
+    )
+      return true;
 
     throw new ForbiddenException("Invalid metrics API key");
   }

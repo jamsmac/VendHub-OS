@@ -78,8 +78,6 @@ services:
       - GF_INSTALL_PLUGINS=redis-datasource,grafana-piechart-panel,grafana-clock-panel
       - GF_ALERTING_ENABLED=true
       - GF_UNIFIED_ALERTING_ENABLED=true
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/etc/grafana/dashboards:ro

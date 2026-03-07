@@ -23,7 +23,14 @@ export class AgentApiKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const provided = request.headers["x-agent-key"] as string | undefined;
 
-    if (provided === agentKey) {
+    if (
+      provided &&
+      provided.length === agentKey.length &&
+      require("crypto").timingSafeEqual(
+        Buffer.from(provided),
+        Buffer.from(agentKey),
+      )
+    ) {
       return true;
     }
 

@@ -34,6 +34,7 @@ export enum RefundReason {
 @Entity("payment_refunds")
 @Index(["paymentTransactionId"])
 @Index(["status"])
+@Index(["organizationId"])
 export class PaymentRefund extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;

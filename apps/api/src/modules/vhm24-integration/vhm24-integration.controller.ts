@@ -29,10 +29,12 @@ import {
   CurrentUserId,
   CurrentOrganizationId,
 } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 
 @ApiTags("VHM24 Integration")
 @ApiBearerAuth()
 @Controller("integration/vhm24")
+@Roles("owner", "admin", "manager")
 export class Vhm24IntegrationController {
   constructor(
     private readonly integrationService: Vhm24IntegrationService,

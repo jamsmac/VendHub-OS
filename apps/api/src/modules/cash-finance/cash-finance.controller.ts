@@ -22,6 +22,7 @@ import {
   ApiCreatedResponse,
   ApiNoContentResponse,
 } from "@nestjs/swagger";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CashFinanceService } from "./cash-finance.service";
 import { CreateDepositDto } from "./dto/create-deposit.dto";
 import {
@@ -33,6 +34,7 @@ import {
 @ApiTags("Cash Finance")
 @ApiBearerAuth()
 @Controller("finance")
+@Roles("owner", "admin", "manager")
 export class CashFinanceController {
   constructor(private readonly cashFinanceService: CashFinanceService) {}
 

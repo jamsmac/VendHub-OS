@@ -1,10 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, Index, ManyToOne, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { Organization } from "../../organizations/entities/organization.entity";
 import { InvestorProfile } from "./investor-profile.entity";
 
 @Entity("dividend_payments")
 export class DividendPayment extends BaseEntity {
+  @Index()
   @Column({ type: "uuid" })
   organizationId: string;
 
@@ -12,6 +13,7 @@ export class DividendPayment extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
+  @Index()
   @Column({ type: "uuid" })
   investorProfileId: string;
 

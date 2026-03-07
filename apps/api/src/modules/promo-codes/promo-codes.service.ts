@@ -52,9 +52,9 @@ export class PromoCodesService {
     dto: CreatePromoCodeDto,
     organizationId: string,
   ): Promise<PromoCode> {
-    // Check for duplicate code
+    // Check for duplicate code within organization
     const existing = await this.promoCodeRepo.findOne({
-      where: { code: dto.code.toUpperCase() },
+      where: { code: dto.code.toUpperCase(), organizationId },
     });
     if (existing) {
       throw new ConflictException(

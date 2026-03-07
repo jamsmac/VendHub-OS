@@ -86,7 +86,11 @@ export class InvestorController {
 
   @ApiOperation({ summary: "List dividends for an investor" })
   @Get("dividends/:profileId")
-  findDividends(@Param("profileId", ParseUUIDPipe) profileId: string) {
-    return this.investorService.findDividends(profileId);
+  @Roles("owner", "admin")
+  findDividends(
+    @Param("profileId", ParseUUIDPipe) profileId: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.investorService.findDividends(profileId, organizationId);
   }
 }

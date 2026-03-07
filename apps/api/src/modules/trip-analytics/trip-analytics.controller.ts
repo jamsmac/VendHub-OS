@@ -9,18 +9,29 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiOkResponse,
+  ApiPropertyOptional,
 } from "@nestjs/swagger";
+import { IsOptional, IsDateString } from "class-validator";
 import { TripAnalyticsService } from "./trip-analytics.service";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 
 class PeriodQueryDto {
+  @IsOptional()
+  @IsDateString()
+  @ApiPropertyOptional()
   from?: string;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiPropertyOptional()
   to?: string;
 }
 
 @ApiTags("Trip Analytics")
 @ApiBearerAuth()
 @Controller("analytics/trips")
+@Roles("owner", "admin", "manager")
 export class TripAnalyticsController {
   constructor(private readonly analyticsService: TripAnalyticsService) {}
 

@@ -465,7 +465,7 @@ export class CollectionsService {
       }),
     );
 
-    await this.collectionRepo.remove(collection);
+    await this.collectionRepo.softDelete(collection.id);
 
     this.logger.log(`Collection ${id} hard deleted by admin ${userId}`);
   }

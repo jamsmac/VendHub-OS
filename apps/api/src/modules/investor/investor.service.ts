@@ -176,9 +176,14 @@ export class InvestorService {
     return this.dividendRepo.save(dividend);
   }
 
-  async findDividends(investorProfileId: string): Promise<DividendPayment[]> {
+  async findDividends(
+    investorProfileId: string,
+    organizationId?: string,
+  ): Promise<DividendPayment[]> {
+    const where: Record<string, string> = { investorProfileId };
+    if (organizationId) where.organizationId = organizationId;
     return this.dividendRepo.find({
-      where: { investorProfileId },
+      where,
       order: { paymentDate: "DESC" },
     });
   }
