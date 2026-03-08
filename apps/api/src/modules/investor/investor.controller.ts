@@ -26,6 +26,7 @@ export class InvestorController {
 
   @ApiOperation({ summary: "Get investor dashboard for current user" })
   @Get("dashboard")
+  @Roles("owner", "admin", "manager", "accountant")
   getDashboard(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() userId: string,
@@ -35,6 +36,7 @@ export class InvestorController {
 
   @ApiOperation({ summary: "Get current user investor profile" })
   @Get("profile")
+  @Roles("owner", "admin", "manager", "accountant")
   getMyProfile(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() userId: string,

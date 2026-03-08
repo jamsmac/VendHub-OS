@@ -4,20 +4,20 @@
  */
 
 export enum UserRole {
-  OWNER = 'owner',           // Владелец платформы (полный доступ ко всем организациям)
-  ADMIN = 'admin',           // Администратор организации
-  MANAGER = 'manager',       // Менеджер (управление командой)
-  OPERATOR = 'operator',     // Оператор (пополнение, инкассация, ремонт, чистка)
-  WAREHOUSE = 'warehouse',   // Кладовщик
-  ACCOUNTANT = 'accountant', // Бухгалтер
-  VIEWER = 'viewer',         // Наблюдатель (только просмотр)
+  OWNER = "owner", // Владелец платформы (полный доступ ко всем организациям)
+  ADMIN = "admin", // Администратор организации
+  MANAGER = "manager", // Менеджер (управление командой)
+  OPERATOR = "operator", // Оператор (пополнение, инкассация, ремонт, чистка)
+  WAREHOUSE = "warehouse", // Кладовщик
+  ACCOUNTANT = "accountant", // Бухгалтер
+  VIEWER = "viewer", // Наблюдатель (только просмотр)
 }
 
 export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPENDED = 'suspended',
-  PENDING = 'pending',       // Ожидает одобрения
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  SUSPENDED = "suspended",
+  PENDING = "pending", // Ожидает одобрения
 }
 
 export interface IUser {
@@ -64,15 +64,15 @@ export interface IUser {
 }
 
 export enum TwoFactorMethod {
-  TOTP = 'totp',
-  SMS = 'sms',
-  EMAIL = 'email',
+  TOTP = "totp",
+  SMS = "sms",
+  EMAIL = "email",
 }
 
 export interface IUserPreferences {
-  language: 'ru' | 'uz' | 'en';
+  language: "ru" | "uz" | "en";
   timezone: string;
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   notifications: {
     email: boolean;
     push: boolean;
@@ -103,23 +103,23 @@ export interface IDeviceInfo {
   osVersion?: string;
   browser: string;
   browserVersion?: string;
-  deviceType: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+  deviceType: "desktop" | "mobile" | "tablet" | "unknown";
   userAgent: string;
 }
 
 export interface ITwoFactorAuth {
   id: string;
   userId: string;
-  totpSecret?: string;        // Encrypted with AES-256-GCM
+  totpSecret?: string; // Encrypted with AES-256-GCM
   totpSecretIv?: string;
   smsPhone?: string;
   emailAddress?: string;
-  backupCodes?: string[];     // Hashed
+  backupCodes?: string[]; // Hashed
   usedBackupCodes?: string[];
   failedAttempts: number;
   lockedUntil?: Date;
   lastUsedAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -152,7 +152,7 @@ export interface IUserUpdate {
   ipWhitelist?: string[];
 }
 
-export interface IUserProfile extends Omit<IUser, 'organizationId'> {
+export interface IUserProfile extends Omit<IUser, "organizationId"> {
   organization: {
     id: string;
     name: string;
@@ -207,70 +207,97 @@ export interface ILoginAttempt {
 
 // Role permissions mapping
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  [UserRole.OWNER]: ['*'], // Full platform access
+  [UserRole.OWNER]: ["*"], // Full platform access
 
   [UserRole.ADMIN]: [
     // Users
-    'users:read', 'users:write', 'users:delete',
+    "users:read",
+    "users:write",
+    "users:delete",
     // Machines
-    'machines:read', 'machines:write', 'machines:delete',
+    "machines:read",
+    "machines:write",
+    "machines:delete",
     // Products
-    'products:read', 'products:write', 'products:delete',
+    "products:read",
+    "products:write",
+    "products:delete",
     // Inventory
-    'inventory:read', 'inventory:write', 'inventory:transfer',
+    "inventory:read",
+    "inventory:write",
+    "inventory:transfer",
     // Tasks
-    'tasks:read', 'tasks:write', 'tasks:delete', 'tasks:assign',
+    "tasks:read",
+    "tasks:write",
+    "tasks:delete",
+    "tasks:assign",
     // Transactions
-    'transactions:read',
+    "transactions:read",
     // Reports
-    'reports:read', 'reports:export',
+    "reports:read",
+    "reports:export",
     // Settings
-    'settings:read', 'settings:write',
+    "settings:read",
+    "settings:write",
     // Locations
-    'locations:read', 'locations:write', 'locations:delete',
+    "locations:read",
+    "locations:write",
+    "locations:delete",
     // Organizations (own)
-    'organization:read', 'organization:write',
+    "organization:read",
+    "organization:write",
   ],
 
   [UserRole.MANAGER]: [
-    'users:read',
-    'machines:read', 'machines:write',
-    'products:read', 'products:price',
-    'inventory:read', 'inventory:request',
-    'tasks:read', 'tasks:write', 'tasks:assign',
-    'transactions:read',
-    'reports:read',
-    'locations:read',
+    "users:read",
+    "machines:read",
+    "machines:write",
+    "products:read",
+    "products:price",
+    "inventory:read",
+    "inventory:request",
+    "tasks:read",
+    "tasks:write",
+    "tasks:assign",
+    "transactions:read",
+    "reports:read",
+    "locations:read",
   ],
 
   [UserRole.OPERATOR]: [
-    'machines:read',
-    'products:read',
-    'inventory:read:own', 'inventory:write:own',
-    'tasks:read:own', 'tasks:execute',
-    'locations:read',
+    "machines:read",
+    "products:read",
+    "inventory:read:own",
+    "inventory:write:own",
+    "tasks:read:own",
+    "tasks:execute",
+    "locations:read",
   ],
 
   [UserRole.WAREHOUSE]: [
-    'products:read',
-    'inventory:read', 'inventory:write',
-    'inventory:receive', 'inventory:issue', 'inventory:writeoff',
-    'inventory:stocktake',
+    "products:read",
+    "inventory:read",
+    "inventory:write",
+    "inventory:receive",
+    "inventory:issue",
+    "inventory:writeoff",
+    "inventory:stocktake",
   ],
 
   [UserRole.ACCOUNTANT]: [
-    'transactions:read',
-    'collections:read',
-    'reports:read', 'reports:export',
-    'fiscal:read',
-    'reconciliation:read',
+    "transactions:read",
+    "collections:read",
+    "reports:read",
+    "reports:export",
+    "fiscal:read",
+    "reconciliation:read",
   ],
 
   [UserRole.VIEWER]: [
-    'machines:read',
-    'products:read',
-    'reports:read:basic',
-    'locations:read',
+    "machines:read",
+    "products:read",
+    "reports:read:basic",
+    "locations:read",
   ],
 };
 
@@ -287,55 +314,55 @@ export const ROLE_HIERARCHY: UserRole[] = [
 
 // Role labels (Russian)
 export const ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.OWNER]: 'Владелец',
-  [UserRole.ADMIN]: 'Администратор',
-  [UserRole.MANAGER]: 'Менеджер',
-  [UserRole.OPERATOR]: 'Оператор',
-  [UserRole.WAREHOUSE]: 'Кладовщик',
-  [UserRole.ACCOUNTANT]: 'Бухгалтер',
-  [UserRole.VIEWER]: 'Наблюдатель',
+  [UserRole.OWNER]: "Владелец",
+  [UserRole.ADMIN]: "Администратор",
+  [UserRole.MANAGER]: "Менеджер",
+  [UserRole.OPERATOR]: "Оператор",
+  [UserRole.WAREHOUSE]: "Кладовщик",
+  [UserRole.ACCOUNTANT]: "Бухгалтер",
+  [UserRole.VIEWER]: "Наблюдатель",
 };
 
 // Role labels (Uzbek)
 export const ROLE_LABELS_UZ: Record<UserRole, string> = {
-  [UserRole.OWNER]: 'Egasi',
-  [UserRole.ADMIN]: 'Administrator',
-  [UserRole.MANAGER]: 'Menejer',
-  [UserRole.OPERATOR]: 'Operator',
-  [UserRole.WAREHOUSE]: 'Omborchi',
-  [UserRole.ACCOUNTANT]: 'Buxgalter',
-  [UserRole.VIEWER]: 'Kuzatuvchi',
+  [UserRole.OWNER]: "Egasi",
+  [UserRole.ADMIN]: "Administrator",
+  [UserRole.MANAGER]: "Menejer",
+  [UserRole.OPERATOR]: "Operator",
+  [UserRole.WAREHOUSE]: "Omborchi",
+  [UserRole.ACCOUNTANT]: "Buxgalter",
+  [UserRole.VIEWER]: "Kuzatuvchi",
 };
 
 // Status labels
 export const USER_STATUS_LABELS: Record<UserStatus, string> = {
-  [UserStatus.ACTIVE]: 'Активен',
-  [UserStatus.INACTIVE]: 'Неактивен',
-  [UserStatus.SUSPENDED]: 'Заблокирован',
-  [UserStatus.PENDING]: 'Ожидает одобрения',
+  [UserStatus.ACTIVE]: "Активен",
+  [UserStatus.INACTIVE]: "Неактивен",
+  [UserStatus.SUSPENDED]: "Заблокирован",
+  [UserStatus.PENDING]: "Ожидает одобрения",
 };
 
 // Status colors for UI
 export const USER_STATUS_COLORS: Record<UserStatus, string> = {
-  [UserStatus.ACTIVE]: 'bg-green-100 text-green-800',
-  [UserStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
-  [UserStatus.SUSPENDED]: 'bg-red-100 text-red-800',
-  [UserStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
+  [UserStatus.ACTIVE]: "bg-green-100 text-green-800",
+  [UserStatus.INACTIVE]: "bg-gray-100 text-gray-800",
+  [UserStatus.SUSPENDED]: "bg-red-100 text-red-800",
+  [UserStatus.PENDING]: "bg-yellow-100 text-yellow-800",
 };
 
 // Default user preferences
 export const DEFAULT_USER_PREFERENCES: IUserPreferences = {
-  language: 'ru',
-  timezone: 'Asia/Tashkent',
-  theme: 'system',
+  language: "ru",
+  timezone: "Asia/Tashkent",
+  theme: "system",
   notifications: {
     email: true,
     push: true,
     telegram: true,
     sms: false,
   },
-  dateFormat: 'dd.MM.yyyy',
-  currency: 'UZS',
+  dateFormat: "dd.MM.yyyy",
+  currency: "UZS",
 };
 
 /**
@@ -344,11 +371,11 @@ export const DEFAULT_USER_PREFERENCES: IUserPreferences = {
 export function hasPermission(userRole: UserRole, permission: string): boolean {
   const permissions = ROLE_PERMISSIONS[userRole];
 
-  if (permissions.includes('*')) return true;
+  if (permissions.includes("*")) return true;
   if (permissions.includes(permission)) return true;
 
   // Check wildcard permissions (e.g., 'users:*' matches 'users:read')
-  const [resource] = permission.split(':');
+  const [resource] = permission.split(":");
   if (permissions.includes(`${resource}:*`)) return true;
 
   return false;

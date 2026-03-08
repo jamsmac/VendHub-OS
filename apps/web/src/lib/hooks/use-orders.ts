@@ -103,13 +103,12 @@ export function useCreateOrder() {
 export function useUpdateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async ({
       id,
-      updates,
+      _updates,
     }: {
       id: string;
-      updates: Partial<Omit<DbOrder, "id" | "created_at">>;
+      _updates: Partial<Omit<DbOrder, "id" | "created_at">>;
     }) => {
       const response = await tripsApi.getById(id);
       return response.data as DbOrder;
@@ -124,13 +123,12 @@ export function useUpdateOrder() {
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async ({
       id,
-      status,
+      _status,
     }: {
       id: string;
-      status: DbOrder["status"];
+      _status: DbOrder["status"];
     }) => {
       const response = await tripsApi.getById(id);
       return response.data as DbOrder;

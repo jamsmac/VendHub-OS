@@ -143,13 +143,12 @@ export function useCreateWarehouse() {
 export function useUpdateWarehouse() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async ({
-      id,
-      updates,
+      _id,
+      _updates,
     }: {
-      id: string;
-      updates: Partial<Omit<DbWarehouse, "id" | "created_at">>;
+      _id: string;
+      _updates: Partial<Omit<DbWarehouse, "id" | "created_at">>;
     }) => {
       const response = await inventoryApi.getWarehouse();
       return response.data as DbWarehouse;
@@ -163,8 +162,7 @@ export function useUpdateWarehouse() {
 export function useDeactivateWarehouse() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mutationFn: async (id: string) => true,
+    mutationFn: async (_id: string) => true,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["warehouses"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stats"] });
@@ -175,8 +173,7 @@ export function useDeactivateWarehouse() {
 export function useCreateInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mutationFn: async (item: Omit<DbInventoryItem, "id" | "updated_at">) => {
+    mutationFn: async (_item: Omit<DbInventoryItem, "id" | "updated_at">) => {
       const response = await inventoryApi.getWarehouse();
       return response.data as DbInventoryItem[];
     },
@@ -192,13 +189,12 @@ export function useCreateInventoryItem() {
 export function useUpdateInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async ({
-      id,
-      updates,
+      _id,
+      _updates,
     }: {
-      id: string;
-      updates: Partial<Omit<DbInventoryItem, "id">>;
+      _id: string;
+      _updates: Partial<Omit<DbInventoryItem, "id">>;
     }) => {
       const response = await inventoryApi.getWarehouse();
       return response.data as DbInventoryItem;
@@ -232,13 +228,12 @@ export function useCreateMovement() {
 export function useUpdateMovementStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async ({
-      id,
-      status,
+      _id,
+      _status,
     }: {
-      id: string;
-      status: DbInventoryMovement["status"];
+      _id: string;
+      _status: DbInventoryMovement["status"];
     }) => true,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });

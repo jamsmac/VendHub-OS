@@ -2,8 +2,12 @@
  * Returns the Uzbek version of a field when locale is 'uz' and the _uz field exists,
  * otherwise falls back to the default (Russian) field.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function localized(item: any, field: string, locale: string): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts any object shape for dynamic field access
+export function localized(
+  item: Record<string, any>,
+  field: string,
+  locale: string,
+): string {
   if (locale === "uz") {
     const uzValue = item[`${field}_uz`];
     if (uzValue && typeof uzValue === "string") return uzValue;
@@ -30,9 +34,9 @@ export function localizedOptionName(name: string, locale: string): string {
 /**
  * Returns the Uzbek version of a JSONB array field (e.g., conditions_uz).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function localizedArray(
-  item: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts any object shape for dynamic field access
+  item: Record<string, any>,
   field: string,
   locale: string,
 ): string[] {

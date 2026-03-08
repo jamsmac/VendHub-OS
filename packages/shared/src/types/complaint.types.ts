@@ -8,61 +8,61 @@
 // ============================================================================
 
 export enum ComplaintStatus {
-  NEW = 'new',
-  IN_PROGRESS = 'in_progress',
-  WAITING_CUSTOMER = 'waiting_customer',
-  RESOLVED = 'resolved',
-  CLOSED = 'closed',
-  ESCALATED = 'escalated',
-  REJECTED = 'rejected',
+  NEW = "new",
+  IN_PROGRESS = "in_progress",
+  WAITING_CUSTOMER = "waiting_customer",
+  RESOLVED = "resolved",
+  CLOSED = "closed",
+  ESCALATED = "escalated",
+  REJECTED = "rejected",
 }
 
 export enum ComplaintPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export enum ComplaintCategory {
-  PAYMENT = 'payment',
-  PRODUCT_NOT_DISPENSED = 'product_not_dispensed',
-  PRODUCT_QUALITY = 'product_quality',
-  WRONG_PRODUCT = 'wrong_product',
-  MACHINE_MALFUNCTION = 'machine_malfunction',
-  PRICE_ISSUE = 'price_issue',
-  REFUND_REQUEST = 'refund_request',
-  SUGGESTION = 'suggestion',
-  OTHER = 'other',
+  PAYMENT = "payment",
+  PRODUCT_NOT_DISPENSED = "product_not_dispensed",
+  PRODUCT_QUALITY = "product_quality",
+  WRONG_PRODUCT = "wrong_product",
+  MACHINE_MALFUNCTION = "machine_malfunction",
+  PRICE_ISSUE = "price_issue",
+  REFUND_REQUEST = "refund_request",
+  SUGGESTION = "suggestion",
+  OTHER = "other",
 }
 
 export enum ComplaintSource {
-  QR_CODE = 'qr_code',
-  TELEGRAM_BOT = 'telegram_bot',
-  PHONE = 'phone',
-  EMAIL = 'email',
-  WEB_FORM = 'web_form',
-  MOBILE_APP = 'mobile_app',
-  INTERNAL = 'internal',
+  QR_CODE = "qr_code",
+  TELEGRAM_BOT = "telegram_bot",
+  PHONE = "phone",
+  EMAIL = "email",
+  WEB_FORM = "web_form",
+  MOBILE_APP = "mobile_app",
+  INTERNAL = "internal",
 }
 
 export enum RefundStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  REJECTED = 'rejected',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  APPROVED = "approved",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  REJECTED = "rejected",
+  CANCELLED = "cancelled",
 }
 
 export enum RefundMethod {
-  CASH = 'cash',
-  CARD = 'card',
-  PAYME = 'payme',
-  CLICK = 'click',
-  UZUM = 'uzum',
-  PRODUCT = 'product',
-  BONUS = 'bonus',
+  CASH = "cash",
+  CARD = "card",
+  PAYME = "payme",
+  CLICK = "click",
+  UZUM = "uzum",
+  PRODUCT = "product",
+  BONUS = "bonus",
 }
 
 // ============================================================================
@@ -109,7 +109,7 @@ export interface IComplaint {
   feedbackComment?: string;
 
   // Metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
 
   createdAt: Date;
@@ -152,7 +152,7 @@ export interface IComplaintRefund {
   processedById?: string;
   processedAt?: Date;
   referenceNumber?: string;
-  bankDetails?: Record<string, any>;
+  bankDetails?: Record<string, unknown>;
   createdAt: Date;
 }
 
@@ -218,69 +218,117 @@ export interface IRefundCreate {
   currency?: string;
   method: RefundMethod;
   reason: string;
-  bankDetails?: Record<string, any>;
+  bankDetails?: Record<string, unknown>;
 }
 
 // ============================================================================
 // LABELS (RU/UZ)
 // ============================================================================
 
-export const COMPLAINT_STATUS_LABELS: Record<ComplaintStatus, { ru: string; uz: string }> = {
-  [ComplaintStatus.NEW]: { ru: 'Новая', uz: 'Yangi' },
-  [ComplaintStatus.IN_PROGRESS]: { ru: 'В обработке', uz: 'Jarayonda' },
-  [ComplaintStatus.WAITING_CUSTOMER]: { ru: 'Ожидает клиента', uz: 'Mijozni kutmoqda' },
-  [ComplaintStatus.RESOLVED]: { ru: 'Решена', uz: 'Hal qilindi' },
-  [ComplaintStatus.CLOSED]: { ru: 'Закрыта', uz: 'Yopildi' },
-  [ComplaintStatus.ESCALATED]: { ru: 'Эскалирована', uz: 'Escalatsiya qilindi' },
-  [ComplaintStatus.REJECTED]: { ru: 'Отклонена', uz: 'Rad etildi' },
+export const COMPLAINT_STATUS_LABELS: Record<
+  ComplaintStatus,
+  { ru: string; uz: string }
+> = {
+  [ComplaintStatus.NEW]: { ru: "Новая", uz: "Yangi" },
+  [ComplaintStatus.IN_PROGRESS]: { ru: "В обработке", uz: "Jarayonda" },
+  [ComplaintStatus.WAITING_CUSTOMER]: {
+    ru: "Ожидает клиента",
+    uz: "Mijozni kutmoqda",
+  },
+  [ComplaintStatus.RESOLVED]: { ru: "Решена", uz: "Hal qilindi" },
+  [ComplaintStatus.CLOSED]: { ru: "Закрыта", uz: "Yopildi" },
+  [ComplaintStatus.ESCALATED]: {
+    ru: "Эскалирована",
+    uz: "Escalatsiya qilindi",
+  },
+  [ComplaintStatus.REJECTED]: { ru: "Отклонена", uz: "Rad etildi" },
 };
 
-export const COMPLAINT_PRIORITY_LABELS: Record<ComplaintPriority, { ru: string; uz: string }> = {
-  [ComplaintPriority.LOW]: { ru: 'Низкий', uz: 'Past' },
-  [ComplaintPriority.MEDIUM]: { ru: 'Средний', uz: "O'rtacha" },
-  [ComplaintPriority.HIGH]: { ru: 'Высокий', uz: 'Yuqori' },
-  [ComplaintPriority.URGENT]: { ru: 'Срочный', uz: 'Shoshilinch' },
+export const COMPLAINT_PRIORITY_LABELS: Record<
+  ComplaintPriority,
+  { ru: string; uz: string }
+> = {
+  [ComplaintPriority.LOW]: { ru: "Низкий", uz: "Past" },
+  [ComplaintPriority.MEDIUM]: { ru: "Средний", uz: "O'rtacha" },
+  [ComplaintPriority.HIGH]: { ru: "Высокий", uz: "Yuqori" },
+  [ComplaintPriority.URGENT]: { ru: "Срочный", uz: "Shoshilinch" },
 };
 
-export const COMPLAINT_CATEGORY_LABELS: Record<ComplaintCategory, { ru: string; uz: string }> = {
-  [ComplaintCategory.PAYMENT]: { ru: 'Проблема с оплатой', uz: "To'lov muammosi" },
-  [ComplaintCategory.PRODUCT_NOT_DISPENSED]: { ru: 'Товар не выдан', uz: 'Mahsulot berilmadi' },
-  [ComplaintCategory.PRODUCT_QUALITY]: { ru: 'Качество товара', uz: 'Mahsulot sifati' },
-  [ComplaintCategory.WRONG_PRODUCT]: { ru: 'Неверный товар', uz: "Noto'g'ri mahsulot" },
-  [ComplaintCategory.MACHINE_MALFUNCTION]: { ru: 'Неисправность автомата', uz: 'Avtomat nosozligi' },
-  [ComplaintCategory.PRICE_ISSUE]: { ru: 'Проблема с ценой', uz: 'Narx muammosi' },
-  [ComplaintCategory.REFUND_REQUEST]: { ru: 'Запрос возврата', uz: "Qaytarish so'rovi" },
-  [ComplaintCategory.SUGGESTION]: { ru: 'Предложение', uz: 'Taklif' },
-  [ComplaintCategory.OTHER]: { ru: 'Другое', uz: 'Boshqa' },
+export const COMPLAINT_CATEGORY_LABELS: Record<
+  ComplaintCategory,
+  { ru: string; uz: string }
+> = {
+  [ComplaintCategory.PAYMENT]: {
+    ru: "Проблема с оплатой",
+    uz: "To'lov muammosi",
+  },
+  [ComplaintCategory.PRODUCT_NOT_DISPENSED]: {
+    ru: "Товар не выдан",
+    uz: "Mahsulot berilmadi",
+  },
+  [ComplaintCategory.PRODUCT_QUALITY]: {
+    ru: "Качество товара",
+    uz: "Mahsulot sifati",
+  },
+  [ComplaintCategory.WRONG_PRODUCT]: {
+    ru: "Неверный товар",
+    uz: "Noto'g'ri mahsulot",
+  },
+  [ComplaintCategory.MACHINE_MALFUNCTION]: {
+    ru: "Неисправность автомата",
+    uz: "Avtomat nosozligi",
+  },
+  [ComplaintCategory.PRICE_ISSUE]: {
+    ru: "Проблема с ценой",
+    uz: "Narx muammosi",
+  },
+  [ComplaintCategory.REFUND_REQUEST]: {
+    ru: "Запрос возврата",
+    uz: "Qaytarish so'rovi",
+  },
+  [ComplaintCategory.SUGGESTION]: { ru: "Предложение", uz: "Taklif" },
+  [ComplaintCategory.OTHER]: { ru: "Другое", uz: "Boshqa" },
 };
 
-export const COMPLAINT_SOURCE_LABELS: Record<ComplaintSource, { ru: string; uz: string }> = {
-  [ComplaintSource.QR_CODE]: { ru: 'QR-код', uz: 'QR-kod' },
-  [ComplaintSource.TELEGRAM_BOT]: { ru: 'Telegram бот', uz: 'Telegram bot' },
-  [ComplaintSource.PHONE]: { ru: 'Телефон', uz: 'Telefon' },
-  [ComplaintSource.EMAIL]: { ru: 'Email', uz: 'Email' },
-  [ComplaintSource.WEB_FORM]: { ru: 'Веб-форма', uz: 'Veb-forma' },
-  [ComplaintSource.MOBILE_APP]: { ru: 'Мобильное приложение', uz: 'Mobil ilova' },
-  [ComplaintSource.INTERNAL]: { ru: 'Внутренняя', uz: 'Ichki' },
+export const COMPLAINT_SOURCE_LABELS: Record<
+  ComplaintSource,
+  { ru: string; uz: string }
+> = {
+  [ComplaintSource.QR_CODE]: { ru: "QR-код", uz: "QR-kod" },
+  [ComplaintSource.TELEGRAM_BOT]: { ru: "Telegram бот", uz: "Telegram bot" },
+  [ComplaintSource.PHONE]: { ru: "Телефон", uz: "Telefon" },
+  [ComplaintSource.EMAIL]: { ru: "Email", uz: "Email" },
+  [ComplaintSource.WEB_FORM]: { ru: "Веб-форма", uz: "Veb-forma" },
+  [ComplaintSource.MOBILE_APP]: {
+    ru: "Мобильное приложение",
+    uz: "Mobil ilova",
+  },
+  [ComplaintSource.INTERNAL]: { ru: "Внутренняя", uz: "Ichki" },
 };
 
-export const REFUND_STATUS_LABELS: Record<RefundStatus, { ru: string; uz: string }> = {
-  [RefundStatus.PENDING]: { ru: 'Ожидает', uz: 'Kutmoqda' },
-  [RefundStatus.APPROVED]: { ru: 'Одобрен', uz: 'Tasdiqlandi' },
-  [RefundStatus.PROCESSING]: { ru: 'Обрабатывается', uz: 'Jarayonda' },
-  [RefundStatus.COMPLETED]: { ru: 'Выполнен', uz: 'Bajarildi' },
-  [RefundStatus.REJECTED]: { ru: 'Отклонен', uz: 'Rad etildi' },
-  [RefundStatus.CANCELLED]: { ru: 'Отменен', uz: 'Bekor qilindi' },
+export const REFUND_STATUS_LABELS: Record<
+  RefundStatus,
+  { ru: string; uz: string }
+> = {
+  [RefundStatus.PENDING]: { ru: "Ожидает", uz: "Kutmoqda" },
+  [RefundStatus.APPROVED]: { ru: "Одобрен", uz: "Tasdiqlandi" },
+  [RefundStatus.PROCESSING]: { ru: "Обрабатывается", uz: "Jarayonda" },
+  [RefundStatus.COMPLETED]: { ru: "Выполнен", uz: "Bajarildi" },
+  [RefundStatus.REJECTED]: { ru: "Отклонен", uz: "Rad etildi" },
+  [RefundStatus.CANCELLED]: { ru: "Отменен", uz: "Bekor qilindi" },
 };
 
-export const REFUND_METHOD_LABELS: Record<RefundMethod, { ru: string; uz: string }> = {
-  [RefundMethod.CASH]: { ru: 'Наличные', uz: 'Naqd' },
-  [RefundMethod.CARD]: { ru: 'Карта', uz: 'Karta' },
-  [RefundMethod.PAYME]: { ru: 'Payme', uz: 'Payme' },
-  [RefundMethod.CLICK]: { ru: 'Click', uz: 'Click' },
-  [RefundMethod.UZUM]: { ru: 'Uzum', uz: 'Uzum' },
-  [RefundMethod.PRODUCT]: { ru: 'Товаром', uz: 'Mahsulot bilan' },
-  [RefundMethod.BONUS]: { ru: 'Бонусами', uz: 'Bonus bilan' },
+export const REFUND_METHOD_LABELS: Record<
+  RefundMethod,
+  { ru: string; uz: string }
+> = {
+  [RefundMethod.CASH]: { ru: "Наличные", uz: "Naqd" },
+  [RefundMethod.CARD]: { ru: "Карта", uz: "Karta" },
+  [RefundMethod.PAYME]: { ru: "Payme", uz: "Payme" },
+  [RefundMethod.CLICK]: { ru: "Click", uz: "Click" },
+  [RefundMethod.UZUM]: { ru: "Uzum", uz: "Uzum" },
+  [RefundMethod.PRODUCT]: { ru: "Товаром", uz: "Mahsulot bilan" },
+  [RefundMethod.BONUS]: { ru: "Бонусами", uz: "Bonus bilan" },
 };
 
 // ============================================================================
@@ -299,30 +347,30 @@ export const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
 // ============================================================================
 
 export const COMPLAINT_STATUS_ICONS: Record<ComplaintStatus, string> = {
-  [ComplaintStatus.NEW]: '🆕',
-  [ComplaintStatus.IN_PROGRESS]: '🔄',
-  [ComplaintStatus.WAITING_CUSTOMER]: '⏳',
-  [ComplaintStatus.RESOLVED]: '✅',
-  [ComplaintStatus.CLOSED]: '📁',
-  [ComplaintStatus.ESCALATED]: '⚠️',
-  [ComplaintStatus.REJECTED]: '❌',
+  [ComplaintStatus.NEW]: "🆕",
+  [ComplaintStatus.IN_PROGRESS]: "🔄",
+  [ComplaintStatus.WAITING_CUSTOMER]: "⏳",
+  [ComplaintStatus.RESOLVED]: "✅",
+  [ComplaintStatus.CLOSED]: "📁",
+  [ComplaintStatus.ESCALATED]: "⚠️",
+  [ComplaintStatus.REJECTED]: "❌",
 };
 
 export const COMPLAINT_PRIORITY_ICONS: Record<ComplaintPriority, string> = {
-  [ComplaintPriority.LOW]: '🟢',
-  [ComplaintPriority.MEDIUM]: '🟡',
-  [ComplaintPriority.HIGH]: '🟠',
-  [ComplaintPriority.URGENT]: '🔴',
+  [ComplaintPriority.LOW]: "🟢",
+  [ComplaintPriority.MEDIUM]: "🟡",
+  [ComplaintPriority.HIGH]: "🟠",
+  [ComplaintPriority.URGENT]: "🔴",
 };
 
 export const COMPLAINT_CATEGORY_ICONS: Record<ComplaintCategory, string> = {
-  [ComplaintCategory.PAYMENT]: '💳',
-  [ComplaintCategory.PRODUCT_NOT_DISPENSED]: '📦',
-  [ComplaintCategory.PRODUCT_QUALITY]: '⭐',
-  [ComplaintCategory.WRONG_PRODUCT]: '🔀',
-  [ComplaintCategory.MACHINE_MALFUNCTION]: '🔧',
-  [ComplaintCategory.PRICE_ISSUE]: '💰',
-  [ComplaintCategory.REFUND_REQUEST]: '💸',
-  [ComplaintCategory.SUGGESTION]: '💡',
-  [ComplaintCategory.OTHER]: '❓',
+  [ComplaintCategory.PAYMENT]: "💳",
+  [ComplaintCategory.PRODUCT_NOT_DISPENSED]: "📦",
+  [ComplaintCategory.PRODUCT_QUALITY]: "⭐",
+  [ComplaintCategory.WRONG_PRODUCT]: "🔀",
+  [ComplaintCategory.MACHINE_MALFUNCTION]: "🔧",
+  [ComplaintCategory.PRICE_ISSUE]: "💰",
+  [ComplaintCategory.REFUND_REQUEST]: "💸",
+  [ComplaintCategory.SUGGESTION]: "💡",
+  [ComplaintCategory.OTHER]: "❓",
 };

@@ -8,97 +8,97 @@
 // ============================================================================
 
 export enum MachineType {
-  COFFEE = 'coffee',
-  SNACK = 'snack',
-  DRINK = 'drink',
-  COMBO = 'combo',
-  FRESH = 'fresh',
-  ICE_CREAM = 'ice_cream',
-  WATER = 'water',
+  COFFEE = "coffee",
+  SNACK = "snack",
+  DRINK = "drink",
+  COMBO = "combo",
+  FRESH = "fresh",
+  ICE_CREAM = "ice_cream",
+  WATER = "water",
 }
 
 export enum MachineStatus {
-  ACTIVE = 'active',
-  LOW_STOCK = 'low_stock',
-  ERROR = 'error',
-  MAINTENANCE = 'maintenance',
-  OFFLINE = 'offline',
-  DISABLED = 'disabled',
+  ACTIVE = "active",
+  LOW_STOCK = "low_stock",
+  ERROR = "error",
+  MAINTENANCE = "maintenance",
+  OFFLINE = "offline",
+  DISABLED = "disabled",
 }
 
 export enum MachineConnectionStatus {
-  ONLINE = 'online',
-  OFFLINE = 'offline',
-  UNSTABLE = 'unstable',
-  UNKNOWN = 'unknown',
+  ONLINE = "online",
+  OFFLINE = "offline",
+  UNSTABLE = "unstable",
+  UNKNOWN = "unknown",
 }
 
 export enum DepreciationMethod {
-  LINEAR = 'linear',
-  DECLINING = 'declining',
-  UNITS_OF_PRODUCTION = 'units_of_production',
+  LINEAR = "linear",
+  DECLINING = "declining",
+  UNITS_OF_PRODUCTION = "units_of_production",
 }
 
 export enum DisposalReason {
-  OBSOLETE = 'obsolete',
-  DAMAGED = 'damaged',
-  SOLD = 'sold',
-  WRITTEN_OFF = 'written_off',
-  OTHER = 'other',
+  OBSOLETE = "obsolete",
+  DAMAGED = "damaged",
+  SOLD = "sold",
+  WRITTEN_OFF = "written_off",
+  OTHER = "other",
 }
 
 export enum MoveReason {
-  INSTALLATION = 'installation',
-  RELOCATION = 'relocation',
-  REMOVAL = 'removal',
-  MAINTENANCE = 'maintenance',
-  CONTRACT_CHANGE = 'contract_change',
-  OTHER = 'other',
+  INSTALLATION = "installation",
+  RELOCATION = "relocation",
+  REMOVAL = "removal",
+  MAINTENANCE = "maintenance",
+  CONTRACT_CHANGE = "contract_change",
+  OTHER = "other",
 }
 
 export enum ComponentType {
-  HOPPER = 'hopper',
-  GRINDER = 'grinder',
-  BREW_UNIT = 'brew_unit',
-  MIXER = 'mixer',
-  PUMP = 'pump',
-  HEATER = 'heater',
-  DISPENSER = 'dispenser',
-  COMPRESSOR = 'compressor',
-  BOARD = 'board',
-  MOTOR = 'motor',
-  OTHER = 'other',
+  HOPPER = "hopper",
+  GRINDER = "grinder",
+  BREW_UNIT = "brew_unit",
+  MIXER = "mixer",
+  PUMP = "pump",
+  HEATER = "heater",
+  DISPENSER = "dispenser",
+  COMPRESSOR = "compressor",
+  BOARD = "board",
+  MOTOR = "motor",
+  OTHER = "other",
 }
 
 export enum ComponentStatus {
-  INSTALLED = 'installed',
-  REMOVED = 'removed',
-  IN_REPAIR = 'in_repair',
-  DISPOSED = 'disposed',
+  INSTALLED = "installed",
+  REMOVED = "removed",
+  IN_REPAIR = "in_repair",
+  DISPOSED = "disposed",
 }
 
 export enum ErrorSeverity {
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error',
-  CRITICAL = 'critical',
+  INFO = "info",
+  WARNING = "warning",
+  ERROR = "error",
+  CRITICAL = "critical",
 }
 
 export enum MaintenanceType {
-  CLEANING = 'cleaning',
-  INSPECTION = 'inspection',
-  CALIBRATION = 'calibration',
-  PARTS_REPLACEMENT = 'parts_replacement',
-  SOFTWARE_UPDATE = 'software_update',
-  FULL_SERVICE = 'full_service',
+  CLEANING = "cleaning",
+  INSPECTION = "inspection",
+  CALIBRATION = "calibration",
+  PARTS_REPLACEMENT = "parts_replacement",
+  SOFTWARE_UPDATE = "software_update",
+  FULL_SERVICE = "full_service",
 }
 
 export enum MaintenanceStatus {
-  SCHEDULED = 'scheduled',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  SKIPPED = 'skipped',
-  OVERDUE = 'overdue',
+  SCHEDULED = "scheduled",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  SKIPPED = "skipped",
+  OVERDUE = "overdue",
 }
 
 // ============================================================================
@@ -217,7 +217,7 @@ export interface IMachine {
   // JSONB
   telemetry: IMachineTelemetry;
   settings: IMachineSettings;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   // Notes
   notes?: string;
@@ -257,7 +257,7 @@ export interface IMachineSlot {
   minQuantity: number;
   lastRefilledAt?: Date;
   totalSold: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -276,7 +276,7 @@ export interface IMachineLocationHistory {
   movedByUserId: string;
   reason: MoveReason;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
@@ -297,7 +297,7 @@ export interface IMachineComponent {
   expectedLifeHours?: number;
   currentHours: number;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -318,7 +318,7 @@ export interface IMachineErrorLog {
   resolvedByUserId?: string;
   resolution?: string;
   taskId?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   createdAt: Date;
 
   // Computed
@@ -348,7 +348,7 @@ export interface IMachineMaintenanceSchedule {
     completed: boolean;
     completedAt?: Date;
   }[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 
@@ -389,7 +389,7 @@ export interface IMachineCreate {
   description?: string;
   image?: string;
   contractId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMachineUpdate {
@@ -424,7 +424,7 @@ export interface IMachineUpdate {
   description?: string;
   image?: string;
   contractId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMachineSlotCreate {
@@ -435,7 +435,7 @@ export interface IMachineSlotCreate {
   price?: number;
   costPrice?: number;
   minQuantity?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMachineSlotUpdate {
@@ -445,7 +445,7 @@ export interface IMachineSlotUpdate {
   costPrice?: number;
   isActive?: boolean;
   minQuantity?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMachineMoveRequest {
@@ -468,7 +468,7 @@ export interface IMachineComponentCreate {
   warrantyUntil?: Date;
   expectedLifeHours?: number;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMachineMaintenanceCreate {
@@ -506,8 +506,13 @@ export interface IMachineFilter {
   search?: string;
   limit?: number;
   offset?: number;
-  sortBy?: 'name' | 'machineNumber' | 'status' | 'lastRefillDate' | 'totalRevenue';
-  sortOrder?: 'ASC' | 'DESC';
+  sortBy?:
+    | "name"
+    | "machineNumber"
+    | "status"
+    | "lastRefillDate"
+    | "totalRevenue";
+  sortOrder?: "ASC" | "DESC";
 }
 
 export interface IMachineStats {
@@ -537,68 +542,71 @@ export interface IMachineSlotStats {
 // ============================================================================
 
 export const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
-  [MachineType.COFFEE]: 'Кофейный',
-  [MachineType.SNACK]: 'Снековый',
-  [MachineType.DRINK]: 'Напитки',
-  [MachineType.COMBO]: 'Комбо',
-  [MachineType.FRESH]: 'Свежие продукты',
-  [MachineType.ICE_CREAM]: 'Мороженое',
-  [MachineType.WATER]: 'Вода',
+  [MachineType.COFFEE]: "Кофейный",
+  [MachineType.SNACK]: "Снековый",
+  [MachineType.DRINK]: "Напитки",
+  [MachineType.COMBO]: "Комбо",
+  [MachineType.FRESH]: "Свежие продукты",
+  [MachineType.ICE_CREAM]: "Мороженое",
+  [MachineType.WATER]: "Вода",
 };
 
 export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
-  [MachineStatus.ACTIVE]: 'Активен',
-  [MachineStatus.LOW_STOCK]: 'Мало товара',
-  [MachineStatus.ERROR]: 'Ошибка',
-  [MachineStatus.MAINTENANCE]: 'На обслуживании',
-  [MachineStatus.OFFLINE]: 'Офлайн',
-  [MachineStatus.DISABLED]: 'Отключен',
+  [MachineStatus.ACTIVE]: "Активен",
+  [MachineStatus.LOW_STOCK]: "Мало товара",
+  [MachineStatus.ERROR]: "Ошибка",
+  [MachineStatus.MAINTENANCE]: "На обслуживании",
+  [MachineStatus.OFFLINE]: "Офлайн",
+  [MachineStatus.DISABLED]: "Отключен",
 };
 
-export const MACHINE_CONNECTION_STATUS_LABELS: Record<MachineConnectionStatus, string> = {
-  [MachineConnectionStatus.ONLINE]: 'Онлайн',
-  [MachineConnectionStatus.OFFLINE]: 'Офлайн',
-  [MachineConnectionStatus.UNSTABLE]: 'Нестабильно',
-  [MachineConnectionStatus.UNKNOWN]: 'Неизвестно',
+export const MACHINE_CONNECTION_STATUS_LABELS: Record<
+  MachineConnectionStatus,
+  string
+> = {
+  [MachineConnectionStatus.ONLINE]: "Онлайн",
+  [MachineConnectionStatus.OFFLINE]: "Офлайн",
+  [MachineConnectionStatus.UNSTABLE]: "Нестабильно",
+  [MachineConnectionStatus.UNKNOWN]: "Неизвестно",
 };
 
 export const COMPONENT_TYPE_LABELS: Record<ComponentType, string> = {
-  [ComponentType.HOPPER]: 'Бункер',
-  [ComponentType.GRINDER]: 'Гриндер',
-  [ComponentType.BREW_UNIT]: 'Варочный блок',
-  [ComponentType.MIXER]: 'Миксер',
-  [ComponentType.PUMP]: 'Помпа',
-  [ComponentType.HEATER]: 'Нагреватель',
-  [ComponentType.DISPENSER]: 'Диспенсер',
-  [ComponentType.COMPRESSOR]: 'Компрессор',
-  [ComponentType.BOARD]: 'Плата',
-  [ComponentType.MOTOR]: 'Мотор',
-  [ComponentType.OTHER]: 'Другое',
+  [ComponentType.HOPPER]: "Бункер",
+  [ComponentType.GRINDER]: "Гриндер",
+  [ComponentType.BREW_UNIT]: "Варочный блок",
+  [ComponentType.MIXER]: "Миксер",
+  [ComponentType.PUMP]: "Помпа",
+  [ComponentType.HEATER]: "Нагреватель",
+  [ComponentType.DISPENSER]: "Диспенсер",
+  [ComponentType.COMPRESSOR]: "Компрессор",
+  [ComponentType.BOARD]: "Плата",
+  [ComponentType.MOTOR]: "Мотор",
+  [ComponentType.OTHER]: "Другое",
 };
 
 export const MAINTENANCE_TYPE_LABELS: Record<MaintenanceType, string> = {
-  [MaintenanceType.CLEANING]: 'Чистка',
-  [MaintenanceType.INSPECTION]: 'Осмотр',
-  [MaintenanceType.CALIBRATION]: 'Калибровка',
-  [MaintenanceType.PARTS_REPLACEMENT]: 'Замена деталей',
-  [MaintenanceType.SOFTWARE_UPDATE]: 'Обновление ПО',
-  [MaintenanceType.FULL_SERVICE]: 'Полное ТО',
+  [MaintenanceType.CLEANING]: "Чистка",
+  [MaintenanceType.INSPECTION]: "Осмотр",
+  [MaintenanceType.CALIBRATION]: "Калибровка",
+  [MaintenanceType.PARTS_REPLACEMENT]: "Замена деталей",
+  [MaintenanceType.SOFTWARE_UPDATE]: "Обновление ПО",
+  [MaintenanceType.FULL_SERVICE]: "Полное ТО",
 };
 
 export const MOVE_REASON_LABELS: Record<MoveReason, string> = {
-  [MoveReason.INSTALLATION]: 'Установка',
-  [MoveReason.RELOCATION]: 'Перемещение',
-  [MoveReason.REMOVAL]: 'Снятие',
-  [MoveReason.MAINTENANCE]: 'На ремонт',
-  [MoveReason.CONTRACT_CHANGE]: 'Смена контракта',
-  [MoveReason.OTHER]: 'Другое',
+  [MoveReason.INSTALLATION]: "Установка",
+  [MoveReason.RELOCATION]: "Перемещение",
+  [MoveReason.REMOVAL]: "Снятие",
+  [MoveReason.MAINTENANCE]: "На ремонт",
+  [MoveReason.CONTRACT_CHANGE]: "Смена контракта",
+  [MoveReason.OTHER]: "Другое",
 };
 
 export const ERROR_SEVERITY_LABELS: Record<ErrorSeverity, string> = {
-  [ErrorSeverity.INFO]: 'Информация',
-  [ErrorSeverity.WARNING]: 'Предупреждение',
-  [ErrorSeverity.ERROR]: 'Ошибка',
-  [ErrorSeverity.CRITICAL]: 'Критично',
+  [ErrorSeverity.INFO]: "Информация",
+  [ErrorSeverity.WARNING]: "Предупреждение",
+  [ErrorSeverity.ERROR]: "Ошибка",
+  [ErrorSeverity.CRITICAL]: "Критично",
 };
 
 // ============================================================================
@@ -606,22 +614,22 @@ export const ERROR_SEVERITY_LABELS: Record<ErrorSeverity, string> = {
 // ============================================================================
 
 export const MACHINE_TYPE_LABELS_UZ: Record<MachineType, string> = {
-  [MachineType.COFFEE]: 'Qahva',
-  [MachineType.SNACK]: 'Sneklar',
-  [MachineType.DRINK]: 'Ichimliklar',
-  [MachineType.COMBO]: 'Kombo',
-  [MachineType.FRESH]: 'Yangi mahsulotlar',
-  [MachineType.ICE_CREAM]: 'Muzqaymoq',
-  [MachineType.WATER]: 'Suv',
+  [MachineType.COFFEE]: "Qahva",
+  [MachineType.SNACK]: "Sneklar",
+  [MachineType.DRINK]: "Ichimliklar",
+  [MachineType.COMBO]: "Kombo",
+  [MachineType.FRESH]: "Yangi mahsulotlar",
+  [MachineType.ICE_CREAM]: "Muzqaymoq",
+  [MachineType.WATER]: "Suv",
 };
 
 export const MACHINE_STATUS_LABELS_UZ: Record<MachineStatus, string> = {
-  [MachineStatus.ACTIVE]: 'Faol',
-  [MachineStatus.LOW_STOCK]: 'Kam tovar',
-  [MachineStatus.ERROR]: 'Xato',
-  [MachineStatus.MAINTENANCE]: 'Xizmatda',
-  [MachineStatus.OFFLINE]: 'Oflayn',
-  [MachineStatus.DISABLED]: 'O\'chirilgan',
+  [MachineStatus.ACTIVE]: "Faol",
+  [MachineStatus.LOW_STOCK]: "Kam tovar",
+  [MachineStatus.ERROR]: "Xato",
+  [MachineStatus.MAINTENANCE]: "Xizmatda",
+  [MachineStatus.OFFLINE]: "Oflayn",
+  [MachineStatus.DISABLED]: "O'chirilgan",
 };
 
 // ============================================================================
@@ -629,29 +637,29 @@ export const MACHINE_STATUS_LABELS_UZ: Record<MachineStatus, string> = {
 // ============================================================================
 
 export const MACHINE_TYPE_ICONS: Record<MachineType, string> = {
-  [MachineType.COFFEE]: '☕',
-  [MachineType.SNACK]: '🍫',
-  [MachineType.DRINK]: '🥤',
-  [MachineType.COMBO]: '🏪',
-  [MachineType.FRESH]: '🥗',
-  [MachineType.ICE_CREAM]: '🍦',
-  [MachineType.WATER]: '💧',
+  [MachineType.COFFEE]: "☕",
+  [MachineType.SNACK]: "🍫",
+  [MachineType.DRINK]: "🥤",
+  [MachineType.COMBO]: "🏪",
+  [MachineType.FRESH]: "🥗",
+  [MachineType.ICE_CREAM]: "🍦",
+  [MachineType.WATER]: "💧",
 };
 
 export const MACHINE_STATUS_ICONS: Record<MachineStatus, string> = {
-  [MachineStatus.ACTIVE]: '✅',
-  [MachineStatus.LOW_STOCK]: '📦',
-  [MachineStatus.ERROR]: '❌',
-  [MachineStatus.MAINTENANCE]: '🔧',
-  [MachineStatus.OFFLINE]: '📴',
-  [MachineStatus.DISABLED]: '⛔',
+  [MachineStatus.ACTIVE]: "✅",
+  [MachineStatus.LOW_STOCK]: "📦",
+  [MachineStatus.ERROR]: "❌",
+  [MachineStatus.MAINTENANCE]: "🔧",
+  [MachineStatus.OFFLINE]: "📴",
+  [MachineStatus.DISABLED]: "⛔",
 };
 
 export const ERROR_SEVERITY_ICONS: Record<ErrorSeverity, string> = {
-  [ErrorSeverity.INFO]: 'ℹ️',
-  [ErrorSeverity.WARNING]: '⚠️',
-  [ErrorSeverity.ERROR]: '❌',
-  [ErrorSeverity.CRITICAL]: '🚨',
+  [ErrorSeverity.INFO]: "ℹ️",
+  [ErrorSeverity.WARNING]: "⚠️",
+  [ErrorSeverity.ERROR]: "❌",
+  [ErrorSeverity.CRITICAL]: "🚨",
 };
 
 // ============================================================================
@@ -659,37 +667,37 @@ export const ERROR_SEVERITY_ICONS: Record<ErrorSeverity, string> = {
 // ============================================================================
 
 export const MACHINE_STATUS_COLORS: Record<MachineStatus, string> = {
-  [MachineStatus.ACTIVE]: 'bg-green-100 text-green-800',
-  [MachineStatus.LOW_STOCK]: 'bg-yellow-100 text-yellow-800',
-  [MachineStatus.ERROR]: 'bg-red-100 text-red-800',
-  [MachineStatus.MAINTENANCE]: 'bg-blue-100 text-blue-800',
-  [MachineStatus.OFFLINE]: 'bg-gray-100 text-gray-500',
-  [MachineStatus.DISABLED]: 'bg-gray-100 text-gray-800',
+  [MachineStatus.ACTIVE]: "bg-green-100 text-green-800",
+  [MachineStatus.LOW_STOCK]: "bg-yellow-100 text-yellow-800",
+  [MachineStatus.ERROR]: "bg-red-100 text-red-800",
+  [MachineStatus.MAINTENANCE]: "bg-blue-100 text-blue-800",
+  [MachineStatus.OFFLINE]: "bg-gray-100 text-gray-500",
+  [MachineStatus.DISABLED]: "bg-gray-100 text-gray-800",
 };
 
 export const MACHINE_TYPE_COLORS: Record<MachineType, string> = {
-  [MachineType.COFFEE]: 'bg-amber-100 text-amber-800',
-  [MachineType.SNACK]: 'bg-orange-100 text-orange-800',
-  [MachineType.DRINK]: 'bg-blue-100 text-blue-800',
-  [MachineType.COMBO]: 'bg-purple-100 text-purple-800',
-  [MachineType.FRESH]: 'bg-green-100 text-green-800',
-  [MachineType.ICE_CREAM]: 'bg-cyan-100 text-cyan-800',
-  [MachineType.WATER]: 'bg-sky-100 text-sky-800',
+  [MachineType.COFFEE]: "bg-amber-100 text-amber-800",
+  [MachineType.SNACK]: "bg-orange-100 text-orange-800",
+  [MachineType.DRINK]: "bg-blue-100 text-blue-800",
+  [MachineType.COMBO]: "bg-purple-100 text-purple-800",
+  [MachineType.FRESH]: "bg-green-100 text-green-800",
+  [MachineType.ICE_CREAM]: "bg-cyan-100 text-cyan-800",
+  [MachineType.WATER]: "bg-sky-100 text-sky-800",
 };
 
 export const ERROR_SEVERITY_COLORS: Record<ErrorSeverity, string> = {
-  [ErrorSeverity.INFO]: 'bg-blue-100 text-blue-800',
-  [ErrorSeverity.WARNING]: 'bg-yellow-100 text-yellow-800',
-  [ErrorSeverity.ERROR]: 'bg-red-100 text-red-800',
-  [ErrorSeverity.CRITICAL]: 'bg-red-200 text-red-900',
+  [ErrorSeverity.INFO]: "bg-blue-100 text-blue-800",
+  [ErrorSeverity.WARNING]: "bg-yellow-100 text-yellow-800",
+  [ErrorSeverity.ERROR]: "bg-red-100 text-red-800",
+  [ErrorSeverity.CRITICAL]: "bg-red-200 text-red-900",
 };
 
 export const MAINTENANCE_STATUS_COLORS: Record<MaintenanceStatus, string> = {
-  [MaintenanceStatus.SCHEDULED]: 'bg-blue-100 text-blue-800',
-  [MaintenanceStatus.IN_PROGRESS]: 'bg-yellow-100 text-yellow-800',
-  [MaintenanceStatus.COMPLETED]: 'bg-green-100 text-green-800',
-  [MaintenanceStatus.SKIPPED]: 'bg-gray-100 text-gray-800',
-  [MaintenanceStatus.OVERDUE]: 'bg-red-100 text-red-800',
+  [MaintenanceStatus.SCHEDULED]: "bg-blue-100 text-blue-800",
+  [MaintenanceStatus.IN_PROGRESS]: "bg-yellow-100 text-yellow-800",
+  [MaintenanceStatus.COMPLETED]: "bg-green-100 text-green-800",
+  [MaintenanceStatus.SKIPPED]: "bg-gray-100 text-gray-800",
+  [MaintenanceStatus.OVERDUE]: "bg-red-100 text-red-800",
 };
 
 // ============================================================================
@@ -699,8 +707,8 @@ export const MAINTENANCE_STATUS_COLORS: Record<MaintenanceStatus, string> = {
 export const DEFAULT_MACHINE_SETTINGS: IMachineSettings = {
   operatingHours: {
     enabled: false,
-    start: '00:00',
-    end: '23:59',
+    start: "00:00",
+    end: "23:59",
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
   },
   temperature: {
@@ -739,7 +747,7 @@ export const DEFAULT_TELEMETRY: IMachineTelemetry = {
 export function machineNeedsRefill(
   currentCount: number,
   maxSlots: number,
-  thresholdPercent: number
+  thresholdPercent: number,
 ): boolean {
   if (maxSlots <= 0) return false;
   const fillPercent = (currentCount / maxSlots) * 100;
@@ -753,7 +761,7 @@ export function calculateDepreciation(
   purchasePrice: number,
   depreciationYears: number,
   method: DepreciationMethod,
-  yearsSincePurchase: number
+  yearsSincePurchase: number,
 ): number {
   if (!purchasePrice || !depreciationYears || depreciationYears <= 0) return 0;
 
@@ -780,10 +788,10 @@ export function calculateDepreciation(
  */
 export function getPaymentMethods(machine: IMachine): string[] {
   const methods: string[] = [];
-  if (machine.acceptsCash) methods.push('cash');
-  if (machine.acceptsCard) methods.push('card');
-  if (machine.acceptsQr) methods.push('qr');
-  if (machine.acceptsNfc) methods.push('nfc');
+  if (machine.acceptsCash) methods.push("cash");
+  if (machine.acceptsCard) methods.push("card");
+  if (machine.acceptsQr) methods.push("qr");
+  if (machine.acceptsNfc) methods.push("nfc");
   return methods;
 }
 
@@ -791,5 +799,5 @@ export function getPaymentMethods(machine: IMachine): string[] {
  * Format machine number
  */
 export function formatMachineNumber(number: number): string {
-  return `M-${number.toString().padStart(4, '0')}`;
+  return `M-${number.toString().padStart(4, "0")}`;
 }

@@ -120,12 +120,21 @@ export function MenuPage() {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface ProductCardItem {
+  id: string;
+  name: string;
+  type: string;
+  image?: string;
+  sellPrice: number;
+  description?: string;
+  rating?: number;
+}
+
 function ProductCard({
   product,
   machineId,
 }: {
-  product: any;
+  product: ProductCardItem;
   machineId?: string;
 }) {
   const navigate = useNavigate();

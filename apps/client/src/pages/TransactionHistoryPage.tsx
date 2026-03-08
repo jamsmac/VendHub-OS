@@ -16,6 +16,7 @@ import {
   Clock,
   Search,
   ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -23,11 +24,19 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 type TransactionStatus = "completed" | "pending" | "failed" | "refunded";
 type FilterPeriod = "all" | "today" | "week" | "month";
 
-// Status config labels are resolved inside the component with t()
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface Transaction {
+  id: string;
+  status: TransactionStatus;
+  amount: number;
+  paymentMethod?: string;
+  createdAt: string;
+  product?: { id: string; name: string; image?: string };
+  machine?: { id: string; name: string };
+}
+
 const statusConfigStatic: Record<
   TransactionStatus,
-  { icon: any; color: string; labelKey: string }
+  { icon: LucideIcon; color: string; labelKey: string }
 > = {
   completed: {
     icon: CheckCircle,
@@ -62,8 +71,7 @@ export function TransactionHistoryPage() {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filteredTransactions = transactions?.filter((tx: any) => {
+  const filteredTransactions = transactions?.filter((tx: Transaction) => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
     return (
@@ -160,8 +168,8 @@ export function TransactionHistoryPage() {
         </div>
       ) : filteredTransactions?.length > 0 ? (
         <div className="space-y-3">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {filteredTransactions.map((tx: any) => {
+          {}
+          {filteredTransactions.map((tx: Transaction) => {
             const statusStatic =
               statusConfigStatic[tx.status as TransactionStatus] ||
               statusConfigStatic.completed;
@@ -238,10 +246,11 @@ export function TransactionHistoryPage() {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {}
                 {
-                  transactions.filter((tx: any) => tx.status === "completed")
-                    .length
+                  transactions.filter(
+                    (tx: Transaction) => tx.status === "completed",
+                  ).length
                 }
               </p>
               <p className="text-xs text-muted-foreground">
@@ -252,20 +261,24 @@ export function TransactionHistoryPage() {
               <p className="text-2xl font-bold text-primary">
                 {formatCurrency(
                   transactions
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    .filter((tx: any) => tx.status === "completed")
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    .reduce((sum: number, tx: any) => sum + tx.amount, 0),
+
+                    .filter((tx: Transaction) => tx.status === "completed")
+
+                    .reduce(
+                      (sum: number, tx: Transaction) => sum + tx.amount,
+                      0,
+                    ),
                 )}
               </p>
               <p className="text-xs text-muted-foreground">{t("spent")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-primary">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {}
                 {
-                  transactions.filter((tx: any) => tx.status === "refunded")
-                    .length
+                  transactions.filter(
+                    (tx: Transaction) => tx.status === "refunded",
+                  ).length
                 }
               </p>
               <p className="text-xs text-muted-foreground">
