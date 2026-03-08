@@ -39,7 +39,6 @@ export enum CollectionSource {
 @Index(["status", "collectedAt"])
 @Index(["machineId", "collectedAt"])
 @Index(["operatorId", "collectedAt"])
-@Index(["organizationId"])
 export class Collection extends BaseEntity {
   @Column({ type: "uuid" })
   @Index()
@@ -120,7 +119,6 @@ export class Collection extends BaseEntity {
 // ============================================================================
 
 @Entity("collection_history")
-@Index(["collectionId"])
 export class CollectionHistory extends BaseEntity {
   @Column({ type: "uuid" })
   @Index()

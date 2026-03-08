@@ -339,14 +339,35 @@ export class UserSession extends BaseEntity {
     userAgent?: string;
   };
 
-  @Column()
-  ipAddress: string;
+  @Column({ type: "inet", nullable: true })
+  ipAddress: string | null;
+
+  @Column({ type: "text", nullable: true })
+  userAgent: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  deviceType: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  deviceName: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  os: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  browser: string | null;
+
+  @Column({ type: "boolean", default: true })
+  isActive: boolean;
 
   @Column()
   lastActivityAt: Date;
 
-  @Column()
-  expiresAt: Date;
+  @Column({ type: "timestamp with time zone", nullable: true })
+  lastUsedAt: Date | null;
+
+  @Column({ type: "timestamp with time zone", nullable: true })
+  expiresAt: Date | null;
 
   @Column({ default: false })
   isRevoked: boolean;
@@ -357,7 +378,11 @@ export class UserSession extends BaseEntity {
   @Column({ nullable: true })
   revokedReason: string;
 
+  @Column({ type: "jsonb", nullable: true, default: {} })
+  metadata: Record<string, unknown>;
+
   get isExpired(): boolean {
+    if (!this.expiresAt) return false;
     return new Date() > this.expiresAt;
   }
 

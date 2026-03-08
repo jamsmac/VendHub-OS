@@ -194,13 +194,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     error: QueryFailedError,
     errorCodeRef: { code: string },
   ): string {
-    const driverError = error.driverError as {
-      code?: string;
-      detail?: string;
-      column?: string;
-      table?: string;
-      message?: string;
-    };
+    const driverError = error.driverError as { code?: string; detail?: string };
 
     switch (driverError?.code) {
       case "23505": // unique_violation
@@ -211,7 +205,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return "Referenced record does not exist";
       case "23502": // not_null_violation
         errorCodeRef.code = ErrorCode.DB_NOT_NULL_VIOLATION;
-        return `Required field is missing: column=${driverError?.column || "?"} table=${driverError?.table || "?"} detail=${driverError?.detail || driverError?.message || error.message || "?"}`;
+        return "Required field is missing";
       case "22P02": // invalid_text_representation
         errorCodeRef.code = ErrorCode.DB_INVALID_DATA;
         return "Invalid data format";

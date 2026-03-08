@@ -10,10 +10,11 @@ import { UsersModule } from "../users/users.module";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
 import { CookieService } from "./services/cookie.service";
-import { UserSession, PasswordResetToken } from "./entities/auth.entity";
 import {
   User,
+  UserSession,
   TwoFactorAuth,
+  PasswordResetToken,
   LoginAttempt,
 } from "../users/entities/user.entity";
 
