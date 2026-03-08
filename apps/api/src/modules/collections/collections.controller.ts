@@ -27,6 +27,7 @@ import {
   BulkCancelCollectionDto,
   CollectionQueryDto,
 } from "./dto/collection.dto";
+import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentUserId,
   CurrentOrganizationId,
@@ -38,9 +39,9 @@ export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
 
   // ── LIST ──────────────────────────────────────────────
-  // Roles: ALL (operators see only their own via IDOR guard in service)
   @ApiOperation({ summary: "List all collections with optional filters" })
   @Get()
+  @Roles("owner", "admin", "manager", "operator", "accountant")
   findAll(
     @CurrentOrganizationId() organizationId: string,
     @Query() query: CollectionQueryDto,
@@ -49,35 +50,35 @@ export class CollectionsController {
   }
 
   // ── PENDING (Stage 1 waiting for Stage 2) ─────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({
     summary: "Get pending collections awaiting stage 2 processing",
   })
   @Get("pending")
+  @Roles("owner", "admin", "manager")
   findPending(@CurrentOrganizationId() organizationId: string) {
     return this.collectionsService.findPending(organizationId);
   }
 
   // ── MY COLLECTIONS TODAY ──────────────────────────────
-  // Roles: ALL
   @ApiOperation({ summary: "Get collections created by the current operator" })
   @Get("my")
+  @Roles("owner", "admin", "manager", "operator")
   findMy(@CurrentUserId() operatorId: string) {
     return this.collectionsService.findByOperator(operatorId);
   }
 
   // ── STATS ─────────────────────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Get collection statistics for the organization" })
   @Get("stats")
+  @Roles("owner", "admin", "manager")
   getStats(@CurrentOrganizationId() organizationId: string) {
     return this.collectionsService.getStats(organizationId);
   }
 
   // ── SINGLE ────────────────────────────────────────────
-  // Roles: ALL (IDOR guard for operators in findOne)
   @ApiOperation({ summary: "Get a specific collection by ID" })
   @Get(":id")
+  @Roles("owner", "admin", "manager", "operator", "accountant")
   findOne(
     @CurrentOrganizationId() organizationId: string,
     @Param("id", ParseUUIDPipe) id: string,
@@ -86,17 +87,17 @@ export class CollectionsController {
   }
 
   // ── HISTORY (audit trail) ─────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Get audit history for a specific collection" })
   @Get(":id/history")
+  @Roles("owner", "admin", "manager")
   getHistory(@Param("id", ParseUUIDPipe) id: string) {
     return this.collectionsService.getHistory(id);
   }
 
   // ── CREATE (Stage 1) ──────────────────────────────────
-  // Roles: OPERATOR
   @ApiOperation({ summary: "Create a new collection (stage 1)" })
   @Post()
+  @Roles("owner", "admin", "manager", "operator")
   @HttpCode(HttpStatus.CREATED)
   create(
     @CurrentOrganizationId() organizationId: string,
@@ -107,9 +108,9 @@ export class CollectionsController {
   }
 
   // ── BULK CREATE (historical import) ───────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Bulk create collections for historical import" })
   @Post("bulk")
+  @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   bulkCreate(
     @CurrentOrganizationId() organizationId: string,
@@ -120,9 +121,9 @@ export class CollectionsController {
   }
 
   // ── RECEIVE (Stage 2) ─────────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Receive a collection (stage 2 processing)" })
   @Patch(":id/receive")
+  @Roles("owner", "admin", "manager")
   receive(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() managerId: string,
@@ -133,9 +134,9 @@ export class CollectionsController {
   }
 
   // ── EDIT ──────────────────────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Edit an existing collection" })
   @Patch(":id/edit")
+  @Roles("owner", "admin", "manager")
   edit(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() userId: string,
@@ -146,9 +147,9 @@ export class CollectionsController {
   }
 
   // ── CANCEL ────────────────────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Cancel a collection with optional notes" })
   @Patch(":id/cancel")
+  @Roles("owner", "admin", "manager")
   cancel(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() userId: string,
@@ -159,9 +160,9 @@ export class CollectionsController {
   }
 
   // ── BULK CANCEL ───────────────────────────────────────
-  // Roles: MANAGER, ADMIN
   @ApiOperation({ summary: "Bulk cancel multiple collections" })
   @Patch("bulk-cancel")
+  @Roles("owner", "admin", "manager")
   bulkCancel(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUserId() userId: string,
@@ -171,9 +172,9 @@ export class CollectionsController {
   }
 
   // ── HARD DELETE ───────────────────────────────────────
-  // Roles: ADMIN only
   @ApiOperation({ summary: "Permanently delete a collection (admin only)" })
   @Delete(":id")
+  @Roles("owner", "admin")
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(
     @CurrentOrganizationId() organizationId: string,
