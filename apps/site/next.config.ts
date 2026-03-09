@@ -5,8 +5,6 @@ import path from "path";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-
   // Monorepo settings from BASE
   transpilePackages: ["@vendhub/shared"],
   outputFileTracingRoot: path.join(__dirname, "../.."),
