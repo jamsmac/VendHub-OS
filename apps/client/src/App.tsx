@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Layout } from "./components/layout/Layout";
 import { useUserStore } from "./lib/store";
+import { useTelegramAuth } from "./hooks/useTelegramAuth";
 
 // Eager: landing + core shell (always needed)
 import { HomePage } from "./pages/HomePage";
@@ -107,6 +108,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  // Auto-authenticate when running inside Telegram WebApp
+  useTelegramAuth();
+
   return (
     <>
       <Suspense fallback={<LoadingFallback />}>

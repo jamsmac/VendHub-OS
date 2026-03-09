@@ -120,6 +120,36 @@ export class AuthController {
     return result;
   }
 
+  @Post("telegram")
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Login via Telegram WebApp" })
+  @ApiResponse({ status: 200, description: "Login successful via Telegram" })
+  @ApiResponse({ status: 401, description: "Invalid Telegram signature" })
+  async loginTelegram(
+    @Body("initData") initData: string,
+    @Ip() ipAddress: string,
+    @Headers("user-agent") userAgent: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.loginTelegram(
+      initData,
+      ipAddress,
+      userAgent,
+    );
+
+    if (result.accessToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
+  }
+
   @Post("refresh")
   @Public()
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute

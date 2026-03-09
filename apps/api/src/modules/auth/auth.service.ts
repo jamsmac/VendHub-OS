@@ -339,6 +339,106 @@ export class AuthService {
   }
 
   /**
+   * Login via Telegram WebApp initData
+   * Verifies HMAC-SHA256 signature per https://core.telegram.org/bots/webapps#validating-data
+   */
+  async loginTelegram(initData: string, ipAddress: string, userAgent: string) {
+    const botToken = this.configService.get<string>("TELEGRAM_BOT_TOKEN");
+    if (!botToken) {
+      throw new InternalServerErrorException(
+        "Telegram bot token is not configured",
+      );
+    }
+
+    // Parse initData (URL-encoded query string)
+    const params = new URLSearchParams(initData);
+    const hash = params.get("hash");
+    if (!hash) {
+      throw new UnauthorizedException("Missing hash in Telegram initData");
+    }
+
+    // Build check string: sort params (except hash), join with \n
+    params.delete("hash");
+    const checkArr: string[] = [];
+    params.forEach((value, key) => checkArr.push(`${key}=${value}`));
+    checkArr.sort();
+    const checkString = checkArr.join("\n");
+
+    // Verify signature: HMAC-SHA256(checkString, HMAC-SHA256("WebAppData", botToken))
+    const secretKey = crypto
+      .createHmac("sha256", "WebAppData")
+      .update(botToken)
+      .digest();
+    const computedHash = crypto
+      .createHmac("sha256", secretKey)
+      .update(checkString)
+      .digest("hex");
+
+    if (computedHash !== hash) {
+      throw new UnauthorizedException("Invalid Telegram signature");
+    }
+
+    // Check auth_date freshness (allow up to 5 minutes)
+    const authDate = Number(params.get("auth_date") || 0);
+    if (Date.now() / 1000 - authDate > 300) {
+      throw new UnauthorizedException("Telegram auth data has expired");
+    }
+
+    // Extract user info
+    const userJson = params.get("user");
+    if (!userJson) {
+      throw new UnauthorizedException("Missing user data in Telegram initData");
+    }
+    const tgUser = JSON.parse(userJson) as {
+      id: number;
+      first_name?: string;
+      last_name?: string;
+      username?: string;
+      photo_url?: string;
+    };
+
+    const telegramId = String(tgUser.id);
+
+    // Find user by telegramId
+    let user = await this.userRepository.findOne({
+      where: { telegramId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        "No account linked to this Telegram ID. Please contact your administrator.",
+      );
+    }
+
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new ForbiddenException("Account is suspended");
+    }
+
+    // Update last login info + telegram username
+    user.lastLoginAt = new Date();
+    user.lastLoginIp = ipAddress;
+    if (tgUser.username) {
+      user.telegramUsername = tgUser.username;
+    }
+    await this.userRepository.save(user);
+
+    // Create session
+    const deviceInfo = this.parseUserAgent(userAgent);
+    const session = await this.createSession(user, ipAddress, deviceInfo);
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user, session.id);
+
+    this.logger.log(`Telegram login: user ${user.id} (tg:${telegramId})`);
+
+    return {
+      user: this.sanitizeUser(user),
+      ...tokens,
+      sessionId: session.id,
+    };
+  }
+
+  /**
    * Refresh access token
    */
   async refreshToken(dto: RefreshTokenDto, ipAddress: string) {
