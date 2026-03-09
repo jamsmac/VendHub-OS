@@ -17,7 +17,10 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@vendhub/shared"],
 
-  // Monorepo root for file tracing (used by standalone builds)
+  // Standalone output for Railway RAILPACK deployment
+  output: "standalone",
+
+  // Monorepo root for standalone output file tracing
   outputFileTracingRoot: path.join(__dirname, "../.."),
 
   images: {
