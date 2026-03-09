@@ -77,7 +77,8 @@
       "rollup": ">=4.59.0",
       "serialize-javascript": ">=7.0.3",
       "esbuild": ">=0.25.0",
-      "is-fullwidth-code-point": "3.0.0"
+      "is-fullwidth-code-point": "3.0.0",
+      "react-server-dom-webpack": ">=19.0.2"
     }
   }
 }
