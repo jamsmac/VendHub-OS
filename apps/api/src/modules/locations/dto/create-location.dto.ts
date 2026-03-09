@@ -104,7 +104,7 @@ export class AddressDto {
   fullAddress?: string;
 }
 
-export class CoordinatesDto {
+export class LocationCoordinatesDto {
   @ApiProperty({ example: 41.311081 })
   @IsLatitude()
   latitude: number;
@@ -286,13 +286,13 @@ export class CreateLocationDto {
   longitude: number;
 
   @ApiPropertyOptional({
-    type: CoordinatesDto,
+    type: LocationCoordinatesDto,
     description: "Detailed GPS coordinates",
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => CoordinatesDto)
-  coordinates?: CoordinatesDto;
+  @Type(() => LocationCoordinatesDto)
+  coordinates?: LocationCoordinatesDto;
 
   // ===== Contacts =====
 

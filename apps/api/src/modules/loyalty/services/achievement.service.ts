@@ -18,11 +18,11 @@ import { User } from "../../users/entities/user.entity";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";
 import {
-  CreateAchievementDto,
-  UpdateAchievementDto,
+  LoyaltyCreateAchievementDto,
+  LoyaltyUpdateAchievementDto,
   AchievementResponseDto,
   UserAchievementResponseDto,
-  AchievementStatsDto,
+  LoyaltyAchievementStatsDto,
 } from "../dto/achievement.dto";
 
 @Injectable()
@@ -49,7 +49,7 @@ export class AchievementService {
    */
   async createAchievement(
     organizationId: string,
-    dto: CreateAchievementDto,
+    dto: LoyaltyCreateAchievementDto,
   ): Promise<AchievementResponseDto> {
     const achievement = this.achievementRepo.create({
       organizationId,
@@ -70,7 +70,7 @@ export class AchievementService {
   async updateAchievement(
     id: string,
     organizationId: string,
-    dto: UpdateAchievementDto,
+    dto: LoyaltyUpdateAchievementDto,
   ): Promise<AchievementResponseDto> {
     const achievement = await this.achievementRepo.findOne({
       where: { id, organizationId },
@@ -230,7 +230,7 @@ export class AchievementService {
   /**
    * Get achievement stats (admin)
    */
-  async getStats(organizationId: string): Promise<AchievementStatsDto> {
+  async getStats(organizationId: string): Promise<LoyaltyAchievementStatsDto> {
     const [totalAchievements, totalUnlocked, rewardsResult] = await Promise.all(
       [
         this.achievementRepo.count({

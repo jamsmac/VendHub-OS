@@ -54,7 +54,7 @@ import {
 import {
   QueryDailySummariesDto,
   RebuildDailySummaryDto,
-  QueryCommissionsDto,
+  TransactionQueryCommissionsDto,
 } from "./dto/daily-summary-query.dto";
 
 @ApiTags("Transactions")
@@ -353,7 +353,7 @@ export class TransactionsController {
   @Roles("owner", "admin", "accountant")
   async getCommissions(
     @CurrentOrganizationId() orgId: string,
-    @Query() query: QueryCommissionsDto,
+    @Query() query: TransactionQueryCommissionsDto,
   ) {
     return this.transactionsService.getCommissions(orgId, query);
   }

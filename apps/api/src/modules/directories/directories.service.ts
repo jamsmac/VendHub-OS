@@ -43,7 +43,7 @@ import {
   QueryDirectorySourcesDto,
 } from "./dto/directory-source.dto";
 import { QuerySyncLogsDto } from "./dto/directory-sync.dto";
-import { QueryAuditLogsDto } from "./dto/directory-audit.dto";
+import { DirectoryQueryAuditLogsDto } from "./dto/directory-audit.dto";
 import {
   MoveEntryDto,
   InlineCreateEntryDto,
@@ -623,7 +623,7 @@ export class DirectoriesService {
   async findAuditLogs(
     directoryId: string,
     organizationId: string,
-    filters?: QueryAuditLogsDto,
+    filters?: DirectoryQueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     await this.findOne(directoryId, organizationId);
     return this.auditService.findAuditLogs(
@@ -640,7 +640,7 @@ export class DirectoriesService {
     directoryId: string,
     entryId: string,
     organizationId: string,
-    filters?: QueryAuditLogsDto,
+    filters?: DirectoryQueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     await this.findOneEntry(directoryId, entryId, organizationId);
     return this.auditService.findEntryAuditLogs(entryId, filters);

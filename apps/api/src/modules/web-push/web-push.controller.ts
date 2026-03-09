@@ -14,8 +14,8 @@ import {
 } from "@nestjs/swagger";
 import { WebPushService } from "./web-push.service";
 import {
-  SubscribePushDto,
-  UnsubscribePushDto,
+  WebPushSubscribeDto,
+  WebPushUnsubscribeDto,
   SendPushDto,
 } from "./dto/web-push.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -42,7 +42,7 @@ export class WebPushController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Subscribe browser for push notifications" })
   async subscribe(
-    @Body() dto: SubscribePushDto,
+    @Body() dto: WebPushSubscribeDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() organizationId: string,
   ) {
@@ -61,7 +61,7 @@ export class WebPushController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Remove browser push subscription" })
   async unsubscribe(
-    @Body() dto: UnsubscribePushDto,
+    @Body() dto: WebPushUnsubscribeDto,
     @CurrentUserId() userId: string,
   ) {
     const removed = await this.webPushService.unsubscribe(userId, dto.endpoint);

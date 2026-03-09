@@ -28,9 +28,9 @@ import { ReferralService } from "../services/referral.service";
 import {
   ApplyReferralDto,
   MyReferralCodeDto,
-  ApplyReferralResultDto,
-  ReferralStatsDto,
-  AdminReferralStatsDto,
+  LoyaltyApplyReferralResultDto,
+  LoyaltyReferralStatsDto,
+  AdminLoyaltyReferralStatsDto,
 } from "../dto/referral.dto";
 
 @ApiTags("Loyalty - Referrals")
@@ -94,7 +94,7 @@ Apply a referral code from another user.
 - The referrer receives 200 bonus points when you complete your first order
     `,
   })
-  @ApiResponse({ status: 200, type: ApplyReferralResultDto })
+  @ApiResponse({ status: 200, type: LoyaltyApplyReferralResultDto })
   @ApiResponse({
     status: 400,
     description: "Self-referral, already referred, or invalid code",
@@ -103,7 +103,7 @@ Apply a referral code from another user.
   async applyReferral(
     @CurrentUser() user: User,
     @Body(ValidationPipe) dto: ApplyReferralDto,
-  ): Promise<ApplyReferralResultDto> {
+  ): Promise<LoyaltyApplyReferralResultDto> {
     return this.referralService.applyReferral(
       user.id,
       dto.code,
@@ -133,8 +133,8 @@ Get the current user's referral statistics.
 - Your referral code
     `,
   })
-  @ApiResponse({ status: 200, type: ReferralStatsDto })
-  async getStats(@CurrentUser() user: User): Promise<ReferralStatsDto> {
+  @ApiResponse({ status: 200, type: LoyaltyReferralStatsDto })
+  async getStats(@CurrentUser() user: User): Promise<LoyaltyReferralStatsDto> {
     return this.referralService.getStats(user.id, user.organizationId);
   }
 
@@ -155,10 +155,10 @@ Get aggregated referral statistics for the entire organization.
 - Status breakdown
     `,
   })
-  @ApiResponse({ status: 200, type: AdminReferralStatsDto })
+  @ApiResponse({ status: 200, type: AdminLoyaltyReferralStatsDto })
   async getAdminStats(
     @CurrentUser() user: User,
-  ): Promise<AdminReferralStatsDto> {
+  ): Promise<AdminLoyaltyReferralStatsDto> {
     return this.referralService.getAdminStats(user.organizationId);
   }
 }

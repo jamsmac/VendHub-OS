@@ -37,8 +37,8 @@ import { CreateInventoryBatchDto } from "./dto/create-inventory-batch.dto";
 import { TransferStockDto } from "./dto/warehouse-operations.dto";
 import {
   CreateReservationDto,
-  FulfillReservationDto,
-  CancelReservationDto,
+  WarehouseFulfillReservationDto,
+  WarehouseCancelReservationDto,
   QuarantineBatchDto,
 } from "./dto/stock-reservation.dto";
 import {
@@ -606,7 +606,7 @@ export class WarehouseController {
   @ApiResponse({ status: 200, description: "Reservation fulfilled" })
   async fulfillReservation(
     @Param("reservationId", ParseUUIDPipe) reservationId: string,
-    @Body() dto: FulfillReservationDto,
+    @Body() dto: WarehouseFulfillReservationDto,
     @CurrentUser() user: User,
   ) {
     return this.stockReservationService.fulfillReservation(
@@ -624,7 +624,7 @@ export class WarehouseController {
   @ApiResponse({ status: 200, description: "Reservation cancelled" })
   async cancelReservation(
     @Param("reservationId", ParseUUIDPipe) reservationId: string,
-    @Body() dto: CancelReservationDto,
+    @Body() dto: WarehouseCancelReservationDto,
     @CurrentUser() user: User,
   ) {
     return this.stockReservationService.cancelReservation(

@@ -56,7 +56,7 @@ import {
   QueryDirectorySourcesDto,
 } from "./dto/directory-source.dto";
 import { TriggerSyncDto, QuerySyncLogsDto } from "./dto/directory-sync.dto";
-import { QueryAuditLogsDto } from "./dto/directory-audit.dto";
+import { DirectoryQueryAuditLogsDto } from "./dto/directory-audit.dto";
 import {
   MoveEntryDto,
   InlineCreateEntryDto,
@@ -412,7 +412,7 @@ export class DirectoriesController {
     @Param("id", ParseUUIDPipe) directoryId: string,
     @Param("entryId", ParseUUIDPipe) entryId: string,
     @CurrentUser() user: ICurrentUser,
-    @Query() query: QueryAuditLogsDto,
+    @Query() query: DirectoryQueryAuditLogsDto,
   ) {
     return this.directoriesService.findEntryAuditLogs(
       directoryId,
@@ -600,7 +600,7 @@ export class DirectoriesController {
   findAuditLogs(
     @Param("id", ParseUUIDPipe) directoryId: string,
     @CurrentUser() user: ICurrentUser,
-    @Query() query: QueryAuditLogsDto,
+    @Query() query: DirectoryQueryAuditLogsDto,
   ) {
     return this.directoriesService.findAuditLogs(
       directoryId,

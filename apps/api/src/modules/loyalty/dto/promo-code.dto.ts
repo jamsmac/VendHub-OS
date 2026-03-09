@@ -28,7 +28,7 @@ import { LoyaltyPromoCodeType } from "../entities/promo-code.entity";
 /**
  * Create a new loyalty promo code
  */
-export class CreatePromoCodeDto {
+export class LoyaltyCreatePromoCodeDto {
   @ApiProperty({
     description: "Promo code (uppercase, 6-10 alphanumeric characters)",
     example: "SUMMER25",
@@ -132,7 +132,7 @@ export class CreatePromoCodeDto {
 /**
  * Update an existing loyalty promo code
  */
-export class UpdatePromoCodeDto {
+export class LoyaltyUpdatePromoCodeDto {
   @ApiPropertyOptional({
     description: "Display name",
     example: "Updated Summer Bonus",
@@ -238,7 +238,7 @@ export class ApplyPromoCodeDto {
 /**
  * Validate a promo code (check without applying)
  */
-export class ValidatePromoCodeDto {
+export class LoyaltyValidatePromoCodeDto {
   @ApiProperty({
     description: "Promo code to validate",
     example: "SUMMER25",
@@ -264,7 +264,7 @@ export class ValidatePromoCodeDto {
 /**
  * Query filters for listing promo codes
  */
-export class QueryPromoCodesDto {
+export class LoyaltyQueryPromoCodesDto {
   @ApiPropertyOptional({
     description: "Filter by active status",
   })

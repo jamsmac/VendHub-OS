@@ -28,7 +28,7 @@ import {
 /**
  * DTO for creating an achievement
  */
-export class CreateAchievementDto {
+export class LoyaltyCreateAchievementDto {
   @ApiProperty({
     description: "Achievement title (Russian)",
     example: "Первый заказ",
@@ -157,7 +157,9 @@ export class CreateAchievementDto {
 /**
  * DTO for updating an achievement (all fields optional)
  */
-export class UpdateAchievementDto extends PartialType(CreateAchievementDto) {}
+export class LoyaltyUpdateAchievementDto extends PartialType(
+  LoyaltyCreateAchievementDto,
+) {}
 
 // ============================================================================
 // RESPONSE DTOs
@@ -255,7 +257,7 @@ export class UserAchievementResponseDto {
 /**
  * Achievement stats response (admin)
  */
-export class AchievementStatsDto {
+export class LoyaltyAchievementStatsDto {
   @ApiProperty({ description: "Total achievements defined" })
   totalAchievements: number;
 

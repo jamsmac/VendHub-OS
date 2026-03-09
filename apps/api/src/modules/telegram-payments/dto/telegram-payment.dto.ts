@@ -2,7 +2,7 @@
  * Telegram Payment DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEnum,
   IsNumber,
@@ -12,20 +12,20 @@ import {
   Min,
   IsObject,
   IsInt,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 import {
   TelegramPaymentStatus,
   TelegramPaymentProvider,
   TelegramPaymentCurrency,
-} from '../telegram-payments.constants';
+} from "../telegram-payments.constants";
 
 // ============================================================================
 // REQUEST DTOs
 // ============================================================================
 
-export class CreateInvoiceDto {
-  @ApiProperty({ description: 'Order ID' })
+export class TelegramCreateInvoiceDto {
+  @ApiProperty({ description: "Order ID" })
   @IsUUID()
   orderId: string;
 
@@ -37,27 +37,27 @@ export class CreateInvoiceDto {
   @IsEnum(TelegramPaymentCurrency)
   currency: TelegramPaymentCurrency;
 
-  @ApiProperty({ description: 'Telegram user ID' })
+  @ApiProperty({ description: "Telegram user ID" })
   @IsInt()
   telegramUserId: number;
 
-  @ApiPropertyOptional({ description: 'Telegram chat ID' })
+  @ApiPropertyOptional({ description: "Telegram chat ID" })
   @IsInt()
   @IsOptional()
   telegramChatId?: number;
 
-  @ApiPropertyOptional({ description: 'Custom description' })
+  @ApiPropertyOptional({ description: "Custom description" })
   @IsString()
   @IsOptional()
   description?: string;
 }
 
 export class CreateInvoiceLinkDto {
-  @ApiProperty({ description: 'Payment title' })
+  @ApiProperty({ description: "Payment title" })
   @IsString()
   title: string;
 
-  @ApiProperty({ description: 'Payment description' })
+  @ApiProperty({ description: "Payment description" })
   @IsString()
   description: string;
 
@@ -69,39 +69,39 @@ export class CreateInvoiceLinkDto {
   @IsEnum(TelegramPaymentCurrency)
   currency: TelegramPaymentCurrency;
 
-  @ApiProperty({ description: 'Amount in smallest currency unit' })
+  @ApiProperty({ description: "Amount in smallest currency unit" })
   @IsNumber()
   @Min(1)
   amount: number;
 
-  @ApiPropertyOptional({ description: 'Custom payload' })
+  @ApiPropertyOptional({ description: "Custom payload" })
   @IsString()
   @IsOptional()
   payload?: string;
 }
 
 export class PreCheckoutQueryDto {
-  @ApiProperty({ description: 'Pre-checkout query ID' })
+  @ApiProperty({ description: "Pre-checkout query ID" })
   @IsString()
   preCheckoutQueryId: string;
 
-  @ApiProperty({ description: 'Telegram user ID' })
+  @ApiProperty({ description: "Telegram user ID" })
   @IsInt()
   telegramUserId: number;
 
-  @ApiProperty({ description: 'Currency code' })
+  @ApiProperty({ description: "Currency code" })
   @IsString()
   currency: string;
 
-  @ApiProperty({ description: 'Total amount in smallest units' })
+  @ApiProperty({ description: "Total amount in smallest units" })
   @IsInt()
   totalAmount: number;
 
-  @ApiProperty({ description: 'Invoice payload' })
+  @ApiProperty({ description: "Invoice payload" })
   @IsString()
   invoicePayload: string;
 
-  @ApiPropertyOptional({ description: 'Shipping option ID' })
+  @ApiPropertyOptional({ description: "Shipping option ID" })
   @IsString()
   @IsOptional()
   shippingOptionId?: string;
@@ -125,27 +125,27 @@ export class PreCheckoutQueryDto {
 }
 
 export class SuccessfulPaymentDto {
-  @ApiProperty({ description: 'Currency code' })
+  @ApiProperty({ description: "Currency code" })
   @IsString()
   currency: string;
 
-  @ApiProperty({ description: 'Total amount in smallest units' })
+  @ApiProperty({ description: "Total amount in smallest units" })
   @IsInt()
   totalAmount: number;
 
-  @ApiProperty({ description: 'Invoice payload' })
+  @ApiProperty({ description: "Invoice payload" })
   @IsString()
   invoicePayload: string;
 
-  @ApiProperty({ description: 'Telegram payment charge ID' })
+  @ApiProperty({ description: "Telegram payment charge ID" })
   @IsString()
   telegramPaymentChargeId: string;
 
-  @ApiProperty({ description: 'Provider payment charge ID' })
+  @ApiProperty({ description: "Provider payment charge ID" })
   @IsString()
   providerPaymentChargeId: string;
 
-  @ApiPropertyOptional({ description: 'Shipping option ID' })
+  @ApiPropertyOptional({ description: "Shipping option ID" })
   @IsString()
   @IsOptional()
   shippingOptionId?: string;
@@ -161,17 +161,17 @@ export class SuccessfulPaymentDto {
 }
 
 export class RefundPaymentDto {
-  @ApiProperty({ description: 'Payment ID' })
+  @ApiProperty({ description: "Payment ID" })
   @IsUUID()
   paymentId: string;
 
-  @ApiPropertyOptional({ description: 'Partial refund amount' })
+  @ApiPropertyOptional({ description: "Partial refund amount" })
   @IsNumber()
   @Min(0)
   @IsOptional()
   amount?: number;
 
-  @ApiPropertyOptional({ description: 'Refund reason' })
+  @ApiPropertyOptional({ description: "Refund reason" })
   @IsString()
   @IsOptional()
   reason?: string;
@@ -329,10 +329,13 @@ export class PaymentStatsDto {
   netAmount: number;
 
   @ApiProperty()
-  byProvider: Record<TelegramPaymentProvider, {
-    count: number;
-    amount: number;
-  }>;
+  byProvider: Record<
+    TelegramPaymentProvider,
+    {
+      count: number;
+      amount: number;
+    }
+  >;
 }
 
 export class WebhookResponseDto {

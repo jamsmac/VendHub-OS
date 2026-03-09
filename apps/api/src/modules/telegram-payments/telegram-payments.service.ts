@@ -24,7 +24,7 @@ import {
   TELEGRAM_PAYMENT_ERRORS,
 } from "./telegram-payments.constants";
 import {
-  CreateInvoiceDto,
+  TelegramCreateInvoiceDto,
   CreateInvoiceLinkDto,
   PreCheckoutQueryDto,
   SuccessfulPaymentDto,
@@ -62,7 +62,7 @@ export class TelegramPaymentsService {
   async createInvoice(
     userId: string,
     organizationId: string,
-    dto: CreateInvoiceDto,
+    dto: TelegramCreateInvoiceDto,
   ): Promise<InvoiceResponseDto> {
     // Validate provider
     const providerConfig = TELEGRAM_PAYMENT_PROVIDERS_CONFIG[dto.provider];

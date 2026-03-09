@@ -33,11 +33,11 @@ import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { User, UserRole } from "../../users/entities/user.entity";
 import { AchievementService } from "../services/achievement.service";
 import {
-  CreateAchievementDto,
-  UpdateAchievementDto,
+  LoyaltyCreateAchievementDto,
+  LoyaltyUpdateAchievementDto,
   AchievementResponseDto,
   UserAchievementResponseDto,
-  AchievementStatsDto,
+  LoyaltyAchievementStatsDto,
 } from "../dto/achievement.dto";
 
 @ApiTags("Loyalty - Achievements")
@@ -135,8 +135,10 @@ export class AchievementController {
     description:
       "Получить статистику по достижениям: всего, разблокировано, выдано наград.",
   })
-  @ApiResponse({ status: 200, type: AchievementStatsDto })
-  async getStats(@CurrentUser() user: User): Promise<AchievementStatsDto> {
+  @ApiResponse({ status: 200, type: LoyaltyAchievementStatsDto })
+  async getStats(
+    @CurrentUser() user: User,
+  ): Promise<LoyaltyAchievementStatsDto> {
     return this.achievementService.getStats(user.organizationId);
   }
 
@@ -160,7 +162,7 @@ export class AchievementController {
   @ApiResponse({ status: 201, type: AchievementResponseDto })
   async createAchievement(
     @CurrentUser() user: User,
-    @Body(ValidationPipe) dto: CreateAchievementDto,
+    @Body(ValidationPipe) dto: LoyaltyCreateAchievementDto,
   ): Promise<AchievementResponseDto> {
     return this.achievementService.createAchievement(user.organizationId, dto);
   }
@@ -177,7 +179,7 @@ export class AchievementController {
   async updateAchievement(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-    @Body(ValidationPipe) dto: UpdateAchievementDto,
+    @Body(ValidationPipe) dto: LoyaltyUpdateAchievementDto,
   ): Promise<AchievementResponseDto> {
     return this.achievementService.updateAchievement(
       id,

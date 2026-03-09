@@ -54,14 +54,14 @@ export class CreateReservationDto {
   notes?: string;
 }
 
-export class FulfillReservationDto {
+export class WarehouseFulfillReservationDto {
   @ApiProperty({ description: "Quantity to fulfill" })
   @IsNumber()
   @Min(0.001)
   quantity: number;
 }
 
-export class CancelReservationDto {
+export class WarehouseCancelReservationDto {
   @ApiPropertyOptional({ description: "Cancellation reason" })
   @IsOptional()
   @IsString()

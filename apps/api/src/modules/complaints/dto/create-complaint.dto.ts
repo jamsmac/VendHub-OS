@@ -244,7 +244,7 @@ export class UpdateComplaintDto {
   metadata?: Record<string, unknown>;
 }
 
-export class ResolveComplaintDto {
+export class ResolveComplaintActionDto {
   @ApiProperty({ example: "Проблема устранена, возврат оформлен" })
   @IsString()
   @IsNotEmpty()

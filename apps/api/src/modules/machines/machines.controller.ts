@@ -42,7 +42,7 @@ import {
   LogErrorDto,
   ResolveErrorDto,
   ScheduleMaintenanceDto,
-  CompleteMaintenanceDto,
+  MachineCompleteMaintenanceDto,
 } from "./dto/machine-location.dto";
 import { MachineStatus } from "./entities/machine.entity";
 import { UpdateMachineStatusDto } from "./dto/machine-operations.dto";
@@ -798,7 +798,7 @@ export class MachinesController {
   async completeMaintenance(
     @Param("id", ParseUUIDPipe) id: string,
     @Param("scheduleId", ParseUUIDPipe) scheduleId: string,
-    @Body() dto: CompleteMaintenanceDto,
+    @Body() dto: MachineCompleteMaintenanceDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyMachineAccess(id, user);

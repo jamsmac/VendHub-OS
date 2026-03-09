@@ -20,9 +20,9 @@ import { LoyaltyPromoCodeUsage } from "../entities/promo-code-usage.entity";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";
 import {
-  CreatePromoCodeDto,
-  UpdatePromoCodeDto,
-  QueryPromoCodesDto,
+  LoyaltyCreatePromoCodeDto,
+  LoyaltyUpdatePromoCodeDto,
+  LoyaltyQueryPromoCodesDto,
   PromoCodeStatsDto,
   ValidatePromoCodeResultDto,
   ApplyPromoCodeResultDto,
@@ -49,7 +49,7 @@ export class LoyaltyPromoCodeService {
    * Create a new promo code
    */
   async create(
-    dto: CreatePromoCodeDto,
+    dto: LoyaltyCreatePromoCodeDto,
     organizationId: string,
   ): Promise<LoyaltyPromoCode> {
     const upperCode = dto.code.toUpperCase().trim();
@@ -92,7 +92,7 @@ export class LoyaltyPromoCodeService {
    */
   async update(
     id: string,
-    dto: UpdatePromoCodeDto,
+    dto: LoyaltyUpdatePromoCodeDto,
     organizationId: string,
   ): Promise<LoyaltyPromoCode> {
     const promoCode = await this.findOneOrFail(id, organizationId);
@@ -136,7 +136,7 @@ export class LoyaltyPromoCodeService {
    */
   async findAll(
     organizationId: string,
-    query: QueryPromoCodesDto,
+    query: LoyaltyQueryPromoCodesDto,
   ): Promise<{
     data: LoyaltyPromoCode[];
     total: number;

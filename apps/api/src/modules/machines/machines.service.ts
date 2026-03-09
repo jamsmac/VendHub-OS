@@ -54,7 +54,7 @@ import {
   LogErrorDto,
   ResolveErrorDto,
   ScheduleMaintenanceDto,
-  CompleteMaintenanceDto,
+  MachineCompleteMaintenanceDto,
 } from "./dto/machine-location.dto";
 
 @Injectable()
@@ -648,7 +648,7 @@ export class MachinesService {
 
   async completeMaintenance(
     scheduleId: string,
-    dto: CompleteMaintenanceDto,
+    dto: MachineCompleteMaintenanceDto,
     userId: string,
   ): Promise<MachineMaintenanceSchedule> {
     const schedule = await this.maintenanceRepository.findOne({

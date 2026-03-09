@@ -17,9 +17,9 @@ import { LoyaltyService } from "../loyalty.service";
 import { PointsSource, LOYALTY_BONUSES } from "../constants/loyalty.constants";
 import {
   MyReferralCodeDto,
-  ApplyReferralResultDto,
-  ReferralStatsDto,
-  AdminReferralStatsDto,
+  LoyaltyApplyReferralResultDto,
+  LoyaltyReferralStatsDto,
+  AdminLoyaltyReferralStatsDto,
 } from "../dto/referral.dto";
 
 @Injectable()
@@ -148,7 +148,7 @@ export class ReferralService {
     userId: string,
     code: string,
     organizationId: string,
-  ): Promise<ApplyReferralResultDto> {
+  ): Promise<LoyaltyApplyReferralResultDto> {
     // Find the referral by code
     const referral = await this.referralRepo.findOne({
       where: { code, organizationId },
@@ -286,7 +286,7 @@ export class ReferralService {
   async getStats(
     userId: string,
     organizationId: string,
-  ): Promise<ReferralStatsDto> {
+  ): Promise<LoyaltyReferralStatsDto> {
     const [totalCompleted, totalPending] = await Promise.all([
       this.referralRepo.count({
         where: {
@@ -321,7 +321,9 @@ export class ReferralService {
   /**
    * Get org-wide referral stats for admins
    */
-  async getAdminStats(organizationId: string): Promise<AdminReferralStatsDto> {
+  async getAdminStats(
+    organizationId: string,
+  ): Promise<AdminLoyaltyReferralStatsDto> {
     const statusCounts = await this.referralRepo
       .createQueryBuilder("r")
       .select("r.status", "status")

@@ -12,7 +12,7 @@ import {
   DirectoryEntryAudit,
   DirectoryAuditAction,
 } from "../entities/directory-entry-audit.entity";
-import { QueryAuditLogsDto } from "../dto/directory-audit.dto";
+import { DirectoryQueryAuditLogsDto } from "../dto/directory-audit.dto";
 import { PaginatedResult } from "../directories.service";
 
 @Injectable()
@@ -51,7 +51,7 @@ export class DirectoryAuditService {
   async findAuditLogs(
     directoryId: string,
     organizationId: string,
-    filters?: QueryAuditLogsDto,
+    filters?: DirectoryQueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     const { page = 1, limit: rawLimit = 50, entryId, action } = filters || {};
     const limit = Math.min(rawLimit, 200);
@@ -100,7 +100,7 @@ export class DirectoryAuditService {
    */
   async findEntryAuditLogs(
     entryId: string,
-    filters?: QueryAuditLogsDto,
+    filters?: DirectoryQueryAuditLogsDto,
   ): Promise<PaginatedResult<DirectoryEntryAudit>> {
     const { page = 1, limit: rawLimit = 50, action } = filters || {};
     const limit = Math.min(rawLimit, 200);

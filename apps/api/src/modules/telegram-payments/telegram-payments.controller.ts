@@ -31,7 +31,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../users/entities/user.entity";
 import { TelegramPaymentsService } from "./telegram-payments.service";
 import {
-  CreateInvoiceDto,
+  TelegramCreateInvoiceDto,
   CreateInvoiceLinkDto,
   PreCheckoutQueryDto,
   RefundPaymentDto,
@@ -74,7 +74,7 @@ export class TelegramPaymentsController {
   @ApiResponse({ status: 201, type: InvoiceResponseDto })
   async createInvoice(
     @CurrentUser() user: User,
-    @Body() dto: CreateInvoiceDto,
+    @Body() dto: TelegramCreateInvoiceDto,
   ): Promise<InvoiceResponseDto> {
     return this.paymentsService.createInvoice(
       user.id,

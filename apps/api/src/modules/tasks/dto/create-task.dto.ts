@@ -51,7 +51,7 @@ export enum TaskPriority {
   URGENT = "urgent",
 }
 
-export class ChecklistItemDto {
+export class TaskChecklistItemDto {
   @ApiProperty()
   @IsNumber()
   id: number;
@@ -119,12 +119,12 @@ export class CreateTaskDto {
   @Min(0)
   estimatedDurationMinutes?: number;
 
-  @ApiPropertyOptional({ type: [ChecklistItemDto] })
+  @ApiPropertyOptional({ type: [TaskChecklistItemDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ChecklistItemDto)
-  checklist?: ChecklistItemDto[];
+  @Type(() => TaskChecklistItemDto)
+  checklist?: TaskChecklistItemDto[];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -181,12 +181,12 @@ export class UpdateTaskDto {
   @Min(0)
   estimatedDurationMinutes?: number;
 
-  @ApiPropertyOptional({ type: [ChecklistItemDto] })
+  @ApiPropertyOptional({ type: [TaskChecklistItemDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ChecklistItemDto)
-  checklist?: ChecklistItemDto[];
+  @Type(() => TaskChecklistItemDto)
+  checklist?: TaskChecklistItemDto[];
 
   @ApiPropertyOptional()
   @IsOptional()

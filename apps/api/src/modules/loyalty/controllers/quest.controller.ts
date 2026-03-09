@@ -32,14 +32,14 @@ import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { User, UserRole } from "../../users/entities/user.entity";
 import { QuestService } from "../services/quest.service";
 import {
-  CreateQuestDto,
-  UpdateQuestDto,
+  LoyaltyCreateQuestDto,
+  LoyaltyUpdateQuestDto,
   QuestQueryDto,
   QuestResponseDto,
   QuestsListResponseDto,
-  UserQuestProgressDto,
+  LoyaltyUserQuestProgressDto,
   ClaimRewardResultDto,
-  QuestStatsDto,
+  LoyaltyQuestStatsDto,
 } from "../dto/quest.dto";
 
 @ApiTags("Loyalty - Quests")
@@ -103,10 +103,10 @@ export class QuestController {
 - Автоматически создает записи для новых квестов
     `,
   })
-  @ApiResponse({ status: 200, type: [UserQuestProgressDto] })
+  @ApiResponse({ status: 200, type: [LoyaltyUserQuestProgressDto] })
   async getMyQuests(
     @CurrentUser() user: User,
-  ): Promise<UserQuestProgressDto[]> {
+  ): Promise<LoyaltyUserQuestProgressDto[]> {
     return this.questService.getUserQuests(user.id, user.organizationId);
   }
 
@@ -186,8 +186,10 @@ export class QuestController {
 - Разбивку по периодам
     `,
   })
-  @ApiResponse({ status: 200, type: QuestStatsDto })
-  async getQuestStats(@CurrentUser() user: User): Promise<QuestStatsDto> {
+  @ApiResponse({ status: 200, type: LoyaltyQuestStatsDto })
+  async getQuestStats(
+    @CurrentUser() user: User,
+  ): Promise<LoyaltyQuestStatsDto> {
     return this.questService.getQuestStats(user.organizationId);
   }
 
@@ -213,7 +215,7 @@ export class QuestController {
   @ApiResponse({ status: 201, type: QuestResponseDto })
   async createQuest(
     @CurrentUser() user: User,
-    @Body(ValidationPipe) dto: CreateQuestDto,
+    @Body(ValidationPipe) dto: LoyaltyCreateQuestDto,
   ): Promise<QuestResponseDto> {
     return this.questService.createQuest(user.organizationId, dto);
   }
@@ -230,7 +232,7 @@ export class QuestController {
   async updateQuest(
     @CurrentUser() user: User,
     @Param("id", ParseUUIDPipe) questId: string,
-    @Body(ValidationPipe) dto: UpdateQuestDto,
+    @Body(ValidationPipe) dto: LoyaltyUpdateQuestDto,
   ): Promise<QuestResponseDto> {
     return this.questService.updateQuest(questId, user.organizationId, dto);
   }

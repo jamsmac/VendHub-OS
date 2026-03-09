@@ -14,7 +14,7 @@ import {
   TelegramPaymentCurrency,
 } from "./telegram-payments.constants";
 import {
-  CreateInvoiceDto,
+  TelegramCreateInvoiceDto,
   CreateInvoiceLinkDto,
   PreCheckoutQueryDto,
   SuccessfulPaymentDto,
@@ -161,7 +161,7 @@ describe("TelegramPaymentsService", () => {
         currency: TelegramPaymentCurrency.UZS,
         telegramUserId: 123456789,
         telegramChatId: 123456789,
-      } as CreateInvoiceDto);
+      } as TelegramCreateInvoiceDto);
 
       expect(result.success).toBe(true);
       expect(result.paymentId).toBeDefined();
@@ -175,7 +175,7 @@ describe("TelegramPaymentsService", () => {
           provider: "invalid_provider",
           currency: TelegramPaymentCurrency.UZS,
           orderId,
-        } as unknown as CreateInvoiceDto),
+        } as unknown as TelegramCreateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -185,7 +185,7 @@ describe("TelegramPaymentsService", () => {
           provider: TelegramPaymentProvider.PAYME,
           currency: TelegramPaymentCurrency.USD, // Payme only supports UZS
           orderId,
-        } as unknown as CreateInvoiceDto),
+        } as unknown as TelegramCreateInvoiceDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -198,7 +198,7 @@ describe("TelegramPaymentsService", () => {
           currency: TelegramPaymentCurrency.UZS,
           orderId: "nonexistent",
           telegramUserId: 123,
-        } as CreateInvoiceDto),
+        } as TelegramCreateInvoiceDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -219,7 +219,7 @@ describe("TelegramPaymentsService", () => {
         currency: TelegramPaymentCurrency.UZS,
         telegramUserId: 123,
         telegramChatId: 123,
-      } as CreateInvoiceDto);
+      } as TelegramCreateInvoiceDto);
 
       expect(result.success).toBe(false);
       expect(result.message).toBe("Bot blocked");

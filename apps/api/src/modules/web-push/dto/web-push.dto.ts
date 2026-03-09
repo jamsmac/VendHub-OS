@@ -19,7 +19,7 @@ class PushKeysDto {
   auth: string;
 }
 
-export class SubscribePushDto {
+export class WebPushSubscribeDto {
   @ApiProperty({ description: "Push subscription endpoint URL" })
   @IsUrl()
   endpoint: string;
@@ -36,7 +36,7 @@ export class SubscribePushDto {
   userAgent?: string;
 }
 
-export class UnsubscribePushDto {
+export class WebPushUnsubscribeDto {
   @ApiProperty({ description: "Push subscription endpoint URL to remove" })
   @IsString()
   endpoint: string;

@@ -127,7 +127,7 @@ export class ScheduleMaintenanceDto {
   repeatIntervalDays?: number;
 }
 
-export class CompleteMaintenanceDto {
+export class MachineCompleteMaintenanceDto {
   @ApiPropertyOptional({ description: "Notes about the completed maintenance" })
   @IsOptional()
   @IsString()

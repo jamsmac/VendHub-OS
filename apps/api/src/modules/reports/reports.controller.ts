@@ -39,10 +39,10 @@ import {
   CreateDashboardBodyDto,
   CreateWidgetBodyDto,
   SaveFilterDto,
-  ReorderWidgetsDto,
+  ReportReorderWidgetsDto,
   UpdateScheduledReportDto,
   UpdateDashboardDto,
-  UpdateWidgetDto,
+  ReportUpdateWidgetDto,
 } from "./dto/report-operations.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
@@ -312,7 +312,7 @@ export class ReportsController {
   async updateWidget(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentOrganizationId() orgId: string,
-    @Body() dto: UpdateWidgetDto,
+    @Body() dto: ReportUpdateWidgetDto,
   ) {
     return this.reportsService.updateWidget(
       id,
@@ -339,7 +339,7 @@ export class ReportsController {
   async reorderWidgets(
     @Param("id", ParseUUIDPipe) dashboardId: string,
     @CurrentOrganizationId() orgId: string,
-    @Body() dto: ReorderWidgetsDto,
+    @Body() dto: ReportReorderWidgetsDto,
   ) {
     await this.reportsService.reorderWidgets(dashboardId, orgId, dto.widgetIds);
     return { success: true };

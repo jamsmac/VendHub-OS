@@ -29,7 +29,10 @@ import {
   UpdateInvoiceDto,
   QueryInvoicesDto,
 } from "./dto/create-invoice.dto";
-import { CreatePaymentDto, QueryPaymentsDto } from "./dto/create-payment.dto";
+import {
+  BillingCreatePaymentDto,
+  QueryPaymentsDto,
+} from "./dto/create-payment.dto";
 import { CurrentUser, Roles } from "../../common/decorators";
 
 @ApiTags("Billing")
@@ -179,7 +182,7 @@ export class BillingController {
     @Param("id", ParseUUIDPipe) invoiceId: string,
     @CurrentUser("id") userId: string,
     @CurrentUser("organizationId") organizationId: string,
-    @Body() dto: CreatePaymentDto,
+    @Body() dto: BillingCreatePaymentDto,
   ) {
     return this.service.recordPayment(invoiceId, organizationId, userId, dto);
   }

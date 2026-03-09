@@ -32,11 +32,11 @@ import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { User, UserRole } from "../../users/entities/user.entity";
 import { LoyaltyPromoCodeService } from "../services/promo-code.service";
 import {
-  CreatePromoCodeDto,
-  UpdatePromoCodeDto,
+  LoyaltyCreatePromoCodeDto,
+  LoyaltyUpdatePromoCodeDto,
   ApplyPromoCodeDto,
-  ValidatePromoCodeDto as ValidatePromoCodeInputDto,
-  QueryPromoCodesDto,
+  LoyaltyValidatePromoCodeDto as ValidatePromoCodeInputDto,
+  LoyaltyQueryPromoCodesDto,
   PromoCodeStatsDto,
   ValidatePromoCodeResultDto,
   ApplyPromoCodeResultDto,
@@ -123,7 +123,7 @@ Apply a promo code and receive the benefit.
   @ApiResponse({ status: 200, description: "Paginated list of promo codes" })
   async findAll(
     @CurrentUser() user: User,
-    @Query(ValidationPipe) query: QueryPromoCodesDto,
+    @Query(ValidationPipe) query: LoyaltyQueryPromoCodesDto,
   ) {
     return this.promoCodeService.findAll(user.organizationId, query);
   }
@@ -143,7 +143,7 @@ Apply a promo code and receive the benefit.
   @ApiResponse({ status: 409, description: "Code already exists" })
   async create(
     @CurrentUser() user: User,
-    @Body(ValidationPipe) dto: CreatePromoCodeDto,
+    @Body(ValidationPipe) dto: LoyaltyCreatePromoCodeDto,
   ): Promise<LoyaltyPromoCode> {
     return this.promoCodeService.create(dto, user.organizationId);
   }
@@ -160,7 +160,7 @@ Apply a promo code and receive the benefit.
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-    @Body(ValidationPipe) dto: UpdatePromoCodeDto,
+    @Body(ValidationPipe) dto: LoyaltyUpdatePromoCodeDto,
   ): Promise<LoyaltyPromoCode> {
     return this.promoCodeService.update(id, dto, user.organizationId);
   }

@@ -262,7 +262,7 @@ export class OrganizationSettingsDto {
   branding?: BrandingSettingsDto;
 }
 
-export class CommissionTierDto {
+export class OrgCommissionTierDto {
   @ApiProperty({ example: 0, description: "Minimum amount for this tier" })
   @IsNumber()
   @Min(0)
@@ -311,14 +311,14 @@ export class CommissionSettingsDto {
   fixed_amount?: number;
 
   @ApiPropertyOptional({
-    type: [CommissionTierDto],
+    type: [OrgCommissionTierDto],
     description: "Tiered commission rates",
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CommissionTierDto)
-  tiers?: CommissionTierDto[];
+  @Type(() => OrgCommissionTierDto)
+  tiers?: OrgCommissionTierDto[];
 
   @ApiPropertyOptional({ example: 30, description: "Payment term in days" })
   @IsOptional()

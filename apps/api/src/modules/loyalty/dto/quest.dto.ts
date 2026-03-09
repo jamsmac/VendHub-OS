@@ -32,7 +32,7 @@ import { UserQuestStatus } from "../entities/user-quest.entity";
 /**
  * Create a new quest (admin)
  */
-export class CreateQuestDto {
+export class LoyaltyCreateQuestDto {
   @ApiProperty({
     description: "Quest title (Russian)",
     example: "Сделать 3 заказа",
@@ -166,7 +166,7 @@ export class CreateQuestDto {
 /**
  * Update an existing quest (admin)
  */
-export class UpdateQuestDto extends PartialType(CreateQuestDto) {}
+export class LoyaltyUpdateQuestDto extends PartialType(LoyaltyCreateQuestDto) {}
 
 /**
  * Query params for listing quests
@@ -291,7 +291,7 @@ export class QuestResponseDto {
 /**
  * User quest progress response
  */
-export class UserQuestProgressDto {
+export class LoyaltyUserQuestProgressDto {
   @ApiProperty({ description: "User quest ID" })
   id: string;
 
@@ -393,7 +393,7 @@ export class ClaimRewardResultDto {
 /**
  * Quest stats for admin
  */
-export class QuestStatsDto {
+export class LoyaltyQuestStatsDto {
   @ApiProperty({ description: "Total quests" })
   totalQuests: number;
 

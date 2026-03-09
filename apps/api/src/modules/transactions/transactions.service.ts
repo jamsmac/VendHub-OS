@@ -20,7 +20,7 @@ import {
 } from "./dto/collection-record.dto";
 import {
   QueryDailySummariesDto,
-  QueryCommissionsDto,
+  TransactionQueryCommissionsDto,
 } from "./dto/daily-summary-query.dto";
 import { TransactionQueryService } from "./transaction-query.service";
 import { TransactionCreateService } from "./transaction-create.service";
@@ -339,7 +339,10 @@ export class TransactionsService {
   // COMMISSIONS (delegated to TransactionReconcileService)
   // ============================================================================
 
-  async getCommissions(organizationId: string, params: QueryCommissionsDto) {
+  async getCommissions(
+    organizationId: string,
+    params: TransactionQueryCommissionsDto,
+  ) {
     return this.reconcileService.getCommissions(organizationId, params);
   }
 

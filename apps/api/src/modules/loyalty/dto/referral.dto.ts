@@ -60,7 +60,7 @@ export class MyReferralCodeDto {
 /**
  * Result of applying a referral code
  */
-export class ApplyReferralResultDto {
+export class LoyaltyApplyReferralResultDto {
   @ApiProperty({
     description: "Whether the referral was successfully applied",
     example: true,
@@ -78,7 +78,7 @@ export class ApplyReferralResultDto {
 /**
  * User referral stats
  */
-export class ReferralStatsDto {
+export class LoyaltyReferralStatsDto {
   @ApiProperty({
     description: "Total completed referrals",
     example: 5,
@@ -107,7 +107,7 @@ export class ReferralStatsDto {
 /**
  * Admin org-wide referral stats
  */
-export class AdminReferralStatsDto {
+export class AdminLoyaltyReferralStatsDto {
   @ApiProperty({
     description: "Total referrals in the organization",
     example: 150,

@@ -23,7 +23,10 @@ import {
   UpdateInvoiceDto,
   QueryInvoicesDto,
 } from "./dto/create-invoice.dto";
-import { CreatePaymentDto, QueryPaymentsDto } from "./dto/create-payment.dto";
+import {
+  BillingCreatePaymentDto,
+  QueryPaymentsDto,
+} from "./dto/create-payment.dto";
 
 @Injectable()
 export class BillingService {
@@ -295,7 +298,7 @@ export class BillingService {
     invoiceId: string,
     organizationId: string,
     userId: string,
-    dto: CreatePaymentDto,
+    dto: BillingCreatePaymentDto,
   ): Promise<BillingPayment> {
     const invoice = await this.findInvoiceById(invoiceId, organizationId);
 

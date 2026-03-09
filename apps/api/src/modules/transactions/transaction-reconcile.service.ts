@@ -31,7 +31,7 @@ import {
 } from "./dto/collection-record.dto";
 import {
   QueryDailySummariesDto,
-  QueryCommissionsDto,
+  TransactionQueryCommissionsDto,
 } from "./dto/daily-summary-query.dto";
 
 @Injectable()
@@ -468,7 +468,10 @@ export class TransactionReconcileService {
   /**
    * Get paginated commissions for organization
    */
-  async getCommissions(organizationId: string, params: QueryCommissionsDto) {
+  async getCommissions(
+    organizationId: string,
+    params: TransactionQueryCommissionsDto,
+  ) {
     const {
       contractId,
       status,

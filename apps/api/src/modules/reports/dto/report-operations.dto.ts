@@ -159,7 +159,7 @@ export class UpdateDashboardDto {
 // WIDGET UPDATE
 // ============================================================================
 
-export class UpdateWidgetDto {
+export class ReportUpdateWidgetDto {
   @ApiPropertyOptional({ description: "Widget title" })
   @IsOptional()
   @IsString()
@@ -493,7 +493,7 @@ export class SaveFilterDto {
 // REORDER WIDGETS
 // ============================================================================
 
-export class ReorderWidgetsDto {
+export class ReportReorderWidgetsDto {
   @ApiProperty({ description: "Ordered array of widget UUIDs" })
   @IsArray()
   @IsUUID("4", { each: true })

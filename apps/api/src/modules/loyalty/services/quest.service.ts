@@ -19,14 +19,14 @@ import { UserQuest, UserQuestStatus } from "../entities/user-quest.entity";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";
 import {
-  CreateQuestDto,
-  UpdateQuestDto,
+  LoyaltyCreateQuestDto,
+  LoyaltyUpdateQuestDto,
   QuestQueryDto,
   QuestResponseDto,
   QuestsListResponseDto,
-  UserQuestProgressDto,
+  LoyaltyUserQuestProgressDto,
   ClaimRewardResultDto,
-  QuestStatsDto,
+  LoyaltyQuestStatsDto,
 } from "../dto/quest.dto";
 
 @Injectable()
@@ -51,7 +51,7 @@ export class QuestService {
    */
   async createQuest(
     organizationId: string,
-    dto: CreateQuestDto,
+    dto: LoyaltyCreateQuestDto,
   ): Promise<QuestResponseDto> {
     const quest = this.questRepo.create({
       organizationId,
@@ -95,7 +95,7 @@ export class QuestService {
   async updateQuest(
     questId: string,
     organizationId: string,
-    dto: UpdateQuestDto,
+    dto: LoyaltyUpdateQuestDto,
   ): Promise<QuestResponseDto> {
     const quest = await this.questRepo.findOne({
       where: { id: questId, organizationId },
@@ -205,7 +205,7 @@ export class QuestService {
   /**
    * Get quest stats for admin dashboard
    */
-  async getQuestStats(organizationId: string): Promise<QuestStatsDto> {
+  async getQuestStats(organizationId: string): Promise<LoyaltyQuestStatsDto> {
     const [totalQuests, activeQuests] = await Promise.all([
       this.questRepo.count({ where: { organizationId } }),
       this.questRepo.count({ where: { organizationId, isActive: true } }),
@@ -290,7 +290,7 @@ export class QuestService {
   async getUserQuests(
     userId: string,
     organizationId: string,
-  ): Promise<UserQuestProgressDto[]> {
+  ): Promise<LoyaltyUserQuestProgressDto[]> {
     // Ensure user has quest entries for active quests
     await this.ensureUserQuests(userId, organizationId);
 
@@ -701,7 +701,7 @@ export class QuestService {
   /**
    * Map UserQuest entity to progress DTO
    */
-  private mapToUserQuestProgress(uq: UserQuest): UserQuestProgressDto {
+  private mapToUserQuestProgress(uq: UserQuest): LoyaltyUserQuestProgressDto {
     const progressPercent =
       uq.targetValue > 0
         ? Math.min(100, Math.floor((uq.currentValue / uq.targetValue) * 100))

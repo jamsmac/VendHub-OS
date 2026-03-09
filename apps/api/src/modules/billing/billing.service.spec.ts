@@ -15,7 +15,7 @@ import {
   QueryInvoicesDto,
   UpdateInvoiceDto,
 } from "./dto/create-invoice.dto";
-import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { BillingCreatePaymentDto } from "./dto/create-payment.dto";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
@@ -395,7 +395,7 @@ describe("BillingService", () => {
         "inv-uuid-2",
         ORG_ID,
         USER_ID,
-        dto as CreatePaymentDto,
+        dto as BillingCreatePaymentDto,
       );
 
       expect(result).toEqual(mockPayment);
@@ -407,7 +407,7 @@ describe("BillingService", () => {
       await expect(
         service.recordPayment("inv-uuid-1", ORG_ID, USER_ID, {
           amount: 50000,
-        } as CreatePaymentDto),
+        } as BillingCreatePaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -423,7 +423,7 @@ describe("BillingService", () => {
           amount: 50000,
           paymentMethod: "cash",
           paymentDate: "2024-01-01",
-        } as CreatePaymentDto),
+        } as BillingCreatePaymentDto),
       ).rejects.toThrow(BadRequestException);
     });
   });

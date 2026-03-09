@@ -22,8 +22,8 @@ import {
 import {
   CreateContractorDto,
   UpdateContractorDto,
-  CreateInvoiceDto,
-  UpdateInvoiceDto,
+  ContractorCreateInvoiceDto,
+  ContractorUpdateInvoiceDto,
   RecordInvoicePaymentDto,
   ContractorFilterDto,
   InvoiceFilterDto,
@@ -214,7 +214,7 @@ export class ContractorsService {
   async createInvoice(
     contractorId: string,
     organizationId: string,
-    dto: CreateInvoiceDto,
+    dto: ContractorCreateInvoiceDto,
   ): Promise<InvoiceDto> {
     const contractor = await this.findContractor(contractorId, organizationId);
 
@@ -251,7 +251,7 @@ export class ContractorsService {
   async updateInvoice(
     invoiceId: string,
     organizationId: string,
-    dto: UpdateInvoiceDto,
+    dto: ContractorUpdateInvoiceDto,
   ): Promise<InvoiceDto> {
     const invoice = await this.findInvoice(invoiceId, organizationId);
 
