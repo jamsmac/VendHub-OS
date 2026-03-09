@@ -13,7 +13,10 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testMatch: ["**/__tests__/**/*.{ts,tsx}", "**/*.{spec,test}.{ts,tsx}"],
+  testMatch: [
+    "**/__tests__/**/*.{spec,test}.{ts,tsx}",
+    "**/*.{spec,test}.{ts,tsx}",
+  ],
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "!src/**/*.d.ts",
