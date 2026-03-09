@@ -2,8 +2,8 @@
  * Returns the Uzbek version of a field when locale is 'uz' and the _uz field exists,
  * otherwise falls back to the default (Russian) field.
  */
-export function localized(
-  item: Record<string, unknown> | object,
+export function localized<T extends object>(
+  item: T,
   field: string,
   locale: string,
 ): string {
@@ -34,8 +34,8 @@ export function localizedOptionName(name: string, locale: string): string {
 /**
  * Returns the Uzbek version of a JSONB array field (e.g., conditions_uz).
  */
-export function localizedArray(
-  item: Record<string, unknown> | object,
+export function localizedArray<T extends object>(
+  item: T,
   field: string,
   locale: string,
 ): string[] {
