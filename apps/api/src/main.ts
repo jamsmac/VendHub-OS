@@ -1,5 +1,5 @@
 /**
- * VendHub Unified API - Bootstrap
+ * VendHub Unified API - Bootstrap (v1.1.0)
  *
  * Production-ready NestJS application entry point
  * with comprehensive configuration for:
