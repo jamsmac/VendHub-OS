@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3100",
     "build": "next build",
-    "start": "next start -p ${PORT:-3100}",
+    "start": "cp -r .next/static .next/standalone/apps/site/.next/static && cp -r public .next/standalone/apps/site/public 2>/dev/null; node .next/standalone/apps/site/server.js",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "vitest run"
