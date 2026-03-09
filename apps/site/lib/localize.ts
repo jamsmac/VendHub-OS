@@ -3,15 +3,16 @@
  * otherwise falls back to the default (Russian) field.
  */
 export function localized(
-  item: Record<string, unknown>,
+  item: Record<string, unknown> | object,
   field: string,
   locale: string,
 ): string {
+  const obj = item as Record<string, unknown>;
   if (locale === "uz") {
-    const uzValue = item[`${field}_uz`];
+    const uzValue = obj[`${field}_uz`];
     if (uzValue && typeof uzValue === "string") return uzValue;
   }
-  const value = item[field];
+  const value = obj[field];
   return typeof value === "string" ? value : "";
 }
 
@@ -34,14 +35,15 @@ export function localizedOptionName(name: string, locale: string): string {
  * Returns the Uzbek version of a JSONB array field (e.g., conditions_uz).
  */
 export function localizedArray(
-  item: Record<string, unknown>,
+  item: Record<string, unknown> | object,
   field: string,
   locale: string,
 ): string[] {
+  const obj = item as Record<string, unknown>;
   if (locale === "uz") {
-    const uzValue = item[`${field}_uz`];
+    const uzValue = obj[`${field}_uz`];
     if (Array.isArray(uzValue) && uzValue.length > 0) return uzValue;
   }
-  const value = item[field];
+  const value = obj[field];
   return Array.isArray(value) ? value : [];
 }
