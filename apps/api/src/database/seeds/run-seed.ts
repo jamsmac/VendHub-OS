@@ -378,11 +378,11 @@ async function runSeed() {
         INSERT INTO machines (id, name, machine_number, serial_number, type, status, max_product_slots,
           organization_id, location_id, accepts_cash, accepts_card, accepts_qr,
           settings, created_at, updated_at)
-        SELECT $1, $2, $3, $4, $5, 'active', $6, $7, l.id,
+        SELECT $1, $2, $3, $4, $5, 'active', $6, $7::varchar, l.id,
           true, true, true,
           $8::jsonb,
           NOW(), NOW()
-        FROM locations l WHERE l.organization_id = $7 LIMIT 1 OFFSET $9
+        FROM locations l WHERE l.organization_id = $9::uuid LIMIT 1 OFFSET $10
         ON CONFLICT DO NOTHING
       `,
         [
@@ -403,6 +403,7 @@ async function runSeed() {
               cashFull: false,
             },
           }),
+          orgId,
           i % 4,
         ],
       );
