@@ -22,6 +22,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 import { api } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { formatNumber } from "@/lib/utils";
@@ -119,9 +120,9 @@ export function CheckoutPage() {
         navigate(`/order/${data.id}/success`);
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || t("orderFailed"));
+    onError: (error: Error) => {
+      const axiosErr = error as AxiosError<{ message?: string }>;
+      toast.error(axiosErr.response?.data?.message || t("orderFailed"));
     },
   });
 

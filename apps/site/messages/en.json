@@ -1,0 +1,1105 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "sending": "Sending...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "errorOccurred": "An error occurred",
+    "retry": "Try again",
+    "duplicate": "Duplicate",
+    "deleting": "Deleting...",
+    "kcal": "kcal",
+    "errorFallback": "Something went wrong. Please refresh the page."
+  },
+
+  "seo": {
+    "title": "VendHub — Vending Machine Coffee in a Few Clicks",
+    "description": "25+ beverages. 16 vending machines in hospitals, universities, and public spaces across Tashkent. Loyalty program and discounts.",
+    "ogDescription": "25+ beverages. 16 vending machines in Tashkent.",
+    "ogImageAlt": "VendHub — Vending Machine Coffee in Tashkent",
+    "ogSubtitle": "Vending machine coffee in a few clicks",
+    "ogStatBeverages": "25+ beverages",
+    "ogStatMachines": "16 machines",
+    "ogStatRating": "4.8 rating",
+    "jsonLdDescription": "Vending machine network in Tashkent — coffee, tea, snacks",
+    "jsonLdArea": "Tashkent",
+    "skipToContent": "Skip to content"
+  },
+
+  "nav": {
+    "home": "Home",
+    "machines": "Machines",
+    "menu": "Menu",
+    "benefits": "Benefits",
+    "partner": "Partnership",
+    "about": "About",
+    "login": "Sign in"
+  },
+
+  "header": {
+    "brandTagline": "Coffee & Snacks",
+    "mobileAppSoon": "Coming soon! Mobile app in development",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu"
+  },
+
+  "hero": {
+    "morning": "☀️ Good morning!",
+    "afternoon": "🌤️ Good afternoon!",
+    "evening": "🌙 Good evening!",
+    "title": "Vending Machine Coffee in a Few Clicks",
+    "subtitle": "25+ beverages. 16 vending machines in hospitals, universities, and public spaces across Tashkent.",
+    "findMachine": "Find a machine",
+    "viewMenu": "View menu",
+    "machineImageAlt": "VendHub coffee vending machine"
+  },
+
+  "stats": {
+    "ariaLabel": "Statistics",
+    "machinesValue": "16",
+    "machines": "machines",
+    "drinksValue": "25+",
+    "drinks": "beverages",
+    "ordersValue": "10K+",
+    "orders": "orders",
+    "ratingValue": "4.8",
+    "rating": "rating"
+  },
+
+  "quickActions": {
+    "ariaLabel": "Quick actions",
+    "catalog": "Catalog",
+    "catalogDesc": "All beverages and snacks",
+    "machines": "Machines",
+    "machinesDesc": "Find nearby"
+  },
+
+  "popularProducts": {
+    "title": "Popular Products",
+    "clickDetails": "Click for details"
+  },
+
+  "whyVendHub": {
+    "title": "Why VendHub?",
+    "drinks": "25+ beverages",
+    "drinksDesc": "Espresso, latte, cappuccino, matcha, and cold drinks",
+    "machines": "16 machines",
+    "machinesDesc": "Hospitals, universities, government offices, markets, residential areas",
+    "loyalty": "Loyalty program",
+    "loyaltyDesc": "Points, discounts up to 10%, and exclusive bonuses",
+    "order": "Quick order",
+    "orderDesc": "Order ahead via our Telegram Mini App"
+  },
+
+  "menu": {
+    "title": "Our Menu",
+    "itemsOf": "{filtered} of {total} items",
+    "items": "{count} items",
+    "categories": {
+      "all": "All",
+      "coffee": "Coffee",
+      "tea": "Tea",
+      "other": "Other",
+      "snack": "Snacks"
+    },
+    "temperature": {
+      "all": "All",
+      "hot": "🔥 Hot",
+      "cold": "🧊 Cold"
+    },
+    "card": {
+      "unavailable": "Out of stock",
+      "new": "NEW",
+      "hot": "Hot",
+      "cold": "Cold",
+      "clickDetails": "Click for details",
+      "comingSoon": "Coming soon"
+    },
+    "empty": {
+      "title": "Nothing found",
+      "subtitle": "Try changing filters",
+      "reset": "Reset filters"
+    }
+  },
+
+  "machines": {
+    "title": "Our Machines",
+    "onlineCount": "{online} of {total} machines online",
+    "mapLoading": "Loading map...",
+    "mapRetry": "Try again",
+    "myLocation": "My location",
+    "locationError": "Could not determine location",
+    "nearest": "Nearest",
+    "tabs": {
+      "map": "Map",
+      "types": "Machine types"
+    },
+    "searchPlaceholder": "Search by name or address...",
+    "clearSearch": "Clear search",
+    "filters": {
+      "all": "All",
+      "online": "Online",
+      "promotion": "With promo",
+      "coffee": "Coffee Machine",
+      "snack": "Snack Machine",
+      "cold": "Cold Drinks"
+    },
+    "card": {
+      "online": "Online",
+      "offline": "Offline",
+      "promotion": "Promo",
+      "items": "items",
+      "openLocation": "Open location",
+      "distance": "{distance}"
+    },
+    "empty": {
+      "title": "Nothing found",
+      "subtitle": "Try changing your search"
+    },
+    "types": {
+      "coffeeMachine": "Coffee Machine",
+      "snackMachine": "Snack Machine",
+      "coldDrinks": "Cold Drinks",
+      "count": "{count} units",
+      "dimensions": "Dimensions:",
+      "display": "Display:",
+      "payment": "Payment:",
+      "features": "Features:",
+      "dimensionsValue": "730×730×1960 mm, ~240 kg",
+      "displayValue": "43\" touchscreen with promo videos",
+      "paymentValue": "PAYME, CLICK, UZUM, cash",
+      "featuresValue": "ice maker, sealed lid, BYO cup, UV sterilization, basket",
+      "snackDimensionsValue": "1940×1042×890 mm, 330 kg",
+      "snackDisplayValue": "49\" touchscreen advertising display",
+      "snackPaymentValue": "bills, coins, cards, QR, Apple/Google/Samsung Pay",
+      "snackFeaturesValue": "up to 240 items, 48 slots, +4°C...+25°C, MDB/DEX",
+      "coldDimensionsValue": "1000×910×1960 mm, ~350 kg",
+      "coldDisplayValue": "55\" 4K touchscreen",
+      "coldPaymentValue": "cash, card, QR (optional), VIP card (optional)",
+      "coldFeaturesValue": "built-in freezer -10°C...0°C, 5×8 spirals, 4G/Wi-Fi/LAN",
+      "viewDetails": "View model details →",
+      "infoSoon": "Information coming soon"
+    },
+    "typeAlt": {
+      "coffee": "Coffee vending machine",
+      "snack": "Snack vending machine",
+      "cold": "Cold drinks vending machine"
+    },
+    "detail": {
+      "specs": "Technical Specifications",
+      "advantages": "Key Advantages",
+      "gallery": "Gallery",
+      "close": "Close"
+    }
+  },
+
+  "benefits": {
+    "title": "Benefits",
+    "subtitle": "Promotions, promo codes, and VendHub loyalty program",
+    "tabs": {
+      "promotions": "Promotions",
+      "bonuses": "Bonuses"
+    }
+  },
+
+  "promotions": {
+    "validUntil": "until {date}",
+    "howToUse": "How to use a promo code?",
+    "copied": "Promo code copied!",
+    "conditions": "Conditions",
+    "steps": {
+      "copy": "1. Copy the code",
+      "copyDesc": "Click on the promo code above",
+      "enter": "2. Enter in the bot",
+      "enterDesc": "Open @vendhub_bot in Telegram",
+      "discount": "3. Get a discount",
+      "discountDesc": "The discount will apply to your next order"
+    }
+  },
+
+  "promoBanner": {
+    "ariaLabel": "Promotion",
+    "badge": "Promo",
+    "more": "Learn more →"
+  },
+
+  "loyalty": {
+    "overview": {
+      "pointValue": "1 point = 1 UZS",
+      "cashback": "1% cashback",
+      "levels": "4 privilege levels"
+    },
+    "tier": {
+      "current": "Current",
+      "from": "from {threshold} UZS",
+      "discount": "{percent}% discount",
+      "cashback": "{percent}% cashback"
+    },
+    "privileges": {
+      "title": "Privileges by Level",
+      "header": "Privilege"
+    },
+    "earn": {
+      "title": "How to Earn Points"
+    },
+    "spend": {
+      "title": "How to Spend Points"
+    },
+    "cta": {
+      "title": "Register in the Telegram bot",
+      "subtitle": "and get 15,000 bonus points!",
+      "button": "Open @vendhub_bot"
+    }
+  },
+
+  "partner": {
+    "title": "Partnership",
+    "subtitle": "Growing business together",
+    "moreInfo": "Learn more",
+    "leaveRequest": "Submit a request",
+    "trustedBy": "Trusted by",
+    "models": {
+      "locations": {
+        "title": "For Locations",
+        "description": "Have a space with foot traffic? We'll install a machine for free, and you earn a percentage of sales.",
+        "benefits": [
+          "Free installation and maintenance",
+          "Monthly payments from sales",
+          "Attract more visitors",
+          "No minimum space requirements"
+        ]
+      },
+      "suppliers": {
+        "title": "For Suppliers",
+        "description": "Supply coffee, snacks, or consumables? Become our partner supplier.",
+        "benefits": [
+          "Stable procurement",
+          "Long-term contracts",
+          "Timely payments",
+          "Expanded delivery geography"
+        ]
+      },
+      "investors": {
+        "title": "For Investors",
+        "description": "Stable income from a vending machine network. ROI from 12 months.",
+        "benefits": [
+          "ROI from 12 months",
+          "Transparent reporting",
+          "Passive income",
+          "Scalable model"
+        ]
+      },
+      "franchise": {
+        "title": "Franchise",
+        "description": "Launch VendHub in your city. Full support and training.",
+        "benefits": [
+          "Ready-made business model",
+          "Training and support",
+          "Marketing materials",
+          "Technical infrastructure"
+        ]
+      }
+    },
+    "form": {
+      "model": "Partnership model",
+      "name": "Name *",
+      "phone": "Phone *",
+      "comment": "Comment",
+      "modelOptions": {
+        "locations": "Providing a location",
+        "suppliers": "Supplying products",
+        "investors": "Investment",
+        "franchise": "Franchise"
+      },
+      "namePlaceholder": "Your name",
+      "phonePlaceholder": "+998 XX XXX XX XX",
+      "commentPlaceholder": "Tell us more (optional)",
+      "submit": "Submit request",
+      "sending": "Sending...",
+      "nameRequired": "Please enter your name",
+      "phoneInvalid": "Phone must start with +998",
+      "success": "Request submitted successfully!",
+      "error": "Submission error. Please try again."
+    }
+  },
+
+  "about": {
+    "title": "About Us",
+    "subtitle": "VendHub — a vending machine network in Tashkent",
+    "description": "VendHub operates a network of modern coffee and snack vending machines across Tashkent. Machines are placed in hospitals, universities, government offices, and residential complexes. 24/7 access to quality hot and cold beverages.",
+    "contacts": {
+      "phone": "Phone",
+      "phoneValue": "+998 71 200 39 99",
+      "email": "Email",
+      "emailValue": "info@vendhub.uz",
+      "telegram": "Telegram",
+      "telegramValue": "@vendhub_support",
+      "address": "Address",
+      "addressValue": "Tashkent, Uzbekistan",
+      "support": "Support",
+      "supportHours": "24/7 support"
+    }
+  },
+
+  "footer": {
+    "navigation": "Navigation",
+    "contacts": "Contacts",
+    "social": "Social media",
+    "location": "Tashkent, Uzbekistan",
+    "supportHours": "24/7 support",
+    "tagline": "Vending machine coffee in a few clicks. Tashkent.",
+    "copyright": "© VendHub {year}. All rights reserved."
+  },
+
+  "productModal": {
+    "options": "{count} options",
+    "hot": "Hot",
+    "cold": "Cold",
+    "tempHot": "Hot",
+    "tempCold": "Cold",
+    "tempBoth": "Hot/Cold",
+    "tempNone": "Neutral",
+    "detailTitle": "Details",
+    "surcharge": "+{price} UZS",
+    "ratePrompt": "Rate this beverage",
+    "ratingThanks": "Thanks for your rating!",
+    "findNearest": "Find nearest machine",
+    "starSingular": "star",
+    "starPlural": "stars"
+  },
+
+  "machineModal": {
+    "menu": "This machine's menu",
+    "online": "Online",
+    "offline": "Offline",
+    "buildRoute": "Get directions",
+    "distance": "{distance} from you",
+    "orderInApp": "Order in the app →",
+    "floor": "Floor: {floor}"
+  },
+
+  "navigation": {
+    "title": "Get Directions",
+    "subtitle": "Choose a navigator",
+    "close": "Close",
+    "googleMaps": "Google Maps",
+    "yandexMaps": "Yandex Maps",
+    "twoGis": "2GIS",
+    "appleMaps": "Apple Maps",
+    "waze": "Waze"
+  },
+
+  "machineModel": {
+    "back": "Back to machines",
+    "badge": "Coffee Machine",
+    "imageAlt": "Coffee vending machine JQ-002-A",
+    "subtitle": "Next-gen coffee vending machine with 43\" touchscreen, built-in ice maker, and 36+ beverages",
+    "quickStats": {
+      "beverages": "36+ beverages",
+      "iceMaker": "Ice maker",
+      "display": "43\" touchscreen"
+    },
+    "specsTitle": "Technical Specifications",
+    "specs": {
+      "model": "Model",
+      "dimensions": "Dimensions (W×D×H)",
+      "weight": "Weight",
+      "display": "Display",
+      "displayValue": "43\" touchscreen with promo videos",
+      "cupCapacity": "Cup capacity",
+      "cupCapacityValue": "~800 disposable cups",
+      "beverages": "Number of beverages",
+      "beveragesValue": "36+ types (coffee, tea, cocoa, fruit drinks)",
+      "canisters": "Canisters",
+      "canistersValue": "8 powder + sugar container",
+      "iceMaker": "Ice maker",
+      "iceMakerValue": "Built-in",
+      "payment": "Payment",
+      "paymentValue": "PAYME, CLICK, UZUM, cash, NFC",
+      "power": "Power"
+    },
+    "featuresTitle": "Key Features",
+    "features": {
+      "display": "43\" touchscreen",
+      "displayDesc": "Touch display with promo videos and easy selection interface",
+      "iceMaker": "Ice maker",
+      "iceMakerDesc": "Built-in ice generator for cold beverages",
+      "uv": "UV sterilization",
+      "uvDesc": "Ultraviolet sterilization of the beverage delivery system",
+      "payment": "All payment methods",
+      "paymentDesc": "PAYME, CLICK, UZUM, cash, bills and coins",
+      "beverages": "36+ beverages",
+      "beveragesDesc": "Coffee, tea, cocoa, fruit and milk-based drinks",
+      "capacity": "800 cups",
+      "capacityDesc": "High capacity for uninterrupted 24/7 operation",
+      "ownCup": "Bring your own cup",
+      "ownCupDesc": "Use your own reusable cup",
+      "promo": "Promo screen",
+      "promoDesc": "Display advertisements and promotions on screen"
+    },
+    "cta": {
+      "title": "16 JQ-002-A machines across Tashkent",
+      "subtitle": "Find the nearest machine and order your favorite drink",
+      "button": "View machines on map"
+    }
+  },
+
+  "machineModelSlushy": {
+    "back": "Back to machines",
+    "badge": "Slushy Ice Drink",
+    "imageAlt": "Slushy machine JS-001-A01",
+    "subtitle": "Professional slushy and chilled drink vending machine with built-in freezer and 55\" 4K touchscreen",
+    "quickStats": {
+      "tempRange": "-10°C...0°C",
+      "display": "55\" 4K touchscreen",
+      "capacity": "5 shelves × 8 sections"
+    },
+    "galleryTitle": "Model Photos",
+    "gallery": {
+      "sizeAlt": "JS-001-A01 dimensions",
+      "featuresAlt": "JS-001-A01 features"
+    },
+    "specsTitle": "Technical Specifications",
+    "specs": {
+      "model": "Model number",
+      "dimensions": "Dimensions (W×D×H)",
+      "weight": "Net weight",
+      "voltage": "Voltage",
+      "voltageValue": "220–240V / 50Hz; 220–230V / 60Hz; 110V / 60Hz (optional)",
+      "power": "Power",
+      "tempRange": "Operating temperature range",
+      "capacity": "Standard capacity",
+      "capacityValue": "5 shelves × 8 spiral sections (adjustable pitch)",
+      "display": "Advertising display",
+      "displayValue": "55\" 4K touchscreen",
+      "connectivity": "Connectivity",
+      "connectivityValue": "4G SIM card, LAN cable, Wi-Fi",
+      "payment": "Payment methods",
+      "paymentValue": "Bills, coins, bank card, QR code (optional), VIP card (optional)",
+      "assortment": "Assortment",
+      "assortmentValue": "Slushies, carbonated and canned drinks, beer, and more"
+    },
+    "featuresTitle": "Key Advantages",
+    "features": {
+      "freeze": "Built-in freezing system",
+      "freezeDesc": "Stable -10°C...0°C range for the perfect slush effect.",
+      "display": "55\" 4K touchscreen",
+      "displayDesc": "Large screen for drink selection and 24/7 advertising.",
+      "payment": "Flexible payment",
+      "paymentDesc": "Cash, bank card, QR code, and VIP loyalty card.",
+      "capacity": "Flexible capacity",
+      "capacityDesc": "5 shelves with 8 spirals each, adjustable pitch for various package sizes.",
+      "connectivity": "4G, Wi-Fi and LAN",
+      "connectivityDesc": "Constant connection to the machine management system.",
+      "remote": "Remote monitoring",
+      "remoteDesc": "Track inventory, cash collection, and update ads from one dashboard.",
+      "reliable": "Reliable operation",
+      "reliableDesc": "Industrial configuration for high-traffic retail zones.",
+      "revenue": "24/7 advertising platform",
+      "revenueDesc": "The screen simultaneously sells drinks and displays branded content."
+    },
+    "cta": {
+      "title": "JS-001-A01 for high-traffic locations",
+      "subtitle": "Malls, cinemas, parks, food courts, and sports venues",
+      "button": "View machines on map"
+    }
+  },
+
+  "machineModelSnack": {
+    "back": "Back to machines",
+    "badge": "Snack Machine",
+    "imageAlt": "Snack vending machine TCN CSC-8C(V49)",
+    "subtitle": "Smart vending machine with 49\" touchscreen advertising display, refrigeration system, and modern payment support.",
+    "descriptionTitle": "Model Description",
+    "descriptionShort": "TCN CSC-8C(V49) is a next-gen vending machine for unmanned retail in busy locations. The 49-inch touchscreen doubles as a product showcase and advertising display.",
+    "descriptionLong": "The machine holds up to 240 items in 48 slots across 6 shelves, supports adjustable temperature +4°C...+25°C, and is compatible with MDB/DEX. Accepts cash, cards, and mobile payments, while the free cloud management system allows remote monitoring of inventory, pricing, and sales.",
+    "quickStats": {
+      "screen": "49\" Touch Screen",
+      "capacity": "up to 240 items",
+      "temperature": "+4°C...+25°C"
+    },
+    "specsTitle": "Technical Specifications",
+    "specs": {
+      "model": "Model",
+      "type": "Type",
+      "typeValue": "Touchscreen vending machine",
+      "display": "Display",
+      "displayValue": "49\" touchscreen display",
+      "dimensions": "Dimensions (H×W×D)",
+      "weight": "Weight",
+      "slots": "Number of slots",
+      "slotsValue": "48 (maximum)",
+      "shelves": "Number of shelves",
+      "capacity": "Capacity",
+      "dispense": "Dispensing mechanism",
+      "dispenseValue": "Spiral / conveyor / pusher",
+      "temperature": "Internal temperature",
+      "powerCool": "Power (cooling mode)",
+      "powerNormal": "Power (normal mode)",
+      "powerSupply": "Power supply",
+      "payment": "Payment methods",
+      "paymentValue": "Bills, coins, bank cards, QR, Apple Pay, Google Pay, Samsung Pay",
+      "protocol": "Protocol",
+      "warranty": "Warranty",
+      "warrantyValue": "1 year"
+    },
+    "featuresTitle": "Key Advantages",
+    "features": {
+      "screen": "49\" touchscreen",
+      "screenDesc": "Large display for product showcase and advertising content.",
+      "cooling": "Built-in refrigeration",
+      "coolingDesc": "Adjustable temperature +4°C...+25°C for beverages and snacks.",
+      "sensor": "Photoelectric dispensing sensor",
+      "sensorDesc": "Verifies successful dispensing, reducing disputed transactions.",
+      "payment": "Modern payments",
+      "paymentDesc": "Cash, cards, QR, and mobile wallets.",
+      "cloud": "Free cloud system",
+      "cloudDesc": "Remote monitoring of inventory, pricing, and sales in real time.",
+      "capacity": "48 slots / up to 240 items",
+      "capacityDesc": "Suitable for snacks, drinks, and combo items.",
+      "cabinet": "Reinforced steel cabinet",
+      "cabinetDesc": "Durable construction for intensive use.",
+      "efficiency": "Energy-efficient operation",
+      "efficiencyDesc": "60W in normal mode and 458W in cooling mode."
+    },
+    "applicationsTitle": "Applications",
+    "applications": {
+      "banks": "Banks",
+      "supermarkets": "Supermarkets",
+      "airports": "Airports",
+      "stations": "Train stations",
+      "hospitals": "Hospitals",
+      "malls": "Shopping malls",
+      "parks": "Parks and zoos",
+      "offices": "Offices",
+      "hotels": "Hotels",
+      "metro": "Metro stations",
+      "schools": "Schools",
+      "pharmacies": "Pharmacies"
+    },
+    "galleryTitle": "Photos and Drawings",
+    "galleryAltPrefix": "TCN CSC-8C(V49), photo",
+    "cta": {
+      "title": "TCN CSC-8C(V49) for snacks and drinks",
+      "subtitle": "Perfect for high-traffic locations and 24/7 operation",
+      "button": "View machines on map"
+    }
+  },
+
+  "admin": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "machines": "Machines",
+      "machineTypes": "Machine Types",
+      "promotions": "Promotions",
+      "partnership": "Partnership",
+      "loyalty": "Loyalty",
+      "content": "Content",
+      "bonusActions": "Bonus Actions",
+      "backToSite": "Back to site",
+      "closeSidebar": "Close menu",
+      "adminPanel": "Admin Panel",
+      "logout": "Sign out"
+    },
+    "login": {
+      "title": "Admin Panel Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "logging": "Signing in...",
+      "error": "Authentication error",
+      "tooManyAttempts": "Too many attempts. Please wait a minute."
+    },
+    "dashboard": {
+      "products": "Products",
+      "available": "{count} available",
+      "machines": "Machines",
+      "online": "{count} online",
+      "newRequests": "New requests",
+      "activePromotions": "Active promotions",
+      "partners": "{count} partners",
+      "quickActions": "Quick actions",
+      "manageProducts": "Manage products",
+      "manageMachines": "Manage machines",
+      "editContent": "Edit content",
+      "viewRequests": "View requests"
+    },
+    "products": {
+      "add": "Add product",
+      "searchPlaceholder": "Search by name...",
+      "filters": {
+        "allCategories": "All categories",
+        "coffee": "Coffee",
+        "tea": "Tea",
+        "other": "Other",
+        "snack": "Snacks"
+      },
+      "table": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "rating": "Rating",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "available": "Available",
+      "unavailable": "Hidden",
+      "empty": "No products found",
+      "deleteTitle": "Delete product?",
+      "deleteMessage": "Product \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading products",
+      "deleteError": "Error deleting",
+      "deleted": "Product deleted",
+      "form": {
+        "createTitle": "New Product",
+        "editTitle": "Edit Product",
+        "name": "Name *",
+        "price": "Price (UZS) *",
+        "category": "Category",
+        "temperature": "Temperature",
+        "image": "Image",
+        "description": "Description",
+        "nameUz": "Name (UZ)",
+        "descriptionUz": "Description (UZ)",
+        "detailDescription": "Detailed description",
+        "detailDescriptionUz": "Detailed description (UZ)",
+        "detailDescriptionHint": "Ingredients, preparation method...",
+        "calories": "Calories (kcal)",
+        "rating": "Rating (0-5)",
+        "discount": "Discount (%)",
+        "sortOrder": "Sort order",
+        "popular": "Popular",
+        "available": "Available",
+        "isNew": "New item",
+        "options": "Options",
+        "addOption": "Add",
+        "optionName": "Name",
+        "optionSurcharge": "Surcharge",
+        "optionSurchargeHint": "+0 = base price",
+        "optionHot": "Hot",
+        "optionCold": "Cold",
+        "updated": "Product updated",
+        "created": "Product added",
+        "saveError": "Error saving",
+        "nameRequired": "Name is required",
+        "priceRequired": "Price must be greater than 0",
+        "ratingRange": "Rating must be 0 to 5",
+        "discountRange": "Discount must be 0 to 100%",
+        "temperatureLabels": {
+          "hot": "Hot",
+          "cold": "Cold",
+          "both": "Both",
+          "none": "None"
+        },
+        "categoryLabels": {
+          "coffee": "Coffee",
+          "tea": "Tea",
+          "other": "Other",
+          "snack": "Snacks"
+        }
+      }
+    },
+    "machines": {
+      "add": "Add machine",
+      "searchPlaceholder": "Search by name or address...",
+      "table": {
+        "name": "Name",
+        "address": "Address",
+        "type": "Type",
+        "status": "Status",
+        "rating": "Rating",
+        "actions": "Actions"
+      },
+      "typeLabels": {
+        "coffee": "Coffee",
+        "snack": "Snack",
+        "cold": "Cold drinks"
+      },
+      "online": "Online",
+      "offline": "Offline",
+      "empty": "No machines found",
+      "deleteTitle": "Delete machine?",
+      "deleteMessage": "Machine \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading machines",
+      "deleteError": "Error deleting",
+      "deleted": "Machine deleted",
+      "form": {
+        "createTitle": "New Machine",
+        "editTitle": "Edit Machine",
+        "name": "Name *",
+        "address": "Address *",
+        "type": "Type",
+        "status": "Status",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "rating": "Rating (0-5)",
+        "reviewCount": "Review count",
+        "floor": "Floor",
+        "hours": "Operating hours",
+        "productCount": "Product count",
+        "locationType": "Location type",
+        "image": "Machine photo",
+        "hasPromotion": "Has promotion",
+        "updated": "Machine updated",
+        "created": "Machine added",
+        "saveError": "Error saving",
+        "nameRequired": "Name is required",
+        "addressRequired": "Address is required",
+        "latitudeRange": "Latitude must be 37-46 (Uzbekistan)",
+        "longitudeRange": "Longitude must be 56-74 (Uzbekistan)",
+        "ratingRange": "Rating must be 0 to 5",
+        "locationTypes": {
+          "hospital": "Hospital",
+          "university": "University",
+          "market": "Market",
+          "government": "Government office",
+          "residential": "Residential area"
+        }
+      }
+    },
+    "machineTypes": {
+      "add": "Add type",
+      "searchPlaceholder": "Search by name or model...",
+      "table": {
+        "name": "Name",
+        "model": "Model",
+        "slug": "Slug",
+        "specs": "Specs",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "empty": "No machine types found",
+      "deleteTitle": "Delete machine type?",
+      "deleteMessage": "Type \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading types",
+      "deleteError": "Error deleting",
+      "deleted": "Type deleted",
+      "saveError": "Error saving",
+      "form": {
+        "createTitle": "New Machine Type",
+        "editTitle": "Edit Type",
+        "name": "Name *",
+        "slug": "Slug (identifier)",
+        "modelName": "Model",
+        "badge": "Badge",
+        "badgePlaceholder": "Coming soon, New, etc.",
+        "description": "Description",
+        "heroImage": "Machine photo",
+        "specs": "Technical specifications",
+        "addSpec": "Add",
+        "specLabel": "Parameter",
+        "specValue": "Value",
+        "noSpecs": "No specifications. Click \"Add\" to create one.",
+        "advantages": "Key advantages",
+        "addAdvantage": "Add",
+        "advTitle": "Title",
+        "advDesc": "Description",
+        "noAdvantages": "No advantages. Click \"Add\" to create one.",
+        "gallery": "Photo gallery",
+        "isActive": "Active (show on site)",
+        "sortOrder": "Sort order",
+        "updated": "Type updated",
+        "created": "Type added",
+        "saveError": "Error saving",
+        "nameRequired": "Name and slug are required"
+      }
+    },
+    "promotions": {
+      "add": "Add promotion",
+      "duplicate": "Duplicate",
+      "duplicated": "Promotion duplicated",
+      "table": {
+        "title": "Title",
+        "badge": "Badge",
+        "promoCode": "Promo code",
+        "active": "Active",
+        "validUntil": "Valid until",
+        "visibility": "Type",
+        "actions": "Actions"
+      },
+      "activeYes": "Yes",
+      "activeNo": "No",
+      "noExpiry": "No expiry",
+      "visibilityVisible": "Code",
+      "visibilityAction": "Action",
+      "count": "{count} promotions",
+      "empty": "No promotions found",
+      "deleteTitle": "Delete promotion?",
+      "deleteMessage": "Promotion \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading promotions",
+      "deleteError": "Error deleting",
+      "deleted": "Promotion deleted",
+      "updated": "Promotion updated",
+      "created": "Promotion added",
+      "saveError": "Error saving",
+      "editTitle": "Edit Promotion",
+      "newTitle": "New Promotion",
+      "form": {
+        "description": "Description",
+        "gradient": "Gradient (CSS)",
+        "sortOrder": "Sort order",
+        "conditions": "Conditions",
+        "visibilityType": "Visibility type",
+        "visibilityVisible": "Code visible immediately",
+        "visibilityAction": "Action required",
+        "actionInstruction": "User instruction",
+        "actionInstructionPlaceholder": "E.g.: Register in the Telegram bot",
+        "discountType": "Discount type",
+        "discountTypeNone": "Not specified",
+        "discountTypePercent": "Percentage",
+        "discountTypeFixed": "Fixed amount",
+        "discountTypeSpecial": "Special",
+        "discountValue": "Discount value",
+        "discountValuePlaceholder": "20 or 5,000 UZS"
+      }
+    },
+    "cooperation": {
+      "modelFilters": {
+        "all": "All models",
+        "locations": "Locations",
+        "suppliers": "Suppliers",
+        "investors": "Investors",
+        "franchise": "Franchise"
+      },
+      "statusFilters": {
+        "all": "All statuses",
+        "new": "New",
+        "read": "Read",
+        "processed": "Processed"
+      },
+      "statusLabels": {
+        "new": "New",
+        "read": "Read",
+        "processed": "Processed"
+      },
+      "count": "{count} requests",
+      "table": {
+        "model": "Model",
+        "name": "Name",
+        "phone": "Phone",
+        "comment": "Comment",
+        "status": "Status",
+        "date": "Date"
+      },
+      "empty": "No requests found",
+      "loadError": "Error loading requests",
+      "statusError": "Error updating status",
+      "statusUpdated": "Status updated",
+      "saveError": "Error saving",
+      "adminNotes": "Admin notes",
+      "notesPlaceholder": "Add a note...",
+      "notesSaved": "Note saved",
+      "details": "Request details"
+    },
+    "partners": {
+      "add": "Add partner",
+      "count": "{count} partners",
+      "table": {
+        "name": "Name",
+        "logo": "Logo",
+        "website": "Website",
+        "sortOrder": "Order",
+        "actions": "Actions"
+      },
+      "empty": "No partners",
+      "deleteTitle": "Delete partner?",
+      "deleteMessage": "Partner \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading partners",
+      "deleteError": "Error deleting",
+      "deleted": "Partner deleted",
+      "updated": "Partner updated",
+      "created": "Partner added",
+      "saveError": "Error saving",
+      "form": {
+        "createTitle": "New Partner",
+        "editTitle": "Edit Partner",
+        "name": "Name *",
+        "logo": "Logo",
+        "website": "Website (URL)",
+        "description": "Description",
+        "sortOrder": "Sort order"
+      }
+    },
+    "partnership": {
+      "tabs": {
+        "models": "Models",
+        "requests": "Requests",
+        "partners": "Partners"
+      },
+      "models": {
+        "title": "Partnership Models",
+        "add": "Add model",
+        "count": "{count} models",
+        "table": {
+          "icon": "Icon",
+          "title": "Title",
+          "color": "Color",
+          "benefits": "Benefits",
+          "active": "Active",
+          "sort": "Order",
+          "actions": "Actions"
+        },
+        "empty": "No models found",
+        "loadError": "Error loading models",
+        "created": "Model created",
+        "updated": "Model updated",
+        "deleted": "Model deleted",
+        "deleteError": "Error deleting",
+        "saveError": "Error saving",
+        "deleteTitle": "Delete model?",
+        "deleteMessage": "Model \"{name}\" will be permanently deleted.",
+        "activeYes": "Active",
+        "activeNo": "Inactive",
+        "newTitle": "New Model",
+        "editTitle": "Edit Model",
+        "form": {
+          "key": "Key (slug)",
+          "keyPlaceholder": "e.g.: custom-type",
+          "title": "Title (RU) *",
+          "titleUz": "Title (UZ)",
+          "description": "Description (RU)",
+          "descriptionUz": "Description (UZ)",
+          "icon": "Icon",
+          "colorScheme": "Color scheme",
+          "benefits": "Benefits (RU)",
+          "benefitsUz": "Benefits (UZ)",
+          "addBenefit": "Add benefit",
+          "benefitPlaceholder": "Enter benefit text",
+          "sortOrder": "Sort order",
+          "isActive": "Active"
+        }
+      },
+      "requests": {
+        "delete": "Delete",
+        "deleteTitle": "Delete request?",
+        "deleteMessage": "Request from \"{name}\" will be permanently deleted.",
+        "deleted": "Request deleted",
+        "deleteError": "Error deleting request"
+      }
+    },
+    "loyalty": {
+      "title": "Loyalty Levels",
+      "addTier": "Add level",
+      "table": {
+        "level": "Level",
+        "emoji": "Emoji",
+        "discount": "Discount %",
+        "threshold": "Threshold (UZS)",
+        "cashback": "Cashback %",
+        "actions": "Actions"
+      },
+      "empty": "No levels found",
+      "loadError": "Error loading levels",
+      "updated": "Level updated",
+      "created": "Level added",
+      "deleted": "Level deleted",
+      "saveError": "Error saving",
+      "deleteError": "Error deleting",
+      "deleteTierTitle": "Delete level?",
+      "deleteTierMessage": "Level \"{name}\" will be permanently deleted.",
+      "editTierTitle": "Edit Level",
+      "newTierTitle": "New Level",
+      "inactive": "Inactive",
+      "privilegeMatrix": "Privileges by Level",
+      "managePrivileges": "Manage privileges",
+      "privilegeKey": "Key (slug)",
+      "privilegeLabel": "Display name",
+      "addPrivilege": "Add privilege",
+      "privilegeCreated": "Privilege added",
+      "privilegeUpdated": "Privilege updated",
+      "privilegeDeleted": "Privilege deleted",
+      "privilegeDeleteTitle": "Delete privilege?",
+      "privilegeDeleteMessage": "Privilege \"{name}\" will be removed from all levels.",
+      "form": {
+        "level": "Level name",
+        "emoji": "Emoji",
+        "discount": "Discount %",
+        "threshold": "Threshold (UZS)",
+        "cashback": "Cashback %",
+        "sortOrder": "Order"
+      }
+    },
+    "bonusActions": {
+      "add": "Add action",
+      "tabs": {
+        "all": "All",
+        "earn": "Earn",
+        "spend": "Spend"
+      },
+      "count": "{count} actions",
+      "table": {
+        "title": "Title",
+        "icon": "Icon",
+        "points": "Points",
+        "type": "Type",
+        "active": "Active",
+        "sort": "Order",
+        "actions": "Actions"
+      },
+      "typeEarn": "Earn",
+      "typeSpend": "Spend",
+      "activeYes": "Yes",
+      "activeNo": "No",
+      "empty": "No actions found",
+      "deleteTitle": "Delete action?",
+      "deleteMessage": "Action \"{name}\" will be permanently deleted.",
+      "loadError": "Error loading actions",
+      "deleteError": "Error deleting",
+      "deleted": "Action deleted",
+      "updated": "Action updated",
+      "created": "Action added",
+      "saveError": "Error saving",
+      "editTitle": "Edit Action",
+      "newTitle": "New Action",
+      "form": {
+        "title": "Title",
+        "description": "Description",
+        "icon": "Icon (Lucide)",
+        "pointsAmount": "Points amount",
+        "pointsAmountPlaceholder": "20,000, 1%, x3...",
+        "type": "Type",
+        "sortOrder": "Sort order"
+      }
+    },
+    "content": {
+      "description": "Edit site text content. Each field is saved separately.",
+      "sections": {
+        "hero": "Hero Section",
+        "stats": "Statistics",
+        "about": "About",
+        "footer": "Footer",
+        "partnership": "Partnership"
+      },
+      "empty": "No content found",
+      "loadError": "Error loading content",
+      "updated": "Content updated",
+      "saveError": "Error saving"
+    },
+    "imageUpload": {
+      "uploading": "Uploading...",
+      "dragOrClick": "Drag and drop or click",
+      "dropHere": "Drop the file",
+      "formats": "JPEG, PNG, WebP • up to 5 MB",
+      "preview": "Image preview",
+      "remove": "Remove image"
+    },
+    "pagination": {
+      "of": "of",
+      "prev": "Previous",
+      "next": "Next"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { tripsApi } from "../api";
+import { ordersApi } from "../api";
 
 export interface DbOrder {
   id: string;
@@ -35,7 +35,7 @@ export function useOrders(limit = 50) {
   return useQuery({
     queryKey: ["orders", limit],
     queryFn: async () => {
-      const response = await tripsApi.getAll({ limit: limit.toString() });
+      const response = await ordersApi.getAll({ limit: limit.toString() });
       return response.data as DbOrder[];
     },
   });
@@ -45,7 +45,7 @@ export function useOrder(id: string) {
   return useQuery({
     queryKey: ["orders", id],
     queryFn: async () => {
-      const response = await tripsApi.getById(id);
+      const response = await ordersApi.getById(id);
       return response.data as DbOrder;
     },
     enabled: !!id,
@@ -56,32 +56,8 @@ export function useOrderStats() {
   return useQuery({
     queryKey: ["order-stats"],
     queryFn: async () => {
-      const response = await tripsApi.getAll();
-      const orders = response.data as DbOrder[];
-
-      if (!orders || orders.length === 0) {
-        return {
-          total: 0,
-          completed: 0,
-          cancelled: 0,
-          revenue: 0,
-          avgOrderValue: 0,
-        };
-      }
-
-      const total = orders.length;
-      const completed = orders.filter((o) => o.status === "completed").length;
-      const cancelled = orders.filter((o) => o.status === "cancelled").length;
-      const revenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
-      const avgOrderValue = revenue / total;
-
-      return {
-        total,
-        completed,
-        cancelled,
-        revenue,
-        avgOrderValue,
-      };
+      const response = await ordersApi.getStats();
+      return response.data as OrderStats;
     },
   });
 }
@@ -90,7 +66,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (order: Omit<DbOrder, "id" | "created_at">) => {
-      const response = await tripsApi.start(order);
+      const response = await ordersApi.create(order);
       return response.data as DbOrder;
     },
     onSuccess: () => {
@@ -100,17 +76,38 @@ export function useCreateOrder() {
   });
 }
 
+/** Input for useUpdateOrder — matches backend PUT /orders/:id/status and PUT /orders/:id/payment */
+export type UpdateOrderInput =
+  | { id: string; type: "status"; status: DbOrder["status"]; reason?: string }
+  | {
+      id: string;
+      type: "payment";
+      paymentStatus:
+        | "pending"
+        | "paid"
+        | "failed"
+        | "refunded"
+        | "partially_refunded";
+      paymentMethod?: string;
+    };
+
 export function useUpdateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      _updates,
-    }: {
-      id: string;
-      _updates: Partial<Omit<DbOrder, "id" | "created_at">>;
-    }) => {
-      const response = await tripsApi.getById(id);
+    mutationFn: async (input: UpdateOrderInput) => {
+      // Backend has two separate endpoints — route by type
+      if (input.type === "status") {
+        const response = await ordersApi.updateStatus(input.id, {
+          status: input.status,
+          ...(input.reason && { reason: input.reason }),
+        });
+        return response.data as DbOrder;
+      }
+      // input.type === "payment"
+      const response = await ordersApi.updatePayment(input.id, {
+        paymentStatus: input.paymentStatus,
+        ...(input.paymentMethod && { paymentMethod: input.paymentMethod }),
+      });
       return response.data as DbOrder;
     },
     onSuccess: () => {
@@ -125,12 +122,12 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: async ({
       id,
-      _status,
+      status,
     }: {
       id: string;
-      _status: DbOrder["status"];
+      status: DbOrder["status"];
     }) => {
-      const response = await tripsApi.getById(id);
+      const response = await ordersApi.updateStatus(id, { status });
       return response.data as DbOrder;
     },
     onSuccess: () => {
@@ -144,7 +141,7 @@ export function useDeleteOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await tripsApi.cancel(id);
+      await ordersApi.cancel(id);
       return true;
     },
     onSuccess: () => {

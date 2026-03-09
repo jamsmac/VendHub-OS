@@ -61,8 +61,8 @@ export function PromotionsWizard({
         targetingOption: "all",
       });
       setWizardStep(1);
-    } catch (error) {
-      console.error("Error creating promotion:", error);
+    } catch {
+      // Error is propagated to the caller via the rejected promise
     } finally {
       setIsLoading(false);
     }

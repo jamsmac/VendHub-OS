@@ -8,6 +8,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 import { api } from "../lib/api";
 
 const complaintTypes = [
@@ -118,9 +119,9 @@ export function ComplaintPage() {
     onSuccess: () => {
       setStep("success");
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || t("errorSending"));
+    onError: (error: Error) => {
+      const axiosErr = error as AxiosError<{ message?: string }>;
+      toast.error(axiosErr.response?.data?.message || t("errorSending"));
     },
   });
 

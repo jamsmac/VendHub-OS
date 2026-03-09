@@ -1,22 +1,25 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TOP_PRODUCTS, fmtShort } from "./constants";
 
 export function TopProducts() {
+  const t = useTranslations("dashboardMain");
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Топ товары</CardTitle>
+          <CardTitle>{t("topProducts.title")}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             className="text-caramel-dark text-xs"
           >
-            Все <ArrowRight className="ml-1 h-3 w-3" />
+            {t("topProducts.all")} <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
@@ -43,7 +46,7 @@ export function TopProducts() {
                   />
                 </div>
                 <p className="text-xs text-espresso-light mt-0.5">
-                  {p.sales} продаж
+                  {t("topProducts.salesCount", { count: p.sales })}
                 </p>
               </div>
             </div>

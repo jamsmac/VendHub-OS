@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
   if (hostname === ADMIN_DOMAIN) {
     if (
       !pathname.startsWith("/admin") &&
-      !pathname.match(/^\/(ru|uz)\/admin/)
+      !pathname.match(/^\/(ru|uz|en)\/admin/)
     ) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin";
@@ -32,7 +32,10 @@ export function middleware(request: NextRequest) {
 
   // Main site domain → block /admin paths
   if (hostname === SITE_DOMAIN || hostname === `www.${SITE_DOMAIN}`) {
-    if (pathname.startsWith("/admin") || pathname.match(/^\/(ru|uz)\/admin/)) {
+    if (
+      pathname.startsWith("/admin") ||
+      pathname.match(/^\/(ru|uz|en)\/admin/)
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
@@ -41,7 +44,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Unknown hosts — block admin paths by default
-  if (pathname.startsWith("/admin") || pathname.match(/^\/(ru|uz)\/admin/)) {
+  if (pathname.startsWith("/admin") || pathname.match(/^\/(ru|uz|en)\/admin/)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

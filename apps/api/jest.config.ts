@@ -9,6 +9,14 @@ const config: Config = {
   },
   collectCoverageFrom: ["src/**/*.(t|j)s", "!src/**/*.spec.ts", "!src/main.ts"],
   coverageDirectory: "./coverage",
+  coverageThreshold: {
+    global: {
+      statements: 45,
+      branches: 42,
+      functions: 37,
+      lines: 45,
+    },
+  },
   testEnvironment: "node",
   transformIgnorePatterns: [
     "node_modules/(?!(string-width|strip-ansi|ansi-regex|char-regex|emoji-regex|boxen|camelcase|chalk|cli-boxes|widest-line|wrap-ansi|ansi-styles|is-fullwidth-code-point|get-east-asian-width)/)",

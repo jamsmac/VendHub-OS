@@ -158,7 +158,7 @@ export default function TripsPage() {
     },
   });
 
-  const tripList = Array.isArray(trips) ? trips : [];
+  const tripList = useMemo(() => (Array.isArray(trips) ? trips : []), [trips]);
 
   const stats = useMemo(
     () => ({

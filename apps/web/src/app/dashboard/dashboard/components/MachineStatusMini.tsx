@@ -1,13 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMachines } from "@/lib/hooks";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { MACHINE_STATUS, MACHINE_STATUS_META, fmtShort } from "./constants";
+import {
+  MACHINE_STATUS,
+  MACHINE_STATUS_META,
+  MACHINE_STATUS_KEYS,
+  fmtShort,
+} from "./constants";
 
 export function MachineStatusMini() {
+  const t = useTranslations("dashboardMain");
   const { data: machines } = useMachines();
 
   const machineList =
@@ -56,13 +63,14 @@ export function MachineStatusMini() {
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Статус автоматов</CardTitle>
+          <CardTitle>{t("machineStatus.title")}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             className="text-caramel-dark text-xs"
           >
-            Все 16 <ArrowRight className="ml-1 h-3 w-3" />
+            {t("machineStatus.allCount", { count: machineList.length })}{" "}
+            <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
@@ -90,7 +98,9 @@ export function MachineStatusMini() {
                   {fmtShort(m.sales)}
                 </span>
                 {m.stock < 25 && (
-                  <Badge variant="warning">Запас {m.stock}%</Badge>
+                  <Badge variant="warning">
+                    {t("machineStatus.stockPercent", { percent: m.stock })}
+                  </Badge>
                 )}
               </div>
             );
@@ -99,21 +109,21 @@ export function MachineStatusMini() {
 
         {/* Summary */}
         <div className="mt-3 flex gap-3 border-t border-stone-100 pt-3">
-          {(["online", "warning", "offline"] as const).map(
-            (status: "online" | "warning" | "offline") => {
-              const count = machineList.filter(
-                (m: (typeof machineList)[0]) => m.status === status,
-              ).length;
-              const meta = MACHINE_STATUS_META[status];
-              return (
-                <div key={status} className="flex items-center gap-1.5 text-xs">
-                  <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
-                  <span className="text-espresso-light">{meta.label}:</span>
-                  <span className="font-medium">{count}</span>
-                </div>
-              );
-            },
-          )}
+          {MACHINE_STATUS_KEYS.map((status) => {
+            const count = machineList.filter(
+              (m: (typeof machineList)[0]) => m.status === status,
+            ).length;
+            const meta = MACHINE_STATUS_META[status];
+            return (
+              <div key={status} className="flex items-center gap-1.5 text-xs">
+                <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
+                <span className="text-espresso-light">
+                  {t(`machineStatus.${status}`)}:
+                </span>
+                <span className="font-medium">{count}</span>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

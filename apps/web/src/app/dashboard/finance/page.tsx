@@ -763,8 +763,8 @@ export default function FinancePage() {
         status: "completed",
       });
       setShowTransactionForm(false);
-    } catch (error) {
-      console.error("Failed to create transaction:", error);
+    } catch {
+      // Error is handled by React Query's onError / error state
     }
   };
 

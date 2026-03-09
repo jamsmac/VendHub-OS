@@ -8,6 +8,8 @@ import {
   HttpStatus,
   Ip,
   Headers,
+  Res,
+  Req,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -16,8 +18,10 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { Throttle, SkipThrottle } from "@nestjs/throttler";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
+import { CookieService } from "./services/cookie.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -41,6 +45,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly passwordPolicyService: PasswordPolicyService,
+    private readonly cookieService: CookieService,
   ) {}
 
   @Post("register")
@@ -99,8 +104,20 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") userAgent: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.login(loginDto, ipAddress, userAgent);
+    const result = await this.authService.login(loginDto, ipAddress, userAgent);
+
+    // Set httpOnly cookies if login returned tokens (not 2FA challenge)
+    if ("accessToken" in result && result.accessToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
   }
 
   @Post("refresh")
@@ -114,8 +131,28 @@ export class AuthController {
     @Body() refreshTokenDto: RefreshTokenDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") _userAgent: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.refreshToken(refreshTokenDto, ipAddress);
+    // Allow refresh token from httpOnly cookie as fallback
+    const cookieRefreshToken =
+      this.cookieService.getRefreshTokenFromCookie(req);
+    const dto = refreshTokenDto.refreshToken
+      ? refreshTokenDto
+      : { refreshToken: cookieRefreshToken || "" };
+
+    const result = await this.authService.refreshToken(dto, ipAddress);
+
+    // Update cookies with new tokens
+    if (result.accessToken && result.refreshToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
   }
 
   @Post("logout")
@@ -126,9 +163,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "Logged out successfully" })
   async logout(
     @CurrentUser() user: User & { jti?: string; sessionId?: string },
+    @Res({ passthrough: true }) res: Response,
   ) {
+    this.cookieService.clearTokenCookies(res);
+
     if (!user.sessionId) {
-      // Fallback: revoke all sessions for this user
       return this.authService.logoutAll(user.id);
     }
     return this.authService.logout(user.sessionId, user.jti);
@@ -197,14 +236,25 @@ export class AuthController {
     @Body() dto: Complete2FALoginDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") userAgent: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.complete2FALogin(
+    const result = await this.authService.complete2FALogin(
       dto.challengeToken,
       dto.totpCode,
       dto.backupCode,
       ipAddress,
       userAgent,
     );
+
+    if (result.accessToken && result.refreshToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
   }
 
   @Post("first-login/change-password")
@@ -221,14 +271,25 @@ export class AuthController {
     @Body() dto: FirstLoginChangePasswordDto,
     @Ip() ipAddress: string,
     @Headers("user-agent") userAgent: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.firstLoginChangePassword(
+    const result = await this.authService.firstLoginChangePassword(
       dto.challengeToken,
       dto.currentPassword,
       dto.newPassword,
       ipAddress,
       userAgent,
     );
+
+    if (result.accessToken && result.refreshToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
   }
 
   @Post("password/validate-reset-token")

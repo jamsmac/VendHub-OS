@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { useDashboardAlerts } from "@/lib/hooks";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { timeAgo } from "@/lib/utils";
 import { ALERTS, ALERT_STYLES } from "./constants";
 
 export function AlertsList() {
+  const t = useTranslations("dashboardMain");
   const { data: dashboardAlerts } = useDashboardAlerts();
 
   const alertsList =
@@ -24,13 +26,17 @@ export function AlertsList() {
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Алерты</CardTitle>
+          <CardTitle>{t("alerts.title")}</CardTitle>
           <div className="flex gap-1">
             {errCount > 0 && (
-              <Badge variant="destructive">{errCount} крит.</Badge>
+              <Badge variant="destructive">
+                {t("alerts.critical", { count: errCount })}
+              </Badge>
             )}
             {warnCount > 0 && (
-              <Badge variant="warning">{warnCount} вним.</Badge>
+              <Badge variant="warning">
+                {t("alerts.warnings", { count: warnCount })}
+              </Badge>
             )}
           </div>
         </div>
@@ -74,7 +80,7 @@ export function AlertsList() {
             size="sm"
             className="mt-2 w-full text-caramel-dark text-xs"
           >
-            Ещё {alertsList.length - 4} алертов{" "}
+            {t("alerts.moreAlerts", { count: alertsList.length - 4 })}{" "}
             <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         )}

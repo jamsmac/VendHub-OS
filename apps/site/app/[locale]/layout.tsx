@@ -34,6 +34,7 @@ const BASE_URL = "https://vendhub.uz";
 const KEYWORDS: Record<string, string[]> = {
   ru: ["VendHub", "кофе", "вендинг", "Ташкент", "автомат", "кофейный автомат"],
   uz: ["VendHub", "kofe", "vending", "Toshkent", "avtomat", "kofe avtomati"],
+  en: ["VendHub", "coffee", "vending", "Tashkent", "vending machine", "snacks"],
 };
 
 type Props = {
@@ -44,8 +45,12 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "seo" });
-  const isUz = locale === "uz";
-  const url = isUz ? `${BASE_URL}/uz` : BASE_URL;
+  const localeUrlMap: Record<string, string> = {
+    ru: BASE_URL,
+    uz: `${BASE_URL}/uz`,
+    en: `${BASE_URL}/en`,
+  };
+  const url = localeUrlMap[locale] ?? BASE_URL;
 
   return {
     title: t("title"),
@@ -57,6 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       languages: {
         ru: BASE_URL,
         uz: `${BASE_URL}/uz`,
+        en: `${BASE_URL}/en`,
       },
     },
     openGraph: {
@@ -64,8 +70,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: t("ogDescription"),
       url,
       siteName: "VendHub",
-      locale: isUz ? "uz_UZ" : "ru_RU",
-      alternateLocale: [isUz ? "ru_RU" : "uz_UZ"],
+      locale: locale === "uz" ? "uz_UZ" : locale === "en" ? "en_US" : "ru_RU",
+      alternateLocale: ["ru_RU", "uz_UZ", "en_US"].filter(
+        (l) =>
+          l !==
+          (locale === "uz" ? "uz_UZ" : locale === "en" ? "en_US" : "ru_RU"),
+      ),
       type: "website",
       images: [
         {

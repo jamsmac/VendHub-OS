@@ -134,8 +134,10 @@ api.interceptors.response.use(
 
 // API methods
 export const authApi = {
-  login: (email: string, password: string, twoFactorCode?: string) =>
-    api.post("/auth/login", { email, password, twoFactorCode }),
+  login: (email: string, password: string, totpCode?: string) =>
+    api.post("/auth/login", { email, password, ...(totpCode && { totpCode }) }),
+  complete2FA: (challengeToken: string, totpCode: string) =>
+    api.post("/auth/2fa/complete", { challengeToken, totpCode }),
   register: (data: RequestBody) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),
   enable2FA: () => api.post("/auth/2fa/enable"),
@@ -203,6 +205,38 @@ export const inventoryApi = {
   transfer: (data: RequestBody) => api.post("/inventory/transfer", data),
   getMovements: (params?: QueryParams) =>
     api.get("/inventory/movements", { params }),
+};
+
+export const warehousesApi = {
+  getAll: (params?: QueryParams) => api.get("/warehouses", { params }),
+  getById: (id: string) => api.get(`/warehouses/${id}`),
+  create: (data: RequestBody) => api.post("/warehouses", data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/warehouses/${id}`, data),
+  delete: (id: string) => api.delete(`/warehouses/${id}`),
+  getStock: (id: string) => api.get(`/warehouses/${id}/stock`),
+  getMovements: (id: string, params?: QueryParams) =>
+    api.get(`/warehouses/${id}/movements`, { params }),
+  createMovement: (id: string, data: RequestBody) =>
+    api.post(`/warehouses/${id}/movements`, data),
+  completeMovement: (movementId: string) =>
+    api.patch(`/warehouses/movements/${movementId}/complete`),
+  cancelMovement: (movementId: string) =>
+    api.patch(`/warehouses/movements/${movementId}/cancel`),
+};
+
+export const ordersApi = {
+  getAll: (params?: QueryParams) => api.get("/orders", { params }),
+  getById: (id: string) => api.get(`/orders/${id}`),
+  getStats: (params?: QueryParams) => api.get("/orders/stats", { params }),
+  create: (data: RequestBody) => api.post("/orders", data),
+  updateStatus: (id: string, data: RequestBody) =>
+    api.put(`/orders/${id}/status`, data),
+  updatePayment: (id: string, data: RequestBody) =>
+    api.put(`/orders/${id}/payment`, data),
+  confirm: (id: string) => api.post(`/orders/${id}/confirm`),
+  cancel: (id: string, reason?: string) =>
+    api.post(`/orders/${id}/cancel`, { reason }),
 };
 
 export const tasksApi = {

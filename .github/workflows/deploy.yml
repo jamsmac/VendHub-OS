@@ -81,7 +81,7 @@ jobs:
             dockerfile: apps/web/Dockerfile
           - app: client
             context: .
-            dockerfile: apps/client/Dockerfile
+            dockerfile: apps/client/Dockerfile.dev
           - app: site
             context: .
             dockerfile: apps/site/Dockerfile

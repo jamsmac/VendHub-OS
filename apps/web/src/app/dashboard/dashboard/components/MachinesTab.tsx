@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Search, Clock } from "lucide-react";
 import { useMachines } from "@/lib/hooks";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { formatNumber } from "@/lib/utils";
 import { MACHINE_STATUS, MACHINE_STATUS_META, fmtShort } from "./constants";
 
 export function MachinesTab() {
+  const t = useTranslations("dashboardMain");
   const [machineSearch, setMachineSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data: machines } = useMachines();
@@ -64,13 +66,22 @@ export function MachinesTab() {
     0,
   );
 
+  const statusFilters = [
+    { id: "all", labelKey: "all" as const },
+    { id: "online", labelKey: "online" as const },
+    { id: "warning", labelKey: "warning" as const },
+    { id: "offline", labelKey: "offline" as const },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Всего автоматов</p>
+            <p className="text-xs text-espresso-light">
+              {t("machinesTab.totalMachines")}
+            </p>
             <p className="text-xl font-bold text-espresso-dark font-display">
               {machineList.length}
             </p>
@@ -78,7 +89,9 @@ export function MachinesTab() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Общая выручка</p>
+            <p className="text-xs text-espresso-light">
+              {t("machinesTab.totalRevenue")}
+            </p>
             <p className="text-xl font-bold text-espresso-dark font-display">
               {fmtShort(totalRevenue)}
             </p>
@@ -86,7 +99,9 @@ export function MachinesTab() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Всего заказов</p>
+            <p className="text-xs text-espresso-light">
+              {t("machinesTab.totalOrders")}
+            </p>
             <p className="text-xl font-bold text-espresso-dark font-display">
               {formatNumber(totalOrders)}
             </p>
@@ -94,7 +109,9 @@ export function MachinesTab() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Средний на автомат</p>
+            <p className="text-xs text-espresso-light">
+              {t("machinesTab.avgPerMachine")}
+            </p>
             <p className="text-xl font-bold text-espresso-dark font-display">
               {fmtShort(Math.round(totalRevenue / (machineList.length || 1)))}
             </p>
@@ -107,19 +124,14 @@ export function MachinesTab() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-espresso-light" />
           <Input
-            placeholder="Поиск автомата..."
+            placeholder={t("machinesTab.searchPlaceholder")}
             className="pl-9"
             value={machineSearch}
             onChange={(e) => setMachineSearch(e.target.value)}
           />
         </div>
         <div className="flex gap-1.5">
-          {[
-            { id: "all", label: "Все" },
-            { id: "online", label: "Онлайн" },
-            { id: "warning", label: "Внимание" },
-            { id: "offline", label: "Офлайн" },
-          ].map((f) => (
+          {statusFilters.map((f) => (
             <button
               key={f.id}
               onClick={() => setStatusFilter(f.id)}
@@ -129,7 +141,7 @@ export function MachinesTab() {
                   : "bg-stone-100 text-espresso-light hover:bg-stone-200"
               }`}
             >
-              {f.label}
+              {t(`machinesTab.${f.labelKey}`)}
               {f.id !== "all" && (
                 <span className="ml-1">
                   (
@@ -150,6 +162,12 @@ export function MachinesTab() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((m: (typeof machineList)[0]) => {
           const meta = MACHINE_STATUS_META[m.status];
+          const statusLabel = t(
+            `machinesTab.${m.status}` as
+              | "machinesTab.online"
+              | "machinesTab.warning"
+              | "machinesTab.offline",
+          );
           return (
             <Card
               key={m.id}
@@ -167,7 +185,7 @@ export function MachinesTab() {
                         | "outline"
                     }
                   >
-                    {meta.label}
+                    {statusLabel}
                   </Badge>
                   <span className="ml-auto text-xs text-espresso-light">
                     {m.id}
@@ -178,13 +196,17 @@ export function MachinesTab() {
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-xs text-espresso-light">Выручка</p>
+                    <p className="text-xs text-espresso-light">
+                      {t("machinesTab.revenue")}
+                    </p>
                     <p className="text-sm font-bold text-espresso-dark">
                       {fmtShort(m.sales)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-espresso-light">Заказы</p>
+                    <p className="text-xs text-espresso-light">
+                      {t("machinesTab.orders")}
+                    </p>
                     <p className="text-sm font-bold text-espresso-dark">
                       {m.orders}
                     </p>
@@ -196,10 +218,12 @@ export function MachinesTab() {
                   </span>
                   {m.stock < 30 ? (
                     <span className="text-red-600 font-medium">
-                      Запас {m.stock}%
+                      {t("machinesTab.stockPercent", { percent: m.stock })}
                     </span>
                   ) : (
-                    <span>Запас {m.stock}%</span>
+                    <span>
+                      {t("machinesTab.stockPercent", { percent: m.stock })}
+                    </span>
                   )}
                 </div>
                 {/* Stock bar */}
@@ -216,7 +240,7 @@ export function MachinesTab() {
       </div>
       {filtered.length === 0 && (
         <div className="py-12 text-center text-sm text-espresso-light">
-          Автоматы не найдены
+          {t("machinesTab.notFound")}
         </div>
       )}
     </div>

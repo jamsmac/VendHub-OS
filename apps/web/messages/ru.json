@@ -3587,5 +3587,118 @@
     "msg_test_sent": "Тестовая доставка отправлена",
     "msg_test_failed": "Не удалось отправить тест",
     "msg_confirm_delete": "Вы уверены, что хотите удалить этот вебхук?"
+  },
+  "dashboardMain": {
+    "title": "Дашборд",
+    "refresh": "Обновить",
+    "vsYesterday": "vs вчера",
+    "tabs": {
+      "overview": "Обзор",
+      "sales": "Продажи",
+      "machines": "Автоматы",
+      "activity": "Активность"
+    },
+    "kpi": {
+      "dailyRevenue": "Выручка за день",
+      "avgCheck": "Средний чек",
+      "orders": "Заказы",
+      "activeClients": "Активных клиентов",
+      "machinesOnline": "Автоматы онлайн",
+      "criticalStock": "Запасы критичны",
+      "taskQueue": "Очередь задач",
+      "collection": "Инкассация"
+    },
+    "hourly": {
+      "title": "Продажи по часам",
+      "today": "Сегодня",
+      "yesterday": "Вчера"
+    },
+    "machineStatus": {
+      "title": "Статус автоматов",
+      "allCount": "Все {count}",
+      "online": "Онлайн",
+      "warning": "Внимание",
+      "offline": "Офлайн",
+      "stockPercent": "Запас {percent}%"
+    },
+    "quickActions": {
+      "createTask": "Создать задачу",
+      "dailyReport": "Отчёт дня",
+      "refill": "Пополнение",
+      "check": "Проверка"
+    },
+    "topProducts": {
+      "title": "Топ товары",
+      "all": "Все",
+      "salesCount": "{count} продаж"
+    },
+    "alerts": {
+      "title": "Алерты",
+      "critical": "{count} крит.",
+      "warnings": "{count} вним.",
+      "moreAlerts": "Ещё {count} алертов"
+    },
+    "orders": {
+      "title": "Последние заказы",
+      "all": "Все",
+      "defaultProduct": "Заказ"
+    },
+    "sales": {
+      "weekTitle": "Продажи за неделю",
+      "revenue": "Выручка",
+      "ordersLabel": "Заказы",
+      "ordersCount": "{count} заказов",
+      "share": "Доля",
+      "categories": "Категории",
+      "percentOfAll": "{percent}% от всех",
+      "trendTitle": "Тренд выручки и заказов"
+    },
+    "machinesTab": {
+      "totalMachines": "Всего автоматов",
+      "totalRevenue": "Общая выручка",
+      "totalOrders": "Всего заказов",
+      "avgPerMachine": "Средний на автомат",
+      "searchPlaceholder": "Поиск автомата...",
+      "all": "Все",
+      "online": "Онлайн",
+      "warning": "Внимание",
+      "offline": "Офлайн",
+      "revenue": "Выручка",
+      "orders": "Заказы",
+      "stockPercent": "Запас {percent}%",
+      "notFound": "Автоматы не найдены"
+    },
+    "activityTab": {
+      "filterAll": "Все",
+      "filterSales": "Продажи",
+      "filterRefills": "Загрузки",
+      "filterAlerts": "Алерты",
+      "filterTasks": "Задачи",
+      "filterCollection": "Инкассация",
+      "filterMaintenance": "ТО",
+      "noEvents": "Нет событий по выбранному фильтру"
+    },
+    "categories": {
+      "coffee": "Кофе",
+      "tea": "Чай",
+      "cocoa": "Какао",
+      "cold": "Холодные"
+    },
+    "paymentMethods": {
+      "cash": "Наличные"
+    },
+    "days": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    },
+    "format": {
+      "billion": "{value} млрд",
+      "event": "Событие"
+    }
   }
 }

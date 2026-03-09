@@ -220,7 +220,9 @@ export function MembersTab({
               size="sm"
               className="h-7 w-7 p-0"
               title="Отправить сообщение"
-              onClick={() => console.log("Message:", member.id)}
+              onClick={() => {
+                /* TODO: implement messaging */
+              }}
             >
               <MessageSquare className="h-3 w-3" />
             </Button>
@@ -229,7 +231,9 @@ export function MembersTab({
               size="sm"
               className="h-7 w-7 p-0"
               title="Назначить задачу"
-              onClick={() => console.log("Assign task:", member.id)}
+              onClick={() => {
+                /* TODO: implement task assignment */
+              }}
             >
               <Target className="h-3 w-3" />
             </Button>

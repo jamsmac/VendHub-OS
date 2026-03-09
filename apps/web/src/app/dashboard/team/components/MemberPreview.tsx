@@ -155,7 +155,7 @@ export function MemberPreview({
             variant="outline"
             className="flex-1 gap-2"
             onClick={() => {
-              console.log("Edit profile:", member.id);
+              // TODO: implement edit profile navigation
             }}
           >
             <Edit3 className="h-4 w-4" />

@@ -3587,5 +3587,118 @@
       "templateApplied": "Template applied successfully",
       "templateApplyError": "Error applying template"
     }
+  },
+  "dashboardMain": {
+    "title": "Dashboard",
+    "refresh": "Refresh",
+    "vsYesterday": "vs yesterday",
+    "tabs": {
+      "overview": "Overview",
+      "sales": "Sales",
+      "machines": "Machines",
+      "activity": "Activity"
+    },
+    "kpi": {
+      "dailyRevenue": "Daily Revenue",
+      "avgCheck": "Avg. Check",
+      "orders": "Orders",
+      "activeClients": "Active Clients",
+      "machinesOnline": "Machines Online",
+      "criticalStock": "Critical Stock",
+      "taskQueue": "Task Queue",
+      "collection": "Collection"
+    },
+    "hourly": {
+      "title": "Hourly Sales",
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "machineStatus": {
+      "title": "Machine Status",
+      "allCount": "All {count}",
+      "online": "Online",
+      "warning": "Warning",
+      "offline": "Offline",
+      "stockPercent": "Stock {percent}%"
+    },
+    "quickActions": {
+      "createTask": "Create Task",
+      "dailyReport": "Daily Report",
+      "refill": "Refill",
+      "check": "Check"
+    },
+    "topProducts": {
+      "title": "Top Products",
+      "all": "All",
+      "salesCount": "{count} sales"
+    },
+    "alerts": {
+      "title": "Alerts",
+      "critical": "{count} crit.",
+      "warnings": "{count} warn.",
+      "moreAlerts": "{count} more alerts"
+    },
+    "orders": {
+      "title": "Recent Orders",
+      "all": "All",
+      "defaultProduct": "Order"
+    },
+    "sales": {
+      "weekTitle": "Weekly Sales",
+      "revenue": "Revenue",
+      "ordersLabel": "Orders",
+      "ordersCount": "{count} orders",
+      "share": "Share",
+      "categories": "Categories",
+      "percentOfAll": "{percent}% of total",
+      "trendTitle": "Revenue & Orders Trend"
+    },
+    "machinesTab": {
+      "totalMachines": "Total Machines",
+      "totalRevenue": "Total Revenue",
+      "totalOrders": "Total Orders",
+      "avgPerMachine": "Avg. per Machine",
+      "searchPlaceholder": "Search machine...",
+      "all": "All",
+      "online": "Online",
+      "warning": "Warning",
+      "offline": "Offline",
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "stockPercent": "Stock {percent}%",
+      "notFound": "No machines found"
+    },
+    "activityTab": {
+      "filterAll": "All",
+      "filterSales": "Sales",
+      "filterRefills": "Refills",
+      "filterAlerts": "Alerts",
+      "filterTasks": "Tasks",
+      "filterCollection": "Collection",
+      "filterMaintenance": "Maint.",
+      "noEvents": "No events matching the selected filter"
+    },
+    "categories": {
+      "coffee": "Coffee",
+      "tea": "Tea",
+      "cocoa": "Cocoa",
+      "cold": "Cold drinks"
+    },
+    "paymentMethods": {
+      "cash": "Cash"
+    },
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "format": {
+      "billion": "{value}B",
+      "event": "Event"
+    }
   }
 }

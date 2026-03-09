@@ -31,6 +31,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react-i18next": path.resolve(
+        __dirname,
+        "./src/__mocks__/react-i18next.ts",
+      ),
     },
   },
 });

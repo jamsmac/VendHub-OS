@@ -66,7 +66,7 @@ describe("CookieService", () => {
 
       // Access token cookie
       expect(res.cookie).toHaveBeenCalledWith(
-        "vhub_access_token",
+        "vendhub_access_token",
         "access-tok",
         expect.objectContaining({
           httpOnly: true,
@@ -76,7 +76,7 @@ describe("CookieService", () => {
 
       // Refresh token cookie
       expect(res.cookie).toHaveBeenCalledWith(
-        "vhub_refresh_token",
+        "vendhub_refresh_token",
         "refresh-tok",
         expect.objectContaining({
           httpOnly: true,
@@ -92,7 +92,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const accessCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_access_token",
+        (c: any[]) => c[0] === "vendhub_access_token",
       );
       expect(accessCall[2].maxAge).toBe(15 * 60 * 1000);
     });
@@ -104,7 +104,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const refreshCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_refresh_token",
+        (c: any[]) => c[0] === "vendhub_refresh_token",
       );
       expect(refreshCall[2].maxAge).toBe(7 * 24 * 60 * 60 * 1000);
     });
@@ -121,11 +121,11 @@ describe("CookieService", () => {
 
       expect(res.clearCookie).toHaveBeenCalledTimes(2);
       expect(res.clearCookie).toHaveBeenCalledWith(
-        "vhub_access_token",
+        "vendhub_access_token",
         expect.objectContaining({ maxAge: 0 }),
       );
       expect(res.clearCookie).toHaveBeenCalledWith(
-        "vhub_refresh_token",
+        "vendhub_refresh_token",
         expect.objectContaining({ maxAge: 0 }),
       );
     });
@@ -136,7 +136,7 @@ describe("CookieService", () => {
   describe("getAccessTokenFromCookie", () => {
     it("should return the access token when present", async () => {
       const service = await createService();
-      const req = mockRequest({ vhub_access_token: "my-access" });
+      const req = mockRequest({ vendhub_access_token: "my-access" });
 
       expect(service.getAccessTokenFromCookie(req)).toBe("my-access");
     });
@@ -159,7 +159,7 @@ describe("CookieService", () => {
   describe("getRefreshTokenFromCookie", () => {
     it("should return the refresh token when present", async () => {
       const service = await createService();
-      const req = mockRequest({ vhub_refresh_token: "my-refresh" });
+      const req = mockRequest({ vendhub_refresh_token: "my-refresh" });
 
       expect(service.getRefreshTokenFromCookie(req)).toBe("my-refresh");
     });
@@ -281,7 +281,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const accessCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_access_token",
+        (c: any[]) => c[0] === "vendhub_access_token",
       );
       expect(accessCall[2].maxAge).toBe(30 * 1000);
     });
@@ -293,7 +293,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const accessCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_access_token",
+        (c: any[]) => c[0] === "vendhub_access_token",
       );
       expect(accessCall[2].maxAge).toBe(60 * 60 * 1000);
     });
@@ -305,7 +305,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const accessCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_access_token",
+        (c: any[]) => c[0] === "vendhub_access_token",
       );
       expect(accessCall[2].maxAge).toBe(2 * 24 * 60 * 60 * 1000);
     });
@@ -317,7 +317,7 @@ describe("CookieService", () => {
       service.setTokenCookies(res, "a", "r");
 
       const accessCall = res.cookie.mock.calls.find(
-        (c: any[]) => c[0] === "vhub_access_token",
+        (c: any[]) => c[0] === "vendhub_access_token",
       );
       expect(accessCall[2].maxAge).toBe(15 * 60 * 1000);
     });

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Request, Response, CookieOptions } from 'express';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Request, Response, CookieOptions } from "express";
 
 /**
  * HttpOnly cookie management service for JWT tokens.
@@ -20,58 +20,74 @@ import { Request, Response, CookieOptions } from 'express';
 export class CookieService {
   private readonly logger = new Logger(CookieService.name);
 
-  /** Cookie name for the access token */
-  private static readonly ACCESS_TOKEN_COOKIE = 'vhub_access_token';
-  /** Cookie name for the refresh token */
-  private static readonly REFRESH_TOKEN_COOKIE = 'vhub_refresh_token';
+  /** Cookie name for the access token — must match frontend and jwt.strategy */
+  private static readonly ACCESS_TOKEN_COOKIE = "vendhub_access_token";
+  /** Cookie name for the refresh token — must match frontend */
+  private static readonly REFRESH_TOKEN_COOKIE = "vendhub_refresh_token";
 
   private readonly isProduction: boolean;
   private readonly cookieDomain: string | undefined;
   private readonly cookieSecure: boolean;
-  private readonly cookieSameSite: 'strict' | 'lax' | 'none';
+  private readonly cookieSameSite: "strict" | "lax" | "none";
   private readonly cookiePath: string;
   private readonly accessMaxAgeMs: number;
   private readonly refreshMaxAgeMs: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.isProduction = this.configService.get('NODE_ENV') === 'production';
+    this.isProduction = this.configService.get("NODE_ENV") === "production";
 
-    const domain = this.configService.get<string>('COOKIE_DOMAIN', '');
+    const domain = this.configService.get<string>("COOKIE_DOMAIN", "");
     this.cookieDomain = domain || undefined;
 
-    this.cookieSecure = this.configService.get<string>('COOKIE_SECURE', this.isProduction ? 'true' : 'false') === 'true';
+    this.cookieSecure =
+      this.configService.get<string>(
+        "COOKIE_SECURE",
+        this.isProduction ? "true" : "false",
+      ) === "true";
 
-    const sameSite = this.configService.get<string>('COOKIE_SAME_SITE', 'lax')?.toLowerCase();
-    if (sameSite === 'strict' || sameSite === 'lax' || sameSite === 'none') {
+    const sameSite = this.configService
+      .get<string>("COOKIE_SAME_SITE", "lax")
+      ?.toLowerCase();
+    if (sameSite === "strict" || sameSite === "lax" || sameSite === "none") {
       this.cookieSameSite = sameSite;
     } else {
       this.logger.warn(
         `Invalid COOKIE_SAME_SITE value "${sameSite}", falling back to "lax"`,
       );
-      this.cookieSameSite = 'lax';
+      this.cookieSameSite = "lax";
     }
 
-    this.cookiePath = this.configService.get<string>('COOKIE_PATH', '/');
+    this.cookiePath = this.configService.get<string>("COOKIE_PATH", "/");
 
     // Parse access token expiry (e.g. '15m' -> 900_000ms)
-    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES', '15m');
+    const accessExpires = this.configService.get<string>(
+      "JWT_ACCESS_EXPIRES",
+      "15m",
+    );
     this.accessMaxAgeMs = this.parseDuration(accessExpires);
 
     // Refresh token expiry from session duration
-    const sessionDays = this.configService.get<number>('SESSION_DURATION_DAYS', 7);
+    const sessionDays = this.configService.get<number>(
+      "SESSION_DURATION_DAYS",
+      7,
+    );
     this.refreshMaxAgeMs = sessionDays * 24 * 60 * 60 * 1000;
 
     this.logger.log(
       `Cookie service initialised: secure=${this.cookieSecure}, sameSite=${this.cookieSameSite}, ` +
-      `domain=${this.cookieDomain || '(current host)'}, accessMaxAge=${this.accessMaxAgeMs}ms, ` +
-      `refreshMaxAge=${this.refreshMaxAgeMs}ms`,
+        `domain=${this.cookieDomain || "(current host)"}, accessMaxAge=${this.accessMaxAgeMs}ms, ` +
+        `refreshMaxAge=${this.refreshMaxAgeMs}ms`,
     );
   }
 
   /**
    * Set both access and refresh token cookies on the response.
    */
-  setTokenCookies(res: Response, accessToken: string, refreshToken: string): void {
+  setTokenCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
     res.cookie(
       CookieService.ACCESS_TOKEN_COOKIE,
       accessToken,
@@ -148,13 +164,13 @@ export class CookieService {
 
     const value = parseInt(match[1], 10);
     switch (match[2]) {
-      case 's':
+      case "s":
         return value * 1000;
-      case 'm':
+      case "m":
         return value * 60 * 1000;
-      case 'h':
+      case "h":
         return value * 60 * 60 * 1000;
-      case 'd':
+      case "d":
         return value * 24 * 60 * 60 * 1000;
       default:
         return 15 * 60 * 1000;

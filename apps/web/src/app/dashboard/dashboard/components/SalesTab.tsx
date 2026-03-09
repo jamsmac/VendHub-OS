@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   BarChart,
   Bar,
@@ -20,7 +21,7 @@ import { useSalesChart } from "@/lib/hooks";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
 import {
-  SALES_WEEK,
+  SALES_WEEK_DATA,
   CATEGORY_DATA,
   PAYMENT_METHODS,
   TOOLTIP_STYLE,
@@ -28,13 +29,23 @@ import {
 } from "./constants";
 
 export function SalesTab() {
+  const t = useTranslations("dashboardMain");
   const [salesMetric, setSalesMetric] = useState<"revenue" | "orders">(
     "revenue",
   );
   const { data: salesChart } = useSalesChart(7); // 7 days
 
+  const localizedSalesWeek = useMemo(
+    () =>
+      SALES_WEEK_DATA.map((d) => ({
+        ...d,
+        day: t(`days.${d.dayKey}`),
+      })),
+    [t],
+  );
+
   const chartData =
-    salesChart && salesChart.length > 0 ? salesChart : SALES_WEEK;
+    salesChart && salesChart.length > 0 ? salesChart : localizedSalesWeek;
 
   return (
     <div className="space-y-6">
@@ -44,7 +55,7 @@ export function SalesTab() {
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle>Продажи за неделю</CardTitle>
+              <CardTitle>{t("sales.weekTitle")}</CardTitle>
               <div className="flex gap-1.5">
                 {(["revenue", "orders"] as const).map((m) => (
                   <button
@@ -56,7 +67,9 @@ export function SalesTab() {
                         : "bg-stone-100 text-espresso-light hover:bg-stone-200"
                     }`}
                   >
-                    {m === "revenue" ? "Выручка" : "Заказы"}
+                    {m === "revenue"
+                      ? t("sales.revenue")
+                      : t("sales.ordersLabel")}
                   </button>
                 ))}
               </div>
@@ -77,8 +90,10 @@ export function SalesTab() {
                   formatter={(value: number) => [
                     salesMetric === "revenue"
                       ? formatPrice(value)
-                      : `${value} заказов`,
-                    salesMetric === "revenue" ? "Выручка" : "Заказы",
+                      : t("sales.ordersCount", { count: value }),
+                    salesMetric === "revenue"
+                      ? t("sales.revenue")
+                      : t("sales.ordersLabel"),
                   ]}
                   {...TOOLTIP_STYLE}
                 />
@@ -95,13 +110,16 @@ export function SalesTab() {
         {/* Category pie */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Категории</CardTitle>
+            <CardTitle>{t("sales.categories")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
-                  data={CATEGORY_DATA}
+                  data={CATEGORY_DATA.map((c) => ({
+                    ...c,
+                    name: t(`categories.${c.key}`),
+                  }))}
                   cx="50%"
                   cy="50%"
                   innerRadius={45}
@@ -110,23 +128,25 @@ export function SalesTab() {
                   dataKey="value"
                 >
                   {CATEGORY_DATA.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
+                    <Cell key={entry.key} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${value}%`, "Доля"]}
+                  formatter={(value: number) => [`${value}%`, t("sales.share")]}
                   {...TOOLTIP_STYLE}
                 />
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {CATEGORY_DATA.map((c) => (
-                <div key={c.name} className="flex items-center gap-2 text-xs">
+                <div key={c.key} className="flex items-center gap-2 text-xs">
                   <div
                     className="h-2.5 w-2.5 rounded-full shrink-0"
                     style={{ background: c.color }}
                   />
-                  <span className="text-espresso-light">{c.name}</span>
+                  <span className="text-espresso-light">
+                    {t(`categories.${c.key}`)}
+                  </span>
                   <span className="ml-auto font-semibold">{c.value}%</span>
                 </div>
               ))}
@@ -139,18 +159,24 @@ export function SalesTab() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {PAYMENT_METHODS.map((pm) => {
           const Icon = pm.icon;
+          const displayName =
+            pm.methodKey === "cash"
+              ? t("paymentMethods.cash")
+              : pm.method || pm.methodKey;
           return (
-            <Card key={pm.method}>
+            <Card key={pm.methodKey}>
               <CardContent className="p-4">
                 <div className={`inline-flex rounded-lg p-2 ${pm.color}`}>
                   <Icon className="h-4 w-4" />
                 </div>
-                <p className="mt-2 text-xs text-espresso-light">{pm.method}</p>
+                <p className="mt-2 text-xs text-espresso-light">
+                  {displayName}
+                </p>
                 <p className="text-lg font-bold text-espresso-dark font-display">
                   {fmtShort(pm.amount)}
                 </p>
                 <p className="text-xs text-espresso-light">
-                  {pm.percent}% от всех
+                  {t("sales.percentOfAll", { percent: pm.percent })}
                 </p>
               </CardContent>
             </Card>
@@ -161,7 +187,7 @@ export function SalesTab() {
       {/* Revenue trend */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>Тренд выручки и заказов</CardTitle>
+          <CardTitle>{t("sales.trendTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
@@ -180,14 +206,20 @@ export function SalesTab() {
               />
               <Tooltip
                 formatter={(value: number, name: string) => [
-                  name === "revenue" ? formatPrice(value) : `${value} заказов`,
-                  name === "revenue" ? "Выручка" : "Заказы",
+                  name === "revenue"
+                    ? formatPrice(value)
+                    : t("sales.ordersCount", { count: value }),
+                  name === "revenue"
+                    ? t("sales.revenue")
+                    : t("sales.ordersLabel"),
                 ]}
                 {...TOOLTIP_STYLE}
               />
               <Legend
                 formatter={(value: string) =>
-                  value === "revenue" ? "Выручка" : "Заказы"
+                  value === "revenue"
+                    ? t("sales.revenue")
+                    : t("sales.ordersLabel")
                 }
               />
               <Line

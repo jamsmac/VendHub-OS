@@ -11,6 +11,8 @@ import { DatabaseHealthIndicator } from "./indicators/database.health";
 import { RedisHealthIndicator } from "./indicators/redis.health";
 import { MemoryHealthIndicator } from "./indicators/memory.health";
 import { DiskHealthIndicator } from "./indicators/disk.health";
+import { StorageHealthIndicator } from "./indicators/storage.health";
+import { TelegramHealthIndicator } from "./indicators/telegram.health";
 
 @ApiTags("Health")
 @Public()
@@ -23,6 +25,8 @@ export class HealthController {
     private redis: RedisHealthIndicator,
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
+    private storage: StorageHealthIndicator,
+    private telegram: TelegramHealthIndicator,
   ) {}
 
   /**
@@ -109,6 +113,8 @@ export class HealthController {
     return this.health.check([
       () => this.db.isHealthy("database"),
       () => this.redis.isHealthy("redis"),
+      () => this.storage.isHealthy("storage"),
+      () => this.telegram.isHealthy("telegram"),
       () => this.memory.checkHeap("memory_heap", 1024 * 1024 * 1024), // 1GB
       () => this.memory.checkRSS("memory_rss", 1024 * 1024 * 1024), // 1GB
       () =>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Coffee, ArrowRight } from "lucide-react";
 import { useOrders } from "@/lib/hooks";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,13 +9,14 @@ import { formatPrice, timeAgo } from "@/lib/utils";
 import { RECENT_ORDERS } from "./constants";
 
 export function RecentOrders() {
+  const t = useTranslations("dashboardMain");
   const { data: recentOrders } = useOrders(5);
 
   const ordersData =
     recentOrders && recentOrders.length > 0
       ? recentOrders.map((o) => ({
           id: o.id?.slice(0, 8) || "ORD-XXXX",
-          product: o.items?.[0]?.product_name || "Заказ",
+          product: o.items?.[0]?.product_name || t("orders.defaultProduct"),
           machine: o.machine_name || o.machine_id || "Unknown",
           total: o.total || 0,
           time: timeAgo(o.created_at),
@@ -25,13 +27,13 @@ export function RecentOrders() {
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Последние заказы</CardTitle>
+          <CardTitle>{t("orders.title")}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             className="text-caramel-dark text-xs"
           >
-            Все <ArrowRight className="ml-1 h-3 w-3" />
+            {t("orders.all")} <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
       </CardHeader>

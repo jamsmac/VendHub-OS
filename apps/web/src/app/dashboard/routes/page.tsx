@@ -150,7 +150,10 @@ export default function RoutesPage() {
     },
   });
 
-  const routeList: RouteItem[] = Array.isArray(routes) ? routes : [];
+  const routeList: RouteItem[] = useMemo(
+    () => (Array.isArray(routes) ? routes : []),
+    [routes],
+  );
 
   const stats = useMemo(
     () => ({

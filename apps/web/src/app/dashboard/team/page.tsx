@@ -25,8 +25,6 @@ import { ActivityTab } from "./components/ActivityTab";
 import { MemberPreview } from "./components/MemberPreview";
 import { InviteModal } from "./components/InviteModal";
 import { RoleModal } from "./components/RoleModal";
-import { FALLBACK_TEAM } from "./components/mockData";
-import { FALLBACK_ACTIVITY } from "./components/mockData";
 import type {
   ExtendedEmployee,
   TeamStats as TeamStatsType,
@@ -104,7 +102,7 @@ export default function TeamPage() {
         };
       });
     }
-    return FALLBACK_TEAM;
+    return [];
   }, [dbTeam]);
 
   const ACTIVITY: ActivityLog[] = useMemo(() => {
@@ -133,7 +131,7 @@ export default function TeamPage() {
         };
       });
     }
-    return FALLBACK_ACTIVITY;
+    return [];
   }, [dbActivity]);
 
   // Filtered members

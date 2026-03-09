@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Coffee, ArrowRight, Navigation } from "lucide-react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { MachineCard } from "@/components/machine/MachineCard";
-import { api } from "@/lib/api";
+import { api, Machine } from "@/lib/api";
 import { calculateDistance } from "@/lib/utils";
 
 export function HomePage() {
@@ -14,7 +14,7 @@ export function HomePage() {
   const { data: machines, isLoading } = useQuery({
     queryKey: ["machines", position?.latitude, position?.longitude],
     queryFn: async () => {
-      const res = await api.get("/machines");
+      const res = await api.get<Machine[]>("/machines");
       return res.data;
     },
   });
@@ -22,17 +22,17 @@ export function HomePage() {
   // Sort by distance if we have user location
   const sortedMachines = machines
     ? [...machines]
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((m: any) => ({
+        .map((m) => ({
           ...m,
-          distance: position
-            ? calculateDistance(
-                position.latitude,
-                position.longitude,
-                m.latitude,
-                m.longitude,
-              )
-            : null,
+          distance:
+            position && m.latitude && m.longitude
+              ? calculateDistance(
+                  position.latitude,
+                  position.longitude,
+                  m.latitude,
+                  m.longitude,
+                )
+              : undefined,
         }))
         .sort((a, b) => (a.distance || 0) - (b.distance || 0))
         .slice(0, 6)
@@ -100,8 +100,7 @@ export function HomePage() {
           </div>
         ) : sortedMachines.length > 0 ? (
           <div className="space-y-3">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {sortedMachines.map((machine: any) => (
+            {sortedMachines.map((machine) => (
               <MachineCard key={machine.id} machine={machine} />
             ))}
           </div>

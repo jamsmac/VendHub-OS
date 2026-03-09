@@ -329,7 +329,7 @@ export class AuthService {
 
     return {
       user: this.sanitizeUser(user),
-      tokens,
+      ...tokens,
       sessionId: session.id,
       mustChangePassword: user.mustChangePassword,
       ...(user.mustChangePassword && {
@@ -342,6 +342,10 @@ export class AuthService {
    * Refresh access token
    */
   async refreshToken(dto: RefreshTokenDto, ipAddress: string) {
+    if (!dto.refreshToken) {
+      throw new UnauthorizedException("Refresh token is required");
+    }
+
     // Find session by token hint (first 16 chars of SHA-256)
     const tokenHash = crypto
       .createHash("sha256")
@@ -405,7 +409,7 @@ export class AuthService {
 
     return {
       user: this.sanitizeUser(session.user),
-      tokens,
+      ...tokens,
       sessionId: session.id,
     };
   }
@@ -913,7 +917,7 @@ export class AuthService {
 
     return {
       user: this.sanitizeUser(user),
-      tokens,
+      ...tokens,
       sessionId: session.id,
       mustChangePassword: user.mustChangePassword,
       ...(user.mustChangePassword && {
@@ -976,7 +980,7 @@ export class AuthService {
 
     return {
       user: this.sanitizeUser(user),
-      tokens,
+      ...tokens,
       sessionId: session.id,
     };
   }

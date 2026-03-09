@@ -119,9 +119,13 @@ export function NotificationSettingsPage() {
             userVisibleOnly: true,
             applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           });
+          const subJson = subscription.toJSON();
           await notificationsApi.subscribePush({
             endpoint: subscription.endpoint,
-            keys: subscription.toJSON().keys,
+            keys: {
+              p256dh: subJson.keys?.p256dh ?? "",
+              auth: subJson.keys?.auth ?? "",
+            },
           });
         }
       } else {

@@ -68,10 +68,16 @@ services:
       --appendonly yes
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
-      --requirepass ${REDIS_PASSWORD:-vendhub_redis}
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     healthcheck:
       test:
-        ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-vendhub_redis}", "ping"]
+        [
+          "CMD",
+          "redis-cli",
+          "-a",
+          "${REDIS_PASSWORD:?REDIS_PASSWORD is required}",
+          "ping",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -120,7 +126,7 @@ services:
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-vendhub_redis}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
 
       # JWT
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (min 32 chars)}
@@ -311,7 +317,7 @@ services:
       API_URL: http://api:4000
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-vendhub_redis}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       PORT: "3001"
     ports:
       - "${BOT_HEALTH_PORT:-3001}:3001"
@@ -439,7 +445,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-vendhub_redis}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     ports:
       - "${BULL_BOARD_PORT:-3030}:3000"
     depends_on:
@@ -476,7 +482,7 @@ services:
     container_name: vendhub-redis-commander
     restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-vendhub_redis}
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     ports:
       - "${REDIS_COMMANDER_PORT:-8081}:8081"
     depends_on:

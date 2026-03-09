@@ -35,9 +35,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // First try cookie
+        // First try cookie (name must match what frontends set)
         (req: Request) => {
-          return req?.cookies?.vhub_access_token || null;
+          return req?.cookies?.vendhub_access_token || null;
         },
         // Then try Authorization header
         ExtractJwt.fromAuthHeaderAsBearerToken(),

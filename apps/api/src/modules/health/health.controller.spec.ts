@@ -5,6 +5,8 @@ import { DatabaseHealthIndicator } from "./indicators/database.health";
 import { RedisHealthIndicator } from "./indicators/redis.health";
 import { MemoryHealthIndicator } from "./indicators/memory.health";
 import { DiskHealthIndicator } from "./indicators/disk.health";
+import { StorageHealthIndicator } from "./indicators/storage.health";
+import { TelegramHealthIndicator } from "./indicators/telegram.health";
 
 describe("HealthController", () => {
   let controller: HealthController;
@@ -17,6 +19,8 @@ describe("HealthController", () => {
     checkRSS: jest.fn(),
   };
   const mockDiskIndicator = { checkStorage: jest.fn() };
+  const mockStorageIndicator = { isHealthy: jest.fn() };
+  const mockTelegramIndicator = { isHealthy: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +47,8 @@ describe("HealthController", () => {
         { provide: RedisHealthIndicator, useValue: mockRedisIndicator },
         { provide: MemoryHealthIndicator, useValue: mockMemoryIndicator },
         { provide: DiskHealthIndicator, useValue: mockDiskIndicator },
+        { provide: StorageHealthIndicator, useValue: mockStorageIndicator },
+        { provide: TelegramHealthIndicator, useValue: mockTelegramIndicator },
       ],
     }).compile();
 
@@ -116,12 +122,18 @@ describe("HealthController", () => {
   // ==========================================================================
 
   describe("detailed", () => {
-    it("should call health.check with all 5 indicators", async () => {
+    it("should call health.check with all 7 indicators", async () => {
       mockDbIndicator.isHealthy.mockResolvedValue({
         database: { status: "up" },
       });
       mockRedisIndicator.isHealthy.mockResolvedValue({
         redis: { status: "up" },
+      });
+      mockStorageIndicator.isHealthy.mockResolvedValue({
+        storage: { status: "up" },
+      });
+      mockTelegramIndicator.isHealthy.mockResolvedValue({
+        telegram: { status: "up" },
       });
       mockMemoryIndicator.checkHeap.mockReturnValue({
         memory_heap: { status: "up" },
@@ -138,6 +150,8 @@ describe("HealthController", () => {
       expect(healthCheckService.check).toHaveBeenCalledTimes(1);
       expect(mockDbIndicator.isHealthy).toHaveBeenCalledWith("database");
       expect(mockRedisIndicator.isHealthy).toHaveBeenCalledWith("redis");
+      expect(mockStorageIndicator.isHealthy).toHaveBeenCalledWith("storage");
+      expect(mockTelegramIndicator.isHealthy).toHaveBeenCalledWith("telegram");
       expect(mockMemoryIndicator.checkHeap).toHaveBeenCalledWith(
         "memory_heap",
         1024 * 1024 * 1024,

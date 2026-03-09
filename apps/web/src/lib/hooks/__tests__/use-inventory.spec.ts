@@ -10,6 +10,7 @@ import {
   useCreateWarehouse,
   useDeactivateWarehouse,
   useCreateMovement,
+  useUpdateInventoryItem,
   useUpdateMovementStatus,
 } from "../use-inventory";
 
@@ -20,12 +21,26 @@ jest.mock("../../api", () => ({
     getLowStock: jest.fn(),
     transfer: jest.fn(),
   },
+  warehousesApi: {
+    getAll: jest.fn(),
+    getById: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    getStock: jest.fn(),
+    getMovements: jest.fn(),
+    createMovement: jest.fn(),
+    completeMovement: jest.fn(),
+    cancelMovement: jest.fn(),
+  },
 }));
 
-import { inventoryApi } from "../../api";
-const mockGetWarehouse = inventoryApi.getWarehouse as jest.MockedFunction<
-  typeof inventoryApi.getWarehouse
->;
+import { inventoryApi, warehousesApi } from "../../api";
+
+const mockInventoryGetWarehouse =
+  inventoryApi.getWarehouse as jest.MockedFunction<
+    typeof inventoryApi.getWarehouse
+  >;
 const mockGetMovements = inventoryApi.getMovements as jest.MockedFunction<
   typeof inventoryApi.getMovements
 >;
@@ -35,6 +50,31 @@ const mockGetLowStock = inventoryApi.getLowStock as jest.MockedFunction<
 const mockTransfer = inventoryApi.transfer as jest.MockedFunction<
   typeof inventoryApi.transfer
 >;
+
+const mockWarehousesGetAll = warehousesApi.getAll as jest.MockedFunction<
+  typeof warehousesApi.getAll
+>;
+const mockWarehousesCreate = warehousesApi.create as jest.MockedFunction<
+  typeof warehousesApi.create
+>;
+const mockWarehousesDelete = warehousesApi.delete as jest.MockedFunction<
+  typeof warehousesApi.delete
+>;
+const mockWarehousesGetStock = warehousesApi.getStock as jest.MockedFunction<
+  typeof warehousesApi.getStock
+>;
+const mockWarehousesCreateMovement =
+  warehousesApi.createMovement as jest.MockedFunction<
+    typeof warehousesApi.createMovement
+  >;
+const mockWarehousesCompleteMovement =
+  warehousesApi.completeMovement as jest.MockedFunction<
+    typeof warehousesApi.completeMovement
+  >;
+const mockWarehousesCancelMovement =
+  warehousesApi.cancelMovement as jest.MockedFunction<
+    typeof warehousesApi.cancelMovement
+  >;
 
 const sampleWarehouses = [
   {
@@ -71,7 +111,7 @@ beforeEach(() => {
 
 describe("useWarehouses", () => {
   it("fetches warehouses", async () => {
-    mockGetWarehouse.mockResolvedValueOnce({
+    mockWarehousesGetAll.mockResolvedValueOnce({
       data: sampleWarehouses,
     } as never);
 
@@ -80,13 +120,14 @@ describe("useWarehouses", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockWarehousesGetAll).toHaveBeenCalled();
     expect(result.current.data).toHaveLength(1);
   });
 });
 
 describe("useAllInventory", () => {
   it("fetches all inventory items", async () => {
-    mockGetMovements.mockResolvedValueOnce({ data: [] } as never);
+    mockInventoryGetWarehouse.mockResolvedValueOnce({ data: [] } as never);
 
     const { result } = renderHook(() => useAllInventory(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -98,13 +139,14 @@ describe("useAllInventory", () => {
 
 describe("useInventoryByWarehouse", () => {
   it("fetches inventory for specific warehouse", async () => {
-    mockGetWarehouse.mockResolvedValueOnce({ data: [] } as never);
+    mockWarehousesGetStock.mockResolvedValueOnce({ data: [] } as never);
 
     const { result } = renderHook(() => useInventoryByWarehouse("w-1"), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockWarehousesGetStock).toHaveBeenCalledWith("w-1");
   });
 
   it("is disabled when warehouseId is empty", () => {
@@ -131,12 +173,12 @@ describe("useInventoryMovements", () => {
 });
 
 describe("useInventoryStats", () => {
-  it("calculates stats from warehouses and movements", async () => {
-    mockGetWarehouse.mockResolvedValueOnce({
+  it("calculates stats from warehouses and low stock", async () => {
+    mockWarehousesGetAll.mockResolvedValueOnce({
       data: sampleWarehouses,
     } as never);
-    mockGetMovements.mockResolvedValueOnce({
-      data: sampleMovements,
+    mockGetLowStock.mockResolvedValueOnce({
+      data: [{ productId: "p-1", currentQty: 3, reorderPoint: 10 }],
     } as never);
 
     const { result } = renderHook(() => useInventoryStats(), {
@@ -145,7 +187,7 @@ describe("useInventoryStats", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.totalWarehouses).toBe(1);
-    expect(result.current.data?.totalItems).toBe(1);
+    expect(result.current.data?.lowStockItems).toBe(1);
   });
 });
 
@@ -174,7 +216,7 @@ describe("useLowStockAlerts", () => {
 
 describe("useCreateWarehouse", () => {
   it("creates warehouse and invalidates caches", async () => {
-    mockGetWarehouse.mockResolvedValueOnce({
+    mockWarehousesCreate.mockResolvedValueOnce({
       data: sampleWarehouses[0],
     } as never);
 
@@ -195,6 +237,7 @@ describe("useCreateWarehouse", () => {
       } as never);
     });
 
+    expect(mockWarehousesCreate).toHaveBeenCalled();
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["warehouses"],
     });
@@ -205,7 +248,9 @@ describe("useCreateWarehouse", () => {
 });
 
 describe("useDeactivateWarehouse", () => {
-  it("deactivates warehouse", async () => {
+  it("deactivates warehouse and invalidates caches", async () => {
+    mockWarehousesDelete.mockResolvedValueOnce({} as never);
+
     const { wrapper, queryClient } = createWrapperWithClient();
     const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
@@ -215,8 +260,70 @@ describe("useDeactivateWarehouse", () => {
       await result.current.mutateAsync("w-1");
     });
 
+    expect(mockWarehousesDelete).toHaveBeenCalledWith("w-1");
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["warehouses"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["inventory-stats"],
+    });
+  });
+});
+
+describe("useUpdateInventoryItem", () => {
+  it("creates adjustment movement with required warehouseId", async () => {
+    mockWarehousesCreateMovement.mockResolvedValueOnce({
+      data: { id: "mv-2" },
+    } as never);
+
+    const { wrapper, queryClient } = createWrapperWithClient();
+    const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useUpdateInventoryItem(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        warehouseId: "w-1",
+        productId: "p-1",
+        quantity: 10,
+      });
+    });
+
+    expect(mockWarehousesCreateMovement).toHaveBeenCalledWith("w-1", {
+      productId: "p-1",
+      quantity: 10,
+      type: "adjustment",
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["all-inventory"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["low-stock-alerts"],
+    });
+  });
+
+  it("includes cost when provided", async () => {
+    mockWarehousesCreateMovement.mockResolvedValueOnce({
+      data: { id: "mv-3" },
+    } as never);
+
+    const { wrapper } = createWrapperWithClient();
+    const { result } = renderHook(() => useUpdateInventoryItem(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        warehouseId: "w-1",
+        productId: "p-1",
+        quantity: 5,
+        cost: 25000,
+      });
+    });
+
+    expect(mockWarehousesCreateMovement).toHaveBeenCalledWith("w-1", {
+      productId: "p-1",
+      quantity: 5,
+      type: "adjustment",
+      cost: 25000,
     });
   });
 });
@@ -248,7 +355,9 @@ describe("useCreateMovement", () => {
 });
 
 describe("useUpdateMovementStatus", () => {
-  it("updates movement status and invalidates", async () => {
+  it("completes movement and invalidates", async () => {
+    mockWarehousesCompleteMovement.mockResolvedValueOnce({} as never);
+
     const { wrapper, queryClient } = createWrapperWithClient();
     const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
@@ -256,11 +365,33 @@ describe("useUpdateMovementStatus", () => {
 
     await act(async () => {
       await result.current.mutateAsync({
-        _id: "mv-1",
-        _status: "completed",
+        id: "mv-1",
+        status: "completed",
       });
     });
 
+    expect(mockWarehousesCompleteMovement).toHaveBeenCalledWith("mv-1");
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["inventory-movements"],
+    });
+  });
+
+  it("cancels movement", async () => {
+    mockWarehousesCancelMovement.mockResolvedValueOnce({} as never);
+
+    const { wrapper, queryClient } = createWrapperWithClient();
+    const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useUpdateMovementStatus(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        id: "mv-1",
+        status: "cancelled",
+      });
+    });
+
+    expect(mockWarehousesCancelMovement).toHaveBeenCalledWith("mv-1");
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["inventory-movements"],
     });

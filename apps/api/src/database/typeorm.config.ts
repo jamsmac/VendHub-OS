@@ -91,21 +91,28 @@ export const dataSourceOptions: DataSourceOptions = {
   migrationsTableName: "typeorm_migrations",
   migrationsTransactionMode: "each",
 
-  // Cache (using Redis if available)
-  cache:
-    process.env.REDIS_URL || process.env.REDIS_HOST
-      ? {
-          type: "redis" as const,
-          options: process.env.REDIS_URL
-            ? { url: process.env.REDIS_URL }
-            : {
-                host: process.env.REDIS_HOST,
-                port: parseInt(process.env.REDIS_PORT || "6379", 10),
-                password: process.env.REDIS_PASSWORD || undefined,
-              },
-          duration: 60000, // 1 minute default cache
-        }
-      : false,
+  // Cache (using Redis if available, but NOT for CLI commands like migration:run)
+  // CLI runs set TYPEORM_CLI=1 or are detected by argv inspection.
+  cache: (() => {
+    const isCli =
+      process.env.TYPEORM_CLI === "1" ||
+      process.argv.some((a) => a.includes("typeorm/cli"));
+    if (isCli) return false; // CLI doesn't need query cache, skip Redis connect
+    const redisUrl = process.env.REDIS_URL;
+    const redisHost = process.env.REDIS_HOST;
+    if (!redisUrl && !redisHost) return false;
+    return {
+      type: "redis" as const,
+      options: redisUrl
+        ? { url: redisUrl }
+        : {
+            host: redisHost,
+            port: parseInt(process.env.REDIS_PORT || "6379", 10),
+            password: process.env.REDIS_PASSWORD || undefined,
+          },
+      duration: 60000, // 1 minute default cache
+    };
+  })(),
 };
 
 // DataSource for CLI commands

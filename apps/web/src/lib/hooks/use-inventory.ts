@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { inventoryApi } from "../api";
+import { inventoryApi, warehousesApi } from "../api";
 
 export interface DbWarehouse {
   id: string;
@@ -52,7 +52,7 @@ export function useWarehouses() {
   return useQuery({
     queryKey: ["warehouses"],
     queryFn: async () => {
-      const response = await inventoryApi.getWarehouse();
+      const response = await warehousesApi.getAll();
       return response.data as DbWarehouse[];
     },
   });
@@ -62,7 +62,7 @@ export function useAllInventory() {
   return useQuery({
     queryKey: ["all-inventory"],
     queryFn: async () => {
-      const response = await inventoryApi.getMovements();
+      const response = await inventoryApi.getWarehouse();
       return response.data as DbInventoryItem[];
     },
   });
@@ -72,7 +72,7 @@ export function useInventoryByWarehouse(warehouseId: string) {
   return useQuery({
     queryKey: ["inventory", warehouseId],
     queryFn: async () => {
-      const response = await inventoryApi.getWarehouse();
+      const response = await warehousesApi.getStock(warehouseId);
       return response.data as DbInventoryItem[];
     },
     enabled: !!warehouseId,
@@ -95,12 +95,14 @@ export function useInventoryStats() {
   return useQuery({
     queryKey: ["inventory-stats"],
     queryFn: async () => {
-      const response = await inventoryApi.getWarehouse();
-      const movements = await inventoryApi.getMovements();
+      const response = await warehousesApi.getAll();
+      const lowStock = await inventoryApi.getLowStock();
+      const warehouses = response.data as DbWarehouse[];
+      const lowStockItems = Array.isArray(lowStock.data) ? lowStock.data : [];
       return {
-        totalWarehouses: (response.data as DbWarehouse[]).length,
-        totalItems: (movements.data as DbInventoryMovement[]).length,
-        lowStockItems: 0,
+        totalWarehouses: warehouses.length,
+        totalItems: 0,
+        lowStockItems: lowStockItems.length,
         totalValue: 0,
       } as InventoryStats;
     },
@@ -128,9 +130,8 @@ export function useLowStockAlerts() {
 export function useCreateWarehouse() {
   const queryClient = useQueryClient();
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mutationFn: async (data: Omit<DbWarehouse, "id" | "created_at">) => {
-      const response = await inventoryApi.getWarehouse();
+      const response = await warehousesApi.create(data);
       return response.data as DbWarehouse;
     },
     onSuccess: () => {
@@ -144,13 +145,13 @@ export function useUpdateWarehouse() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      _id,
-      _updates,
+      id,
+      updates,
     }: {
-      _id: string;
-      _updates: Partial<Omit<DbWarehouse, "id" | "created_at">>;
+      id: string;
+      updates: Partial<Omit<DbWarehouse, "id" | "created_at">>;
     }) => {
-      const response = await inventoryApi.getWarehouse();
+      const response = await warehousesApi.update(id, updates);
       return response.data as DbWarehouse;
     },
     onSuccess: () => {
@@ -162,7 +163,10 @@ export function useUpdateWarehouse() {
 export function useDeactivateWarehouse() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (_id: string) => true,
+    mutationFn: async (id: string) => {
+      await warehousesApi.delete(id);
+      return true;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["warehouses"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stats"] });
@@ -173,9 +177,15 @@ export function useDeactivateWarehouse() {
 export function useCreateInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (_item: Omit<DbInventoryItem, "id" | "updated_at">) => {
-      const response = await inventoryApi.getWarehouse();
-      return response.data as DbInventoryItem[];
+    mutationFn: async (item: Omit<DbInventoryItem, "id" | "updated_at">) => {
+      // Stock is added via warehouse movements (receipt type)
+      const response = await warehousesApi.createMovement(item.warehouse_id, {
+        productId: item.product_id,
+        quantity: item.current_qty,
+        type: "receipt",
+        cost: item.cost_per_unit * item.current_qty,
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-inventory"] });
@@ -190,14 +200,25 @@ export function useUpdateInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      _id,
-      _updates,
+      warehouseId,
+      productId,
+      quantity,
+      cost,
     }: {
-      _id: string;
-      _updates: Partial<Omit<DbInventoryItem, "id">>;
+      warehouseId: string;
+      productId: string;
+      quantity: number;
+      cost?: number;
     }) => {
-      const response = await inventoryApi.getWarehouse();
-      return response.data as DbInventoryItem;
+      // Stock adjustments are done via warehouse movements (adjustment type)
+      // warehouseId is required — it's the warehouse UUID, not the inventory item ID
+      const response = await warehousesApi.createMovement(warehouseId, {
+        productId,
+        quantity,
+        type: "adjustment",
+        ...(cost != null && { cost }),
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-inventory"] });
@@ -229,12 +250,19 @@ export function useUpdateMovementStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      _id,
-      _status,
+      id,
+      status,
     }: {
-      _id: string;
-      _status: DbInventoryMovement["status"];
-    }) => true,
+      id: string;
+      status: DbInventoryMovement["status"];
+    }) => {
+      if (status === "completed") {
+        await warehousesApi.completeMovement(id);
+      } else if (status === "cancelled") {
+        await warehousesApi.cancelMovement(id);
+      }
+      return true;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
     },

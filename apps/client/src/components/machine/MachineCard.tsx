@@ -7,10 +7,10 @@ import {
   getMachineStatusColor,
   cn,
 } from "@/lib/utils";
+import { Machine } from "@/lib/api";
 
 interface MachineCardProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine: any;
+  machine: Machine;
   onClick?: () => void;
   onClose?: () => void;
 }
@@ -42,7 +42,7 @@ export function MachineCard({ machine, onClick, onClose }: MachineCardProps) {
 
       {/* Icon */}
       <div className="w-12 h-12 rounded-xl gradient-coffee flex items-center justify-center text-2xl shrink-0">
-        {getMachineTypeIcon(machine.type)}
+        {getMachineTypeIcon(machine.type || "")}
       </div>
 
       {/* Info */}

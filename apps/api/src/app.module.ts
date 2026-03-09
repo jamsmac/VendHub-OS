@@ -18,7 +18,7 @@ import {
   parseDatabaseUrl,
 } from "./config/env.config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bullmq";
 import { ScheduleModule } from "@nestjs/schedule";
 import { EventEmitterModule } from "@nestjs/event-emitter";
@@ -118,6 +118,7 @@ import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { OrganizationGuard } from "./common/guards/organization.guard";
 import { CsrfGuard } from "./common/guards/csrf.guard";
+import { UserThrottlerGuard } from "./common/guards/user-throttler.guard";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
@@ -704,7 +705,7 @@ const defaultedNumber = (value: number) =>
     // Rate limiting
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: UserThrottlerGuard,
     },
     // CSRF protection (origin verification for cookie-based auth)
     {

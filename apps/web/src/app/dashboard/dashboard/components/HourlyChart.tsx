@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -15,6 +16,7 @@ import { formatPrice } from "@/lib/utils";
 import { HOURLY_SALES, TOOLTIP_STYLE, fmtShort } from "./constants";
 
 export function HourlyChart() {
+  const t = useTranslations("dashboardMain");
   const { data: salesChart } = useSalesChart(1); // 1 day = hourly data
   const chartData =
     salesChart && salesChart.length > 0 ? salesChart : HOURLY_SALES;
@@ -23,14 +25,15 @@ export function HourlyChart() {
     <Card className="lg:col-span-2">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Продажи по часам</CardTitle>
+          <CardTitle>{t("hourly.title")}</CardTitle>
           <div className="flex items-center gap-3 text-xs">
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#D4A574]" /> Сегодня
+              <span className="h-2.5 w-2.5 rounded-full bg-[#D4A574]" />{" "}
+              {t("hourly.today")}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-[#795548] opacity-40" />{" "}
-              Вчера
+              {t("hourly.yesterday")}
             </span>
           </div>
         </div>
@@ -57,7 +60,7 @@ export function HourlyChart() {
             <Tooltip
               formatter={(value: number, name: string) => [
                 formatPrice(value),
-                name === "today" ? "Сегодня" : "Вчера",
+                name === "today" ? t("hourly.today") : t("hourly.yesterday"),
               ]}
               {...TOOLTIP_STYLE}
             />

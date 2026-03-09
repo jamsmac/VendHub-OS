@@ -6,6 +6,7 @@
 
 import { useEffect, MutableRefObject } from "react";
 import { useTranslation } from "react-i18next";
+import { Machine } from "@/lib/api";
 import {
   MapContainer,
   TileLayer,
@@ -23,11 +24,9 @@ import "leaflet/dist/leaflet.css";
 // ============================================================================
 
 interface GoogleMapProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machines: any[];
+  machines: Machine[];
   userLocation: { latitude: number; longitude: number } | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onMachineClick?: (machine: any) => void;
+  onMachineClick?: (machine: Machine) => void;
   mapRef?: MutableRefObject<L.Map | null>;
 }
 
@@ -57,8 +56,7 @@ function MapRefSetter({ mapRef }: { mapRef?: MutableRefObject<L.Map | null> }) {
 }
 
 /** Custom circular machine icon — matches the machine type with an emoji */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createMachineIcon(machine: any) {
+function createMachineIcon(machine: Machine) {
   const color = machine.status === "active" ? "#43302b" : "#9ca3af";
   const emoji =
     machine.type === "coffee" ? "☕" : machine.type === "snack" ? "🍫" : "🥤";
@@ -117,7 +115,10 @@ function MapInner({
       {/* Clustered machine markers */}
       <MarkerClusterGroup chunkedLoading>
         {machines
-          .filter((m) => m.latitude && m.longitude)
+          .filter(
+            (m): m is Machine & { latitude: number; longitude: number } =>
+              !!(m.latitude && m.longitude),
+          )
           .map((machine) => (
             <Marker
               key={machine.id}

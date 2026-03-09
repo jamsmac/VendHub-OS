@@ -1,19 +1,36 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 import { useRecentActivity } from "@/lib/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { timeAgo } from "@/lib/utils";
-import { ACTIVITY_FEED, ACTIVITY_CONFIG, type ActivityType } from "./constants";
+import {
+  ACTIVITY_FEED,
+  ACTIVITY_CONFIG,
+  ACTIVITY_TYPE_I18N_MAP,
+  type ActivityType,
+} from "./constants";
+
+const ACTIVITY_FILTER_IDS = [
+  "all",
+  "sale",
+  "refill",
+  "alert",
+  "task",
+  "collection",
+  "maintenance",
+] as const;
 
 export function ActivityTab() {
+  const t = useTranslations("dashboardMain");
   const [activityFilter, setActivityFilter] = useState<string>("all");
   const { data: activityLogs } = useRecentActivity(50);
 
   const activityFeed =
     activityLogs && activityLogs.length > 0
-      ? activityLogs.map((log: unknown) => {
+      ? activityLogs.map((log: unknown, index: number) => {
           const l = log as {
             id?: string;
             action?: string;
@@ -22,9 +39,9 @@ export function ActivityTab() {
             timestamp?: string;
           };
           return {
-            id: parseInt(l.id || "0", 10) || Math.random(),
+            id: l.id || `activity-${index}`,
             type: (l.action?.toLowerCase() || "sale") as ActivityType,
-            text: l.action || "Событие",
+            text: l.action || t("format.event"),
             machine: l.resource || "Unknown",
             detail: l.details || "N/A",
             time: timeAgo(l.timestamp || ""),
@@ -38,16 +55,6 @@ export function ActivityTab() {
       (a: (typeof activityFeed)[0]) => a.type === activityFilter,
     );
   }, [activityFilter, activityFeed]);
-
-  const ACTIVITY_FILTERS = [
-    { id: "all", label: "Все" },
-    { id: "sale", label: "Продажи" },
-    { id: "refill", label: "Загрузки" },
-    { id: "alert", label: "Алерты" },
-    { id: "task", label: "Задачи" },
-    { id: "collection", label: "Инкассация" },
-    { id: "maintenance", label: "ТО" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -64,6 +71,7 @@ export function ActivityTab() {
             const count = activityFeed.filter(
               (a: (typeof activityFeed)[0]) => a.type === type,
             ).length;
+            const i18nKey = ACTIVITY_TYPE_I18N_MAP[type as ActivityType];
             return (
               <Card key={type}>
                 <CardContent className="p-3 flex items-center gap-2">
@@ -75,17 +83,7 @@ export function ActivityTab() {
                       {count}
                     </p>
                     <p className="text-xs text-espresso-light capitalize">
-                      {type === "sale"
-                        ? "Продажи"
-                        : type === "refill"
-                          ? "Загрузки"
-                          : type === "alert"
-                            ? "Алерты"
-                            : type === "task"
-                              ? "Задачи"
-                              : type === "collection"
-                                ? "Инкассация"
-                                : "ТО"}
+                      {t(`activityTab.${i18nKey}`)}
                     </p>
                   </div>
                 </CardContent>
@@ -97,19 +95,25 @@ export function ActivityTab() {
 
       {/* Filter */}
       <div className="flex gap-1.5 flex-wrap">
-        {ACTIVITY_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setActivityFilter(f.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              activityFilter === f.id
-                ? "bg-espresso text-white"
-                : "bg-stone-100 text-espresso-light hover:bg-stone-200"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+        {ACTIVITY_FILTER_IDS.map((id) => {
+          const labelKey =
+            id === "all"
+              ? "filterAll"
+              : ACTIVITY_TYPE_I18N_MAP[id as ActivityType];
+          return (
+            <button
+              key={id}
+              onClick={() => setActivityFilter(id)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                activityFilter === id
+                  ? "bg-espresso text-white"
+                  : "bg-stone-100 text-espresso-light hover:bg-stone-200"
+              }`}
+            >
+              {t(`activityTab.${labelKey}`)}
+            </button>
+          );
+        })}
       </div>
 
       {/* Timeline */}
@@ -166,7 +170,7 @@ export function ActivityTab() {
 
       {filtered.length === 0 && (
         <div className="py-12 text-center text-sm text-espresso-light">
-          Нет событий по выбранному фильтру
+          {t("activityTab.noEvents")}
         </div>
       )}
     </div>

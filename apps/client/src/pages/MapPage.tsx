@@ -6,21 +6,20 @@ import type { Map as LeafletMap } from "leaflet";
 import { GoogleMap } from "@/components/map/GoogleMap";
 import { MachineCard } from "@/components/machine/MachineCard";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { api } from "@/lib/api";
+import { api, Machine } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function MapPage() {
   const { t } = useTranslation();
   const { position, getCurrentPosition } = useGeolocation();
   const [view, setView] = useState<"map" | "list">("map");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedMachine, setSelectedMachine] = useState<any>(null);
+  const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
 
   const { data: machines, isLoading } = useQuery({
     queryKey: ["machines"],
     queryFn: async () => {
-      const res = await api.get("/machines");
+      const res = await api.get<Machine[]>("/machines");
       return res.data;
     },
   });
@@ -33,10 +32,9 @@ export function MapPage() {
     }
   }, [position, getCurrentPosition]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleMachineClick = useCallback((machine: any) => {
+  const handleMachineClick = useCallback((machine: Machine) => {
     setSelectedMachine(machine);
-    if (mapRef.current) {
+    if (mapRef.current && machine.latitude && machine.longitude) {
       mapRef.current.panTo([machine.latitude, machine.longitude]);
       mapRef.current.setZoom(16);
     }
@@ -113,9 +111,8 @@ export function MapPage() {
                     className="h-24 rounded-2xl bg-muted animate-pulse"
                   />
                 ))
-            ) : machines?.length > 0 ? (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              machines.map((machine: any) => (
+            ) : (machines?.length ?? 0) > 0 ? (
+              machines!.map((machine) => (
                 <MachineCard
                   key={machine.id}
                   machine={machine}

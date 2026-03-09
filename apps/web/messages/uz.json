@@ -3587,5 +3587,118 @@
       "templateApplied": "Shablon muvaffaqiyatli qo'llandi",
       "templateApplyError": "Shablonni qo'llashda xatolik"
     }
+  },
+  "dashboardMain": {
+    "title": "Boshqaruv paneli",
+    "refresh": "Yangilash",
+    "vsYesterday": "kechagiga nisbatan",
+    "tabs": {
+      "overview": "Umumiy",
+      "sales": "Sotuvlar",
+      "machines": "Avtomatlar",
+      "activity": "Faoliyat"
+    },
+    "kpi": {
+      "dailyRevenue": "Kunlik tushum",
+      "avgCheck": "O'rtacha chek",
+      "orders": "Buyurtmalar",
+      "activeClients": "Faol mijozlar",
+      "machinesOnline": "Onlayn avtomatlar",
+      "criticalStock": "Kritik zaxira",
+      "taskQueue": "Vazifalar navbati",
+      "collection": "Inkassatsiya"
+    },
+    "hourly": {
+      "title": "Soatlik sotuvlar",
+      "today": "Bugun",
+      "yesterday": "Kecha"
+    },
+    "machineStatus": {
+      "title": "Avtomatlar holati",
+      "allCount": "Barchasi {count}",
+      "online": "Onlayn",
+      "warning": "Diqqat",
+      "offline": "Oflayn",
+      "stockPercent": "Zaxira {percent}%"
+    },
+    "quickActions": {
+      "createTask": "Vazifa yaratish",
+      "dailyReport": "Kunlik hisobot",
+      "refill": "To'ldirish",
+      "check": "Tekshirish"
+    },
+    "topProducts": {
+      "title": "Top mahsulotlar",
+      "all": "Barchasi",
+      "salesCount": "{count} ta sotuv"
+    },
+    "alerts": {
+      "title": "Ogohlantirishlar",
+      "critical": "{count} kritik",
+      "warnings": "{count} diqqat",
+      "moreAlerts": "Yana {count} ogohlantirish"
+    },
+    "orders": {
+      "title": "So'nggi buyurtmalar",
+      "all": "Barchasi",
+      "defaultProduct": "Buyurtma"
+    },
+    "sales": {
+      "weekTitle": "Haftalik sotuvlar",
+      "revenue": "Tushum",
+      "ordersLabel": "Buyurtmalar",
+      "ordersCount": "{count} ta buyurtma",
+      "share": "Ulushi",
+      "categories": "Kategoriyalar",
+      "percentOfAll": "Jami {percent}%",
+      "trendTitle": "Tushum va buyurtmalar trendi"
+    },
+    "machinesTab": {
+      "totalMachines": "Jami avtomatlar",
+      "totalRevenue": "Umumiy tushum",
+      "totalOrders": "Jami buyurtmalar",
+      "avgPerMachine": "Avtomat boshiga",
+      "searchPlaceholder": "Avtomat qidirish...",
+      "all": "Barchasi",
+      "online": "Onlayn",
+      "warning": "Diqqat",
+      "offline": "Oflayn",
+      "revenue": "Tushum",
+      "orders": "Buyurtmalar",
+      "stockPercent": "Zaxira {percent}%",
+      "notFound": "Avtomatlar topilmadi"
+    },
+    "activityTab": {
+      "filterAll": "Barchasi",
+      "filterSales": "Sotuvlar",
+      "filterRefills": "Yuklashlar",
+      "filterAlerts": "Ogohlantirishlar",
+      "filterTasks": "Vazifalar",
+      "filterCollection": "Inkassatsiya",
+      "filterMaintenance": "TX",
+      "noEvents": "Tanlangan filtr bo'yicha hodisalar yo'q"
+    },
+    "categories": {
+      "coffee": "Qahva",
+      "tea": "Choy",
+      "cocoa": "Kakao",
+      "cold": "Sovuq ichimliklar"
+    },
+    "paymentMethods": {
+      "cash": "Naqd pul"
+    },
+    "days": {
+      "mon": "Du",
+      "tue": "Se",
+      "wed": "Cho",
+      "thu": "Pa",
+      "fri": "Ju",
+      "sat": "Sha",
+      "sun": "Ya"
+    },
+    "format": {
+      "billion": "{value} mlrd",
+      "event": "Hodisa"
+    }
   }
 }

@@ -360,7 +360,10 @@ export default function FiscalPage() {
     enabled: devices.length > 0,
   });
 
-  const deviceStats = deviceStatsQueries.data ?? [];
+  const deviceStats = useMemo(
+    () => deviceStatsQueries.data ?? [],
+    [deviceStatsQueries.data],
+  );
 
   const { data: receiptsData, isLoading: receiptsLoading } =
     useQuery<FiscalReceiptsResponse>({

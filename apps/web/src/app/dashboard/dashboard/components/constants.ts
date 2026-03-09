@@ -31,81 +31,97 @@ export type ActivityType =
   | "collection"
   | "maintenance";
 
-export const TABS: {
-  id: TabId;
-  label: string;
-  icon: typeof LayoutDashboard;
-}[] = [
-  { id: "overview", label: "Обзор", icon: LayoutDashboard },
-  { id: "sales", label: "Продажи", icon: TrendingUp },
-  { id: "machines", label: "Автоматы", icon: Monitor },
-  { id: "activity", label: "Активность", icon: Activity },
+export const TAB_IDS: { id: TabId; icon: typeof LayoutDashboard }[] = [
+  { id: "overview", icon: LayoutDashboard },
+  { id: "sales", icon: TrendingUp },
+  { id: "machines", icon: Monitor },
+  { id: "activity", icon: Activity },
 ];
 
-export const KPI_DATA = [
+export const KPI_KEYS = [
+  "dailyRevenue",
+  "avgCheck",
+  "orders",
+  "activeClients",
+  "machinesOnline",
+  "criticalStock",
+  "taskQueue",
+  "collection",
+] as const;
+
+export type KpiKey = (typeof KPI_KEYS)[number];
+
+export const KPI_DATA: {
+  key: KpiKey;
+  value: number | string;
+  change: number;
+  icon: typeof DollarSign;
+  color: string;
+  format: "price" | "number" | "raw";
+}[] = [
   {
-    label: "Выручка за день",
+    key: "dailyRevenue",
     value: 4_850_000,
     change: 12.5,
     icon: DollarSign,
     color: "bg-emerald-50 text-emerald-600",
-    format: "price" as const,
+    format: "price",
   },
   {
-    label: "Средний чек",
+    key: "avgCheck",
     value: 8_527,
     change: 3.2,
     icon: Receipt,
     color: "bg-blue-50 text-blue-600",
-    format: "price" as const,
+    format: "price",
   },
   {
-    label: "Заказы",
+    key: "orders",
     value: 247,
     change: 8.3,
     icon: ShoppingCart,
     color: "bg-amber-50 text-amber-600",
-    format: "number" as const,
+    format: "number",
   },
   {
-    label: "Активных клиентов",
+    key: "activeClients",
     value: 1_832,
     change: -2.1,
     icon: Users,
     color: "bg-purple-50 text-purple-600",
-    format: "number" as const,
+    format: "number",
   },
   {
-    label: "Автоматы онлайн",
+    key: "machinesOnline",
     value: "14/16",
     change: 0,
     icon: Monitor,
     color: "bg-cyan-50 text-cyan-600",
-    format: "raw" as const,
+    format: "raw",
   },
   {
-    label: "Запасы критичны",
+    key: "criticalStock",
     value: 3,
     change: 0,
     icon: AlertTriangle,
     color: "bg-red-50 text-red-600",
-    format: "number" as const,
+    format: "number",
   },
   {
-    label: "Очередь задач",
+    key: "taskQueue",
     value: 12,
     change: 5,
     icon: ClipboardList,
     color: "bg-orange-50 text-orange-600",
-    format: "number" as const,
+    format: "number",
   },
   {
-    label: "Инкассация",
+    key: "collection",
     value: 3_420_000,
     change: 18.7,
     icon: Wallet,
     color: "bg-green-50 text-green-600",
-    format: "price" as const,
+    format: "price",
   },
 ];
 
@@ -299,59 +315,72 @@ export const MACHINE_STATUS = [
   },
 ];
 
-export const QUICK_ACTIONS = [
-  {
+export const QUICK_ACTION_KEYS = [
+  "createTask",
+  "dailyReport",
+  "refill",
+  "check",
+] as const;
+
+export const QUICK_ACTION_META: Record<
+  (typeof QUICK_ACTION_KEYS)[number],
+  { icon: string; color: string; textColor: string }
+> = {
+  createTask: {
     icon: "Plus",
-    label: "Создать задачу",
     color: "bg-blue-500 hover:bg-blue-600",
     textColor: "text-blue-500",
   },
-  {
+  dailyReport: {
     icon: "FileText",
-    label: "Отчёт дня",
     color: "bg-amber-500 hover:bg-amber-600",
     textColor: "text-amber-500",
   },
-  {
+  refill: {
     icon: "Truck",
-    label: "Пополнение",
     color: "bg-emerald-500 hover:bg-emerald-600",
     textColor: "text-emerald-500",
   },
-  {
+  check: {
     icon: "Settings",
-    label: "Проверка",
     color: "bg-cyan-500 hover:bg-cyan-600",
     textColor: "text-cyan-500",
   },
+};
+
+export const SALES_WEEK_DATA = [
+  { dayKey: "mon", revenue: 3_200_000, orders: 182 },
+  { dayKey: "tue", revenue: 3_750_000, orders: 210 },
+  { dayKey: "wed", revenue: 4_100_000, orders: 235 },
+  { dayKey: "thu", revenue: 3_900_000, orders: 220 },
+  { dayKey: "fri", revenue: 5_200_000, orders: 298 },
+  { dayKey: "sat", revenue: 6_100_000, orders: 340 },
+  { dayKey: "sun", revenue: 4_850_000, orders: 247 },
 ];
 
-export const SALES_WEEK = [
-  { day: "Пн", revenue: 3_200_000, orders: 182 },
-  { day: "Вт", revenue: 3_750_000, orders: 210 },
-  { day: "Ср", revenue: 4_100_000, orders: 235 },
-  { day: "Чт", revenue: 3_900_000, orders: 220 },
-  { day: "Пт", revenue: 5_200_000, orders: 298 },
-  { day: "Сб", revenue: 6_100_000, orders: 340 },
-  { day: "Вс", revenue: 4_850_000, orders: 247 },
-];
+export const CATEGORY_KEYS = ["coffee", "tea", "cocoa", "cold"] as const;
 
-export const CATEGORY_DATA = [
-  { name: "Кофе", value: 62, color: "#5D4037" },
-  { name: "Чай", value: 18, color: "#D4A574" },
-  { name: "Какао", value: 12, color: "#B8834A" },
-  { name: "Холодные", value: 8, color: "#7CB69D" },
+export const CATEGORY_DATA: {
+  key: (typeof CATEGORY_KEYS)[number];
+  value: number;
+  color: string;
+}[] = [
+  { key: "coffee", value: 62, color: "#5D4037" },
+  { key: "tea", value: 18, color: "#D4A574" },
+  { key: "cocoa", value: 12, color: "#B8834A" },
+  { key: "cold", value: 8, color: "#7CB69D" },
 ];
 
 export const PAYMENT_METHODS = [
   {
-    method: "Наличные",
+    methodKey: "cash",
     amount: 1_650_000,
     percent: 34,
     icon: Banknote,
     color: "bg-emerald-100 text-emerald-700",
   },
   {
+    methodKey: "payme",
     method: "Payme",
     amount: 1_215_000,
     percent: 25,
@@ -359,6 +388,7 @@ export const PAYMENT_METHODS = [
     color: "bg-cyan-100 text-cyan-700",
   },
   {
+    methodKey: "click",
     method: "Click",
     amount: 970_000,
     percent: 20,
@@ -366,6 +396,7 @@ export const PAYMENT_METHODS = [
     color: "bg-blue-100 text-blue-700",
   },
   {
+    methodKey: "uzum",
     method: "Uzum",
     amount: 630_000,
     percent: 13,
@@ -373,6 +404,7 @@ export const PAYMENT_METHODS = [
     color: "bg-purple-100 text-purple-700",
   },
   {
+    methodKey: "humo_uzcard",
     method: "HUMO/UZCARD",
     amount: 385_000,
     percent: 8,
@@ -490,6 +522,15 @@ export const ACTIVITY_CONFIG: Record<
   maintenance: { icon: Wrench, color: "text-cyan-600", bg: "bg-cyan-50" },
 };
 
+export const ACTIVITY_TYPE_I18N_MAP: Record<ActivityType, string> = {
+  sale: "filterSales",
+  refill: "filterRefills",
+  alert: "filterAlerts",
+  task: "filterTasks",
+  collection: "filterCollection",
+  maintenance: "filterMaintenance",
+};
+
 export const ACTIVITY_FEED: {
   id: number;
   type: ActivityType;
@@ -597,13 +638,13 @@ export const ACTIVITY_FEED: {
 ];
 
 export const REVENUE_TREND = [
-  { day: "Пн", revenue: 3_200_000, orders: 182 },
-  { day: "Вт", revenue: 3_750_000, orders: 210 },
-  { day: "Ср", revenue: 4_100_000, orders: 235 },
-  { day: "Чт", revenue: 3_900_000, orders: 220 },
-  { day: "Пт", revenue: 5_200_000, orders: 298 },
-  { day: "Сб", revenue: 6_100_000, orders: 340 },
-  { day: "Вс", revenue: 4_850_000, orders: 247 },
+  { dayKey: "mon", revenue: 3_200_000, orders: 182 },
+  { dayKey: "tue", revenue: 3_750_000, orders: 210 },
+  { dayKey: "wed", revenue: 4_100_000, orders: 235 },
+  { dayKey: "thu", revenue: 3_900_000, orders: 220 },
+  { dayKey: "fri", revenue: 5_200_000, orders: 298 },
+  { dayKey: "sat", revenue: 6_100_000, orders: 340 },
+  { dayKey: "sun", revenue: 4_850_000, orders: 247 },
 ];
 
 export const ALERT_STYLES = {
@@ -627,13 +668,15 @@ export const ALERT_STYLES = {
   },
 } as const;
 
+export const MACHINE_STATUS_KEYS = ["online", "warning", "offline"] as const;
+
 export const MACHINE_STATUS_META: Record<
   string,
-  { label: string; dot: string; badge: "success" | "warning" | "destructive" }
+  { dot: string; badge: "success" | "warning" | "destructive" }
 > = {
-  online: { label: "Онлайн", dot: "bg-emerald-500", badge: "success" },
-  warning: { label: "Внимание", dot: "bg-amber-500", badge: "warning" },
-  offline: { label: "Офлайн", dot: "bg-red-500", badge: "destructive" },
+  online: { dot: "bg-emerald-500", badge: "success" },
+  warning: { dot: "bg-amber-500", badge: "warning" },
+  offline: { dot: "bg-red-500", badge: "destructive" },
 };
 
 export const TOOLTIP_STYLE = {

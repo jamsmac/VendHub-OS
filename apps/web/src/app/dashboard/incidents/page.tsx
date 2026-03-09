@@ -259,7 +259,7 @@ export default function IncidentsPage() {
     },
   });
 
-  const incidents = incidentsData ?? [];
+  const incidents = useMemo(() => incidentsData ?? [], [incidentsData]);
 
   const stats = useMemo(
     () => ({

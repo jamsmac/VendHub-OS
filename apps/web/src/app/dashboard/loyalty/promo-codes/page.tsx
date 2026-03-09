@@ -187,9 +187,8 @@ export default function PromoCodesPage() {
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 8; i++)
-      code += chars[Math.floor(Math.random() * chars.length)];
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    const code = Array.from(bytes, (b) => chars[b % chars.length]).join("");
     setForm({ ...form, code });
   };
 

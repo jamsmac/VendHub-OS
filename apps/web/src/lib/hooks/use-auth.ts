@@ -30,6 +30,7 @@ interface AuthUser {
 
 interface LoginResponse {
   requiresTwoFactor?: boolean;
+  challengeToken?: string;
   accessToken: string;
   refreshToken: string;
   user: AuthUser;
@@ -43,7 +44,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { user, setUser } = useAppStore();
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
+  const [challengeToken, setChallengeToken] = useState("");
 
   // Check if user is authenticated (has valid token)
   const isAuthenticated = !!getAccessToken() && !!user;
@@ -98,6 +99,7 @@ export function useAuth() {
     onSuccess: (data) => {
       if (data.requiresTwoFactor) {
         setRequiresTwoFactor(true);
+        setChallengeToken(data.challengeToken || "");
         return;
       }
 
@@ -135,10 +137,10 @@ export function useAuth() {
     },
   });
 
-  // TOTP verification mutation
+  // TOTP verification mutation — calls POST /auth/2fa/complete
   const verifyTotpMutation = useMutation({
     mutationFn: async (code: string) => {
-      const response = await authApi.login(loginEmail, "", code);
+      const response = await authApi.complete2FA(challengeToken, code);
       return response.data as LoginResponse;
     },
     onSuccess: (data) => {
@@ -159,7 +161,6 @@ export function useAuth() {
   // Login handler
   const login = useCallback(
     async (email: string, password: string) => {
-      setLoginEmail(email);
       return loginMutation.mutateAsync({ email, password });
     },
     [loginMutation],

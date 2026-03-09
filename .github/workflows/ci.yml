@@ -89,7 +89,7 @@ jobs:
           CI: true
 
       - name: Run web unit tests
-        run: pnpm --filter web test --runInBand --forceExit
+        run: pnpm --filter web test -- --runInBand --forceExit
         env:
           CI: true
 
@@ -178,7 +178,6 @@ jobs:
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
-    continue-on-error: true
     needs: build
     services:
       postgres:
@@ -237,7 +236,6 @@ jobs:
           DB_NAME: vendhub_test
 
       - name: Run integration tests
-        continue-on-error: true
         run: pnpm --filter api test:integration --forceExit --passWithNoTests
         env:
           DB_HOST: localhost
@@ -260,7 +258,6 @@ jobs:
   test-e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
-    continue-on-error: true
     needs: build
     services:
       postgres:
@@ -431,9 +428,8 @@ jobs:
   docker-build:
     name: Build Docker Images
     runs-on: ubuntu-latest
-    continue-on-error: true
     needs: [test-unit, build]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCKER_REGISTRY_ENABLED == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -446,7 +442,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-        continue-on-error: true
 
       - name: Extract metadata for API
         id: meta-api
@@ -531,7 +526,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./apps/client/Dockerfile
+          file: ./apps/client/Dockerfile.dev
           push: true
           tags: ${{ steps.meta-client.outputs.tags }}
           labels: ${{ steps.meta-client.outputs.labels }}

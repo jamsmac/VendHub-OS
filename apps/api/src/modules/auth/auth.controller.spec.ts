@@ -25,6 +25,7 @@ import request from "supertest";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
+import { CookieService } from "./services/cookie.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 
 describe("AuthController (e2e)", () => {
@@ -69,6 +70,15 @@ describe("AuthController (e2e)", () => {
           provide: PasswordPolicyService,
           useValue: {
             getRequirements: jest.fn(),
+          },
+        },
+        {
+          provide: CookieService,
+          useValue: {
+            setTokenCookies: jest.fn(),
+            clearTokenCookies: jest.fn(),
+            getAccessTokenFromCookie: jest.fn().mockReturnValue(null),
+            getRefreshTokenFromCookie: jest.fn().mockReturnValue(null),
           },
         },
       ],

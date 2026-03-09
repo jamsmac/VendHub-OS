@@ -34,6 +34,7 @@ import { MetricsService } from "./modules/metrics/metrics.service";
 import { TracingInterceptor } from "./common/tracing/tracing.interceptor";
 import { TracingService } from "./common/tracing/tracing.service";
 import { createSwaggerAuthMiddleware } from "./common/middleware/swagger-auth.middleware";
+import { RedisIoAdapter } from "./modules/websocket/redis-io.adapter";
 
 const isAgentMode =
   process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production";
@@ -407,22 +408,48 @@ All endpoints require JWT Bearer authentication except public endpoints.
   // No duplicate manual health probes needed here.
 
   // ============================================
+  // SOCKET.IO REDIS ADAPTER (multi-instance)
+  // ============================================
+
+  // Build Redis URL from individual env vars or use REDIS_URL directly.
+  // If neither is set, Socket.IO falls back to the default in-memory adapter.
+  const redisHost = configService.get<string>("REDIS_HOST");
+  const redisUrl =
+    configService.get<string>("REDIS_URL") ||
+    (redisHost
+      ? `redis://${configService.get("REDIS_PASSWORD") ? `:${configService.get("REDIS_PASSWORD")}@` : ""}${redisHost}:${configService.get("REDIS_PORT", 6379)}`
+      : undefined);
+
+  let redisIoAdapter: RedisIoAdapter | undefined;
+
+  if (redisUrl) {
+    redisIoAdapter = new RedisIoAdapter(app, redisUrl);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+    logger.log("Socket.IO using Redis adapter for multi-instance support");
+  } else {
+    logger.warn(
+      "No Redis configured — Socket.IO using in-memory adapter (single-instance only)",
+    );
+  }
+
+  // ============================================
   // GRACEFUL SHUTDOWN
   // ============================================
 
   app.enableShutdownHooks();
 
-  process.on("SIGTERM", async () => {
-    logger.log("🛑 SIGTERM received. Shutting down gracefully...");
+  const gracefulShutdown = async (signal: string) => {
+    logger.log(`🛑 ${signal} received. Shutting down gracefully...`);
+    if (redisIoAdapter) {
+      await redisIoAdapter.cleanup();
+    }
     await app.close();
     process.exit(0);
-  });
+  };
 
-  process.on("SIGINT", async () => {
-    logger.log("🛑 SIGINT received. Shutting down gracefully...");
-    await app.close();
-    process.exit(0);
-  });
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
   // ============================================
   // START SERVER

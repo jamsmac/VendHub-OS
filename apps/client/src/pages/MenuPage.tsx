@@ -27,11 +27,10 @@ export function MenuPage() {
     enabled: !!machineId,
   });
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading } = useQuery<ProductCardItem[]>({
     queryKey: ["products", machineId],
     queryFn: async () => {
-      // В реальном приложении - запрос продуктов для конкретного автомата
-      const res = await api.get("/products");
+      const res = await api.get<ProductCardItem[]>("/products");
       return res.data;
     },
   });
@@ -39,8 +38,7 @@ export function MenuPage() {
   const filteredProducts =
     activeCategory === "all"
       ? products
-      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        products?.filter((p: any) => p.type === activeCategory);
+      : products?.filter((p) => p.type === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,10 +96,9 @@ export function MenuPage() {
                 />
               ))}
           </div>
-        ) : filteredProducts?.length > 0 ? (
+        ) : (filteredProducts?.length ?? 0) > 0 ? (
           <div className="grid grid-cols-2 gap-3">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {filteredProducts.map((product: any) => (
+            {filteredProducts!.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

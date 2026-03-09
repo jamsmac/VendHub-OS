@@ -6,33 +6,40 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 export const api = axios.create({
   baseURL: `${API_URL}/api/v1`,
   timeout: 30000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // ============================================
-// Token helpers
+// Token helpers — in-memory only (no localStorage)
 // ============================================
 
-function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem("vendhub_access_token", accessToken);
-  localStorage.setItem("vendhub_refresh_token", refreshToken);
+let _accessToken: string | null = null;
+
+function setTokens(accessToken: string, _refreshToken?: string) {
+  _accessToken = accessToken;
+  // Refresh token is stored in httpOnly cookie by the server —
+  // no client-side storage needed
 }
 
 function clearTokens() {
-  localStorage.removeItem("vendhub_access_token");
-  localStorage.removeItem("vendhub_refresh_token");
+  _accessToken = null;
 }
 
-export { setTokens, clearTokens };
+function getAccessToken(): string | null {
+  return _accessToken;
+}
+
+export { setTokens, clearTokens, getAccessToken };
 
 // ============================================
 // Request interceptor — attach auth token
 // ============================================
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("vendhub_access_token");
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -87,22 +94,17 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem("vendhub_refresh_token");
-      if (!refreshToken) {
-        // No refresh token stored — cannot refresh, force logout
-        throw new Error("No refresh token available");
-      }
+      // Refresh token is in httpOnly cookie — sent automatically
+      // via withCredentials. Body can be empty.
+      const response = await axios.post(
+        `${API_URL}/api/v1/auth/refresh`,
+        {},
+        { withCredentials: true },
+      );
 
-      // Use a plain axios call (not the `api` instance) to avoid
-      // triggering this interceptor recursively
-      const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
-        refreshToken,
-      });
+      const { accessToken: newAccessToken } = response.data;
 
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        response.data;
-
-      setTokens(newAccessToken, newRefreshToken);
+      setTokens(newAccessToken);
       processQueue(null, newAccessToken);
 
       // Retry the original request with the new token
@@ -134,6 +136,7 @@ export interface Machine {
   machineNumber: string;
   name: string;
   status: string;
+  type?: string;
   address?: string;
   city?: string;
   latitude?: number;
@@ -141,6 +144,9 @@ export interface Machine {
   stockLevel?: number;
   model?: string;
   distance?: number;
+  location?: {
+    address?: string;
+  };
 }
 
 export interface Product {
@@ -322,11 +328,11 @@ export const complaintsApi = {
 
 export const authApi = {
   loginTelegram: (initData: string) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    api.post<{ accessToken: string; refreshToken: string; user: any }>(
-      "/auth/telegram",
-      { initData },
-    ),
+    api.post<{
+      accessToken: string;
+      refreshToken: string;
+      user: Record<string, unknown>;
+    }>("/auth/telegram", { initData }),
 };
 
 // Achievements
@@ -400,8 +406,9 @@ export const notificationsApi = {
   getSettings: () => api.get("/notifications/settings"),
   updateSettings: (data: Record<string, boolean>) =>
     api.patch("/notifications/settings", data),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  subscribePush: (data: { endpoint: string; keys: any }) =>
-    api.post("/notifications/push/subscribe", data),
+  subscribePush: (data: {
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+  }) => api.post("/notifications/push/subscribe", data),
   unsubscribePush: () => api.delete("/notifications/push/unsubscribe"),
 };

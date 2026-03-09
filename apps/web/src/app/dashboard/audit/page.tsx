@@ -182,7 +182,10 @@ export default function AuditPage() {
         .then((res) => res.data),
   });
 
-  const logList: AuditLog[] = Array.isArray(logs) ? logs : [];
+  const logList: AuditLog[] = useMemo(
+    () => (Array.isArray(logs) ? logs : []),
+    [logs],
+  );
   const stats: AuditStats | null = statsData || null;
 
   const quickStats = useMemo(

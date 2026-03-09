@@ -24,7 +24,7 @@ spec:
         checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .Values.api.service.port }}"
-        prometheus.io/path: "/metrics"
+        prometheus.io/path: "/api/v1/monitoring/metrics"
       labels:
         {{- include "vendhub.api.selectorLabels" . | nindent 8 }}
     spec:

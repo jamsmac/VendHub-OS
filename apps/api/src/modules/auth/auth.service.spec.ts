@@ -309,7 +309,8 @@ describe("AuthService", () => {
       );
 
       expect(result).toHaveProperty("user");
-      expect(result).toHaveProperty("tokens");
+      expect(result).toHaveProperty("accessToken");
+      expect(result).toHaveProperty("refreshToken");
       expect(result).toHaveProperty("sessionId");
     });
 

@@ -28,8 +28,15 @@ import {
   Users,
   TicketPercent,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, UserAchievement } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
+
+interface LeaderboardUser {
+  id: string;
+  name?: string;
+  username?: string;
+  points: number;
+}
 
 interface LoyaltyData {
   points: number;
@@ -636,8 +643,7 @@ function LeaderboardPreview() {
       const res = await api.get("/loyalty/leaderboard", {
         params: { limit: 5 },
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return res.data as { items: any[]; myRank?: number };
+      return res.data as { items: LeaderboardUser[]; myRank?: number };
     },
   });
 
@@ -657,8 +663,7 @@ function LeaderboardPreview() {
         )}
       </div>
       <div className="space-y-2">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {data.items.map((user: any, idx: number) => (
+        {data.items.map((user, idx) => (
           <div key={user.id || idx} className="flex items-center gap-3">
             <span
               className={`w-6 text-center font-bold text-sm ${
@@ -707,10 +712,8 @@ function AchievementsPreview() {
 
       return res.data as {
         total: number;
-
         unlocked: number;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        achievements: any[];
+        achievements: UserAchievement[];
       };
     },
   });
@@ -718,10 +721,7 @@ function AchievementsPreview() {
   if (!data) return null;
 
   const recentUnlocked =
-    data.achievements
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ?.filter((a: any) => a.isUnlocked)
-      ?.slice(0, 4) || [];
+    data.achievements?.filter((a) => a.isUnlocked)?.slice(0, 4) || [];
 
   return (
     <div className="card-coffee p-4">
@@ -739,8 +739,7 @@ function AchievementsPreview() {
       </div>
       {recentUnlocked.length > 0 ? (
         <div className="flex gap-3">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {recentUnlocked.map((ua: any) => (
+          {recentUnlocked.map((ua) => (
             <div key={ua.id} className="flex flex-col items-center gap-1">
               <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-xl">
                 {ua.achievement?.icon || "🏆"}

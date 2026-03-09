@@ -17,6 +17,13 @@ import { toast } from "sonner";
 import { productsApi, recipesApi } from "../lib/api";
 import { useCartStore } from "../lib/store";
 
+interface RecipeIngredient {
+  ingredientName?: string;
+  name?: string;
+  quantity: number;
+  unitOfMeasure: string;
+}
+
 export function DrinkDetailPage() {
   const { t } = useTranslation();
   const { productId } = useParams<{
@@ -155,8 +162,7 @@ export function DrinkDetailPage() {
               {t("drinkComposition")}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {recipe.ingredients?.map((ing: any, idx: number) => (
+              {recipe.ingredients?.map((ing: RecipeIngredient, idx: number) => (
                 <span
                   key={idx}
                   className="px-2 py-1 bg-white rounded-lg text-xs border"

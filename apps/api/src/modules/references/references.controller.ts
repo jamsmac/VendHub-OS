@@ -7,6 +7,7 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
   ParseUUIDPipe,
 } from "@nestjs/common";
 import {
@@ -19,6 +20,10 @@ import {
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles, UserRole } from "../../common/decorators";
+import {
+  HttpCacheInterceptor,
+  HttpCacheTTL,
+} from "../../common/interceptors/http-cache.interceptor";
 import { ReferencesService } from "./references.service";
 
 import { QueryGoodsClassifiersDto } from "./dto/query-goods-classifiers.dto";
@@ -51,6 +56,8 @@ import {
 @ApiTags("references")
 @Controller("references")
 @UseGuards(JwtAuthGuard, RolesGuard)
+@UseInterceptors(HttpCacheInterceptor)
+@HttpCacheTTL(300)
 @ApiBearerAuth()
 export class ReferencesController {
   constructor(private readonly referencesService: ReferencesService) {}
@@ -448,6 +455,7 @@ export class ReferencesController {
       "Retrieve the list of product categories with mandatory marking requirements in Uzbekistan.",
   })
   @ApiResponse({ status: 200, description: "List of marking requirements" })
+  @HttpCacheTTL(3600)
   getMarkingRequirements() {
     return this.referencesService.getMarkingRequirements();
   }
@@ -465,6 +473,7 @@ export class ReferencesController {
     description: "Retrieve the list of supported currencies (UZS, USD).",
   })
   @ApiResponse({ status: 200, description: "List of currencies" })
+  @HttpCacheTTL(3600)
   getCurrencies() {
     return this.referencesService.getCurrencies();
   }
@@ -482,6 +491,7 @@ export class ReferencesController {
     description: "Retrieve the list of all regions (viloyatlar) in Uzbekistan.",
   })
   @ApiResponse({ status: 200, description: "List of regions" })
+  @HttpCacheTTL(3600)
   getRegions() {
     return this.referencesService.getRegions();
   }
