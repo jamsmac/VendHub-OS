@@ -8,6 +8,19 @@ export class Init1700000000000 implements MigrationInterface {
   name = "Init1700000000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // ── Idempotency guard ──
+    // This squashed migration is NOT re-runnable (280 CREATE TYPE + 221 CREATE TABLE
+    // without IF NOT EXISTS). If the schema already exists, skip entirely.
+    const [{ exists }] = await queryRunner.query(
+      `SELECT EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'organizations') AS exists`,
+    );
+    if (exists) {
+      console.log(
+        "Init1700000000000: schema already exists — skipping (idempotency guard).",
+      );
+      return;
+    }
+
     // ── Extensions (1) ──
     await queryRunner.query(
       `CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;`,

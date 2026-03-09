@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import {
   HealthCheck,
+  HealthCheckError,
   HealthCheckService,
   HealthCheckResult,
 } from "@nestjs/terminus";
@@ -113,8 +114,23 @@ export class HealthController {
     return this.health.check([
       () => this.db.isHealthy("database"),
       () => this.redis.isHealthy("redis"),
-      () => this.storage.isHealthy("storage"),
-      () => this.telegram.isHealthy("telegram"),
+      // Non-fatal: external services report "down" but don't cause 503
+      () =>
+        this.storage
+          .isHealthy("storage")
+          .catch((e: unknown) =>
+            e instanceof HealthCheckError
+              ? e.causes
+              : { storage: { status: "down" } },
+          ),
+      () =>
+        this.telegram
+          .isHealthy("telegram")
+          .catch((e: unknown) =>
+            e instanceof HealthCheckError
+              ? e.causes
+              : { telegram: { status: "down" } },
+          ),
       () => this.memory.checkHeap("memory_heap", 1024 * 1024 * 1024), // 1GB
       () => this.memory.checkRSS("memory_rss", 1024 * 1024 * 1024), // 1GB
       () =>
