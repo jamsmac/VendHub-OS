@@ -59,7 +59,6 @@ export enum HwImportSource {
 @Index(["createdAt"])
 export class ReconciliationRun extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   organizationId: string;
 
   @Column({
@@ -138,7 +137,6 @@ export class ReconciliationRun extends BaseEntity {
 @Index(["isResolved"])
 export class ReconciliationMismatch extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   runId: string;
 
   @ManyToOne(() => ReconciliationRun, (run) => run.mismatches)
@@ -207,7 +205,6 @@ export class ReconciliationMismatch extends BaseEntity {
 @Index(["isReconciled"])
 export class HwImportedSale extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   organizationId: string;
 
   @Column({ type: "uuid" })

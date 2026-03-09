@@ -52,7 +52,6 @@ export enum BillingPaymentStatus {
 @Index(["dueDate"])
 export class Invoice extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   organizationId: string;
 
   @Column({ type: "varchar", length: 50 })
@@ -130,7 +129,6 @@ export class Invoice extends BaseEntity {
 @Index(["paymentDate"])
 export class BillingPayment extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   organizationId: string;
 
   @Column({ type: "uuid" })

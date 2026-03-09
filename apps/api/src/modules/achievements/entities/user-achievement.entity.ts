@@ -29,7 +29,6 @@ export class UserAchievement extends BaseEntity {
 
   @ApiProperty({ description: "Achievement ID" })
   @Column({ type: "uuid" })
-  @Index()
   achievementId: string;
 
   @ManyToOne(() => Achievement, (a) => a.userAchievements, {

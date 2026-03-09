@@ -12,7 +12,6 @@ import { BaseEntity } from "../../../common/entities/base.entity";
 @Index(["depositDate"])
 export class BankDeposit extends BaseEntity {
   @Column({ type: "uuid" })
-  @Index()
   organizationId: string;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
