@@ -301,7 +301,7 @@ export const integrationsApi = {
 };
 
 export const reportsApi = {
-  getDashboard: () => api.get("/reports/dashboard"),
+  getDashboard: () => api.get("/analytics/dashboard"),
   getSales: (params?: QueryParams) => api.get("/reports/sales", { params }),
   getInventory: () => api.get("/reports/inventory"),
   getTasks: (params?: QueryParams) => api.get("/reports/tasks", { params }),

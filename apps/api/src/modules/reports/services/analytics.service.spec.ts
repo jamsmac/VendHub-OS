@@ -74,6 +74,7 @@ describe("AnalyticsService", () => {
   const mockTransactionQb = {
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
+    leftJoin: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     groupBy: jest.fn().mockReturnThis(),
@@ -81,6 +82,7 @@ describe("AnalyticsService", () => {
     limit: jest.fn().mockReturnThis(),
     setParameter: jest.fn().mockReturnThis(),
     getRawOne: jest.fn().mockResolvedValue({
+      total: "5000000",
       totalTransactions: "100",
       totalRevenue: "5000000",
       totalUnitsSold: "200",
@@ -93,6 +95,8 @@ describe("AnalyticsService", () => {
       inventoryUnitsSold: "200",
     }),
     getRawMany: jest.fn().mockResolvedValue([]),
+    getCount: jest.fn().mockResolvedValue(42),
+    getMany: jest.fn().mockResolvedValue([]),
   };
 
   const mockTaskQb = {
@@ -100,6 +104,7 @@ describe("AnalyticsService", () => {
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     setParameter: jest.fn().mockReturnThis(),
+    getCount: jest.fn().mockResolvedValue(3),
     getRawOne: jest.fn().mockResolvedValue({
       stockRefills: "5",
       maintenanceTasksCompleted: "3",
@@ -280,27 +285,35 @@ describe("AnalyticsService", () => {
   });
 
   describe("getDashboardData", () => {
-    it("should return today, yesterday stats and trends", async () => {
-      dailyStatsRepo.findOne.mockResolvedValue(mockDailyStats);
-      dailyStatsRepo.find.mockResolvedValue([mockDailyStats]);
-
+    it("should return dashboard shape with KPIs, charts, and recent transactions", async () => {
       const result = await service.getDashboardData(orgId);
 
-      expect(result).toHaveProperty("todayStats");
-      expect(result).toHaveProperty("yesterdayStats");
-      expect(result).toHaveProperty("weekTrend");
-      expect(result).toHaveProperty("monthTrend");
+      expect(result).toHaveProperty("revenue");
+      expect(result).toHaveProperty("transactions");
+      expect(result).toHaveProperty("machines");
+      expect(result).toHaveProperty("tasks");
+      expect(result).toHaveProperty("recentTransactions");
+      expect(result).toHaveProperty("revenueTrend");
+      expect(result).toHaveProperty("paymentMethods");
+      expect(result).toHaveProperty("topMachines");
+      expect(result.revenue).toHaveProperty("today");
+      expect(result.revenue).toHaveProperty("yesterday");
+      expect(result.revenue).toHaveProperty("changePercent");
+      expect(result.machines).toHaveProperty("total");
+      expect(result.machines).toHaveProperty("active");
     });
 
-    it("should return null for today/yesterday if no data", async () => {
-      dailyStatsRepo.findOne.mockResolvedValue(null);
-      dailyStatsRepo.find.mockResolvedValue([]);
+    it("should return zeros when no transactions exist", async () => {
+      mockTransactionQb.getRawOne.mockResolvedValue({ total: "0" });
+      mockTransactionQb.getCount.mockResolvedValue(0);
+      mockTransactionQb.getMany.mockResolvedValue([]);
+      mockTaskQb.getCount.mockResolvedValue(0);
 
       const result = await service.getDashboardData(orgId);
 
-      expect(result.todayStats).toBeNull();
-      expect(result.yesterdayStats).toBeNull();
-      expect(result.weekTrend).toEqual([]);
+      expect(result.revenue.today).toBe(0);
+      expect(result.transactions.today).toBe(0);
+      expect(result.tasks.completedToday).toBe(0);
     });
   });
 
