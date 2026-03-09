@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import {
   HealthCheck,
-  HealthCheckError,
   HealthCheckService,
   HealthCheckResult,
 } from "@nestjs/terminus";
@@ -114,23 +113,24 @@ export class HealthController {
     return this.health.check([
       () => this.db.isHealthy("database"),
       () => this.redis.isHealthy("redis"),
-      // Non-fatal: external services report "down" but don't cause 503
+      // Non-fatal: external services report "up" with degraded flag
+      // (terminus v11 treats resolved { status: "down" } as error → 503)
       () =>
-        this.storage
-          .isHealthy("storage")
-          .catch((e: unknown) =>
-            e instanceof HealthCheckError
-              ? e.causes
-              : { storage: { status: "down" } },
-          ),
+        this.storage.isHealthy("storage").catch(() => ({
+          storage: {
+            status: "up" as const,
+            degraded: true,
+            message: "Storage unavailable (non-fatal)",
+          },
+        })),
       () =>
-        this.telegram
-          .isHealthy("telegram")
-          .catch((e: unknown) =>
-            e instanceof HealthCheckError
-              ? e.causes
-              : { telegram: { status: "down" } },
-          ),
+        this.telegram.isHealthy("telegram").catch(() => ({
+          telegram: {
+            status: "up" as const,
+            degraded: true,
+            message: "Telegram unavailable (non-fatal)",
+          },
+        })),
       () => this.memory.checkHeap("memory_heap", 1024 * 1024 * 1024), // 1GB
       () => this.memory.checkRSS("memory_rss", 1024 * 1024 * 1024), // 1GB
       () =>
