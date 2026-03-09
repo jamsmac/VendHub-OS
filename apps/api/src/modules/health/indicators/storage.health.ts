@@ -8,22 +8,19 @@ import { ConfigService } from "@nestjs/config";
 
 /**
  * Health indicator for MinIO/S3 storage connectivity.
- * Attempts a lightweight HeadBucket call to verify the storage backend is reachable.
+ * Attempts a lightweight HEAD request to verify the storage backend is reachable.
  */
 @Injectable()
 export class StorageHealthIndicator extends HealthIndicator {
   private readonly endpoint: string | undefined;
   private readonly bucket: string | undefined;
   private readonly accessKey: string | undefined;
-  private readonly useSSL: boolean;
 
   constructor(private readonly configService: ConfigService) {
     super();
     this.endpoint = configService.get<string>("STORAGE_ENDPOINT");
     this.bucket = configService.get<string>("STORAGE_BUCKET");
     this.accessKey = configService.get<string>("STORAGE_ACCESS_KEY");
-    this.useSSL =
-      configService.get<string>("STORAGE_USE_SSL", "false") === "true";
   }
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
@@ -35,8 +32,11 @@ export class StorageHealthIndicator extends HealthIndicator {
     }
 
     const startTime = Date.now();
-    const protocol = this.useSSL ? "https" : "http";
-    const url = `${protocol}://${this.endpoint}/${this.bucket || ""}`;
+    // STORAGE_ENDPOINT may be a full URL (https://...) or bare hostname
+    const base = this.endpoint.match(/^https?:\/\//)
+      ? this.endpoint
+      : `https://${this.endpoint}`;
+    const url = this.bucket ? `${base}/${this.bucket}` : base;
 
     try {
       const controller = new AbortController();
