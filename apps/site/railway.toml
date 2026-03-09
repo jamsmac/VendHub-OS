@@ -1,7 +1,9 @@
 [build]
-dockerfilePath = "Dockerfile"
+builder = "nixpacks"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @vendhub/shared build && pnpm --filter @vendhub/site build"
 
 [deploy]
+startCommand = "cd apps/site && npx next start -p ${PORT:-3100}"
 healthcheckPath = "/"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"

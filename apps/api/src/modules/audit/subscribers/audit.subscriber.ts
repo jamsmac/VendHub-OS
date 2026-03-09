@@ -396,6 +396,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
       deviceInfo: context.userAgent
         ? { userAgent: context.userAgent }
         : undefined,
+      // Ensure JSONB columns are never NULL (DB may enforce NOT NULL)
+      metadata: data.metadata ?? {},
+      tags: data.tags ?? [],
       isSuccess: true,
       createdAt: new Date(),
       // Set expiration date based on retention
