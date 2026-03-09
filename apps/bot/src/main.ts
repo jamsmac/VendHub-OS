@@ -113,12 +113,41 @@ async function main() {
   await bot.telegram.setMyCommands(allCommands);
   logger.info("Bot commands set");
 
-  // Health check HTTP server (for Docker/K8s probes)
-  // Always listen on config.port so Dockerfile HEALTHCHECK can probe a fixed port.
-  // In webhook mode, Telegraf's built-in HTTP runs on webhookPort (port + 1).
-  const healthPort = config.port;
-  const webhookPort = config.port + 1;
-  const healthServer = http.createServer(async (req, res) => {
+  // Single HTTP server for both health check and webhook (Railway exposes one PORT)
+  const port = config.port;
+  let webhookCallback:
+    | ((req: http.IncomingMessage, res: http.ServerResponse) => void)
+    | null = null;
+
+  if (config.webhookDomain) {
+    // Create webhook callback — retry setWebhook with backoff for 429 rate limits
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      try {
+        webhookCallback = await bot.createWebhook({
+          domain: config.webhookDomain,
+          path: config.webhookPath,
+          secret_token: config.webhookSecret || undefined,
+        });
+        const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
+        logger.info(`Webhook set: ${webhookUrl}`);
+        break;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("429") && attempt < 5) {
+          const delay = attempt * 3000;
+          logger.warn(
+            `Telegram rate limited (attempt ${attempt}/5), retrying in ${delay}ms...`,
+          );
+          await new Promise((r) => setTimeout(r, delay));
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
+  const server = http.createServer(async (req, res) => {
+    // Health check
     if (req.url === "/health" && req.method === "GET") {
       try {
         await redis.ping();
@@ -135,52 +164,30 @@ async function main() {
         res.writeHead(503, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ status: "unhealthy", error: "Redis down" }));
       }
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
-  });
-
-  // Start health server first on config.port (matches Dockerfile HEALTHCHECK)
-  healthServer.listen(healthPort, () => {
-    logger.info(`Health endpoint ready on port ${healthPort}`);
-  });
-
-  // Launch bot
-  if (config.webhookDomain) {
-    // Webhook mode for production
-    const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
-
-    // bot.launch() calls setWebhook internally — retry with exponential backoff
-    // to handle Telegram 429 rate limits (common during restart loops)
-    for (let attempt = 1; attempt <= 5; attempt++) {
-      try {
-        await bot.launch({
-          webhook: {
-            domain: config.webhookDomain,
-            path: config.webhookPath,
-            port: webhookPort,
-            secretToken: config.webhookSecret || undefined,
-          },
-        });
-        logger.info(`Webhook set: ${webhookUrl}`);
-        break;
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("429") && attempt < 5) {
-          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
-          logger.warn(
-            `Telegram rate limited (attempt ${attempt}/5), retrying in ${delay}ms...`,
-          );
-          await new Promise((r) => setTimeout(r, delay));
-        } else {
-          throw err;
-        }
-      }
+      return;
     }
 
-    logger.info(`Bot started in webhook mode on port ${webhookPort}`);
-  } else {
+    // Webhook handler
+    if (
+      webhookCallback &&
+      req.url === config.webhookPath &&
+      req.method === "POST"
+    ) {
+      webhookCallback(req, res);
+      return;
+    }
+
+    res.writeHead(404);
+    res.end();
+  });
+
+  server.listen(port, () => {
+    logger.info(
+      `Server listening on port ${port} (health + ${config.webhookDomain ? "webhook" : "no webhook"})`,
+    );
+  });
+
+  if (!config.webhookDomain) {
     // Polling mode — drop pending updates to avoid 409 conflict on restart
     await bot.launch({ dropPendingUpdates: true });
     logger.info("Bot started in polling mode");
