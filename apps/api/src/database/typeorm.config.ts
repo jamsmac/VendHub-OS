@@ -35,10 +35,13 @@ const dbConnection = databaseUrl
     };
 
 const isProduction = process.env.NODE_ENV === "production";
-const useSsl =
-  isProduction ||
-  (databaseUrl && dbConnection.ssl) ||
-  process.env.DB_SSL === "true";
+// Explicit DB_SSL=false overrides production default (e.g. Railway internal Postgres)
+const sslExplicitlyDisabled = process.env.DB_SSL === "false";
+const useSsl = sslExplicitlyDisabled
+  ? false
+  : isProduction ||
+    (databaseUrl && dbConnection.ssl) ||
+    process.env.DB_SSL === "true";
 const sslRejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED;
 
 export const dataSourceOptions: DataSourceOptions = {
