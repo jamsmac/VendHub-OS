@@ -42,21 +42,54 @@ async function runSeed() {
 
     await dataSource.query(
       `
-      INSERT INTO organizations (id, name, legal_name, type, subscription_tier, code, inn, phone, email, is_active, settings, limits, features, created_at, updated_at)
+      INSERT INTO organizations (id, name, slug, type, status, subscription_tier, inn, phone, email, is_active,
+        settings, limits, created_at, updated_at)
       VALUES
-        ($1, 'VendHub Demo', 'VendHub Demo OOO', 'headquarters', 'enterprise', 'VENDHUB-HQ', '123456789', '+998901234567', 'admin@vendhub.uz', true,
-         '{"language": "ru", "timezone": "Asia/Tashkent", "currency": "UZS"}',
-         '{"maxMachines": 0, "maxUsers": 0, "maxWarehouses": 0}',
-         ARRAY['telegram_bot', 'reports', 'api_access', 'multi_location'],
-         NOW(), NOW()),
-        ($2, 'Демо Оператор', 'ИП Демо Оператор', 'operator', 'professional', 'DEMO-OP-001', '987654321', '+998909876543', 'operator@demo.uz', true,
-         '{"language": "ru", "timezone": "Asia/Tashkent", "currency": "UZS"}',
-         '{"maxMachines": 50, "maxUsers": 10, "maxWarehouses": 3}',
-         ARRAY['telegram_bot', 'reports'],
-         NOW(), NOW())
-      ON CONFLICT (code) DO NOTHING
+        ($1, 'VendHub Demo', 'vendhub-demo', 'headquarters', 'active', 'enterprise', '123456789', '+998901234567', 'admin@vendhub.uz', true,
+         $3::jsonb, $4::jsonb, NOW(), NOW()),
+        ($2, 'Демо Оператор', 'demo-operator', 'operator', 'active', 'professional', '987654321', '+998909876543', 'operator@demo.uz', true,
+         $3::jsonb, $5::jsonb, NOW(), NOW())
+      ON CONFLICT DO NOTHING
     `,
-      [orgId, demoOrgId],
+      [
+        orgId,
+        demoOrgId,
+        JSON.stringify({
+          language: "ru",
+          timezone: "Asia/Tashkent",
+          currency: "UZS",
+          defaultVatRate: 12,
+          dateFormat: "DD.MM.YYYY",
+          timeFormat: "HH:mm",
+          notifications: {
+            email: true,
+            telegram: true,
+            sms: false,
+            lowStock: true,
+            machineOffline: true,
+            taskOverdue: true,
+            dailyReport: true,
+          },
+        }),
+        JSON.stringify({
+          maxMachines: 0,
+          maxUsers: 0,
+          maxProducts: 0,
+          maxLocations: 0,
+          maxTransactionsPerMonth: 0,
+          maxStorageMb: 0,
+          features: ["telegram_bot", "reports", "api_access", "multi_location"],
+        }),
+        JSON.stringify({
+          maxMachines: 50,
+          maxUsers: 10,
+          maxProducts: 1000,
+          maxLocations: 50,
+          maxTransactionsPerMonth: 100000,
+          maxStorageMb: 2000,
+          features: ["telegram_bot", "reports"],
+        }),
+      ],
     );
 
     logger.log("Organizations seeded");
@@ -79,15 +112,15 @@ async function runSeed() {
 
     await dataSource.query(
       `
-      INSERT INTO users (id, email, phone, password, first_name, last_name, role, status, organization_id, language, is_active, created_at, updated_at)
+      INSERT INTO users (id, email, phone, password, first_name, last_name, role, status, organization_id, created_at, updated_at)
       VALUES
         -- Super Admin
-        ($1, 'admin@vendhub.uz', '+998901234567', $4, 'Администратор', 'VendHub', 'owner', 'active', $5, 'ru', true, NOW(), NOW()),
+        ($1, 'admin@vendhub.uz', '+998901234567', $4, 'Администратор', 'VendHub', 'owner', 'active', $5, NOW(), NOW()),
         -- Manager
-        ($2, 'manager@demo.uz', '+998901234568', $4, 'Менеджер', 'Демо', 'manager', 'active', $5, 'ru', true, NOW(), NOW()),
+        ($2, 'manager@demo.uz', '+998901234568', $4, 'Менеджер', 'Демо', 'manager', 'active', $5, NOW(), NOW()),
         -- Operator
-        ($3, 'operator@demo.uz', '+998901234569', $4, 'Оператор', 'Полевой', 'operator', 'active', $5, 'ru', true, NOW(), NOW())
-      ON CONFLICT (phone) DO NOTHING
+        ($3, 'operator@demo.uz', '+998901234569', $4, 'Оператор', 'Полевой', 'operator', 'active', $5, NOW(), NOW())
+      ON CONFLICT (email) DO NOTHING
     `,
       [adminId, managerId, operatorId, passwordHash, orgId],
     );
@@ -178,35 +211,35 @@ async function runSeed() {
       {
         name: "Coca-Cola 0.5L",
         sku: "BEV-COLA-500",
-        category: "beverages",
+        category: "cold_drinks",
         price: 8000,
         vatRate: 12,
       },
       {
         name: "Fanta Orange 0.5L",
         sku: "BEV-FANT-500",
-        category: "beverages",
+        category: "cold_drinks",
         price: 8000,
         vatRate: 12,
       },
       {
         name: "Sprite 0.5L",
         sku: "BEV-SPRT-500",
-        category: "beverages",
+        category: "cold_drinks",
         price: 8000,
         vatRate: 12,
       },
       {
         name: "Nestle Pure Life 0.5L",
         sku: "BEV-WATR-500",
-        category: "beverages",
+        category: "cold_drinks",
         price: 3000,
         vatRate: 12,
       },
       {
         name: "Lipton Ice Tea 0.5L",
         sku: "BEV-LIPT-500",
-        category: "beverages",
+        category: "cold_drinks",
         price: 9000,
         vatRate: 12,
       },
@@ -252,28 +285,28 @@ async function runSeed() {
       {
         name: "Nescafe 3in1 Classic",
         sku: "COF-NSC3-001",
-        category: "coffee",
+        category: "hot_drinks",
         price: 3000,
         vatRate: 12,
       },
       {
         name: "Americano",
         sku: "COF-AMER-001",
-        category: "coffee",
+        category: "hot_drinks",
         price: 8000,
         vatRate: 12,
       },
       {
         name: "Cappuccino",
         sku: "COF-CAPP-001",
-        category: "coffee",
+        category: "hot_drinks",
         price: 12000,
         vatRate: 12,
       },
       {
         name: "Latte",
         sku: "COF-LATT-001",
-        category: "coffee",
+        category: "hot_drinks",
         price: 14000,
         vatRate: 12,
       },
@@ -283,9 +316,9 @@ async function runSeed() {
       const productId = uuidv4();
       await dataSource.query(
         `
-        INSERT INTO products (id, name, sku, category, base_price, vat_rate, is_active, is_available, organization_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, true, true, $7, NOW(), NOW())
-        ON CONFLICT (sku) DO NOTHING
+        INSERT INTO products (id, name, sku, category, selling_price, vat_rate, is_active, organization_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, true, $7, NOW(), NOW())
+        ON CONFLICT DO NOTHING
       `,
         [
           productId,
@@ -309,31 +342,31 @@ async function runSeed() {
     const machines = [
       {
         name: "VM-Напитки-001",
-        code: "VM-TAS-001",
+        machineNumber: "VM-TAS-001",
         serial: "SN2024001001",
-        type: "beverage",
-        slotCount: 8,
+        type: "drink",
+        maxProductSlots: 8,
       },
       {
         name: "VM-Снеки-001",
-        code: "VM-TAS-002",
+        machineNumber: "VM-TAS-002",
         serial: "SN2024001002",
         type: "snack",
-        slotCount: 12,
+        maxProductSlots: 12,
       },
       {
         name: "VM-Комбо-001",
-        code: "VM-TAS-003",
+        machineNumber: "VM-TAS-003",
         serial: "SN2024001003",
         type: "combo",
-        slotCount: 20,
+        maxProductSlots: 20,
       },
       {
         name: "VM-Кофе-001",
-        code: "VM-TAS-004",
+        machineNumber: "VM-TAS-004",
         serial: "SN2024001004",
         type: "coffee",
-        slotCount: 6,
+        maxProductSlots: 6,
       },
     ];
 
@@ -342,23 +375,34 @@ async function runSeed() {
       const machineId = uuidv4();
       await dataSource.query(
         `
-        INSERT INTO machines (id, name, code, serial_number, type, status, slot_count, organization_id, location_id,
-          is_active, payment_methods, settings, created_at, updated_at)
-        SELECT $1, $2, $3, $4, $5, 'active', $6, $7, l.id, true,
-          '[{"method": "cash", "enabled": true}, {"method": "card", "enabled": true}, {"method": "payme", "enabled": true}]',
-          '{"temperature": {"min": 2, "max": 8}, "notifications": {"lowStock": true, "offline": true}}',
+        INSERT INTO machines (id, name, machine_number, serial_number, type, status, max_product_slots,
+          organization_id, location_id, accepts_cash, accepts_card, accepts_qr,
+          settings, created_at, updated_at)
+        SELECT $1, $2, $3, $4, $5, 'active', $6, $7, l.id,
+          true, true, true,
+          $8::jsonb,
           NOW(), NOW()
-        FROM locations l WHERE l.organization_id = $7 LIMIT 1 OFFSET $8
-        ON CONFLICT (code) DO NOTHING
+        FROM locations l WHERE l.organization_id = $7 LIMIT 1 OFFSET $9
+        ON CONFLICT DO NOTHING
       `,
         [
           machineId,
           machine.name,
-          machine.code,
+          machine.machineNumber,
           machine.serial,
           machine.type,
-          machine.slotCount,
+          machine.maxProductSlots,
           orgId,
+          JSON.stringify({
+            temperature: { min: 2, max: 8, alertEnabled: true },
+            notifications: {
+              lowStock: true,
+              errors: true,
+              offline: true,
+              temperature: true,
+              cashFull: false,
+            },
+          }),
           i % 4,
         ],
       );
