@@ -60,7 +60,6 @@ export default function () {
     // 429 (rate limited) is expected under spike — not an error
     errorRate.add(login.status >= 500);
   }
-  errorRate.add(login.status >= 500);
 
   sleep(0.5);
 }
