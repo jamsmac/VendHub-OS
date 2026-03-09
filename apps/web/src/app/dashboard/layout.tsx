@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/auth';
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 
 export default function DashboardLayout({
   children,
@@ -13,18 +13,27 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Wait for zustand persist to rehydrate from localStorage
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth');
+    if (hydrated) {
+      checkAuth();
     }
-  }, [isAuthenticated, router]);
+  }, [hydrated, checkAuth]);
 
-  if (!isAuthenticated) {
+  useEffect(() => {
+    // Only redirect after hydration to avoid race with localStorage rehydration
+    if (hydrated && !isAuthenticated) {
+      router.push("/auth");
+    }
+  }, [hydrated, isAuthenticated, router]);
+
+  if (!hydrated || !isAuthenticated) {
     return null;
   }
 
