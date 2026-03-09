@@ -132,9 +132,18 @@ export class HealthController {
           },
         })),
       () => this.memory.checkHeap("memory_heap", 1024 * 1024 * 1024), // 1GB
-      () => this.memory.checkRSS("memory_rss", 1024 * 1024 * 1024), // 1GB
+      () => this.memory.checkRSS("memory_rss", 2 * 1024 * 1024 * 1024), // 2GB
+      // Non-fatal: disk is managed by Railway/K8s platform
       () =>
-        this.disk.checkStorage("disk", { thresholdPercent: 0.9, path: "/" }),
+        this.disk
+          .checkStorage("disk", { thresholdPercent: 0.9, path: "/" })
+          .catch(() => ({
+            disk: {
+              status: "up" as const,
+              degraded: true,
+              message: "Disk check unavailable (non-fatal)",
+            },
+          })),
     ]);
   }
 

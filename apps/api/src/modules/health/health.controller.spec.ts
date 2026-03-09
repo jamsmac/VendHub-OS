@@ -158,7 +158,7 @@ describe("HealthController", () => {
       );
       expect(mockMemoryIndicator.checkRSS).toHaveBeenCalledWith(
         "memory_rss",
-        1024 * 1024 * 1024,
+        2 * 1024 * 1024 * 1024,
       );
       expect(mockDiskIndicator.checkStorage).toHaveBeenCalledWith("disk", {
         thresholdPercent: 0.9,
