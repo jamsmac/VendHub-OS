@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { authApi } from "../api";
+import { authApi, setTokens, clearTokens, getAccessToken } from "../api";
 
 interface User {
   id: string;
@@ -53,11 +53,8 @@ export const useAuthStore = create<AuthState>()(
             return { requiresTwoFactor: true };
           }
 
-          localStorage.setItem("vendhub_access_token", data.accessToken);
-          localStorage.setItem("vendhub_refresh_token", data.refreshToken);
-          const secure =
-            window.location.protocol === "https:" ? "; Secure" : "";
-          document.cookie = `vendhub_access_token=${data.accessToken}; path=/; max-age=86400; SameSite=Lax${secure}`;
+          // Store access token in memory; refresh token is in httpOnly cookie
+          setTokens(data.accessToken);
 
           set({
             user: data.user,
@@ -74,9 +71,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem("vendhub_access_token");
-        localStorage.removeItem("vendhub_refresh_token");
-        document.cookie = "vendhub_access_token=; path=/; max-age=0";
+        clearTokens();
         set({
           user: null,
           isAuthenticated: false,
@@ -85,8 +80,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const token = localStorage.getItem("vendhub_access_token");
-        if (!token) {
+        // If no in-memory token but zustand says authenticated,
+        // try /auth/me — the httpOnly cookie may still be valid
+        const token = getAccessToken();
+        const persisted = _get().isAuthenticated;
+
+        if (!token && !persisted) {
           set({ isAuthenticated: false, user: null });
           return;
         }
@@ -98,6 +97,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
           });
         } catch {
+          clearTokens();
           set({ isAuthenticated: false, user: null });
         }
       },

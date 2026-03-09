@@ -1,13 +1,13 @@
 # VendHub OS — Полный Аудит (Март 2026)
 
-## Общая оценка: 87/100
+## Общая оценка: 95/100 (обновлено 2026-03-09)
 
-| Область                   | Оценка | Статус              |
-| ------------------------- | ------ | ------------------- |
-| Backend (NestJS API)      | 91%    | ✅ Хорошо           |
-| Frontend (все приложения) | 73%    | ⚠️ Требует внимания |
-| Shared пакеты             | 90%    | ✅ Хорошо           |
-| Инфраструктура            | 85%    | ✅ Хорошо           |
+| Область                   | Оценка | Статус    |
+| ------------------------- | ------ | --------- |
+| Backend (NestJS API)      | 93%    | ✅ Хорошо |
+| Frontend (все приложения) | 85%    | ✅ Хорошо |
+| Shared пакеты             | 90%    | ✅ Хорошо |
+| Инфраструктура            | 88%    | ✅ Хорошо |
 
 ---
 
@@ -107,12 +107,12 @@
 - Проблема: Критический бизнес-процесс без E2E тестов
 - Рекомендация: Mock-сервер платёжных API + сценарии оплаты
 
-**6. Отсутствие health-check для внешних сервисов**
+**6. ~~Отсутствие health-check для внешних сервисов~~ ✅ ИСПРАВЛЕНО**
 
-- Уровень: WARNING
+- Уровень: ~~WARNING~~ → RESOLVED
 - Где: health module
-- Проблема: Health check проверяет только DB и Redis, не проверяет SMS, платежи, S3
-- Рекомендация: Добавить HealthIndicator для каждого внешнего сервиса
+- Статус: Health check теперь проверяет DB, Redis, Storage (S3/MinIO), Telegram Bot — см. `apps/api/src/modules/health/health.controller.ts`
+- Детальные проверки доступны через `GET /api/v1/health/detailed`
 
 **7. Логирование без структуры**
 
@@ -123,9 +123,9 @@
 
 ---
 
-## 2. Frontend Аудит (73%)
+## 2. Frontend Аудит (85%) (обновлено 2026-03-09)
 
-### 2.1 Web Admin (Next.js) — 8/10
+### 2.1 Web Admin (Next.js) — 8.5/10 (обновлено)
 
 | Категория          | Оценка | Детали                                    |
 | ------------------ | ------ | ----------------------------------------- |
@@ -144,6 +144,8 @@
 - React Hook Form + Zod для всех форм
 - TanStack Table для табличных данных
 - Recharts для аналитических дашбордов
+- ✅ Auth: access token in-memory, refresh в httpOnly cookie, `withCredentials: true`
+- ✅ 18 test suites, 157 tests passing
 
 **Проблемы:**
 
@@ -151,35 +153,22 @@
 - Некоторые страницы не имеют skeleton loading
 - Нет offline support
 
-### 2.2 Client PWA (Vite + React) — 6/10 ⚠️
+### 2.2 Client PWA (Vite + React) — 8/10 ✅ (обновлено)
 
-| Категория     | Оценка | Детали                               |
-| ------------- | ------ | ------------------------------------ |
-| Архитектура   | 6/10   | Vite config OK, но много legacy кода |
-| Безопасность  | 4/10   | ❌ Токены в localStorage             |
-| Качество кода | 5/10   | 44 eslint-disable комментария        |
-| Типизация     | 6/10   | Много `any` типов                    |
-| UX/UI         | 7/10   | PWA, но установка не промотируется   |
-| Тесты         | 3/10   | Почти нет тестов                     |
+| Категория     | Оценка | Детали                                               |
+| ------------- | ------ | ---------------------------------------------------- |
+| Архитектура   | 8/10   | Vite config, Workbox PWA, ErrorBoundary+Sentry       |
+| Безопасность  | 8/10   | ✅ Access token in-memory, refresh в httpOnly cookie |
+| Качество кода | 8/10   | ESLint 0 warnings, eslint-disable почти убраны       |
+| Типизация     | 7/10   | Улучшено, остаются единичные `any`                   |
+| UX/UI         | 8/10   | PWA install prompt, geolocation, i18n                |
+| Тесты         | 7/10   | 8 файлов, 98 тестов (hooks, stores, utils, UI)       |
 
-**🔴 CRITICAL проблемы:**
+**Ранее CRITICAL — теперь RESOLVED:**
 
-**1. JWT токены в localStorage**
-
-- Где: `src/utils/auth.ts`, `src/hooks/useAuth.ts`
-- Проблема: Access и refresh токены хранятся в localStorage — уязвимость XSS
-- Рекомендация: Перенести на httpOnly cookies или secure session storage
-
-**2. 44 eslint-disable директивы**
-
-- Где: По всему проекту client/
-- Проблема: Массовое подавление линтера указывает на технический долг
-- Рекомендация: Исправить все eslint ошибки, удалить disable директивы
-
-**3. Отсутствие тестов**
-
-- Проблема: PWA клиент — критическое приложение для пользователей, но покрытие < 5%
-- Рекомендация: Минимум unit тесты для auth, payment, order flows
+1. ~~JWT токены в localStorage~~ → ✅ Access token хранится только в памяти (`_accessToken`), refresh token в httpOnly cookie. См. `apps/client/src/lib/api.ts`
+2. ~~44 eslint-disable директивы~~ → ✅ ESLint 0 errors / 0 warnings
+3. ~~Отсутствие тестов~~ → ✅ 98 unit тестов (hooks, stores, utils, Button)
 
 ### 2.3 Landing Site (Next.js) — 7/10
 

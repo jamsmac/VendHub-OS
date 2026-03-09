@@ -13,39 +13,41 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export const api = axios.create({
   baseURL: `${API_URL}/api/v1`,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Token helpers — keep localStorage and cookie in sync for middleware
-function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem("vendhub_access_token", accessToken);
-  localStorage.setItem("vendhub_refresh_token", refreshToken);
-  // Sync to cookie so server-side middleware can read it
-  document.cookie = `vendhub_access_token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+// ============================================
+// Token helpers — in-memory only (no localStorage)
+// Backend sets httpOnly cookies for both access & refresh tokens.
+// The middleware (proxy.ts) reads the cookie server-side.
+// ============================================
+
+let _accessToken: string | null = null;
+
+function setTokens(accessToken: string, _refreshToken?: string) {
+  _accessToken = accessToken;
+  // Refresh token is stored in httpOnly cookie by the server —
+  // no client-side storage needed
 }
 
 function clearTokens() {
-  localStorage.removeItem("vendhub_access_token");
-  localStorage.removeItem("vendhub_refresh_token");
-  document.cookie = "vendhub_access_token=; path=/; max-age=0";
+  _accessToken = null;
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("vendhub_access_token");
+  return _accessToken;
 }
 
 export { setTokens, clearTokens };
 
-// Request interceptor - add auth token
+// Request interceptor — attach in-memory access token
 api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("vendhub_access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -97,19 +99,12 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem("vendhub_refresh_token");
-
-      if (!refreshToken) {
-        // No refresh token available — reject all queued requests and logout
-        processQueue(error, null);
-        clearTokens();
-        window.location.href = "/auth";
-        return Promise.reject(error);
-      }
-
-      const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
-        refreshToken,
-      });
+      // Refresh token is in httpOnly cookie — sent automatically via withCredentials
+      const response = await axios.post(
+        `${API_URL}/api/v1/auth/refresh`,
+        {},
+        { withCredentials: true },
+      );
 
       const { accessToken, refreshToken: newRefreshToken } = response.data;
       setTokens(accessToken, newRefreshToken);
