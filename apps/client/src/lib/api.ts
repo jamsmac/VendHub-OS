@@ -43,6 +43,20 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Strip empty-string, null, and undefined query params
+  if (config.params) {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(
+      config.params as Record<string, unknown>,
+    )) {
+      if (value !== "" && value !== null && value !== undefined) {
+        cleaned[key] = value;
+      }
+    }
+    config.params = cleaned;
+  }
+
   return config;
 });
 
@@ -65,7 +79,20 @@ const processQueue = (error: unknown, token: string | null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap API TransformInterceptor envelope { success, data, timestamp }
+    const d = response.data;
+    if (
+      d &&
+      typeof d === "object" &&
+      !Array.isArray(d) &&
+      "success" in d &&
+      "data" in d
+    ) {
+      response.data = d.data;
+    }
+    return response;
+  },
   async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;

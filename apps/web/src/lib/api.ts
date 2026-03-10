@@ -47,12 +47,27 @@ export function getAccessToken(): string | null {
 
 export { setTokens, clearTokens };
 
-// Request interceptor — attach in-memory access token
+// Request interceptor — attach in-memory access token + strip empty params
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Strip empty-string, null, and undefined query params.
+  // Frontend selects/filters often send status="" which fails enum validation on the API.
+  if (config.params) {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(
+      config.params as Record<string, unknown>,
+    )) {
+      if (value !== "" && value !== null && value !== undefined) {
+        cleaned[key] = value;
+      }
+    }
+    config.params = cleaned;
+  }
+
   return config;
 });
 
@@ -73,7 +88,23 @@ const processQueue = (error: unknown, token: string | null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap the API's TransformInterceptor envelope { success, data, timestamp }.
+    // After unwrap response.data holds the controller's actual return value, so
+    // page-level code like `.then(r => r.data.data)` correctly reaches the inner
+    // array of paginated responses { data: [...], total, page, limit }.
+    const d = response.data;
+    if (
+      d &&
+      typeof d === "object" &&
+      !Array.isArray(d) &&
+      "success" in d &&
+      "data" in d
+    ) {
+      response.data = d.data;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
