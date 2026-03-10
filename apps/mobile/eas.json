@@ -20,7 +20,7 @@
         "simulator": false
       },
       "env": {
-        "API_URL": "https://staging-api.vendhub.uz"
+        "API_URL": "https://vendhubapi-production.up.railway.app"
       }
     },
     "production": {
@@ -33,7 +33,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "API_URL": "https://api.vendhub.uz"
+        "API_URL": "https://vendhubapi-production.up.railway.app"
       }
     }
   },

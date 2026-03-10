@@ -116,7 +116,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Verify token by fetching user
       try {
         const response = await api.get("/auth/me");
-        const user = response.data.data;
+        const user = response.data;
 
         set({
           user,

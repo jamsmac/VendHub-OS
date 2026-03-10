@@ -191,7 +191,7 @@ describe("useAuthStore", () => {
         },
       );
 
-      (api.get as jest.Mock).mockResolvedValue({ data: { data: mockUser } });
+      (api.get as jest.Mock).mockResolvedValue({ data: mockUser });
 
       await useAuthStore.getState().checkAuth();
 

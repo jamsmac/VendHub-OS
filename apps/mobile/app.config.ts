@@ -1,0 +1,108 @@
+import { ExpoConfig, ConfigContext } from "expo/config";
+
+const API_URL =
+  process.env.API_URL || "https://vendhubapi-production.up.railway.app";
+
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
+  name: "VendHub Staff",
+  slug: "vendhub-staff",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/icon.png",
+  userInterfaceStyle: "automatic",
+  scheme: "vendhub",
+  splash: {
+    image: "./assets/splash.png",
+    resizeMode: "contain",
+    backgroundColor: "#4F46E5",
+  },
+  assetBundlePatterns: ["**/*"],
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: "uz.vendhub.staff",
+    buildNumber: "1",
+    infoPlist: {
+      NSCameraUsageDescription:
+        "Камера необходима для сканирования штрих-кодов и фотографирования задач",
+      NSPhotoLibraryUsageDescription:
+        "Доступ к фото нужен для загрузки фотографий задач",
+      NSLocationWhenInUseUsageDescription:
+        "Геолокация используется для отслеживания местоположения при выполнении задач",
+      UIBackgroundModes: ["fetch", "remote-notification"],
+    },
+    config: {
+      usesNonExemptEncryption: false,
+    },
+  },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#4F46E5",
+    },
+    package: "uz.vendhub.staff",
+    versionCode: 1,
+    permissions: [
+      "CAMERA",
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE",
+      "ACCESS_FINE_LOCATION",
+      "ACCESS_COARSE_LOCATION",
+      "VIBRATE",
+      "RECEIVE_BOOT_COMPLETED",
+      "FOREGROUND_SERVICE",
+    ],
+    googleServicesFile: "./google-services.json",
+  },
+  web: {
+    favicon: "./assets/favicon.png",
+    bundler: "metro",
+  },
+  plugins: [
+    "expo-secure-store",
+    [
+      "expo-camera",
+      {
+        cameraPermission: "Камера необходима для сканирования штрих-кодов",
+      },
+    ],
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "Доступ к фото для загрузки изображений задач",
+      },
+    ],
+    [
+      "expo-location",
+      {
+        locationAlwaysAndWhenInUsePermission:
+          "Геолокация для отслеживания задач",
+      },
+    ],
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/notification-icon.png",
+        color: "#4F46E5",
+        sounds: ["./assets/notification.wav"],
+      },
+    ],
+  ],
+  experiments: {
+    tsconfigPaths: true,
+  },
+  extra: {
+    apiUrl: API_URL,
+    eas: {
+      projectId: "vendhub-staff-app",
+    },
+  },
+  owner: "vendhub",
+  updates: {
+    fallbackToCacheTimeout: 0,
+    url: "https://u.expo.dev/vendhub-staff-app",
+  },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
+});

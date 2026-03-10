@@ -167,8 +167,7 @@ export function MaintenanceScreen() {
 
   const { data: machine } = useQuery({
     queryKey: ["machine", machineId],
-    queryFn: () =>
-      machinesApi.getById(machineId).then((res) => res.data?.data || res.data),
+    queryFn: () => machinesApi.getById(machineId).then((res) => res.data),
     enabled: !!machineId,
   });
 

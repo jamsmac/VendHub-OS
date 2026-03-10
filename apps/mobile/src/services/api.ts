@@ -7,7 +7,10 @@ import axios from "axios";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || "http://localhost:4000";
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  Constants.expoConfig?.extra?.apiUrl ||
+  "https://vendhubapi-production.up.railway.app";
 
 const TOKEN_KEY = "vendhub_access_token";
 const REFRESH_TOKEN_KEY = "vendhub_refresh_token";
@@ -64,7 +67,18 @@ const processQueue = (error: unknown, token: string | null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap TransformInterceptor envelope { success, data, timestamp }
+    if (
+      response.data &&
+      typeof response.data === "object" &&
+      "success" in response.data &&
+      "data" in response.data
+    ) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -92,13 +106,15 @@ api.interceptors.response.use(
       try {
         const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
         if (refreshToken) {
-          const { data } = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
-            refreshToken,
-          });
-          const newToken = data.accessToken || data.access_token;
+          const { data: response } = await axios.post(
+            `${API_URL}/api/v1/auth/refresh`,
+            { refreshToken },
+          );
+          const payload = response.data || response;
+          const newToken = payload.accessToken || payload.access_token;
           await tokenStorage.setTokens(
             newToken,
-            data.refreshToken || data.refresh_token,
+            payload.refreshToken || payload.refresh_token,
           );
           processQueue(null, newToken);
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
