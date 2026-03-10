@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { supabase } from "@/lib/supabase";
 
 const BASE_URL = "https://vendhub.uz";
 
@@ -8,23 +9,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let slugs = FALLBACK_SLUGS;
 
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const { data } = await supabase
+      .from("machine_types")
+      .select("slug")
+      .eq("is_active", true);
 
-    if (supabaseUrl && supabaseAnonKey) {
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data } = await supabase
-        .from("machine_types")
-        .select("slug")
-        .eq("is_active", true);
-
-      if (data?.length) {
-        slugs = data.map((t) => t.slug);
-      }
+    if (data && Array.isArray(data) && data.length > 0) {
+      slugs = (data as { slug: string }[]).map((t) => t.slug);
     }
   } catch {
-    // Use fallback slugs if Supabase is unavailable
+    // Use fallback slugs if query fails
   }
 
   const machinePages: MetadataRoute.Sitemap = slugs.map((slug) => ({

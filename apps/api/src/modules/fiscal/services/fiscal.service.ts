@@ -716,6 +716,8 @@ export class FiscalService {
         attempts: 5,
         backoff: { type: "exponential", delay: 5000 },
         priority,
+        removeOnComplete: { age: 7 * 24 * 3600 },
+        removeOnFail: { age: 30 * 24 * 3600 },
       },
     );
 

@@ -15,6 +15,15 @@ import { WebSocketService } from "../websocket.service";
 import { TokenBlacklistService } from "../../auth/services/token-blacklist.service";
 import { BaseGateway, AuthenticatedPayload } from "./base.gateway";
 
+// Allowed topic prefixes that users can subscribe to
+const ALLOWED_TOPIC_PREFIXES = [
+  "orders",
+  "machines",
+  "inventory",
+  "alerts",
+  "system",
+] as const;
+
 @WebSocketGateway({
   namespace: "/notifications",
   cors: {
@@ -71,6 +80,18 @@ export class NotificationGateway
     });
   }
 
+  /**
+   * Validate that a topic is in the allowlist and scoped to user's org
+   */
+  private isTopicAllowed(topic: string, organizationId: string): boolean {
+    // Topics must be scoped: org:{orgId}:{category} or just a generic category
+    const isOrgScoped = topic.startsWith(`org:${organizationId}:`);
+    const isGenericAllowed = ALLOWED_TOPIC_PREFIXES.some(
+      (prefix) => topic === prefix || topic.startsWith(`${prefix}:`),
+    );
+    return isOrgScoped || isGenericAllowed;
+  }
+
   // ============================================
   // Notification Management
   // ============================================
@@ -80,10 +101,18 @@ export class NotificationGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { notificationId: string },
   ) {
+    const user = this.wsService.getClient(client.id);
+
+    if (!user?.userId) {
+      return { success: false, error: "Authentication required" };
+    }
+
     const { notificationId } = payload;
 
     // In real implementation, mark notification as read in DB
-    this.logger.debug(`Notification ${notificationId} marked as read`);
+    this.logger.debug(
+      `Notification ${notificationId} marked as read by user ${user.userId}`,
+    );
 
     return { success: true, notificationId };
   }
@@ -109,18 +138,35 @@ export class NotificationGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { topics: string[] },
   ) {
+    const user = this.wsService.getClient(client.id);
+
+    if (!user?.userId || !user?.organizationId) {
+      return { success: false, error: "Authentication required" };
+    }
+
     const { topics } = payload;
 
     if (!topics || !Array.isArray(topics)) {
       return { success: false, error: "Topics array is required" };
     }
 
-    // Subscribe to specific notification topics
-    topics.forEach((topic) => {
+    // Only subscribe to allowed topics scoped to user's org
+    const allowedTopics = topics.filter((topic) =>
+      this.isTopicAllowed(topic, user.organizationId!),
+    );
+
+    allowedTopics.forEach((topic) => {
       this.wsService.joinRoom(client, `topic:${topic}`);
     });
 
-    return { success: true, topics };
+    const rejected = topics.length - allowedTopics.length;
+    if (rejected > 0) {
+      this.logger.warn(
+        `Client ${client.id} attempted ${rejected} unauthorized topic subscriptions`,
+      );
+    }
+
+    return { success: true, topics: allowedTopics };
   }
 
   @SubscribeMessage("notifications:unsubscribe")

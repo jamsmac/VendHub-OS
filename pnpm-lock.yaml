@@ -677,9 +677,6 @@ importers:
 
   apps/site:
     dependencies:
-      "@supabase/supabase-js":
-        specifier: ^2.98.0
-        version: 2.98.0
       "@vendhub/shared":
         specifier: workspace:*
         version: link:../../packages/shared
@@ -694,7 +691,7 @@ importers:
         version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl:
         specifier: ^4.8.3
-        version: 4.8.3(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.8.3(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       react:
         specifier: ^19.2.0
         version: 19.2.3
@@ -860,7 +857,7 @@ importers:
         version: 16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl:
         specifier: ^4.8.3
-        version: 4.8.3(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 4.8.3(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       next-themes:
         specifier: ^0.4.0
         version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -6995,48 +6992,6 @@ packages:
         integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==,
       }
 
-  "@supabase/auth-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-GBH361T0peHU91AQNzOlIrjUZw9TZbB9YDRiyFgk/3Kvr3/Z1NWUZ2athWTfHhwNNi8IrW00foyFxQD9IO/Trg==,
-      }
-    engines: { node: ">=20.0.0" }
-
-  "@supabase/functions-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-N/xEyiNU5Org+d+PNCpv+TWniAXRzxIURxDYsS/m2I/sfAB/HcM9aM2Dmf5edj5oWb9GxID1OBaZ8NMmPXL+Lg==,
-      }
-    engines: { node: ">=20.0.0" }
-
-  "@supabase/postgrest-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-v6e9WeZuJijzUut8HyXu6gMqWFepIbaeaMIm1uKzei4yLg9bC9OtEW9O14LE/9ezqNbSAnSLO5GtOLFdm7Bpkg==,
-      }
-    engines: { node: ">=20.0.0" }
-
-  "@supabase/realtime-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-rOWt28uGyFipWOSd+n0WVMr9kUXiWaa7J4hvyLCIHjRFqWm1z9CaaKAoYyfYMC1Exn3WT8WePCgiVhlAtWC2yw==,
-      }
-    engines: { node: ">=20.0.0" }
-
-  "@supabase/storage-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-tzr2mG+v7ILSAZSfZMSL9OPyIH4z1ikgQ8EcQTKfMRz4EwmlFt3UnJaGzSOxyvF5b+fc9So7qdSUWTqGgeLokQ==,
-      }
-    engines: { node: ">=20.0.0" }
-
-  "@supabase/supabase-js@2.98.0":
-    resolution:
-      {
-        integrity: sha512-Ohc97CtInLwZyiSASz7tT9/Abm/vqnIbO9REp+PivVUII8UZsuI3bngRQnYgJdFoOIwvaEII1fX1qy8x0CyNiw==,
-      }
-    engines: { node: ">=20.0.0" }
-
   "@surma/rollup-plugin-off-main-thread@2.2.3":
     resolution:
       {
@@ -7704,12 +7659,6 @@ packages:
         integrity: sha512-1Kc4oAGzAl7uqUStZCDvaLFqZrW9qWSjXOmBfdgyBP5La7Us6Mg4GBvRlSoaZMhQF/zSj1C8CtKMBkoiT8eL8w==,
       }
 
-  "@types/phoenix@1.6.7":
-    resolution:
-      {
-        integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==,
-      }
-
   "@types/prop-types@15.7.15":
     resolution:
       {
@@ -7848,12 +7797,6 @@ packages:
     resolution:
       {
         integrity: sha512-GnJmSr40H3RAnj0s34FNTcJi1hmWFV5KXugE0mYWnYhgTAHLJ/dJKAwDmvPJYMke0RplY2XE9LnM4hqSqKIjhQ==,
-      }
-
-  "@types/ws@8.18.1":
-    resolution:
-      {
-        integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==,
       }
 
   "@types/yargs-parser@21.0.3":
@@ -12329,13 +12272,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  iceberg-js@0.8.1:
-    resolution:
-      {
-        integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==,
-      }
-    engines: { node: ">=20.0.0" }
 
   iconv-lite@0.4.24:
     resolution:
@@ -24828,44 +24764,6 @@ snapshots:
 
   "@standard-schema/spec@1.1.0": {}
 
-  "@supabase/auth-js@2.98.0":
-    dependencies:
-      tslib: 2.8.1
-
-  "@supabase/functions-js@2.98.0":
-    dependencies:
-      tslib: 2.8.1
-
-  "@supabase/postgrest-js@2.98.0":
-    dependencies:
-      tslib: 2.8.1
-
-  "@supabase/realtime-js@2.98.0":
-    dependencies:
-      "@types/phoenix": 1.6.7
-      "@types/ws": 8.18.1
-      tslib: 2.8.1
-      ws: 8.19.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  "@supabase/storage-js@2.98.0":
-    dependencies:
-      iceberg-js: 0.8.1
-      tslib: 2.8.1
-
-  "@supabase/supabase-js@2.98.0":
-    dependencies:
-      "@supabase/auth-js": 2.98.0
-      "@supabase/functions-js": 2.98.0
-      "@supabase/postgrest-js": 2.98.0
-      "@supabase/realtime-js": 2.98.0
-      "@supabase/storage-js": 2.98.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
   "@surma/rollup-plugin-off-main-thread@2.2.3":
     dependencies:
       ejs: 3.1.10
@@ -25263,8 +25161,6 @@ snapshots:
       pg-protocol: 1.11.0
       pg-types: 2.2.0
 
-  "@types/phoenix@1.6.7": {}
-
   "@types/prop-types@15.7.15": {}
 
   "@types/qrcode@1.5.6":
@@ -25334,10 +25230,6 @@ snapshots:
   "@types/validator@13.15.10": {}
 
   "@types/web-push@3.6.4":
-    dependencies:
-      "@types/node": 22.19.7
-
-  "@types/ws@8.18.1":
     dependencies:
       "@types/node": 22.19.7
 
@@ -28492,8 +28384,6 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  iceberg-js@0.8.1: {}
-
   iconv-lite@0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -30114,7 +30004,7 @@ snapshots:
 
   next-intl-swc-plugin-extractor@4.8.3: {}
 
-  next-intl@4.8.3(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+  next-intl@4.8.3(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
     dependencies:
       "@formatjs/intl-localematcher": 0.8.1
       "@parcel/watcher": 2.5.6

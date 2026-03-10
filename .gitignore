@@ -78,5 +78,8 @@ design-craft/
 # Working prompts / AI task docs
 VENDHUB_FIX_PROMPT.md
 
+# Deployment scripts with secrets — NEVER track
+scripts/railway-set-vars*.sh
+
 # Binary documents
 *.docx

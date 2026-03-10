@@ -16,7 +16,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi, setTokens, clearTokens, getAccessToken } from "../api";
-import { useAppStore } from "@/store/useAppStore";
+import { useAuthStore } from "../store/auth";
 import type { UserRole } from "@/types";
 
 // Response types for auth API
@@ -42,12 +42,13 @@ interface LoginResponse {
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  const { user, setUser } = useAppStore();
+  const { user, isAuthenticated: storeIsAuthenticated } = useAuthStore();
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [challengeToken, setChallengeToken] = useState("");
 
   // Check if user is authenticated (has valid token)
-  const isAuthenticated = !!getAccessToken() && !!user;
+  const isAuthenticated =
+    !!getAccessToken() && (!!user || storeIsAuthenticated);
 
   // Fetch current user profile (on mount, if token exists)
   const { data: currentUser, isLoading: isLoadingUser } = useQuery({
@@ -59,7 +60,7 @@ export function useAuth() {
       } catch {
         // Token invalid — clear state
         clearTokens();
-        setUser(null);
+        useAuthStore.getState().logout();
         return null;
       }
     },
@@ -68,19 +69,23 @@ export function useAuth() {
     retry: false,
   });
 
-  // Sync server user → Zustand store
+  // Sync server user → Zustand auth store
   useEffect(() => {
     if (currentUser && !user) {
-      setUser({
-        id: String(currentUser.id),
-        email: currentUser.email,
-        name: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
-        role: currentUser.role as UserRole,
-        avatar: undefined,
-        lastLogin: new Date().toISOString(),
+      useAuthStore.setState({
+        user: {
+          id: String(currentUser.id),
+          email: currentUser.email,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+          role: currentUser.role,
+          organizationId: "",
+          twoFactorEnabled: false,
+        },
+        isAuthenticated: true,
       });
     }
-  }, [currentUser, user, setUser]);
+  }, [currentUser, user]);
 
   // Login mutation
   const loginMutation = useMutation({
@@ -106,14 +111,18 @@ export function useAuth() {
       // Store tokens
       setTokens(data.accessToken, data.refreshToken);
 
-      // Update Zustand store
-      setUser({
-        id: String(data.user.id),
-        email: data.user.email,
-        name: `${data.user.firstName} ${data.user.lastName}`.trim(),
-        role: data.user.role as UserRole,
-        avatar: undefined,
-        lastLogin: new Date().toISOString(),
+      // Update auth store
+      useAuthStore.setState({
+        user: {
+          id: String(data.user.id),
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role,
+          organizationId: "",
+          twoFactorEnabled: false,
+        },
+        isAuthenticated: true,
       });
 
       // Invalidate all queries to refetch with auth
@@ -132,7 +141,7 @@ export function useAuth() {
     },
     onSettled: () => {
       clearTokens();
-      setUser(null);
+      useAuthStore.getState().logout();
       queryClient.clear();
     },
   });
@@ -146,13 +155,17 @@ export function useAuth() {
     onSuccess: (data) => {
       setRequiresTwoFactor(false);
       setTokens(data.accessToken, data.refreshToken);
-      setUser({
-        id: String(data.user.id),
-        email: data.user.email,
-        name: `${data.user.firstName} ${data.user.lastName}`.trim(),
-        role: data.user.role as UserRole,
-        avatar: undefined,
-        lastLogin: new Date().toISOString(),
+      useAuthStore.setState({
+        user: {
+          id: String(data.user.id),
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role,
+          organizationId: "",
+          twoFactorEnabled: false,
+        },
+        isAuthenticated: true,
       });
       queryClient.invalidateQueries();
     },
@@ -179,9 +192,21 @@ export function useAuth() {
     [verifyTotpMutation],
   );
 
+  // Derive user-like shape for backward compatibility
+  const userForDisplay = user
+    ? {
+        id: user.id,
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        role: user.role as UserRole,
+        avatar: undefined as string | undefined,
+        lastLogin: undefined as string | undefined,
+      }
+    : null;
+
   return {
     // State
-    user,
+    user: userForDisplay,
     isAuthenticated,
     isLoading: isLoadingUser || loginMutation.isPending,
     requiresTwoFactor,

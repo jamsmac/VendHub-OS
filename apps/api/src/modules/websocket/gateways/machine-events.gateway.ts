@@ -9,11 +9,14 @@ import {
   ConnectedSocket,
 } from "@nestjs/websockets";
 import { Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { In, Repository } from "typeorm";
 import { Server, Socket } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { WebSocketService } from "../websocket.service";
 import { TokenBlacklistService } from "../../auth/services/token-blacklist.service";
 import { BaseGateway, AuthenticatedPayload } from "./base.gateway";
+import { Machine } from "../../machines/entities/machine.entity";
 
 interface SubscribeMachinePayload {
   machineId: string;
@@ -46,6 +49,8 @@ export class MachineEventsGateway
     jwtService: JwtService,
     wsService: WebSocketService,
     tokenBlacklistService: TokenBlacklistService,
+    @InjectRepository(Machine)
+    private readonly machineRepository: Repository<Machine>,
   ) {
     super(jwtService, wsService, tokenBlacklistService);
   }
@@ -70,7 +75,7 @@ export class MachineEventsGateway
   // ============================================
 
   @SubscribeMessage("subscribe:machine")
-  handleSubscribeMachine(
+  async handleSubscribeMachine(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SubscribeMachinePayload,
   ) {
@@ -83,6 +88,16 @@ export class MachineEventsGateway
 
     if (!user?.organizationId) {
       return { success: false, error: "Authentication required" };
+    }
+
+    // Verify machine belongs to user's organization
+    const machine = await this.machineRepository.findOne({
+      where: { id: machineId, organizationId: user.organizationId },
+      select: ["id"],
+    });
+
+    if (!machine) {
+      return { success: false, error: "Machine not found" };
     }
 
     this.wsService.joinRoom(client, `machine:${machineId}`);
@@ -113,7 +128,7 @@ export class MachineEventsGateway
   }
 
   @SubscribeMessage("subscribe:machines")
-  handleSubscribeMachines(
+  async handleSubscribeMachines(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SubscribeMachinesPayload,
   ) {
@@ -128,15 +143,23 @@ export class MachineEventsGateway
       return { success: false, error: "Authentication required" };
     }
 
-    machineIds.forEach((machineId) => {
+    // Batch-verify all machines belong to user's organization
+    const ownedMachines = await this.machineRepository.find({
+      where: { id: In(machineIds), organizationId: user.organizationId },
+      select: ["id"],
+    });
+
+    const ownedIds = new Set(ownedMachines.map((m) => m.id));
+
+    ownedIds.forEach((machineId) => {
       this.wsService.joinRoom(client, `machine:${machineId}`);
     });
 
     this.logger.debug(
-      `Client ${client.id} subscribed to ${machineIds.length} machines`,
+      `Client ${client.id} subscribed to ${ownedIds.size}/${machineIds.length} machines`,
     );
 
-    return { success: true, count: machineIds.length };
+    return { success: true, count: ownedIds.size };
   }
 
   // ============================================
@@ -144,7 +167,7 @@ export class MachineEventsGateway
   // ============================================
 
   @SubscribeMessage("machine:heartbeat")
-  handleMachineHeartbeat(
+  async handleMachineHeartbeat(
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: {
@@ -164,6 +187,20 @@ export class MachineEventsGateway
     }
 
     const { machineId, status, metrics } = payload;
+
+    // Verify machine belongs to sender's organization
+    if (!user.organizationId) {
+      return { success: false, error: "Organization context required" };
+    }
+
+    const machine = await this.machineRepository.findOne({
+      where: { id: machineId, organizationId: user.organizationId },
+      select: ["id"],
+    });
+
+    if (!machine) {
+      return { success: false, error: "Machine not found" };
+    }
 
     // Emit heartbeat to all subscribers
     this.server.to(`machine:${machineId}`).emit("machine:heartbeat", {

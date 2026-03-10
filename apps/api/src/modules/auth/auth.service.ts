@@ -338,7 +338,7 @@ export class AuthService {
     }
 
     const authDate = Number(params.get("auth_date") || 0);
-    if (Date.now() / 1000 - authDate > 300) {
+    if (Date.now() / 1000 - authDate > 60) {
       throw new UnauthorizedException("Telegram auth data has expired");
     }
 
@@ -546,9 +546,9 @@ export class AuthService {
       throw new UnauthorizedException("Invalid Telegram signature");
     }
 
-    // Check auth_date freshness (allow up to 5 minutes)
+    // Check auth_date freshness (allow up to 60 seconds)
     const authDate = Number(params.get("auth_date") || 0);
-    if (Date.now() / 1000 - authDate > 300) {
+    if (Date.now() / 1000 - authDate > 60) {
       throw new UnauthorizedException("Telegram auth data has expired");
     }
 
@@ -705,6 +705,10 @@ export class AuthService {
         revokedReason: "Logout from all devices",
       },
     );
+
+    // Blacklist all in-flight JWT tokens for this user (15 min = access token TTL)
+    await this.tokenBlacklistService.blacklistAllForUser(userId, 15 * 60);
+
     return { message: "Logged out from all devices" };
   }
 

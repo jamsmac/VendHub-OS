@@ -1,30 +1,13 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { UserRole } from "@/types";
 
-export interface AppUser {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string;
-  lastLogin?: string;
-}
-
+/**
+ * App-level state (non-auth concerns).
+ * User state lives exclusively in useAuthStore (apps/web/src/lib/store/auth.ts).
+ */
 interface AppState {
-  user: AppUser | null;
-  setUser: (user: AppUser | null) => void;
+  // Future: locale, sidebar collapsed, theme, etc.
 }
 
-export const useAppStore = create<AppState>()(
-  persist(
-    (set) => ({
-      user: null,
-      setUser: (user) => set({ user }),
-    }),
-    {
-      name: "vendhub-app",
-      partialize: (state) => ({ user: state.user }),
-    },
-  ),
-);
+export const useAppStore = create<AppState>()(() => ({
+  // Empty for now — user state has been consolidated into useAuthStore
+}));

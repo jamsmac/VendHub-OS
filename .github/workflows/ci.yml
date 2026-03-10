@@ -226,7 +226,6 @@ jobs:
         run: pnpm --filter "@vendhub/shared" build
 
       - name: Run migrations
-        continue-on-error: true
         run: pnpm --filter api migration:run
         env:
           DB_HOST: localhost
@@ -314,7 +313,6 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run migrations
-        continue-on-error: true
         run: pnpm --filter api migration:run
         env:
           DB_HOST: localhost
@@ -639,7 +637,6 @@ jobs:
         run: railway up --service "@vendhub/bot" --environment production --detach
 
       - name: Run database migrations
-        continue-on-error: true
         run: |
           echo "Waiting 30s for API to come up..."
           sleep 30

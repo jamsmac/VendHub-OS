@@ -9,11 +9,14 @@ import {
   ConnectedSocket,
 } from "@nestjs/websockets";
 import { Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { Server, Socket } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { WebSocketService } from "../websocket.service";
 import { TokenBlacklistService } from "../../auth/services/token-blacklist.service";
 import { BaseGateway, AuthenticatedPayload } from "./base.gateway";
+import { Order } from "../../orders/entities/order.entity";
 
 @WebSocketGateway({
   namespace: "/orders",
@@ -38,6 +41,8 @@ export class OrderEventsGateway
     jwtService: JwtService,
     wsService: WebSocketService,
     tokenBlacklistService: TokenBlacklistService,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
   ) {
     super(jwtService, wsService, tokenBlacklistService);
   }
@@ -66,7 +71,7 @@ export class OrderEventsGateway
   // ============================================
 
   @SubscribeMessage("subscribe:order")
-  handleSubscribeOrder(
+  async handleSubscribeOrder(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { orderId: string },
   ) {
@@ -79,6 +84,16 @@ export class OrderEventsGateway
 
     if (!user?.organizationId) {
       return { success: false, error: "Authentication required" };
+    }
+
+    // Verify order belongs to user's organization
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId, organizationId: user.organizationId },
+      select: ["id"],
+    });
+
+    if (!order) {
+      return { success: false, error: "Order not found" };
     }
 
     this.wsService.joinRoom(client, `order:${orderId}`);

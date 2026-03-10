@@ -10,7 +10,7 @@ import * as SecureStore from "expo-secure-store";
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL ||
   Constants.expoConfig?.extra?.apiUrl ||
-  "https://vendhubapi-production.up.railway.app";
+  "http://localhost:4000";
 
 const TOKEN_KEY = "vendhub_access_token";
 const REFRESH_TOKEN_KEY = "vendhub_refresh_token";

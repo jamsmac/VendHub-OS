@@ -11,7 +11,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0",
     "@vendhub/shared": "workspace:*",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.263.1",

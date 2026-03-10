@@ -1,28 +1,21 @@
-import { supabase } from "./supabase";
+/**
+ * Admin auth for site app.
+ * TODO: Migrate to VendHub API JWT auth (POST /api/v1/auth/login)
+ * For now, returns null session to gracefully degrade admin features.
+ */
 
 export async function getSession() {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    console.error("Error getting session:", error.message);
-    return null;
-  }
-  return data.session;
+  // Supabase auth removed — return null until VendHub API auth is integrated
+  return null;
 }
 
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (error) {
-    throw error;
-  }
-  return data;
+export async function signIn(_email: string, _password: string) {
+  throw new Error(
+    "Admin auth is being migrated to VendHub API. " +
+      "Please use the admin panel at /admin instead.",
+  );
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    throw error;
-  }
+  // No-op — session is already null
 }
