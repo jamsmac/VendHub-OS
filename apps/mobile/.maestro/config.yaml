@@ -1,0 +1,9 @@
+# Maestro E2E Test Configuration
+# https://maestro.mobile.dev/
+
+appId: uz.vendhub.staff
+name: VendHub Staff E2E Tests
+
+# Onboarding flows can be skipped
+onFlowStart:
+  - clearState

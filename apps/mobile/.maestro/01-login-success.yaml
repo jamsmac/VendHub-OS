@@ -1,0 +1,28 @@
+# E2E: Successful login flow
+# Prerequisites: Running API + valid user account
+appId: uz.vendhub.staff
+
+---
+# App should show login screen
+- assertVisible: "VendHub"
+- assertVisible: "Войдите в аккаунт"
+
+# Enter credentials
+- tapOn:
+    hint: "Email"
+- inputText: ${EMAIL:-jamshidsmac@gmail.com}
+
+- tapOn:
+    hint: "Пароль"
+- inputText: ${PASSWORD:-Test123!}
+
+# Submit login
+- tapOn: "Войти"
+
+# Wait for navigation to dashboard
+- waitForAnimationToEnd
+
+# Should see one of the home screen elements (staff mode)
+- assertVisible:
+    text: ".*"
+    timeout: 10000

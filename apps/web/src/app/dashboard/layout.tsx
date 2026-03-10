@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth";
+import { getAccessToken } from "@/lib/api";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
@@ -12,27 +13,36 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
-  const [authChecked, setAuthChecked] = useState(false);
+  const { user, isAuthenticated } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
+  const [ready, setReady] = useState(false);
 
+  // Wait for zustand persist to finish rehydrating from localStorage.
+  // Without this, the first render sees defaults (user=null, isAuthenticated=false)
+  // and immediately redirects to /auth before the real values load.
   useEffect(() => {
-    let cancelled = false;
-    checkAuth().finally(() => {
-      if (!cancelled) setAuthChecked(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [checkAuth]);
-
-  useEffect(() => {
-    // Only redirect AFTER checkAuth has completed
-    if (authChecked && !isAuthenticated) {
-      router.push("/auth");
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+    } else {
+      const unsub = useAuthStore.persist.onFinishHydration(() => {
+        setHydrated(true);
+      });
+      return unsub;
     }
-  }, [authChecked, isAuthenticated, router]);
+  }, []);
 
-  if (!authChecked || !isAuthenticated) {
+  useEffect(() => {
+    if (!hydrated) return; // Don't decide until store is rehydrated
+
+    const token = getAccessToken();
+    if (token && isAuthenticated && user) {
+      setReady(true);
+    } else {
+      router.replace("/auth");
+    }
+  }, [hydrated, isAuthenticated, user, router]);
+
+  if (!ready) {
     return null;
   }
 

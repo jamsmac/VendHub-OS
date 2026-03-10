@@ -46,27 +46,37 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await authApi.login(email, password, twoFactorCode);
-          const data = response.data;
+          // Backend TransformInterceptor wraps response:
+          // { success, data: { accessToken, user, ... }, timestamp }
+          const payload = response.data?.data ?? response.data;
 
-          if (data.requiresTwoFactor) {
+          if (payload.requiresTwoFactor) {
             set({ isLoading: false });
             return { requiresTwoFactor: true };
           }
 
-          // Store access token in memory; refresh token is in httpOnly cookie
-          setTokens(data.accessToken);
+          // Store access token in memory + localStorage
+          setTokens(payload.accessToken);
 
           set({
-            user: data.user,
+            user: payload.user,
             isAuthenticated: true,
             isLoading: false,
           });
 
-          return data;
+          return payload;
         } catch (error: unknown) {
           set({ isLoading: false });
-          const err = error as { response?: { data?: { message?: string } } };
-          throw new Error(err.response?.data?.message || "Login failed");
+          const err = error as {
+            response?: {
+              data?: { message?: string; data?: { message?: string } };
+            };
+          };
+          throw new Error(
+            err.response?.data?.data?.message ||
+              err.response?.data?.message ||
+              "Login failed",
+          );
         }
       },
 
@@ -99,8 +109,9 @@ export const useAuthStore = create<AuthState>()(
         // Have token but no user data — verify with server
         try {
           const response = await authApi.me();
+          const userData = response.data?.data ?? response.data;
           set({
-            user: response.data,
+            user: userData,
             isAuthenticated: true,
           });
         } catch {

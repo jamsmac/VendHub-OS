@@ -12,7 +12,9 @@
     "build:ios": "eas build --platform ios",
     "lint": "eslint .",
     "type-check": "tsc --noEmit --skipLibCheck",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "test:e2e": "maestro test .maestro/",
+    "test:e2e:login": "maestro test .maestro/01-login-success.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",

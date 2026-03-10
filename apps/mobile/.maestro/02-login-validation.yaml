@@ -1,0 +1,23 @@
+# E2E: Login validation — empty fields show error
+appId: uz.vendhub.staff
+
+---
+# App should show login screen
+- assertVisible: "VendHub"
+
+# Tap login without filling fields
+- tapOn: "Войти"
+
+# Should show validation alert
+- assertVisible: "Заполните все поля"
+- tapOn: "OK"
+
+# Fill only email, leave password empty
+- tapOn:
+    hint: "Email"
+- inputText: "test@example.com"
+- tapOn: "Войти"
+
+# Should show validation alert again
+- assertVisible: "Заполните все поля"
+- tapOn: "OK"

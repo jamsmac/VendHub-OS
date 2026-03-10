@@ -9,10 +9,15 @@ type QueryParams = Record<
 /** Request body for POST/PUT/PATCH requests — accepts any object, rejects primitives */
 type RequestBody = object;
 
+// Direct API URL (used for SSR / server-side calls if needed)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
+// Use Next.js rewrite proxy in browser → avoids CORS & cookie issues.
+// In SSR (no window), use direct API URL.
+const baseURL = typeof window !== "undefined" ? "/api/v1" : `${API_URL}/api/v1`;
+
 export const api = axios.create({
-  baseURL: `${API_URL}/api/v1`,
+  baseURL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -118,14 +123,17 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // Refresh token is in httpOnly cookie — sent automatically via withCredentials
+      // Refresh token is in httpOnly cookie — sent automatically via withCredentials.
+      // Use proxy path (same-origin) to avoid CORS.
       const response = await axios.post(
-        `${API_URL}/api/v1/auth/refresh`,
+        "/api/v1/auth/refresh",
         {},
         { withCredentials: true },
       );
 
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      // Unwrap TransformInterceptor envelope: { success, data: { accessToken, ... }, timestamp }
+      const payload = response.data?.data ?? response.data;
+      const { accessToken, refreshToken: newRefreshToken } = payload;
       setTokens(accessToken, newRefreshToken);
 
       // Resolve all queued requests with the new token

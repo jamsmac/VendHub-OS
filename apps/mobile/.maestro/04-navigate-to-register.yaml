@@ -1,0 +1,12 @@
+# E2E: Navigate from login to register screen
+appId: uz.vendhub.staff
+
+---
+- assertVisible: "VendHub"
+- assertVisible: "Нет аккаунта?"
+
+# Tap register link
+- tapOn: "Зарегистрируйтесь"
+
+# Should navigate to register screen
+- assertVisible: "Создать аккаунт"
