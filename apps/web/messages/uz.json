@@ -434,6 +434,9 @@
     "connect": "Ulash",
     "appearance": "Tashqi ko'rinish",
     "theme": "Mavzu",
+    "switchToLight": "Yorug' rejimga o'tish",
+    "switchToDark": "Qorong'u rejimga o'tish",
+    "notifications": "Bildirishnomalar",
     "themeLight": "Yorug'",
     "themeDark": "Qorong'u",
     "themeSystem": "Tizim",
@@ -3700,5 +3703,17 @@
       "billion": "{value} mlrd",
       "event": "Hodisa"
     }
+  },
+  "navSections": {
+    "dashboard": "Boshqaruv paneli",
+    "operations": "Operatsiyalar",
+    "finance": "Moliya",
+    "marketing": "Marketing",
+    "hr": "HR va boshqaruv",
+    "admin": "Administratsiya",
+    "reporting": "Hisobotlar",
+    "support": "Yordam",
+    "system": "Tizim",
+    "general": "Umumiy"
   }
 }

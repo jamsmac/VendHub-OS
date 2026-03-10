@@ -434,6 +434,9 @@
     "connect": "Подключить",
     "appearance": "Внешний вид",
     "theme": "Тема",
+    "switchToLight": "Переключить на светлую тему",
+    "switchToDark": "Переключить на тёмную тему",
+    "notifications": "Уведомления",
     "themeLight": "Светлая",
     "themeDark": "Тёмная",
     "themeSystem": "Системная",
@@ -3700,5 +3703,17 @@
       "billion": "{value} млрд",
       "event": "Событие"
     }
+  },
+  "navSections": {
+    "dashboard": "Дашборд",
+    "operations": "Операции",
+    "finance": "Финансы",
+    "marketing": "Маркетинг",
+    "hr": "HR и управление",
+    "admin": "Администрирование",
+    "reporting": "Отчётность",
+    "support": "Поддержка",
+    "system": "Система",
+    "general": "Общее"
   }
 }

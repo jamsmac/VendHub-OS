@@ -434,6 +434,9 @@
     "connect": "Connect",
     "appearance": "Appearance",
     "theme": "Theme",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "notifications": "Notifications",
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
@@ -3700,5 +3703,17 @@
       "billion": "{value}B",
       "event": "Event"
     }
+  },
+  "navSections": {
+    "dashboard": "Dashboard",
+    "operations": "Operations",
+    "finance": "Finance",
+    "marketing": "Marketing",
+    "hr": "HR & Management",
+    "admin": "Administration",
+    "reporting": "Reporting",
+    "support": "Support",
+    "system": "System",
+    "general": "General"
   }
 }

@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import Link from 'next/link';
+import { useEffect } from "react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export default function DashboardError({
   error,
@@ -13,6 +14,8 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("common");
+
   useEffect(() => {
     // Log to error reporting service in production
     // e.g. Sentry.captureException(error);
@@ -25,10 +28,8 @@ export default function DashboardError({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-8 w-8 text-destructive" />
           </div>
-          <h2 className="text-xl font-semibold mb-2">Произошла ошибка</h2>
-          <p className="text-muted-foreground mb-6">
-            Что-то пошло не так при загрузке страницы. Попробуйте обновить или вернуться на главную.
-          </p>
+          <h2 className="text-xl font-semibold mb-2">{t("errorOccurred")}</h2>
+          <p className="text-muted-foreground mb-6">{t("errorDescription")}</p>
           {error.digest && (
             <p className="text-xs text-muted-foreground mb-4 font-mono">
               ID: {error.digest}
@@ -38,12 +39,12 @@ export default function DashboardError({
             <Button variant="outline" asChild>
               <Link href="/dashboard">
                 <Home className="h-4 w-4 mr-2" />
-                На главную
+                {t("goToDashboard")}
               </Link>
             </Button>
             <Button onClick={reset}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Повторить
+              {t("retry")}
             </Button>
           </div>
         </CardContent>

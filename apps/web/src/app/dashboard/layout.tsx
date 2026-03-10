@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { getAccessToken } from "@/lib/api";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -55,8 +56,16 @@ export default function DashboardLayout({
     }
   }, [hydrated, isAuthenticated, user, router, checkAuth]);
 
+  // Loading state during auth check (Issue #17)
   if (!ready) {
-    return null;
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -64,7 +73,10 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header user={user} />
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-6">
+        <main
+          id="main-content"
+          className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6"
+        >
           {children}
         </main>
       </div>

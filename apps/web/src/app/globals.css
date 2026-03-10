@@ -58,7 +58,19 @@
   }
 }
 
-/* Custom scrollbar */
+/* Respect reduced motion preference (Issue #5) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar — Chromium */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -74,4 +86,10 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/50;
+}
+
+/* Custom scrollbar — Firefox (Issue #16) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted));
 }

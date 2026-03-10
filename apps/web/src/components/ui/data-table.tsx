@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -34,6 +35,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const t = useTranslations("common");
 
   const table = useReactTable({
     data,
@@ -58,25 +60,22 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {/* Table */}
-      <div className="rounded-xl border border-espresso/10 bg-white overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
         <table className="w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                className="border-b border-espresso/10 bg-foam"
-              >
+              <tr key={headerGroup.id} className="border-b bg-muted/50">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-espresso-light"
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                   >
                     {header.isPlaceholder ? null : (
                       <div
                         className={cn(
                           "flex items-center gap-1",
                           header.column.getCanSort() &&
-                            "cursor-pointer select-none hover:text-espresso",
+                            "cursor-pointer select-none hover:text-foreground",
                         )}
                         onClick={header.column.getToggleSortingHandler()}
                       >
@@ -99,13 +98,10 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-espresso/5 transition-colors hover:bg-espresso-50/50"
+                  className="border-b border-border/50 transition-colors hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-3 text-sm text-espresso-dark"
-                    >
+                    <td key={cell.id} className="px-4 py-3 text-sm">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -118,9 +114,9 @@ export function DataTable<TData, TValue>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-12 text-center text-sm text-espresso-light"
+                  className="px-4 py-12 text-center text-sm text-muted-foreground"
                 >
-                  Нет данных
+                  {t("noData")}
                 </td>
               </tr>
             )}
@@ -130,8 +126,9 @@ export function DataTable<TData, TValue>({
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-espresso-light">
-          Показано {table.getRowModel().rows.length} из {data.length}
+        <p className="text-sm text-muted-foreground">
+          {t("showing")} {table.getRowModel().rows.length} {t("of")}{" "}
+          {data.length}
         </p>
         <div className="flex items-center gap-2">
           <Button
@@ -139,10 +136,11 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label={t("back")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-espresso">
+          <span className="text-sm text-muted-foreground">
             {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </span>
           <Button
@@ -150,6 +148,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label={t("next")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

@@ -52,11 +52,19 @@ import {
   HelpCircle,
   Code2,
   UserPlus,
+  Menu,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { UserRole } from "@vendhub/shared";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface NavItem {
   nameKey: string;
@@ -64,6 +72,7 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   roles?: UserRole[];
+  section?: string;
 }
 
 /** Role groups for concise assignment */
@@ -97,12 +106,14 @@ const navigation: NavItem[] = [
     fallback: "Дашборд",
     href: "/dashboard",
     icon: LayoutDashboard,
+    section: "dashboard",
   },
   {
     nameKey: "dashboardExtended",
     fallback: "Расширенный обзор",
     href: "/dashboard/dashboard",
     icon: LayoutDashboard,
+    section: "dashboard",
   },
 
   // ── Operations ────────────────────────────────────────────
@@ -112,6 +123,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/machines",
     icon: Coffee,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "products",
@@ -119,6 +131,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/products",
     icon: Package,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
+    section: "operations",
   },
   {
     nameKey: "inventory",
@@ -126,6 +139,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/inventory",
     icon: Boxes,
     roles: STOCK,
+    section: "operations",
   },
   {
     nameKey: "orders",
@@ -133,6 +147,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/orders",
     icon: ShoppingCart,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+    section: "operations",
   },
   {
     nameKey: "tasks",
@@ -140,6 +155,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/tasks",
     icon: ClipboardList,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "trips",
@@ -147,6 +163,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/trips",
     icon: Navigation,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "routes",
@@ -154,6 +171,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/routes",
     icon: Route,
     roles: MANAGEMENT,
+    section: "operations",
   },
   {
     nameKey: "maintenance",
@@ -161,6 +179,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/maintenance",
     icon: Wrench,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "equipment",
@@ -168,6 +187,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/equipment",
     icon: Cog,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "materialRequests",
@@ -175,6 +195,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/material-requests",
     icon: PackagePlus,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
+    section: "operations",
   },
   {
     nameKey: "complaints",
@@ -182,6 +203,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/complaints",
     icon: MessageSquare,
     roles: MANAGEMENT,
+    section: "operations",
   },
   {
     nameKey: "incidents",
@@ -189,6 +211,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/incidents",
     icon: ShieldAlert,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "alerts",
@@ -196,6 +219,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/alerts",
     icon: AlertTriangle,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "vehicles",
@@ -203,6 +227,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/vehicles",
     icon: Truck,
     roles: OPERATIONS,
+    section: "operations",
   },
   {
     nameKey: "operatorRatings",
@@ -210,6 +235,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/operator-ratings",
     icon: Star,
     roles: MANAGEMENT,
+    section: "operations",
   },
 
   // ── Finance ───────────────────────────────────────────────
@@ -219,6 +245,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/transactions",
     icon: CreditCard,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+    section: "finance",
   },
   {
     nameKey: "payments",
@@ -226,6 +253,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/payments",
     icon: Wallet,
     roles: FINANCE,
+    section: "finance",
   },
   {
     nameKey: "finance",
@@ -233,6 +261,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/finance",
     icon: DollarSign,
     roles: FINANCE,
+    section: "finance",
   },
   {
     nameKey: "fiscal",
@@ -240,6 +269,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/fiscal",
     icon: Receipt,
     roles: FINANCE,
+    section: "finance",
   },
   {
     nameKey: "reconciliation",
@@ -247,6 +277,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/reconciliation",
     icon: Scale,
     roles: FINANCE,
+    section: "finance",
   },
   {
     nameKey: "openingBalances",
@@ -254,6 +285,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/opening-balances",
     icon: DollarSign,
     roles: FINANCE,
+    section: "finance",
   },
 
   // ── Marketing & Sales ─────────────────────────────────────
@@ -263,6 +295,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/promotions",
     icon: Tag,
     roles: MANAGEMENT,
+    section: "marketing",
   },
   {
     nameKey: "investor",
@@ -270,6 +303,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/investor",
     icon: TrendingUp,
     roles: MANAGEMENT,
+    section: "marketing",
   },
 
   // ── HR & Management ───────────────────────────────────────
@@ -279,6 +313,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/employees",
     icon: UserCog,
     roles: MANAGEMENT,
+    section: "hr",
   },
   {
     nameKey: "contractors",
@@ -286,6 +321,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/contractors",
     icon: Building2,
     roles: MANAGEMENT,
+    section: "hr",
   },
   {
     nameKey: "counterparties",
@@ -293,6 +329,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/counterparties",
     icon: Building,
     roles: MANAGEMENT,
+    section: "hr",
   },
   {
     nameKey: "team",
@@ -300,6 +337,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/team",
     icon: Users,
     roles: MANAGEMENT,
+    section: "hr",
   },
   {
     nameKey: "workLogs",
@@ -307,6 +345,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/work-logs",
     icon: Clock,
     roles: MANAGEMENT,
+    section: "hr",
   },
 
   // ── Admin & Configuration ─────────────────────────────────
@@ -316,6 +355,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/organizations",
     icon: Building,
     roles: [UserRole.OWNER],
+    section: "admin",
   },
   {
     nameKey: "users",
@@ -323,6 +363,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/users",
     icon: Users,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "admin",
   },
   {
     nameKey: "invites",
@@ -330,6 +371,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/invites",
     icon: UserPlus,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "admin",
   },
   {
     nameKey: "warehouse",
@@ -337,6 +379,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/warehouse",
     icon: Warehouse,
     roles: STOCK,
+    section: "admin",
   },
   {
     nameKey: "locations",
@@ -344,6 +387,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/locations",
     icon: MapPin,
     roles: MANAGEMENT,
+    section: "admin",
   },
   {
     nameKey: "website",
@@ -351,6 +395,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/website",
     icon: Globe,
     roles: MANAGEMENT,
+    section: "admin",
   },
   {
     nameKey: "map",
@@ -358,6 +403,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/map",
     icon: Map,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
+    section: "admin",
   },
   {
     nameKey: "loyalty",
@@ -365,6 +411,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/loyalty",
     icon: Gift,
     roles: MANAGEMENT,
+    section: "admin",
   },
 
   // ── Reporting ─────────────────────────────────────────────
@@ -374,6 +421,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+    section: "reporting",
   },
 
   // ── Support & Help ────────────────────────────────────────
@@ -382,6 +430,7 @@ const navigation: NavItem[] = [
     fallback: "Помощь",
     href: "/dashboard/help",
     icon: HelpCircle,
+    section: "support",
   },
 
   // ── System ────────────────────────────────────────────────
@@ -391,6 +440,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/directories",
     icon: Database,
     roles: MANAGEMENT,
+    section: "system",
   },
   {
     nameKey: "importData",
@@ -398,6 +448,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/import",
     icon: Upload,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "system",
   },
   {
     nameKey: "integrations",
@@ -405,6 +456,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/integrations",
     icon: Plug,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "system",
   },
   {
     nameKey: "webhooks",
@@ -412,6 +464,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/webhooks",
     icon: Webhook,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "system",
   },
   {
     nameKey: "machineAccess",
@@ -419,6 +472,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/machine-access",
     icon: KeyRound,
     roles: MANAGEMENT,
+    section: "system",
   },
   {
     nameKey: "references",
@@ -426,6 +480,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/references",
     icon: BookOpen,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "system",
   },
   {
     nameKey: "apiDocs",
@@ -433,6 +488,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/api-docs",
     icon: Code2,
     roles: [UserRole.OWNER],
+    section: "system",
   },
   {
     nameKey: "audit",
@@ -440,6 +496,7 @@ const navigation: NavItem[] = [
     href: "/dashboard/audit",
     icon: FileText,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "system",
   },
 
   // Notifications — visible to all authenticated roles
@@ -448,6 +505,7 @@ const navigation: NavItem[] = [
     fallback: "Уведомления",
     href: "/dashboard/notifications",
     icon: Bell,
+    section: "general",
   },
   {
     nameKey: "settings",
@@ -455,14 +513,31 @@ const navigation: NavItem[] = [
     href: "/dashboard/settings",
     icon: Settings,
     roles: [UserRole.OWNER, UserRole.ADMIN],
+    section: "general",
   },
 ];
 
-export function Sidebar() {
+/** Section labels for visual grouping (Issue #11) */
+const SECTION_LABELS: Record<string, string> = {
+  dashboard: "Dashboard",
+  operations: "Operations",
+  finance: "Finance",
+  marketing: "Marketing",
+  hr: "HR",
+  admin: "Admin",
+  reporting: "Reporting",
+  support: "Support",
+  system: "System",
+  general: "General",
+};
+
+/** Shared nav content used by both desktop sidebar and mobile sheet */
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const t = useTranslations("nav");
   const tAuth = useTranslations("auth");
+  const tSections = useTranslations("navSections");
 
   const visibleNavigation = useMemo(() => {
     const role = user?.role as UserRole | undefined;
@@ -473,37 +548,78 @@ export function Sidebar() {
     );
   }, [user?.role]);
 
+  // Group items by section for visual dividers (Issue #11)
+  const groupedNav = useMemo(() => {
+    const groups: { section: string; items: NavItem[] }[] = [];
+    let currentSection = "";
+
+    for (const item of visibleNavigation) {
+      const section = item.section || "general";
+      if (section !== currentSection) {
+        currentSection = section;
+        groups.push({ section, items: [item] });
+      } else {
+        groups[groups.length - 1].items.push(item);
+      }
+    }
+    return groups;
+  }, [visibleNavigation]);
+
   return (
-    <div className="flex h-full w-64 flex-col bg-card border-r">
+    <>
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6 border-b">
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <Coffee className="w-5 h-5 text-primary-foreground" />
+          <Coffee
+            className="w-5 h-5 text-primary-foreground"
+            aria-hidden="true"
+          />
         </div>
         <span className="font-bold text-lg">VendHub</span>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-        {visibleNavigation.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.nameKey}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {t.has(item.nameKey) ? t(item.nameKey) : item.fallback}
-            </Link>
-          );
-        })}
+      {/* Navigation with section dividers (Issue #6 + #11) */}
+      <nav
+        className="flex-1 px-3 py-4 overflow-y-auto"
+        aria-label="Main navigation"
+      >
+        {groupedNav.map((group, groupIndex) => (
+          <div key={group.section}>
+            {groupIndex > 0 && (
+              <>
+                <div className="my-2 border-t" />
+                <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {tSections.has(group.section)
+                    ? tSections(group.section)
+                    : SECTION_LABELS[group.section] || group.section}
+                </p>
+              </>
+            )}
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  pathname.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.nameKey}
+                    href={item.href}
+                    onClick={onNavigate}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" aria-hidden="true" />
+                    {t.has(item.nameKey) ? t(item.nameKey) : item.fallback}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* User info + Locale + Logout */}
@@ -521,12 +637,48 @@ export function Sidebar() {
         </div>
         <button
           onClick={() => logout()}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-4 w-4" aria-hidden="true" />
           {tAuth("logout")}
         </button>
       </div>
+    </>
+  );
+}
+
+/** Desktop sidebar — hidden on mobile (Issue #1) */
+export function Sidebar() {
+  return (
+    <div className="hidden lg:flex h-full w-64 flex-col bg-card border-r">
+      <SidebarContent />
     </div>
+  );
+}
+
+/** Mobile sidebar trigger — visible only on small screens (Issue #1) */
+export function MobileSidebar() {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-0">
+        <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+        <div className="flex h-full flex-col bg-card">
+          <SidebarContent onNavigate={close} />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
