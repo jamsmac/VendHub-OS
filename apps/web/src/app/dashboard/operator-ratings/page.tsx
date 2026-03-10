@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { operatorRatingsApi } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 // ---- Types ----------------------------------------------------------------
 
@@ -128,8 +129,8 @@ function OperatorName({
   return <span className="text-muted-foreground text-sm">{userId}</span>;
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU", {
+function formatDateShort(iso: string) {
+  return formatDate(iso, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -594,8 +595,8 @@ function AllRatingsTab({
                       />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(rating.period_start)} —{" "}
-                      {formatDate(rating.period_end)}
+                      {formatDateShort(rating.period_start)} —{" "}
+                      {formatDateShort(rating.period_end)}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       {rating.score?.toFixed(1) ?? "—"}

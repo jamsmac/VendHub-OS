@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { inventoryApi } from "@/lib/api";
 import Link from "next/link";
+import { formatDate } from "@/lib/utils";
 
 interface InventoryItem {
   id: string;
@@ -254,9 +255,7 @@ export default function InventoryPage() {
                     </div>
                   </div>
                   <div className="text-right text-sm text-muted-foreground">
-                    <p>
-                      {new Date(movement.createdAt).toLocaleDateString("ru-RU")}
-                    </p>
+                    <p>{formatDate(movement.createdAt)}</p>
                     {movement.createdBy && <p>{movement.createdBy}</p>}
                   </div>
                 </div>

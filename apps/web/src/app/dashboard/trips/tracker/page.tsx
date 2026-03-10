@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { tripsApi } from "@/lib/api";
 import Link from "next/link";
+import { formatTime } from "@/lib/utils";
 
 interface ActiveTrip {
   id: string;
@@ -208,8 +209,7 @@ export default function TripTrackerPage() {
                       {trip.startedAt && (
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {t("startLabel")}{" "}
-                          {new Date(trip.startedAt).toLocaleTimeString("ru-RU")}
+                          {t("startLabel")} {formatTime(trip.startedAt)}
                         </span>
                       )}
                       {trip.distanceKm != null && (

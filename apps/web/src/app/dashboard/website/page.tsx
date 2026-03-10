@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { cn, formatDate, formatNumber } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -610,7 +610,7 @@ const REDIRECT_RULES = [
   { id: "3", from: "/about-us", to: "/about", status: "active", hits: 95 },
 ];
 
-const fmt = (n: number) => n.toLocaleString("ru-RU");
+// fmt is now imported as formatNumber from "@/lib/utils"
 
 // ═══ Tab: Content ═══
 
@@ -897,7 +897,7 @@ function SeoTab() {
               Показы
             </p>
             <p className="text-2xl font-bold text-amber-700 mt-1">
-              {fmt(GSC_STATS.impressions)}
+              {formatNumber(GSC_STATS.impressions)}
             </p>
             <p className="text-[10px] text-amber-600 mt-1">Последние 28 дней</p>
           </CardContent>
@@ -908,7 +908,7 @@ function SeoTab() {
               Клики
             </p>
             <p className="text-2xl font-bold text-blue-700 mt-1">
-              {fmt(GSC_STATS.clicks)}
+              {formatNumber(GSC_STATS.clicks)}
             </p>
             <p className="text-[10px] text-blue-600 mt-1">
               Из органического поиска
@@ -1065,7 +1065,7 @@ function SeoTab() {
                     {kw.keyword}
                   </p>
                   <p className="text-xs text-espresso-light">
-                    {fmt(kw.searchVolume)} объём поиска • Сложность{" "}
+                    {formatNumber(kw.searchVolume)} объём поиска • Сложность{" "}
                     {kw.difficulty}
                   </p>
                 </div>
@@ -1202,7 +1202,7 @@ function AnalyticsTab() {
                   <Badge variant="default">{p.conversions} конв.</Badge>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs text-espresso-light">
-                  <p>Просмотров: {fmt(p.visitors)}</p>
+                  <p>Просмотров: {formatNumber(p.visitors)}</p>
                   <p>Отскок: {p.bounce}%</p>
                   <p>Время: {p.avgTime}</p>
                 </div>
@@ -1334,7 +1334,7 @@ function SettingsTab() {
                   {rule.from} → {rule.to}
                 </p>
                 <p className="text-[10px] text-espresso-light">
-                  {fmt(rule.hits)} переходов
+                  {formatNumber(rule.hits)} переходов
                 </p>
               </div>
               <Badge variant="success">
@@ -1467,7 +1467,7 @@ function PartnershipTab() {
             Выручка/мес
           </p>
           <p className="text-xl font-bold text-purple-700">
-            {fmt(totalRevenue)}
+            {formatNumber(totalRevenue)}
           </p>
         </div>
       </div>
@@ -1591,10 +1591,7 @@ function PartnershipTab() {
                     {new Date(selectedPartner.contractStart).toLocaleDateString(
                       "ru-RU",
                     )}{" "}
-                    —{" "}
-                    {new Date(
-                      selectedPartner.contractEnd || "",
-                    ).toLocaleDateString("ru-RU")}
+                    — {formatDate(selectedPartner.contractEnd || "")}
                   </p>
                 </div>
               )}
@@ -1610,7 +1607,7 @@ function PartnershipTab() {
                 <div>
                   <p className="text-[10px] text-espresso-light">Выручка</p>
                   <p className="text-xs font-medium text-emerald-600">
-                    {fmt(selectedPartner.revenue)} UZS
+                    {formatNumber(selectedPartner.revenue)} UZS
                   </p>
                 </div>
               )}

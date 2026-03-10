@@ -35,6 +35,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { machinesApi } from "@/lib/api";
+import { formatDateTime, formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Leaflet map — dynamic import required (Leaflet uses window on import)
@@ -248,7 +249,9 @@ export default function MapPage() {
           <LeafletDashboardMap
             machines={machines}
             onMachineClick={(clicked) =>
-              setSelectedMachine(machines.find((m) => m.id === clicked.id) ?? null)
+              setSelectedMachine(
+                machines.find((m) => m.id === clicked.id) ?? null,
+              )
             }
             className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border"
           />
@@ -350,7 +353,7 @@ export default function MapPage() {
                       <p className="text-xs text-muted-foreground">
                         {t("todayStats", {
                           sales: machine.todaySales,
-                          revenue: machine.todayRevenue?.toLocaleString(),
+                          revenue: formatNumber(machine.todayRevenue ?? 0),
                         })}
                       </p>
                     </div>
@@ -378,8 +381,7 @@ export default function MapPage() {
               const stockPercent =
                 m.slotsCount > 0
                   ? Math.round(
-                      ((m.slotsCount - m.emptySlotsCount) / m.slotsCount) *
-                        100,
+                      ((m.slotsCount - m.emptySlotsCount) / m.slotsCount) * 100,
                     )
                   : 0;
 
@@ -405,8 +407,7 @@ export default function MapPage() {
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {t("lastSeen")}{" "}
-                        {new Date(m.lastSeen).toLocaleString("ru-RU")}
+                        {t("lastSeen")} {formatDateTime(m.lastSeen)}
                       </span>
                     </div>
 
@@ -440,7 +441,7 @@ export default function MapPage() {
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg text-center">
                           <p className="text-xl font-bold">
-                            {m.todayRevenue?.toLocaleString()}
+                            {formatNumber(m.todayRevenue ?? 0)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {t("revenueUzs")}

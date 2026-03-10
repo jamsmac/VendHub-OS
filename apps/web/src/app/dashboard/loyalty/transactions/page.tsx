@@ -34,6 +34,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { loyaltyApi, usersApi } from "@/lib/api";
+import { formatDate, formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -156,7 +157,9 @@ export default function LoyaltyTransactionsPage() {
                   {t("statEarned")}
                 </p>
                 <p className="text-xl font-bold">
-                  {statsData?.totalEarned?.toLocaleString() || "\u2014"}
+                  {statsData?.totalEarned != null
+                    ? formatNumber(statsData.totalEarned)
+                    : "\u2014"}
                 </p>
               </div>
             </div>
@@ -173,7 +176,9 @@ export default function LoyaltyTransactionsPage() {
                   {t("statSpent")}
                 </p>
                 <p className="text-xl font-bold">
-                  {statsData?.totalSpent?.toLocaleString() || "\u2014"}
+                  {statsData?.totalSpent != null
+                    ? formatNumber(statsData.totalSpent)
+                    : "\u2014"}
                 </p>
               </div>
             </div>
@@ -190,7 +195,9 @@ export default function LoyaltyTransactionsPage() {
                   {t("statAvgBalance")}
                 </p>
                 <p className="text-xl font-bold">
-                  {statsData?.averageBalance?.toLocaleString() || "\u2014"}
+                  {statsData?.averageBalance != null
+                    ? formatNumber(statsData.averageBalance)
+                    : "\u2014"}
                 </p>
               </div>
             </div>
@@ -238,14 +245,14 @@ export default function LoyaltyTransactionsPage() {
                     className="flex items-center justify-between py-2 border-b last:border-0"
                   >
                     <span className="text-sm text-muted-foreground">
-                      {new Date(i.date || "").toLocaleDateString("ru-RU")}
+                      {formatDate(i.date || "")}
                     </span>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-green-600">
-                        +{(i.earned || 0).toLocaleString()}
+                        +{i.earned || 0}
                       </span>
                       <span className="text-sm text-red-600">
-                        -{(i.spent || 0).toLocaleString()}
+                        -{i.spent || 0}
                       </span>
                       <Badge variant="secondary" className="text-xs">
                         {t("newMembers", { count: i.newMembers || 0 })}
@@ -291,9 +298,7 @@ export default function LoyaltyTransactionsPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium">
-                      {(s.total || 0).toLocaleString()}
-                    </span>
+                    <span className="text-sm font-medium">{s.total || 0}</span>
                     <span className="text-xs text-muted-foreground w-12 text-right">
                       {(s.percent || 0).toFixed(1)}%
                     </span>

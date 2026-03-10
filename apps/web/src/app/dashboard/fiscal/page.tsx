@@ -46,6 +46,7 @@ import type {
   CloseShiftResponse,
   XReportResponse,
 } from "@/types/fiscal.types";
+import { formatDate } from "@/lib/utils";
 
 function formatCurrency(amount: number): string {
   return (
@@ -58,7 +59,7 @@ function formatCurrency(amount: number): string {
 }
 
 function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString("ru-RU", {
+  return formatDate(dateStr, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

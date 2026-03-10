@@ -55,6 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { openingBalancesApi } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -193,15 +194,15 @@ export default function OpeningBalancesPage() {
   const formatMoney = (amount: number) =>
     new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("ru-RU", {
+  const formatDateShort = (dateStr: string) =>
+    formatDate(dateStr, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
 
   const formatDateTime = (dateStr: string) =>
-    new Date(dateStr).toLocaleString("ru-RU", {
+    formatDate(dateStr, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -494,7 +495,7 @@ export default function OpeningBalancesPage() {
                 <TableRow key={balance.id}>
                   {/* Date */}
                   <TableCell className="font-medium">
-                    {formatDate(balance.date)}
+                    {formatDateShort(balance.date)}
                   </TableCell>
 
                   {/* Entity */}

@@ -56,6 +56,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface Employee {
   id: string;
@@ -415,9 +416,7 @@ export default function EmployeesPage() {
                       )}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {new Date(employee.hireDate).toLocaleDateString("ru-RU")}
-                  </TableCell>
+                  <TableCell>{formatDate(employee.hireDate)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

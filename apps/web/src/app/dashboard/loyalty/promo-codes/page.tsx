@@ -39,6 +39,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { promoCodesApi } from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -200,7 +201,7 @@ export default function PromoCodesPage() {
     switch (type) {
       case "fixed_discount":
         return t("typeFormat_fixed_discount", {
-          value: value.toLocaleString(),
+          value: value,
         });
       case "percent_discount":
         return t("typeFormat_percent_discount", { value });
@@ -374,7 +375,7 @@ export default function PromoCodesPage() {
                       {code.minOrderAmount > 0 && (
                         <Badge variant="secondary" className="text-xs">
                           {t("minOrder", {
-                            amount: code.minOrderAmount.toLocaleString(),
+                            amount: code.minOrderAmount,
                           })}
                         </Badge>
                       )}
@@ -615,9 +616,11 @@ export default function PromoCodesPage() {
                       </p>
                     </div>
                     <Badge variant="secondary">
-                      {redemption.discount?.toLocaleString() ||
-                        redemption.pointsEarned?.toLocaleString() ||
-                        "\u2014"}
+                      {redemption.discount != null
+                        ? formatNumber(redemption.discount)
+                        : redemption.pointsEarned != null
+                          ? formatNumber(redemption.pointsEarned)
+                          : "\u2014"}
                     </Badge>
                   </div>
                 );

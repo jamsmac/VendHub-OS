@@ -48,6 +48,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { achievementsApi } from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -306,7 +307,9 @@ export default function AchievementsPage() {
                 {t("totalUnlocked")}
               </p>
               <p className="text-xl font-bold">
-                {statsData?.totalUnlocked?.toLocaleString() || "\u2014"}
+                {statsData?.totalUnlocked != null
+                  ? formatNumber(statsData.totalUnlocked)
+                  : "\u2014"}
               </p>
             </div>
           </CardContent>
@@ -321,7 +324,9 @@ export default function AchievementsPage() {
                 {t("rewardsGiven")}
               </p>
               <p className="text-xl font-bold">
-                {statsData?.totalRewardsClaimed?.toLocaleString() || "\u2014"}
+                {statsData?.totalRewardsClaimed != null
+                  ? formatNumber(statsData.totalRewardsClaimed)
+                  : "\u2014"}
               </p>
             </div>
           </CardContent>

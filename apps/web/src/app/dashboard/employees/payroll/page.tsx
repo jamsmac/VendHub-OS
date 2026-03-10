@@ -43,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface PayrollRecord {
   id: string;
@@ -504,8 +505,7 @@ export default function PayrollPage() {
                       {new Date(record.period_start).toLocaleDateString(
                         "ru-RU",
                       )}{" "}
-                      --{" "}
-                      {new Date(record.period_end).toLocaleDateString("ru-RU")}
+                      -- {formatDate(record.period_end)}
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-sm">

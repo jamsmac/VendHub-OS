@@ -57,6 +57,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { alertsApi } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 // --- Types ---
 
@@ -245,8 +246,8 @@ export default function AlertsPage() {
   const rulesCount = rules?.length || 0;
   const activeRulesCount = rules?.filter((r) => r.isActive).length || 0;
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("ru-RU", {
+  const formatDateShort = (iso: string) =>
+    formatDate(iso, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -663,7 +664,7 @@ export default function AlertsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Clock className="w-3.5 h-3.5" />
-                          {formatDate(alert.triggeredAt)}
+                          {formatDateShort(alert.triggeredAt)}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -715,7 +716,7 @@ export default function AlertsPage() {
                             alert.status === "DISMISSED") && (
                             <span className="text-xs text-muted-foreground">
                               {alert.status === "RESOLVED"
-                                ? formatDate(alert.resolvedAt!)
+                                ? formatDateShort(alert.resolvedAt!)
                                 : "—"}
                             </span>
                           )}

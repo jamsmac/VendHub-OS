@@ -90,7 +90,7 @@ export const tabs: Tab[] = [
 
 export const dateRanges = ["Сегодня", "Неделя", "Месяц", "Квартал", "Год"];
 
-export const fmt = (n: number): string => n.toLocaleString("ru-RU");
+export { formatNumber as fmt } from "@/lib/utils";
 
 export const fmtShort = (n: number): string => {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)} млрд`;

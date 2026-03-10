@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { tripsApi } from "@/lib/api";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/utils";
 
 interface Trip {
   id: string;
@@ -371,7 +372,7 @@ export default function TripsPage() {
                           {trip.startedAt && (
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {new Date(trip.startedAt).toLocaleString("ru-RU")}
+                              {formatDateTime(trip.startedAt)}
                             </span>
                           )}
                           {(trip.anomalyCount || 0) > 0 && (

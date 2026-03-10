@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateTime } from "@/lib/utils";
 
 type ApiError = Error & {
   response?: { data?: { message?: string | string[] } };
@@ -585,7 +586,7 @@ export default function DirectoryDetailPage({ params }: PageParams) {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {source.lastSyncAt
-                          ? new Date(source.lastSyncAt).toLocaleString("ru-RU")
+                          ? formatDateTime(source.lastSyncAt)
                           : "—"}
                       </TableCell>
                       <TableCell>
@@ -654,7 +655,7 @@ export default function DirectoryDetailPage({ params }: PageParams) {
                         <Badge variant="outline">{log.action}</Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(log.changedAt).toLocaleString("ru-RU")}
+                        {formatDateTime(log.changedAt)}
                       </TableCell>
                       <TableCell className="text-xs font-mono max-w-[200px] truncate">
                         {log.oldValues ? JSON.stringify(log.oldValues) : "—"}
@@ -735,12 +736,10 @@ export default function DirectoryDetailPage({ params }: PageParams) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {new Date(log.startedAt).toLocaleString("ru-RU")}
+                        {formatDateTime(log.startedAt)}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {log.finishedAt
-                          ? new Date(log.finishedAt).toLocaleString("ru-RU")
-                          : "—"}
+                        {log.finishedAt ? formatDateTime(log.finishedAt) : "—"}
                       </TableCell>
                       <TableCell>{log.totalRecords}</TableCell>
                       <TableCell className="text-green-600">

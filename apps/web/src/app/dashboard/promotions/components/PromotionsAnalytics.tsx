@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { AlertTriangle, CheckCheck, Code2, ZapIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatNumber } from "@/lib/utils";
 
 interface AnalyticsData {
   usageOverTime30Days: Array<{ day: string; uses: number; revenue: number }>;
@@ -54,7 +55,7 @@ interface PromotionsAnalyticsProps {
   data: AnalyticsData;
 }
 
-const fmt = (n: number) => n.toLocaleString("ru-RU");
+// fmt is now imported as formatNumber from "@/lib/utils"
 
 export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
   const [analyticsSubTab, setAnalyticsSubTab] = useState<
@@ -126,7 +127,9 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <XAxis dataKey="period" stroke="#92400e" fontSize={12} />
                   <YAxis stroke="#92400e" fontSize={12} />
                   <Tooltip
-                    formatter={(value) => `${fmt(value as number)} UZS`}
+                    formatter={(value) =>
+                      `${formatNumber(value as number)} UZS`
+                    }
                   />
                   <Legend />
                   <Bar
@@ -349,8 +352,8 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                         </span>
                         <span className="text-sm font-bold text-espresso-dark">
                           {isRevenue
-                            ? fmt(stage.count as number) + " UZS"
-                            : fmt(stage.count as number) +
+                            ? formatNumber(stage.count as number) + " UZS"
+                            : formatNumber(stage.count as number) +
                               " (" +
                               stage.percentage.toFixed(1) +
                               "%)"}
@@ -414,7 +417,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                         Влияние на выручку:
                       </span>
                       <span className="font-semibold text-espresso-dark">
-                        {fmt(promo.revenueImpact)} UZS
+                        {formatNumber(promo.revenueImpact)} UZS
                       </span>
                     </div>
                     <div className="mt-2 h-2 rounded-full bg-espresso-100">
@@ -444,7 +447,9 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <XAxis dataKey="month" stroke="#92400e" fontSize={12} />
                   <YAxis stroke="#92400e" fontSize={12} />
                   <Tooltip
-                    formatter={(value) => `${fmt(value as number)} UZS`}
+                    formatter={(value) =>
+                      `${formatNumber(value as number)} UZS`
+                    }
                   />
                   <Area
                     type="monotone"
@@ -485,7 +490,9 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                     fontSize={11}
                     width={100}
                   />
-                  <Tooltip formatter={(value) => fmt(value as number)} />
+                  <Tooltip
+                    formatter={(value) => formatNumber(value as number)}
+                  />
                   <Bar
                     dataKey="usage"
                     name="Использования"
@@ -530,7 +537,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                             {promo.title}
                           </span>
                           <span className="text-espresso-light">
-                            {fmt(promo.revenueImpact)} UZS
+                            {formatNumber(promo.revenueImpact)} UZS
                           </span>
                         </div>
                         <div className="mt-1 h-2 rounded-full bg-espresso-100">

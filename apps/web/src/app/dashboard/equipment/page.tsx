@@ -34,6 +34,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { equipmentApi, sparePartsApi, washingSchedulesApi } from "@/lib/api";
 import Link from "next/link";
+import { formatDate } from "@/lib/utils";
 
 // --- Interfaces ---
 
@@ -541,9 +542,7 @@ export default function EquipmentPage() {
                           <span className="flex items-center gap-1">
                             <Wrench className="h-3 w-3" />
                             {t("maintenanceDate")}{" "}
-                            {new Date(
-                              component.lastMaintenanceDate,
-                            ).toLocaleDateString("ru-RU")}
+                            {formatDate(component.lastMaintenanceDate)}
                           </span>
                         )}
                       </div>
@@ -869,9 +868,7 @@ export default function EquipmentPage() {
                                 isOverdue ? "text-red-600 font-medium" : ""
                               }
                             >
-                              {new Date(
-                                schedule.nextWashDate,
-                              ).toLocaleDateString("ru-RU")}
+                              {formatDate(schedule.nextWashDate)}
                             </span>
                           </div>
                         ) : (

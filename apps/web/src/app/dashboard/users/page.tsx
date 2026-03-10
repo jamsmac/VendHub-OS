@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usersApi } from "@/lib/api";
 import Link from "next/link";
+import { formatDate } from "@/lib/utils";
 
 interface User {
   id: string;
@@ -420,8 +421,7 @@ export default function UsersPage() {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
-                        {tCommon("created")}:{" "}
-                        {new Date(user.createdAt).toLocaleDateString("ru-RU")}
+                        {tCommon("created")}: {formatDate(user.createdAt)}
                       </span>
                       {user.lastLoginAt && (
                         <span>

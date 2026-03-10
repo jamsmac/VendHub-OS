@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { reportsApi } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface SalesData {
   date: string;
@@ -253,9 +254,7 @@ export default function ReportsPage() {
                     <p className="text-sm text-muted-foreground">
                       {t("revenue")}
                     </p>
-                    <p className="text-2xl font-bold">
-                      {totals.revenue.toLocaleString()} ₛ
-                    </p>
+                    <p className="text-2xl font-bold">{totals.revenue} ₛ</p>
                     <div
                       className={`flex items-center gap-1 text-sm ${totals.revenueChange >= 0 ? "text-green-600" : "text-red-600"}`}
                     >
@@ -283,9 +282,7 @@ export default function ReportsPage() {
                     <p className="text-sm text-muted-foreground">
                       {t("transactionsCount")}
                     </p>
-                    <p className="text-2xl font-bold">
-                      {totals.transactions.toLocaleString()}
-                    </p>
+                    <p className="text-2xl font-bold">{totals.transactions}</p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-blue-600" />
                 </div>
@@ -300,7 +297,7 @@ export default function ReportsPage() {
                       {t("averageCheck")}
                     </p>
                     <p className="text-2xl font-bold">
-                      {totals.averageCheck.toLocaleString()} ₛ
+                      {totals.averageCheck} ₛ
                     </p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
@@ -359,7 +356,7 @@ export default function ReportsPage() {
                           <div
                             className="w-full bg-primary rounded-t"
                             style={{ height: `${height}%` }}
-                            title={`${new Date(item.date).toLocaleDateString("ru-RU")}: ${item.revenue.toLocaleString()} ₛ`}
+                            title={`${formatDate(item.date)}: ${item.revenue} ₛ`}
                           />
                           <span className="text-xs text-muted-foreground mt-1 rotate-45 origin-left">
                             {new Date(item.date).getDate()}
@@ -409,9 +406,7 @@ export default function ReportsPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">
-                          {product.revenue.toLocaleString()} ₛ
-                        </p>
+                        <p className="font-medium">{product.revenue} ₛ</p>
                       </div>
                     </div>
                   ))}
@@ -477,13 +472,11 @@ export default function ReportsPage() {
                           {machine.transactions}
                         </td>
                         <td className="py-3 px-4 text-right font-medium">
-                          {machine.revenue.toLocaleString()} ₛ
+                          {machine.revenue} ₛ
                         </td>
                         <td className="py-3 px-4 text-right text-muted-foreground">
                           {machine.transactions > 0
-                            ? Math.round(
-                                machine.revenue / machine.transactions,
-                              ).toLocaleString()
+                            ? Math.round(machine.revenue / machine.transactions)
                             : 0}{" "}
                           ₛ
                         </td>

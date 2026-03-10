@@ -33,6 +33,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -114,8 +115,8 @@ const formatUZS = (
   return new Intl.NumberFormat("uz-UZ").format(amount) + " " + currencyLabel;
 };
 
-const formatDate = (iso: string): string => {
-  return new Date(iso).toLocaleDateString("ru-RU", {
+const formatDateShort = (iso: string): string => {
+  return formatDate(iso, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -123,7 +124,7 @@ const formatDate = (iso: string): string => {
 };
 
 const formatDateTime = (iso: string): string => {
-  return new Date(iso).toLocaleString("ru-RU", {
+  return formatDate(iso, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -542,8 +543,8 @@ export default function ReconciliationPage() {
                             {shortId(run.id)}
                           </span>
                           <span className="text-sm">
-                            {formatDate(run.date_from)} &mdash;{" "}
-                            {formatDate(run.date_to)}
+                            {formatDateShort(run.date_from)} &mdash;{" "}
+                            {formatDateShort(run.date_to)}
                           </span>
                           <span>
                             <Badge variant={variant}>

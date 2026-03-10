@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { tripsApi } from "@/lib/api";
 import Link from "next/link";
+import { formatTime, formatDateTime } from "@/lib/utils";
 
 interface _TripDetail {
   id: string;
@@ -426,9 +427,7 @@ export default function TripDetailPage({
                     {t("startTime")}
                   </span>
                   <span className="text-sm font-medium">
-                    {trip.startedAt
-                      ? new Date(trip.startedAt).toLocaleString("ru-RU")
-                      : "—"}
+                    {trip.startedAt ? formatDateTime(trip.startedAt) : "—"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -437,9 +436,7 @@ export default function TripDetailPage({
                     {t("endTime")}
                   </span>
                   <span className="text-sm font-medium">
-                    {trip.endedAt
-                      ? new Date(trip.endedAt).toLocaleString("ru-RU")
-                      : "—"}
+                    {trip.endedAt ? formatDateTime(trip.endedAt) : "—"}
                   </span>
                 </div>
                 {trip.distanceKm != null && (
@@ -526,18 +523,12 @@ export default function TripDetailPage({
                             )}
                             {stop.arrivedAt && (
                               <span>
-                                {t("arrival")}{" "}
-                                {new Date(stop.arrivedAt).toLocaleTimeString(
-                                  "ru-RU",
-                                )}
+                                {t("arrival")} {formatTime(stop.arrivedAt)}
                               </span>
                             )}
                             {stop.departedAt && (
                               <span>
-                                {t("departure")}{" "}
-                                {new Date(stop.departedAt).toLocaleTimeString(
-                                  "ru-RU",
-                                )}
+                                {t("departure")} {formatTime(stop.departedAt)}
                               </span>
                             )}
                           </div>

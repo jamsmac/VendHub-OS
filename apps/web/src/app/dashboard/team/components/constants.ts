@@ -429,5 +429,5 @@ export function getKPIBadgeVariant(
 }
 
 export function fmt(n: number) {
-  return n.toLocaleString("ru-RU");
+  return n;
 }

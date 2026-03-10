@@ -58,6 +58,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useTranslations } from "next-intl";
+import { formatDate, formatDateTime } from "@/lib/utils";
 
 interface MaterialRequest {
   id: string;
@@ -411,9 +412,7 @@ export default function MaterialRequestsPage() {
                       {t(`status_${request.status}`)}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {new Date(request.createdAt).toLocaleDateString("ru-RU")}
-                  </TableCell>
+                  <TableCell>{formatDate(request.createdAt)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -607,7 +606,7 @@ export default function MaterialRequestsPage() {
               <div className="text-sm text-muted-foreground">
                 <p>
                   {t("detailCreated")}{" "}
-                  {new Date(selectedRequest.createdAt).toLocaleString("ru-RU")}
+                  {formatDateTime(selectedRequest.createdAt)}
                 </p>
                 {selectedRequest.approvedAt && (
                   <p>

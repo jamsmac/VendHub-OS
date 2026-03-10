@@ -55,6 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { vehiclesApi } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -379,9 +380,7 @@ export default function VehiclesPage() {
                     </div>
                     {vehicle.lastOdometerUpdate && (
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {new Date(
-                          vehicle.lastOdometerUpdate,
-                        ).toLocaleDateString("ru-RU")}
+                        {formatDate(vehicle.lastOdometerUpdate)}
                       </p>
                     )}
                   </TableCell>

@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usersApi } from "@/lib/api";
 import { UserForm, UserFormData } from "@/components/users/UserForm";
 import { RoleAssignment } from "@/components/users/RoleAssignment";
+import { formatDate } from "@/lib/utils";
 
 const roleStyleConfig: Record<string, { color: string; bgColor: string }> = {
   owner: {
@@ -220,9 +221,7 @@ export default function UserDetailPage() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>
                     {tl("createdAt", {
-                      date: new Date(
-                        user.createdAt || user.created_at,
-                      ).toLocaleDateString("ru-RU"),
+                      date: formatDate(user.createdAt || user.created_at),
                     })}
                   </span>
                 </div>
@@ -231,9 +230,9 @@ export default function UserDetailPage() {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {tl("lastLogin", {
-                        date: new Date(
+                        date: formatDate(
                           user.lastLoginAt || user.last_login_at,
-                        ).toLocaleDateString("ru-RU"),
+                        ),
                       })}
                     </span>
                   </div>

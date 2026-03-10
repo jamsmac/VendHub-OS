@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { auditApi } from "@/lib/api";
+import { formatDateTime } from "@/lib/utils";
 
 interface AuditLog {
   id: string;
@@ -455,7 +456,7 @@ export default function AuditPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-muted-foreground">
-                        {new Date(log.createdAt).toLocaleString("ru-RU")}
+                        {formatDateTime(log.createdAt)}
                       </p>
                       {log.ipAddress && (
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -541,9 +542,7 @@ export default function AuditPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {t("detailDateTime")}
                   </p>
-                  <p>
-                    {new Date(selectedLog.createdAt).toLocaleString("ru-RU")}
-                  </p>
+                  <p>{formatDateTime(selectedLog.createdAt)}</p>
                 </div>
                 {selectedLog.ipAddress && (
                   <div>

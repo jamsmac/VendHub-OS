@@ -44,6 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { formatDate, formatTime, formatDateTime } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -418,11 +419,9 @@ export default function OrdersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <p className="text-sm">
-                      {new Date(order.createdAt).toLocaleDateString("ru-RU")}
-                    </p>
+                    <p className="text-sm">{formatDate(order.createdAt)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleTimeString("ru-RU", {
+                      {formatTime(order.createdAt, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -554,7 +553,7 @@ export default function OrdersPage() {
                 </p>
                 <p>
                   {t("dialogCreated")}:{" "}
-                  {new Date(selectedOrder.createdAt).toLocaleString("ru-RU")}
+                  {formatDateTime(selectedOrder.createdAt)}
                 </p>
                 {selectedOrder.completedAt && (
                   <p>

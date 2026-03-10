@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface Review {
   id: string;
@@ -542,9 +543,7 @@ export default function ReviewsPage() {
                       )}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {new Date(review.review_date).toLocaleDateString("ru-RU")}
-                  </TableCell>
+                  <TableCell>{formatDate(review.review_date)}</TableCell>
                   <TableCell>
                     {review.overall_rating !== undefined &&
                     review.overall_rating !== null ? (

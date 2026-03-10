@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatTime } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: string;
@@ -143,9 +144,9 @@ export default function AttendancePage() {
     on_leave: 0,
   };
 
-  const formatTime = (time?: string) => {
+  const formatTimeShort = (time?: string) => {
     if (!time) return "--";
-    return new Date(time).toLocaleTimeString("ru-RU", {
+    return formatTime(time, {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -352,13 +353,13 @@ export default function AttendancePage() {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <LogIn className="w-3.5 h-3.5 text-green-500" />
-                      {formatTime(record.check_in_time)}
+                      {formatTimeShort(record.check_in_time)}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <LogOut className="w-3.5 h-3.5 text-red-500" />
-                      {formatTime(record.check_out_time)}
+                      {formatTimeShort(record.check_out_time)}
                     </div>
                   </TableCell>
                   <TableCell>

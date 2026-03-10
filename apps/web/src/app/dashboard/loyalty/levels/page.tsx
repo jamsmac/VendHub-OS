@@ -142,9 +142,7 @@ export default function LoyaltyLevelsPage() {
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <Star className="h-4 w-4 mx-auto mb-1 text-yellow-600" />
-                      <p className="text-lg font-bold">
-                        {level.minPoints.toLocaleString()}
-                      </p>
+                      <p className="text-lg font-bold">{level.minPoints}</p>
                       <p className="text-xs text-muted-foreground">
                         {t("minPoints")}
                       </p>
@@ -155,7 +153,7 @@ export default function LoyaltyLevelsPage() {
                     <div className="text-xs text-muted-foreground text-center border-t pt-3">
                       {t("untilNext", {
                         name: nextLevel.name,
-                        points: nextLevel.minPoints.toLocaleString(),
+                        points: nextLevel.minPoints,
                       })}
                     </div>
                   )}

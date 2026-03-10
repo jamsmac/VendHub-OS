@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Coupon } from "./types";
+import { formatDate } from "@/lib/utils";
 
 interface PromotionsCouponsProps {
   couponStats: {
@@ -184,12 +185,10 @@ export function PromotionsCoupons({
                       )}
                     </td>
                     <td className="py-3 px-4 text-espresso-light text-xs">
-                      {new Date(coupon.createdAt).toLocaleDateString("ru-RU")}
+                      {formatDate(coupon.createdAt)}
                     </td>
                     <td className="py-3 px-4 text-espresso-light text-xs">
-                      {coupon.usedAt
-                        ? new Date(coupon.usedAt).toLocaleDateString("ru-RU")
-                        : "—"}
+                      {coupon.usedAt ? formatDate(coupon.usedAt) : "—"}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <Button variant="ghost" size="sm" className="gap-1">

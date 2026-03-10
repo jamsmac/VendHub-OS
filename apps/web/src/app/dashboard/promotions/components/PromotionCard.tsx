@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Promotion } from "./types";
+import { formatDate, formatNumber } from "@/lib/utils";
 
 interface PromotionCardProps {
   promo: Promotion;
@@ -29,7 +30,7 @@ interface PromotionCardProps {
   onDelete: (id: string) => void;
 }
 
-const fmt = (n: number) => n.toLocaleString("ru-RU");
+// fmt is now imported as formatNumber from "@/lib/utils"
 const fmtShort = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
@@ -198,7 +199,7 @@ export function PromotionCard({
                 {promo.discountType === "percent"
                   ? `${promo.discountValue}%`
                   : promo.discountType === "fixed"
-                    ? `${fmt(promo.discountValue)} UZS`
+                    ? `${formatNumber(promo.discountValue)} UZS`
                     : "Специальная"}
               </span>
             </span>
@@ -223,7 +224,7 @@ export function PromotionCard({
             {promo.validUntil && (
               <span className="flex items-center gap-1 text-espresso-light">
                 <Calendar className="h-3 w-3" />
-                до {new Date(promo.validUntil).toLocaleDateString("ru-RU")}
+                до {formatDate(promo.validUntil)}
               </span>
             )}
           </div>
@@ -395,9 +396,8 @@ export function PromotionCard({
                   </Button>
                 </div>
                 <div className="mt-3 text-[11px] text-espresso-light">
-                  Создана:{" "}
-                  {new Date(promo.createdAt).toLocaleDateString("ru-RU")} ·
-                  Порядок: #{promo.sortOrder}
+                  Создана: {formatDate(promo.createdAt)} · Порядок: #
+                  {promo.sortOrder}
                 </div>
               </div>
             </div>

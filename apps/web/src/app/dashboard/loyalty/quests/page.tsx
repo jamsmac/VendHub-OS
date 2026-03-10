@@ -49,6 +49,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { questsApi } from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -326,7 +327,9 @@ export default function QuestsPage() {
                 {t("statsCompleted")}
               </p>
               <p className="text-xl font-bold">
-                {statsData?.totalCompleted?.toLocaleString() || "—"}
+                {statsData?.totalCompleted != null
+                  ? formatNumber(statsData.totalCompleted)
+                  : "—"}
               </p>
             </div>
           </CardContent>

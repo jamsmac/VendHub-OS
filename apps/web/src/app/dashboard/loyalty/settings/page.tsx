@@ -160,7 +160,7 @@ export default function LoyaltySettingsPage() {
                       </div>
                     </td>
                     <td className="py-3 text-right font-mono">
-                      {level.minPoints.toLocaleString()}
+                      {level.minPoints}
                     </td>
                     <td className="py-3 text-right">
                       <Badge variant="secondary">{level.cashback}%</Badge>

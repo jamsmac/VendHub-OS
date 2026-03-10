@@ -30,6 +30,7 @@ import {
   TransactionFormModal,
   type TabId,
 } from "./components";
+import { formatDate } from "@/lib/utils";
 
 // ═══ Data (Mock Data) ═══
 
@@ -644,7 +645,7 @@ export default function FinancePage() {
           counterparty_name?: string | null;
         }) => ({
           id: t.id,
-          date: new Date(t.created_at).toLocaleString("ru-RU", {
+          date: formatDate(t.created_at, {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

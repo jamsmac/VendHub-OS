@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatTime } from "@/lib/utils";
 
 interface WorkLog {
   id: string;
@@ -370,7 +371,7 @@ export default function WorkLogsPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            {new Date(log.clockIn).toLocaleTimeString("ru-RU", {
+                            {formatTime(log.clockIn, {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}

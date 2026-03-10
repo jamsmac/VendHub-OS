@@ -52,6 +52,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface LeaveRequest {
   id: string;
@@ -474,9 +475,8 @@ export default function LeavePage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {new Date(request.start_date).toLocaleDateString("ru-RU")}{" "}
-                      --{" "}
-                      {new Date(request.end_date).toLocaleDateString("ru-RU")}
+                      {formatDate(request.start_date)} --{" "}
+                      {formatDate(request.end_date)}
                     </div>
                   </TableCell>
                   <TableCell>

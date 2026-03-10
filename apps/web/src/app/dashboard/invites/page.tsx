@@ -40,6 +40,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { formatDateTime } from "@/lib/utils";
 
 const ROLES = [
   { value: "admin", label: "Administrator" },
@@ -307,14 +308,8 @@ export default function InvitesPage() {
                   <span>
                     Uses: {invite.currentUses}/{invite.maxUses}
                   </span>
-                  <span>
-                    Expires:{" "}
-                    {new Date(invite.expiresAt).toLocaleString("ru-RU")}
-                  </span>
-                  <span>
-                    Created:{" "}
-                    {new Date(invite.createdAt).toLocaleString("ru-RU")}
-                  </span>
+                  <span>Expires: {formatDateTime(invite.expiresAt)}</span>
+                  <span>Created: {formatDateTime(invite.createdAt)}</span>
                 </div>
               </CardContent>
             </Card>

@@ -41,7 +41,7 @@ import {
   SlideOverBody,
   SlideOverFooter,
 } from "@/components/ui/slide-over";
-import { cn, formatNumber, formatCurrency } from "@/lib/utils";
+import { cn, formatNumber, formatCurrency, formatDate } from "@/lib/utils";
 import {
   useCounterparties,
   useContracts,
@@ -1231,7 +1231,7 @@ export default function CounterpartiesPage() {
                               {tx.description}
                             </p>
                             <p className="text-xs text-espresso-light">
-                              {new Date(tx.date).toLocaleDateString("ru-RU")}
+                              {formatDate(tx.date)}
                             </p>
                           </div>
                           <p

@@ -473,7 +473,7 @@ export default function MachinesPage() {
                             </p>
                             <p className="text-sm font-medium">
                               {machine.currentCashAmount
-                                ? `${Number(machine.currentCashAmount).toLocaleString()}`
+                                ? `${Number(machine.currentCashAmount)}`
                                 : "N/A"}
                             </p>
                           </div>

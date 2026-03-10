@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { loyaltyApi } from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -233,7 +234,9 @@ export default function LoyaltyDashboardPage() {
               <div>
                 <p className="text-sm text-muted-foreground">{t("members")}</p>
                 <p className="text-2xl font-bold">
-                  {stats?.totalMembers?.toLocaleString() || "—"}
+                  {stats?.totalMembers != null
+                    ? formatNumber(stats.totalMembers)
+                    : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {stats?.newMembers ? (
@@ -259,7 +262,9 @@ export default function LoyaltyDashboardPage() {
                   {t("pointsEarned")}
                 </p>
                 <p className="text-2xl font-bold">
-                  {stats?.totalEarned?.toLocaleString() || "—"}
+                  {stats?.totalEarned != null
+                    ? formatNumber(stats.totalEarned)
+                    : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {t("activeCount", { count: stats?.activeMembers || 0 })}
@@ -280,7 +285,9 @@ export default function LoyaltyDashboardPage() {
                   {t("pointsSpent")}
                 </p>
                 <p className="text-2xl font-bold">
-                  {stats?.totalSpent?.toLocaleString() || "—"}
+                  {stats?.totalSpent != null
+                    ? formatNumber(stats.totalSpent)
+                    : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {t("redemption")}{" "}
@@ -304,7 +311,9 @@ export default function LoyaltyDashboardPage() {
                   {t("averageBalance")}
                 </p>
                 <p className="text-2xl font-bold">
-                  {stats?.averageBalance?.toLocaleString() || "—"}
+                  {stats?.averageBalance != null
+                    ? formatNumber(stats.averageBalance)
+                    : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {t("pointsPerUser")}
@@ -407,7 +416,7 @@ export default function LoyaltyDashboardPage() {
                       </span>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium">
-                          {source.total.toLocaleString()} {t("points")}
+                          {source.total} {t("points")}
                         </span>
                         <Badge variant="secondary" className="text-xs">
                           {source.percent.toFixed(1)}%
@@ -442,31 +451,29 @@ export default function LoyaltyDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {expiringData
-                      .slice(0, 5)
-                      .map(
-                        (
-                          item: {
-                            firstName: string;
-                            lastNameInitial: string;
-                            expiringPoints?: number;
-                          },
-                          idx: number,
-                        ) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between py-2 border-b last:border-0"
-                          >
-                            <span className="text-sm">
-                              {item.firstName} {item.lastNameInitial}.
-                            </span>
-                            <Badge variant="destructive">
-                              {item.expiringPoints?.toLocaleString()}{" "}
-                              {t("points")}
-                            </Badge>
-                          </div>
-                        ),
-                      )}
+                    {expiringData.slice(0, 5).map(
+                      (
+                        item: {
+                          firstName: string;
+                          lastNameInitial: string;
+                          expiringPoints?: number;
+                        },
+                        idx: number,
+                      ) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between py-2 border-b last:border-0"
+                        >
+                          <span className="text-sm">
+                            {item.firstName} {item.lastNameInitial}.
+                          </span>
+                          <Badge variant="destructive">
+                            {formatNumber(item.expiringPoints ?? 0)}{" "}
+                            {t("points")}
+                          </Badge>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -510,13 +517,13 @@ export default function LoyaltyDashboardPage() {
                             {entry.firstName} {entry.lastNameInitial}.
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {levelConfig.icon}{" "}
-                            {entry.pointsBalance.toLocaleString()} {t("points")}
+                            {levelConfig.icon} {entry.pointsBalance}{" "}
+                            {t("points")}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold text-green-600">
-                            +{entry.pointsEarned.toLocaleString()}
+                            +{entry.pointsEarned}
                           </p>
                           {entry.currentStreak > 0 && (
                             <p className="text-xs text-muted-foreground flex items-center gap-0.5 justify-end">

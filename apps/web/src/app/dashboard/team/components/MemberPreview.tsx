@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ROLE_META, STATUS_META, DEPARTMENTS, ZONES } from "./constants";
 import type { ExtendedEmployee } from "./types";
+import { formatDate } from "@/lib/utils";
 
 interface MemberPreviewProps {
   member: ExtendedEmployee | null;
@@ -129,9 +130,7 @@ export function MemberPreview({
             <div className="flex justify-between">
               <span className="text-espresso-light">Дата вступления</span>
               <span className="text-espresso-dark font-medium">
-                {member.joinedAt
-                  ? new Date(member.joinedAt).toLocaleDateString("ru-RU")
-                  : "—"}
+                {member.joinedAt ? formatDate(member.joinedAt) : "—"}
               </span>
             </div>
             <div className="flex justify-between">
