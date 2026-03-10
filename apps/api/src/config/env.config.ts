@@ -102,6 +102,11 @@ export const appConfig = registerAs("app", () => ({
     if (!secret && process.env.NODE_ENV === "production") {
       throw new Error("JWT_SECRET must be set in production");
     }
+    if (!secret) {
+      console.warn(
+        "⚠ JWT_SECRET not set — using insecure dev-only fallback. Do NOT use in staging or production.",
+      );
+    }
     return secret || "change-me-dev-only";
   })(),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",

@@ -4,11 +4,11 @@ import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
-import {
-  ComplaintsService,
-  CreateComplaintDto,
-  QueryComplaintsDto,
-} from "./complaints.service";
+import { ComplaintsService } from "./complaints.service";
+import { ComplaintsCoreService } from "./complaints-core.service";
+import { ComplaintsRefundService } from "./complaints-refund.service";
+import { ComplaintsAnalyticsService } from "./complaints-analytics.service";
+import { CreateComplaintDto, QueryComplaintsDto } from "./complaints.types";
 import {
   Complaint,
   ComplaintComment,
@@ -112,6 +112,9 @@ describe("ComplaintsService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ComplaintsService,
+        ComplaintsCoreService,
+        ComplaintsRefundService,
+        ComplaintsAnalyticsService,
         {
           provide: getRepositoryToken(Complaint),
           useValue: {
@@ -122,6 +125,7 @@ describe("ComplaintsService", () => {
             softDelete: jest.fn(),
             update: jest.fn(),
             createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+            manager: { query: jest.fn() },
           },
         },
         {

@@ -303,6 +303,13 @@ export class ComplaintsController {
     );
   }
 
+  @Get("templates")
+  @ApiOperation({ summary: "Get complaint templates" })
+  @Roles("owner", "admin", "manager")
+  async getTemplates(@CurrentOrganizationId() orgId: string) {
+    return this.complaintsService.getTemplates(orgId);
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get complaint by ID" })
   @ApiParam({ name: "id", type: String })
@@ -525,16 +532,5 @@ export class ComplaintsController {
   @ApiOperation({ summary: "Get QR code info" })
   async getQrCode(@Param("code") code: string) {
     return this.complaintsService.getQrCodeByCode(code);
-  }
-
-  // ============================================================================
-  // Templates
-  // ============================================================================
-
-  @Get("templates")
-  @ApiOperation({ summary: "Get complaint templates" })
-  @Roles("owner", "admin", "manager")
-  async getTemplates(@CurrentOrganizationId() orgId: string) {
-    return this.complaintsService.getTemplates(orgId);
   }
 }

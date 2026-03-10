@@ -15,6 +15,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -37,6 +38,8 @@ import { CurrentUser, Roles } from "../../common/decorators";
 @ApiBearerAuth()
 @Controller("reconciliation")
 export class ReconciliationController {
+  private readonly logger = new Logger(ReconciliationController.name);
+
   constructor(private readonly service: ReconciliationService) {}
 
   // ============================================================================
@@ -57,9 +60,12 @@ export class ReconciliationController {
   ) {
     const run = await this.service.createRun(organizationId, userId, dto);
 
-    // Trigger processing asynchronously (fire and forget)
-    this.service.processReconciliation(run.id, organizationId).catch((_err) => {
-      // Error is already handled inside processReconciliation
+    // Trigger processing asynchronously — service saves FAILED status to DB,
+    // but catch here ensures race-condition errors are also logged
+    this.service.processReconciliation(run.id, organizationId).catch((err) => {
+      this.logger.error(
+        `Background reconciliation failed for run ${run.id}: ${err instanceof Error ? err.message : err}`,
+      );
     });
 
     return run;

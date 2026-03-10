@@ -15,6 +15,9 @@ import { ScheduleModule } from "@nestjs/schedule";
 // Standard Reports
 import { ReportsController } from "./reports.controller";
 import { ReportsService } from "./reports.service";
+import { ReportsGeneratorService } from "./reports-generator.service";
+import { ReportsSchedulerService } from "./reports-scheduler.service";
+import { ReportsDashboardService } from "./reports-dashboard.service";
 
 // VendHub Report System v11.0
 import { VendHubReportController } from "./controllers/vendhub-report.controller";
@@ -81,6 +84,9 @@ import { Task } from "../tasks/entities/task.entity";
   ],
   providers: [
     ReportsService,
+    ReportsGeneratorService,
+    ReportsSchedulerService,
+    ReportsDashboardService,
     // Split report generators (order matters: dependencies first)
     InventoryReportGenerator,
     SalesReportGenerator,

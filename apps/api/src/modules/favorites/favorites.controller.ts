@@ -149,6 +149,19 @@ export class FavoritesController {
     return this.favoritesService.removeFavorite(user.id, id);
   }
 
+  @Put("reorder")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Reorder favorites",
+    description: "Изменить порядок избранного",
+  })
+  async reorderFavorites(
+    @CurrentUser() user: User,
+    @Body() dto: ReorderFavoritesDto,
+  ): Promise<void> {
+    return this.favoritesService.reorderFavorites(user.id, dto);
+  }
+
   @Put(":id")
   @ApiOperation({
     summary: "Update favorite",
@@ -309,18 +322,5 @@ export class FavoritesController {
       dto,
     );
     return { removed };
-  }
-
-  @Put("reorder")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: "Reorder favorites",
-    description: "Изменить порядок избранного",
-  })
-  async reorderFavorites(
-    @CurrentUser() user: User,
-    @Body() dto: ReorderFavoritesDto,
-  ): Promise<void> {
-    return this.favoritesService.reorderFavorites(user.id, dto);
   }
 }

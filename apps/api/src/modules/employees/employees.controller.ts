@@ -153,6 +153,72 @@ export class EmployeesController {
     return this.service.getEmployeeByTelegram(organizationId, telegramUserId);
   }
 
+  @Get("departments")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List departments" })
+  @ApiResponse({ status: 200, type: DepartmentListDto })
+  async getDepartments(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryDepartmentsDto,
+  ): Promise<DepartmentListDto> {
+    return this.service.getDepartments(organizationId, query);
+  }
+
+  @Get("positions")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List positions" })
+  @ApiResponse({ status: 200 })
+  async getPositions(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryPositionsDto,
+  ) {
+    return this.service.getPositions(organizationId, query);
+  }
+
+  @Get("attendance")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List attendance records" })
+  @ApiResponse({ status: 200, type: AttendanceListDto })
+  async getAttendance(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryAttendanceDto,
+  ): Promise<AttendanceListDto> {
+    return this.service.getAttendance(organizationId, query);
+  }
+
+  @Get("leave")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List leave requests" })
+  @ApiResponse({ status: 200, type: LeaveRequestListDto })
+  async getLeaveRequests(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryLeaveRequestsDto,
+  ): Promise<LeaveRequestListDto> {
+    return this.service.getLeaveRequests(organizationId, query);
+  }
+
+  @Get("payroll")
+  @Roles("accountant", "manager", "admin", "owner")
+  @ApiOperation({ summary: "List payrolls" })
+  @ApiResponse({ status: 200, type: PayrollListDto })
+  async getPayrolls(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryPayrollDto,
+  ): Promise<PayrollListDto> {
+    return this.service.getPayrolls(organizationId, query);
+  }
+
+  @Get("reviews")
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "List performance reviews" })
+  @ApiResponse({ status: 200, type: PerformanceReviewListDto })
+  async getReviews(
+    @CurrentUser("organizationId") organizationId: string,
+    @Query() query: QueryReviewsDto,
+  ): Promise<PerformanceReviewListDto> {
+    return this.service.getReviews(organizationId, query);
+  }
+
   @Get(":id")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Get employee by ID" })
@@ -251,17 +317,6 @@ export class EmployeesController {
     return this.service.createDepartment(organizationId, dto);
   }
 
-  @Get("departments")
-  @Roles("manager", "admin", "owner")
-  @ApiOperation({ summary: "List departments" })
-  @ApiResponse({ status: 200, type: DepartmentListDto })
-  async getDepartments(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryDepartmentsDto,
-  ): Promise<DepartmentListDto> {
-    return this.service.getDepartments(organizationId, query);
-  }
-
   @Get("departments/:id")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Get department by ID" })
@@ -313,17 +368,6 @@ export class EmployeesController {
     @Body() dto: CreatePositionDto,
   ) {
     return this.service.createPosition(organizationId, dto);
-  }
-
-  @Get("positions")
-  @Roles("manager", "admin", "owner")
-  @ApiOperation({ summary: "List positions" })
-  @ApiResponse({ status: 200 })
-  async getPositions(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryPositionsDto,
-  ) {
-    return this.service.getPositions(organizationId, query);
   }
 
   @Get("positions/:id")
@@ -378,17 +422,6 @@ export class EmployeesController {
     return this.service.checkOut(organizationId, dto);
   }
 
-  @Get("attendance")
-  @Roles("manager", "admin", "owner")
-  @ApiOperation({ summary: "List attendance records" })
-  @ApiResponse({ status: 200, type: AttendanceListDto })
-  async getAttendance(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryAttendanceDto,
-  ): Promise<AttendanceListDto> {
-    return this.service.getAttendance(organizationId, query);
-  }
-
   @Get("attendance/daily")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Get daily attendance report" })
@@ -413,17 +446,6 @@ export class EmployeesController {
     @Body() dto: CreateLeaveRequestDto,
   ): Promise<LeaveRequestDto> {
     return this.service.createLeaveRequest(organizationId, dto);
-  }
-
-  @Get("leave")
-  @Roles("manager", "admin", "owner")
-  @ApiOperation({ summary: "List leave requests" })
-  @ApiResponse({ status: 200, type: LeaveRequestListDto })
-  async getLeaveRequests(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryLeaveRequestsDto,
-  ): Promise<LeaveRequestListDto> {
-    return this.service.getLeaveRequests(organizationId, query);
   }
 
   @Get("leave/balance/:employeeId")
@@ -496,17 +518,6 @@ export class EmployeesController {
     return this.service.calculatePayroll(organizationId, dto, userId);
   }
 
-  @Get("payroll")
-  @Roles("accountant", "manager", "admin", "owner")
-  @ApiOperation({ summary: "List payrolls" })
-  @ApiResponse({ status: 200, type: PayrollListDto })
-  async getPayrolls(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryPayrollDto,
-  ): Promise<PayrollListDto> {
-    return this.service.getPayrolls(organizationId, query);
-  }
-
   @Get("payroll/:id")
   @Roles("accountant", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get payroll by ID" })
@@ -559,17 +570,6 @@ export class EmployeesController {
     @Body() dto: CreateReviewDto,
   ): Promise<PerformanceReviewDto> {
     return this.service.createReview(organizationId, dto);
-  }
-
-  @Get("reviews")
-  @Roles("manager", "admin", "owner")
-  @ApiOperation({ summary: "List performance reviews" })
-  @ApiResponse({ status: 200, type: PerformanceReviewListDto })
-  async getReviews(
-    @CurrentUser("organizationId") organizationId: string,
-    @Query() query: QueryReviewsDto,
-  ): Promise<PerformanceReviewListDto> {
-    return this.service.getReviews(organizationId, query);
   }
 
   @Get("reviews/:id")

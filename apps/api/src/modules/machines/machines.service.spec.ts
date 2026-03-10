@@ -4,6 +4,9 @@ import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { MachinesService } from "./machines.service";
+import { MachinesCoreService } from "./machines-core.service";
+import { MachinesMaintenanceService } from "./machines-maintenance.service";
+import { MachinesAssetService } from "./machines-asset.service";
 import {
   Machine,
   MachineSlot,
@@ -82,6 +85,9 @@ describe("MachinesService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MachinesService,
+        MachinesCoreService,
+        MachinesMaintenanceService,
+        MachinesAssetService,
         {
           provide: getRepositoryToken(Machine),
           useValue: {

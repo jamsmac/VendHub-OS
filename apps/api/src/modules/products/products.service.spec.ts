@@ -4,6 +4,9 @@ import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { ProductsService } from "./products.service";
+import { ProductsCoreService } from "./products-core.service";
+import { ProductsRecipeService } from "./products-recipe.service";
+import { ProductsBatchService } from "./products-batch.service";
 import {
   Product,
   Recipe,
@@ -73,6 +76,9 @@ describe("ProductsService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
+        ProductsCoreService,
+        ProductsRecipeService,
+        ProductsBatchService,
         {
           provide: getRepositoryToken(Product),
           useValue: {

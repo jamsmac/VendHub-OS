@@ -118,6 +118,26 @@ export class WorkLogsController {
     );
   }
 
+  @Get("time-off")
+  @Roles("operator", "manager", "admin", "owner")
+  @ApiOperation({ summary: "List time off requests" })
+  async findAllTimeOffRequests(
+    @CurrentOrganizationId() organizationId: string,
+    @Query() query: TimeOffQueryDto,
+  ) {
+    return this.workLogsService.findAllTimeOffRequests(organizationId, query);
+  }
+
+  @Get("timesheets")
+  @Roles("manager", "admin", "owner", "accountant")
+  @ApiOperation({ summary: "List timesheets" })
+  async findAllTimesheets(
+    @CurrentOrganizationId() organizationId: string,
+    @Query() query: TimesheetQueryDto,
+  ) {
+    return this.workLogsService.findAllTimesheets(organizationId, query);
+  }
+
   @Get(":id")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get work log by ID" })
@@ -260,16 +280,6 @@ export class WorkLogsController {
     );
   }
 
-  @Get("time-off")
-  @Roles("operator", "manager", "admin", "owner")
-  @ApiOperation({ summary: "List time off requests" })
-  async findAllTimeOffRequests(
-    @CurrentOrganizationId() organizationId: string,
-    @Query() query: TimeOffQueryDto,
-  ) {
-    return this.workLogsService.findAllTimeOffRequests(organizationId, query);
-  }
-
   @Post("time-off/:id/approve")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Approve time off request" })
@@ -328,16 +338,6 @@ export class WorkLogsController {
     @Body() dto: CreateTimesheetDto,
   ): Promise<Timesheet> {
     return this.workLogsService.createTimesheet(organizationId, dto);
-  }
-
-  @Get("timesheets")
-  @Roles("manager", "admin", "owner", "accountant")
-  @ApiOperation({ summary: "List timesheets" })
-  async findAllTimesheets(
-    @CurrentOrganizationId() organizationId: string,
-    @Query() query: TimesheetQueryDto,
-  ) {
-    return this.workLogsService.findAllTimesheets(organizationId, query);
   }
 
   @Post("timesheets/:id/submit")

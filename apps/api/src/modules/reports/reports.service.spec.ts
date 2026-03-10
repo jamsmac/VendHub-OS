@@ -2,11 +2,16 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException } from "@nestjs/common";
+import { ReportsService } from "./reports.service";
 import {
-  ReportsService,
+  ReportsGeneratorService,
   GenerateReportDto,
+} from "./reports-generator.service";
+import {
+  ReportsSchedulerService,
   CreateScheduledReportDto,
-} from "./reports.service";
+} from "./reports-scheduler.service";
+import { ReportsDashboardService } from "./reports-dashboard.service";
 import {
   ReportDefinition,
   ScheduledReport,
@@ -89,6 +94,9 @@ describe("ReportsService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReportsService,
+        ReportsGeneratorService,
+        ReportsSchedulerService,
+        ReportsDashboardService,
         {
           provide: getRepositoryToken(ReportDefinition),
           useValue: definitionRepo,

@@ -1,22 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, IsNull, In, LessThanOrEqual } from "typeorm";
-import * as crypto from "crypto";
+/**
+ * Products Service — Facade
+ * Delegates to ProductsCoreService, ProductsRecipeService, ProductsBatchService
+ */
+
+import { Injectable } from "@nestjs/common";
 import {
   Product,
   Recipe,
   RecipeIngredient,
   RecipeSnapshot,
-  RecipeType,
   IngredientBatch,
-  IngredientBatchStatus,
   ProductPriceHistory,
   Supplier,
-  UnitOfMeasure,
 } from "./entities/product.entity";
 import {
   CreateRecipeDto,
@@ -28,404 +23,121 @@ import {
   CreateSupplierDto,
   UpdateSupplierDto,
 } from "./dto/create-supplier.dto";
+import { ProductsCoreService, PaginatedResult } from "./products-core.service";
+import { ProductsRecipeService } from "./products-recipe.service";
+import { ProductsBatchService } from "./products-batch.service";
 
-// ============================================================================
-// INTERFACES
-// ============================================================================
-
-interface ProductFilters {
-  type?: string;
-  category?: string;
-  isActive?: boolean;
-  search?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-// ============================================================================
-// UNIT CONVERSION
-// ============================================================================
-
-/** Conversion factors between compatible units: [fromUnit][toUnit] = factor */
-const UNIT_CONVERSION: Record<string, Record<string, number>> = {
-  [UnitOfMeasure.GRAM]: { [UnitOfMeasure.KILOGRAM]: 0.001 },
-  [UnitOfMeasure.KILOGRAM]: { [UnitOfMeasure.GRAM]: 1000 },
-  [UnitOfMeasure.MILLILITER]: { [UnitOfMeasure.LITER]: 0.001 },
-  [UnitOfMeasure.LITER]: { [UnitOfMeasure.MILLILITER]: 1000 },
-};
-
-/**
- * Convert a quantity from one unit to another.
- * Returns the original quantity if units are the same or incompatible.
- */
-function convertUnits(
-  quantity: number,
-  fromUnit: string,
-  toUnit: string,
-): number {
-  if (fromUnit === toUnit) return quantity;
-  const factor = UNIT_CONVERSION[fromUnit]?.[toUnit];
-  return factor ? quantity * factor : quantity;
-}
-
-// ============================================================================
-// SERVICE
-// ============================================================================
+// Re-export for backward compatibility
+export { PaginatedResult } from "./products-core.service";
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-
-    @InjectRepository(Recipe)
-    private readonly recipeRepository: Repository<Recipe>,
-
-    @InjectRepository(RecipeIngredient)
-    private readonly recipeIngredientRepository: Repository<RecipeIngredient>,
-
-    @InjectRepository(RecipeSnapshot)
-    private readonly recipeSnapshotRepository: Repository<RecipeSnapshot>,
-
-    @InjectRepository(IngredientBatch)
-    private readonly ingredientBatchRepository: Repository<IngredientBatch>,
-
-    @InjectRepository(ProductPriceHistory)
-    private readonly priceHistoryRepository: Repository<ProductPriceHistory>,
-
-    @InjectRepository(Supplier)
-    private readonly supplierRepository: Repository<Supplier>,
+    private readonly core: ProductsCoreService,
+    private readonly recipe: ProductsRecipeService,
+    private readonly batch: ProductsBatchService,
   ) {}
 
-  // ==========================================================================
-  // PRODUCT CRUD
-  // ==========================================================================
+  // ── Product CRUD ─────────────────────────────────────────
 
-  async create(data: Partial<Product>): Promise<Product> {
-    const product = this.productRepository.create(data);
-    return this.productRepository.save(product);
+  create(data: Partial<Product>): Promise<Product> {
+    return this.core.create(data);
   }
 
-  async findAll(
+  findAll(
     organizationId: string,
-    filters?: ProductFilters,
+    filters?: {
+      type?: string;
+      category?: string;
+      isActive?: boolean;
+      search?: string;
+      page?: number;
+      limit?: number;
+    },
   ): Promise<PaginatedResult<Product>> {
-    const {
-      page = 1,
-      limit: rawLimit = 50,
-      type,
-      category,
-      isActive,
-      search,
-    } = filters || {};
-    const limit = Math.min(rawLimit, 100);
-
-    const query = this.productRepository
-      .createQueryBuilder("product")
-      .select([
-        "product.id",
-        "product.name",
-        "product.nameUz",
-        "product.sku",
-        "product.barcode",
-        "product.type",
-        "product.category",
-        "product.isActive",
-        "product.sellingPrice",
-        "product.purchasePrice",
-        "product.imageUrl",
-        "product.unitOfMeasure",
-        "product.organizationId",
-        "product.createdAt",
-        "product.updatedAt",
-      ])
-      .where("product.organizationId = :organizationId", { organizationId });
-
-    if (type) {
-      query.andWhere("product.type = :type", { type });
-    }
-
-    if (category) {
-      query.andWhere("product.category = :category", { category });
-    }
-
-    if (isActive !== undefined) {
-      query.andWhere("product.isActive = :isActive", { isActive });
-    }
-
-    if (search) {
-      query.andWhere(
-        "(product.name ILIKE :search OR product.barcode ILIKE :search OR product.sku ILIKE :search)",
-        { search: `%${search}%` },
-      );
-    }
-
-    const total = await query.getCount();
-
-    query.orderBy("product.name", "ASC");
-    query.skip((page - 1) * limit);
-    query.take(limit);
-
-    const data = await query.getMany();
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.core.findAll(organizationId, filters);
   }
 
-  async findById(id: string, organizationId?: string): Promise<Product> {
-    const where: Record<string, unknown> = { id };
-    if (organizationId) {
-      where.organizationId = organizationId;
-    }
-    const product = await this.productRepository.findOne({ where });
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    return product;
+  findById(id: string, organizationId?: string): Promise<Product> {
+    return this.core.findById(id, organizationId);
   }
 
-  async findByBarcode(
+  findByBarcode(
     barcode: string,
     organizationId: string,
   ): Promise<Product | null> {
-    return this.productRepository.findOne({
-      where: { barcode, organizationId },
-    });
+    return this.core.findByBarcode(barcode, organizationId);
   }
 
-  async update(
+  update(
     id: string,
     organizationId: string,
     data: Partial<Product>,
   ): Promise<Product> {
-    const product = await this.productRepository.findOne({
-      where: { id, organizationId },
-    });
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    Object.assign(product, data);
-    return this.productRepository.save(product);
+    return this.core.update(id, organizationId, data);
   }
 
-  async remove(id: string, organizationId: string): Promise<void> {
-    const product = await this.productRepository.findOne({
-      where: { id, organizationId },
-    });
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    await this.productRepository.softDelete(id);
+  remove(id: string, organizationId: string): Promise<void> {
+    return this.core.remove(id, organizationId);
   }
 
-  // ==========================================================================
-  // RECIPE CRUD
-  // ==========================================================================
+  // ── Recipe CRUD ──────────────────────────────────────────
 
-  /**
-   * Verify recipe belongs to organization. Returns the recipe or throws 404.
-   */
-  async findRecipeWithOrgCheck(
+  findRecipeWithOrgCheck(
     recipeId: string,
     organizationId: string,
   ): Promise<Recipe> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-    return recipe;
+    return this.recipe.findRecipeWithOrgCheck(recipeId, organizationId);
   }
 
-  async createRecipe(
+  createRecipe(
     productId: string,
     organizationId: string,
     dto: CreateRecipeDto,
     userId: string,
   ): Promise<Recipe> {
-    // Verify product belongs to organization
-    await this.findById(productId, organizationId);
-
-    const recipe = this.recipeRepository.create({
-      productId,
-      organizationId,
-      name: dto.name,
-      nameUz: dto.nameUz,
-      typeCode: dto.typeCode,
-      description: dto.description,
-      preparationTimeSeconds: dto.preparationTimeSeconds,
-      temperatureCelsius: dto.temperatureCelsius,
-      servingSizeMl: dto.servingSizeMl,
-      settings: dto.settings || {},
-      createdById: userId,
-    });
-
-    const savedRecipe = await this.recipeRepository.save(recipe);
-
-    // Add ingredients if provided
-    if (dto.ingredients && dto.ingredients.length > 0) {
-      // Validate all referenced products are ingredients
-      const ingredientIds = dto.ingredients.map((i) => i.ingredientId);
-      const ingredientProducts = await this.productRepository.find({
-        where: { id: In(ingredientIds), organizationId },
-        select: ["id", "isIngredient", "name"],
-      });
-      const nonIngredients = ingredientProducts.filter((p) => !p.isIngredient);
-      if (nonIngredients.length > 0) {
-        throw new BadRequestException(
-          `Products are not marked as ingredients: ${nonIngredients.map((p) => p.name).join(", ")}`,
-        );
-      }
-
-      const ingredientEntities = dto.ingredients.map((ing) =>
-        this.recipeIngredientRepository.create({
-          recipeId: savedRecipe.id,
-          ingredientId: ing.ingredientId,
-          quantity: ing.quantity,
-          unitOfMeasure: ing.unitOfMeasure,
-          sortOrder: ing.sortOrder ?? 1,
-          isOptional: ing.isOptional ?? false,
-          createdById: userId,
-        }),
-      );
-      await this.recipeIngredientRepository.save(ingredientEntities);
-    }
-
-    // Calculate and cache total cost
-    await this.recalculateRecipeCost(savedRecipe.id);
-
-    // Create initial snapshot
-    await this.createRecipeSnapshot(
-      savedRecipe.id,
-      userId,
-      "Initial recipe creation",
-    );
-
-    return this.recipeRepository.findOne({
-      where: { id: savedRecipe.id },
-      relations: ["ingredients"],
-    }) as Promise<Recipe>;
+    return this.recipe.createRecipe(productId, organizationId, dto, userId);
   }
 
-  async getRecipesByProduct(
+  getRecipesByProduct(
     productId: string,
     organizationId: string,
   ): Promise<Recipe[]> {
-    return this.recipeRepository.find({
-      where: { productId, organizationId },
-      relations: ["ingredients"],
-      order: { typeCode: "ASC", createdAt: "ASC" },
-    });
+    return this.recipe.getRecipesByProduct(productId, organizationId);
   }
 
-  async updateRecipe(
+  updateRecipe(
     recipeId: string,
     organizationId: string,
     dto: UpdateRecipeDto,
     userId: string,
   ): Promise<Recipe> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    // Increment version on update
-    const previousVersion = recipe.version;
-    Object.assign(recipe, {
-      ...dto,
-      version: previousVersion + 1,
-      updatedById: userId,
-    });
-
-    const savedRecipe = await this.recipeRepository.save(recipe);
-
-    // Create a snapshot of the previous version
-    await this.createRecipeSnapshot(
-      savedRecipe.id,
-      userId,
-      `Updated from version ${previousVersion} to ${savedRecipe.version}`,
-    );
-
-    return this.recipeRepository.findOne({
-      where: { id: savedRecipe.id },
-      relations: ["ingredients"],
-    }) as Promise<Recipe>;
+    return this.recipe.updateRecipe(recipeId, organizationId, dto, userId);
   }
 
-  async deleteRecipe(recipeId: string, organizationId: string): Promise<void> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-    await this.recipeRepository.softDelete(recipeId);
+  deleteRecipe(recipeId: string, organizationId: string): Promise<void> {
+    return this.recipe.deleteRecipe(recipeId, organizationId);
   }
 
-  async findPrimaryRecipe(
+  findPrimaryRecipe(
     productId: string,
     organizationId: string,
   ): Promise<Recipe> {
-    await this.findById(productId, organizationId);
-    const recipe = await this.recipeRepository.findOne({
-      where: { productId, organizationId, typeCode: RecipeType.PRIMARY },
-      relations: ["ingredients", "ingredients.ingredient"],
-    });
-    if (!recipe) {
-      throw new NotFoundException(
-        `No primary recipe found for product ${productId}`,
-      );
-    }
-    return recipe;
+    return this.recipe.findPrimaryRecipe(productId, organizationId);
   }
 
-  async getRecipeStats(organizationId: string): Promise<{
+  getRecipeStats(organizationId: string): Promise<{
     total: number;
     active: number;
     averageCost: number;
     byType: Record<string, number>;
   }> {
-    const recipes = await this.recipeRepository.find({
-      where: { organizationId },
-      select: ["id", "isActive", "typeCode", "totalCost"],
-    });
-
-    const active = recipes.filter((r) => r.isActive).length;
-    const totalCost = recipes.reduce((sum, r) => sum + Number(r.totalCost), 0);
-    const byType: Record<string, number> = {};
-    for (const r of recipes) {
-      byType[r.typeCode] = (byType[r.typeCode] || 0) + 1;
-    }
-
-    return {
-      total: recipes.length,
-      active,
-      averageCost: recipes.length > 0 ? totalCost / recipes.length : 0,
-      byType,
-    };
+    return this.recipe.getRecipeStats(organizationId);
   }
 
-  // ==========================================================================
-  // RECIPE INGREDIENTS
-  // ==========================================================================
+  // ── Recipe Ingredients ───────────────────────────────────
 
-  async addIngredient(
+  addIngredient(
     recipeId: string,
     organizationId: string,
     ingredientId: string,
@@ -435,255 +147,99 @@ export class ProductsService {
     isOptional?: boolean,
     userId?: string,
   ): Promise<RecipeIngredient> {
-    // Verify recipe belongs to organization
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    // Verify ingredient product exists
-    await this.findById(ingredientId, organizationId);
-
-    const ingredient = this.recipeIngredientRepository.create({
+    return this.recipe.addIngredient(
       recipeId,
+      organizationId,
       ingredientId,
       quantity,
-      unitOfMeasure: unitOfMeasure as UnitOfMeasure,
-      sortOrder: sortOrder ?? 1,
-      isOptional: isOptional ?? false,
-      createdById: userId,
-    });
-
-    const saved = await this.recipeIngredientRepository.save(ingredient);
-
-    // Recalculate recipe cost after adding ingredient
-    await this.recalculateRecipeCost(recipeId);
-
-    return saved;
+      unitOfMeasure,
+      sortOrder,
+      isOptional,
+      userId,
+    );
   }
 
-  async removeIngredient(
+  removeIngredient(
     ingredientId: string,
     recipeId: string,
     organizationId: string,
   ): Promise<void> {
-    // Verify recipe belongs to organization
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    const ingredient = await this.recipeIngredientRepository.findOne({
-      where: { id: ingredientId, recipeId },
-    });
-    if (!ingredient) {
-      throw new NotFoundException(
-        `Recipe ingredient with ID ${ingredientId} not found`,
-      );
-    }
-
-    await this.recipeIngredientRepository.softDelete(ingredientId);
-
-    // Recalculate recipe cost after removing ingredient
-    await this.recalculateRecipeCost(recipeId);
+    return this.recipe.removeIngredient(ingredientId, recipeId, organizationId);
   }
 
-  async updateIngredientQuantity(
+  updateIngredientQuantity(
     ingredientId: string,
     recipeId: string,
     organizationId: string,
     quantity: number,
     userId?: string,
   ): Promise<RecipeIngredient> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId, organizationId },
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    const ingredient = await this.recipeIngredientRepository.findOne({
-      where: { id: ingredientId, recipeId },
-    });
-    if (!ingredient) {
-      throw new NotFoundException(
-        `Recipe ingredient with ID ${ingredientId} not found`,
-      );
-    }
-
-    ingredient.quantity = quantity;
-    ingredient.updatedById = userId ?? null;
-    const saved = await this.recipeIngredientRepository.save(ingredient);
-
-    await this.recalculateRecipeCost(recipeId);
-
-    return saved;
+    return this.recipe.updateIngredientQuantity(
+      ingredientId,
+      recipeId,
+      organizationId,
+      quantity,
+      userId,
+    );
   }
 
-  // ==========================================================================
-  // RECIPE SNAPSHOTS
-  // ==========================================================================
+  // ── Recipe Snapshots ─────────────────────────────────────
 
-  async createRecipeSnapshot(
+  createRecipeSnapshot(
     recipeId: string,
     userId: string,
     changeReason?: string,
   ): Promise<RecipeSnapshot> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId },
-      relations: ["ingredients", "ingredients.ingredient"],
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    // Close the previous current snapshot
-    await this.recipeSnapshotRepository.update(
-      { recipeId, validTo: IsNull() },
-      { validTo: new Date() },
-    );
-
-    // Build ingredient details for the snapshot
-    const ingredientDetails = (recipe.ingredients || []).map((ri) => ({
-      ingredientId: ri.ingredientId,
-      ingredientName: ri.ingredient?.name ?? "Unknown",
-      ingredientSku: ri.ingredient?.sku ?? "N/A",
-      quantity: Number(ri.quantity),
-      unitOfMeasure: ri.unitOfMeasure,
-      unitCost: ri.ingredient ? Number(ri.ingredient.purchasePrice) : 0,
-    }));
-
-    const snapshotData = {
-      name: recipe.name,
-      description: recipe.description,
-      typeCode: recipe.typeCode,
-      totalCost: Number(recipe.totalCost),
-      preparationTimeSeconds: recipe.preparationTimeSeconds,
-      temperatureCelsius: recipe.temperatureCelsius,
-      servingSizeMl: recipe.servingSizeMl,
-      settings: recipe.settings as Record<string, string | number | boolean>,
-      ingredients: ingredientDetails,
-    };
-
-    const checksum = crypto
-      .createHash("sha256")
-      .update(JSON.stringify(snapshotData))
-      .digest("hex");
-
-    const snapshot = this.recipeSnapshotRepository.create({
-      recipeId,
-      version: recipe.version,
-      snapshot: snapshotData,
-      checksum,
-      changeReason,
-      createdById: userId,
-    });
-
-    return this.recipeSnapshotRepository.save(snapshot);
+    return this.recipe.createRecipeSnapshot(recipeId, userId, changeReason);
   }
 
-  async getCurrentSnapshot(recipeId: string): Promise<RecipeSnapshot | null> {
-    return this.recipeSnapshotRepository.findOne({
-      where: { recipeId, validTo: IsNull() },
-    });
+  getCurrentSnapshot(recipeId: string): Promise<RecipeSnapshot | null> {
+    return this.recipe.getCurrentSnapshot(recipeId);
   }
 
-  async getSnapshotByVersion(
+  getSnapshotByVersion(
     recipeId: string,
     version: number,
   ): Promise<RecipeSnapshot> {
-    const snapshot = await this.recipeSnapshotRepository.findOne({
-      where: { recipeId, version },
-    });
-    if (!snapshot) {
-      throw new NotFoundException(
-        `Snapshot version ${version} not found for recipe ${recipeId}`,
-      );
-    }
-    return snapshot;
+    return this.recipe.getSnapshotByVersion(recipeId, version);
   }
 
-  async getSnapshotAtDate(
+  getSnapshotAtDate(
     recipeId: string,
     date: Date,
   ): Promise<RecipeSnapshot | null> {
-    return this.recipeSnapshotRepository
-      .createQueryBuilder("s")
-      .where("s.recipeId = :recipeId", { recipeId })
-      .andWhere("s.validFrom <= :date", { date })
-      .andWhere("(s.validTo > :date OR s.validTo IS NULL)")
-      .getOne();
+    return this.recipe.getSnapshotAtDate(recipeId, date);
   }
 
-  async getRecipeSnapshots(
+  getRecipeSnapshots(
     recipeId: string,
     organizationId?: string,
   ): Promise<RecipeSnapshot[]> {
-    // Verify recipe belongs to organization when org context is available
-    if (organizationId) {
-      const recipe = await this.recipeRepository.findOne({
-        where: { id: recipeId, organizationId },
-        select: ["id"],
-      });
-      if (!recipe) {
-        throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-      }
-    }
-    return this.recipeSnapshotRepository.find({
-      where: { recipeId },
-      order: { version: "DESC" },
-    });
+    return this.recipe.getRecipeSnapshots(recipeId, organizationId);
   }
 
-  // ==========================================================================
-  // BATCH TRACKING (FIFO)
-  // ==========================================================================
+  // ── Cost Calculation ─────────────────────────────────────
 
-  async createBatch(
+  calculateRecipeCost(recipeId: string): Promise<number> {
+    return this.recipe.calculateRecipeCost(recipeId);
+  }
+
+  recalculateRecipeCost(recipeId: string): Promise<void> {
+    return this.recipe.recalculateRecipeCost(recipeId);
+  }
+
+  // ── Batch Tracking ───────────────────────────────────────
+
+  createBatch(
     productId: string,
     organizationId: string,
     dto: CreateBatchDto,
     userId: string,
   ): Promise<IngredientBatch> {
-    // Verify product exists and belongs to organization
-    await this.findById(productId, organizationId);
-
-    const batch = this.ingredientBatchRepository.create({
-      productId,
-      organizationId,
-      batchNumber: dto.batchNumber,
-      quantity: dto.quantity,
-      remainingQuantity: dto.quantity,
-      unitOfMeasure: dto.unitOfMeasure,
-      purchasePrice: dto.purchasePrice,
-      totalCost:
-        dto.totalCost ??
-        ((dto.purchasePrice
-          ? dto.purchasePrice * dto.quantity
-          : undefined) as number),
-      supplierId: dto.supplierId,
-      supplierBatchNumber: dto.supplierBatchNumber,
-      invoiceNumber: dto.invoiceNumber,
-      manufactureDate: dto.manufactureDate,
-      expiryDate: dto.expiryDate,
-      storageLocation: dto.storageLocation,
-      notes: dto.notes,
-      status: IngredientBatchStatus.IN_STOCK,
-      createdById: userId,
-    });
-
-    return this.ingredientBatchRepository.save(batch);
+    return this.batch.createBatch(productId, organizationId, dto, userId);
   }
 
-  /**
-   * Deplete stock from batches using FIFO (First In, First Out).
-   * Consumes from the oldest non-depleted, non-expired batch first.
-   */
-  async depleteFromBatch(
+  depleteFromBatch(
     productId: string,
     organizationId: string,
     quantityToDeplete: number,
@@ -695,156 +251,53 @@ export class ProductsService {
     depletedFrom: { batchId: string; quantity: number }[];
     remaining: number;
   }> {
-    if (quantityToDeplete <= 0) {
-      throw new BadRequestException("Quantity to deplete must be positive");
-    }
-
-    // Get available batches ordered by received date (FIFO)
-    const batches = await this.ingredientBatchRepository.find({
-      where: {
-        productId,
-        organizationId,
-        status: IngredientBatchStatus.IN_STOCK,
-      },
-      order: { receivedDate: "ASC", createdAt: "ASC" },
-    });
-
-    let remaining = quantityToDeplete;
-    const depletedFrom: { batchId: string; quantity: number }[] = [];
-
-    for (const batch of batches) {
-      if (remaining <= 0) break;
-
-      const available =
-        Number(batch.remainingQuantity) - Number(batch.reservedQuantity);
-      if (available <= 0) continue;
-
-      const toDeduct = Math.min(available, remaining);
-      batch.remainingQuantity = Number(batch.remainingQuantity) - toDeduct;
-      batch.updatedById = userId ?? null;
-
-      // Mark as depleted if nothing remains
-      if (batch.remainingQuantity <= 0) {
-        batch.status = IngredientBatchStatus.DEPLETED;
-      }
-
-      // Audit trail in metadata
-      const history = ((batch.metadata as Record<string, unknown>)
-        ?.deductionHistory ?? []) as Record<string, unknown>[];
-      history.push({
-        date: new Date().toISOString(),
-        quantity: toDeduct,
-        userId: userId ?? null,
-        ...(reason && { reason }),
-        ...(referenceId && { referenceId }),
-        ...(referenceType && { referenceType }),
-      });
-      batch.metadata = { ...batch.metadata, deductionHistory: history };
-
-      await this.ingredientBatchRepository.save(batch);
-      depletedFrom.push({ batchId: batch.id, quantity: toDeduct });
-      remaining -= toDeduct;
-    }
-
-    return { depletedFrom, remaining };
+    return this.batch.depleteFromBatch(
+      productId,
+      organizationId,
+      quantityToDeplete,
+      userId,
+      reason,
+      referenceId,
+      referenceType,
+    );
   }
 
-  async getAvailableBatches(
+  getAvailableBatches(
     productId: string,
     organizationId: string,
   ): Promise<IngredientBatch[]> {
-    return this.ingredientBatchRepository.find({
-      where: {
-        productId,
-        organizationId,
-        status: IngredientBatchStatus.IN_STOCK,
-      },
-      order: { receivedDate: "ASC", createdAt: "ASC" },
-    });
+    return this.batch.getAvailableBatches(productId, organizationId);
   }
 
-  async updateBatch(
+  updateBatch(
     batchId: string,
     organizationId: string,
     data: Partial<IngredientBatch>,
     userId?: string,
   ): Promise<IngredientBatch> {
-    const batch = await this.ingredientBatchRepository.findOne({
-      where: { id: batchId, organizationId },
-    });
-    if (!batch) {
-      throw new NotFoundException(`Batch with ID ${batchId} not found`);
-    }
-
-    Object.assign(batch, { ...data, updatedById: userId ?? null });
-
-    // Auto-set DEPLETED if remaining reaches 0
-    if (Number(batch.remainingQuantity) <= 0) {
-      batch.status = IngredientBatchStatus.DEPLETED;
-    }
-
-    return this.ingredientBatchRepository.save(batch);
+    return this.batch.updateBatch(batchId, organizationId, data, userId);
   }
 
-  async deleteBatch(batchId: string, organizationId: string): Promise<void> {
-    const batch = await this.ingredientBatchRepository.findOne({
-      where: { id: batchId, organizationId },
-    });
-    if (!batch) {
-      throw new NotFoundException(`Batch with ID ${batchId} not found`);
-    }
-    await this.ingredientBatchRepository.softDelete(batchId);
+  deleteBatch(batchId: string, organizationId: string): Promise<void> {
+    return this.batch.deleteBatch(batchId, organizationId);
   }
 
-  // ==========================================================================
-  // BATCH EXPIRY & STOCK SUMMARY
-  // ==========================================================================
+  // ── Batch Expiry & Stock ─────────────────────────────────
 
-  async checkExpiredBatches(
+  checkExpiredBatches(
     organizationId: string,
   ): Promise<{ markedExpired: number }> {
-    const today = new Date();
-    const batches = await this.ingredientBatchRepository.find({
-      where: {
-        organizationId,
-        status: IngredientBatchStatus.IN_STOCK,
-        expiryDate: LessThanOrEqual(today),
-      },
-    });
-
-    for (const batch of batches) {
-      batch.status = IngredientBatchStatus.EXPIRED;
-    }
-
-    if (batches.length > 0) {
-      await this.ingredientBatchRepository.save(batches);
-    }
-
-    return { markedExpired: batches.length };
+    return this.batch.checkExpiredBatches(organizationId);
   }
 
-  async getExpiringBatches(
+  getExpiringBatches(
     organizationId: string,
-    days = 7,
+    days?: number,
   ): Promise<IngredientBatch[]> {
-    const today = new Date();
-    const futureDate = new Date();
-    futureDate.setDate(today.getDate() + days);
-
-    return this.ingredientBatchRepository
-      .createQueryBuilder("batch")
-      .leftJoinAndSelect("batch.product", "product")
-      .where("batch.organizationId = :organizationId", { organizationId })
-      .andWhere("batch.status = :status", {
-        status: IngredientBatchStatus.IN_STOCK,
-      })
-      .andWhere("batch.expiryDate >= :today", { today })
-      .andWhere("batch.expiryDate <= :futureDate", { futureDate })
-      .orderBy("batch.expiryDate", "ASC")
-      .getMany();
+    return this.batch.getExpiringBatches(organizationId, days);
   }
 
-  async getStockByProduct(
+  getStockByProduct(
     productId: string,
     organizationId: string,
   ): Promise<{
@@ -854,255 +307,64 @@ export class ProductsService {
     newestExpiry: Date | null;
     totalValue: number;
   }> {
-    await this.findById(productId, organizationId);
-
-    const batches = await this.ingredientBatchRepository.find({
-      where: {
-        productId,
-        organizationId,
-        status: IngredientBatchStatus.IN_STOCK,
-      },
-    });
-
-    let totalStock = 0;
-    let totalValue = 0;
-    let oldestExpiry: Date | null = null;
-    let newestExpiry: Date | null = null;
-
-    for (const b of batches) {
-      const remaining = Number(b.remainingQuantity);
-      totalStock += remaining;
-      totalValue += remaining * Number(b.purchasePrice || 0);
-      if (b.expiryDate) {
-        if (!oldestExpiry || b.expiryDate < oldestExpiry)
-          oldestExpiry = b.expiryDate;
-        if (!newestExpiry || b.expiryDate > newestExpiry)
-          newestExpiry = b.expiryDate;
-      }
-    }
-
-    return {
-      totalStock,
-      batchCount: batches.length,
-      oldestExpiry,
-      newestExpiry,
-      totalValue,
-    };
+    return this.batch.getStockByProduct(productId, organizationId);
   }
 
-  async getStockSummary(organizationId: string): Promise<{
+  getStockSummary(organizationId: string): Promise<{
     totalProducts: number;
     totalBatches: number;
     totalValue: number;
     expiringWithin7Days: number;
   }> {
-    const batches = await this.ingredientBatchRepository.find({
-      where: {
-        organizationId,
-        status: IngredientBatchStatus.IN_STOCK,
-      },
-    });
-
-    const productIds = new Set(batches.map((b) => b.productId));
-    let totalValue = 0;
-    const sevenDaysFromNow = new Date();
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    let expiringCount = 0;
-
-    for (const b of batches) {
-      totalValue += Number(b.remainingQuantity) * Number(b.purchasePrice || 0);
-      if (b.expiryDate && b.expiryDate <= sevenDaysFromNow) {
-        expiringCount++;
-      }
-    }
-
-    return {
-      totalProducts: productIds.size,
-      totalBatches: batches.length,
-      totalValue,
-      expiringWithin7Days: expiringCount,
-    };
+    return this.batch.getStockSummary(organizationId);
   }
 
-  // ==========================================================================
-  // COST CALCULATION
-  // ==========================================================================
+  // ── Price History ────────────────────────────────────────
 
-  /**
-   * Calculate the total recipe cost by summing ingredient batch costs.
-   * Uses the average purchase price from available batches for each ingredient.
-   * Optimized: fetches all ingredient products in a single query to avoid N+1.
-   */
-  async calculateRecipeCost(recipeId: string): Promise<number> {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id: recipeId },
-      relations: ["ingredients"],
-    });
-    if (!recipe) {
-      throw new NotFoundException(`Recipe with ID ${recipeId} not found`);
-    }
-
-    const ingredients = recipe.ingredients || [];
-    if (ingredients.length === 0) return 0;
-
-    // Batch-fetch all ingredient products in one query (N+1 prevention)
-    // Scope to recipe's organization for multi-tenant safety
-    const ingredientIds = ingredients.map((ri) => ri.ingredientId);
-    const products = await this.productRepository.find({
-      where: { id: In(ingredientIds), organizationId: recipe.organizationId },
-      select: ["id", "purchasePrice", "unitOfMeasure"],
-    });
-    const productMap = new Map(products.map((p) => [p.id, p]));
-
-    let totalCost = 0;
-    for (const ri of ingredients) {
-      const ingredient = productMap.get(ri.ingredientId);
-      if (ingredient) {
-        const unitCost = Number(ingredient.purchasePrice);
-        // Convert recipe quantity to the ingredient's purchase-price unit
-        const convertedQty = convertUnits(
-          Number(ri.quantity),
-          ri.unitOfMeasure,
-          ingredient.unitOfMeasure,
-        );
-        totalCost += unitCost * convertedQty;
-      }
-    }
-
-    return totalCost;
-  }
-
-  /**
-   * Recalculate and persist recipe cost.
-   */
-  async recalculateRecipeCost(recipeId: string): Promise<void> {
-    const totalCost = await this.calculateRecipeCost(recipeId);
-    await this.recipeRepository.update(recipeId, { totalCost });
-  }
-
-  // ==========================================================================
-  // PRICE HISTORY
-  // ==========================================================================
-
-  /**
-   * Update product price and create a price history record.
-   * At least one of purchasePrice or sellingPrice must be provided.
-   */
-  async updatePrice(
+  updatePrice(
     productId: string,
     organizationId: string,
     dto: UpdatePriceDto,
     userId: string,
   ): Promise<{ product: Product; history: ProductPriceHistory }> {
-    const product = await this.findById(productId, organizationId);
-
-    if (dto.purchasePrice === undefined && dto.sellingPrice === undefined) {
-      throw new BadRequestException(
-        "At least one of purchasePrice or sellingPrice must be provided",
-      );
-    }
-
-    // Close the previous current price history record
-    await this.priceHistoryRepository.update(
-      { productId, effectiveTo: IsNull() },
-      { effectiveTo: new Date() },
-    );
-
-    // Create the new price history entry
-    const newPurchasePrice = dto.purchasePrice ?? Number(product.purchasePrice);
-    const newSellingPrice = dto.sellingPrice ?? Number(product.sellingPrice);
-
-    const history = this.priceHistoryRepository.create({
-      productId,
-      purchasePrice: newPurchasePrice,
-      sellingPrice: newSellingPrice,
-      changeReason: dto.changeReason,
-      changedByUserId: userId,
-      createdById: userId,
-    });
-    const savedHistory = await this.priceHistoryRepository.save(history);
-
-    // Update the product prices
-    product.purchasePrice = newPurchasePrice;
-    product.sellingPrice = newSellingPrice;
-    product.updatedById = userId;
-    const savedProduct = await this.productRepository.save(product);
-
-    return { product: savedProduct, history: savedHistory };
+    return this.core.updatePrice(productId, organizationId, dto, userId);
   }
 
-  async getPriceHistory(
+  getPriceHistory(
     productId: string,
     organizationId: string,
   ): Promise<ProductPriceHistory[]> {
-    // Verify product belongs to organization
-    await this.findById(productId, organizationId);
-
-    return this.priceHistoryRepository.find({
-      where: { productId },
-      order: { effectiveFrom: "DESC" },
-    });
+    return this.core.getPriceHistory(productId, organizationId);
   }
 
-  // ==========================================================================
-  // SUPPLIER CRUD
-  // ==========================================================================
+  // ── Suppliers ────────────────────────────────────────────
 
-  async createSupplier(
+  createSupplier(
     organizationId: string,
     dto: CreateSupplierDto,
     userId: string,
   ): Promise<Supplier> {
-    const supplier = this.supplierRepository.create({
-      ...dto,
-      organizationId,
-      createdById: userId,
-    });
-    return this.supplierRepository.save(supplier);
+    return this.core.createSupplier(organizationId, dto, userId);
   }
 
-  async findAllSuppliers(
+  findAllSuppliers(
     organizationId: string,
-    page = 1,
-    limit = 50,
+    page?: number,
+    limit?: number,
   ): Promise<PaginatedResult<Supplier>> {
-    const [data, total] = await this.supplierRepository.findAndCount({
-      where: { organizationId },
-      order: { name: "ASC" },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return this.core.findAllSuppliers(organizationId, page, limit);
   }
 
-  async findSupplierById(
-    id: string,
-    organizationId: string,
-  ): Promise<Supplier> {
-    const supplier = await this.supplierRepository.findOne({
-      where: { id, organizationId },
-    });
-    if (!supplier) {
-      throw new NotFoundException(`Supplier with ID ${id} not found`);
-    }
-    return supplier;
+  findSupplierById(id: string, organizationId: string): Promise<Supplier> {
+    return this.core.findSupplierById(id, organizationId);
   }
 
-  async updateSupplier(
+  updateSupplier(
     id: string,
     organizationId: string,
     dto: UpdateSupplierDto,
     userId: string,
   ): Promise<Supplier> {
-    const supplier = await this.findSupplierById(id, organizationId);
-    Object.assign(supplier, { ...dto, updatedById: userId });
-    return this.supplierRepository.save(supplier);
+    return this.core.updateSupplier(id, organizationId, dto, userId);
   }
 }

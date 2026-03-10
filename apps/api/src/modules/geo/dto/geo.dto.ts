@@ -3,7 +3,7 @@
  * VendHub Google Maps Integration
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsNumber,
   IsString,
@@ -14,68 +14,73 @@ import {
   Max,
   IsArray,
   ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { TravelMode } from '../geo.constants';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { TravelMode } from "../geo.constants";
 
 // ============================================================================
 // REQUEST DTOs
 // ============================================================================
 
 export class CoordinatesDto {
-  @ApiProperty({ description: 'Latitude', example: 41.2995 })
+  @ApiProperty({ description: "Latitude", example: 41.2995 })
   @IsNumber()
+  @Type(() => Number)
   @Min(-90)
   @Max(90)
   lat: number;
 
-  @ApiProperty({ description: 'Longitude', example: 69.2401 })
+  @ApiProperty({ description: "Longitude", example: 69.2401 })
   @IsNumber()
+  @Type(() => Number)
   @Min(-180)
   @Max(180)
   lng: number;
 }
 
 export class GeocodeAddressDto {
-  @ApiProperty({ description: 'Address to geocode' })
+  @ApiProperty({ description: "Address to geocode" })
   @IsString()
   address: string;
 
-  @ApiPropertyOptional({ description: 'Language for results' })
+  @ApiPropertyOptional({ description: "Language for results" })
   @IsString()
   @IsOptional()
-  language?: string = 'ru';
+  language?: string = "ru";
 }
 
 export class ReverseGeocodeDto {
-  @ApiProperty({ description: 'Latitude' })
+  @ApiProperty({ description: "Latitude" })
   @IsNumber()
   @Type(() => Number)
   lat: number;
 
-  @ApiProperty({ description: 'Longitude' })
+  @ApiProperty({ description: "Longitude" })
   @IsNumber()
   @Type(() => Number)
   lng: number;
 
-  @ApiPropertyOptional({ description: 'Language for results' })
+  @ApiPropertyOptional({ description: "Language for results" })
   @IsString()
   @IsOptional()
-  language?: string = 'ru';
+  language?: string = "ru";
 }
 
 export class NearbyMachinesDto {
-  @ApiProperty({ description: 'User latitude' })
+  @ApiProperty({ description: "User latitude" })
   @IsNumber()
   @Type(() => Number)
   lat: number;
 
-  @ApiProperty({ description: 'User longitude' })
+  @ApiProperty({ description: "User longitude" })
   @IsNumber()
   @Type(() => Number)
   lng: number;
 
-  @ApiPropertyOptional({ description: 'Search radius in meters', default: 5000 })
+  @ApiPropertyOptional({
+    description: "Search radius in meters",
+    default: 5000,
+  })
   @IsNumber()
   @Type(() => Number)
   @Min(100)
@@ -83,7 +88,10 @@ export class NearbyMachinesDto {
   @IsOptional()
   radius?: number = 5000;
 
-  @ApiPropertyOptional({ description: 'Maximum number of results', default: 20 })
+  @ApiPropertyOptional({
+    description: "Maximum number of results",
+    default: 20,
+  })
   @IsNumber()
   @Type(() => Number)
   @Min(1)
@@ -91,7 +99,7 @@ export class NearbyMachinesDto {
   @IsOptional()
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: 'Only show online machines' })
+  @ApiPropertyOptional({ description: "Only show online machines" })
   @IsOptional()
   onlyOnline?: boolean = false;
 }
@@ -112,10 +120,10 @@ export class DirectionsDto {
   @IsOptional()
   mode?: TravelMode = TravelMode.DRIVING;
 
-  @ApiPropertyOptional({ description: 'Language for results' })
+  @ApiPropertyOptional({ description: "Language for results" })
   @IsString()
   @IsOptional()
-  language?: string = 'ru';
+  language?: string = "ru";
 }
 
 export class DistanceMatrixDto {
@@ -138,44 +146,44 @@ export class DistanceMatrixDto {
 }
 
 export class AutocompleteDto {
-  @ApiProperty({ description: 'Search input' })
+  @ApiProperty({ description: "Search input" })
   @IsString()
   input: string;
 
-  @ApiPropertyOptional({ description: 'Session token for billing' })
+  @ApiPropertyOptional({ description: "Session token for billing" })
   @IsString()
   @IsOptional()
   sessionToken?: string;
 
-  @ApiPropertyOptional({ description: 'Language for results' })
+  @ApiPropertyOptional({ description: "Language for results" })
   @IsString()
   @IsOptional()
-  language?: string = 'ru';
+  language?: string = "ru";
 }
 
 export class PlaceDetailsDto {
-  @ApiProperty({ description: 'Google Place ID' })
+  @ApiProperty({ description: "Google Place ID" })
   @IsString()
   placeId: string;
 
-  @ApiPropertyOptional({ description: 'Session token' })
+  @ApiPropertyOptional({ description: "Session token" })
   @IsString()
   @IsOptional()
   sessionToken?: string;
 }
 
 export class StaticMapDto {
-  @ApiProperty({ description: 'Center latitude' })
+  @ApiProperty({ description: "Center latitude" })
   @IsNumber()
   @Type(() => Number)
   lat: number;
 
-  @ApiProperty({ description: 'Center longitude' })
+  @ApiProperty({ description: "Center longitude" })
   @IsNumber()
   @Type(() => Number)
   lng: number;
 
-  @ApiPropertyOptional({ description: 'Zoom level', default: 15 })
+  @ApiPropertyOptional({ description: "Zoom level", default: 15 })
   @IsNumber()
   @Type(() => Number)
   @Min(1)
@@ -183,22 +191,22 @@ export class StaticMapDto {
   @IsOptional()
   zoom?: number = 15;
 
-  @ApiPropertyOptional({ description: 'Map width in pixels', default: 600 })
+  @ApiPropertyOptional({ description: "Map width in pixels", default: 600 })
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
   width?: number = 600;
 
-  @ApiPropertyOptional({ description: 'Map height in pixels', default: 400 })
+  @ApiPropertyOptional({ description: "Map height in pixels", default: 400 })
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
   height?: number = 400;
 
-  @ApiPropertyOptional({ description: 'Map type', default: 'roadmap' })
+  @ApiPropertyOptional({ description: "Map type", default: "roadmap" })
   @IsString()
   @IsOptional()
-  mapType?: 'roadmap' | 'satellite' | 'terrain' | 'hybrid' = 'roadmap';
+  mapType?: "roadmap" | "satellite" | "terrain" | "hybrid" = "roadmap";
 }
 
 // ============================================================================
@@ -250,10 +258,10 @@ export class NearbyMachineDto {
   @ApiProperty({ type: CoordinatesDto })
   coordinates: CoordinatesDto;
 
-  @ApiProperty({ description: 'Distance in meters' })
+  @ApiProperty({ description: "Distance in meters" })
   distance: number;
 
-  @ApiProperty({ description: 'Distance formatted' })
+  @ApiProperty({ description: "Distance formatted" })
   distanceText: string;
 
   @ApiProperty()
@@ -281,16 +289,16 @@ export class NearbyMachinesResultDto {
 }
 
 export class DirectionsResultDto {
-  @ApiProperty({ description: 'Total distance in meters' })
+  @ApiProperty({ description: "Total distance in meters" })
   distanceMeters: number;
 
-  @ApiProperty({ description: 'Total distance formatted' })
+  @ApiProperty({ description: "Total distance formatted" })
   distanceText: string;
 
-  @ApiProperty({ description: 'Total duration in seconds' })
+  @ApiProperty({ description: "Total duration in seconds" })
   durationSeconds: number;
 
-  @ApiProperty({ description: 'Total duration formatted' })
+  @ApiProperty({ description: "Total duration formatted" })
   durationText: string;
 
   @ApiProperty({ type: CoordinatesDto })
@@ -299,10 +307,10 @@ export class DirectionsResultDto {
   @ApiProperty({ type: CoordinatesDto })
   endLocation: CoordinatesDto;
 
-  @ApiProperty({ description: 'Encoded polyline' })
+  @ApiProperty({ description: "Encoded polyline" })
   polyline: string;
 
-  @ApiProperty({ description: 'Navigation steps' })
+  @ApiProperty({ description: "Navigation steps" })
   steps: {
     instruction: string;
     distanceMeters: number;
@@ -372,60 +380,66 @@ export class PlaceDetailsResultDto {
 // ============================================================================
 
 export class NearbyMachinesQueryDto {
-  @ApiProperty({ description: 'User latitude' })
+  @ApiProperty({ description: "User latitude" })
   @IsNumber()
   @Type(() => Number)
   latitude: number;
 
-  @ApiProperty({ description: 'User longitude' })
+  @ApiProperty({ description: "User longitude" })
   @IsNumber()
   @Type(() => Number)
   longitude: number;
 
-  @ApiPropertyOptional({ description: 'Maximum distance in meters', default: 5000 })
+  @ApiPropertyOptional({
+    description: "Maximum distance in meters",
+    default: 5000,
+  })
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
   maxDistance?: number;
 
-  @ApiPropertyOptional({ description: 'Maximum number of results', default: 20 })
+  @ApiPropertyOptional({
+    description: "Maximum number of results",
+    default: 20,
+  })
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
   limit?: number;
 
-  @ApiPropertyOptional({ description: 'Only show online machines' })
+  @ApiPropertyOptional({ description: "Only show online machines" })
   @IsOptional()
   onlyOnline?: boolean;
 
-  @ApiPropertyOptional({ description: 'Filter by product ID' })
+  @ApiPropertyOptional({ description: "Filter by product ID" })
   @IsUUID()
   @IsOptional()
   productId?: string;
 }
 
 export class MapBoundsDto {
-  @ApiProperty({ description: 'North-East latitude' })
+  @ApiProperty({ description: "North-East latitude" })
   @IsNumber()
   @Type(() => Number)
   neLat: number;
 
-  @ApiProperty({ description: 'North-East longitude' })
+  @ApiProperty({ description: "North-East longitude" })
   @IsNumber()
   @Type(() => Number)
   neLng: number;
 
-  @ApiProperty({ description: 'South-West latitude' })
+  @ApiProperty({ description: "South-West latitude" })
   @IsNumber()
   @Type(() => Number)
   swLat: number;
 
-  @ApiProperty({ description: 'South-West longitude' })
+  @ApiProperty({ description: "South-West longitude" })
   @IsNumber()
   @Type(() => Number)
   swLng: number;
 
-  @ApiPropertyOptional({ description: 'Map zoom level' })
+  @ApiPropertyOptional({ description: "Map zoom level" })
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
@@ -433,38 +447,38 @@ export class MapBoundsDto {
 }
 
 export class DirectionsQueryDto {
-  @ApiProperty({ description: 'Origin latitude' })
+  @ApiProperty({ description: "Origin latitude" })
   @IsNumber()
   @Type(() => Number)
   originLat: number;
 
-  @ApiProperty({ description: 'Origin longitude' })
+  @ApiProperty({ description: "Origin longitude" })
   @IsNumber()
   @Type(() => Number)
   originLng: number;
 
-  @ApiProperty({ description: 'Destination latitude' })
+  @ApiProperty({ description: "Destination latitude" })
   @IsNumber()
   @Type(() => Number)
   destLat: number;
 
-  @ApiProperty({ description: 'Destination longitude' })
+  @ApiProperty({ description: "Destination longitude" })
   @IsNumber()
   @Type(() => Number)
   destLng: number;
 
-  @ApiPropertyOptional({ description: 'Travel mode', default: 'walking' })
+  @ApiPropertyOptional({ description: "Travel mode", default: "walking" })
   @IsString()
   @IsOptional()
-  mode?: 'walking' | 'driving' | 'transit';
+  mode?: "walking" | "driving" | "transit";
 }
 
 export class AddressAutocompleteDto {
-  @ApiProperty({ description: 'Search input' })
+  @ApiProperty({ description: "Search input" })
   @IsString()
   input: string;
 
-  @ApiPropertyOptional({ description: 'Session token' })
+  @ApiPropertyOptional({ description: "Session token" })
   @IsString()
   @IsOptional()
   sessionToken?: string;
