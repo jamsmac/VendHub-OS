@@ -142,7 +142,10 @@
     "webhooks": "Veb-xuklar",
     "machineAccess": "Avtomat ruxsatlari",
     "openingBalances": "Boshlang'ich qoldiqlar",
-    "references": "Ma'lumotnomalar NSI"
+    "references": "Ma'lumotnomalar NSI",
+    "openMenu": "Navigatsiya menyusini ochish",
+    "navigation": "Navigatsiya menyusi",
+    "skipToContent": "Kontentga o'tish"
   },
   "dashboard": {
     "title": "Umumiy ko'rinish",

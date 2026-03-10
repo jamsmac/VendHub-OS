@@ -4,8 +4,32 @@ import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useTranslations } from "next-intl";
 import Link from "next/link";
+
+/** Hardcoded fallback strings — error boundaries must never depend on i18n */
+const FALLBACK = {
+  title: "An error occurred",
+  description:
+    "Something went wrong. Please try refreshing the page or go back to the dashboard.",
+  dashboard: "Dashboard",
+  retry: "Retry",
+};
+
+/** Safe translation access — returns fallback if i18n is unavailable */
+function useSafeTranslations() {
+  try {
+    const { useTranslations } = require("next-intl");
+    const t = useTranslations("common");
+    return {
+      title: t("errorOccurred"),
+      description: t("errorDescription"),
+      dashboard: t("goToDashboard"),
+      retry: t("retry"),
+    };
+  } catch {
+    return FALLBACK;
+  }
+}
 
 export default function DashboardError({
   error,
@@ -14,7 +38,7 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = useTranslations("common");
+  const strings = useSafeTranslations();
 
   useEffect(() => {
     // Log to error reporting service in production
@@ -28,8 +52,8 @@ export default function DashboardError({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-8 w-8 text-destructive" />
           </div>
-          <h2 className="text-xl font-semibold mb-2">{t("errorOccurred")}</h2>
-          <p className="text-muted-foreground mb-6">{t("errorDescription")}</p>
+          <h2 className="text-xl font-semibold mb-2">{strings.title}</h2>
+          <p className="text-muted-foreground mb-6">{strings.description}</p>
           {error.digest && (
             <p className="text-xs text-muted-foreground mb-4 font-mono">
               ID: {error.digest}
@@ -39,12 +63,12 @@ export default function DashboardError({
             <Button variant="outline" asChild>
               <Link href="/dashboard">
                 <Home className="h-4 w-4 mr-2" />
-                {t("goToDashboard")}
+                {strings.dashboard}
               </Link>
             </Button>
             <Button onClick={reset}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              {t("retry")}
+              {strings.retry}
             </Button>
           </div>
         </CardContent>

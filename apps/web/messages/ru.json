@@ -142,7 +142,10 @@
     "webhooks": "Вебхуки",
     "machineAccess": "Доступ к автоматам",
     "openingBalances": "Начальные остатки",
-    "references": "Справочники НСИ"
+    "references": "Справочники НСИ",
+    "openMenu": "Открыть меню навигации",
+    "navigation": "Меню навигации",
+    "skipToContent": "Перейти к содержимому"
   },
   "dashboard": {
     "title": "Обзор",

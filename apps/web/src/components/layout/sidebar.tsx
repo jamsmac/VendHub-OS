@@ -598,8 +598,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <div className="space-y-1">
               {group.items.map((item) => {
                 const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname === item.href ||
+                      pathname.startsWith(item.href + "/");
                 return (
                   <Link
                     key={item.nameKey}
@@ -660,6 +662,7 @@ export function Sidebar() {
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
+  const t = useTranslations("nav");
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -668,13 +671,17 @@ export function MobileSidebar() {
           variant="ghost"
           size="icon"
           className="lg:hidden"
-          aria-label="Open navigation menu"
+          aria-label={
+            t.has("openMenu") ? t("openMenu") : "Open navigation menu"
+          }
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-        <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+        <SheetTitle className="sr-only">
+          {t.has("navigation") ? t("navigation") : "Navigation menu"}
+        </SheetTitle>
         <div className="flex h-full flex-col bg-card">
           <SidebarContent onNavigate={close} />
         </div>

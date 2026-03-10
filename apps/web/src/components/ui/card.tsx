@@ -76,19 +76,30 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter";
 
 /**
- * Card with hover/click affordances for interactive use (Issue #14).
- * Use when the card is clickable (onClick or wrapped in Link).
+ * Card with hover/click affordances for interactive use.
+ * Supports keyboard activation (Enter/Space) when onClick is provided.
+ * If wrapping in a Link, use regular Card instead to avoid nested interactives.
  */
 const InteractiveCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, onClick, onKeyDown, ...props }, ref) => (
   <div
     ref={ref}
+    role={onClick ? "button" : undefined}
+    tabIndex={onClick ? 0 : undefined}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm cursor-pointer transition-shadow hover:shadow-md",
+      "rounded-lg border bg-card text-card-foreground shadow-sm cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className,
     )}
+    onClick={onClick}
+    onKeyDown={(e) => {
+      if (onClick && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+      }
+      onKeyDown?.(e);
+    }}
     {...props}
   />
 ));

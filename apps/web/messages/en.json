@@ -142,7 +142,10 @@
     "webhooks": "Webhooks",
     "machineAccess": "Machine Access",
     "openingBalances": "Opening Balances",
-    "references": "References"
+    "references": "References",
+    "openMenu": "Open navigation menu",
+    "navigation": "Navigation menu",
+    "skipToContent": "Skip to content"
   },
   "dashboard": {
     "title": "Dashboard",

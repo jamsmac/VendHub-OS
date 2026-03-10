@@ -60,9 +60,16 @@ export default function DashboardLayout({
   if (!ready) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
+        <div
+          className="flex flex-col items-center gap-3"
+          role="status"
+          aria-live="polite"
+        >
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">
+            {/* Hardcoded fallback — translations unavailable before auth */}
+            Loading...
+          </p>
         </div>
       </div>
     );

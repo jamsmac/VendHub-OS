@@ -81,23 +81,20 @@ export function formatNumber(
 }
 
 /**
- * Format amount as currency string (UZS by default)
+ * Format amount as currency string (UZS by default).
+ * Alias of formatPrice for backward compatibility.
  */
-export function formatCurrency(amount: number, currency = "UZS"): string {
-  return (
-    new Intl.NumberFormat(getBrowserLocale(), {
-      style: "decimal",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount) + ` ${currency}`
-  );
-}
+export const formatCurrency = formatPrice;
 
 /**
- * Format percentage value
+ * Format percentage value (locale-aware decimal separator)
  */
 export function formatPercent(value: number, decimals = 1): string {
-  return `${value.toFixed(decimals)}%`;
+  return new Intl.NumberFormat(getBrowserLocale(), {
+    style: "percent",
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value / 100);
 }
 
 /**

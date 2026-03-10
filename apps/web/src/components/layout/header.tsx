@@ -68,7 +68,6 @@ export function Header({ user }: HeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label={
             theme === "dark"
@@ -88,7 +87,7 @@ export function Header({ user }: HeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-10 w-10"
+          className="relative"
           aria-label={`${tSettings.has("notifications") ? tSettings("notifications") : "Notifications"}: ${notificationCount}`}
         >
           <Bell className="h-4 w-4" />
