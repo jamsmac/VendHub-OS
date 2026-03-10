@@ -116,6 +116,30 @@ export function useRecentActivity(limit = 10) {
 }
 
 /**
+ * Top products by revenue (from analytics aggregation)
+ */
+export function useTopProducts(days = 30) {
+  const to = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  return useQuery({
+    queryKey: ["top-products", days],
+    queryFn: async () => {
+      const response = await api.get("/analytics/top-products", {
+        params: { from, to },
+      });
+      return response.data as Array<{
+        nomenclatureId: string;
+        name: string;
+        quantity: number;
+        revenue: number;
+      }>;
+    },
+  });
+}
+
+/**
  * Complete dashboard summary (all data in one query)
  */
 export function useDashboardSummary() {

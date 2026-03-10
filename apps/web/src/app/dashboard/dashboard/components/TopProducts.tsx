@@ -4,10 +4,26 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTopProducts } from "@/lib/hooks";
 import { TOP_PRODUCTS, fmtShort } from "./constants";
 
 export function TopProducts() {
   const t = useTranslations("dashboardMain");
+  const { data: apiProducts } = useTopProducts(30);
+
+  // Map API data to component format, fall back to mock
+  const maxSales = apiProducts?.length
+    ? Math.max(...apiProducts.map((p) => p.quantity))
+    : TOP_PRODUCTS[0].maxSales;
+
+  const products = apiProducts?.length
+    ? apiProducts.slice(0, 5).map((p) => ({
+        name: p.name,
+        sales: p.quantity,
+        revenue: p.revenue,
+        maxSales,
+      }))
+    : TOP_PRODUCTS;
 
   return (
     <Card>
@@ -25,7 +41,7 @@ export function TopProducts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {TOP_PRODUCTS.map((p, i) => (
+          {products.map((p, i) => (
             <div key={p.name} className="flex items-center gap-3">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-espresso-50 text-xs font-bold text-espresso">
                 {i + 1}
