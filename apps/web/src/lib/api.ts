@@ -20,25 +20,44 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory only (no localStorage)
-// Backend sets httpOnly cookies for both access & refresh tokens.
-// The middleware (proxy.ts) reads the cookie server-side.
+// Token helpers — in-memory + localStorage backup
+// In-memory is primary (fast). localStorage survives page refresh.
 // ============================================
+
+const TOKEN_KEY = "vendhub_access_token";
 
 let _accessToken: string | null = null;
 
 function setTokens(accessToken: string, _refreshToken?: string) {
   _accessToken = accessToken;
-  // Refresh token is stored in httpOnly cookie by the server —
-  // no client-side storage needed
+  try {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+  } catch {
+    // SSR or storage unavailable
+  }
 }
 
 function clearTokens() {
   _accessToken = null;
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // SSR or storage unavailable
+  }
 }
 
 export function getAccessToken(): string | null {
-  return _accessToken;
+  if (_accessToken) return _accessToken;
+  try {
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (stored) {
+      _accessToken = stored;
+      return stored;
+    }
+  } catch {
+    // SSR or storage unavailable
+  }
+  return null;
 }
 
 export { setTokens, clearTokens };

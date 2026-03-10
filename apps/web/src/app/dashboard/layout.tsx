@@ -13,27 +13,26 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, isAuthenticated, checkAuth } = useAuthStore();
-  const [hydrated, setHydrated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Wait for zustand persist to rehydrate from localStorage
-    setHydrated(true);
-  }, []);
+    let cancelled = false;
+    checkAuth().finally(() => {
+      if (!cancelled) setAuthChecked(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [checkAuth]);
 
   useEffect(() => {
-    if (hydrated) {
-      checkAuth();
-    }
-  }, [hydrated, checkAuth]);
-
-  useEffect(() => {
-    // Only redirect after hydration to avoid race with localStorage rehydration
-    if (hydrated && !isAuthenticated) {
+    // Only redirect AFTER checkAuth has completed
+    if (authChecked && !isAuthenticated) {
       router.push("/auth");
     }
-  }, [hydrated, isAuthenticated, router]);
+  }, [authChecked, isAuthenticated, router]);
 
-  if (!hydrated || !isAuthenticated) {
+  if (!authChecked || !isAuthenticated) {
     return null;
   }
 

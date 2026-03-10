@@ -80,16 +80,23 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        // If no in-memory token but zustand says authenticated,
-        // try /auth/me — the httpOnly cookie may still be valid
         const token = getAccessToken();
-        const persisted = _get().isAuthenticated;
+        const currentUser = _get().user;
 
-        if (!token && !persisted) {
+        // Have both token and user data — trust current state.
+        // Token will be verified implicitly on the first data request.
+        if (token && currentUser) {
+          set({ isAuthenticated: true });
+          return;
+        }
+
+        // No token at all — not authenticated
+        if (!token) {
           set({ isAuthenticated: false, user: null });
           return;
         }
 
+        // Have token but no user data — verify with server
         try {
           const response = await authApi.me();
           set({
