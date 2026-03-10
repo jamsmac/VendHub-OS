@@ -21,6 +21,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -284,45 +292,45 @@ export function IngredientsTab() {
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("ingredient")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("sku")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("category")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("unitMeasure")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("purchasePrice")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("minStock")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {tCommon("status")}
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {tCommon("actions")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border">
                   {ingredients?.map((item: Product) => {
                     const status =
                       statusConfig[item.status] || statusConfig.active;
                     return (
-                      <tr
+                      <TableRow
                         key={item.id}
                         className="hover:bg-muted/50 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-green-50 rounded-lg flex items-center justify-center">
                               <Leaf className="h-5 w-5 text-green-600" />
@@ -336,34 +344,34 @@ export function IngredientsTab() {
                               )}
                             </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {item.sku}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {item.category}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {unitLabels[
                             item.unitOfMeasure as keyof typeof unitLabels
                           ] || item.unitOfMeasure}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {item.purchasePrice
                             ? formatPrice(item.purchasePrice)
                             : "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {item.minStockLevel || "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${status.bgColor} ${status.color}`}
                           >
                             {status.label}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -404,12 +412,12 @@ export function IngredientsTab() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>

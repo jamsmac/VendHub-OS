@@ -12,6 +12,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { fmt } from "./config";
 
 interface PNLTabProps {
@@ -39,23 +47,23 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-espresso/10">
-                  <th className="px-4 py-3 text-left font-medium text-espresso-dark">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
+                  <TableHead className="px-4 py-3 text-left font-medium text-espresso-dark">
                     Показатель
-                  </th>
+                  </TableHead>
                   {pAndLData.map((p) => (
-                    <th
+                    <TableHead
                       key={p.month}
                       className="px-4 py-3 text-right font-medium text-espresso-dark"
                     >
                       {p.month}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {[
                   { key: "revenue", label: "Выручка", format: "currency" },
                   { key: "cogs", label: "Себестоимость", format: "currency" },
@@ -88,30 +96,30 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
                     bold: true,
                   },
                 ].map((row) => (
-                  <tr
+                  <TableRow
                     key={row.key}
                     className={`border-b border-espresso/5 ${row.bold ? "bg-espresso-50/50" : ""}`}
                   >
-                    <td
+                    <TableCell
                       className={`px-4 py-3 ${row.bold ? "font-semibold text-espresso-dark" : "text-espresso"}`}
                     >
                       {row.label}
-                    </td>
+                    </TableCell>
                     {pAndLData.map((p) => {
                       const val = p[row.key as keyof typeof p];
                       return (
-                        <td
+                        <TableCell
                           key={p.month}
                           className={`px-4 py-3 text-right ${row.bold ? "font-semibold text-espresso-dark" : "text-espresso-light"}`}
                         >
                           {typeof val === "number" ? fmt(val) : val} UZS
-                        </td>
+                        </TableCell>
                       );
                     })}
-                  </tr>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

@@ -3,6 +3,14 @@
 import { Plus, CheckCircle, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { ROLE_META, PERMISSION_CATEGORIES, hasPermForRole } from "./constants";
 
 interface RolesTabProps {
@@ -29,42 +37,42 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-espresso-50/50">
-                <th className="text-left py-3 px-3 text-xs font-semibold text-espresso-light border border-espresso/10">
+          <Table className="border-collapse text-sm">
+            <TableHeader>
+              <TableRow className="bg-espresso-50/50">
+                <TableHead className="text-left py-3 px-3 text-xs font-semibold text-espresso-light border border-espresso/10">
                   Роль
-                </th>
+                </TableHead>
                 {PERMISSION_CATEGORIES.map((cat) => (
-                  <th
+                  <TableHead
                     key={cat.id}
                     className="text-center py-3 px-2 text-xs font-semibold text-espresso-light border border-espresso/10"
                   >
                     {cat.name}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {Object.entries(ROLE_META).map(([roleKey, roleMeta]) => (
-                <tr
+                <TableRow
                   key={roleKey}
                   className="hover:bg-espresso-50/30 border-b border-espresso/10"
                 >
-                  <td className="py-3 px-3 font-medium text-espresso-dark border border-espresso/10">
+                  <TableCell className="py-3 px-3 font-medium text-espresso-dark border border-espresso/10">
                     <span
                       className={`inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-medium ${roleMeta.color}`}
                     >
                       <roleMeta.icon className="h-3 w-3" />
                       {roleMeta.label}
                     </span>
-                  </td>
+                  </TableCell>
                   {PERMISSION_CATEGORIES.map((cat) => {
                     const hasPerm = cat.perms.some((p) =>
                       hasPermForRole(roleKey, p),
                     );
                     return (
-                      <td
+                      <TableCell
                         key={`${roleKey}-${cat.id}`}
                         className="text-center py-3 px-2 border border-espresso/10"
                       >
@@ -73,13 +81,13 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
                         ) : (
                           <X className="h-4 w-4 text-gray-300 mx-auto" />
                         )}
-                      </td>
+                      </TableCell>
                     );
                   })}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 

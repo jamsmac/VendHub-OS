@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 import { useRecentActivity } from "@/lib/hooks";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { timeAgo } from "@/lib/utils";
 import {
   ACTIVITY_FEED,
@@ -101,17 +102,19 @@ export function ActivityTab() {
               ? "filterAll"
               : ACTIVITY_TYPE_I18N_MAP[id as ActivityType];
           return (
-            <button
+            <Button
               key={id}
+              variant="ghost"
+              size="sm"
               onClick={() => setActivityFilter(id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs ${
                 activityFilter === id
                   ? "bg-espresso text-white"
                   : "bg-stone-100 text-espresso-light hover:bg-stone-200"
               }`}
             >
               {t(`activityTab.${labelKey}`)}
-            </button>
+            </Button>
           );
         })}
       </div>

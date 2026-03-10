@@ -121,18 +121,16 @@ export function CampaignForm({
         </label>
         <div className="flex flex-wrap gap-2 mt-1.5">
           {(["push", "email", "sms", "telegram"] as const).map((ch) => (
-            <button
+            <Button
               key={ch}
               type="button"
+              variant={formData.channels.includes(ch) ? "default" : "outline"}
+              size="sm"
+              className="rounded-full"
               onClick={() => toggleChannel(ch)}
-              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                formData.channels.includes(ch)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-background border-input hover:bg-muted"
-              }`}
             >
               {t(`channel_${ch}`)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

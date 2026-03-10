@@ -8,6 +8,7 @@ import {
   useDeletePromotion,
   type DbPromotion,
 } from "@/lib/hooks";
+import { Button } from "@/components/ui/button";
 import { PromotionsHeader } from "./components/PromotionsHeader";
 import { PromotionsKPICards } from "./components/PromotionsKPICards";
 import { PromotionsList } from "./components/PromotionsList";
@@ -721,17 +722,19 @@ export default function PromotionsPage() {
           { id: "abtests" as const, label: "A/B Тесты" },
           { id: "wizard" as const, label: "Создать акцию" },
         ].map((tab) => (
-          <button
+          <Button
             key={tab.id}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab(tab.id)}
-            className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`rounded-t-lg whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-espresso text-white"
+                ? "bg-espresso text-white hover:bg-espresso-dark"
                 : "text-espresso-light hover:bg-espresso-50"
             }`}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 

@@ -105,9 +105,11 @@ export function PaymentsTab({
                   </div>
                 </div>
 
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => onExpandChange(isExpanded ? null : ps.id)}
-                  className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-espresso-light hover:text-espresso"
+                  className="mt-3 w-full gap-1 text-xs text-espresso-light hover:text-espresso"
                 >
                   {isExpanded ? (
                     <ChevronUp className="h-3 w-3" />
@@ -115,7 +117,7 @@ export function PaymentsTab({
                     <ChevronDown className="h-3 w-3" />
                   )}
                   {isExpanded ? "Скрыть" : "Подробнее"}
-                </button>
+                </Button>
 
                 {isExpanded && (
                   <div className="mt-3 space-y-2 border-t border-espresso/10 pt-3">

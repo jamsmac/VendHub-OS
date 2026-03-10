@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Tab, TabId } from "./types";
 
 interface TabNavigationProps {
@@ -18,18 +19,20 @@ export function TabNavigation({
       {tabs.map((tab) => {
         const Icon = tab.icon;
         return (
-          <button
+          <Button
             key={tab.id}
+            variant="ghost"
+            size="sm"
             onClick={() => onTabChange(tab.id)}
-            className={`flex items-center gap-2 rounded-t-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 rounded-t-lg whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-espresso text-white"
+                ? "bg-espresso text-white hover:bg-espresso-dark"
                 : "text-espresso-light hover:bg-espresso-50"
             }`}
           >
             <Icon className="h-4 w-4" />
             {tab.label}
-          </button>
+          </Button>
         );
       })}
     </div>

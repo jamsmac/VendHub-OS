@@ -78,13 +78,14 @@ export function PromotionsWizard({
         <div className="flex items-center justify-between mb-8">
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setWizardStep(step)}
-                className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold transition-colors ${
+                className={`h-10 w-10 rounded-full p-0 ${
                   wizardStep === step
-                    ? "bg-espresso text-white"
+                    ? "bg-espresso text-white hover:bg-espresso-dark"
                     : wizardStep > step
-                      ? "bg-emerald-500 text-white"
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
                       : "bg-espresso-50 text-espresso-light"
                 }`}
               >
@@ -93,7 +94,7 @@ export function PromotionsWizard({
                 ) : (
                   step
                 )}
-              </button>
+              </Button>
               {step < 4 && (
                 <div
                   className={`mx-2 h-0.5 w-12 ${wizardStep > step ? "bg-emerald-500" : "bg-espresso-50"}`}
@@ -138,12 +139,13 @@ export function PromotionsWizard({
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <button
+                  <Button
                     key={item.type}
+                    variant="outline"
                     onClick={() =>
                       setWizardForm({ ...wizardForm, type: item.type })
                     }
-                    className={`p-4 border-2 rounded-lg transition-colors text-left group ${
+                    className={`h-auto p-4 border-2 text-left group ${
                       wizardForm.type === item.type
                         ? "border-espresso-dark bg-espresso-50"
                         : "border-espresso-light/30 hover:border-espresso-dark"
@@ -162,7 +164,7 @@ export function PromotionsWizard({
                         </p>
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

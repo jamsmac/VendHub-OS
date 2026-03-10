@@ -283,18 +283,17 @@ export default function SettingsPage() {
             {tabItems.map((tab) => {
               const Icon = tab.icon;
               return (
-                <button
+                <Button
                   key={tab.id}
+                  variant={activeTab === tab.id ? "default" : "ghost"}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
+                  className={`w-full justify-start gap-3 ${
+                    activeTab !== tab.id ? "text-muted-foreground" : ""
                   }`}
                 >
                   <Icon className="h-5 w-5" />
                   {t(tab.labelKey)}
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -471,14 +470,16 @@ export default function SettingsPage() {
                                   {label}
                                 </span>
                               </div>
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() =>
                                   setNotifPrefs({
                                     ...notifPrefs,
                                     [key]: !notifPrefs[key],
                                   })
                                 }
-                                className={`relative w-10 h-5 rounded-full transition-colors ${
+                                className={`relative w-10 h-5 rounded-full p-0 ${
                                   notifPrefs[key] ? "bg-green-500" : "bg-input"
                                 }`}
                                 aria-label={t("toggleLabel", { label })}
@@ -490,7 +491,7 @@ export default function SettingsPage() {
                                       : "translate-x-0.5"
                                   }`}
                                 />
-                              </button>
+                              </Button>
                             </div>
                           );
                         })}
@@ -680,10 +681,12 @@ export default function SettingsPage() {
                               "#dc2626",
                               "#7c3aed",
                             ].map((color) => (
-                              <button
+                              <Button
                                 key={color}
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setPrimaryColor(color)}
-                                className={`w-8 h-8 rounded-full border-2 shadow transition-transform ${
+                                className={`w-8 h-8 rounded-full p-0 border-2 shadow ${
                                   primaryColor === color
                                     ? "border-foreground scale-110"
                                     : "border-transparent"

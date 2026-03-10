@@ -32,6 +32,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { equipmentApi, sparePartsApi, washingSchedulesApi } from "@/lib/api";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
@@ -633,50 +641,53 @@ export default function EquipmentPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colPartNumber")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colName")}
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                     {t("colQuantity")}
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                     {t("colMin")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colSupplier")}
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                     {t("colCost")}
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-center py-3 px-4 font-medium text-muted-foreground">
                     {t("actionsLabel")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filtered?.map((part: SparePart) => {
                   const isLow =
                     part.quantity > 0 && part.quantity <= part.minQuantity;
                   const isOut = part.quantity === 0;
 
                   return (
-                    <tr key={part.id} className="border-b hover:bg-muted/50">
-                      <td className="py-3 px-4 text-muted-foreground font-mono text-sm">
+                    <TableRow
+                      key={part.id}
+                      className="border-b hover:bg-muted/50"
+                    >
+                      <TableCell className="py-3 px-4 text-muted-foreground font-mono text-sm">
                         {part.partNumber || "-"}
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <Package className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{part.name}</span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <span
                             className={
@@ -701,21 +712,21 @@ export default function EquipmentPage() {
                             </span>
                           )}
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-right text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-right text-muted-foreground">
                         {part.minQuantity}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-muted-foreground">
                         {part.supplier || "-"}
-                      </td>
-                      <td className="py-3 px-4 text-right">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-right">
                         {part.costPrice != null
                           ? new Intl.NumberFormat("ru-RU").format(
                               part.costPrice,
                             ) + " UZS"
                           : "-"}
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell className="py-3 px-4">
                         <div className="flex justify-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -760,12 +771,12 @@ export default function EquipmentPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
@@ -801,33 +812,33 @@ export default function EquipmentPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colMachine")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colFrequency")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colNextWash")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colLastWash")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                     {t("colAssignee")}
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-center py-3 px-4 font-medium text-muted-foreground">
                     {t("colStatus")}
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-center py-3 px-4 font-medium text-muted-foreground">
                     {t("actionsLabel")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filtered?.map((schedule: WashingSchedule) => {
                   const isOverdue =
                     schedule.nextWashDate &&
@@ -841,23 +852,23 @@ export default function EquipmentPage() {
                     : getWashingStatusLabel(schedule.status);
 
                   return (
-                    <tr
+                    <TableRow
                       key={schedule.id}
                       className={`border-b hover:bg-muted/50 ${isOverdue ? "bg-red-50" : ""}`}
                     >
-                      <td className="py-3 px-4">
+                      <TableCell className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <Coffee className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">
                             {schedule.machineName || "-"}
                           </span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-muted-foreground">
                         {getWashingFrequencyLabel(schedule.frequency) ||
                           schedule.frequency}
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell className="py-3 px-4">
                         {schedule.nextWashDate ? (
                           <div className="flex items-center gap-1">
                             {isOverdue && (
@@ -874,15 +885,15 @@ export default function EquipmentPage() {
                         ) : (
                           "-"
                         )}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-muted-foreground">
                         {schedule.lastWashDate
                           ? new Date(schedule.lastWashDate).toLocaleDateString(
                               "ru-RU",
                             )
                           : "-"}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-3 px-4 text-muted-foreground">
                         {schedule.assignedTo ? (
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" />
@@ -892,8 +903,8 @@ export default function EquipmentPage() {
                         ) : (
                           "-"
                         )}
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell className="py-3 px-4">
                         <div className="flex justify-center">
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${statusStyles.bgColor} ${statusStyles.color}`}
@@ -901,8 +912,8 @@ export default function EquipmentPage() {
                             {statusLabel}
                           </span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell className="py-3 px-4">
                         <div className="flex justify-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -947,12 +958,12 @@ export default function EquipmentPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

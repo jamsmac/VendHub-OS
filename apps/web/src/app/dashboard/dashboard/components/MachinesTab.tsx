@@ -7,6 +7,7 @@ import { useMachines } from "@/lib/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatNumber } from "@/lib/utils";
 import { MACHINE_STATUS, MACHINE_STATUS_META, fmtShort } from "./constants";
 
@@ -132,10 +133,12 @@ export function MachinesTab() {
         </div>
         <div className="flex gap-1.5">
           {statusFilters.map((f) => (
-            <button
+            <Button
               key={f.id}
+              variant="ghost"
+              size="sm"
               onClick={() => setStatusFilter(f.id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs ${
                 statusFilter === f.id
                   ? "bg-espresso text-white"
                   : "bg-stone-100 text-espresso-light hover:bg-stone-200"
@@ -153,7 +156,7 @@ export function MachinesTab() {
                   )
                 </span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

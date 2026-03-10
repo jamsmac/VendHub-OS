@@ -2,6 +2,14 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { SCHEDULE_DATA, SHIFT_TYPES } from "./constants";
 
 export function ScheduleTab() {
@@ -14,41 +22,41 @@ export function ScheduleTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b-2 border-espresso/20">
-                <th className="text-left py-2 px-3 text-xs font-semibold text-espresso-light whitespace-nowrap">
+          <Table className="text-sm border-collapse">
+            <TableHeader>
+              <TableRow className="border-b-2 border-espresso/20">
+                <TableHead className="text-left py-2 px-3 text-xs font-semibold text-espresso-light whitespace-nowrap">
                   Сотрудник
-                </th>
+                </TableHead>
                 {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-                  <th
+                  <TableHead
                     key={day}
                     className="text-center py-2 px-2 text-xs font-semibold text-espresso-light"
                   >
                     {day}
-                  </th>
+                  </TableHead>
                 ))}
-                <th className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
+                <TableHead className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
                   Часов/неделю
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {Object.entries(SCHEDULE_DATA).map(([name, schedule]) => {
                 const totalHours = schedule.filter((s) => s).length * 8;
                 const isOvertime = totalHours > 40;
                 return (
-                  <tr
+                  <TableRow
                     key={name}
                     className="border-b border-espresso/5 hover:bg-espresso-50/30"
                   >
-                    <td className="py-3 px-3 font-medium text-espresso-dark text-xs">
+                    <TableCell className="py-3 px-3 font-medium text-espresso-dark text-xs">
                       {name}
-                    </td>
+                    </TableCell>
                     {schedule.map((shift, i) => {
                       const shiftType = SHIFT_TYPES.find((s) => s.id === shift);
                       return (
-                        <td key={i} className="text-center py-3 px-2">
+                        <TableCell key={i} className="text-center py-3 px-2">
                           {shiftType ? (
                             <Badge
                               variant="outline"
@@ -61,22 +69,22 @@ export function ScheduleTab() {
                               —
                             </span>
                           )}
-                        </td>
+                        </TableCell>
                       );
                     })}
-                    <td className="text-center py-3 px-3">
+                    <TableCell className="text-center py-3 px-3">
                       <Badge
                         variant={isOvertime ? "destructive" : "default"}
                         className="text-xs"
                       >
                         {totalHours}ч
                       </Badge>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 

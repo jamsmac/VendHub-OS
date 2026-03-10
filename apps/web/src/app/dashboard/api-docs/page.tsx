@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   FileText,
@@ -250,6 +251,7 @@ interface ApiStats {
 // ─── Component ────────────────────────────────────────────────
 
 export default function ApiDocsPage() {
+  const t = useTranslations("apiDocs");
   const [search, setSearch] = useState("");
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
   const [selectedEndpoint, setSelectedEndpoint] = useState<EndpointInfo | null>(
@@ -374,7 +376,7 @@ export default function ApiDocsPage() {
   const copyPath = useCallback((path: string) => {
     navigator.clipboard.writeText(path);
     setCopiedPath(path);
-    toast.success("Путь скопирован");
+    toast.success(t("pathCopied"));
     setTimeout(() => setCopiedPath(null), 2000);
   }, []);
 
@@ -412,12 +414,9 @@ export default function ApiDocsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
             <AlertCircle className="h-12 w-12 text-destructive" />
-            <h2 className="text-lg font-semibold">
-              Не удалось загрузить API спецификацию
-            </h2>
+            <h2 className="text-lg font-semibold">{t("loadSpecError")}</h2>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              Проверьте, что API сервер запущен и Swagger доступен. Возможно,
-              требуется авторизация с ролью owner.
+              {t("loadSpecErrorHint")}
             </p>
             <Button
               onClick={() => refetchSpec()}
@@ -425,7 +424,7 @@ export default function ApiDocsPage() {
               className="gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Попробовать снова
+              {t("tryAgain")}
             </Button>
           </CardContent>
         </Card>
@@ -455,7 +454,7 @@ export default function ApiDocsPage() {
             className="gap-2"
           >
             <RefreshCw className="h-4 w-4" />
-            Обновить
+            {t("refresh")}
           </Button>
           <Button size="sm" onClick={openSwaggerUI} className="gap-2">
             <ExternalLink className="h-4 w-4" />
@@ -475,21 +474,21 @@ export default function ApiDocsPage() {
         />
         <KpiCard
           icon={<Tag className="h-5 w-5" />}
-          label="Модули"
+          label={t("modules")}
           value={stats.totalTags}
           color="text-purple-600"
           bg="bg-purple-50 dark:bg-purple-900/20"
         />
         <KpiCard
           icon={<Lock className="h-5 w-5" />}
-          label="Защищённые"
+          label={t("secured")}
           value={stats.securedEndpoints}
           color="text-emerald-600"
           bg="bg-emerald-50 dark:bg-emerald-900/20"
         />
         <KpiCard
           icon={<Globe className="h-5 w-5" />}
-          label="Публичные"
+          label={t("public")}
           value={stats.publicEndpoints}
           color="text-amber-600"
           bg="bg-amber-50 dark:bg-amber-900/20"
@@ -501,19 +500,20 @@ export default function ApiDocsPage() {
           color="text-orange-600"
           bg="bg-orange-50 dark:bg-orange-900/20"
         />
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setShowStatusBreakdown(true)}
-          className="text-left"
+          className="h-auto p-0 text-left"
         >
           <KpiCard
             icon={<BarChart3 className="h-5 w-5" />}
-            label="Ошибки (4xx/5xx)"
+            label={t("errors4xx5xx")}
             value={stats.errorResponseDefs}
             color="text-red-600"
             bg="bg-red-50 dark:bg-red-900/20"
             clickable
           />
-        </button>
+        </Button>
       </div>
 
       {/* ── Health Status Bar ───────────────────────────── */}
@@ -522,7 +522,7 @@ export default function ApiDocsPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Статус сервисов</span>
+              <span className="text-sm font-medium">{t("serviceStatus")}</span>
             </div>
             <HealthBadge status={healthOverall} />
           </div>
@@ -534,7 +534,7 @@ export default function ApiDocsPage() {
             </div>
           ) : healthError ? (
             <p className="text-sm text-muted-foreground">
-              Не удалось загрузить статус сервисов
+              {t("loadServiceStatusError")}
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -554,7 +554,7 @@ export default function ApiDocsPage() {
               ))}
               {healthServices.length === 0 && (
                 <span className="text-sm text-muted-foreground">
-                  Детальная информация недоступна
+                  {t("detailsUnavailable")}
                 </span>
               )}
             </div>
@@ -567,18 +567,22 @@ export default function ApiDocsPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Hash className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Распределение методов</span>
+            <span className="text-sm font-medium">
+              {t("methodDistribution")}
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(stats.methodCounts)
               .sort((a, b) => b[1] - a[1])
               .map(([method, count]) => (
-                <button
+                <Button
                   key={method}
+                  variant="ghost"
+                  size="sm"
                   onClick={() =>
                     setMethodFilter((prev) => (prev === method ? null : method))
                   }
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  className={`inline-flex items-center gap-1.5 h-auto px-3 py-1.5 ${
                     METHOD_COLORS[method] || "bg-gray-100 text-gray-800"
                   } ${
                     methodFilter === method
@@ -588,16 +592,18 @@ export default function ApiDocsPage() {
                 >
                   <span className="uppercase font-bold text-xs">{method}</span>
                   <span className="font-mono">{count}</span>
-                </button>
+                </Button>
               ))}
             {methodFilter && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setMethodFilter(null)}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                className="gap-1 h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3" />
-                Сбросить
-              </button>
+                {t("reset")}
+              </Button>
             )}
           </div>
         </CardContent>
@@ -608,7 +614,7 @@ export default function ApiDocsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по эндпоинтам, путям, описаниям..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -622,7 +628,7 @@ export default function ApiDocsPage() {
             className="gap-1.5"
           >
             <ArrowLeft className="h-4 w-4" />
-            Все модули
+            {t("allModules")}
           </Button>
         )}
       </div>
@@ -634,9 +640,7 @@ export default function ApiDocsPage() {
             <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
               <Search className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">
-                {search
-                  ? "Эндпоинты не найдены по вашему запросу"
-                  : "Нет доступных эндпоинтов"}
+                {search ? t("endpointsNotFound") : t("noEndpoints")}
               </p>
             </CardContent>
           </Card>
@@ -651,6 +655,7 @@ export default function ApiDocsPage() {
               _onSelectTag={setSelectedTag}
               copiedPath={copiedPath}
               onCopyPath={copyPath}
+              _t={t}
             />
           ))
         )}
@@ -662,6 +667,7 @@ export default function ApiDocsPage() {
         onClose={() => setSelectedEndpoint(null)}
         onCopyPath={copyPath}
         copiedPath={copiedPath}
+        t={t}
       />
 
       {/* ── Status Breakdown Dialog ─────────────────────── */}
@@ -670,7 +676,7 @@ export default function ApiDocsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Распределение HTTP статусов
+              {t("httpStatusDistribution")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2 max-h-[60vh] overflow-y-auto">
@@ -771,6 +777,7 @@ function TagGroupCard({
   _onSelectTag,
   copiedPath,
   onCopyPath,
+  _t,
 }: {
   group: TagGroup;
   isExpanded: boolean;
@@ -779,12 +786,14 @@ function TagGroupCard({
   _onSelectTag: (tag: string) => void;
   copiedPath: string | null;
   onCopyPath: (path: string) => void;
+  _t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <Card>
-      <button
+      <Button
+        variant="ghost"
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+        className="w-full flex items-center justify-between p-4 h-auto hover:bg-muted/50 text-left rounded-none"
       >
         <div className="flex items-center gap-3">
           {isExpanded ? (
@@ -836,15 +845,16 @@ function TagGroupCard({
             })}
           </div>
         </div>
-      </button>
+      </Button>
 
       {isExpanded && (
         <div className="border-t">
           {group.endpoints.map((ep, idx) => (
-            <button
+            <Button
               key={`${ep.method}-${ep.path}-${idx}`}
+              variant="ghost"
               onClick={() => onSelectEndpoint(ep)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors text-left border-b last:border-b-0"
+              className="w-full flex items-center gap-3 px-4 py-2.5 h-auto hover:bg-muted/30 text-left rounded-none border-b last:border-b-0"
             >
               <span
                 className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded font-mono min-w-[52px] text-center ${
@@ -873,21 +883,23 @@ function TagGroupCard({
                 {ep.isSecured && (
                   <Lock className="h-3 w-3 text-muted-foreground" />
                 )}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyPath(ep.path);
                   }}
-                  className="p-1 rounded hover:bg-muted"
+                  className="h-6 w-6 p-1"
                 >
                   {copiedPath === ep.path ? (
                     <Check className="h-3 w-3 text-emerald-500" />
                   ) : (
                     <Copy className="h-3 w-3 text-muted-foreground" />
                   )}
-                </button>
+                </Button>
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -900,11 +912,13 @@ function EndpointDetailDialog({
   onClose,
   onCopyPath,
   copiedPath,
+  t,
 }: {
   endpoint: EndpointInfo | null;
   onClose: () => void;
   onCopyPath: (path: string) => void;
   copiedPath: string | null;
+  t: ReturnType<typeof useTranslations>;
 }) {
   if (!endpoint) return null;
 
@@ -921,16 +935,18 @@ function EndpointDetailDialog({
               {endpoint.method}
             </span>
             <span className="font-mono text-base">{endpoint.path}</span>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => onCopyPath(endpoint.path)}
-              className="p-1 rounded hover:bg-muted"
+              className="h-7 w-7"
             >
               {copiedPath === endpoint.path ? (
                 <Check className="h-4 w-4 text-emerald-500" />
               ) : (
                 <Copy className="h-4 w-4 text-muted-foreground" />
               )}
-            </button>
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
@@ -939,7 +955,7 @@ function EndpointDetailDialog({
           {endpoint.summary && (
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Описание
+                {t("description")}
               </h3>
               <p className="text-sm">{endpoint.summary}</p>
             </div>
@@ -950,7 +966,7 @@ function EndpointDetailDialog({
             endpoint.description !== endpoint.summary && (
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Подробно
+                  {t("details")}
                 </h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {endpoint.description}
@@ -973,7 +989,7 @@ function EndpointDetailDialog({
           {/* Tags */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-1">
-              Модули
+              {t("modules")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
               {endpoint.tags.map((tag) => (
@@ -989,12 +1005,12 @@ function EndpointDetailDialog({
             {endpoint.isSecured ? (
               <Badge className="gap-1.5 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                 <Lock className="h-3 w-3" />
-                Авторизация обязательна
+                {t("authRequired")}
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1.5">
                 <Globe className="h-3 w-3" />
-                Публичный эндпоинт
+                {t("publicEndpoint")}
               </Badge>
             )}
             {endpoint.deprecated && (
@@ -1012,7 +1028,7 @@ function EndpointDetailDialog({
           {endpoint.parameters.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                Параметры ({endpoint.parameters.length})
+                {t("parameters", { count: endpoint.parameters.length })}
               </h3>
               <div className="space-y-1.5">
                 {endpoint.parameters.map((param, i) => (
@@ -1047,7 +1063,7 @@ function EndpointDetailDialog({
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-1.5">
                 <FileText className="h-3 w-3" />
-                Имеет тело запроса (Request Body)
+                {t("hasRequestBody")}
               </Badge>
             </div>
           )}
@@ -1055,7 +1071,7 @@ function EndpointDetailDialog({
           {/* Response Statuses */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">
-              Возможные ответы
+              {t("possibleResponses")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
               {endpoint.responseStatuses.map((status) => {

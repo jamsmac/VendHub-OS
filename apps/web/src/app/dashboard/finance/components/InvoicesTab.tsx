@@ -34,10 +34,12 @@ export function InvoicesTab({
             <div className="flex gap-1">
               {["all", "incoming", "outgoing", "pending", "overdue"].map(
                 (f) => (
-                  <button
+                  <Button
                     key={f}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => onFilterChange(f)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${invoiceFilter === f ? "bg-espresso text-white" : "bg-espresso-50 text-espresso-light"}`}
+                    className={`${invoiceFilter === f ? "bg-espresso text-white hover:bg-espresso-dark" : "bg-espresso-50 text-espresso-light"}`}
                   >
                     {f === "all"
                       ? "Все"
@@ -48,7 +50,7 @@ export function InvoicesTab({
                           : f === "pending"
                             ? "Ожидают"
                             : "Просрочены"}
-                  </button>
+                  </Button>
                 ),
               )}
             </div>

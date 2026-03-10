@@ -49,6 +49,14 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { useInvestorDashboard } from "@/lib/hooks";
 
 const investorData = {
@@ -817,13 +825,15 @@ export default function InvestorPage() {
 
       <div className="flex gap-2 border-b border-espresso/10 pb-1">
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab}
+            variant={activeTab === tab ? "default" : "ghost"}
+            size="sm"
             onClick={() => setActiveTab(tab)}
-            className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab ? "bg-espresso text-white" : "text-espresso-light hover:bg-espresso-50"}`}
+            className={`rounded-t-lg ${activeTab === tab ? "bg-espresso hover:bg-espresso-dark" : "text-espresso-light hover:bg-espresso-50"}`}
           >
             {TAB_LABELS[tab]}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -878,9 +888,9 @@ export default function InvestorPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-espresso/10">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-espresso/10">
                       {[
                         "Раунд",
                         "Дата",
@@ -888,40 +898,40 @@ export default function InvestorPage() {
                         "Оценка",
                         "Инвесторов",
                       ].map((h) => (
-                        <th
+                        <TableHead
                           key={h}
                           className="px-4 py-3 text-xs font-medium text-espresso-light text-left"
                         >
                           {h}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {fundingRounds.map((r) => (
-                      <tr
+                      <TableRow
                         key={r.name}
                         className="border-b border-espresso/5 hover:bg-espresso-50/30"
                       >
-                        <td className="px-4 py-3 text-sm font-bold text-espresso-dark">
+                        <TableCell className="px-4 py-3 text-sm font-bold text-espresso-dark">
                           {r.name}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-espresso-light">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-xs text-espresso-light">
                           {r.date}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-emerald-600">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm font-medium text-emerald-600">
                           {fmtShort(r.amount)} UZS
-                        </td>
-                        <td className="px-4 py-3 text-sm text-espresso-dark">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-espresso-dark">
                           {fmtShort(r.valuation)} UZS
-                        </td>
-                        <td className="px-4 py-3 text-xs text-espresso">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-xs text-espresso">
                           {r.investors}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -1126,34 +1136,37 @@ export default function InvestorPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-espresso/10">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-espresso/10">
                       {[
                         "Показатель",
                         "Сумма (M UZS)",
                         "MoM Изменение",
                         "%",
                       ].map((h) => (
-                        <th
+                        <TableHead
                           key={h}
                           className="px-4 py-3 text-xs font-medium text-espresso-light text-left"
                         >
                           {h}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {pnlData.map((p) => (
-                      <tr key={p.label} className="border-b border-espresso/5">
-                        <td className="px-4 py-3 text-sm font-medium text-espresso-dark">
+                      <TableRow
+                        key={p.label}
+                        className="border-b border-espresso/5"
+                      >
+                        <TableCell className="px-4 py-3 text-sm font-medium text-espresso-dark">
                           {p.label}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-bold text-espresso-dark">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm font-bold text-espresso-dark">
                           {p.value}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             {p.change >= 0 ? (
                               <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
@@ -1166,8 +1179,8 @@ export default function InvestorPage() {
                               {p.change}%
                             </span>
                           </div>
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div
                               className="flex-1 h-1.5 rounded-full bg-espresso-100"
@@ -1194,11 +1207,11 @@ export default function InvestorPage() {
                                         : "22%"}
                             </span>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -1352,9 +1365,9 @@ export default function InvestorPage() {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-espresso/10">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-espresso/10">
                         {[
                           "Период",
                           "Дата",
@@ -1362,34 +1375,34 @@ export default function InvestorPage() {
                           "Доходность",
                           "Статус",
                         ].map((h) => (
-                          <th
+                          <TableHead
                             key={h}
                             className="px-4 py-3 text-xs font-medium text-espresso-light text-left"
                           >
                             {h}
-                          </th>
+                          </TableHead>
                         ))}
-                      </tr>
-                    </thead>
-                    <tbody>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {dividends.map((d) => (
-                        <tr
+                        <TableRow
                           key={d.period}
                           className="border-b border-espresso/5"
                         >
-                          <td className="px-4 py-3 text-sm font-medium text-espresso-dark">
+                          <TableCell className="px-4 py-3 text-sm font-medium text-espresso-dark">
                             {d.period}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-espresso-light">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-xs text-espresso-light">
                             {d.date}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-medium text-emerald-600">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-sm font-medium text-emerald-600">
                             {fmtShort(d.amount)} UZS
-                          </td>
-                          <td className="px-4 py-3 text-xs text-espresso">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-xs text-espresso">
                             {d.yield}%
-                          </td>
-                          <td className="px-4 py-3">
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
                             <span
                               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                 d.status === "paid"
@@ -1409,11 +1422,11 @@ export default function InvestorPage() {
                                 </>
                               )}
                             </span>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
                 <div className="mt-3 rounded-lg bg-espresso-50 p-3 flex items-center justify-between">
                   <span className="text-xs text-espresso-light">
@@ -1465,9 +1478,9 @@ export default function InvestorPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-espresso/10">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-espresso/10">
                       {[
                         "Район",
                         "Аппаратов",
@@ -1475,28 +1488,28 @@ export default function InvestorPage() {
                         "Месячная выручка",
                         "Тренд",
                       ].map((h) => (
-                        <th
+                        <TableHead
                           key={h}
                           className="px-4 py-3 text-xs font-medium text-espresso-light text-left"
                         >
                           {h}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {districts.map((d) => (
-                      <tr
+                      <TableRow
                         key={d.name}
                         className="border-b border-espresso/5 hover:bg-espresso-50/30"
                       >
-                        <td className="px-4 py-3 text-sm font-medium text-espresso-dark">
+                        <TableCell className="px-4 py-3 text-sm font-medium text-espresso-dark">
                           {d.name}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-espresso">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-espresso">
                           {d.machines}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div
                               className="flex-1 h-1.5 rounded-full bg-espresso-100"
@@ -1514,11 +1527,11 @@ export default function InvestorPage() {
                               {d.penetration}%
                             </span>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-espresso-dark">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm font-medium text-espresso-dark">
                           {fmtShort(d.revenue * 1_000_000)} UZS
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
                           {d.trend === "up" && (
                             <ArrowUpRight className="h-4 w-4 text-emerald-600" />
                           )}
@@ -1528,11 +1541,11 @@ export default function InvestorPage() {
                           {d.trend === "stable" && (
                             <ArrowUpRight className="h-4 w-4 text-espresso-light" />
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               <div className="mt-4 p-3 rounded-lg bg-espresso-50/50 text-xs text-espresso-light">
                 <p>
@@ -1625,81 +1638,81 @@ export default function InvestorPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-espresso/10">
-                      <th className="px-4 py-3 text-xs font-medium text-espresso-light text-left">
+                <Table className="text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b border-espresso/10">
+                      <TableHead className="px-4 py-3 text-xs font-medium text-espresso-light text-left">
                         Параметр
-                      </th>
+                      </TableHead>
                       {competitors.map((c) => (
-                        <th
+                        <TableHead
                           key={c.name}
                           className="px-4 py-3 text-xs font-medium text-espresso text-center"
                         >
                           {c.name}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-espresso/5">
-                      <td className="px-4 py-3 text-xs font-medium text-espresso-light">
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="border-b border-espresso/5">
+                      <TableCell className="px-4 py-3 text-xs font-medium text-espresso-light">
                         Аппаратов
-                      </td>
+                      </TableCell>
                       {competitors.map((c) => (
-                        <td
+                        <TableCell
                           key={c.name}
                           className="px-4 py-3 text-sm font-bold text-espresso-dark text-center"
                         >
                           {c.metrics.machines}
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
-                    <tr className="border-b border-espresso/5">
-                      <td className="px-4 py-3 text-xs font-medium text-espresso-light">
+                    </TableRow>
+                    <TableRow className="border-b border-espresso/5">
+                      <TableCell className="px-4 py-3 text-xs font-medium text-espresso-light">
                         Охват
-                      </td>
+                      </TableCell>
                       {competitors.map((c) => (
-                        <td
+                        <TableCell
                           key={c.name}
                           className="px-4 py-3 text-sm text-espresso text-center"
                         >
                           {c.metrics.coverage}
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
-                    <tr className="border-b border-espresso/5">
-                      <td className="px-4 py-3 text-xs font-medium text-espresso-light">
+                    </TableRow>
+                    <TableRow className="border-b border-espresso/5">
+                      <TableCell className="px-4 py-3 text-xs font-medium text-espresso-light">
                         Средний чек
-                      </td>
+                      </TableCell>
                       {competitors.map((c) => (
-                        <td
+                        <TableCell
                           key={c.name}
                           className="px-4 py-3 text-sm text-espresso text-center"
                         >
                           {c.metrics.avgCheck}
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
-                    <tr className="border-b border-espresso/5">
-                      <td className="px-4 py-3 text-xs font-medium text-espresso-light">
+                    </TableRow>
+                    <TableRow className="border-b border-espresso/5">
+                      <TableCell className="px-4 py-3 text-xs font-medium text-espresso-light">
                         Месячная выручка
-                      </td>
+                      </TableCell>
                       {competitors.map((c) => (
-                        <td
+                        <TableCell
                           key={c.name}
                           className="px-4 py-3 text-sm font-medium text-espresso-dark text-center"
                         >
                           {c.metrics.monthlyRev}
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 text-xs font-medium text-espresso-light">
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="px-4 py-3 text-xs font-medium text-espresso-light">
                         NPS Score
-                      </td>
+                      </TableCell>
                       {competitors.map((c) => (
-                        <td
+                        <TableCell
                           key={c.name}
                           className="px-4 py-3 text-sm font-bold text-center"
                         >
@@ -1708,11 +1721,11 @@ export default function InvestorPage() {
                           >
                             +{c.metrics.nps}
                           </span>
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
-                  </tbody>
-                </table>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
               <div className="mt-3 text-xs text-espresso-light">
                 <p>
@@ -1730,9 +1743,9 @@ export default function InvestorPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-espresso/10">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-espresso/10">
                       {[
                         "#",
                         "Локация",
@@ -1743,51 +1756,51 @@ export default function InvestorPage() {
                         "Маржа",
                         "Тренд",
                       ].map((h) => (
-                        <th
+                        <TableHead
                           key={h}
                           className="px-3 py-2.5 text-xs font-medium text-espresso-light text-left"
                         >
                           {h}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {topLocations.map((loc, i) => (
-                      <tr
+                      <TableRow
                         key={loc.name}
                         className="border-b border-espresso/5 hover:bg-espresso-50/50"
                       >
-                        <td className="px-3 py-2.5">
+                        <TableCell className="px-3 py-2.5">
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-espresso-100 text-xs font-bold text-espresso">
                             #{i + 1}
                           </span>
-                        </td>
-                        <td className="px-3 py-2.5">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5">
                           <p className="text-sm font-medium text-espresso-dark">
                             {loc.name}
                           </p>
-                        </td>
-                        <td className="px-3 py-2.5 text-sm text-espresso">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5 text-sm text-espresso">
                           {loc.machines}
-                        </td>
-                        <td className="px-3 py-2.5 text-sm font-medium text-espresso-dark">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5 text-sm font-medium text-espresso-dark">
                           {loc.revenue} UZS
-                        </td>
-                        <td className="px-3 py-2.5">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5">
                           <span
                             className={`text-sm font-bold ${loc.roi >= 130 ? "text-emerald-600" : loc.roi >= 110 ? "text-amber-600" : "text-espresso"}`}
                           >
                             {loc.roi}%
                           </span>
-                        </td>
-                        <td className="px-3 py-2.5 text-xs text-espresso">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5 text-xs text-espresso">
                           {loc.dailyAvg} UZS
-                        </td>
-                        <td className="px-3 py-2.5 text-xs font-medium text-espresso">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5 text-xs font-medium text-espresso">
                           {loc.margin}%
-                        </td>
-                        <td className="px-3 py-2.5">
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5">
                           {loc.trend === "up" && (
                             <TrendingUp className="h-4 w-4 text-emerald-600" />
                           )}
@@ -1797,11 +1810,11 @@ export default function InvestorPage() {
                           {loc.trend === "stable" && (
                             <ArrowUpRight className="h-4 w-4 text-espresso-light" />
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -1816,11 +1829,12 @@ export default function InvestorPage() {
                   key={r.name}
                   className="rounded-lg border border-espresso/10 overflow-hidden"
                 >
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() =>
                       setExpandedRisk(expandedRisk === r.name ? null : r.name)
                     }
-                    className="flex w-full items-center justify-between p-4 hover:bg-espresso-50/50 transition-colors"
+                    className="flex w-full items-center justify-between p-4"
                   >
                     <div className="flex items-center gap-3">
                       <AlertCircle
@@ -1845,7 +1859,7 @@ export default function InvestorPage() {
                         <ChevronRight className="h-4 w-4 text-espresso-light" />
                       )}
                     </div>
-                  </button>
+                  </Button>
                   {expandedRisk === r.name && (
                     <div className="border-t border-espresso/10 bg-espresso-50/30 px-4 py-3 space-y-1">
                       <p className="text-xs text-espresso-light">
@@ -2185,14 +2199,16 @@ export default function InvestorPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {["all", "financial", "legal", "reports"].map((cat) => (
-                    <button
+                    <Button
                       key={cat}
+                      variant={docCategory === cat ? "default" : "outline"}
+                      size="sm"
                       onClick={() => setDocCategory(cat as DocCategory)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                      className={
                         docCategory === cat
-                          ? "bg-espresso text-white"
-                          : "bg-espresso-50 text-espresso-dark hover:bg-espresso-100"
-                      }`}
+                          ? "bg-espresso hover:bg-espresso-dark"
+                          : "bg-espresso-50 text-espresso-dark hover:bg-espresso-100 border-0"
+                      }
                     >
                       {cat === "all"
                         ? "Все документы"
@@ -2201,7 +2217,7 @@ export default function InvestorPage() {
                           : cat === "legal"
                             ? "Юридические"
                             : "Отчёты"}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

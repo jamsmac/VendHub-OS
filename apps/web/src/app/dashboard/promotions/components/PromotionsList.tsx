@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Search, Tag, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ export function PromotionsList({
   onToggleStatus,
   onDelete,
 }: PromotionsListProps) {
+  const t = useTranslations("promotionsList");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
@@ -65,7 +67,7 @@ export function PromotionsList({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-espresso-light" />
           <Input
-            placeholder="Поиск по названию, коду или описанию..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -73,38 +75,46 @@ export function PromotionsList({
         </div>
         <div className="flex gap-2">
           {(["all", "active", "inactive"] as const).map((s) => (
-            <button
+            <Button
               key={s}
+              variant="ghost"
+              size="sm"
               onClick={() => setStatusFilter(s)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`${
                 statusFilter === s
-                  ? "bg-espresso text-white"
+                  ? "bg-espresso text-white hover:bg-espresso-dark"
                   : "bg-espresso-50 text-espresso-light"
               }`}
             >
-              {s === "all" ? "Все" : s === "active" ? "Активные" : "Неактивные"}
-            </button>
+              {s === "all"
+                ? t("filterAll")
+                : s === "active"
+                  ? t("filterActive")
+                  : t("filterInactive")}
+            </Button>
           ))}
         </div>
         <div className="flex gap-2">
-          {(["all", "percent", "fixed", "special"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                typeFilter === t
-                  ? "bg-espresso text-white"
+          {(["all", "percent", "fixed", "special"] as const).map((type) => (
+            <Button
+              key={type}
+              variant="ghost"
+              size="sm"
+              onClick={() => setTypeFilter(type)}
+              className={`${
+                typeFilter === type
+                  ? "bg-espresso text-white hover:bg-espresso-dark"
                   : "bg-espresso-50 text-espresso-light"
               }`}
             >
-              {t === "all"
-                ? "Все типы"
-                : t === "percent"
-                  ? "% Скидка"
-                  : t === "fixed"
-                    ? "Фикс."
-                    : "Спец."}
-            </button>
+              {type === "all"
+                ? t("allTypes")
+                : type === "percent"
+                  ? t("typePercent")
+                  : type === "fixed"
+                    ? t("typeFixed")
+                    : t("typeSpecial")}
+            </Button>
           ))}
         </div>
       </div>
@@ -122,22 +132,25 @@ export function PromotionsList({
                   className="rounded"
                 />
                 <span className="text-sm font-medium text-espresso-dark">
-                  Выбрано: {selectedPromos.size} из {filtered.length}
+                  {t("selected", {
+                    count: selectedPromos.size,
+                    total: filtered.length,
+                  })}
                 </span>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="gap-1">
-                  <Eye className="h-3.5 w-3.5" /> Активировать
+                  <Eye className="h-3.5 w-3.5" /> {t("activate")}
                 </Button>
                 <Button variant="outline" size="sm" className="gap-1">
-                  <EyeOff className="h-3.5 w-3.5" /> Деактивировать
+                  <EyeOff className="h-3.5 w-3.5" /> {t("deactivate")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className="gap-1 text-red-500"
                 >
-                  <Trash2 className="h-3.5 w-3.5" /> Удалить
+                  <Trash2 className="h-3.5 w-3.5" /> {t("delete")}
                 </Button>
               </div>
             </div>
@@ -161,7 +174,7 @@ export function PromotionsList({
         {filtered.length === 0 && (
           <div className="rounded-lg border border-dashed border-espresso/20 py-12 text-center">
             <Tag className="mx-auto h-8 w-8 text-espresso-light/40" />
-            <p className="mt-2 text-sm text-espresso-light">Акции не найдены</p>
+            <p className="mt-2 text-sm text-espresso-light">{t("notFound")}</p>
           </div>
         )}
       </div>

@@ -39,6 +39,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, formatDate, formatNumber } from "@/lib/utils";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   BarChart,
   Bar,
   XAxis,
@@ -722,9 +730,10 @@ function ContentTab() {
         const showHistory = showVersionHistory === sec.id;
         return (
           <Card key={sec.id}>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => toggle(sec.id)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-espresso-50/50 transition-colors"
+              className="w-full px-5 py-4 flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-3 flex-1">
                 <div className="rounded-lg bg-espresso-50 p-2">
@@ -755,7 +764,7 @@ function ContentTab() {
                   <ChevronRight className="h-4 w-4 text-espresso-light" />
                 )}
               </div>
-            </button>
+            </Button>
             {isExpanded && (
               <CardContent className="border-t border-espresso/10 pt-4 space-y-4">
                 {showHistory && sec.versions && (
@@ -764,12 +773,14 @@ function ContentTab() {
                       <h4 className="text-xs font-semibold text-blue-900">
                         История версий
                       </h4>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setShowVersionHistory(null)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="h-6 w-6 text-blue-600 hover:text-blue-800"
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                     <div className="space-y-1">
                       {sec.versions.map((v, i) => (
@@ -1540,16 +1551,22 @@ function PartnershipTab() {
             { id: "supplier", label: "Поставщики" },
             { id: "service", label: "Сервис" },
           ].map((f) => (
-            <button
+            <Button
               key={f.id}
+              variant={typeFilter === f.id ? "default" : "ghost"}
+              size="sm"
               onClick={() => {
                 setTypeFilter(f.id);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${typeFilter === f.id ? "bg-espresso text-white" : "text-espresso-light hover:bg-espresso-50"}`}
+              className={
+                typeFilter === f.id
+                  ? "bg-espresso hover:bg-espresso-dark"
+                  : "text-espresso-light hover:bg-espresso-50"
+              }
             >
               {f.label}
-            </button>
+            </Button>
           ))}
         </div>
         <Button size="sm" className="gap-1 bg-espresso hover:bg-espresso-dark">
@@ -1570,12 +1587,14 @@ function PartnershipTab() {
                   Контакт: {selectedPartner.contact}
                 </p>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setSelectedPartner(null)}
-                className="text-espresso-light hover:text-espresso"
+                className="h-8 w-8 text-espresso-light hover:text-espresso"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
@@ -1629,54 +1648,54 @@ function PartnershipTab() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-espresso/10 bg-espresso-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
+            <Table className="text-sm">
+              <TableHeader className="border-b border-espresso/10 bg-espresso-50">
+                <TableRow>
+                  <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
                     Партнёр
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
                     Тип
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
                     Статус
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
                     Контакт
-                  </th>
-                  <th className="px-4 py-2 text-right text-xs font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-2 text-right text-xs font-semibold text-espresso-dark">
                     Действия
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {paginatedPartners.map((p) => (
-                  <tr
+                  <TableRow
                     key={p.id}
                     className="border-b border-espresso/10 hover:bg-espresso-50/50"
                   >
-                    <td className="px-4 py-2">
+                    <TableCell className="px-4 py-2">
                       <p className="text-xs font-medium text-espresso-dark">
                         {p.name}
                       </p>
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-2">
                       <Badge variant="outline" className="text-[10px]">
                         {PARTNER_TYPE_CONFIG[p.type].label}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-2">
                       <Badge
                         variant={STATUS_CONFIG[p.status].badge}
                         className="text-[10px]"
                       >
                         {STATUS_CONFIG[p.status].label}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-2">
                       <p className="text-xs text-espresso-light">{p.phone}</p>
-                    </td>
-                    <td className="px-4 py-2 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-right">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1685,11 +1704,11 @@ function PartnershipTab() {
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
@@ -1753,10 +1772,11 @@ export default function WebsitePage() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <Button
               key={tab.id}
+              variant="ghost"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 border-b-2 ${
+              className={`whitespace-nowrap flex items-center gap-2 rounded-none border-b-2 ${
                 isActive
                   ? "border-espresso text-espresso-dark bg-espresso-50"
                   : "border-transparent text-espresso-light hover:text-espresso-dark hover:bg-espresso-50"
@@ -1764,7 +1784,7 @@ export default function WebsitePage() {
             >
               <Icon className="h-4 w-4" />
               {tab.label}
-            </button>
+            </Button>
           );
         })}
       </div>

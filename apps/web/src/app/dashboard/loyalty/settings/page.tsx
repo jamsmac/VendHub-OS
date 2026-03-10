@@ -21,6 +21,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { useTranslations } from "next-intl";
 
 // ============================================================================
@@ -129,27 +137,27 @@ export default function LoyaltySettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 text-sm font-medium text-muted-foreground">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="text-left py-2 text-sm font-medium text-muted-foreground">
                     {t("colLevel")}
-                  </th>
-                  <th className="text-right py-2 text-sm font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-2 text-sm font-medium text-muted-foreground">
                     {t("colMinPoints")}
-                  </th>
-                  <th className="text-right py-2 text-sm font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-2 text-sm font-medium text-muted-foreground">
                     {t("colCashback")}
-                  </th>
-                  <th className="text-right py-2 text-sm font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="text-right py-2 text-sm font-medium text-muted-foreground">
                     {t("colMultiplier")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {LOYALTY_CONFIG.levels.map((level) => (
-                  <tr key={level.name} className="border-b last:border-0">
-                    <td className="py-3">
+                  <TableRow key={level.name} className="border-b last:border-0">
+                    <TableCell className="py-3">
                       <div className="flex items-center gap-2">
                         <span className="text-xl">{level.icon}</span>
                         <span className="font-medium">{level.name}</span>
@@ -158,20 +166,20 @@ export default function LoyaltySettingsPage() {
                           style={{ backgroundColor: level.color }}
                         />
                       </div>
-                    </td>
-                    <td className="py-3 text-right font-mono">
+                    </TableCell>
+                    <TableCell className="py-3 text-right font-mono">
                       {level.minPoints}
-                    </td>
-                    <td className="py-3 text-right">
+                    </TableCell>
+                    <TableCell className="py-3 text-right">
                       <Badge variant="secondary">{level.cashback}%</Badge>
-                    </td>
-                    <td className="py-3 text-right">
+                    </TableCell>
+                    <TableCell className="py-3 text-right">
                       <Badge variant="outline">x{level.multiplier}</Badge>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

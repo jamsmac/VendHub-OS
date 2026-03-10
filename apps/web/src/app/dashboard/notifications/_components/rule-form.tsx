@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -116,38 +117,27 @@ export function RuleForm({ rule, onSubmit, isPending }: RuleFormProps) {
         </label>
         <div className="flex flex-wrap gap-2 mt-1.5">
           {(["push", "email", "sms", "telegram"] as const).map((ch) => (
-            <button
+            <Button
               key={ch}
               type="button"
+              variant={formData.channels.includes(ch) ? "default" : "outline"}
+              size="sm"
+              className="rounded-full"
               onClick={() => toggleChannel(ch)}
-              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                formData.channels.includes(ch)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-background border-input hover:bg-muted"
-              }`}
             >
               {t(`channel_${ch}`)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
       <div className="flex items-center justify-between pt-2">
         <label className="flex items-center gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() =>
-              setFormData({ ...formData, is_active: !formData.is_active })
+          <Switch
+            checked={formData.is_active}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, is_active: checked })
             }
-            className={`relative w-10 h-5 rounded-full transition-colors ${
-              formData.is_active ? "bg-green-500" : "bg-input"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                formData.is_active ? "translate-x-5" : "translate-x-0.5"
-              }`}
-            />
-          </button>
+          />
           <span>{formData.is_active ? t("active") : t("inactive")}</span>
         </label>
         <Button type="submit" disabled={isPending}>

@@ -704,15 +704,16 @@ function WebhookForm({
           {ALL_EVENTS.map((ev) => {
             const selected = selectedEvents.includes(ev);
             return (
-              <button
+              <Button
                 key={ev}
                 type="button"
-                onClick={() => toggleEvent(ev)}
-                className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                variant="ghost"
+                className={`flex items-center justify-start gap-3 h-auto px-3 py-2 text-sm text-left w-full ${
                   selected
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/40"
+                    ? "border border-primary bg-primary/5"
+                    : "border border-border hover:border-muted-foreground/40"
                 }`}
+                onClick={() => toggleEvent(ev)}
               >
                 <div
                   className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
@@ -733,7 +734,7 @@ function WebhookForm({
                 <span className="text-muted-foreground font-mono text-xs">
                   {ev}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -803,17 +804,19 @@ function WebhookLogsDialog({
             >
               {showUrl ? webhook.url : truncateUrlStatic(webhook.url, 60)}
             </code>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
+              className="w-5 h-5 text-muted-foreground hover:text-foreground"
               onClick={() => setShowUrl((v) => !v)}
-              className="text-muted-foreground hover:text-foreground"
             >
               {showUrl ? (
                 <EyeOff className="w-3 h-3" />
               ) : (
                 <Eye className="w-3 h-3" />
               )}
-            </button>
+            </Button>
           </div>
         </DialogHeader>
 

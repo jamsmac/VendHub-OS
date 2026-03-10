@@ -52,9 +52,10 @@ export function RoleModal({ open, onClose }: RoleModalProps) {
                 "bg-pink-500",
                 "bg-gray-500",
               ].map((c) => (
-                <button
+                <Button
                   key={c}
-                  className={`w-8 h-8 rounded-full ${c} hover:ring-2 ring-offset-2 transition-all`}
+                  variant="ghost"
+                  className={`w-8 h-8 rounded-full p-0 ${c} hover:ring-2 ring-offset-2`}
                 />
               ))}
             </div>

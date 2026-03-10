@@ -2,6 +2,14 @@
 
 import { RefreshCw, Scale } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./StatusBadge";
 import { fmt } from "./config";
@@ -76,9 +84,9 @@ export function ReconciliationTab({
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-espresso/10">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
                   {[
                     "#",
                     "Источник",
@@ -88,50 +96,50 @@ export function ReconciliationTab({
                     "Разница",
                     "Статус",
                   ].map((h) => (
-                    <th
+                    <TableHead
                       key={h}
                       className={`px-4 py-3 text-xs font-medium text-espresso-light ${["В системе", "Фактически", "Разница"].includes(h) ? "text-right" : "text-left"}`}
                     >
                       {h}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {reconciliationItems.map((item) => (
-                  <tr
+                  <TableRow
                     key={item.id}
                     className="border-b border-espresso/5 hover:bg-espresso-50/50 transition-colors"
                   >
-                    <td className="px-4 py-3 text-sm text-espresso-light">
+                    <TableCell className="px-4 py-3 text-sm text-espresso-light">
                       {item.id}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-espresso-dark">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-sm font-medium text-espresso-dark">
                       {item.source}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-espresso-light">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-xs text-espresso-light">
                       {item.date}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right text-espresso-dark">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-sm text-right text-espresso-dark">
                       {fmt(item.systemAmount)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right text-espresso-dark">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-sm text-right text-espresso-dark">
                       {fmt(item.actualAmount)}
-                    </td>
-                    <td
+                    </TableCell>
+                    <TableCell
                       className={`px-4 py-3 text-sm text-right font-medium ${item.difference === 0 ? "text-espresso-light" : "text-red-500"}`}
                     >
                       {item.difference === 0
                         ? "—"
                         : `${item.difference < 0 ? "−" : "+"}${fmt(Math.abs(item.difference))}`}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <StatusBadge status={item.status} />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

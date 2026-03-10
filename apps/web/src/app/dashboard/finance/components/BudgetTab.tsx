@@ -1,6 +1,14 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { fmt, fmtShort } from "./config";
 import { BudgetItem } from "./types";
 
@@ -64,62 +72,62 @@ export function BudgetTab({
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-espresso/10">
-                  <th className="px-4 py-3 text-left font-medium text-espresso-dark">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
+                  <TableHead className="px-4 py-3 text-left font-medium text-espresso-dark">
                     Категория
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
                     Бюджет
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
                     Потрачено
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
                     Разница
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
                     Утилизация
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {budgetData.map((b) => {
                   const variance = b.budget - b.actual;
                   const isOver = variance < 0;
                   return (
-                    <tr
+                    <TableRow
                       key={b.category}
                       className="border-b border-espresso/5 hover:bg-espresso-50/50 transition-colors"
                     >
-                      <td className="px-4 py-3 font-medium text-espresso-dark">
+                      <TableCell className="px-4 py-3 font-medium text-espresso-dark">
                         {b.category}
-                      </td>
-                      <td className="px-4 py-3 text-right text-espresso-light">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-espresso-light">
                         {fmt(b.budget)} UZS
-                      </td>
-                      <td className="px-4 py-3 text-right text-espresso-dark font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-espresso-dark font-medium">
                         {fmt(b.actual)} UZS
-                      </td>
-                      <td
+                      </TableCell>
+                      <TableCell
                         className={`px-4 py-3 text-right font-medium ${isOver ? "text-red-500" : "text-emerald-600"}`}
                       >
                         {isOver ? "−" : "+"}
                         {fmt(Math.abs(variance))}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${b.utilization > 95 ? "bg-red-50 text-red-600" : b.utilization > 85 ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}
                         >
                           {b.utilization}%
                         </span>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

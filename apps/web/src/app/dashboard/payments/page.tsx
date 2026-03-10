@@ -858,8 +858,9 @@ export default function PaymentsPage() {
 
               {/* Request Payload */}
               <div className="border rounded-lg">
-                <button
-                  className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
+                <Button
+                  variant="ghost"
+                  className="flex items-center justify-between w-full p-3"
                   onClick={() => setShowRequest(!showRequest)}
                 >
                   <span className="text-sm font-medium">
@@ -870,7 +871,7 @@ export default function PaymentsPage() {
                   ) : (
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
-                </button>
+                </Button>
                 {showRequest && (
                   <div className="p-3 border-t bg-muted/30">
                     <pre className="text-xs overflow-auto max-h-48 whitespace-pre-wrap font-mono">
@@ -888,8 +889,9 @@ export default function PaymentsPage() {
 
               {/* Response Payload */}
               <div className="border rounded-lg">
-                <button
-                  className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
+                <Button
+                  variant="ghost"
+                  className="flex items-center justify-between w-full p-3"
                   onClick={() => setShowResponse(!showResponse)}
                 >
                   <span className="text-sm font-medium">
@@ -900,7 +902,7 @@ export default function PaymentsPage() {
                   ) : (
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
-                </button>
+                </Button>
                 {showResponse && (
                   <div className="p-3 border-t bg-muted/30">
                     <pre className="text-xs overflow-auto max-h-48 whitespace-pre-wrap font-mono">

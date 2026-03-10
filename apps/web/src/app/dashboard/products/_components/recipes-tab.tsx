@@ -22,6 +22,14 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -240,80 +248,80 @@ export function RecipesTab() {
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("recipe")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("product")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("type")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("time")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("volume")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {t("costShort")}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {tCommon("status")}
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {tCommon("actions")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border">
                   {filteredRecipes.map((recipe: Recipe) => {
                     const typeInfo =
                       recipeTypeLabels[recipe.typeCode] ||
                       recipeTypeLabels.primary;
                     return (
-                      <tr
+                      <TableRow
                         key={recipe.id}
                         className="hover:bg-muted/50 transition-colors cursor-pointer"
                         onClick={() => setSelectedRecipe(recipe.id)}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center">
                               <FlaskConical className="h-5 w-5 text-blue-600" />
                             </div>
                             <span className="font-medium">{recipe.name}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {recipe.product?.name || "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.color}`}
                           >
                             {typeInfo.label}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {recipe.preparationTimeSeconds
                             ? formatTime(recipe.preparationTimeSeconds)
                             : "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {recipe.servingSizeMl
                             ? `${recipe.servingSizeMl} ${t("unitMl")}`
                             : "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {recipe.totalCost > 0
                             ? formatPrice(recipe.totalCost)
                             : "\u2014"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${
                               recipe.isActive
@@ -325,15 +333,15 @@ export function RecipesTab() {
                               ? tCommon("active")
                               : tCommon("inactive")}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-right">
                           <ChevronRight className="h-4 w-4 text-muted-foreground inline-block" />
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>

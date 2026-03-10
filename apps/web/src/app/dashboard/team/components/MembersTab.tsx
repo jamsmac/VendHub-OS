@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent } from "react";
+import { useTranslations } from "next-intl";
 import {
   Search,
   LayoutGrid,
@@ -66,6 +67,8 @@ export function MembersTab({
   onToggleDept,
   onPreviewMember,
 }: MembersTabProps) {
+  const t = useTranslations("teamMembers");
+
   const renderMemberCard = (member: ExtendedEmployee) => {
     const roleMeta = ROLE_META[member.role] || ROLE_META.viewer;
     const statusMeta = STATUS_META[member.status];
@@ -119,14 +122,18 @@ export function MembersTab({
               <p className="text-xs font-semibold text-espresso-dark">
                 {member.tasksCompleted}
               </p>
-              <p className="text-[10px] text-espresso-light">Задач</p>
+              <p className="text-[10px] text-espresso-light">
+                {t("tasksLabel")}
+              </p>
             </div>
             <div>
               <p className="text-xs font-semibold text-espresso-dark flex items-center justify-center gap-0.5">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                 {member.rating}
               </p>
-              <p className="text-[10px] text-espresso-light">Рейтинг</p>
+              <p className="text-[10px] text-espresso-light">
+                {t("ratingLabel")}
+              </p>
             </div>
             <div>
               <p className={`text-xs font-semibold ${statusMeta.color}`}>
@@ -219,7 +226,7 @@ export function MembersTab({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              title="Отправить сообщение"
+              title={t("sendMessage")}
               onClick={() => {
                 /* TODO: implement messaging */
               }}
@@ -230,7 +237,7 @@ export function MembersTab({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              title="Назначить задачу"
+              title={t("assignTask")}
               onClick={() => {
                 /* TODO: implement task assignment */
               }}
@@ -241,7 +248,7 @@ export function MembersTab({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              title="Дополнительные действия"
+              title={t("moreActions")}
               onClick={() => onPreviewMember(member)}
             >
               <MoreVertical className="h-3 w-3" />
@@ -259,7 +266,7 @@ export function MembersTab({
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
             <Input
-              placeholder="Поиск по имени, email, должности..."
+              placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 onSearchChange(e.target.value)
@@ -276,7 +283,7 @@ export function MembersTab({
           }
           className="rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso"
         >
-          <option value="all">Все роли</option>
+          <option value="all">{t("allRoles")}</option>
           {Object.entries(ROLE_META).map(([key, val]) => (
             <option key={key} value={key}>
               {val.label}
@@ -290,7 +297,7 @@ export function MembersTab({
           }
           className="rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso"
         >
-          <option value="all">Все отделы</option>
+          <option value="all">{t("allDepartments")}</option>
           {DEPARTMENTS.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name}
@@ -304,7 +311,7 @@ export function MembersTab({
           }
           className="rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso"
         >
-          <option value="all">Все статусы</option>
+          <option value="all">{t("allStatuses")}</option>
           {Object.entries(STATUS_META).map(([key, val]) => (
             <option key={key} value={key}>
               {val.label}
@@ -362,15 +369,15 @@ export function MembersTab({
                     onChange={onSelectAll}
                   />
                 </TableHead>
-                <TableHead>Сотрудник</TableHead>
-                <TableHead>Роль</TableHead>
-                <TableHead>Отдел</TableHead>
+                <TableHead>{t("colEmployee")}</TableHead>
+                <TableHead>{t("colRole")}</TableHead>
+                <TableHead>{t("colDepartment")}</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>КПИ</TableHead>
-                <TableHead className="text-center">Рейтинг</TableHead>
-                <TableHead className="text-center">Задач</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead>KPI</TableHead>
+                <TableHead className="text-center">{t("colRating")}</TableHead>
+                <TableHead className="text-center">{t("colTasks")}</TableHead>
+                <TableHead>{t("colStatus")}</TableHead>
+                <TableHead>{t("colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>{filtered.map(renderMemberRow)}</TableBody>
@@ -386,9 +393,10 @@ export function MembersTab({
             const isExpanded = expandedDepts.includes(dept.id);
             return (
               <div key={dept.id}>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onToggleDept(dept.id)}
-                  className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${dept.bgColor}`}
+                  className={`w-full flex items-center gap-2 justify-start h-auto py-2.5 ${dept.bgColor}`}
                 >
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
@@ -400,7 +408,7 @@ export function MembersTab({
                   <Badge variant="outline" className="ml-auto text-xs">
                     {members.length}
                   </Badge>
-                </button>
+                </Button>
                 {isExpanded && (
                   <div className="ml-2 mt-1 space-y-1 border-l-2 border-espresso/10 pl-4">
                     {members.map((member) => {

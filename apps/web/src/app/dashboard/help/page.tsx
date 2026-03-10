@@ -42,233 +42,98 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useCmsArticles } from "@/lib/hooks/use-cms";
+import { useTranslations } from "next-intl";
 
-// ============= ENHANCED FAQ DATA (25 questions total) =============
-const faqData = [
+// ============= FAQ DATA STRUCTURE (keys for i18n) =============
+const faqCategories = [
+  { key: "general", icon: PlayCircle, color: "bg-blue-50 text-blue-600" },
+  { key: "machines", icon: Target, color: "bg-amber-50 text-amber-600" },
   {
-    category: "Общие",
-    icon: PlayCircle,
-    color: "bg-blue-50 text-blue-600",
-    questions: [
-      {
-        q: "Как добавить новый вендинговый аппарат?",
-        a: "Перейдите в раздел «Автоматы» → нажмите «Добавить аппарат» → заполните серийный номер и данные о локации → сохраните. Аппарат появится в списке после синхронизации.",
-        views: 342,
-        relatedArticles: ["Полное руководство по планограммам"],
-      },
-      {
-        q: "Как настроить уведомления?",
-        a: "Откройте «Настройки» → «Уведомления» → выберите каналы (Email, Telegram, SMS) и типы событий, о которых хотите получать оповещения.",
-        views: 256,
-        relatedArticles: ["Быстрый старт для новых администраторов"],
-      },
-      {
-        q: "Как пригласить сотрудника в систему?",
-        a: "Перейдите в «Команда» → нажмите «Пригласить» → введите email и выберите роль. Сотрудник получит ссылку для регистрации.",
-        views: 189,
-        relatedArticles: [],
-      },
-      {
-        q: "Какие роли доступны в системе?",
-        a: "Владелец, Администратор, Менеджер, Оператор, Складовщик, Бухгалтер, Контент-менеджер, Наблюдатель. Каждая роль имеет свой набор разрешений (RBAC).",
-        views: 145,
-        relatedArticles: [],
-      },
-      {
-        q: "Как импортировать существующие данные?",
-        a: "Перейдите в «AI-Импорт» → загрузите файл (xlsx, csv, json) → AI автоматически определит тип данных и сопоставит поля → проверьте и подтвердите импорт.",
-        views: 98,
-        relatedArticles: [],
-      },
-    ],
-  },
-  {
-    category: "Автоматы",
-    icon: Target,
-    color: "bg-amber-50 text-amber-600",
-    questions: [
-      {
-        q: "Что означают статусы аппаратов?",
-        a: "Зелёный (Онлайн) — аппарат работает нормально. Жёлтый (Внимание) — требуется внимание (низкие запасы, отклонение температуры). Красный (Офлайн) — нет связи или критическая ошибка.",
-        views: 523,
-        relatedArticles: [
-          "Полное руководство по планограммам",
-          "Обслуживание автоматов — техническое обслуживание",
-        ],
-      },
-      {
-        q: "Как настроить планограмму?",
-        a: "Откройте карточку аппарата → вкладка «Планограмма» → перетащите товары в нужные ячейки → сохраните. Планограмма определяет, какие напитки доступны на конкретном аппарате.",
-        views: 267,
-        relatedArticles: ["Полное руководство по планограммам"],
-      },
-      {
-        q: "Как отслеживать температуру?",
-        a: "На карточке аппарата есть виджет температуры с историей. Для настройки алертов: «Настройки» → «Мониторинг» → задайте пороговые значения (норма 85-95°C).",
-        views: 198,
-        relatedArticles: [],
-      },
-      {
-        q: "Как работает телеметрия?",
-        a: "Автоматы отправляют данные каждые 30 сек: уровни ингредиентов, температура, количество стаканов, ошибки. При потере связи > 5 мин система создаёт алерт.",
-        views: 312,
-        relatedArticles: [],
-      },
-      {
-        q: "Как посмотреть историю обслуживания?",
-        a: "Карточка аппарата → вкладка «История» → все операции: заправки, ремонты, инкассации. Фильтр по дате и типу операции.",
-        views: 156,
-        relatedArticles: ["Обслуживание автоматов — техническое обслуживание"],
-      },
-      {
-        q: "Как настроить расписание плановых ТО?",
-        a: "Карточка аппарата → «Обслуживание» → создайте расписание (еженедельное/ежемесячное) → укажите тип работ (чистка, замена фильтров) → назначьте сотрудника. Уведомления об обслуживании отправляются за 24 часа.",
-        views: 234,
-        relatedArticles: [],
-      },
-    ],
-  },
-  {
-    category: "Платежи",
+    key: "payments",
     icon: TrendingUp,
     color: "bg-emerald-50 text-emerald-600",
-    questions: [
-      {
-        q: "Как экспортировать отчёт?",
-        a: "В разделе «Отчёты» выберите нужный отчёт → настройте параметры (период, группировка) → нажмите «Экспорт» → выберите формат (PDF, Excel, CSV).",
-        views: 287,
-        relatedArticles: [],
-      },
-      {
-        q: "Как работает сверка платежей?",
-        a: "Система автоматически сопоставляет транзакции из платёжных систем (Payme, Click, Uzum) с данными инкассации. Расхождения отмечаются для ручной проверки в разделе «Финансы» → «Сверка».",
-        views: 176,
-        relatedArticles: [],
-      },
-      {
-        q: "Как настроить автоматические отчёты?",
-        a: "В «Отчёты» → «Список отчётов» → выберите отчёт → «Расписание» → укажите периодичность (ежедневно/еженедельно/ежемесячно), получателей и формат.",
-        views: 134,
-        relatedArticles: [],
-      },
-      {
-        q: "Как подключить фискализацию Multikassa?",
-        a: "«Настройки» → «Интеграции» → «Multikassa» → введите API ключ → активируйте. Все чеки будут автоматически фискализироваться. Статус чеков в «Финансы» → «Фискализация».",
-        views: 89,
-        relatedArticles: [],
-      },
-    ],
   },
-  {
-    category: "Лояльность",
-    icon: Star,
-    color: "bg-purple-50 text-purple-600",
-    questions: [
-      {
-        q: "Как работает бонусная система?",
-        a: "Клиенты получают баллы за покупки (1 UZS = 1 балл с кэшбэком от уровня). 5 уровней: Bronze→Silver→Gold→Platinum→Diamond. Баллы можно тратить на напитки или переводить друзьям.",
-        views: 445,
-        relatedArticles: ["Лояльность 2.0 — как это работает"],
-      },
-      {
-        q: "Как создать промо-акцию?",
-        a: "«Акции» → «Добавить акцию» → заполните: название, описание, тип скидки (%), промокод, условия, период. Акция появится в мобильном приложении и на сайте.",
-        views: 234,
-        relatedArticles: [],
-      },
-      {
-        q: "Как настроить квесты для клиентов?",
-        a: "«Лояльность» → «Квесты» → «Создать квест» → выберите тип (ежедневный/еженедельный/специальный), условие выполнения и награду.",
-        views: 178,
-        relatedArticles: ["Лояльность 2.0 — как это работает"],
-      },
-      {
-        q: "Как работают рефералы?",
-        a: "Клиент делится реферальным кодом → друг совершает первую покупку на 5000+ UZS → оба получают по 10 000 бонусных баллов. Статистика рефералов в «Клиенты» → профиль.",
-        views: 156,
-        relatedArticles: [],
-      },
-    ],
-  },
-  {
-    category: "Техподдержка",
-    icon: Zap,
-    color: "bg-orange-50 text-orange-600",
-    questions: [
-      {
-        q: "Как подключить Payme/Click?",
-        a: "«Настройки» → «Интеграции» → найдите нужную ПС → «Подключить» → введите API ключи из ЛК платёжной системы → пройдите тестовую транзакцию.",
-        views: 356,
-        relatedArticles: [],
-      },
-      {
-        q: "Как настроить Telegram бота?",
-        a: "«Настройки» → «Интеграции» → «Telegram Bot» → скопируйте токен бота → добавьте бота в чат → пройдите верификацию. 2 бота: @vendhub_bot (клиенты) и @vendhub_staff_bot (персонал).",
-        views: 245,
-        relatedArticles: [],
-      },
-      {
-        q: "Поддерживается ли 1C?",
-        a: "Да, есть готовая интеграция с 1C:Предприятие. Обмен данными: справочники, документы, остатки. Настройка: «Интеграции» → «1C» → загрузите конфигурацию обмена.",
-        views: 167,
-        relatedArticles: ["Интеграция с 1C — пошаговая инструкция"],
-      },
-      {
-        q: "Есть ли API для разработчиков?",
-        a: "Да, REST API v1 с JWT авторизацией. Документация: /api/v1/docs. Rate limit: 100 запросов/мин. Для получения токена: «Настройки» → «API» → «Создать токен».",
-        views: 89,
-        relatedArticles: ["API v1 — Обмен данными в реальном времени"],
-      },
-      {
-        q: "Как работает offline режим мобильного приложения?",
-        a: "Мобильное приложение кэширует меню и доступные операции. При отсутствии интернета клиент может просмотреть товары и создать заказ (сохранится в очередь). Синхронизация произойдёт автоматически при восстановлении соединения.",
-        views: 167,
-        relatedArticles: [],
-      },
-    ],
-  },
-];
+  { key: "loyalty", icon: Star, color: "bg-purple-50 text-purple-600" },
+  { key: "techSupport", icon: Zap, color: "bg-orange-50 text-orange-600" },
+] as const;
+
+const faqQuestionsMeta = {
+  general: [
+    { views: 342, relatedArticleKeys: ["planogramGuide"] },
+    { views: 256, relatedArticleKeys: ["quickStart"] },
+    { views: 189, relatedArticleKeys: [] },
+    { views: 145, relatedArticleKeys: [] },
+    { views: 98, relatedArticleKeys: [] },
+  ],
+  machines: [
+    { views: 523, relatedArticleKeys: ["planogramGuide", "maintenanceGuide"] },
+    { views: 267, relatedArticleKeys: ["planogramGuide"] },
+    { views: 198, relatedArticleKeys: [] },
+    { views: 312, relatedArticleKeys: [] },
+    { views: 156, relatedArticleKeys: ["maintenanceGuide"] },
+    { views: 234, relatedArticleKeys: [] },
+  ],
+  payments: [
+    { views: 287, relatedArticleKeys: [] },
+    { views: 176, relatedArticleKeys: [] },
+    { views: 134, relatedArticleKeys: [] },
+    { views: 89, relatedArticleKeys: [] },
+  ],
+  loyalty: [
+    { views: 445, relatedArticleKeys: ["loyalty2"] },
+    { views: 234, relatedArticleKeys: [] },
+    { views: 178, relatedArticleKeys: ["loyalty2"] },
+    { views: 156, relatedArticleKeys: [] },
+  ],
+  techSupport: [
+    { views: 356, relatedArticleKeys: [] },
+    { views: 245, relatedArticleKeys: [] },
+    { views: 167, relatedArticleKeys: ["integration1c"] },
+    { views: 89, relatedArticleKeys: ["apiV1"] },
+    { views: 167, relatedArticleKeys: [] },
+  ],
+} as const;
 
 // ============= KNOWLEDGE BASE CATEGORIES =============
 const knowledgeBaseCategories = [
   {
     id: 1,
-    name: "Начало работы",
+    key: "gettingStarted",
     icon: PlayCircle,
     count: 5,
     color: "bg-blue-50 text-blue-600",
   },
   {
     id: 2,
-    name: "Автоматы и оборудование",
+    key: "machinesEquipment",
     icon: Target,
     count: 8,
     color: "bg-amber-50 text-amber-600",
   },
   {
     id: 3,
-    name: "Товары и рецепты",
+    key: "productsRecipes",
     icon: Lightbulb,
     count: 6,
     color: "bg-green-50 text-green-600",
   },
   {
     id: 4,
-    name: "Финансы и отчёты",
+    key: "financeReports",
     icon: BarChart3,
     count: 7,
     color: "bg-emerald-50 text-emerald-600",
   },
   {
     id: 5,
-    name: "Лояльность клиентов",
+    key: "customerLoyalty",
     icon: Star,
     count: 4,
     color: "bg-purple-50 text-purple-600",
   },
   {
     id: 6,
-    name: "Администрирование",
+    key: "administration",
     icon: Users,
     count: 5,
     color: "bg-pink-50 text-pink-600",
@@ -277,217 +142,125 @@ const knowledgeBaseCategories = [
 
 // ============= VIDEO TUTORIALS =============
 const videoTutorials = [
-  {
-    id: 1,
-    title: "Подключение нового аппарата",
-    duration: "8 мин",
-    difficulty: "Новичок",
-    views: 1234,
-  },
-  {
-    id: 2,
-    title: "Настройка планограммы и рецептур",
-    duration: "12 мин",
-    difficulty: "Средний",
-    views: 856,
-  },
-  {
-    id: 3,
-    title: "Работа с отчётами и аналитикой",
-    duration: "15 мин",
-    difficulty: "Средний",
-    views: 672,
-  },
-  {
-    id: 4,
-    title: "Управление командой и правами доступа",
-    duration: "10 мин",
-    difficulty: "Средний",
-    views: 543,
-  },
-  {
-    id: 5,
-    title: "Настройка интеграций и API",
-    duration: "18 мин",
-    difficulty: "Продвинутый",
-    views: 421,
-  },
-  {
-    id: 6,
-    title: "Лояльность 2.0 и маркетинг",
-    duration: "14 мин",
-    difficulty: "Средний",
-    views: 789,
-  },
+  { id: 1, key: "connectMachine", views: 1234 },
+  { id: 2, key: "planogramRecipes", views: 856 },
+  { id: 3, key: "reportsAnalytics", views: 672 },
+  { id: 4, key: "teamAccess", views: 543 },
+  { id: 5, key: "integrationsApi", views: 421 },
+  { id: 6, key: "loyaltyMarketing", views: 789 },
 ];
 
 // ============= LEARNING PATHS =============
 const learningPaths = [
-  {
-    id: 1,
-    name: "Новичок",
-    progress: 0,
-    completed: 0,
-    total: 5,
-    description: "Первые шаги в системе",
-  },
-  {
-    id: 2,
-    name: "Оператор",
-    progress: 30,
-    completed: 3,
-    total: 10,
-    description: "Основные операции и мониторинг",
-  },
-  {
-    id: 3,
-    name: "Администратор",
-    progress: 0,
-    completed: 0,
-    total: 15,
-    description: "Управление системой и интеграции",
-  },
+  { id: 1, key: "beginner", progress: 0, completed: 0, total: 5 },
+  { id: 2, key: "operator", progress: 30, completed: 3, total: 10 },
+  { id: 3, key: "administrator", progress: 0, completed: 0, total: 15 },
 ];
 
 // ============= WALKTHROUGHS =============
 const walkthroughs = [
-  {
-    id: 1,
-    title: "Обзор дашборда",
-    description: "Экскурсия по главному экрану управления",
-    duration: "5 мин",
-  },
-  {
-    id: 2,
-    title: "Создание первого автомата",
-    description: "Пошаговое добавление вендингового аппарата",
-    duration: "7 мин",
-  },
-  {
-    id: 3,
-    title: "Настройка товаров и рецептур",
-    description: "Создание меню для ваших аппаратов",
-    duration: "8 мин",
-  },
+  { id: 1, key: "dashboardOverview" },
+  { id: 2, key: "firstMachine" },
+  { id: 3, key: "productsRecipes" },
 ];
 
 // ============= ENHANCED SUPPORT TICKETS (8 total) =============
 const supportTickets = [
   {
     id: "TKT-2026-0089",
-    subject: "Проблема с синхронизацией VM-045",
+    key: "tkt0089",
     status: "open" as const,
     priority: "high" as const,
     created: "01.03.2026",
-    lastUpdate: "2 часа назад",
-    assignee: "Техническая поддержка",
     messages: 3,
-    category: "Техническая проблема",
     slaStatus: "on_track" as const,
   },
   {
     id: "TKT-2026-0088",
-    subject: "Автомат VM-003 не фискализирует чеки",
+    key: "tkt0088",
     status: "open" as const,
     priority: "high" as const,
     created: "01.03.2026",
-    lastUpdate: "4 часа назад",
-    assignee: "Бухгалтерия",
     messages: 1,
-    category: "Финансы",
     slaStatus: "at_risk" as const,
   },
   {
     id: "TKT-2026-0087",
-    subject: "Вопрос по настройке webhook API v1",
+    key: "tkt0087",
     status: "in_progress" as const,
     priority: "medium" as const,
     created: "28.02.2026",
-    lastUpdate: "1 день назад",
-    assignee: "Разработка",
     messages: 5,
-    category: "Разработка",
     slaStatus: "on_track" as const,
   },
   {
     id: "TKT-2026-0085",
-    subject: "Не работает экспорт в PDF (Firefox)",
+    key: "tkt0085",
     status: "in_progress" as const,
     priority: "medium" as const,
     created: "27.02.2026",
-    lastUpdate: "2 дня назад",
-    assignee: "Разработка",
     messages: 8,
-    category: "Баг",
     slaStatus: "on_track" as const,
   },
   {
     id: "TKT-2026-0082",
-    subject: "Запрос на новый тип отчёта — LTV по когортам",
+    key: "tkt0082",
     status: "resolved" as const,
     priority: "low" as const,
     created: "25.02.2026",
-    lastUpdate: "3 дня назад",
-    assignee: "Продукт",
     messages: 4,
-    category: "Запрос функции",
     slaStatus: "on_track" as const,
   },
   {
     id: "TKT-2026-0079",
-    subject: "Обучение нового оператора — доступ к мануалу",
+    key: "tkt0079",
     status: "resolved" as const,
     priority: "low" as const,
     created: "22.02.2026",
-    lastUpdate: "5 дней назад",
-    assignee: "Техническая поддержка",
     messages: 2,
-    category: "Обучение",
     slaStatus: "on_track" as const,
   },
   {
     id: "TKT-2026-0076",
-    subject: "Критическая ошибка при инкассации VM-021",
+    key: "tkt0076",
     status: "open" as const,
     priority: "high" as const,
     created: "01.03.2026",
-    lastUpdate: "30 минут назад",
-    assignee: "Техническая поддержка",
     messages: 2,
-    category: "Техническая проблема",
     slaStatus: "breached" as const,
   },
   {
     id: "TKT-2026-0072",
-    subject: "Требуется полная переподготовка команды по новому интерфейсу",
+    key: "tkt0072",
     status: "in_progress" as const,
     priority: "medium" as const,
     created: "28.02.2026",
-    lastUpdate: "18 часов назад",
-    assignee: "Обучение",
     messages: 6,
-    category: "Обучение",
     slaStatus: "on_track" as const,
   },
 ];
 
 const TICKET_STATUS = {
   open: {
-    label: "Открыт",
+    key: "open" as const,
     color: "bg-red-100 text-red-700",
     icon: AlertCircle,
   },
   in_progress: {
-    label: "В работе",
+    key: "inProgress" as const,
     color: "bg-amber-100 text-amber-700",
     icon: Clock,
   },
   resolved: {
-    label: "Решён",
+    key: "resolved" as const,
     color: "bg-emerald-100 text-emerald-700",
     icon: CheckCircle,
   },
-  closed: { label: "Закрыт", color: "bg-slate-100 text-slate-700", icon: X },
+  closed: {
+    key: "closed" as const,
+    color: "bg-slate-100 text-slate-700",
+    icon: X,
+  },
 };
 
 const PRIORITY_COLORS = {
@@ -495,21 +268,20 @@ const PRIORITY_COLORS = {
   medium: "bg-amber-50 text-amber-600",
   low: "bg-blue-50 text-blue-600",
 };
-const PRIORITY_LABELS = { high: "Высокий", medium: "Средний", low: "Низкий" };
 
 const SLA_STATUS = {
   on_track: {
-    label: "В норме",
+    key: "onTrack" as const,
     color: "bg-emerald-50 text-emerald-600",
     icon: CheckCircle,
   },
   at_risk: {
-    label: "Риск",
+    key: "atRisk" as const,
     color: "bg-amber-50 text-amber-600",
     icon: AlertTriangle,
   },
   breached: {
-    label: "Нарушено",
+    key: "breached" as const,
     color: "bg-red-50 text-red-600",
     icon: AlertCircle,
   },
@@ -517,39 +289,32 @@ const SLA_STATUS = {
 
 type ChangelogType = "feature" | "bugfix" | "improvement";
 
-interface ChangelogEntry {
-  version: string;
-  date: string;
-  changes: string[];
-  type: ChangelogType;
-}
-
 // ============= SYSTEM STATUS SERVICES =============
 const systemServices = [
   {
     id: 1,
-    name: "API сервис",
+    key: "apiService",
     status: "operational" as const,
     uptime: "99.98%",
     responseTime: "145ms",
   },
   {
     id: 2,
-    name: "Платежные системы",
+    key: "paymentSystems",
     status: "operational" as const,
     uptime: "99.95%",
     responseTime: "234ms",
   },
   {
     id: 3,
-    name: "Телеметрия и датчики",
+    key: "telemetry",
     status: "degraded" as const,
     uptime: "98.50%",
     responseTime: "567ms",
   },
   {
     id: 4,
-    name: "Лендинг сайт",
+    key: "landingSite",
     status: "operational" as const,
     uptime: "99.99%",
     responseTime: "98ms",
@@ -557,79 +322,54 @@ const systemServices = [
 ];
 
 // ============= CHANGELOG (8 entries) =============
-const changelog: ChangelogEntry[] = [
+const changelogEntries = [
   {
     version: "2.4.0",
     date: "01.03.2026",
-    changes: [
-      "Новый интерфейс аналитики с real-time графиками",
-      "Оптимизация скорости API (+40%)",
-      "Поддержка тёмной темы во всех приложениях",
-    ],
-    type: "feature",
+    changeCount: 3,
+    type: "feature" as ChangelogType,
   },
   {
     version: "2.3.8",
     date: "25.02.2026",
-    changes: [
-      "Исправлена критическая ошибка экспорта PDF в Firefox",
-      "Улучшена производительность при работе с 1000+ машин (+25%)",
-    ],
-    type: "bugfix",
+    changeCount: 2,
+    type: "bugfix" as ChangelogType,
   },
   {
     version: "2.3.7",
     date: "20.02.2026",
-    changes: [
-      "Новые отчёты по когортам клиентов и LTV анализу",
-      "Интеграция с Uzum Money и HUMO",
-    ],
-    type: "feature",
+    changeCount: 2,
+    type: "feature" as ChangelogType,
   },
   {
     version: "2.3.6",
     date: "15.02.2026",
-    changes: [
-      "Исправлена синхронизация данных с offline режимом",
-      "Улучшены real-time алерты (задержка снижена на 60%)",
-    ],
-    type: "bugfix",
+    changeCount: 2,
+    type: "bugfix" as ChangelogType,
   },
   {
     version: "2.3.5",
     date: "10.02.2026",
-    changes: [
-      "Новая система push-уведомлений с персонализацией",
-      "Полная поддержка кириллицы во всех экспортах",
-    ],
-    type: "feature",
+    changeCount: 2,
+    type: "feature" as ChangelogType,
   },
   {
     version: "2.3.4",
     date: "05.02.2026",
-    changes: [
-      "Исправлены баги RBAC при создании пользователей",
-      "Оптимизирована загрузка планограмм (+35%)",
-    ],
-    type: "bugfix",
+    changeCount: 2,
+    type: "bugfix" as ChangelogType,
   },
   {
     version: "2.3.3",
     date: "01.02.2026",
-    changes: [
-      "Обновление интеграции с Multikassa 2.0 API",
-      "Новые метрики в дашборде: маржинальность, CAC, LTV",
-    ],
-    type: "feature",
+    changeCount: 2,
+    type: "feature" as ChangelogType,
   },
   {
     version: "2.3.2",
     date: "25.01.2026",
-    changes: [
-      "Исправлена ошибка телеметрии при потере соединения",
-      "Оптимизирована производительность БД для отчётов",
-    ],
-    type: "bugfix",
+    changeCount: 2,
+    type: "bugfix" as ChangelogType,
   },
 ];
 
@@ -637,104 +377,66 @@ const changelog: ChangelogEntry[] = [
 const knowledgeBase = [
   {
     id: 1,
-    title: "Полное руководство по планограммам",
-    category: "Аппараты",
+    key: "planogramGuide",
     reads: 523,
     updated: "28.02.2026",
-    duration: "12 мин",
     type: "article",
   },
-  {
-    id: 2,
-    title: "API v1 — Обмен данными в реальном времени",
-    category: "Разработка",
-    reads: 312,
-    updated: "25.02.2026",
-    duration: "18 мин",
-    type: "article",
-  },
+  { id: 2, key: "apiV1", reads: 312, updated: "25.02.2026", type: "article" },
   {
     id: 3,
-    title: "Интеграция с 1C — пошаговая инструкция",
-    category: "Интеграции",
+    key: "integration1c",
     reads: 287,
     updated: "22.02.2026",
-    duration: "14 мин",
     type: "article",
   },
   {
     id: 4,
-    title: "Оптимизация расходов — кейсы из практики",
-    category: "Финансы",
+    key: "costOptimization",
     reads: 456,
     updated: "20.02.2026",
-    duration: "9 мин",
     type: "article",
   },
   {
     id: 5,
-    title: "Лояльность 2.0 — как это работает",
-    category: "Маркетинг",
+    key: "loyalty2",
     reads: 678,
     updated: "18.02.2026",
-    duration: "11 мин",
     type: "article",
   },
   {
     id: 6,
-    title: "Обслуживание автоматов — техническое обслуживание",
-    category: "Аппараты",
+    key: "maintenanceGuide",
     reads: 234,
     updated: "15.02.2026",
-    duration: "8 мин",
     type: "video",
   },
   {
     id: 7,
-    title: "Быстрый старт для новых администраторов",
-    category: "Начало",
+    key: "quickStart",
     reads: 789,
     updated: "10.02.2026",
-    duration: "15 мин",
     type: "article",
   },
   {
     id: 8,
-    title: "Видео: настройка уведомлений в админпанели",
-    category: "Аппараты",
+    key: "notificationsVideo",
     reads: 145,
     updated: "05.02.2026",
-    duration: "6 мин",
     type: "video",
   },
 ];
 
 // ============= CONTACT INFO =============
 const contactChannels = [
-  {
-    id: 1,
-    type: "Email",
-    value: "support@vendhub.uz",
-    icon: Mail,
-    description: "Свяжитесь по эмейлу",
-  },
-  {
-    id: 2,
-    type: "Телефон",
-    value: "+998 71 200 39 99",
-    icon: Phone,
-    description: "Позвоните в рабочее время",
-  },
-  {
-    id: 3,
-    type: "Telegram",
-    value: "@vendhub_support",
-    icon: MessageSquare,
-    description: "Чат с поддержкой 24/7",
-  },
+  { id: 1, key: "email", value: "support@vendhub.uz", icon: Mail },
+  { id: 2, key: "phone", value: "+998 71 200 39 99", icon: Phone },
+  { id: 3, key: "telegram", value: "@vendhub_support", icon: MessageSquare },
 ];
 
 export default function HelpPage() {
+  const t = useTranslations("help");
+
   // Fetch CMS articles from API
   const { data: _articlesData, isLoading: _articlesLoading } = useCmsArticles({
     limit: 50,
@@ -745,7 +447,7 @@ export default function HelpPage() {
     "faq" | "training" | "support" | "knowledge" | "changelog"
   >("faq");
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
-  const [faqCategory, setFaqCategory] = useState("Все");
+  const [faqCategory, setFaqCategory] = useState("all");
   const [faqHelpful, setFaqHelpful] = useState<Record<string, boolean | null>>(
     {},
   );
@@ -763,6 +465,27 @@ export default function HelpPage() {
     "all" | "feature" | "bugfix" | "improvement"
   >("all");
 
+  // Build FAQ data with translations
+  const faqData = useMemo(() => {
+    return faqCategories.map((cat) => {
+      const questions = faqQuestionsMeta[cat.key].map((meta, idx) => ({
+        q: t(`faq.${cat.key}.${idx}.question`),
+        a: t(`faq.${cat.key}.${idx}.answer`),
+        views: meta.views,
+        relatedArticles: meta.relatedArticleKeys.map((k) =>
+          t(`articles.${k}.title`),
+        ),
+      }));
+      return {
+        category: t(`faqCategories.${cat.key}`),
+        categoryKey: cat.key,
+        icon: cat.icon,
+        color: cat.color,
+        questions,
+      };
+    });
+  }, [t]);
+
   // Get top 5 FAQ by views
   const topFaqs = useMemo(() => {
     return faqData
@@ -771,22 +494,24 @@ export default function HelpPage() {
       )
       .sort((a, b) => b.views - a.views)
       .slice(0, 5);
-  }, []);
+  }, [faqData]);
 
   // Filter FAQ by category
   const filteredFaq = useMemo(() => {
-    if (faqCategory === "Все") return faqData;
-    return faqData.filter((cat) => cat.category === faqCategory);
-  }, [faqCategory]);
+    if (faqCategory === "all") return faqData;
+    return faqData.filter((cat) => cat.categoryKey === faqCategory);
+  }, [faqCategory, faqData]);
 
   // Filter support tickets
   const filteredTickets = useMemo(() => {
     return supportTickets.filter(
-      (t) =>
-        t.subject.toLowerCase().includes(supportSearch.toLowerCase()) ||
-        t.id.toLowerCase().includes(supportSearch.toLowerCase()),
+      (ticket) =>
+        t(`tickets.${ticket.key}.subject`)
+          .toLowerCase()
+          .includes(supportSearch.toLowerCase()) ||
+        ticket.id.toLowerCase().includes(supportSearch.toLowerCase()),
     );
-  }, [supportSearch]);
+  }, [supportSearch, t]);
 
   // Get recently updated articles
   const recentlyUpdated = useMemo(() => {
@@ -799,8 +524,8 @@ export default function HelpPage() {
 
   // Filter changelog
   const filteredChangelog = useMemo(() => {
-    if (changelogFilter === "all") return changelog;
-    return changelog.filter((item) => item.type === changelogFilter);
+    if (changelogFilter === "all") return changelogEntries;
+    return changelogEntries.filter((item) => item.type === changelogFilter);
   }, [changelogFilter]);
 
   return (
@@ -811,37 +536,52 @@ export default function HelpPage() {
           <div className="flex items-center gap-3 mb-4">
             <HelpCircle className="w-8 h-8 text-amber-600" />
             <h1 className="text-3xl font-display font-bold text-amber-900">
-              Помощь и поддержка
+              {t("title")}
             </h1>
           </div>
-          <p className="text-amber-700 text-lg">
-            Найдите ответы, обучайтесь, свяжитесь с поддержкой
-          </p>
+          <p className="text-amber-700 text-lg">{t("subtitle")}</p>
         </div>
 
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-8 bg-white rounded-lg p-1 shadow-sm border border-amber-200 overflow-x-auto">
           {[
-            { id: "faq" as const, label: "FAQ", icon: Lightbulb },
-            { id: "knowledge" as const, label: "База знаний", icon: BookOpen },
-            { id: "training" as const, label: "Обучение", icon: GraduationCap },
-            { id: "support" as const, label: "Поддержка", icon: MessageCircle },
-            { id: "changelog" as const, label: "Changelog", icon: RefreshCw },
+            { id: "faq" as const, label: t("tabs.faq"), icon: Lightbulb },
+            {
+              id: "knowledge" as const,
+              label: t("tabs.knowledge"),
+              icon: BookOpen,
+            },
+            {
+              id: "training" as const,
+              label: t("tabs.training"),
+              icon: GraduationCap,
+            },
+            {
+              id: "support" as const,
+              label: t("tabs.support"),
+              icon: MessageCircle,
+            },
+            {
+              id: "changelog" as const,
+              label: t("tabs.changelog"),
+              icon: RefreshCw,
+            },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
-              <button
+              <Button
                 key={tab.id}
+                variant="ghost"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all font-medium whitespace-nowrap ${
+                className={`gap-2 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-espresso text-white shadow-md"
+                    ? "bg-espresso text-white shadow-md hover:bg-espresso/90 hover:text-white"
                     : "text-espresso-light hover:bg-amber-50"
                 }`}
               >
                 <Icon className="w-5 h-5" />
                 {tab.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -852,7 +592,7 @@ export default function HelpPage() {
             {/* Popular Questions Section */}
             <div>
               <h2 className="text-xl font-display font-bold text-espresso-dark mb-4">
-                Популярные вопросы
+                {t("popularQuestions")}
               </h2>
               <div className="overflow-x-auto pb-4">
                 <div className="flex gap-4 min-w-max">
@@ -869,7 +609,7 @@ export default function HelpPage() {
                               {faq.q}
                             </h3>
                             <p className="text-xs text-espresso-light mt-1">
-                              {faq.views} просмотров
+                              {faq.views} {t("views")}
                             </p>
                           </div>
                         </div>
@@ -889,21 +629,29 @@ export default function HelpPage() {
             {/* Category Filter */}
             <div>
               <h3 className="text-sm font-semibold text-espresso-dark mb-3">
-                Категории
+                {t("categories")}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {["Все", ...faqData.map((cat) => cat.category)].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFaqCategory(cat)}
-                    className={`px-4 py-2 rounded-full transition-all font-medium text-sm ${
-                      faqCategory === cat
-                        ? "bg-espresso text-white shadow-md"
-                        : "bg-white border-2 border-amber-200 text-espresso-light hover:bg-amber-50"
+                {[
+                  { key: "all", label: t("allCategories") },
+                  ...faqData.map((cat) => ({
+                    key: cat.categoryKey,
+                    label: cat.category,
+                  })),
+                ].map((cat) => (
+                  <Button
+                    key={cat.key}
+                    variant={faqCategory === cat.key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFaqCategory(cat.key)}
+                    className={`rounded-full ${
+                      faqCategory === cat.key
+                        ? "bg-espresso shadow-md hover:bg-espresso/90"
+                        : "border-2 border-amber-200 text-espresso-light hover:bg-amber-50"
                     }`}
                   >
-                    {cat}
-                  </button>
+                    {cat.label}
+                  </Button>
                 ))}
               </div>
             </div>
@@ -929,23 +677,24 @@ export default function HelpPage() {
                           className="bg-white border-2 border-amber-100 hover:border-amber-300 transition-all"
                         >
                           <CardContent className="pt-6">
-                            <button
+                            <Button
+                              variant="ghost"
                               onClick={() =>
                                 setExpandedFaq(
                                   expandedFaq === faqKey ? null : faqKey,
                                 )
                               }
-                              className="w-full text-left"
+                              className="w-full justify-start text-left h-auto p-0 hover:bg-transparent"
                             >
-                              <div className="flex items-start justify-between gap-4">
-                                <h4 className="font-semibold text-espresso-dark pr-4">
+                              <div className="flex items-start justify-between gap-4 w-full">
+                                <h4 className="font-semibold text-espresso-dark pr-4 whitespace-normal">
                                   {faq.q}
                                 </h4>
                                 <ChevronRight
                                   className={`w-5 h-5 text-amber-600 flex-shrink-0 transition-transform ${expandedFaq === faqKey ? "rotate-90" : ""}`}
                                 />
                               </div>
-                            </button>
+                            </Button>
 
                             {expandedFaq === faqKey && (
                               <div className="mt-4 pt-4 border-t-2 border-amber-100">
@@ -958,7 +707,7 @@ export default function HelpPage() {
                                   faq.relatedArticles.length > 0 && (
                                     <div className="mb-4 p-3 bg-amber-50 rounded-lg">
                                       <p className="text-xs font-semibold text-espresso-dark mb-2">
-                                        Связанные статьи:
+                                        {t("relatedArticles")}
                                       </p>
                                       <ul className="text-xs space-y-1">
                                         {faq.relatedArticles.map(
@@ -979,40 +728,44 @@ export default function HelpPage() {
                                 {/* Was this helpful */}
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-espresso-light">
-                                    Помог ли вам этот ответ?
+                                    {t("wasHelpful")}
                                   </span>
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() =>
                                       setFaqHelpful({
                                         ...faqHelpful,
                                         [faqKey]: true,
                                       })
                                     }
-                                    className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                                    className={`h-auto px-3 py-1 text-xs ${
                                       faqHelpful[faqKey] === true
-                                        ? "bg-emerald-100 text-emerald-700"
+                                        ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
                                         : "bg-gray-100 text-gray-600 hover:bg-emerald-50"
                                     }`}
                                   >
-                                    <ThumbsUp className="w-3 h-3 inline mr-1" />{" "}
-                                    Да
-                                  </button>
-                                  <button
+                                    <ThumbsUp className="w-3 h-3 mr-1" />{" "}
+                                    {t("yes")}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() =>
                                       setFaqHelpful({
                                         ...faqHelpful,
                                         [faqKey]: false,
                                       })
                                     }
-                                    className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                                    className={`h-auto px-3 py-1 text-xs ${
                                       faqHelpful[faqKey] === false
-                                        ? "bg-red-100 text-red-700"
+                                        ? "bg-red-100 text-red-700 hover:bg-red-100"
                                         : "bg-gray-100 text-gray-600 hover:bg-red-50"
                                     }`}
                                   >
-                                    <ThumbsDown className="w-3 h-3 inline mr-1" />{" "}
-                                    Нет
-                                  </button>
+                                    <ThumbsDown className="w-3 h-3 mr-1" />{" "}
+                                    {t("no")}
+                                  </Button>
                                 </div>
                               </div>
                             )}
@@ -1033,7 +786,7 @@ export default function HelpPage() {
             {/* Knowledge Base Categories */}
             <div>
               <h2 className="text-xl font-display font-bold text-espresso-dark mb-6">
-                База знаний
+                {t("knowledgeBase")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {knowledgeBaseCategories.map((cat) => {
@@ -1050,10 +803,10 @@ export default function HelpPage() {
                           <Icon className="w-6 h-6" />
                         </div>
                         <h3 className="font-semibold text-espresso-dark mb-1">
-                          {cat.name}
+                          {t(`kbCategories.${cat.key}`)}
                         </h3>
                         <p className="text-sm text-espresso-light">
-                          {cat.count} статей
+                          {cat.count} {t("articlesCount")}
                         </p>
                       </CardContent>
                     </Card>
@@ -1065,7 +818,7 @@ export default function HelpPage() {
             {/* Popular Articles */}
             <div>
               <h3 className="text-lg font-display font-bold text-espresso-dark mb-4">
-                Топ статьи
+                {t("topArticles")}
               </h3>
               <div className="space-y-3">
                 {knowledgeBase.slice(0, 5).map((article) => (
@@ -1077,15 +830,16 @@ export default function HelpPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <h4 className="font-semibold text-espresso-dark mb-2">
-                            {article.title}
+                            {t(`articles.${article.key}.title`)}
                           </h4>
                           <div className="flex items-center gap-4 text-xs text-espresso-light">
                             <span className="flex items-center gap-1">
                               <Eye className="w-4 h-4" /> {article.reads}{" "}
-                              просмотров
+                              {t("views")}
                             </span>
                             <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" /> {article.duration}
+                              <Clock className="w-4 h-4" />{" "}
+                              {t(`articles.${article.key}.duration`)}
                             </span>
                           </div>
                         </div>
@@ -1093,7 +847,7 @@ export default function HelpPage() {
                           variant="default"
                           className="text-xs bg-amber-100 text-amber-800 flex-shrink-0"
                         >
-                          {article.category}
+                          {t(`articles.${article.key}.category`)}
                         </Badge>
                       </div>
                     </CardContent>
@@ -1105,7 +859,7 @@ export default function HelpPage() {
             {/* Recent Updates */}
             <div>
               <h3 className="text-lg font-display font-bold text-espresso-dark mb-4">
-                Последние обновления
+                {t("recentUpdates")}
               </h3>
               <div className="space-y-3">
                 {recentlyUpdated.map((article) => (
@@ -1117,7 +871,7 @@ export default function HelpPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <Sparkles className="w-5 h-5 text-amber-600" />
                         <h4 className="font-semibold text-espresso-dark flex-1">
-                          {article.title}
+                          {t(`articles.${article.key}.title`)}
                         </h4>
                         <span className="text-xs text-espresso-light">
                           {article.updated}
@@ -1137,7 +891,7 @@ export default function HelpPage() {
             {/* Video Tutorials */}
             <div>
               <h2 className="text-xl font-display font-bold text-espresso-dark mb-6">
-                Видеоуроки
+                {t("videoTutorials")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {videoTutorials.map((video) => (
@@ -1152,11 +906,12 @@ export default function HelpPage() {
                     </div>
                     <CardContent className="pt-6">
                       <h3 className="font-semibold text-espresso-dark mb-2 line-clamp-2">
-                        {video.title}
+                        {t(`videos.${video.key}.title`)}
                       </h3>
                       <div className="flex items-center justify-between text-xs text-espresso-light mb-3">
                         <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" /> {video.duration}
+                          <Clock className="w-4 h-4" />{" "}
+                          {t(`videos.${video.key}.duration`)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Eye className="w-4 h-4" /> {video.views}
@@ -1166,7 +921,7 @@ export default function HelpPage() {
                         variant="info"
                         className="text-xs bg-blue-100 text-blue-800"
                       >
-                        {video.difficulty}
+                        {t(`videos.${video.key}.difficulty`)}
                       </Badge>
                     </CardContent>
                   </Card>
@@ -1177,7 +932,7 @@ export default function HelpPage() {
             {/* Learning Paths */}
             <div>
               <h3 className="text-lg font-display font-bold text-espresso-dark mb-6">
-                Пути обучения
+                {t("learningPaths")}
               </h3>
               <div className="space-y-4">
                 {learningPaths.map((path) => (
@@ -1189,14 +944,17 @@ export default function HelpPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <h4 className="font-semibold text-espresso-dark mb-1">
-                            {path.name}
+                            {t(`paths.${path.key}.name`)}
                           </h4>
                           <p className="text-sm text-espresso-light mb-3">
-                            {path.description}
+                            {t(`paths.${path.key}.description`)}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-espresso-light">
                             <span>
-                              {path.completed} из {path.total} модулей
+                              {t("modulesProgress", {
+                                completed: path.completed,
+                                total: path.total,
+                              })}
                             </span>
                           </div>
                         </div>
@@ -1221,7 +979,7 @@ export default function HelpPage() {
             {/* Interactive Walkthroughs */}
             <div>
               <h3 className="text-lg font-display font-bold text-espresso-dark mb-4">
-                Интерактивные экскурсии
+                {t("interactiveWalkthroughs")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {walkthroughs.map((walkthrough) => (
@@ -1233,14 +991,15 @@ export default function HelpPage() {
                       <div className="flex items-center gap-3 mb-3">
                         <Route className="w-6 h-6 text-amber-600" />
                         <h4 className="font-semibold text-espresso-dark flex-1">
-                          {walkthrough.title}
+                          {t(`walkthroughs.${walkthrough.key}.title`)}
                         </h4>
                       </div>
                       <p className="text-sm text-espresso-light mb-3">
-                        {walkthrough.description}
+                        {t(`walkthroughs.${walkthrough.key}.description`)}
                       </p>
                       <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
-                        <Rocket className="w-4 h-4 mr-2" /> Начать экскурсию
+                        <Rocket className="w-4 h-4 mr-2" />{" "}
+                        {t("startWalkthrough")}
                       </Button>
                     </CardContent>
                   </Card>
@@ -1256,7 +1015,7 @@ export default function HelpPage() {
             {/* Contact Information */}
             <div>
               <h2 className="text-xl font-display font-bold text-espresso-dark mb-4">
-                Контактные каналы
+                {t("contactChannels")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {contactChannels.map((channel) => {
@@ -1272,11 +1031,11 @@ export default function HelpPage() {
                             <Icon className="w-5 h-5 text-amber-600" />
                           </div>
                           <h3 className="font-semibold text-espresso-dark">
-                            {channel.type}
+                            {t(`contact.${channel.key}.type`)}
                           </h3>
                         </div>
                         <p className="text-sm text-espresso-light mb-2">
-                          {channel.description}
+                          {t(`contact.${channel.key}.description`)}
                         </p>
                         <p className="font-medium text-amber-600">
                           {channel.value}
@@ -1292,13 +1051,13 @@ export default function HelpPage() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-display font-bold text-espresso-dark">
-                  Ваши тикеты
+                  {t("yourTickets")}
                 </h2>
                 <Button
                   onClick={() => setNewTicketOpen(!newTicketOpen)}
                   className="bg-amber-600 hover:bg-amber-700 text-white"
                 >
-                  <Plus className="w-4 h-4 mr-2" /> Создать новый тикет
+                  <Plus className="w-4 h-4 mr-2" /> {t("createTicket")}
                 </Button>
               </div>
 
@@ -1307,16 +1066,16 @@ export default function HelpPage() {
                 <Card className="bg-white border-2 border-amber-300 mb-6">
                   <CardHeader>
                     <CardTitle className="text-amber-900">
-                      Создание нового тикета поддержки
+                      {t("newTicketTitle")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label className="block text-sm font-semibold text-espresso-dark mb-2">
-                        Тема
+                        {t("ticketSubject")}
                       </label>
                       <Input
-                        placeholder="Описание проблемы"
+                        placeholder={t("ticketSubjectPlaceholder")}
                         value={newTicketForm.subject}
                         onChange={(e) =>
                           setNewTicketForm({
@@ -1330,7 +1089,7 @@ export default function HelpPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-espresso-dark mb-2">
-                          Категория
+                          {t("ticketCategory")}
                         </label>
                         <select
                           value={newTicketForm.category}
@@ -1342,19 +1101,27 @@ export default function HelpPage() {
                           }
                           className="w-full px-3 py-2 border-2 border-amber-200 rounded-lg text-espresso-dark"
                         >
-                          <option value="">Выберите категорию</option>
-                          <option value="Техническая проблема">
-                            Техническая проблема
+                          <option value="">{t("selectCategory")}</option>
+                          <option value="technical">
+                            {t("ticketCategories.technical")}
                           </option>
-                          <option value="Баг">Баг</option>
-                          <option value="Финансы">Финансы</option>
-                          <option value="Обучение">Обучение</option>
-                          <option value="Запрос функции">Запрос функции</option>
+                          <option value="bug">
+                            {t("ticketCategories.bug")}
+                          </option>
+                          <option value="finance">
+                            {t("ticketCategories.finance")}
+                          </option>
+                          <option value="training">
+                            {t("ticketCategories.training")}
+                          </option>
+                          <option value="feature">
+                            {t("ticketCategories.feature")}
+                          </option>
                         </select>
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-espresso-dark mb-2">
-                          Приоритет
+                          {t("ticketPriority")}
                         </label>
                         <select
                           value={newTicketForm.priority}
@@ -1366,18 +1133,18 @@ export default function HelpPage() {
                           }
                           className="w-full px-3 py-2 border-2 border-amber-200 rounded-lg text-espresso-dark"
                         >
-                          <option value="low">Низкий</option>
-                          <option value="medium">Средний</option>
-                          <option value="high">Высокий</option>
+                          <option value="low">{t("priority.low")}</option>
+                          <option value="medium">{t("priority.medium")}</option>
+                          <option value="high">{t("priority.high")}</option>
                         </select>
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-espresso-dark mb-2">
-                        Описание
+                        {t("ticketDescription")}
                       </label>
                       <textarea
-                        placeholder="Подробное описание проблемы"
+                        placeholder={t("ticketDescriptionPlaceholder")}
                         value={newTicketForm.description}
                         onChange={(e) =>
                           setNewTicketForm({
@@ -1390,25 +1157,25 @@ export default function HelpPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-espresso-dark mb-2">
-                        Прикрепить файл (опционально)
+                        {t("attachFile")}
                       </label>
                       <div className="border-2 border-dashed border-amber-300 rounded-lg p-6 text-center cursor-pointer hover:bg-amber-50 transition-all">
                         <Paperclip className="w-6 h-6 text-amber-600 mx-auto mb-2" />
                         <p className="text-sm text-espresso-light">
-                          Перетащите файл сюда или нажмите для выбора
+                          {t("dragOrClick")}
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2 pt-4">
                       <Button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white">
-                        <Send className="w-4 h-4 mr-2" /> Отправить тикет
+                        <Send className="w-4 h-4 mr-2" /> {t("submitTicket")}
                       </Button>
                       <Button
                         onClick={() => setNewTicketOpen(false)}
                         variant="outline"
                         className="flex-1"
                       >
-                        Отмена
+                        {t("cancelBtn")}
                       </Button>
                     </div>
                   </CardContent>
@@ -1421,7 +1188,7 @@ export default function HelpPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-5 h-5 text-amber-600" />
                 <Input
-                  placeholder="Поиск по номеру тикета или теме"
+                  placeholder={t("searchTickets")}
                   value={supportSearch}
                   onChange={(e) => setSupportSearch(e.target.value)}
                   className="pl-10 border-2 border-amber-200"
@@ -1452,16 +1219,17 @@ export default function HelpPage() {
                               {ticket.id}
                             </span>
                             <h3 className="font-semibold text-espresso-dark flex-1">
-                              {ticket.subject}
+                              {t(`tickets.${ticket.key}.subject`)}
                             </h3>
                           </div>
                           <div className="flex items-center gap-4 text-sm text-espresso-light">
                             <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" /> Создано:{" "}
+                              <Calendar className="w-4 h-4" /> {t("created")}:{" "}
                               {ticket.created}
                             </span>
                             <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" /> {ticket.lastUpdate}
+                              <Clock className="w-4 h-4" />{" "}
+                              {t(`tickets.${ticket.key}.lastUpdate`)}
                             </span>
                           </div>
                         </div>
@@ -1474,21 +1242,25 @@ export default function HelpPage() {
                               variant="default"
                               className={`${TICKET_STATUS[ticket.status].color} text-xs`}
                             >
-                              {TICKET_STATUS[ticket.status].label}
+                              {t(
+                                `ticketStatus.${TICKET_STATUS[ticket.status].key}`,
+                              )}
                             </Badge>
                           </div>
                           <Badge
                             variant="default"
                             className={`${PRIORITY_COLORS[ticket.priority]} text-xs`}
                           >
-                            {PRIORITY_LABELS[ticket.priority]}
+                            {t(`priority.${ticket.priority}`)}
                           </Badge>
                           <div className="flex items-center gap-2">
                             <SlaIcon
                               className={`w-4 h-4 ${SLA_STATUS[ticket.slaStatus].color.split(" ")[1]}`}
                             />
                             <span className="text-xs text-espresso-light">
-                              {SLA_STATUS[ticket.slaStatus].label}
+                              {t(
+                                `slaStatus.${SLA_STATUS[ticket.slaStatus].key}`,
+                              )}
                             </span>
                           </div>
                         </div>
@@ -1499,25 +1271,25 @@ export default function HelpPage() {
                         <div className="mt-4 pt-4 border-t-2 border-amber-100">
                           <p className="text-sm text-espresso-light mb-3">
                             <span className="font-semibold text-espresso-dark">
-                              Категория:
+                              {t("categoryLabel")}:
                             </span>{" "}
-                            {ticket.category}
+                            {t(`tickets.${ticket.key}.category`)}
                           </p>
                           <p className="text-sm text-espresso-light mb-3">
                             <span className="font-semibold text-espresso-dark">
-                              Назначено:
+                              {t("assignedTo")}:
                             </span>{" "}
-                            {ticket.assignee}
+                            {t(`tickets.${ticket.key}.assignee`)}
                           </p>
                           <p className="text-sm text-espresso-light mb-4">
                             <span className="font-semibold text-espresso-dark">
-                              Сообщений:
+                              {t("messagesCount")}:
                             </span>{" "}
                             {ticket.messages}
                           </p>
                           <Button className="bg-amber-600 hover:bg-amber-700 text-white w-full">
                             <MessageSquare className="w-4 h-4 mr-2" />{" "}
-                            Просмотреть подробности
+                            {t("viewDetails")}
                           </Button>
                         </div>
                       )}
@@ -1530,7 +1302,7 @@ export default function HelpPage() {
             {/* System Status */}
             <div>
               <h3 className="text-lg font-display font-bold text-espresso-dark mb-4">
-                Статус системы
+                {t("systemStatus")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {systemServices.map((service) => {
@@ -1552,15 +1324,15 @@ export default function HelpPage() {
                       <CardContent className="pt-6">
                         <div className="flex items-start justify-between mb-3">
                           <h4 className="font-semibold text-espresso-dark">
-                            {service.name}
+                            {t(`services.${service.key}`)}
                           </h4>
                           <div
                             className={`px-3 py-1 rounded-full ${statusColor} text-xs font-medium flex items-center gap-2`}
                           >
                             {statusIcon}
                             {service.status === "operational"
-                              ? "Работает"
-                              : "Проблемы"}
+                              ? t("operational")
+                              : t("issues")}
                           </div>
                         </div>
                         <div className="space-y-2 text-sm text-espresso-light">
@@ -1571,7 +1343,7 @@ export default function HelpPage() {
                             </span>
                           </p>
                           <p>
-                            Время отклика:{" "}
+                            {t("responseTime")}:{" "}
                             <span className="text-espresso-dark font-semibold">
                               {service.responseTime}
                             </span>
@@ -1592,26 +1364,39 @@ export default function HelpPage() {
             {/* Changelog Filter */}
             <div>
               <h2 className="text-xl font-display font-bold text-espresso-dark mb-4">
-                История изменений
+                {t("changeHistory")}
               </h2>
               <div className="flex flex-wrap gap-2 mb-6">
                 {[
-                  { id: "all" as const, label: "Все" },
-                  { id: "feature" as const, label: "Функции" },
-                  { id: "bugfix" as const, label: "Исправления" },
-                  { id: "improvement" as const, label: "Улучшения" },
+                  { id: "all" as const, label: t("changelogFilter.all") },
+                  {
+                    id: "feature" as const,
+                    label: t("changelogFilter.features"),
+                  },
+                  {
+                    id: "bugfix" as const,
+                    label: t("changelogFilter.bugfixes"),
+                  },
+                  {
+                    id: "improvement" as const,
+                    label: t("changelogFilter.improvements"),
+                  },
                 ].map((filter) => (
-                  <button
+                  <Button
                     key={filter.id}
+                    variant={
+                      changelogFilter === filter.id ? "default" : "outline"
+                    }
+                    size="sm"
                     onClick={() => setChangelogFilter(filter.id)}
-                    className={`px-4 py-2 rounded-full transition-all font-medium text-sm ${
+                    className={`rounded-full ${
                       changelogFilter === filter.id
-                        ? "bg-espresso text-white shadow-md"
-                        : "bg-white border-2 border-amber-200 text-espresso-light hover:bg-amber-50"
+                        ? "bg-espresso shadow-md hover:bg-espresso/90"
+                        : "border-2 border-amber-200 text-espresso-light hover:bg-amber-50"
                     }`}
                   >
                     {filter.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -1623,17 +1408,17 @@ export default function HelpPage() {
                   feature: {
                     badge: "success",
                     icon: Sparkles,
-                    label: "Функция",
+                    labelKey: "changelogType.feature",
                   },
                   bugfix: {
                     badge: "destructive" as const,
                     icon: AlertCircle,
-                    label: "Исправление",
+                    labelKey: "changelogType.bugfix",
                   },
                   improvement: {
                     badge: "info" as const,
                     icon: TrendingUp,
-                    label: "Улучшение",
+                    labelKey: "changelogType.improvement",
                   },
                 } as const;
                 const type = typeConfig[entry.type];
@@ -1668,19 +1453,23 @@ export default function HelpPage() {
                                     : "bg-blue-100 text-blue-800"
                               }`}
                             >
-                              {type.label}
+                              {t(type.labelKey)}
                             </Badge>
                           </div>
                           <ul className="space-y-1">
-                            {entry.changes.map((change, changeIdx) => (
-                              <li
-                                key={changeIdx}
-                                className="text-sm text-espresso-light flex items-start gap-2"
-                              >
-                                <ArrowRight className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                                {change}
-                              </li>
-                            ))}
+                            {Array.from({ length: entry.changeCount }).map(
+                              (_, changeIdx) => (
+                                <li
+                                  key={changeIdx}
+                                  className="text-sm text-espresso-light flex items-start gap-2"
+                                >
+                                  <ArrowRight className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                  {t(
+                                    `changelog.v${entry.version.replace(/\./g, "_")}.${changeIdx}`,
+                                  )}
+                                </li>
+                              ),
+                            )}
                           </ul>
                         </div>
                       </div>

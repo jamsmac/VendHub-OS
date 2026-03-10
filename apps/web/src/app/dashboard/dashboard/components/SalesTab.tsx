@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { useSalesChart } from "@/lib/hooks";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import {
   SALES_WEEK_DATA,
@@ -58,10 +59,12 @@ export function SalesTab() {
               <CardTitle>{t("sales.weekTitle")}</CardTitle>
               <div className="flex gap-1.5">
                 {(["revenue", "orders"] as const).map((m) => (
-                  <button
+                  <Button
                     key={m}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSalesMetric(m)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    className={`rounded-full px-3 py-1 text-xs ${
                       salesMetric === m
                         ? "bg-espresso text-white"
                         : "bg-stone-100 text-espresso-light hover:bg-stone-200"
@@ -70,7 +73,7 @@ export function SalesTab() {
                     {m === "revenue"
                       ? t("sales.revenue")
                       : t("sales.ordersLabel")}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

@@ -1,6 +1,14 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { fmt } from "./config";
 
 interface FiscalReportItem {
@@ -161,9 +169,9 @@ export function FiscalizationTab({
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-espresso/10">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
                   {[
                     "Дата",
                     "Выдано",
@@ -173,51 +181,51 @@ export function FiscalizationTab({
                     "Сумма",
                     "НДС (12%)",
                   ].map((h) => (
-                    <th
+                    <TableHead
                       key={h}
                       className={`px-4 py-3 text-xs font-medium text-espresso-light ${["Выдано", "Успешно", "Ошибок", "Сумма", "НДС (12%)"].includes(h) ? "text-right" : "text-left"}`}
                     >
                       {h}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {fiscalReportData.map((f) => {
                   const successRate = ((f.successful / f.issued) * 100).toFixed(
                     1,
                   );
                   return (
-                    <tr
+                    <TableRow
                       key={f.date}
                       className="border-b border-espresso/5 hover:bg-espresso-50/50 transition-colors"
                     >
-                      <td className="px-4 py-3 font-medium text-espresso-dark">
+                      <TableCell className="px-4 py-3 font-medium text-espresso-dark">
                         {f.date}
-                      </td>
-                      <td className="px-4 py-3 text-right text-espresso-dark">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-espresso-dark">
                         {f.issued}
-                      </td>
-                      <td className="px-4 py-3 text-right text-emerald-600 font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-emerald-600 font-medium">
                         {f.successful}
-                      </td>
-                      <td className="px-4 py-3 text-right text-red-500 font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-red-500 font-medium">
                         {f.failed}
-                      </td>
-                      <td className="px-4 py-3 text-right text-emerald-600 font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-emerald-600 font-medium">
                         {successRate}%
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-espresso-dark">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right font-medium text-espresso-dark">
                         {fmt(f.amount)} UZS
-                      </td>
-                      <td className="px-4 py-3 text-right text-blue-600 font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-blue-600 font-medium">
                         {fmt(f.nds)} UZS
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

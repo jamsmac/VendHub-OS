@@ -19,6 +19,14 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   HEADCOUNT_BY_ROLE,
   HIRING_TIMELINE,
   TENURE_DISTRIBUTION,
@@ -168,60 +176,60 @@ export function AnalyticsTab() {
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-espresso/10">
-                <th className="text-left py-2 px-3 text-xs font-semibold text-espresso-light">
+          <Table className="text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-espresso/10">
+                <TableHead className="text-left py-2 px-3 text-xs font-semibold text-espresso-light">
                   Сотрудник
-                </th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
                   Выполнено задач
-                </th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
                   Рейтинг
-                </th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
                   Своевременность
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {PERFORMANCE_DATA.map((row) => (
-                <tr
+                <TableRow
                   key={row.name}
                   className="border-b border-espresso/5 hover:bg-espresso-50/30"
                 >
-                  <td className="py-2 px-3 font-medium text-espresso-dark">
+                  <TableCell className="py-2 px-3 font-medium text-espresso-dark">
                     {row.name}
-                  </td>
-                  <td className="text-center py-2 px-3">
+                  </TableCell>
+                  <TableCell className="text-center py-2 px-3">
                     <Badge
                       variant={getKPIBadgeVariant(row.tasks)}
                       className="text-xs"
                     >
                       {row.tasks}%
                     </Badge>
-                  </td>
-                  <td className="text-center py-2 px-3">
+                  </TableCell>
+                  <TableCell className="text-center py-2 px-3">
                     <Badge
                       variant={getKPIBadgeVariant(row.rating)}
                       className="text-xs"
                     >
                       {row.rating}%
                     </Badge>
-                  </td>
-                  <td className="text-center py-2 px-3">
+                  </TableCell>
+                  <TableCell className="text-center py-2 px-3">
                     <Badge
                       variant={getKPIBadgeVariant(row.timelyCompletion)}
                       className="text-xs"
                     >
                       {row.timelyCompletion}%
                     </Badge>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 

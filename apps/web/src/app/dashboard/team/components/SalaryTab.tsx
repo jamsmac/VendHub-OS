@@ -14,6 +14,14 @@ import {
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   SALARY_DATA,
   SALARY_BY_ROLE,
   BONUS_DISTRIBUTION,
@@ -152,54 +160,54 @@ export function SalaryTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-espresso/10">
-                <th className="text-left py-2 px-3 text-xs font-semibold text-espresso-light">
+          <Table className="text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-espresso/10">
+                <TableHead className="text-left py-2 px-3 text-xs font-semibold text-espresso-light">
                   Сотрудник
-                </th>
-                <th className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
                   Базовая
-                </th>
-                <th className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
                   Премия
-                </th>
-                <th className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
                   Вычеты
-                </th>
-                <th className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
+                </TableHead>
+                <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
                   Итого к выплате
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {SALARY_DATA.map((row) => {
                 const total = row.base + row.bonus - row.deductions;
                 return (
-                  <tr
+                  <TableRow
                     key={row.name}
                     className="border-b border-espresso/5 hover:bg-espresso-50/30"
                   >
-                    <td className="py-2 px-3 font-medium text-espresso-dark text-xs">
+                    <TableCell className="py-2 px-3 font-medium text-espresso-dark text-xs">
                       {row.name}
-                    </td>
-                    <td className="text-right py-2 px-3 text-xs">
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-3 text-xs">
                       {fmt(row.base)}
-                    </td>
-                    <td className="text-right py-2 px-3 text-xs text-emerald-600">
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-3 text-xs text-emerald-600">
                       +{fmt(row.bonus)}
-                    </td>
-                    <td className="text-right py-2 px-3 text-xs text-red-600">
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-3 text-xs text-red-600">
                       −{fmt(row.deductions)}
-                    </td>
-                    <td className="text-right py-2 px-3 text-xs font-semibold text-espresso-dark">
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-3 text-xs font-semibold text-espresso-dark">
                       {fmt(total)}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

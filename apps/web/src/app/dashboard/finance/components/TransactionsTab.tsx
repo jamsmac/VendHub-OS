@@ -2,6 +2,15 @@
 
 import { Search, Download, Eye } from "lucide-react";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import { useTranslations } from "next-intl";
+import {
   BarChart,
   Bar,
   Line,
@@ -64,6 +73,8 @@ export function TransactionsTab({
   totalTransactionValue,
   refundRate,
 }: TransactionsTabProps) {
+  const t = useTranslations("financeTransactions");
+
   return (
     <>
       {/* Payment Method Breakdown */}
@@ -71,7 +82,7 @@ export function TransactionsTab({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              Распределение по способам оплаты
+              {t("paymentDistribution")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,7 +111,7 @@ export function TransactionsTab({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Статистика способов</CardTitle>
+            <CardTitle className="text-lg">{t("paymentStats")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -128,7 +139,7 @@ export function TransactionsTab({
       {/* Daily Transaction Volume */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Дневной объём транзакций</CardTitle>
+          <CardTitle className="text-lg">{t("dailyVolume")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -151,7 +162,7 @@ export function TransactionsTab({
               <Bar
                 yAxisId="left"
                 dataKey="amount"
-                name="Сумма"
+                name={t("chartAmount")}
                 fill="#f59e0b"
                 radius={[4, 4, 0, 0]}
               />
@@ -159,7 +170,7 @@ export function TransactionsTab({
                 yAxisId="right"
                 type="monotone"
                 dataKey="count"
-                name="Кол-во чеков"
+                name={t("chartReceipts")}
                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ r: 3 }}
@@ -173,7 +184,7 @@ export function TransactionsTab({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Средний чек</p>
+            <p className="text-xs text-espresso-light">{t("avgReceipt")}</p>
             <p className="mt-1 text-2xl font-bold text-espresso-dark">
               {fmt(Math.round(totalTransactionValue / 445))} UZS
             </p>
@@ -181,7 +192,7 @@ export function TransactionsTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Процент возвратов</p>
+            <p className="text-xs text-espresso-light">{t("refundRate")}</p>
             <p className="mt-1 text-2xl font-bold text-amber-600">
               {refundRate}%
             </p>
@@ -189,9 +200,7 @@ export function TransactionsTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">
-              Пропускная способность
-            </p>
+            <p className="text-xs text-espresso-light">{t("throughput")}</p>
             <p className="mt-1 text-2xl font-bold text-emerald-600">
               421 чек/дн
             </p>
@@ -204,7 +213,9 @@ export function TransactionsTab({
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <CardTitle className="text-lg">Транзакции</CardTitle>
+              <CardTitle className="text-lg">
+                {t("transactionsTitle")}
+              </CardTitle>
               <div className="flex gap-2 text-xs">
                 <span className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-700">
                   +{fmt(totalIncome)} UZS
@@ -218,7 +229,7 @@ export function TransactionsTab({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-espresso-light" />
                 <Input
-                  placeholder="Поиск..."
+                  placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => {
                     onSearchChange(e.target.value);
@@ -227,20 +238,22 @@ export function TransactionsTab({
                 />
               </div>
               <div className="flex gap-1">
-                {["all", "income", "expense"].map((t) => (
-                  <button
-                    key={t}
+                {["all", "income", "expense"].map((f) => (
+                  <Button
+                    key={f}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
-                      onTypeFilterChange(t);
+                      onTypeFilterChange(f);
                     }}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${typeFilter === t ? "bg-espresso text-white" : "bg-espresso-50 text-espresso-light hover:bg-espresso-100"}`}
+                    className={`${typeFilter === f ? "bg-espresso text-white hover:bg-espresso-dark" : "bg-espresso-50 text-espresso-light hover:bg-espresso-100"}`}
                   >
-                    {t === "all"
-                      ? "Все"
-                      : t === "income"
-                        ? "Доходы"
-                        : "Расходы"}
-                  </button>
+                    {f === "all"
+                      ? t("all")
+                      : f === "income"
+                        ? t("income")
+                        : t("expense")}
+                  </Button>
                 ))}
               </div>
               <Button variant="outline" size="sm" className="gap-1">
@@ -254,85 +267,91 @@ export function TransactionsTab({
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-espresso/10">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
                   {[
                     "ID",
-                    "Дата",
-                    "Тип",
-                    "Категория",
-                    "Описание",
-                    "Сумма",
-                    "Оплата",
-                    "Статус",
+                    t("colDate"),
+                    t("colType"),
+                    t("colCategory"),
+                    t("colDescription"),
+                    t("colAmount"),
+                    t("colPayment"),
+                    t("colStatus"),
                     "",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className={`px-3 py-3 text-xs font-medium text-espresso-light ${h === "Сумма" ? "text-right" : "text-left"}`}
+                  ].map((h, i) => (
+                    <TableHead
+                      key={h || i}
+                      className={`px-3 py-3 text-xs font-medium text-espresso-light ${i === 5 ? "text-right" : "text-left"}`}
                     >
                       {h}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {txSlice.map((tx) => {
                   const pm = PAYMENT_METHODS[tx.payment];
                   return (
-                    <tr
+                    <TableRow
                       key={tx.id}
                       className="border-b border-espresso/5 hover:bg-espresso-50/50 transition-colors"
                     >
-                      <td className="px-3 py-3 text-sm font-medium text-espresso-dark">
+                      <TableCell className="px-3 py-3 text-sm font-medium text-espresso-dark">
                         {tx.id}
-                      </td>
-                      <td className="px-3 py-3 text-xs text-espresso-light whitespace-nowrap">
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-xs text-espresso-light whitespace-nowrap">
                         {tx.date}
-                      </td>
-                      <td className="px-3 py-3">
+                      </TableCell>
+                      <TableCell className="px-3 py-3">
                         <span
                           className={`inline-flex items-center gap-1 text-xs font-medium ${tx.type === "income" ? "text-emerald-600" : "text-red-500"}`}
                         >
                           {tx.type === "income" ? "↑" : "↓"}
-                          {tx.type === "income" ? "Доход" : "Расход"}
+                          {tx.type === "income"
+                            ? t("incomeType")
+                            : t("expenseType")}
                         </span>
-                      </td>
-                      <td className="px-3 py-3 text-sm text-espresso">
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm text-espresso">
                         {tx.category}
-                      </td>
-                      <td className="px-3 py-3 text-sm text-espresso-light max-w-[200px] truncate">
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm text-espresso-light max-w-[200px] truncate">
                         {tx.description}
-                      </td>
-                      <td
+                      </TableCell>
+                      <TableCell
                         className={`px-3 py-3 text-sm font-medium text-right whitespace-nowrap ${tx.type === "income" ? "text-emerald-600" : "text-red-500"}`}
                       >
                         {tx.type === "income" ? "+" : "−"}
                         {fmt(tx.amount)} UZS
-                      </td>
-                      <td className="px-3 py-3 text-xs text-espresso-light">
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-xs text-espresso-light">
                         {pm?.label || tx.payment}
-                      </td>
-                      <td className="px-3 py-3">
+                      </TableCell>
+                      <TableCell className="px-3 py-3">
                         <StatusBadge status={tx.status} />
-                      </td>
-                      <td className="px-3 py-3">
+                      </TableCell>
+                      <TableCell className="px-3 py-3">
                         <Button variant="ghost" size="sm">
                           <Eye className="h-3.5 w-3.5 text-espresso-light" />
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination */}
           <div className="mt-4 flex items-center justify-between text-sm">
             <span className="text-espresso-light">
-              {filteredTx.length} транзакций · стр. {txPage}/{txTotalPages}
+              {t("paginationText", {
+                count: filteredTx.length,
+                page: txPage,
+                total: txTotalPages,
+              })}
             </span>
             <div className="flex gap-2">
               <Button
@@ -341,7 +360,7 @@ export function TransactionsTab({
                 disabled={txPage <= 1}
                 onClick={() => onPageChange(txPage - 1)}
               >
-                Назад
+                {t("prevPage")}
               </Button>
               <Button
                 variant="outline"
@@ -349,7 +368,7 @@ export function TransactionsTab({
                 disabled={txPage >= txTotalPages}
                 onClick={() => onPageChange(txPage + 1)}
               >
-                Далее
+                {t("nextPage")}
               </Button>
             </div>
           </div>

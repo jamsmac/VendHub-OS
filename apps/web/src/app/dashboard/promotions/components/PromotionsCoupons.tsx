@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import type { Coupon } from "./types";
 import { formatDate } from "@/lib/utils";
 
@@ -121,12 +129,14 @@ export function PromotionsCoupons({
         <CardContent>
           <div className="flex gap-2 mb-4">
             {(["all", "active", "used", "expired"] as const).map((f) => (
-              <button
+              <Button
                 key={f}
+                variant="ghost"
+                size="sm"
                 onClick={() => setCouponFilter(f)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`${
                   couponFilter === f
-                    ? "bg-espresso text-white"
+                    ? "bg-espresso text-white hover:bg-espresso-dark"
                     : "bg-espresso-50 text-espresso-light"
                 }`}
               >
@@ -137,43 +147,43 @@ export function PromotionsCoupons({
                     : f === "used"
                       ? "Использованные"
                       : "Истекшие"}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-espresso/10">
-                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-espresso/10">
+                  <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
                     Код
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
                     Статус
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
                     Создан
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
                     Использован
-                  </th>
-                  <th className="text-right py-3 px-4 font-semibold text-espresso-dark">
+                  </TableHead>
+                  <TableHead className="text-right py-3 px-4 font-semibold text-espresso-dark">
                     Действия
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredCoupons.map((coupon) => (
-                  <tr
+                  <TableRow
                     key={coupon.id}
                     className="border-b border-espresso/10 hover:bg-espresso-50"
                   >
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3 px-4">
                       <code className="font-mono font-semibold text-espresso-dark">
                         {coupon.code}
                       </code>
-                    </td>
-                    <td className="py-3 px-4">
+                    </TableCell>
+                    <TableCell className="py-3 px-4">
                       {coupon.status === "active" && (
                         <Badge variant="success">Активен</Badge>
                       )}
@@ -183,22 +193,22 @@ export function PromotionsCoupons({
                       {coupon.status === "expired" && (
                         <Badge variant="outline">Истёк</Badge>
                       )}
-                    </td>
-                    <td className="py-3 px-4 text-espresso-light text-xs">
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-espresso-light text-xs">
                       {formatDate(coupon.createdAt)}
-                    </td>
-                    <td className="py-3 px-4 text-espresso-light text-xs">
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-espresso-light text-xs">
                       {coupon.usedAt ? formatDate(coupon.usedAt) : "—"}
-                    </td>
-                    <td className="py-3 px-4 text-right">
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-right">
                       <Button variant="ghost" size="sm" className="gap-1">
                         <Copy className="h-3.5 w-3.5" /> Скопировать
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

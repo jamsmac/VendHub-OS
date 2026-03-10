@@ -19,6 +19,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { inventoryApi } from "@/lib/api";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
@@ -110,54 +118,54 @@ export default function InventoryPage() {
 
     return (
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b">
+              <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                 {t("colProduct")}
-              </th>
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+              </TableHead>
+              <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                 {t("colSku")}
-              </th>
-              <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+              </TableHead>
+              <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                 {t("colQuantity")}
-              </th>
-              <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+              </TableHead>
+              <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                 {t("colMin")}
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+              </TableHead>
+              <TableHead className="text-center py-3 px-4 font-medium text-muted-foreground">
                 {t("colStatus")}
-              </th>
+              </TableHead>
               {activeTab !== "warehouse" && (
-                <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                   {t("colLocation")}
-                </th>
+                </TableHead>
               )}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filtered?.map((item) => {
               const isLow = item.quantity <= item.minQuantity;
               return (
-                <tr key={item.id} className="border-b hover:bg-muted/50">
-                  <td className="py-3 px-4">
+                <TableRow key={item.id} className="border-b hover:bg-muted/50">
+                  <TableCell className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">{item.productName}</span>
                     </div>
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-muted-foreground">
                     {item.productSku || "-"}
-                  </td>
-                  <td className="py-3 px-4 text-right">
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-right">
                     <span className={isLow ? "text-red-600 font-medium" : ""}>
                       {item.quantity} {item.unit}
                     </span>
-                  </td>
-                  <td className="py-3 px-4 text-right text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-right text-muted-foreground">
                     {item.minQuantity} {item.unit}
-                  </td>
-                  <td className="py-3 px-4">
+                  </TableCell>
+                  <TableCell className="py-3 px-4">
                     <div className="flex justify-center">
                       {isLow ? (
                         <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600">
@@ -170,17 +178,17 @@ export default function InventoryPage() {
                         </span>
                       )}
                     </div>
-                  </td>
+                  </TableCell>
                   {activeTab !== "warehouse" && (
-                    <td className="py-3 px-4 text-muted-foreground">
+                    <TableCell className="py-3 px-4 text-muted-foreground">
                       {item.locationName || "-"}
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         {filtered?.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             {t("notFound")}

@@ -669,19 +669,21 @@ export default function CounterpartiesPage() {
       {/* Tabs */}
       <div className="flex gap-1 bg-cream/80 p-1 rounded-lg w-fit">
         {TABS.map((tab) => (
-          <button
+          <Button
             key={tab.id}
+            variant={activeTab === tab.id ? "default" : "ghost"}
+            size="sm"
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+              "flex items-center gap-1.5",
               activeTab === tab.id
-                ? "bg-espresso text-white shadow-sm"
+                ? "bg-espresso hover:bg-espresso-dark shadow-sm"
                 : "text-espresso-light hover:bg-espresso-50 hover:text-espresso",
             )}
           >
             <tab.icon className="w-3.5 h-3.5" />
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -812,15 +814,17 @@ export default function CounterpartiesPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
-                            <button
-                              className="text-espresso-light hover:text-espresso transition-colors"
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-espresso-light hover:text-espresso"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedCounterparty(cp);
                               }}
                             >
                               <Eye className="w-4 h-4" />
-                            </button>
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );

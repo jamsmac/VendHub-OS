@@ -853,6 +853,24 @@
     "addFirst": "Xodimlar uchun birinchi vazifani yarating",
     "noTasks": "Vazifalar yo'q"
   },
+  "teamMembers": {
+    "tasksLabel": "Topshiriqlar",
+    "ratingLabel": "Reyting",
+    "sendMessage": "Xabar yuborish",
+    "assignTask": "Topshiriq berish",
+    "moreActions": "Qo'shimcha amallar",
+    "searchPlaceholder": "Ism, email, lavozim bo'yicha qidirish...",
+    "allRoles": "Barcha rollar",
+    "allDepartments": "Barcha bo'limlar",
+    "allStatuses": "Barcha statuslar",
+    "colEmployee": "Xodim",
+    "colRole": "Rol",
+    "colDepartment": "Bo'lim",
+    "colRating": "Reyting",
+    "colTasks": "Topshiriqlar",
+    "colStatus": "Status",
+    "colActions": "Amallar"
+  },
   "routes": {
     "title": "Yo'nalishlar",
     "subtitle": "Xizmat yo'nalishlarini boshqarish",
@@ -1451,6 +1469,33 @@
     "entryDescriptionPlaceholder": "Tavsif",
     "additionalFields": "Qo'shimcha maydonlar",
     "selectPlaceholder": "Tanlang..."
+  },
+  "financeTransactions": {
+    "paymentDistribution": "To'lov usullari taqsimoti",
+    "paymentStats": "To'lov usullari statistikasi",
+    "dailyVolume": "Kunlik tranzaksiya hajmi",
+    "chartAmount": "Summa",
+    "chartReceipts": "Cheklar soni",
+    "avgReceipt": "O'rtacha chek",
+    "refundRate": "Qaytarish foizi",
+    "throughput": "O'tkazish qobiliyati",
+    "transactionsTitle": "Tranzaksiyalar",
+    "searchPlaceholder": "Qidirish...",
+    "all": "Hammasi",
+    "income": "Daromadlar",
+    "expense": "Xarajatlar",
+    "incomeType": "Daromad",
+    "expenseType": "Xarajat",
+    "colDate": "Sana",
+    "colType": "Turi",
+    "colCategory": "Kategoriya",
+    "colDescription": "Tavsif",
+    "colAmount": "Summa",
+    "colPayment": "To'lov",
+    "colStatus": "Status",
+    "paginationText": "{count} tranzaksiya · sahifa {page}/{total}",
+    "prevPage": "Orqaga",
+    "nextPage": "Keyingi"
   },
   "fiscal": {
     "title": "Fiskalizatsiya",
@@ -2330,6 +2375,21 @@
     "saveBtn": "Saqlash",
     "redemptionsTitle": "Ishlatish tarixi",
     "noRedemptions": "Ishlatishlar yo'q"
+  },
+  "promotionsList": {
+    "searchPlaceholder": "Nomi, kodi yoki tavsifi bo'yicha qidirish...",
+    "filterAll": "Barchasi",
+    "filterActive": "Faol",
+    "filterInactive": "Nofaol",
+    "allTypes": "Barcha turlar",
+    "typePercent": "% Chegirma",
+    "typeFixed": "Belgilangan",
+    "typeSpecial": "Maxsus",
+    "selected": "Tanlangan: {count} / {total}",
+    "activate": "Faollashtirish",
+    "deactivate": "O'chirish",
+    "delete": "O'chirish",
+    "notFound": "Aksiyalar topilmadi"
   },
   "loyaltyTransactions": {
     "title": "Ball tranzaksiyalari",
@@ -3718,5 +3778,451 @@
     "support": "Yordam",
     "system": "Tizim",
     "general": "Umumiy"
+  },
+  "apiDocs": {
+    "pathCopied": "Yo'l nusxalandi",
+    "loadSpecError": "API spetsifikatsiyasini yuklash imkoni bo'lmadi",
+    "loadSpecErrorHint": "API server ishga tushganligini va Swagger mavjudligini tekshiring. Owner roli bilan avtorizatsiya talab qilinishi mumkin.",
+    "tryAgain": "Qayta urinish",
+    "refresh": "Yangilash",
+    "modules": "Modullar",
+    "secured": "Himoyalangan",
+    "public": "Ommaviy",
+    "errors4xx5xx": "Xatolar (4xx/5xx)",
+    "serviceStatus": "Xizmatlar holati",
+    "loadServiceStatusError": "Xizmatlar holatini yuklash imkoni bo'lmadi",
+    "detailsUnavailable": "Batafsil ma'lumot mavjud emas",
+    "methodDistribution": "Metodlar taqsimoti",
+    "reset": "Tiklash",
+    "searchPlaceholder": "Endpointlar, yo'llar, tavsiflar bo'yicha qidirish...",
+    "allModules": "Barcha modullar",
+    "endpointsNotFound": "So'rovingiz bo'yicha endpointlar topilmadi",
+    "noEndpoints": "Mavjud endpointlar yo'q",
+    "httpStatusDistribution": "HTTP holatlari taqsimoti",
+    "description": "Tavsif",
+    "details": "Batafsil",
+    "authRequired": "Avtorizatsiya majburiy",
+    "publicEndpoint": "Ommaviy endpoint",
+    "parameters": "Parametrlar ({count})",
+    "hasRequestBody": "So'rov tanasi mavjud (Request Body)",
+    "possibleResponses": "Mumkin bo'lgan javoblar"
+  },
+  "help": {
+    "title": "Yordam va qo'llab-quvvatlash",
+    "subtitle": "Javoblarni toping, o'rganing, qo'llab-quvvatlash bilan bog'laning",
+    "tabs": {
+      "faq": "FAQ",
+      "knowledge": "Bilimlar bazasi",
+      "training": "O'qitish",
+      "support": "Qo'llab-quvvatlash",
+      "changelog": "Changelog"
+    },
+    "popularQuestions": "Ommabop savollar",
+    "views": "ko'rishlar",
+    "categories": "Kategoriyalar",
+    "allCategories": "Hammasi",
+    "relatedArticles": "Bog'liq maqolalar:",
+    "wasHelpful": "Bu javob sizga yordam berdimi?",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "knowledgeBase": "Bilimlar bazasi",
+    "articlesCount": "maqolalar",
+    "topArticles": "Top maqolalar",
+    "recentUpdates": "So'nggi yangilanishlar",
+    "videoTutorials": "Video darsliklar",
+    "learningPaths": "O'quv yo'llari",
+    "modulesProgress": "{completed} dan {total} modul",
+    "interactiveWalkthroughs": "Interaktiv ekskursiyalar",
+    "startWalkthrough": "Ekskursiyani boshlash",
+    "contactChannels": "Aloqa kanallari",
+    "yourTickets": "Sizning tiketlaringiz",
+    "createTicket": "Yangi tiket yaratish",
+    "newTicketTitle": "Yangi qo'llab-quvvatlash tiketi yaratish",
+    "ticketSubject": "Mavzu",
+    "ticketSubjectPlaceholder": "Muammoni tavsiflang",
+    "ticketCategory": "Kategoriya",
+    "selectCategory": "Kategoriyani tanlang",
+    "ticketCategories": {
+      "technical": "Texnik muammo",
+      "bug": "Xatolik",
+      "finance": "Moliya",
+      "training": "O'qitish",
+      "feature": "Funksiya so'rovi"
+    },
+    "ticketPriority": "Muhimlik",
+    "priority": {
+      "low": "Past",
+      "medium": "O'rtacha",
+      "high": "Yuqori"
+    },
+    "ticketDescription": "Tavsif",
+    "ticketDescriptionPlaceholder": "Muammoni batafsil tavsiflang",
+    "attachFile": "Fayl biriktirish (ixtiyoriy)",
+    "dragOrClick": "Faylni bu yerga tashlang yoki tanlash uchun bosing",
+    "submitTicket": "Tiketni yuborish",
+    "cancelBtn": "Bekor qilish",
+    "searchTickets": "Tiket raqami yoki mavzu bo'yicha qidirish",
+    "created": "Yaratilgan",
+    "categoryLabel": "Kategoriya",
+    "assignedTo": "Tayinlangan",
+    "messagesCount": "Xabarlar",
+    "viewDetails": "Batafsil ko'rish",
+    "ticketStatus": {
+      "open": "Ochiq",
+      "inProgress": "Jarayonda",
+      "resolved": "Hal qilingan",
+      "closed": "Yopilgan"
+    },
+    "slaStatus": {
+      "onTrack": "Normada",
+      "atRisk": "Xavf",
+      "breached": "Buzilgan"
+    },
+    "systemStatus": "Tizim holati",
+    "operational": "Ishlayapti",
+    "issues": "Muammolar",
+    "responseTime": "Javob vaqti",
+    "changeHistory": "O'zgarishlar tarixi",
+    "changelogFilter": {
+      "all": "Hammasi",
+      "features": "Funksiyalar",
+      "bugfixes": "Tuzatishlar",
+      "improvements": "Yaxshilanishlar"
+    },
+    "changelogType": {
+      "feature": "Funksiya",
+      "bugfix": "Tuzatish",
+      "improvement": "Yaxshilanish"
+    },
+    "faqCategories": {
+      "general": "Umumiy",
+      "machines": "Avtomatlar",
+      "payments": "To'lovlar",
+      "loyalty": "Sadoqat",
+      "techSupport": "Texnik yordam"
+    },
+    "faq": {
+      "general": {
+        "0": {
+          "question": "Yangi vending apparatini qanday qo'shish mumkin?",
+          "answer": "\"Avtomatlar\" bo'limiga o'ting -> \"Apparat qo'shish\" tugmasini bosing -> seriya raqami va joylashuv ma'lumotlarini to'ldiring -> saqlang. Apparat sinxronizatsiyadan keyin ro'yxatda paydo bo'ladi."
+        },
+        "1": {
+          "question": "Bildirishnomalarni qanday sozlash mumkin?",
+          "answer": "\"Sozlamalar\" -> \"Bildirishnomalar\" -> kanallarni (Email, Telegram, SMS) va xabar bermoqchi bo'lgan voqea turlarini tanlang."
+        },
+        "2": {
+          "question": "Xodimni tizimga qanday taklif qilish mumkin?",
+          "answer": "\"Jamoa\" -> \"Taklif qilish\" -> emailni kiriting va rolni tanlang. Xodim ro'yxatdan o'tish havolasini oladi."
+        },
+        "3": {
+          "question": "Tizimda qanday rollar mavjud?",
+          "answer": "Egasi, Administrator, Menejer, Operator, Omborchi, Buxgalter, Kontent-menejer, Kuzatuvchi. Har bir rol o'z ruxsatlar to'plamiga ega (RBAC)."
+        },
+        "4": {
+          "question": "Mavjud ma'lumotlarni qanday import qilish mumkin?",
+          "answer": "\"AI-Import\" -> faylni yuklang (xlsx, csv, json) -> AI avtomatik ravishda ma'lumot turini aniqlaydi va maydonlarni moslashtiradi -> tekshiring va tasdiqlang."
+        }
+      },
+      "machines": {
+        "0": {
+          "question": "Apparat holatlari nimani anglatadi?",
+          "answer": "Yashil (Onlayn) - apparat normal ishlayapti. Sariq (Diqqat) - e'tibor talab etiladi (kam zaxiralar, harorat o'zgarishi). Qizil (Oflayn) - aloqa yo'q yoki muhim xatolik."
+        },
+        "1": {
+          "question": "Planogrammani qanday sozlash mumkin?",
+          "answer": "Apparat kartasini oching -> \"Planogramma\" oynasi -> mahsulotlarni kerakli katakchalarga torting -> saqlang. Planogramma muayyan apparatda qaysi ichimliklar mavjudligini belgilaydi."
+        },
+        "2": {
+          "question": "Haroratni qanday kuzatish mumkin?",
+          "answer": "Apparat kartasida tarix bilan harorat vidjeti mavjud. Ogohlantirishlarni sozlash uchun: \"Sozlamalar\" -> \"Monitoring\" -> chegara qiymatlarini belgilang (norma 85-95°C)."
+        },
+        "3": {
+          "question": "Telemetriya qanday ishlaydi?",
+          "answer": "Avtomatlar har 30 soniyada ma'lumot yuboradi: ingrediyent darajalari, harorat, stakan soni, xatolar. Aloqa > 5 daqiqa uzilsa, tizim ogohlantirish yaratadi."
+        },
+        "4": {
+          "question": "Xizmat ko'rsatish tarixini qanday ko'rish mumkin?",
+          "answer": "Apparat kartasi -> \"Tarix\" oynasi -> barcha operatsiyalar: to'ldirish, ta'mirlash, inkassatsiya. Sana va operatsiya turi bo'yicha filtr."
+        },
+        "5": {
+          "question": "Rejalashtirilgan texnik xizmatni qanday sozlash mumkin?",
+          "answer": "Apparat kartasi -> \"Xizmat ko'rsatish\" -> jadval yarating (haftalik/oylik) -> ish turini belgilang (tozalash, filtr almashtirish) -> xodimni tayinlang. Xizmat ko'rsatish haqida bildirishnomalar 24 soat oldin yuboriladi."
+        }
+      },
+      "payments": {
+        "0": {
+          "question": "Hisobotni qanday eksport qilish mumkin?",
+          "answer": "\"Hisobotlar\" bo'limida kerakli hisobotni tanlang -> parametrlarni sozlang (davr, guruhlash) -> \"Eksport\" bosing -> formatni tanlang (PDF, Excel, CSV)."
+        },
+        "1": {
+          "question": "To'lov solishtirish qanday ishlaydi?",
+          "answer": "Tizim avtomatik ravishda to'lov tizimlari (Payme, Click, Uzum) tranzaksiyalarini inkassatsiya ma'lumotlari bilan solishtirad. Nomuvofiqliklar \"Moliya\" -> \"Solishtirish\" bo'limida qo'lda tekshirish uchun belgilanadi."
+        },
+        "2": {
+          "question": "Avtomatik hisobotlarni qanday sozlash mumkin?",
+          "answer": "\"Hisobotlar\" -> \"Hisobotlar ro'yxati\" -> hisobotni tanlang -> \"Jadval\" -> chastotani (kunlik/haftalik/oylik), qabul qiluvchilarni va formatni belgilang."
+        },
+        "3": {
+          "question": "Multikassa fiskalizatsiyasini qanday ulash mumkin?",
+          "answer": "\"Sozlamalar\" -> \"Integratsiyalar\" -> \"Multikassa\" -> API kalitni kiriting -> faollashtiring. Barcha cheklar avtomatik fiskalizatsiya qilinadi. Chek holati \"Moliya\" -> \"Fiskalizatsiya\"."
+        }
+      },
+      "loyalty": {
+        "0": {
+          "question": "Bonus tizimi qanday ishlaydi?",
+          "answer": "Mijozlar xaridlar uchun ball oladi (1 UZS = 1 ball, daraja bo'yicha keshbek). 5 daraja: Bronze->Silver->Gold->Platinum->Diamond. Ballarni ichimliklar uchun sarflash yoki do'stlarga o'tkazish mumkin."
+        },
+        "1": {
+          "question": "Promo-aksiyani qanday yaratish mumkin?",
+          "answer": "\"Aksiyalar\" -> \"Aksiya qo'shish\" -> to'ldiring: nomi, tavsifi, chegirma turi (%), promokod, shartlar, davr. Aksiya mobil ilova va saytda paydo bo'ladi."
+        },
+        "2": {
+          "question": "Mijozlar uchun kvestlarni qanday sozlash mumkin?",
+          "answer": "\"Sadoqat\" -> \"Kvestlar\" -> \"Kvest yaratish\" -> turni tanlang (kunlik/haftalik/maxsus), bajarish sharti va mukofotni belgilang."
+        },
+        "3": {
+          "question": "Referallar qanday ishlaydi?",
+          "answer": "Mijoz referal kodini ulashadi -> do'st 5000+ UZS ga birinchi xarid qiladi -> ikkalasi 10 000 bonus ball oladi. Referal statistikasi \"Mijozlar\" -> profil."
+        }
+      },
+      "techSupport": {
+        "0": {
+          "question": "Payme/Click ni qanday ulash mumkin?",
+          "answer": "\"Sozlamalar\" -> \"Integratsiyalar\" -> kerakli to'lov tizimini toping -> \"Ulash\" -> to'lov tizimi shaxsiy kabinetidan API kalitlarni kiriting -> sinov tranzaksiyasini o'tkazing."
+        },
+        "1": {
+          "question": "Telegram botni qanday sozlash mumkin?",
+          "answer": "\"Sozlamalar\" -> \"Integratsiyalar\" -> \"Telegram Bot\" -> bot tokenini nusxalang -> botni chatga qo'shing -> verifikatsiyani o'tkazing. 2 bot: @vendhub_bot (mijozlar) va @vendhub_staff_bot (xodimlar)."
+        },
+        "2": {
+          "question": "1C qo'llab-quvvatlanadimi?",
+          "answer": "Ha, 1C:Enterprise bilan tayyor integratsiya mavjud. Ma'lumot almashish: ma'lumotnomalar, hujjatlar, qoldiqlar. Sozlash: \"Integratsiyalar\" -> \"1C\" -> almashish konfiguratsiyasini yuklang."
+        },
+        "3": {
+          "question": "Dasturchilar uchun API bormi?",
+          "answer": "Ha, JWT avtorizatsiyali REST API v1. Hujjatlar: /api/v1/docs. Rate limit: 100 so'rov/min. Token olish uchun: \"Sozlamalar\" -> \"API\" -> \"Token yaratish\"."
+        },
+        "4": {
+          "question": "Mobil ilovaning offline rejimi qanday ishlaydi?",
+          "answer": "Mobil ilova menyu va mavjud operatsiyalarni keshga saqlaydi. Internet bo'lmaganda mijoz mahsulotlarni ko'rishi va buyurtma yaratishi mumkin (navbatga saqlanadi). Internet tiklanganida sinxronizatsiya avtomatik amalga oshiriladi."
+        }
+      }
+    },
+    "kbCategories": {
+      "gettingStarted": "Boshlash",
+      "machinesEquipment": "Avtomatlar va jihozlar",
+      "productsRecipes": "Mahsulotlar va retseptlar",
+      "financeReports": "Moliya va hisobotlar",
+      "customerLoyalty": "Mijozlar sadoqati",
+      "administration": "Administratsiya"
+    },
+    "articles": {
+      "planogramGuide": {
+        "title": "Planogrammalar bo'yicha to'liq qo'llanma",
+        "category": "Avtomatlar",
+        "duration": "12 daq"
+      },
+      "apiV1": {
+        "title": "API v1 - Real-time ma'lumot almashish",
+        "category": "Dasturlash",
+        "duration": "18 daq"
+      },
+      "integration1c": {
+        "title": "1C integratsiyasi - bosqichma-bosqich qo'llanma",
+        "category": "Integratsiyalar",
+        "duration": "14 daq"
+      },
+      "costOptimization": {
+        "title": "Xarajatlarni optimallashtirish - amaliy holatlar",
+        "category": "Moliya",
+        "duration": "9 daq"
+      },
+      "loyalty2": {
+        "title": "Sadoqat 2.0 - bu qanday ishlaydi",
+        "category": "Marketing",
+        "duration": "11 daq"
+      },
+      "maintenanceGuide": {
+        "title": "Avtomatlarni texnik xizmat ko'rsatish",
+        "category": "Avtomatlar",
+        "duration": "8 daq"
+      },
+      "quickStart": {
+        "title": "Yangi administratorlar uchun tezkor boshlash",
+        "category": "Boshlash",
+        "duration": "15 daq"
+      },
+      "notificationsVideo": {
+        "title": "Video: admin panelda bildirishnomalarni sozlash",
+        "category": "Avtomatlar",
+        "duration": "6 daq"
+      }
+    },
+    "videos": {
+      "connectMachine": {
+        "title": "Yangi apparatni ulash",
+        "duration": "8 daq",
+        "difficulty": "Boshlang'ich"
+      },
+      "planogramRecipes": {
+        "title": "Planogramma va retseptlarni sozlash",
+        "duration": "12 daq",
+        "difficulty": "O'rtacha"
+      },
+      "reportsAnalytics": {
+        "title": "Hisobotlar va analitika bilan ishlash",
+        "duration": "15 daq",
+        "difficulty": "O'rtacha"
+      },
+      "teamAccess": {
+        "title": "Jamoa va kirish huquqlarini boshqarish",
+        "duration": "10 daq",
+        "difficulty": "O'rtacha"
+      },
+      "integrationsApi": {
+        "title": "Integratsiyalar va API sozlash",
+        "duration": "18 daq",
+        "difficulty": "Ilg'or"
+      },
+      "loyaltyMarketing": {
+        "title": "Sadoqat 2.0 va marketing",
+        "duration": "14 daq",
+        "difficulty": "O'rtacha"
+      }
+    },
+    "paths": {
+      "beginner": {
+        "name": "Boshlang'ich",
+        "description": "Tizimdagi birinchi qadamlar"
+      },
+      "operator": {
+        "name": "Operator",
+        "description": "Asosiy operatsiyalar va monitoring"
+      },
+      "administrator": {
+        "name": "Administrator",
+        "description": "Tizimni boshqarish va integratsiyalar"
+      }
+    },
+    "walkthroughs": {
+      "dashboardOverview": {
+        "title": "Boshqaruv paneli sharhi",
+        "description": "Asosiy boshqaruv ekrani bo'ylab ekskursiya"
+      },
+      "firstMachine": {
+        "title": "Birinchi apparatni yaratish",
+        "description": "Vending apparatini bosqichma-bosqich qo'shish"
+      },
+      "productsRecipes": {
+        "title": "Mahsulotlar va retseptlarni sozlash",
+        "description": "Avtomatlaringiz uchun menyu yaratish"
+      }
+    },
+    "contact": {
+      "email": {
+        "type": "Email",
+        "description": "Email orqali bog'laning"
+      },
+      "phone": {
+        "type": "Telefon",
+        "description": "Ish vaqtida qo'ng'iroq qiling"
+      },
+      "telegram": {
+        "type": "Telegram",
+        "description": "24/7 qo'llab-quvvatlash chati"
+      }
+    },
+    "tickets": {
+      "tkt0089": {
+        "subject": "VM-045 sinxronizatsiya muammosi",
+        "lastUpdate": "2 soat oldin",
+        "category": "Texnik muammo",
+        "assignee": "Texnik qo'llab-quvvatlash"
+      },
+      "tkt0088": {
+        "subject": "VM-003 cheklarni fiskalizatsiya qilmayapti",
+        "lastUpdate": "4 soat oldin",
+        "category": "Moliya",
+        "assignee": "Buxgalteriya"
+      },
+      "tkt0087": {
+        "subject": "Webhook API v1 sozlash bo'yicha savol",
+        "lastUpdate": "1 kun oldin",
+        "category": "Dasturlash",
+        "assignee": "Dasturlash"
+      },
+      "tkt0085": {
+        "subject": "PDF eksport ishlamayapti (Firefox)",
+        "lastUpdate": "2 kun oldin",
+        "category": "Xatolik",
+        "assignee": "Dasturlash"
+      },
+      "tkt0082": {
+        "subject": "Yangi hisobot turi so'rovi - kogortalar bo'yicha LTV",
+        "lastUpdate": "3 kun oldin",
+        "category": "Funksiya so'rovi",
+        "assignee": "Mahsulot"
+      },
+      "tkt0079": {
+        "subject": "Yangi operator o'qitish - qo'llanmaga kirish",
+        "lastUpdate": "5 kun oldin",
+        "category": "O'qitish",
+        "assignee": "Texnik qo'llab-quvvatlash"
+      },
+      "tkt0076": {
+        "subject": "VM-021 inkassatsiyasida muhim xatolik",
+        "lastUpdate": "30 daqiqa oldin",
+        "category": "Texnik muammo",
+        "assignee": "Texnik qo'llab-quvvatlash"
+      },
+      "tkt0072": {
+        "subject": "Yangi interfeys uchun jamoani to'liq qayta tayyorlash kerak",
+        "lastUpdate": "18 soat oldin",
+        "category": "O'qitish",
+        "assignee": "O'qitish"
+      }
+    },
+    "services": {
+      "apiService": "API xizmati",
+      "paymentSystems": "To'lov tizimlari",
+      "telemetry": "Telemetriya va sensorlar",
+      "landingSite": "Landing sayti"
+    },
+    "changelog": {
+      "v2_4_0": {
+        "0": "Real-time grafiklar bilan yangi analitika interfeysi",
+        "1": "API tezligini optimallashtirish (+40%)",
+        "2": "Barcha ilovalarda qorong'u mavzu qo'llab-quvvatlash"
+      },
+      "v2_3_8": {
+        "0": "Firefox da PDF eksportning muhim xatosi tuzatildi",
+        "1": "1000+ mashina bilan ishlash samaradorligi yaxshilandi (+25%)"
+      },
+      "v2_3_7": {
+        "0": "Mijoz kogortalari va LTV tahlili bo'yicha yangi hisobotlar",
+        "1": "Uzum Money va HUMO bilan integratsiya"
+      },
+      "v2_3_6": {
+        "0": "Offline rejim bilan ma'lumotlar sinxronizatsiyasi tuzatildi",
+        "1": "Real-time ogohlantirishlar yaxshilandi (kechikish 60% kamaydi)"
+      },
+      "v2_3_5": {
+        "0": "Shaxsiylashtirilgan yangi push-bildirishnoma tizimi",
+        "1": "Barcha eksportlarda kirill alifbosini to'liq qo'llab-quvvatlash"
+      },
+      "v2_3_4": {
+        "0": "Foydalanuvchilarni yaratishda RBAC xatolari tuzatildi",
+        "1": "Planogramma yuklash optimallashtirildi (+35%)"
+      },
+      "v2_3_3": {
+        "0": "Multikassa 2.0 API integratsiyasi yangilandi",
+        "1": "Boshqaruv panelida yangi ko'rsatkichlar: marja, CAC, LTV"
+      },
+      "v2_3_2": {
+        "0": "Aloqa uzilishida telemetriya xatosi tuzatildi",
+        "1": "Hisobotlar uchun ma'lumotlar bazasi samaradorligi optimallashtirildi"
+      }
+    }
   }
 }

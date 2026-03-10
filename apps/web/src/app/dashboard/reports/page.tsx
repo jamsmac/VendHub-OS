@@ -22,6 +22,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -433,57 +441,59 @@ export default function ReportsPage() {
             <TableSkeleton />
           ) : sales?.topMachines?.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                       {t("columnNumber")}
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead className="text-left py-3 px-4 font-medium text-muted-foreground">
                       {t("columnMachine")}
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                       {t("columnTransactions")}
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                       {t("columnRevenue")}
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead className="text-right py-3 px-4 font-medium text-muted-foreground">
                       {t("columnAvgCheck")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {sales.topMachines
                     .slice(0, 10)
                     .map((machine: TopMachine, index: number) => (
-                      <tr
+                      <TableRow
                         key={machine.machineId}
                         className="border-b hover:bg-muted/50"
                       >
-                        <td className="py-3 px-4 font-medium">{index + 1}</td>
-                        <td className="py-3 px-4">
+                        <TableCell className="py-3 px-4 font-medium">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <Coffee className="h-4 w-4 text-muted-foreground" />
                             <span>{machine.machineName}</span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4 text-right">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-right">
                           {machine.transactions}
-                        </td>
-                        <td className="py-3 px-4 text-right font-medium">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-right font-medium">
                           {machine.revenue} ₛ
-                        </td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-right text-muted-foreground">
                           {machine.transactions > 0
                             ? Math.round(machine.revenue / machine.transactions)
                             : 0}{" "}
                           ₛ
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">

@@ -853,6 +853,24 @@
     "addFirst": "Create the first task for employees",
     "noTasks": "No tasks"
   },
+  "teamMembers": {
+    "tasksLabel": "Tasks",
+    "ratingLabel": "Rating",
+    "sendMessage": "Send message",
+    "assignTask": "Assign task",
+    "moreActions": "More actions",
+    "searchPlaceholder": "Search by name, email, position...",
+    "allRoles": "All roles",
+    "allDepartments": "All departments",
+    "allStatuses": "All statuses",
+    "colEmployee": "Employee",
+    "colRole": "Role",
+    "colDepartment": "Department",
+    "colRating": "Rating",
+    "colTasks": "Tasks",
+    "colStatus": "Status",
+    "colActions": "Actions"
+  },
   "routes": {
     "title": "Routes",
     "subtitle": "Manage service routes",
@@ -1451,6 +1469,33 @@
     "entryDescriptionPlaceholder": "Description",
     "additionalFields": "Additional fields",
     "selectPlaceholder": "Select..."
+  },
+  "financeTransactions": {
+    "paymentDistribution": "Payment method distribution",
+    "paymentStats": "Payment method stats",
+    "dailyVolume": "Daily transaction volume",
+    "chartAmount": "Amount",
+    "chartReceipts": "Receipts count",
+    "avgReceipt": "Average receipt",
+    "refundRate": "Refund rate",
+    "throughput": "Throughput",
+    "transactionsTitle": "Transactions",
+    "searchPlaceholder": "Search...",
+    "all": "All",
+    "income": "Income",
+    "expense": "Expenses",
+    "incomeType": "Income",
+    "expenseType": "Expense",
+    "colDate": "Date",
+    "colType": "Type",
+    "colCategory": "Category",
+    "colDescription": "Description",
+    "colAmount": "Amount",
+    "colPayment": "Payment",
+    "colStatus": "Status",
+    "paginationText": "{count} transactions · page {page}/{total}",
+    "prevPage": "Back",
+    "nextPage": "Next"
   },
   "fiscal": {
     "title": "Fiscalization",
@@ -2330,6 +2375,21 @@
     "saveBtn": "Save",
     "redemptionsTitle": "Redemption history",
     "noRedemptions": "No redemptions"
+  },
+  "promotionsList": {
+    "searchPlaceholder": "Search by name, code or description...",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterInactive": "Inactive",
+    "allTypes": "All types",
+    "typePercent": "% Discount",
+    "typeFixed": "Fixed",
+    "typeSpecial": "Special",
+    "selected": "Selected: {count} of {total}",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "delete": "Delete",
+    "notFound": "Promotions not found"
   },
   "loyaltyTransactions": {
     "title": "Points Transactions",
@@ -3718,5 +3778,451 @@
     "support": "Support",
     "system": "System",
     "general": "General"
+  },
+  "apiDocs": {
+    "pathCopied": "Path copied",
+    "loadSpecError": "Failed to load API specification",
+    "loadSpecErrorHint": "Check that the API server is running and Swagger is accessible. Owner role authorization may be required.",
+    "tryAgain": "Try again",
+    "refresh": "Refresh",
+    "modules": "Modules",
+    "secured": "Secured",
+    "public": "Public",
+    "errors4xx5xx": "Errors (4xx/5xx)",
+    "serviceStatus": "Service status",
+    "loadServiceStatusError": "Failed to load service status",
+    "detailsUnavailable": "Detailed information unavailable",
+    "methodDistribution": "Method distribution",
+    "reset": "Reset",
+    "searchPlaceholder": "Search endpoints, paths, descriptions...",
+    "allModules": "All modules",
+    "endpointsNotFound": "No endpoints found for your query",
+    "noEndpoints": "No endpoints available",
+    "httpStatusDistribution": "HTTP status distribution",
+    "description": "Description",
+    "details": "Details",
+    "authRequired": "Authorization required",
+    "publicEndpoint": "Public endpoint",
+    "parameters": "Parameters ({count})",
+    "hasRequestBody": "Has request body (Request Body)",
+    "possibleResponses": "Possible responses"
+  },
+  "help": {
+    "title": "Help & Support",
+    "subtitle": "Find answers, learn, contact support",
+    "tabs": {
+      "faq": "FAQ",
+      "knowledge": "Knowledge Base",
+      "training": "Training",
+      "support": "Support",
+      "changelog": "Changelog"
+    },
+    "popularQuestions": "Popular Questions",
+    "views": "views",
+    "categories": "Categories",
+    "allCategories": "All",
+    "relatedArticles": "Related articles:",
+    "wasHelpful": "Was this answer helpful?",
+    "yes": "Yes",
+    "no": "No",
+    "knowledgeBase": "Knowledge Base",
+    "articlesCount": "articles",
+    "topArticles": "Top Articles",
+    "recentUpdates": "Recent Updates",
+    "videoTutorials": "Video Tutorials",
+    "learningPaths": "Learning Paths",
+    "modulesProgress": "{completed} of {total} modules",
+    "interactiveWalkthroughs": "Interactive Walkthroughs",
+    "startWalkthrough": "Start Walkthrough",
+    "contactChannels": "Contact Channels",
+    "yourTickets": "Your Tickets",
+    "createTicket": "Create New Ticket",
+    "newTicketTitle": "Create New Support Ticket",
+    "ticketSubject": "Subject",
+    "ticketSubjectPlaceholder": "Describe the issue",
+    "ticketCategory": "Category",
+    "selectCategory": "Select category",
+    "ticketCategories": {
+      "technical": "Technical Issue",
+      "bug": "Bug",
+      "finance": "Finance",
+      "training": "Training",
+      "feature": "Feature Request"
+    },
+    "ticketPriority": "Priority",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "ticketDescription": "Description",
+    "ticketDescriptionPlaceholder": "Detailed description of the issue",
+    "attachFile": "Attach file (optional)",
+    "dragOrClick": "Drag a file here or click to select",
+    "submitTicket": "Submit Ticket",
+    "cancelBtn": "Cancel",
+    "searchTickets": "Search by ticket number or subject",
+    "created": "Created",
+    "categoryLabel": "Category",
+    "assignedTo": "Assigned to",
+    "messagesCount": "Messages",
+    "viewDetails": "View Details",
+    "ticketStatus": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "slaStatus": {
+      "onTrack": "On Track",
+      "atRisk": "At Risk",
+      "breached": "Breached"
+    },
+    "systemStatus": "System Status",
+    "operational": "Operational",
+    "issues": "Issues",
+    "responseTime": "Response time",
+    "changeHistory": "Change History",
+    "changelogFilter": {
+      "all": "All",
+      "features": "Features",
+      "bugfixes": "Bug Fixes",
+      "improvements": "Improvements"
+    },
+    "changelogType": {
+      "feature": "Feature",
+      "bugfix": "Bug Fix",
+      "improvement": "Improvement"
+    },
+    "faqCategories": {
+      "general": "General",
+      "machines": "Machines",
+      "payments": "Payments",
+      "loyalty": "Loyalty",
+      "techSupport": "Tech Support"
+    },
+    "faq": {
+      "general": {
+        "0": {
+          "question": "How to add a new vending machine?",
+          "answer": "Go to \"Machines\" section -> click \"Add Machine\" -> fill in the serial number and location details -> save. The machine will appear in the list after synchronization."
+        },
+        "1": {
+          "question": "How to set up notifications?",
+          "answer": "Open \"Settings\" -> \"Notifications\" -> select channels (Email, Telegram, SMS) and event types you want to be notified about."
+        },
+        "2": {
+          "question": "How to invite an employee to the system?",
+          "answer": "Go to \"Team\" -> click \"Invite\" -> enter email and select role. The employee will receive a registration link."
+        },
+        "3": {
+          "question": "What roles are available in the system?",
+          "answer": "Owner, Administrator, Manager, Operator, Warehouse Worker, Accountant, Content Manager, Viewer. Each role has its own set of permissions (RBAC)."
+        },
+        "4": {
+          "question": "How to import existing data?",
+          "answer": "Go to \"AI Import\" -> upload a file (xlsx, csv, json) -> AI will automatically detect data type and map fields -> review and confirm import."
+        }
+      },
+      "machines": {
+        "0": {
+          "question": "What do machine statuses mean?",
+          "answer": "Green (Online) - machine is operating normally. Yellow (Attention) - requires attention (low supplies, temperature deviation). Red (Offline) - no connection or critical error."
+        },
+        "1": {
+          "question": "How to set up a planogram?",
+          "answer": "Open machine card -> \"Planogram\" tab -> drag products to the desired cells -> save. The planogram determines which drinks are available on a specific machine."
+        },
+        "2": {
+          "question": "How to track temperature?",
+          "answer": "The machine card has a temperature widget with history. To set up alerts: \"Settings\" -> \"Monitoring\" -> set threshold values (normal 85-95°C)."
+        },
+        "3": {
+          "question": "How does telemetry work?",
+          "answer": "Machines send data every 30 sec: ingredient levels, temperature, cup count, errors. If connection is lost for > 5 min, the system creates an alert."
+        },
+        "4": {
+          "question": "How to view service history?",
+          "answer": "Machine card -> \"History\" tab -> all operations: refills, repairs, collections. Filter by date and operation type."
+        },
+        "5": {
+          "question": "How to set up a scheduled maintenance plan?",
+          "answer": "Machine card -> \"Maintenance\" -> create a schedule (weekly/monthly) -> specify type of work (cleaning, filter replacement) -> assign an employee. Maintenance notifications are sent 24 hours in advance."
+        }
+      },
+      "payments": {
+        "0": {
+          "question": "How to export a report?",
+          "answer": "In the \"Reports\" section, select the desired report -> configure parameters (period, grouping) -> click \"Export\" -> choose format (PDF, Excel, CSV)."
+        },
+        "1": {
+          "question": "How does payment reconciliation work?",
+          "answer": "The system automatically matches transactions from payment systems (Payme, Click, Uzum) with collection data. Discrepancies are flagged for manual review in \"Finance\" -> \"Reconciliation\"."
+        },
+        "2": {
+          "question": "How to set up automatic reports?",
+          "answer": "In \"Reports\" -> \"Report List\" -> select report -> \"Schedule\" -> specify frequency (daily/weekly/monthly), recipients, and format."
+        },
+        "3": {
+          "question": "How to connect Multikassa fiscalization?",
+          "answer": "\"Settings\" -> \"Integrations\" -> \"Multikassa\" -> enter API key -> activate. All receipts will be automatically fiscalized. Receipt status in \"Finance\" -> \"Fiscalization\"."
+        }
+      },
+      "loyalty": {
+        "0": {
+          "question": "How does the bonus system work?",
+          "answer": "Customers earn points for purchases (1 UZS = 1 point with cashback based on level). 5 levels: Bronze->Silver->Gold->Platinum->Diamond. Points can be spent on drinks or transferred to friends."
+        },
+        "1": {
+          "question": "How to create a promo campaign?",
+          "answer": "\"Promotions\" -> \"Add Promotion\" -> fill in: name, description, discount type (%), promo code, conditions, period. The promotion will appear in the mobile app and on the website."
+        },
+        "2": {
+          "question": "How to set up quests for customers?",
+          "answer": "\"Loyalty\" -> \"Quests\" -> \"Create Quest\" -> select type (daily/weekly/special), completion condition, and reward."
+        },
+        "3": {
+          "question": "How do referrals work?",
+          "answer": "Customer shares referral code -> friend makes first purchase of 5000+ UZS -> both receive 10,000 bonus points. Referral statistics in \"Customers\" -> profile."
+        }
+      },
+      "techSupport": {
+        "0": {
+          "question": "How to connect Payme/Click?",
+          "answer": "\"Settings\" -> \"Integrations\" -> find the desired payment system -> \"Connect\" -> enter API keys from the payment system dashboard -> complete a test transaction."
+        },
+        "1": {
+          "question": "How to set up a Telegram bot?",
+          "answer": "\"Settings\" -> \"Integrations\" -> \"Telegram Bot\" -> copy bot token -> add bot to chat -> complete verification. 2 bots: @vendhub_bot (customers) and @vendhub_staff_bot (staff)."
+        },
+        "2": {
+          "question": "Is 1C supported?",
+          "answer": "Yes, there is a ready-made integration with 1C:Enterprise. Data exchange: directories, documents, balances. Setup: \"Integrations\" -> \"1C\" -> upload exchange configuration."
+        },
+        "3": {
+          "question": "Is there an API for developers?",
+          "answer": "Yes, REST API v1 with JWT authorization. Documentation: /api/v1/docs. Rate limit: 100 requests/min. To get a token: \"Settings\" -> \"API\" -> \"Create Token\"."
+        },
+        "4": {
+          "question": "How does the mobile app offline mode work?",
+          "answer": "The mobile app caches the menu and available operations. Without internet, the customer can browse products and create an order (saved to queue). Synchronization happens automatically when connection is restored."
+        }
+      }
+    },
+    "kbCategories": {
+      "gettingStarted": "Getting Started",
+      "machinesEquipment": "Machines & Equipment",
+      "productsRecipes": "Products & Recipes",
+      "financeReports": "Finance & Reports",
+      "customerLoyalty": "Customer Loyalty",
+      "administration": "Administration"
+    },
+    "articles": {
+      "planogramGuide": {
+        "title": "Complete Guide to Planograms",
+        "category": "Machines",
+        "duration": "12 min"
+      },
+      "apiV1": {
+        "title": "API v1 - Real-time Data Exchange",
+        "category": "Development",
+        "duration": "18 min"
+      },
+      "integration1c": {
+        "title": "1C Integration - Step by Step Guide",
+        "category": "Integrations",
+        "duration": "14 min"
+      },
+      "costOptimization": {
+        "title": "Cost Optimization - Case Studies",
+        "category": "Finance",
+        "duration": "9 min"
+      },
+      "loyalty2": {
+        "title": "Loyalty 2.0 - How It Works",
+        "category": "Marketing",
+        "duration": "11 min"
+      },
+      "maintenanceGuide": {
+        "title": "Machine Maintenance - Technical Guide",
+        "category": "Machines",
+        "duration": "8 min"
+      },
+      "quickStart": {
+        "title": "Quick Start for New Administrators",
+        "category": "Getting Started",
+        "duration": "15 min"
+      },
+      "notificationsVideo": {
+        "title": "Video: Setting Up Notifications in Admin Panel",
+        "category": "Machines",
+        "duration": "6 min"
+      }
+    },
+    "videos": {
+      "connectMachine": {
+        "title": "Connecting a New Machine",
+        "duration": "8 min",
+        "difficulty": "Beginner"
+      },
+      "planogramRecipes": {
+        "title": "Planogram & Recipe Setup",
+        "duration": "12 min",
+        "difficulty": "Intermediate"
+      },
+      "reportsAnalytics": {
+        "title": "Working with Reports & Analytics",
+        "duration": "15 min",
+        "difficulty": "Intermediate"
+      },
+      "teamAccess": {
+        "title": "Team Management & Access Control",
+        "duration": "10 min",
+        "difficulty": "Intermediate"
+      },
+      "integrationsApi": {
+        "title": "Integrations & API Setup",
+        "duration": "18 min",
+        "difficulty": "Advanced"
+      },
+      "loyaltyMarketing": {
+        "title": "Loyalty 2.0 & Marketing",
+        "duration": "14 min",
+        "difficulty": "Intermediate"
+      }
+    },
+    "paths": {
+      "beginner": {
+        "name": "Beginner",
+        "description": "First steps in the system"
+      },
+      "operator": {
+        "name": "Operator",
+        "description": "Basic operations and monitoring"
+      },
+      "administrator": {
+        "name": "Administrator",
+        "description": "System management and integrations"
+      }
+    },
+    "walkthroughs": {
+      "dashboardOverview": {
+        "title": "Dashboard Overview",
+        "description": "Tour of the main management screen"
+      },
+      "firstMachine": {
+        "title": "Creating Your First Machine",
+        "description": "Step-by-step vending machine setup"
+      },
+      "productsRecipes": {
+        "title": "Products & Recipes Setup",
+        "description": "Creating menus for your machines"
+      }
+    },
+    "contact": {
+      "email": {
+        "type": "Email",
+        "description": "Contact us via email"
+      },
+      "phone": {
+        "type": "Phone",
+        "description": "Call during business hours"
+      },
+      "telegram": {
+        "type": "Telegram",
+        "description": "Chat with support 24/7"
+      }
+    },
+    "tickets": {
+      "tkt0089": {
+        "subject": "Sync issue with VM-045",
+        "lastUpdate": "2 hours ago",
+        "category": "Technical Issue",
+        "assignee": "Technical Support"
+      },
+      "tkt0088": {
+        "subject": "VM-003 not fiscalizing receipts",
+        "lastUpdate": "4 hours ago",
+        "category": "Finance",
+        "assignee": "Accounting"
+      },
+      "tkt0087": {
+        "subject": "Webhook API v1 setup question",
+        "lastUpdate": "1 day ago",
+        "category": "Development",
+        "assignee": "Development"
+      },
+      "tkt0085": {
+        "subject": "PDF export not working (Firefox)",
+        "lastUpdate": "2 days ago",
+        "category": "Bug",
+        "assignee": "Development"
+      },
+      "tkt0082": {
+        "subject": "Request for new report type - LTV by cohorts",
+        "lastUpdate": "3 days ago",
+        "category": "Feature Request",
+        "assignee": "Product"
+      },
+      "tkt0079": {
+        "subject": "New operator training - manual access",
+        "lastUpdate": "5 days ago",
+        "category": "Training",
+        "assignee": "Technical Support"
+      },
+      "tkt0076": {
+        "subject": "Critical error during VM-021 collection",
+        "lastUpdate": "30 minutes ago",
+        "category": "Technical Issue",
+        "assignee": "Technical Support"
+      },
+      "tkt0072": {
+        "subject": "Full team retraining needed for new interface",
+        "lastUpdate": "18 hours ago",
+        "category": "Training",
+        "assignee": "Training"
+      }
+    },
+    "services": {
+      "apiService": "API Service",
+      "paymentSystems": "Payment Systems",
+      "telemetry": "Telemetry & Sensors",
+      "landingSite": "Landing Site"
+    },
+    "changelog": {
+      "v2_4_0": {
+        "0": "New analytics interface with real-time charts",
+        "1": "API speed optimization (+40%)",
+        "2": "Dark theme support across all apps"
+      },
+      "v2_3_8": {
+        "0": "Fixed critical PDF export bug in Firefox",
+        "1": "Improved performance with 1000+ machines (+25%)"
+      },
+      "v2_3_7": {
+        "0": "New customer cohort and LTV analysis reports",
+        "1": "Integration with Uzum Money and HUMO"
+      },
+      "v2_3_6": {
+        "0": "Fixed data synchronization with offline mode",
+        "1": "Improved real-time alerts (latency reduced by 60%)"
+      },
+      "v2_3_5": {
+        "0": "New push notification system with personalization",
+        "1": "Full Cyrillic support in all exports"
+      },
+      "v2_3_4": {
+        "0": "Fixed RBAC bugs when creating users",
+        "1": "Optimized planogram loading (+35%)"
+      },
+      "v2_3_3": {
+        "0": "Updated Multikassa 2.0 API integration",
+        "1": "New dashboard metrics: margin, CAC, LTV"
+      },
+      "v2_3_2": {
+        "0": "Fixed telemetry error on connection loss",
+        "1": "Optimized DB performance for reports"
+      }
+    }
   }
 }

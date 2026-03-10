@@ -17,6 +17,7 @@ import {
   Legend,
 } from "recharts";
 import { AlertTriangle, CheckCheck, Code2, ZapIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber } from "@/lib/utils";
 
@@ -71,17 +72,19 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           { id: "roi" as const, label: "ROI и эффективность" },
           { id: "toppromos" as const, label: "Топ акции" },
         ].map((tab) => (
-          <button
+          <Button
             key={tab.id}
+            variant="ghost"
+            size="sm"
             onClick={() => setAnalyticsSubTab(tab.id)}
-            className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-t-lg ${
               analyticsSubTab === tab.id
-                ? "bg-espresso text-white"
+                ? "bg-espresso text-white hover:bg-espresso-dark"
                 : "text-espresso-light hover:bg-espresso-50"
             }`}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 

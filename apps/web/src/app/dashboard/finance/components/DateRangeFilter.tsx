@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 interface DateRangeFilterProps {
   ranges: string[];
   activeRange: string;
@@ -14,17 +16,19 @@ export function DateRangeFilter({
   return (
     <div className="flex gap-2">
       {ranges.map((range) => (
-        <button
+        <Button
           key={range}
+          variant="ghost"
+          size="sm"
           onClick={() => onRangeChange(range)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`${
             activeRange === range
-              ? "bg-espresso text-white"
+              ? "bg-espresso text-white hover:bg-espresso-dark"
               : "bg-espresso-50 text-espresso-light hover:bg-espresso-100"
           }`}
         >
           {range}
-        </button>
+        </Button>
       ))}
     </div>
   );

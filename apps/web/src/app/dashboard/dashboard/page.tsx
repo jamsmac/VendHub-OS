@@ -53,10 +53,12 @@ export default function DashboardPage() {
         {TAB_IDS.map((tab) => {
           const Icon = tab.icon;
           return (
-            <button
+            <Button
               key={tab.id}
+              variant="ghost"
+              size="sm"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 rounded-t-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`flex items-center gap-2 rounded-t-lg px-4 py-2 whitespace-nowrap ${
                 activeTab === tab.id
                   ? "bg-espresso text-white"
                   : "text-espresso-light hover:bg-espresso-50"
@@ -64,7 +66,7 @@ export default function DashboardPage() {
             >
               <Icon className="h-4 w-4" />
               {t(`tabs.${tab.id}`)}
-            </button>
+            </Button>
           );
         })}
       </div>

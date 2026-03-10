@@ -149,13 +149,15 @@ function StarInput({
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: max }).map((_, i) => (
-        <button
+        <Button
           key={i}
           type="button"
+          variant="ghost"
+          size="sm"
           onMouseEnter={() => setHover(i + 1)}
           onMouseLeave={() => setHover(0)}
           onClick={() => onChange(i + 1)}
-          className="p-0.5"
+          className="p-0.5 h-auto"
         >
           <Star
             className={`w-6 h-6 transition-colors ${
@@ -164,7 +166,7 @@ function StarInput({
                 : "fill-none text-muted-foreground/40 hover:text-amber-200"
             }`}
           />
-        </button>
+        </Button>
       ))}
       <span className="ml-2 text-sm text-muted-foreground">
         {value > 0 ? labelRated : labelNotRated}

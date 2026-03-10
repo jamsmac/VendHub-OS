@@ -47,6 +47,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -974,25 +975,15 @@ export default function NotificationsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <button
-                          onClick={() =>
+                        <Switch
+                          checked={rule.is_active}
+                          onCheckedChange={() =>
                             toggleRuleMutation.mutate({
                               id: rule.id,
                               is_active: !rule.is_active,
                             })
                           }
-                          className={`relative w-10 h-5 rounded-full transition-colors ${
-                            rule.is_active ? "bg-green-500" : "bg-input"
-                          }`}
-                        >
-                          <span
-                            className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                              rule.is_active
-                                ? "translate-x-5"
-                                : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
+                        />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -1223,25 +1214,15 @@ export default function NotificationsPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
+                  <Switch
+                    checked={channelSettings.push}
+                    onCheckedChange={(checked) =>
                       setChannelSettings({
                         ...channelSettings,
-                        push: !channelSettings.push,
+                        push: checked,
                       })
                     }
-                    className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.push ? "bg-green-500" : "bg-input"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.push
-                          ? "translate-x-5"
-                          : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                  />
                 </div>
                 {channelSettings.push && (
                   <Button
@@ -1273,25 +1254,15 @@ export default function NotificationsPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
+                  <Switch
+                    checked={channelSettings.email}
+                    onCheckedChange={(checked) =>
                       setChannelSettings({
                         ...channelSettings,
-                        email: !channelSettings.email,
+                        email: checked,
                       })
                     }
-                    className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.email ? "bg-green-500" : "bg-input"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.email
-                          ? "translate-x-5"
-                          : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1311,25 +1282,15 @@ export default function NotificationsPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
+                  <Switch
+                    checked={channelSettings.sms}
+                    onCheckedChange={(checked) =>
                       setChannelSettings({
                         ...channelSettings,
-                        sms: !channelSettings.sms,
+                        sms: checked,
                       })
                     }
-                    className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.sms ? "bg-green-500" : "bg-input"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.sms
-                          ? "translate-x-5"
-                          : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1349,25 +1310,15 @@ export default function NotificationsPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
+                  <Switch
+                    checked={channelSettings.telegram}
+                    onCheckedChange={(checked) =>
                       setChannelSettings({
                         ...channelSettings,
-                        telegram: !channelSettings.telegram,
+                        telegram: checked,
                       })
                     }
-                    className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.telegram ? "bg-green-500" : "bg-input"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.telegram
-                          ? "translate-x-5"
-                          : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1395,25 +1346,15 @@ export default function NotificationsPage() {
                   <span className="text-sm text-muted-foreground">
                     {t("notification_sound")}
                   </span>
-                  <button
-                    onClick={() =>
+                  <Switch
+                    checked={channelSettings.sound}
+                    onCheckedChange={(checked) =>
                       setChannelSettings({
                         ...channelSettings,
-                        sound: !channelSettings.sound,
+                        sound: checked,
                       })
                     }
-                    className={`relative w-10 h-5 rounded-full transition-colors ${
-                      channelSettings.sound ? "bg-green-500" : "bg-input"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                        channelSettings.sound
-                          ? "translate-x-5"
-                          : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1456,7 +1397,14 @@ export default function NotificationsPage() {
                     {(["push", "email", "sms", "telegram"] as const).map(
                       (channel) => (
                         <TableCell key={channel} className="text-center">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`w-6 h-6 ${
+                              prefs[channel]
+                                ? "bg-primary border-primary text-white hover:bg-primary/90"
+                                : "border-2 border-input bg-background"
+                            }`}
                             onClick={() =>
                               setTypePreferences({
                                 ...typePreferences,
@@ -1466,11 +1414,6 @@ export default function NotificationsPage() {
                                 },
                               })
                             }
-                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                              prefs[channel]
-                                ? "bg-primary border-primary text-white"
-                                : "border-input bg-background"
-                            }`}
                           >
                             {prefs[channel] && (
                               <svg
@@ -1487,7 +1430,7 @@ export default function NotificationsPage() {
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
-                          </button>
+                          </Button>
                         </TableCell>
                       ),
                     )}
