@@ -22,12 +22,47 @@ import {
   AuditLog,
   AuditSnapshot,
   AuditAction,
+  AuditEventType,
   AuditCategory,
   AuditSeverity,
   AuditChanges,
   SENSITIVE_FIELDS,
   AUDITED_ENTITIES,
 } from "../entities/audit.entity";
+
+/**
+ * Map AuditAction → AuditEventType for the subscriber.
+ * The DB column event_type is NOT NULL, so every audit log must have one.
+ */
+const ACTION_TO_EVENT_TYPE: Record<AuditAction, AuditEventType> = {
+  [AuditAction.CREATE]: AuditEventType.ACCOUNT_CREATED,
+  [AuditAction.UPDATE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.SOFT_DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.RESTORE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.LOGIN]: AuditEventType.LOGIN_SUCCESS,
+  [AuditAction.LOGOUT]: AuditEventType.LOGOUT,
+  [AuditAction.LOGIN_FAILED]: AuditEventType.LOGIN_FAILED,
+  [AuditAction.PASSWORD_CHANGE]: AuditEventType.PASSWORD_CHANGED,
+  [AuditAction.PASSWORD_RESET]: AuditEventType.PASSWORD_RESET_COMPLETED,
+  [AuditAction.PERMISSION_CHANGE]: AuditEventType.PERMISSION_CHANGED,
+  [AuditAction.SETTINGS_CHANGE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.EXPORT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.IMPORT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.BULK_UPDATE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.BULK_DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.API_CALL]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.WEBHOOK_RECEIVED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.PAYMENT_PROCESSED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.REFUND_ISSUED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.REPORT_GENERATED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.NOTIFICATION_SENT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.TASK_ASSIGNED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.TASK_COMPLETED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.MACHINE_STATUS_CHANGE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.INVENTORY_ADJUSTMENT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.FISCAL_OPERATION]: AuditEventType.ACCOUNT_UPDATED,
+};
 
 // Interface for request context stored in CLS
 interface RequestContext {
@@ -372,16 +407,28 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   }
 
   /**
-   * Create audit log entry
+   * Create audit log entry.
+   * Uses a SEPARATE connection (dataSource.manager) so that a failed INSERT
+   * does not poison the caller's transaction (PostgreSQL aborts all
+   * subsequent statements once any statement in a transaction fails).
    */
   private async createAuditLog(
-    manager: EntityManager,
+    _manager: EntityManager,
     data: Partial<AuditLog>,
   ): Promise<void> {
     const context = this.getRequestContext();
 
-    const auditLog = manager.create(AuditLog, {
+    // Derive eventType from action — DB column is NOT NULL
+    const eventType =
+      data.eventType ||
+      (data.action ? ACTION_TO_EVENT_TYPE[data.action] : undefined) ||
+      AuditEventType.ACCOUNT_UPDATED;
+
+    const repo = this.dataSource.getRepository(AuditLog);
+
+    const auditLog = repo.create({
       ...data,
+      eventType,
       organizationId: data.organizationId || context.organizationId,
       userId: context.userId,
       userEmail: context.userEmail,
@@ -405,8 +452,8 @@ export class AuditSubscriber implements EntitySubscriberInterface {
       expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
     });
 
-    // Use a separate connection to avoid transaction issues
-    await manager.getRepository(AuditLog).save(auditLog);
+    // Use dataSource (separate connection) to avoid poisoning caller's transaction
+    await repo.save(auditLog);
   }
 
   /**
