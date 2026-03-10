@@ -24,7 +24,7 @@ export class Invite extends BaseEntity {
     description: "Role assigned to the invited user",
     enum: UserRole,
   })
-  @Column({ type: "enum", enum: UserRole })
+  @Column({ type: "enum", enum: UserRole, enumName: "users_role_enum" })
   role: UserRole;
 
   @ApiProperty({ description: "Organization ID" })

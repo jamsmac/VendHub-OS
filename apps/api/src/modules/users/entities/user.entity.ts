@@ -481,27 +481,27 @@ export class TwoFactorAuth extends BaseEntity {
 @Index(["userId"])
 @Index(["expiresAt"])
 export class PasswordResetToken extends BaseEntity {
-  @Column()
+  @Column({ type: "uuid" })
   userId: string;
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
-  @Column()
+  @Column({ type: "varchar" })
   @Exclude()
   token: string;
 
-  @Column()
+  @Column({ type: "timestamptz" })
   expiresAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   usedAt: Date;
 
-  @Column()
+  @Column({ type: "varchar" })
   ipAddress: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", nullable: true })
   userAgent: string;
 
   get isExpired(): boolean {

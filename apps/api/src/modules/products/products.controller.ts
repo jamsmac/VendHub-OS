@@ -75,21 +75,18 @@ export class ProductsController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get all products" })
-  @ApiQuery({ name: "type", required: false })
   @ApiQuery({ name: "category", required: false })
   @ApiQuery({ name: "search", required: false })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   findAll(
     @CurrentUser() user: ICurrentUser,
-    @Query("type") type?: string,
     @Query("category") category?: string,
     @Query("search") search?: string,
     @Query("page") page?: number,
     @Query("limit") limit?: number,
   ) {
     return this.productsService.findAll(user.organizationId, {
-      type,
       category,
       search,
       page,

@@ -768,18 +768,26 @@ export class TasksService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async checkOverdueTasks(): Promise<void> {
-    const overdue = await this.taskRepository.find({
-      where: {
-        dueDate: LessThan(new Date()),
-        status: In([
-          TaskStatus.PENDING,
-          TaskStatus.ASSIGNED,
-          TaskStatus.IN_PROGRESS,
-          TaskStatus.POSTPONED,
-        ]),
-      },
-      relations: ["machine"],
-    });
+    let overdue: Task[];
+    try {
+      overdue = await this.taskRepository.find({
+        where: {
+          dueDate: LessThan(new Date()),
+          status: In([
+            TaskStatus.PENDING,
+            TaskStatus.ASSIGNED,
+            TaskStatus.IN_PROGRESS,
+            TaskStatus.POSTPONED,
+          ]),
+        },
+        relations: ["machine"],
+      });
+    } catch (error) {
+      this.logger.error(
+        `checkOverdueTasks query failed (run migrations if column missing): ${error instanceof Error ? error.message : error}`,
+      );
+      return;
+    }
 
     if (overdue.length > 0) {
       this.logger.warn(

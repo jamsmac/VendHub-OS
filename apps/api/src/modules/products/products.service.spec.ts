@@ -204,12 +204,12 @@ describe("ProductsService", () => {
       );
     });
 
-    it("should filter by type", async () => {
-      await service.findAll(orgId, { type: "beverage" });
+    it("should filter by category", async () => {
+      await service.findAll(orgId, { category: "coffee_beans" });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "product.type = :type",
-        { type: "beverage" },
+        "product.category = :category",
+        { category: "coffee_beans" },
       );
     });
 

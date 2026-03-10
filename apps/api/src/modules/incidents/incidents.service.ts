@@ -135,13 +135,17 @@ export class IncidentsService {
     }
 
     if (dateFrom) {
-      qb.andWhere("i.reportedAt >= :dateFrom", {
-        dateFrom: new Date(dateFrom),
-      });
+      const parsedFrom = new Date(dateFrom);
+      if (!isNaN(parsedFrom.getTime())) {
+        qb.andWhere("i.reportedAt >= :dateFrom", { dateFrom: parsedFrom });
+      }
     }
 
     if (dateTo) {
-      qb.andWhere("i.reportedAt <= :dateTo", { dateTo: new Date(dateTo) });
+      const parsedTo = new Date(dateTo);
+      if (!isNaN(parsedTo.getTime())) {
+        qb.andWhere("i.reportedAt <= :dateTo", { dateTo: parsedTo });
+      }
     }
 
     const total = await qb.getCount();

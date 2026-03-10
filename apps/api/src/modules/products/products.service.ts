@@ -47,7 +47,6 @@ export class ProductsService {
   findAll(
     organizationId: string,
     filters?: {
-      type?: string;
       category?: string;
       isActive?: boolean;
       search?: string;

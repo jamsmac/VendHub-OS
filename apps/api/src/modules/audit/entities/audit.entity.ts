@@ -48,6 +48,37 @@ export enum AuditSeverity {
   CRITICAL = "critical",
 }
 
+export enum AuditEventType {
+  LOGIN_SUCCESS = "login_success",
+  LOGIN_FAILED = "login_failed",
+  LOGOUT = "logout",
+  TOKEN_REFRESH = "token_refresh",
+  PASSWORD_CHANGED = "password_changed",
+  PASSWORD_RESET_REQUESTED = "password_reset_requested",
+  PASSWORD_RESET_COMPLETED = "password_reset_completed",
+  TWO_FA_ENABLED = "2fa_enabled",
+  TWO_FA_DISABLED = "2fa_disabled",
+  TWO_FA_VERIFIED = "2fa_verified",
+  TWO_FA_FAILED = "2fa_failed",
+  ACCOUNT_CREATED = "account_created",
+  ACCOUNT_UPDATED = "account_updated",
+  ACCOUNT_BLOCKED = "account_blocked",
+  ACCOUNT_UNBLOCKED = "account_unblocked",
+  ACCOUNT_DELETED = "account_deleted",
+  ROLE_ASSIGNED = "role_assigned",
+  ROLE_REMOVED = "role_removed",
+  PERMISSION_CHANGED = "permission_changed",
+  ACCESS_REQUEST_CREATED = "access_request_created",
+  ACCESS_REQUEST_APPROVED = "access_request_approved",
+  ACCESS_REQUEST_REJECTED = "access_request_rejected",
+  BRUTE_FORCE_DETECTED = "brute_force_detected",
+  IP_BLOCKED = "ip_blocked",
+  SUSPICIOUS_ACTIVITY = "suspicious_activity",
+  SESSION_CREATED = "session_created",
+  SESSION_TERMINATED = "session_terminated",
+  SESSION_EXPIRED = "session_expired",
+}
+
 export enum AuditCategory {
   AUTHENTICATION = "authentication",
   AUTHORIZATION = "authorization",
@@ -332,6 +363,9 @@ export class AuditLog extends BaseEntity {
   @Index()
   action: AuditAction;
 
+  @Column({ type: "enum", enum: AuditEventType })
+  eventType: AuditEventType;
+
   @Column({
     type: "enum",
     enum: AuditCategory,
@@ -378,8 +412,16 @@ export class AuditLog extends BaseEntity {
   @Column({ type: "text", array: true, nullable: true })
   tags: string[];
 
+  // Target user (for permission changes, role assignments, etc.)
+  @Column({ type: "uuid", nullable: true })
+  targetUserId: string;
+
+  // User agent from request
+  @Column({ type: "text", nullable: true, name: "user_agent" })
+  requestUserAgent: string;
+
   // Result
-  @Column({ type: "boolean", default: true })
+  @Column({ name: "success", type: "boolean", default: true })
   isSuccess: boolean;
 
   @Column({ type: "text", nullable: true })

@@ -26,6 +26,7 @@ import {
   AuditSession,
   AuditReport,
   AuditAction,
+  AuditEventType,
   AuditCategory,
   AuditSeverity,
   AuditContext,
@@ -48,6 +49,7 @@ export interface CreateAuditLogInput {
   entityId?: string;
   entityName?: string;
   action: AuditAction;
+  eventType?: AuditEventType;
   category?: AuditCategory;
   severity?: AuditSeverity;
   description?: string;
@@ -120,6 +122,36 @@ export interface CreateSessionInput {
 // SERVICE
 // ============================================================================
 
+const ACTION_TO_EVENT_TYPE: Record<AuditAction, AuditEventType> = {
+  [AuditAction.CREATE]: AuditEventType.ACCOUNT_CREATED,
+  [AuditAction.UPDATE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.SOFT_DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.RESTORE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.LOGIN]: AuditEventType.LOGIN_SUCCESS,
+  [AuditAction.LOGOUT]: AuditEventType.LOGOUT,
+  [AuditAction.LOGIN_FAILED]: AuditEventType.LOGIN_FAILED,
+  [AuditAction.PASSWORD_CHANGE]: AuditEventType.PASSWORD_CHANGED,
+  [AuditAction.PASSWORD_RESET]: AuditEventType.PASSWORD_RESET_COMPLETED,
+  [AuditAction.PERMISSION_CHANGE]: AuditEventType.PERMISSION_CHANGED,
+  [AuditAction.SETTINGS_CHANGE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.EXPORT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.IMPORT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.BULK_UPDATE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.BULK_DELETE]: AuditEventType.ACCOUNT_DELETED,
+  [AuditAction.API_CALL]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.WEBHOOK_RECEIVED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.PAYMENT_PROCESSED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.REFUND_ISSUED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.REPORT_GENERATED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.NOTIFICATION_SENT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.TASK_ASSIGNED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.TASK_COMPLETED]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.MACHINE_STATUS_CHANGE]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.INVENTORY_ADJUSTMENT]: AuditEventType.ACCOUNT_UPDATED,
+  [AuditAction.FISCAL_OPERATION]: AuditEventType.ACCOUNT_UPDATED,
+};
+
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
@@ -158,6 +190,10 @@ export class AuditService {
 
     const auditLog = this.auditLogRepo.create({
       ...dto,
+      eventType:
+        dto.eventType ||
+        ACTION_TO_EVENT_TYPE[dto.action] ||
+        AuditEventType.ACCOUNT_UPDATED,
       category: dto.category || AuditCategory.DATA_MODIFICATION,
       severity: dto.severity || AuditSeverity.INFO,
       isSuccess: dto.isSuccess ?? true,

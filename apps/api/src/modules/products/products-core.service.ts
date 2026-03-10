@@ -30,7 +30,6 @@ export interface PaginatedResult<T> {
 }
 
 interface ProductFilters {
-  type?: string;
   category?: string;
   isActive?: boolean;
   search?: string;
@@ -63,7 +62,6 @@ export class ProductsCoreService {
     const {
       page = 1,
       limit: rawLimit = 50,
-      type,
       category,
       isActive,
       search,
@@ -78,7 +76,6 @@ export class ProductsCoreService {
         "product.nameUz",
         "product.sku",
         "product.barcode",
-        "product.type",
         "product.category",
         "product.isActive",
         "product.sellingPrice",
@@ -90,10 +87,6 @@ export class ProductsCoreService {
         "product.updatedAt",
       ])
       .where("product.organizationId = :organizationId", { organizationId });
-
-    if (type) {
-      query.andWhere("product.type = :type", { type });
-    }
 
     if (category) {
       query.andWhere("product.category = :category", { category });

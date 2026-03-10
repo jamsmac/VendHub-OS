@@ -312,8 +312,8 @@ async function seedBusinessData(ds: DataSource) {
       let contractCount = 0;
       for (const cp of cpRows) {
         const contractId = uuid();
-        const isSupplier = cp.type === "SUPPLIER";
-        const isLocation = cp.type === "LOCATION_OWNER";
+        const isSupplier = cp.type === "supplier";
+        const isLocation = cp.type === "location_owner";
 
         await qr.query(
           `INSERT INTO contracts (
