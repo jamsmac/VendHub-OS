@@ -1002,7 +1002,9 @@ export default function InvestorPage() {
                     tickFormatter={(v) => `${v}M`}
                   />
                   <Tooltip
-                    formatter={(v: number) => [`${v.toFixed(1)}M UZS`]}
+                    formatter={(v: unknown) => [
+                      `${Number(v ?? 0).toFixed(1)}M UZS`,
+                    ]}
                   />
                   <Bar
                     dataKey="revenue"
@@ -1255,7 +1257,9 @@ export default function InvestorPage() {
                     tickFormatter={(v) => `${v}M`}
                   />
                   <Tooltip
-                    formatter={(v: number) => [`${v.toFixed(1)}M UZS`]}
+                    formatter={(v: unknown) => [
+                      `${Number(v ?? 0).toFixed(1)}M UZS`,
+                    ]}
                   />
                   <Area
                     type="monotone"
@@ -1305,7 +1309,9 @@ export default function InvestorPage() {
                     tickFormatter={(v) => `${v}M`}
                   />
                   <Tooltip
-                    formatter={(v: number) => [`${v.toFixed(1)}M UZS`]}
+                    formatter={(v: unknown) => [
+                      `${Number(v ?? 0).toFixed(1)}M UZS`,
+                    ]}
                   />
                   <Area
                     type="monotone"
@@ -1430,7 +1436,9 @@ export default function InvestorPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d0" />
                     <XAxis dataKey="month" stroke="#92400e" fontSize={12} />
                     <YAxis stroke="#92400e" fontSize={12} />
-                    <Tooltip formatter={(v: number) => [`${v} автоматов`]} />
+                    <Tooltip
+                      formatter={(v: unknown) => [`${v ?? 0} автоматов`]}
+                    />
                     <Line
                       type="monotone"
                       dataKey="machines"
@@ -1871,7 +1879,11 @@ export default function InvestorPage() {
                     fontSize={12}
                     tickFormatter={(v) => `${(v / 1_000_000_000).toFixed(1)}B`}
                   />
-                  <Tooltip formatter={(v: number) => [`${fmtShort(v)} UZS`]} />
+                  <Tooltip
+                    formatter={(v: unknown) => [
+                      `${fmtShort(Number(v ?? 0))} UZS`,
+                    ]}
+                  />
                   <Line
                     type="monotone"
                     dataKey="valuation"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/utils";
 import { TAB_IDS, type TabId } from "./components/constants";
 import { KpiCards } from "./components/KpiCards";
 import { HourlyChart } from "./components/HourlyChart";
@@ -29,7 +30,7 @@ export default function DashboardPage() {
             {t("title")}
           </h1>
           <p className="mt-1 text-sm text-espresso-light">
-            {new Date().toLocaleDateString("ru-RU", {
+            {formatDate(new Date(), {
               weekday: "long",
               day: "numeric",
               month: "long",

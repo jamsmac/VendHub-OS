@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { formatPrice } from "@/lib/utils";
 
 export default function DashboardPage() {
   const t = useTranslations("dashboardRoot");
@@ -47,7 +48,7 @@ export default function DashboardPage() {
     },
     {
       title: t("todayRevenue"),
-      value: `${(stats?.todayRevenue || 0).toLocaleString()} UZS`,
+      value: formatPrice(stats?.todayRevenue || 0),
       icon: Package,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100 dark:bg-yellow-900/30",

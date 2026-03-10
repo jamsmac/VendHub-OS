@@ -14,7 +14,10 @@ export function KpiCards() {
 
   const kpiData = KPI_DATA.map((item) => {
     if (kpi && item.key === "machinesOnline") {
-      return { ...item, value: `${kpi.activeMachines}/${kpi.totalMachines}` };
+      return {
+        ...item,
+        value: `${kpi.activeMachines ?? 0}/${kpi.totalMachines ?? 0}`,
+      };
     }
     if (orderStats) {
       if (item.key === "dailyRevenue" && orderStats.revenue !== undefined) {
