@@ -72,8 +72,14 @@ api.interceptors.response.use(
     };
 
     // Only attempt refresh on 401 responses, and never retry a request
-    // that already failed after a refresh attempt
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    // that already failed after a refresh attempt.
+    // Skip auth endpoints — login/register 401s mean invalid credentials,
+    // not an expired token.
+    if (
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      originalRequest.url?.includes("/auth/")
+    ) {
       return Promise.reject(error);
     }
 

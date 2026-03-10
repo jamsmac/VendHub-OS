@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>()(
             return { requiresTwoFactor: true };
           }
 
-          // Store access token in memory + localStorage
+          // Store access token in memory (httpOnly cookie handles persistence)
           setTokens(payload.accessToken);
 
           set({
@@ -93,23 +93,33 @@ export const useAuthStore = create<AuthState>()(
         const token = getAccessToken();
         const currentUser = _get().user;
 
-        // Have both token and user data — trust current state.
+        // Have in-memory token and user data — trust current state.
         // Token will be verified implicitly on the first data request.
         if (token && currentUser) {
           set({ isAuthenticated: true });
           return;
         }
 
-        // No token at all — not authenticated
-        if (!token) {
+        // No in-memory token AND no persisted auth state — definitely not authenticated.
+        // (If the user was never logged in, don't make a network call.)
+        if (!token && !_get().isAuthenticated) {
           set({ isAuthenticated: false, user: null });
           return;
         }
 
-        // Have token but no user data — verify with server
+        // Either:
+        // - Have in-memory token but no user data (first load after login)
+        // - No in-memory token but persisted auth state (page refresh — httpOnly cookie may still be valid)
+        // Verify with server in both cases.
         try {
           const response = await authApi.me();
           const userData = response.data?.data ?? response.data;
+
+          // Restore in-memory token from response if server returned one
+          if (userData.accessToken) {
+            setTokens(userData.accessToken);
+          }
+
           set({
             user: userData,
             isAuthenticated: true,

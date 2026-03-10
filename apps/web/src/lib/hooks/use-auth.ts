@@ -8,7 +8,7 @@
  *
  * Flow:
  * 1. Login → POST /api/v1/auth/login → receive JWT pair
- * 2. Store tokens in localStorage + Zustand
+ * 2. Store tokens in memory + httpOnly cookies
  * 3. Auto-refresh on 401 (handled by apiClient)
  * 4. TOTP support for 2FA
  */
@@ -46,11 +46,16 @@ export function useAuth() {
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [challengeToken, setChallengeToken] = useState("");
 
-  // Check if user is authenticated (has valid token)
+  // Check if user is authenticated.
+  // After page refresh, in-memory token is lost but httpOnly cookie persists.
+  // Trust storeIsAuthenticated (from Zustand persist) OR in-memory token.
   const isAuthenticated =
-    !!getAccessToken() && (!!user || storeIsAuthenticated);
+    (!!getAccessToken() || storeIsAuthenticated) &&
+    (!!user || storeIsAuthenticated);
 
-  // Fetch current user profile (on mount, if token exists)
+  // Fetch current user profile (on mount, if authenticated or possibly authenticated)
+  // After page refresh: in-memory token is null but httpOnly cookie is still valid,
+  // so we allow the query when the persisted store says we were authenticated.
   const { data: currentUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ["auth", "me"],
     queryFn: async () => {
@@ -64,7 +69,7 @@ export function useAuth() {
         return null;
       }
     },
-    enabled: !!getAccessToken(),
+    enabled: !!getAccessToken() || storeIsAuthenticated,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

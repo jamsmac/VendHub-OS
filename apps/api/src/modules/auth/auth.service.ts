@@ -1323,6 +1323,66 @@ export class AuthService {
     }
   }
 
+  /**
+   * Cleanup expired/revoked sessions (runs daily at 4 AM)
+   * Keeps sessions table manageable by removing rows that can never be used again.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async cleanupExpiredSessions(): Promise<number> {
+    try {
+      const result = await this.sessionRepository.softDelete([
+        { expiresAt: LessThan(new Date()) },
+        { isRevoked: true },
+      ]);
+      const count = result.affected || 0;
+      if (count > 0) {
+        this.logger.log(`Cleaned up ${count} expired/revoked sessions`);
+      }
+      return count;
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("does not exist") ||
+        msg.includes("relation") ||
+        msg.includes("Max client") ||
+        msg.includes("MaxClients")
+      )
+        return 0;
+      this.logger.error(`cleanupExpiredSessions failed: ${msg}`);
+      return 0;
+    }
+  }
+
+  /**
+   * Cleanup old login attempts older than 30 days (runs daily at 5 AM)
+   * Login attempts are only used for recent lockout checks; old records are dead weight.
+   */
+  @Cron("0 5 * * *")
+  async cleanupOldLoginAttempts(): Promise<number> {
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const result = await this.loginAttemptRepository.delete({
+        createdAt: LessThan(thirtyDaysAgo),
+      });
+      const count = result.affected || 0;
+      if (count > 0) {
+        this.logger.log(`Cleaned up ${count} old login attempts`);
+      }
+      return count;
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("does not exist") ||
+        msg.includes("relation") ||
+        msg.includes("Max client") ||
+        msg.includes("MaxClients")
+      )
+        return 0;
+      this.logger.error(`cleanupOldLoginAttempts failed: ${msg}`);
+      return 0;
+    }
+  }
+
   private async createSession(
     user: User,
     ipAddress: string,

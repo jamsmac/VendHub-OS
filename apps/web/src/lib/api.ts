@@ -25,44 +25,24 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory + localStorage backup
-// In-memory is primary (fast). localStorage survives page refresh.
+// Token helpers — in-memory only (no localStorage)
+// httpOnly cookies persist across page refreshes; localStorage is an XSS vector.
 // ============================================
-
-const TOKEN_KEY = "vendhub_access_token";
 
 let _accessToken: string | null = null;
 
 function setTokens(accessToken: string, _refreshToken?: string) {
   _accessToken = accessToken;
-  try {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-  } catch {
-    // SSR or storage unavailable
-  }
+  // Refresh token is stored in httpOnly cookie by the server —
+  // no client-side storage needed
 }
 
 function clearTokens() {
   _accessToken = null;
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // SSR or storage unavailable
-  }
 }
 
 export function getAccessToken(): string | null {
-  if (_accessToken) return _accessToken;
-  try {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (stored) {
-      _accessToken = stored;
-      return stored;
-    }
-  } catch {
-    // SSR or storage unavailable
-  }
-  return null;
+  return _accessToken;
 }
 
 export { setTokens, clearTokens };
@@ -97,11 +77,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Skip refresh for non-401, SSR, or already-retried requests
+    // Skip refresh for non-401, SSR, already-retried, or auth endpoint requests.
+    // Auth endpoints (login, register, etc.) return 401 for invalid credentials —
+    // triggering a token refresh there would be wrong and cause redirect loops.
     if (
       typeof window === "undefined" ||
       error.response?.status !== 401 ||
-      originalRequest._retry
+      originalRequest._retry ||
+      originalRequest.url?.includes("/auth/")
     ) {
       return Promise.reject(error);
     }

@@ -15,7 +15,7 @@
  *   /orders — order lifecycle
  *   /notifications — alerts & presence
  *
- * Authentication: JWT token from localStorage
+ * Authentication: JWT token from in-memory store + httpOnly cookies
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
