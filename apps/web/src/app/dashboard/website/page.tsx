@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Eye,
   ExternalLink,
@@ -125,195 +126,200 @@ interface KeywordRanking {
 
 // ═══ Content Sections Data ═══
 
-const CONTENT_SECTIONS: ContentSection[] = [
-  {
-    id: "hero",
-    name: "Hero",
-    icon: Zap,
-    description: "Главный баннер",
-    lastUpdated: "2026-02-28",
-    editedBy: "Jamshid",
-    versions: [
-      { date: "2026-02-28 14:30", user: "Jamshid" },
-      { date: "2026-02-25 10:15", user: "Admin" },
-      { date: "2026-02-20 09:45", user: "Jamshid" },
-    ],
-    fields: [
-      {
-        key: "hero_title",
-        label: "Заголовок",
-        value: "Кофе, который вас разбудит",
-        saved: true,
-        charLimit: 80,
-      },
-      {
-        key: "hero_subtitle",
-        label: "Подзаголовок",
-        value: "Премиальный кофе из автоматов VendHub. Свежий. Горячий. 24/7.",
-        saved: true,
-        isLong: true,
-        charLimit: 200,
-      },
-      {
-        key: "hero_image",
-        label: "Фоновое изображение",
-        value: "/hero-bg.jpg",
-        saved: true,
-      },
-    ],
-  },
-  {
-    id: "features",
-    name: "Возможности",
-    icon: Star,
-    description: "Основные преимущества",
-    lastUpdated: "2026-02-26",
-    editedBy: "Admin",
-    versions: [
-      { date: "2026-02-26 11:20", user: "Admin" },
-      { date: "2026-02-22 16:00", user: "Jamshid" },
-    ],
-    fields: [
-      {
-        key: "feat_title",
-        label: "Заголовок",
-        value: "Почему VendHub?",
-        saved: true,
-        charLimit: 60,
-      },
-      {
-        key: "feat_count",
-        label: "Кол-во особенностей",
-        value: "4",
-        saved: true,
-      },
-    ],
-  },
-  {
-    id: "products",
-    name: "Товары",
-    icon: Hash,
-    description: "22 напитка и снэки",
-    lastUpdated: "2026-02-28",
-    editedBy: "Jamshid",
-    versions: [
-      { date: "2026-02-28 13:00", user: "Jamshid" },
-      { date: "2026-02-15 10:30", user: "Admin" },
-    ],
-    fields: [
-      {
-        key: "prod_title",
-        label: "Заголовок",
-        value: "Наше меню",
-        saved: true,
-        charLimit: 60,
-      },
-      {
-        key: "prod_desc",
-        label: "Описание",
-        value: "22 премиальных напитков и закусок на любой вкус",
-        saved: true,
-        isLong: true,
-        charLimit: 200,
-      },
-      {
-        key: "prod_featured",
-        label: "Избранные (кол-во)",
-        value: "4",
-        saved: true,
-      },
-    ],
-  },
-  {
-    id: "locations",
-    name: "Локации",
-    icon: MapPin,
-    description: "Где нас найти",
-    lastUpdated: "2026-02-15",
-    editedBy: "Admin",
-    versions: [{ date: "2026-02-15 13:20", user: "Admin" }],
-    fields: [
-      {
-        key: "loc_title",
-        label: "Заголовок",
-        value: "Где нас найти",
-        saved: true,
-      },
-      {
-        key: "loc_text",
-        label: "Описание",
-        value: "Наши автоматы расположены в самых посещаемых местах Ташкента",
-        saved: true,
-        charLimit: 200,
-      },
-    ],
-  },
-  {
-    id: "contacts",
-    name: "Контакты",
-    icon: Phone,
-    description: "Контактная информация",
-    lastUpdated: "2026-02-15",
-    editedBy: "Jamshid",
-    versions: [{ date: "2026-02-15 13:20", user: "Jamshid" }],
-    fields: [
-      {
-        key: "phone",
-        label: "Телефон",
-        value: "+998 71 200 39 99",
-        saved: true,
-      },
-      { key: "email", label: "Email", value: "info@vendhub.uz", saved: true },
-      {
-        key: "telegram",
-        label: "Telegram",
-        value: "@vendhub_support",
-        saved: true,
-      },
-      {
-        key: "address",
-        label: "Адрес",
-        value: "Ташкент, ул. Мустакиллик 59, офис 402",
-        saved: true,
-      },
-    ],
-  },
-  {
-    id: "seo",
-    name: "SEO",
-    icon: Search,
-    description: "Meta-теги и OpenGraph",
-    lastUpdated: "2026-02-28",
-    editedBy: "Admin",
-    versions: [
-      { date: "2026-02-28 09:00", user: "Admin" },
-      { date: "2026-02-20 15:40", user: "Jamshid" },
-    ],
-    fields: [
-      {
-        key: "meta_title",
-        label: "Meta Title",
-        value: "VendHub — кофейные автоматы в Ташкенте | Свежий кофе 24/7",
-        saved: true,
-        charLimit: 60,
-      },
-      {
-        key: "meta_desc",
-        label: "Meta Description",
-        value:
-          "Премиальный кофе из автоматов VendHub. 22 напитка, 16 точек по Ташкенту. Оплата Payme, Click, UZUM, наличные.",
-        saved: true,
-        charLimit: 160,
-      },
-      {
-        key: "og_image",
-        label: "OG Image",
-        value: "/og-vendhub.jpg",
-        saved: true,
-      },
-    ],
-  },
-];
+function getContentSections(
+  t: ReturnType<typeof useTranslations>,
+): ContentSection[] {
+  return [
+    {
+      id: "hero",
+      name: "Hero",
+      icon: Zap,
+      description: t("sectionHeroDesc"),
+      lastUpdated: "2026-02-28",
+      editedBy: "Jamshid",
+      versions: [
+        { date: "2026-02-28 14:30", user: "Jamshid" },
+        { date: "2026-02-25 10:15", user: "Admin" },
+        { date: "2026-02-20 09:45", user: "Jamshid" },
+      ],
+      fields: [
+        {
+          key: "hero_title",
+          label: t("fieldTitle"),
+          value: "Кофе, который вас разбудит",
+          saved: true,
+          charLimit: 80,
+        },
+        {
+          key: "hero_subtitle",
+          label: t("fieldSubtitle"),
+          value:
+            "Премиальный кофе из автоматов VendHub. Свежий. Горячий. 24/7.",
+          saved: true,
+          isLong: true,
+          charLimit: 200,
+        },
+        {
+          key: "hero_image",
+          label: t("fieldBackgroundImage"),
+          value: "/hero-bg.jpg",
+          saved: true,
+        },
+      ],
+    },
+    {
+      id: "features",
+      name: t("sectionFeatures"),
+      icon: Star,
+      description: t("sectionFeaturesDesc"),
+      lastUpdated: "2026-02-26",
+      editedBy: "Admin",
+      versions: [
+        { date: "2026-02-26 11:20", user: "Admin" },
+        { date: "2026-02-22 16:00", user: "Jamshid" },
+      ],
+      fields: [
+        {
+          key: "feat_title",
+          label: t("fieldTitle"),
+          value: "Почему VendHub?",
+          saved: true,
+          charLimit: 60,
+        },
+        {
+          key: "feat_count",
+          label: t("fieldFeatureCount"),
+          value: "4",
+          saved: true,
+        },
+      ],
+    },
+    {
+      id: "products",
+      name: t("sectionProducts"),
+      icon: Hash,
+      description: t("sectionProductsDesc"),
+      lastUpdated: "2026-02-28",
+      editedBy: "Jamshid",
+      versions: [
+        { date: "2026-02-28 13:00", user: "Jamshid" },
+        { date: "2026-02-15 10:30", user: "Admin" },
+      ],
+      fields: [
+        {
+          key: "prod_title",
+          label: t("fieldTitle"),
+          value: "Наше меню",
+          saved: true,
+          charLimit: 60,
+        },
+        {
+          key: "prod_desc",
+          label: t("fieldDescription"),
+          value: "22 премиальных напитков и закусок на любой вкус",
+          saved: true,
+          isLong: true,
+          charLimit: 200,
+        },
+        {
+          key: "prod_featured",
+          label: t("fieldFeaturedCount"),
+          value: "4",
+          saved: true,
+        },
+      ],
+    },
+    {
+      id: "locations",
+      name: t("sectionLocations"),
+      icon: MapPin,
+      description: t("sectionLocationsDesc"),
+      lastUpdated: "2026-02-15",
+      editedBy: "Admin",
+      versions: [{ date: "2026-02-15 13:20", user: "Admin" }],
+      fields: [
+        {
+          key: "loc_title",
+          label: t("fieldTitle"),
+          value: "Где нас найти",
+          saved: true,
+        },
+        {
+          key: "loc_text",
+          label: t("fieldDescription"),
+          value: "Наши автоматы расположены в самых посещаемых местах Ташкента",
+          saved: true,
+          charLimit: 200,
+        },
+      ],
+    },
+    {
+      id: "contacts",
+      name: t("sectionContacts"),
+      icon: Phone,
+      description: t("sectionContactsDesc"),
+      lastUpdated: "2026-02-15",
+      editedBy: "Jamshid",
+      versions: [{ date: "2026-02-15 13:20", user: "Jamshid" }],
+      fields: [
+        {
+          key: "phone",
+          label: t("fieldPhone"),
+          value: "+998 71 200 39 99",
+          saved: true,
+        },
+        { key: "email", label: "Email", value: "info@vendhub.uz", saved: true },
+        {
+          key: "telegram",
+          label: "Telegram",
+          value: "@vendhub_support",
+          saved: true,
+        },
+        {
+          key: "address",
+          label: t("fieldAddress"),
+          value: "Ташкент, ул. Мустакиллик 59, офис 402",
+          saved: true,
+        },
+      ],
+    },
+    {
+      id: "seo",
+      name: "SEO",
+      icon: Search,
+      description: t("sectionSeoDesc"),
+      lastUpdated: "2026-02-28",
+      editedBy: "Admin",
+      versions: [
+        { date: "2026-02-28 09:00", user: "Admin" },
+        { date: "2026-02-20 15:40", user: "Jamshid" },
+      ],
+      fields: [
+        {
+          key: "meta_title",
+          label: "Meta Title",
+          value: "VendHub — кофейные автоматы в Ташкенте | Свежий кофе 24/7",
+          saved: true,
+          charLimit: 60,
+        },
+        {
+          key: "meta_desc",
+          label: "Meta Description",
+          value:
+            "Премиальный кофе из автоматов VendHub. 22 напитка, 16 точек по Ташкенту. Оплата Payme, Click, UZUM, наличные.",
+          saved: true,
+          charLimit: 160,
+        },
+        {
+          key: "og_image",
+          label: "OG Image",
+          value: "/og-vendhub.jpg",
+          saved: true,
+        },
+      ],
+    },
+  ];
+}
 
 // ═══ Partners Data ═══
 
@@ -424,55 +430,63 @@ const PARTNERS: Partner[] = [
   },
 ];
 
-const PARTNER_TYPE_CONFIG = {
-  location: {
-    label: "Локация",
-    color: "bg-blue-100 text-blue-700",
-    icon: MapPin,
-  },
-  supplier: {
-    label: "Поставщик",
-    color: "bg-emerald-100 text-emerald-700",
-    icon: Truck,
-  },
-  service: {
-    label: "Сервис",
-    color: "bg-purple-100 text-purple-700",
-    icon: Building2,
-  },
-};
+function getPartnerTypeConfig(t: ReturnType<typeof useTranslations>) {
+  return {
+    location: {
+      label: t("partnerTypeLocation"),
+      color: "bg-blue-100 text-blue-700",
+      icon: MapPin,
+    },
+    supplier: {
+      label: t("partnerTypeSupplier"),
+      color: "bg-emerald-100 text-emerald-700",
+      icon: Truck,
+    },
+    service: {
+      label: t("partnerTypeService"),
+      color: "bg-purple-100 text-purple-700",
+      icon: Building2,
+    },
+  };
+}
 
-const STATUS_CONFIG = {
-  active: { label: "Активен", badge: "success" as const },
-  pending: { label: "Ожидание", badge: "warning" as const },
-  expired: { label: "Истёк", badge: "destructive" as const },
-};
+function getStatusConfig(t: ReturnType<typeof useTranslations>) {
+  return {
+    active: { label: t("statusActive"), badge: "success" as const },
+    pending: { label: t("statusPending"), badge: "warning" as const },
+    expired: { label: t("statusExpired"), badge: "destructive" as const },
+  };
+}
 
 // ═══ Analytics Data ═══
 
-const DAILY_VISITORS = [
-  { day: "Вт 17", visitors: 320 },
-  { day: "Ср 18", visitors: 380 },
-  { day: "Чт 19", visitors: 350 },
-  { day: "Пт 20", visitors: 520 },
-  { day: "Сб 21", visitors: 680 },
-  { day: "Вс 22", visitors: 620 },
-  { day: "Пн 23", visitors: 450 },
-  { day: "Вт 24", visitors: 390 },
-  { day: "Ср 25", visitors: 410 },
-  { day: "Чт 26", visitors: 480 },
-  { day: "Пт 27", visitors: 590 },
-  { day: "Сб 28", visitors: 710 },
-  { day: "Вс 01", visitors: 640 },
-  { day: "Пн 02", visitors: 420 },
-];
+function getDailyVisitors(t: ReturnType<typeof useTranslations>) {
+  return [
+    { day: `${t("dayTue")} 17`, visitors: 320 },
+    { day: `${t("dayWed")} 18`, visitors: 380 },
+    { day: `${t("dayThu")} 19`, visitors: 350 },
+    { day: `${t("dayFri")} 20`, visitors: 520 },
+    { day: `${t("daySat")} 21`, visitors: 680 },
+    { day: `${t("daySun")} 22`, visitors: 620 },
+    { day: `${t("dayMon")} 23`, visitors: 450 },
+    { day: `${t("dayTue")} 24`, visitors: 390 },
+    { day: `${t("dayWed")} 25`, visitors: 410 },
+    { day: `${t("dayThu")} 26`, visitors: 480 },
+    { day: `${t("dayFri")} 27`, visitors: 590 },
+    { day: `${t("daySat")} 28`, visitors: 710 },
+    { day: `${t("daySun")} 01`, visitors: 640 },
+    { day: `${t("dayMon")} 02`, visitors: 420 },
+  ];
+}
 
-const TRAFFIC_SOURCES = [
-  { name: "Поиск", value: 45, color: "#f59e0b" },
-  { name: "Telegram", value: 25, color: "#3b82f6" },
-  { name: "Прямой", value: 18, color: "#10b981" },
-  { name: "Соцсети", value: 12, color: "#8b5cf6" },
-];
+function getTrafficSources(t: ReturnType<typeof useTranslations>) {
+  return [
+    { name: t("trafficSearch"), value: 45, color: "#f59e0b" },
+    { name: "Telegram", value: 25, color: "#3b82f6" },
+    { name: t("trafficDirect"), value: 18, color: "#10b981" },
+    { name: t("trafficSocial"), value: 12, color: "#8b5cf6" },
+  ];
+}
 
 const DEVICE_DATA = [
   { name: "Desktop", value: 58, color: "#f59e0b" },
@@ -480,51 +494,57 @@ const DEVICE_DATA = [
   { name: "Tablet", value: 7, color: "#10b981" },
 ];
 
-const GEO_TOP_CITIES = [
-  { city: "Мирабадский", visitors: 680, color: "#f59e0b" },
-  { city: "Чилончар", visitors: 520, color: "#3b82f6" },
-  { city: "Юнусабадский", visitors: 450, color: "#10b981" },
-  { city: "Ташкентский", visitors: 380, color: "#8b5cf6" },
-  { city: "Сергеливский", visitors: 290, color: "#ef4444" },
-];
+function getGeoTopCities(t: ReturnType<typeof useTranslations>) {
+  return [
+    { city: t("districtMirabod"), visitors: 680, color: "#f59e0b" },
+    { city: t("districtChilanzar"), visitors: 520, color: "#3b82f6" },
+    { city: t("districtYunusabad"), visitors: 450, color: "#10b981" },
+    { city: t("districtTashkent"), visitors: 380, color: "#8b5cf6" },
+    { city: t("districtSergeli"), visitors: 290, color: "#ef4444" },
+  ];
+}
 
-const PAGE_PERFORMANCE: PagePerformance[] = [
-  {
-    path: "Главная (/)",
-    visitors: 5200,
-    avgTime: "1:42",
-    bounce: 32,
-    conversions: 15,
-  },
-  {
-    path: "Меню (/menu)",
-    visitors: 3800,
-    avgTime: "2:15",
-    bounce: 25,
-    conversions: 12,
-  },
-  {
-    path: "Локации (/locations)",
-    visitors: 2400,
-    avgTime: "1:58",
-    bounce: 28,
-    conversions: 8,
-  },
-  {
-    path: "О нас (/about)",
-    visitors: 1100,
-    avgTime: "1:20",
-    bounce: 45,
-    conversions: 3,
-  },
-  {
-    path: "Партнёрство (/partnership)",
-    visitors: 680,
-    avgTime: "3:05",
-    bounce: 18,
-    conversions: 8,
-  },
-];
+function getPagePerformance(
+  t: ReturnType<typeof useTranslations>,
+): PagePerformance[] {
+  return [
+    {
+      path: `${t("pageHome")} (/)`,
+      visitors: 5200,
+      avgTime: "1:42",
+      bounce: 32,
+      conversions: 15,
+    },
+    {
+      path: `${t("pageMenu")} (/menu)`,
+      visitors: 3800,
+      avgTime: "2:15",
+      bounce: 25,
+      conversions: 12,
+    },
+    {
+      path: `${t("pageLocations")} (/locations)`,
+      visitors: 2400,
+      avgTime: "1:58",
+      bounce: 28,
+      conversions: 8,
+    },
+    {
+      path: `${t("pageAbout")} (/about)`,
+      visitors: 1100,
+      avgTime: "1:20",
+      bounce: 45,
+      conversions: 3,
+    },
+    {
+      path: `${t("pagePartnership")} (/partnership)`,
+      visitors: 680,
+      avgTime: "3:05",
+      bounce: 18,
+      conversions: 8,
+    },
+  ];
+}
 
 const KEYWORD_RANKINGS: KeywordRanking[] = [
   {
@@ -623,6 +643,7 @@ const REDIRECT_RULES = [
 // ═══ Tab: Content ═══
 
 function ContentTab() {
+  const t = useTranslations("websiteMgmt");
   // Fetch website config from API
   const { data: configData } = useWebsiteConfig();
   const bulkUpdate = useBulkUpdateWebsiteConfig();
@@ -634,6 +655,8 @@ function ContentTab() {
       configMap.set(c.key, c.value);
     }
   }
+
+  const CONTENT_SECTIONS = getContentSections(t);
 
   const initialSections = CONTENT_SECTIONS.map((sec) => ({
     ...sec,
@@ -667,19 +690,21 @@ function ContentTab() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <p className="text-sm text-espresso-light">
-            {sections.length} секций ·{" "}
-            {sections.reduce((s, sec) => s + sec.fields.length, 0)} полей
+            {t("sectionsCount", { count: sections.length })} ·{" "}
+            {t("fieldsCount", {
+              count: sections.reduce((s, sec) => s + sec.fields.length, 0),
+            })}
           </p>
           {unsavedCount > 0 && (
             <p className="text-xs text-amber-600 font-medium">
-              {unsavedCount} несохранённых изменений
+              {t("unsavedChanges", { count: unsavedCount })}
             </p>
           )}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="gap-1">
             <Eye className="h-4 w-4" />
-            Превью
+            {t("preview")}
           </Button>
           <Button variant="outline" size="sm" className="gap-1">
             <ExternalLink className="h-4 w-4" />
@@ -717,8 +742,8 @@ function ContentTab() {
             >
               <Save className="h-4 w-4" />
               {bulkUpdate.isPending
-                ? "Сохранение..."
-                : `Опубликовать все (${unsavedCount})`}
+                ? t("saving")
+                : t("publishAll", { count: unsavedCount })}
             </Button>
           )}
         </div>
@@ -748,7 +773,7 @@ function ContentTab() {
                   </p>
                   {sec.lastUpdated && (
                     <p className="text-[10px] text-espresso-light mt-0.5">
-                      Обновлено {sec.lastUpdated}
+                      {t("updated")} {sec.lastUpdated}
                       {sec.editedBy ? ` • ${sec.editedBy}` : ""}
                     </p>
                   )}
@@ -771,7 +796,7 @@ function ContentTab() {
                   <div className="rounded-lg bg-blue-50 p-3 border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-xs font-semibold text-blue-900">
-                        История версий
+                        {t("versionHistory")}
                       </h4>
                       <Button
                         variant="ghost"
@@ -793,7 +818,7 @@ function ContentTab() {
                           <span className="text-blue-600">— {v.user}</span>
                           {i === 0 && (
                             <Badge variant="default" className="text-[9px]">
-                              Текущая
+                              {t("current")}
                             </Badge>
                           )}
                         </div>
@@ -851,7 +876,7 @@ function ContentTab() {
                       }
                     >
                       <Clock className="h-3.5 w-3.5" />
-                      История
+                      {t("history")}
                     </Button>
                   )}
                   <Button
@@ -859,7 +884,7 @@ function ContentTab() {
                     className="gap-1 bg-espresso hover:bg-espresso-dark"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
-                    Редактировать
+                    {t("edit")}
                   </Button>
                 </div>
               </CardContent>
@@ -874,6 +899,7 @@ function ContentTab() {
 // ═══ Tab: SEO ═══
 
 function SeoTab() {
+  const t = useTranslations("websiteMgmt");
   const [seoPages, _setSeoPages] = useState([
     {
       path: "/",
@@ -905,24 +931,24 @@ function SeoTab() {
         <Card className="bg-amber-50">
           <CardContent className="pt-4">
             <p className="text-[10px] text-amber-600 uppercase tracking-wide">
-              Показы
+              {t("impressions")}
             </p>
             <p className="text-2xl font-bold text-amber-700 mt-1">
               {formatNumber(GSC_STATS.impressions)}
             </p>
-            <p className="text-[10px] text-amber-600 mt-1">Последние 28 дней</p>
+            <p className="text-[10px] text-amber-600 mt-1">{t("last28Days")}</p>
           </CardContent>
         </Card>
         <Card className="bg-blue-50">
           <CardContent className="pt-4">
             <p className="text-[10px] text-blue-600 uppercase tracking-wide">
-              Клики
+              {t("clicks")}
             </p>
             <p className="text-2xl font-bold text-blue-700 mt-1">
               {formatNumber(GSC_STATS.clicks)}
             </p>
             <p className="text-[10px] text-blue-600 mt-1">
-              Из органического поиска
+              {t("fromOrganicSearch")}
             </p>
           </CardContent>
         </Card>
@@ -935,19 +961,21 @@ function SeoTab() {
               {GSC_STATS.ctr}%
             </p>
             <p className="text-[10px] text-emerald-600 mt-1">
-              Конверсия кликов
+              {t("clickConversion")}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-purple-50">
           <CardContent className="pt-4">
             <p className="text-[10px] text-purple-600 uppercase tracking-wide">
-              Позиция
+              {t("position")}
             </p>
             <p className="text-2xl font-bold text-purple-700 mt-1">
               {GSC_STATS.avgPosition.toFixed(1)}
             </p>
-            <p className="text-[10px] text-purple-600 mt-1">В среднем в топ</p>
+            <p className="text-[10px] text-purple-600 mt-1">
+              {t("avgTopPosition")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -959,7 +987,7 @@ function SeoTab() {
             <CardContent className="pt-4">
               <div className="mb-4 pb-3 border-b border-espresso/10">
                 <p className="text-xs font-semibold text-espresso-dark mb-1">
-                  Путь страницы
+                  {t("pagePath")}
                 </p>
                 <code className="text-sm text-amber-600 font-mono">
                   {page.path}
@@ -975,7 +1003,7 @@ function SeoTab() {
                     {page.title}
                   </div>
                   <p className="text-[9px] text-espresso-light mt-1">
-                    {page.title.length}/60 символов
+                    {t("charCount", { count: page.title.length, limit: 60 })}
                   </p>
                 </div>
 
@@ -987,7 +1015,10 @@ function SeoTab() {
                     {page.description}
                   </div>
                   <p className="text-[9px] text-espresso-light mt-1">
-                    {page.description.length}/160 символов
+                    {t("charCount", {
+                      count: page.description.length,
+                      limit: 160,
+                    })}
                   </p>
                 </div>
 
@@ -1017,7 +1048,7 @@ function SeoTab() {
                 className="w-full mt-3 gap-1 bg-espresso hover:bg-espresso-dark"
               >
                 <Edit2 className="h-3.5 w-3.5" />
-                Редактировать SEO
+                {t("editSeo")}
               </Button>
             </CardContent>
           </Card>
@@ -1027,7 +1058,7 @@ function SeoTab() {
       {/* Sitemap & Robots */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Индексирование</CardTitle>
+          <CardTitle className="text-sm">{t("indexing")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
@@ -1037,7 +1068,7 @@ function SeoTab() {
                 vendhub.uz/sitemap.xml
               </p>
             </div>
-            <Badge variant="success">Актуален</Badge>
+            <Badge variant="success">{t("upToDate")}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <div>
@@ -1048,11 +1079,11 @@ function SeoTab() {
                 vendhub.uz/robots.txt
               </p>
             </div>
-            <Badge variant="success">Активен</Badge>
+            <Badge variant="success">{t("active")}</Badge>
           </div>
           <Button size="sm" variant="outline" className="w-full gap-1">
             <RefreshCw className="h-3.5 w-3.5" />
-            Пересоздать sitemap
+            {t("regenerateSitemap")}
           </Button>
         </CardContent>
       </Card>
@@ -1061,7 +1092,7 @@ function SeoTab() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">
-            Позиции ключевых слов (топ 10)
+            {t("keywordPositionsTop10")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1076,8 +1107,8 @@ function SeoTab() {
                     {kw.keyword}
                   </p>
                   <p className="text-xs text-espresso-light">
-                    {formatNumber(kw.searchVolume)} объём поиска • Сложность{" "}
-                    {kw.difficulty}
+                    {formatNumber(kw.searchVolume)} {t("searchVolume")} •{" "}
+                    {t("difficulty")} {kw.difficulty}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1112,12 +1143,18 @@ function SeoTab() {
 // ═══ Tab: Аналитика ═══
 
 function AnalyticsTab() {
+  const t = useTranslations("websiteMgmt");
+  const DAILY_VISITORS = getDailyVisitors(t);
+  const TRAFFIC_SOURCES = getTrafficSources(t);
+  const GEO_TOP_CITIES = getGeoTopCities(t);
+  const PAGE_PERFORMANCE = getPagePerformance(t);
+
   return (
     <div className="space-y-4">
       {/* Visitors by Day */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Посетители (14 дней)</CardTitle>
+          <CardTitle className="text-sm">{t("visitors14Days")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -1125,7 +1162,7 @@ function AnalyticsTab() {
               <CartesianGrid stroke="#f3e8d0" />
               <XAxis dataKey="day" stroke="#92400e" fontSize={11} />
               <YAxis stroke="#92400e" fontSize={11} />
-              <Tooltip formatter={(v: unknown) => [String(v), "Посетители"]} />
+              <Tooltip formatter={(v: unknown) => [String(v), t("visitors")]} />
               <Area
                 type="monotone"
                 dataKey="visitors"
@@ -1141,7 +1178,7 @@ function AnalyticsTab() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Источники трафика</CardTitle>
+            <CardTitle className="text-sm">{t("trafficSources")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -1169,7 +1206,7 @@ function AnalyticsTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Устройства</CardTitle>
+            <CardTitle className="text-sm">{t("devices")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -1197,7 +1234,7 @@ function AnalyticsTab() {
       {/* Top Pages */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Топ страницы (5)</CardTitle>
+          <CardTitle className="text-sm">{t("topPages")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -1210,12 +1247,20 @@ function AnalyticsTab() {
                   <p className="text-sm font-medium text-espresso-dark">
                     {p.path}
                   </p>
-                  <Badge variant="default">{p.conversions} конв.</Badge>
+                  <Badge variant="default">
+                    {p.conversions} {t("conv")}
+                  </Badge>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs text-espresso-light">
-                  <p>Просмотров: {formatNumber(p.visitors)}</p>
-                  <p>Отскок: {p.bounce}%</p>
-                  <p>Время: {p.avgTime}</p>
+                  <p>
+                    {t("views")}: {formatNumber(p.visitors)}
+                  </p>
+                  <p>
+                    {t("bounce")}: {p.bounce}%
+                  </p>
+                  <p>
+                    {t("time")}: {p.avgTime}
+                  </p>
                 </div>
               </div>
             ))}
@@ -1226,7 +1271,7 @@ function AnalyticsTab() {
       {/* Geography */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">География (топ 5 районов)</CardTitle>
+          <CardTitle className="text-sm">{t("geographyTop5")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
@@ -1247,34 +1292,37 @@ function AnalyticsTab() {
 // ═══ Tab: Настройки ═══
 
 function SettingsTab() {
+  const t = useTranslations("websiteMgmt");
   return (
     <div className="space-y-4">
       {/* Domain Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Домен</CardTitle>
+          <CardTitle className="text-sm">{t("domain")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="p-3 bg-espresso-50 rounded-lg border border-espresso/20">
-            <p className="text-xs text-espresso-light mb-1">Основной домен</p>
+            <p className="text-xs text-espresso-light mb-1">
+              {t("primaryDomain")}
+            </p>
             <p className="text-lg font-semibold text-espresso-dark">
               vendhub.uz
             </p>
           </div>
           <div className="p-3 bg-espresso-50 rounded-lg border border-espresso/20">
             <p className="text-xs text-espresso-light mb-1">
-              Статус регистрации
+              {t("registrationStatus")}
             </p>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <p className="text-sm text-espresso-dark">
-                Активен до 15.03.2027
+                {t("activeUntil", { date: "15.03.2027" })}
               </p>
             </div>
           </div>
           <Button size="sm" variant="outline" className="w-full gap-1">
             <Edit2 className="h-3.5 w-3.5" />
-            Управлять доменом
+            {t("manageDomain")}
           </Button>
         </CardContent>
       </Card>
@@ -1282,7 +1330,7 @@ function SettingsTab() {
       {/* SSL Certificate */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">SSL/TLS Сертификат</CardTitle>
+          <CardTitle className="text-sm">{t("sslCertificate")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-start gap-2">
@@ -1292,10 +1340,10 @@ function SettingsTab() {
                 Let's Encrypt
               </p>
               <p className="text-xs text-emerald-700">
-                Сертификат действителен и автоматически обновляется
+                {t("sslValidAutoRenew")}
               </p>
               <p className="text-[10px] text-emerald-600 mt-1">
-                Истекает: 15.06.2026
+                {t("expires")}: 15.06.2026
               </p>
             </div>
           </div>
@@ -1305,7 +1353,7 @@ function SettingsTab() {
       {/* CDN Cache */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">CDN и кеш</CardTitle>
+          <CardTitle className="text-sm">{t("cdnAndCache")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -1313,18 +1361,16 @@ function SettingsTab() {
               Cloudflare CDN
             </p>
             <p className="text-xs text-blue-700">
-              Кеш активирован для всех статических ресурсов
+              {t("cacheEnabledForStatic")}
             </p>
-            <p className="text-[10px] text-blue-600 mt-2">
-              Время жизни кеша: 24 часа (можно очистить)
-            </p>
+            <p className="text-[10px] text-blue-600 mt-2">{t("cacheTtl")}</p>
           </div>
           <Button
             size="sm"
             className="w-full gap-1 bg-blue-600 hover:bg-blue-700"
           >
             <ZapIcon className="h-3.5 w-3.5" />
-            Очистить кеш CDN
+            {t("clearCdnCache")}
           </Button>
         </CardContent>
       </Card>
@@ -1332,7 +1378,9 @@ function SettingsTab() {
       {/* Redirect Rules */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Правила переадресации (3)</CardTitle>
+          <CardTitle className="text-sm">
+            {t("redirectRules", { count: 3 })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {REDIRECT_RULES.map((rule) => (
@@ -1345,17 +1393,17 @@ function SettingsTab() {
                   {rule.from} → {rule.to}
                 </p>
                 <p className="text-[10px] text-espresso-light">
-                  {formatNumber(rule.hits)} переходов
+                  {formatNumber(rule.hits)} {t("redirections")}
                 </p>
               </div>
               <Badge variant="success">
-                {rule.status === "active" ? "Активно" : "Отключено"}
+                {rule.status === "active" ? t("ruleActive") : t("ruleDisabled")}
               </Badge>
             </div>
           ))}
           <Button size="sm" variant="outline" className="w-full gap-1 mt-2">
             <Plus className="h-3.5 w-3.5" />
-            Добавить правило
+            {t("addRule")}
           </Button>
         </CardContent>
       </Card>
@@ -1363,7 +1411,7 @@ function SettingsTab() {
       {/* Custom Scripts */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Скрипты аналитики</CardTitle>
+          <CardTitle className="text-sm">{t("analyticsScripts")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-2">
@@ -1392,7 +1440,7 @@ function SettingsTab() {
           </div>
           <Button size="sm" variant="outline" className="w-full gap-1">
             <Edit2 className="h-3.5 w-3.5" />
-            Редактировать скрипты
+            {t("editScripts")}
           </Button>
         </CardContent>
       </Card>
@@ -1403,6 +1451,9 @@ function SettingsTab() {
 // ═══ Partnership Tab ═══
 
 function PartnershipTab() {
+  const t = useTranslations("websiteMgmt");
+  const PARTNER_TYPE_CONFIG = getPartnerTypeConfig(t);
+  const STATUS_CONFIG = getStatusConfig(t);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
@@ -1437,14 +1488,14 @@ function PartnershipTab() {
     }));
 
   const typeDistribution = [
-    { name: "Локации", value: locationPartners.length, color: "#f59e0b" },
+    { name: t("locations"), value: locationPartners.length, color: "#f59e0b" },
     {
-      name: "Поставщики",
+      name: t("suppliers"),
       value: PARTNERS.filter((p) => p.type === "supplier").length,
       color: "#10b981",
     },
     {
-      name: "Сервис",
+      name: t("serviceType"),
       value: PARTNERS.filter((p) => p.type === "service").length,
       color: "#8b5cf6",
     },
@@ -1455,13 +1506,13 @@ function PartnershipTab() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-xl bg-blue-50 p-3">
           <p className="text-[10px] text-blue-600 uppercase tracking-wide">
-            Партнёров
+            {t("partners")}
           </p>
           <p className="text-xl font-bold text-blue-700">{PARTNERS.length}</p>
         </div>
         <div className="rounded-xl bg-emerald-50 p-3">
           <p className="text-[10px] text-emerald-600 uppercase tracking-wide">
-            Локации
+            {t("locations")}
           </p>
           <p className="text-xl font-bold text-emerald-700">
             {locationPartners.length}
@@ -1469,13 +1520,13 @@ function PartnershipTab() {
         </div>
         <div className="rounded-xl bg-amber-50 p-3">
           <p className="text-[10px] text-amber-600 uppercase tracking-wide">
-            Автоматов
+            {t("machines")}
           </p>
           <p className="text-xl font-bold text-amber-700">{totalMachines}</p>
         </div>
         <div className="rounded-xl bg-purple-50 p-3">
           <p className="text-[10px] text-purple-600 uppercase tracking-wide">
-            Выручка/мес
+            {t("revenuePerMonth")}
           </p>
           <p className="text-xl font-bold text-purple-700">
             {formatNumber(totalRevenue)}
@@ -1487,7 +1538,7 @@ function PartnershipTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              Выручка по партнёрам (топ 5)
+              {t("revenueByPartnerTop5")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1507,7 +1558,7 @@ function PartnershipTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Типы партнёров</CardTitle>
+            <CardTitle className="text-sm">{t("partnerTypes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -1538,7 +1589,7 @@ function PartnershipTab() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-espresso-light" />
           <Input
-            placeholder="Поиск партнёра..."
+            placeholder={t("searchPartner")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -1546,10 +1597,10 @@ function PartnershipTab() {
         </div>
         <div className="flex gap-1">
           {[
-            { id: "all", label: "Все" },
-            { id: "location", label: "Локации" },
-            { id: "supplier", label: "Поставщики" },
-            { id: "service", label: "Сервис" },
+            { id: "all", label: t("filterAll") },
+            { id: "location", label: t("locations") },
+            { id: "supplier", label: t("suppliers") },
+            { id: "service", label: t("serviceType") },
           ].map((f) => (
             <Button
               key={f.id}
@@ -1571,7 +1622,7 @@ function PartnershipTab() {
         </div>
         <Button size="sm" className="gap-1 bg-espresso hover:bg-espresso-dark">
           <Plus className="h-4 w-4" />
-          Добавить
+          {t("add")}
         </Button>
       </div>
 
@@ -1584,7 +1635,7 @@ function PartnershipTab() {
                   {selectedPartner.name}
                 </h3>
                 <p className="text-xs text-espresso-light mt-0.5">
-                  Контакт: {selectedPartner.contact}
+                  {t("contact")}: {selectedPartner.contact}
                 </p>
               </div>
               <Button
@@ -1598,14 +1649,16 @@ function PartnershipTab() {
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-[10px] text-espresso-light">Статус</p>
+                <p className="text-[10px] text-espresso-light">{t("status")}</p>
                 <Badge variant={STATUS_CONFIG[selectedPartner.status].badge}>
                   {STATUS_CONFIG[selectedPartner.status].label}
                 </Badge>
               </div>
               {selectedPartner.contractStart && (
                 <div>
-                  <p className="text-[10px] text-espresso-light">Договор</p>
+                  <p className="text-[10px] text-espresso-light">
+                    {t("contract")}
+                  </p>
                   <p className="text-xs text-espresso-dark">
                     {new Date(selectedPartner.contractStart).toLocaleDateString(
                       "ru-RU",
@@ -1616,7 +1669,9 @@ function PartnershipTab() {
               )}
               {selectedPartner.commission && (
                 <div>
-                  <p className="text-[10px] text-espresso-light">Комиссия</p>
+                  <p className="text-[10px] text-espresso-light">
+                    {t("commission")}
+                  </p>
                   <p className="text-xs font-medium text-espresso-dark">
                     {selectedPartner.commission}%
                   </p>
@@ -1624,7 +1679,9 @@ function PartnershipTab() {
               )}
               {selectedPartner.revenue && selectedPartner.revenue > 0 && (
                 <div>
-                  <p className="text-[10px] text-espresso-light">Выручка</p>
+                  <p className="text-[10px] text-espresso-light">
+                    {t("revenue")}
+                  </p>
                   <p className="text-xs font-medium text-emerald-600">
                     {formatNumber(selectedPartner.revenue)} UZS
                   </p>
@@ -1634,7 +1691,7 @@ function PartnershipTab() {
             {selectedPartner.notes && (
               <div className="mt-3 pt-3 border-t border-blue-200">
                 <p className="text-[10px] text-espresso-light mb-1">
-                  Примечания
+                  {t("notes")}
                 </p>
                 <p className="text-xs text-espresso-dark">
                   {selectedPartner.notes}
@@ -1652,19 +1709,19 @@ function PartnershipTab() {
               <TableHeader className="border-b border-espresso/10 bg-espresso-50">
                 <TableRow>
                   <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
-                    Партнёр
+                    {t("partner")}
                   </TableHead>
                   <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
-                    Тип
+                    {t("type")}
                   </TableHead>
                   <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
-                    Статус
+                    {t("status")}
                   </TableHead>
                   <TableHead className="px-4 py-2 text-left text-xs font-semibold text-espresso-dark">
-                    Контакт
+                    {t("contact")}
                   </TableHead>
                   <TableHead className="px-4 py-2 text-right text-xs font-semibold text-espresso-dark">
-                    Действия
+                    {t("actions")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -1716,7 +1773,7 @@ function PartnershipTab() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-espresso-light">
-            Страница {page} из {totalPages}
+            {t("pageOf", { page, totalPages })}
           </p>
           <div className="flex gap-1">
             <Button
@@ -1725,7 +1782,7 @@ function PartnershipTab() {
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Назад
+              {t("prev")}
             </Button>
             <Button
               size="sm"
@@ -1733,7 +1790,7 @@ function PartnershipTab() {
               disabled={page === totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
-              Вперёд
+              {t("next")}
             </Button>
           </div>
         </div>
@@ -1745,25 +1802,24 @@ function PartnershipTab() {
 // ═══ Main Component ═══
 
 export default function WebsitePage() {
+  const t = useTranslations("websiteMgmt");
   const [activeTab, setActiveTab] = useState<TabId>("content");
 
   const tabs: Array<{ id: TabId; label: string; icon: React.ElementType }> = [
-    { id: "content", label: "Контент", icon: FileText },
-    { id: "partnership", label: "Партнёрство", icon: Handshake },
-    { id: "analytics", label: "Аналитика", icon: BarChart3 },
+    { id: "content", label: t("tabContent"), icon: FileText },
+    { id: "partnership", label: t("tabPartnership"), icon: Handshake },
+    { id: "analytics", label: t("tabAnalytics"), icon: BarChart3 },
     { id: "seo", label: "SEO", icon: Target },
-    { id: "settings", label: "Настройки", icon: Monitor },
+    { id: "settings", label: t("tabSettings"), icon: Monitor },
   ];
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-display font-bold text-espresso-dark">
-          Сайт VendHub
+          {t("pageTitle")}
         </h1>
-        <p className="text-sm text-espresso-light mt-1">
-          Управление контентом, аналитикой и настройками vendhub.uz
-        </p>
+        <p className="text-sm text-espresso-light mt-1">{t("pageSubtitle")}</p>
       </div>
 
       {/* Tabs */}

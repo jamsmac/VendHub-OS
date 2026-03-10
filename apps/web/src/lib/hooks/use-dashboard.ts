@@ -54,19 +54,24 @@ export function useDashboardKpi() {
   return useQuery({
     queryKey: ["dashboard-kpi"],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard/kpi");
-      return response.data;
+      const response = await api.get("/analytics/dashboard");
+      const data = response.data;
+      return data?.kpi ?? data;
     },
     refetchInterval: 60_000,
   });
 }
 
 export function useSalesChart(days = 7) {
+  const to = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   return useQuery({
     queryKey: ["sales-chart", days],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard/sales-chart", {
-        params: { days },
+      const response = await api.get("/analytics/daily", {
+        params: { from, to },
       });
       return response.data;
     },
@@ -91,11 +96,15 @@ export function useDashboardAlerts() {
  * Revenue statistics
  */
 export function useRevenueStats(days = 30) {
+  const to = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   return useQuery({
     queryKey: ["revenue-stats", days],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard/revenue-stats", {
-        params: { days },
+      const response = await api.get("/analytics/revenue-trend", {
+        params: { from, to },
       });
       return response.data;
     },
@@ -146,7 +155,7 @@ export function useDashboardSummary() {
   return useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard/summary");
+      const response = await api.get("/analytics/dashboard");
       return response.data;
     },
     refetchInterval: 60_000,

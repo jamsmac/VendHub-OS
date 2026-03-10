@@ -48,7 +48,7 @@ describe("useCounterparties", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/counterparty");
+    expect(mockGet).toHaveBeenCalledWith("/contractors");
     expect(result.current.data).toHaveLength(2);
   });
 });
@@ -64,7 +64,7 @@ describe("useCounterparty", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/counterparty/cp-1");
+    expect(mockGet).toHaveBeenCalledWith("/contractors/cp-1");
   });
 
   it("is disabled when id is empty", () => {
@@ -94,7 +94,7 @@ describe("useContracts", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/counterparty/contracts");
+    expect(mockGet).toHaveBeenCalledWith("/contractors/invoices/all");
   });
 });
 
@@ -108,7 +108,7 @@ describe("useCounterpartyStats", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/counterparty/stats");
+    expect(mockGet).toHaveBeenCalledWith("/contractors/stats");
     expect(result.current.data).toEqual(stats);
   });
 });

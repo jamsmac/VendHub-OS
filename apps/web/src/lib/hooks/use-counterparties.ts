@@ -39,7 +39,7 @@ export function useCounterparties() {
   return useQuery({
     queryKey: ["counterparties"],
     queryFn: async () => {
-      const response = await api.get("/counterparty");
+      const response = await api.get("/contractors");
       return response.data;
     },
   });
@@ -49,7 +49,7 @@ export function useCounterparty(id: string) {
   return useQuery({
     queryKey: ["counterparties", id],
     queryFn: async () => {
-      const response = await api.get(`/counterparty/${id}`);
+      const response = await api.get(`/contractors/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -60,7 +60,7 @@ export function useContracts() {
   return useQuery({
     queryKey: ["contracts"],
     queryFn: async () => {
-      const response = await api.get("/counterparty/contracts");
+      const response = await api.get("/contractors/invoices/all");
       return response.data;
     },
   });
@@ -70,7 +70,7 @@ export function useCounterpartyStats() {
   return useQuery({
     queryKey: ["counterparty-stats"],
     queryFn: async () => {
-      const response = await api.get("/counterparty/stats");
+      const response = await api.get("/contractors/stats");
       return response.data;
     },
   });

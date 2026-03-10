@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Building2,
   FileText,
@@ -548,6 +549,22 @@ const typeColors: Record<CounterpartyType, { bg: string; text: string }> = {
   Сервис: { bg: "bg-cyan-100", text: "text-cyan-700" },
 };
 
+const TYPE_TRANSLATION_KEYS: Record<CounterpartyType, string> = {
+  Поставщик: "typeSupplier",
+  Арендодатель: "typeLandlord",
+  Клиент: "typeClient",
+  Партнёр: "typePartner",
+  Сервис: "typeService",
+};
+
+const CONTRACT_TYPE_TRANSLATION_KEYS: Record<ContractType, string> = {
+  Поставка: "contractTypeSupply",
+  Аренда: "contractTypeRent",
+  Сервис: "contractTypeService",
+  Партнёрство: "contractTypePartnership",
+  "Поставка расходников": "contractTypeConsumables",
+};
+
 const CHART_COLORS = [
   "#f59e0b",
   "#d97706",
@@ -560,12 +577,17 @@ const CHART_COLORS = [
 
 // Tab configuration
 const TABS = [
-  { id: "counterparties" as const, label: "Контрагенты", icon: Building2 },
-  { id: "contracts" as const, label: "Договоры", icon: FileText },
-  { id: "analytics" as const, label: "Аналитика", icon: BarChart3 },
+  {
+    id: "counterparties" as const,
+    labelKey: "tabCounterparties",
+    icon: Building2,
+  },
+  { id: "contracts" as const, labelKey: "tabContracts", icon: FileText },
+  { id: "analytics" as const, labelKey: "tabAnalytics", icon: BarChart3 },
 ];
 
 export default function CounterpartiesPage() {
+  const t = useTranslations("counterparties");
   const { data: dbCounterparties } = useCounterparties();
   const { data: dbContracts } = useContracts();
   const [activeTab, setActiveTab] = useState<CounterpartyTab>("counterparties");
@@ -655,14 +677,14 @@ export default function CounterpartiesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-espresso">Контрагенты</h1>
+          <h1 className="text-2xl font-bold text-espresso">{t("pageTitle")}</h1>
           <p className="text-sm text-espresso-light mt-1">
-            Управление поставщиками, арендодателями и партнёрами
+            {t("pageSubtitle")}
           </p>
         </div>
         <Button className="gap-2 bg-amber-500 hover:bg-amber-600">
           <Plus className="w-4 h-4" />
-          Добавить контрагента
+          {t("addCounterparty")}
         </Button>
       </div>
 
@@ -682,7 +704,7 @@ export default function CounterpartiesPage() {
             )}
           >
             <tab.icon className="w-3.5 h-3.5" />
-            {tab.label}
+            {t(tab.labelKey)}
           </Button>
         ))}
       </div>
@@ -695,7 +717,7 @@ export default function CounterpartiesPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-espresso-light" />
               <Input
-                placeholder="Поиск по названию или ИНН..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -706,21 +728,21 @@ export default function CounterpartiesPage() {
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
-              <option value="all">Все типы</option>
-              <option value="Поставщик">Поставщик</option>
-              <option value="Арендодатель">Арендодатель</option>
-              <option value="Клиент">Клиент</option>
-              <option value="Партнёр">Партнёр</option>
-              <option value="Сервис">Сервис</option>
+              <option value="all">{t("allTypes")}</option>
+              <option value="Поставщик">{t("typeSupplier")}</option>
+              <option value="Арендодатель">{t("typeLandlord")}</option>
+              <option value="Клиент">{t("typeClient")}</option>
+              <option value="Партнёр">{t("typePartner")}</option>
+              <option value="Сервис">{t("typeService")}</option>
             </select>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
-              <option value="all">Все статусы</option>
-              <option value="active">Активные</option>
-              <option value="suspended">Приостановлены</option>
+              <option value="all">{t("allStatuses")}</option>
+              <option value="active">{t("statusActive")}</option>
+              <option value="suspended">{t("statusSuspended")}</option>
             </select>
           </div>
 
@@ -732,31 +754,31 @@ export default function CounterpartiesPage() {
                   <TableHeader>
                     <TableRow className="bg-cream/50">
                       <TableHead className="text-espresso font-semibold">
-                        Название
+                        {t("columnName")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        ИНН
+                        {t("columnInn")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Тип
+                        {t("columnType")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Контактное лицо
+                        {t("columnContactPerson")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Телефон
+                        {t("columnPhone")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Email
+                        {t("columnEmail")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold text-right">
-                        Баланс
+                        {t("columnBalance")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Статус
+                        {t("columnStatus")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold text-center">
-                        Действия
+                        {t("columnActions")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -780,7 +802,7 @@ export default function CounterpartiesPage() {
                               variant="outline"
                               className={`${color.bg} ${color.text} border-0`}
                             >
-                              {cp.type}
+                              {t(TYPE_TRANSLATION_KEYS[cp.type])}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-espresso-light">
@@ -809,8 +831,8 @@ export default function CounterpartiesPage() {
                               }
                             >
                               {cp.status === "active"
-                                ? "Активный"
-                                : "Приостановлен"}
+                                ? t("statusActive")
+                                : t("statusSuspended")}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
@@ -837,7 +859,7 @@ export default function CounterpartiesPage() {
 
           {filteredCounterparties.length === 0 && (
             <div className="text-center py-8 text-espresso-light">
-              Контрагенты не найдены
+              {t("emptyState")}
             </div>
           )}
         </div>
@@ -851,7 +873,9 @@ export default function CounterpartiesPage() {
               <CardContent className="pt-4">
                 <p className="text-sm text-amber-800">
                   <span className="font-semibold">
-                    ⚠️ {expiringContracts.length} договор(ов) истекает скоро:
+                    {t("expiringContractsWarning", {
+                      count: expiringContracts.length,
+                    })}
                   </span>{" "}
                   {expiringContracts.map((c) => c.number).join(", ")}
                 </p>
@@ -867,25 +891,25 @@ export default function CounterpartiesPage() {
                   <TableHeader>
                     <TableRow className="bg-cream/50">
                       <TableHead className="text-espresso font-semibold">
-                        № Договора
+                        {t("contractNumber")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Контрагент
+                        {t("contractCounterparty")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Тип договора
+                        {t("contractType")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Дата начала
+                        {t("contractStartDate")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Дата окончания
+                        {t("contractEndDate")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold text-right">
-                        Сумма/мес
+                        {t("contractMonthlyAmount")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Статус
+                        {t("columnStatus")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -899,7 +923,7 @@ export default function CounterpartiesPage() {
                           {contract.counterpartyName}
                         </TableCell>
                         <TableCell className="text-sm text-espresso-light">
-                          {contract.type}
+                          {t(CONTRACT_TYPE_TRANSLATION_KEYS[contract.type])}
                         </TableCell>
                         <TableCell className="text-sm text-espresso-light">
                           {new Date(contract.startDate).toLocaleDateString(
@@ -925,10 +949,10 @@ export default function CounterpartiesPage() {
                             }
                           >
                             {contract.status === "active"
-                              ? "Активный"
+                              ? t("statusActive")
                               : contract.status === "expiring"
-                                ? "Истекает скоро"
-                                : "Истёк"}
+                                ? t("contractStatusExpiring")
+                                : t("contractStatusExpired")}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -949,7 +973,7 @@ export default function CounterpartiesPage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-espresso-light mb-2">
-                    Всего контрагентов
+                    {t("kpiTotalCounterparties")}
                   </p>
                   <p className="text-3xl font-bold text-espresso">
                     {totalCounterparties}
@@ -961,7 +985,7 @@ export default function CounterpartiesPage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-espresso-light mb-2">
-                    Активных договоров
+                    {t("kpiActiveContracts")}
                   </p>
                   <p className="text-3xl font-bold text-espresso">
                     {activeContracts}
@@ -973,7 +997,7 @@ export default function CounterpartiesPage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-espresso-light mb-2">
-                    Кредиторская задолж.
+                    {t("kpiCreditorDebt")}
                   </p>
                   <p className="text-2xl font-bold text-red-600">
                     {formatCurrency(-creditorDebt)}
@@ -985,7 +1009,7 @@ export default function CounterpartiesPage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-espresso-light mb-2">
-                    Дебиторская задолж.
+                    {t("kpiDebtorAmount")}
                   </p>
                   <p className="text-2xl font-bold text-green-600">
                     {formatCurrency(debtorAmount)}
@@ -1001,7 +1025,7 @@ export default function CounterpartiesPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">
-                  Объём закупок по поставщикам (топ 5)
+                  {t("chartProcurementVolume")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1029,7 +1053,7 @@ export default function CounterpartiesPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">
-                  Расходы по типу контрагента
+                  {t("chartExpensesByType")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1072,7 +1096,7 @@ export default function CounterpartiesPage() {
           {/* Debt Summary Table */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Сводка по задолженности</CardTitle>
+              <CardTitle className="text-sm">{t("debtSummaryTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -1080,13 +1104,13 @@ export default function CounterpartiesPage() {
                   <TableHeader>
                     <TableRow className="bg-cream/50">
                       <TableHead className="text-espresso font-semibold">
-                        Контрагент
+                        {t("debtCounterparty")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold text-right">
-                        Баланс
+                        {t("columnBalance")}
                       </TableHead>
                       <TableHead className="text-espresso font-semibold">
-                        Дата последнего платежа
+                        {t("debtLastPaymentDate")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1138,11 +1162,13 @@ export default function CounterpartiesPage() {
                 {/* Info Sections */}
                 <div>
                   <h3 className="text-sm font-semibold text-espresso mb-3">
-                    Информация о компании
+                    {t("companyInfo")}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Статус:</span>
+                      <span className="text-espresso-light">
+                        {t("labelStatus")}
+                      </span>
                       <Badge
                         variant={
                           selectedCounterparty.status === "active"
@@ -1151,12 +1177,14 @@ export default function CounterpartiesPage() {
                         }
                       >
                         {selectedCounterparty.status === "active"
-                          ? "Активный"
-                          : "Приостановлен"}
+                          ? t("statusActive")
+                          : t("statusSuspended")}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Адрес:</span>
+                      <span className="text-espresso-light">
+                        {t("labelAddress")}
+                      </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.address || "—"}
                       </span>
@@ -1166,25 +1194,29 @@ export default function CounterpartiesPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-espresso mb-3">
-                    Контактная информация
+                    {t("contactInfo")}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-espresso-light">
-                        Контактное лицо:
+                        {t("labelContactPerson")}
                       </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.contactPerson}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Телефон:</span>
+                      <span className="text-espresso-light">
+                        {t("labelPhone")}
+                      </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.phone}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Email:</span>
+                      <span className="text-espresso-light">
+                        {t("labelEmail")}
+                      </span>
                       <span className="text-espresso font-medium text-xs">
                         {selectedCounterparty.email}
                       </span>
@@ -1194,23 +1226,29 @@ export default function CounterpartiesPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-espresso mb-3">
-                    Банковские реквизиты
+                    {t("bankDetails")}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Банк:</span>
+                      <span className="text-espresso-light">
+                        {t("labelBank")}
+                      </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.bank || "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">Счёт:</span>
+                      <span className="text-espresso-light">
+                        {t("labelAccount")}
+                      </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.account || "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-espresso-light">МФО:</span>
+                      <span className="text-espresso-light">
+                        {t("labelMfo")}
+                      </span>
                       <span className="text-espresso font-medium">
                         {selectedCounterparty.mfo || "—"}
                       </span>
@@ -1220,7 +1258,7 @@ export default function CounterpartiesPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-espresso mb-3">
-                    Последние операции
+                    {t("recentTransactions")}
                   </h3>
                   <div className="space-y-2">
                     {selectedCounterparty.transactions
@@ -1254,7 +1292,7 @@ export default function CounterpartiesPage() {
                 {selectedCounterparty.notes && (
                   <div>
                     <h3 className="text-sm font-semibold text-espresso mb-2">
-                      Примечания
+                      {t("notes")}
                     </h3>
                     <p className="text-sm text-espresso-light bg-cream/50 p-2 rounded">
                       {selectedCounterparty.notes}
@@ -1267,14 +1305,14 @@ export default function CounterpartiesPage() {
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1">
                   <Edit2 className="w-4 h-4 mr-2" />
-                  Редактировать
+                  {t("edit")}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1 text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Удалить
+                  {t("delete")}
                 </Button>
               </div>
             </SlideOverFooter>

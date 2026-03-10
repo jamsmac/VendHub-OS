@@ -48,8 +48,19 @@ export function useTeamStats() {
   return useQuery({
     queryKey: ["team-stats"],
     queryFn: async () => {
-      const response = await api.get("/users/stats");
-      return response.data;
+      const response = await usersApi.getAll();
+      const users: UserRow[] = response.data?.data ?? response.data ?? [];
+      const activeMembers = users.filter((u) => u.is_active).length;
+      const byRole: Record<string, number> = {};
+      for (const u of users) {
+        byRole[u.role] = (byRole[u.role] || 0) + 1;
+      }
+      return {
+        totalMembers: users.length,
+        activeMembers,
+        byRole,
+        avgTasksPerMember: 0,
+      } satisfies TeamStats;
     },
   });
 }
@@ -58,8 +69,9 @@ export function useUsersByRole(role: string) {
   return useQuery({
     queryKey: ["users-by-role", role],
     queryFn: async () => {
-      const response = await api.get("/users/by-role", { params: { role } });
-      return response.data;
+      const response = await usersApi.getAll();
+      const users: UserRow[] = response.data?.data ?? response.data ?? [];
+      return users.filter((u) => u.role === role);
     },
     enabled: !!role,
   });
