@@ -328,7 +328,7 @@ async function seedBusinessData(ds: DataSource) {
             `CTR-2026-${String(contractCount + 1).padStart(3, "0")}`,
             "2026-01-01",
             "2026-12-31",
-            "ACTIVE",
+            "active",
             cp.id,
             isLocation ? "percentage" : isSupplier ? "fixed" : "hybrid",
             isLocation ? 15.0 : null,
