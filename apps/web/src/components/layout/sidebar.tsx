@@ -51,6 +51,7 @@ import {
   Tag,
   HelpCircle,
   Code2,
+  UserPlus,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo } from "react";
@@ -321,6 +322,13 @@ const navigation: NavItem[] = [
     fallback: "Пользователи",
     href: "/dashboard/users",
     icon: Users,
+    roles: [UserRole.OWNER, UserRole.ADMIN],
+  },
+  {
+    nameKey: "invites",
+    fallback: "Приглашения",
+    href: "/dashboard/invites",
+    icon: UserPlus,
     roles: [UserRole.OWNER, UserRole.ADMIN],
   },
   {

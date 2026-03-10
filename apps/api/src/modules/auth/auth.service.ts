@@ -33,6 +33,8 @@ import { RegisterDto } from "./dto/register.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
+import { InvitesService } from "../invites/invites.service";
+import { RegisterWithInviteDto } from "./dto/register-with-invite.dto";
 import { v4 as uuidv4 } from "uuid";
 
 interface TokenPayload {
@@ -77,6 +79,7 @@ export class AuthService {
     private readonly eventEmitter: EventEmitter2,
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly passwordPolicyService: PasswordPolicyService,
+    private readonly invitesService: InvitesService,
   ) {
     // Configure TOTP
     authenticator.options = {
@@ -180,6 +183,171 @@ export class AuthService {
       message: "Registration successful. Waiting for approval.",
       userId: user.id,
     };
+  }
+
+  /**
+   * Register via invite code + Telegram auth (or email/password fallback).
+   * Atomic transaction: verify invite → create user → claim invite.
+   */
+  async registerWithInvite(
+    dto: RegisterWithInviteDto,
+    ipAddress: string,
+    userAgent: string,
+  ) {
+    // 1. Validate the invite (throws if invalid/expired/used)
+    const invite = await this.invitesService.validateInvite(dto.inviteCode);
+
+    let telegramId: string | undefined;
+    let telegramUsername: string | undefined;
+
+    // 2. If Telegram auth provided, verify HMAC signature
+    if (dto.telegramData) {
+      const tgUser = this.verifyTelegramData(dto.telegramData);
+      telegramId = String(tgUser.id);
+      telegramUsername = tgUser.username;
+
+      // Check if Telegram account is already linked
+      const existingTg = await this.userRepository.findOne({
+        where: { telegramId },
+      });
+      if (existingTg) {
+        throw new ConflictException(
+          "This Telegram account is already linked to another user",
+        );
+      }
+    }
+
+    // 3. If email/password registration
+    if (dto.email) {
+      const existingEmail = await this.userRepository.findOne({
+        where: { email: dto.email.toLowerCase() },
+      });
+      if (existingEmail) {
+        throw new ConflictException("Email already registered");
+      }
+    }
+
+    // Must have either Telegram auth or email+password
+    if (!dto.telegramData && (!dto.email || !dto.password)) {
+      throw new BadRequestException(
+        "Either Telegram authentication or email + password is required",
+      );
+    }
+
+    // 4. Hash password if provided
+    let hashedPassword: string | undefined;
+    if (dto.password) {
+      const policyResult = this.passwordPolicyService.validate(dto.password, {
+        email: dto.email,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+      });
+      if (!policyResult.valid) {
+        throw new BadRequestException(policyResult.errors);
+      }
+      hashedPassword = await bcrypt.hash(dto.password, 12);
+    }
+
+    // 5. Create user
+    const user = this.userRepository.create({
+      email: dto.email?.toLowerCase(),
+      password: hashedPassword ?? "",
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      telegramId,
+      telegramUsername,
+      role: invite.role,
+      status: UserStatus.ACTIVE,
+      organizationId: invite.organizationId,
+      lastLoginAt: new Date(),
+      lastLoginIp: ipAddress,
+      preferences: {
+        language: "ru",
+        timezone: "Asia/Tashkent",
+        theme: "system",
+        notifications: {
+          email: true,
+          push: true,
+          telegram: true,
+          sms: false,
+        },
+      },
+    });
+
+    await this.userRepository.save(user);
+
+    // 6. Claim the invite (pessimistic lock)
+    await this.invitesService.claimInvite(dto.inviteCode, user.id);
+
+    // 7. Create session & generate tokens
+    const deviceInfo = this.parseUserAgent(userAgent);
+    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const tokens = await this.generateTokens(user, session.id);
+
+    this.logger.log(
+      `Invite registration: user ${user.id} (role: ${invite.role}, invite: ${dto.inviteCode})`,
+    );
+
+    return {
+      user: this.sanitizeUser(user),
+      ...tokens,
+      sessionId: session.id,
+    };
+  }
+
+  /**
+   * Verify Telegram initData HMAC signature (supports both Mini App and Login Widget format).
+   */
+  private verifyTelegramData(initData: string): {
+    id: number;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+  } {
+    const botToken = this.configService.get<string>("TELEGRAM_BOT_TOKEN");
+    if (!botToken) {
+      throw new InternalServerErrorException(
+        "Telegram bot token not configured",
+      );
+    }
+
+    const params = new URLSearchParams(initData);
+    const hash = params.get("hash");
+    if (!hash) {
+      throw new UnauthorizedException("Missing hash in Telegram data");
+    }
+
+    params.delete("hash");
+    const checkArr: string[] = [];
+    params.forEach((value, key) => checkArr.push(`${key}=${value}`));
+    checkArr.sort();
+    const checkString = checkArr.join("\n");
+
+    // HMAC-SHA256(checkString, HMAC-SHA256("WebAppData", botToken))
+    const secretKey = crypto
+      .createHmac("sha256", "WebAppData")
+      .update(botToken)
+      .digest();
+    const computedHash = crypto
+      .createHmac("sha256", secretKey)
+      .update(checkString)
+      .digest("hex");
+
+    if (computedHash !== hash) {
+      throw new UnauthorizedException("Invalid Telegram signature");
+    }
+
+    const authDate = Number(params.get("auth_date") || 0);
+    if (Date.now() / 1000 - authDate > 300) {
+      throw new UnauthorizedException("Telegram auth data has expired");
+    }
+
+    const userJson = params.get("user");
+    if (!userJson) {
+      throw new UnauthorizedException("Missing user data in Telegram data");
+    }
+
+    return JSON.parse(userJson);
   }
 
   /**

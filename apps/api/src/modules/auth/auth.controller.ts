@@ -34,6 +34,7 @@ import {
   ValidateResetTokenDto,
   Disable2FADto,
 } from "./dto/auth-operations.dto";
+import { RegisterWithInviteDto } from "./dto/register-with-invite.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
@@ -74,6 +75,42 @@ export class AuthController {
     @Headers("user-agent") _userAgent: string,
   ) {
     return this.authService.register(registerDto, ipAddress);
+  }
+
+  @Post("register/invite")
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Register via invite code + Telegram or email/password",
+  })
+  @ApiResponse({ status: 201, description: "Registration successful" })
+  @ApiResponse({ status: 400, description: "Invalid invite or missing data" })
+  @ApiResponse({
+    status: 409,
+    description: "Email or Telegram already registered",
+  })
+  async registerWithInvite(
+    @Body() dto: RegisterWithInviteDto,
+    @Ip() ipAddress: string,
+    @Headers("user-agent") userAgent: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.registerWithInvite(
+      dto,
+      ipAddress,
+      userAgent,
+    );
+
+    if (result.accessToken) {
+      this.cookieService.setTokenCookies(
+        res,
+        result.accessToken,
+        result.refreshToken,
+      );
+    }
+
+    return result;
   }
 
   @Post("login")

@@ -7,6 +7,7 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { UsersModule } from "../users/users.module";
+import { InvitesModule } from "../invites/invites.module";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
 import { CookieService } from "./services/cookie.service";
@@ -28,6 +29,7 @@ import {
       LoginAttempt,
     ]),
     UsersModule,
+    InvitesModule,
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

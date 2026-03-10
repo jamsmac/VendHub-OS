@@ -1125,3 +1125,13 @@ export const cmsApi = {
     api.patch(`/cms/articles/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/cms/articles/${id}`).then((r) => r.data),
 };
+
+export const invitesApi = {
+  create: (data: RequestBody) => api.post("/invites", data),
+  getAll: (params?: QueryParams) => api.get("/invites", { params }),
+  getById: (id: string) => api.get(`/invites/${id}`),
+  validate: (code: string) => api.get(`/invites/validate/${code}`),
+  revoke: (id: string) => api.delete(`/invites/${id}`),
+  registerWithInvite: (data: RequestBody) =>
+    api.post("/auth/register/invite", data),
+};

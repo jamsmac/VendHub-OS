@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth";
 import { getAccessToken } from "@/lib/api";
@@ -13,13 +13,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, checkAuth } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
   const [ready, setReady] = useState(false);
+  const hasChecked = useRef(false);
 
   // Wait for zustand persist to finish rehydrating from localStorage.
-  // Without this, the first render sees defaults (user=null, isAuthenticated=false)
-  // and immediately redirects to /auth before the real values load.
   useEffect(() => {
     if (useAuthStore.persist.hasHydrated()) {
       setHydrated(true);
@@ -32,15 +31,29 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return; // Don't decide until store is rehydrated
+    if (!hydrated) return;
 
     const token = getAccessToken();
+
+    // All auth state is consistent — allow access
     if (token && isAuthenticated && user) {
       setReady(true);
-    } else {
-      router.replace("/auth");
+      return;
     }
-  }, [hydrated, isAuthenticated, user, router]);
+
+    // No token at all — definitely not authenticated
+    if (!token) {
+      router.replace("/auth");
+      return;
+    }
+
+    // Token exists but user/isAuthenticated not synced yet.
+    // Verify once via API instead of immediately redirecting.
+    if (!hasChecked.current) {
+      hasChecked.current = true;
+      checkAuth();
+    }
+  }, [hydrated, isAuthenticated, user, router, checkAuth]);
 
   if (!ready) {
     return null;

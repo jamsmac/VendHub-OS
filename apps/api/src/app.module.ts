@@ -112,6 +112,7 @@ import { CollectionsModule } from "./modules/collections/collections.module";
 import { InvestorModule } from "./modules/investor/investor.module";
 import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
 import { Vhm24IntegrationModule } from "./modules/vhm24-integration/vhm24-integration.module";
+import { InvitesModule } from "./modules/invites/invites.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -696,6 +697,7 @@ const defaultedNumber = (value: number) =>
 
     // VHM24 System Integration
     Vhm24IntegrationModule,
+    InvitesModule,
   ],
   providers: [
     // ============================================
