@@ -23,8 +23,6 @@ import { AchievementService } from "./services/achievement.service";
 import { AchievementController } from "./controllers/achievement.controller";
 import { QuestService } from "./services/quest.service";
 import { QuestController } from "./controllers/quest.controller";
-import { LoyaltyPromoCodeService } from "./services/promo-code.service";
-import { LoyaltyPromoCodeController } from "./controllers/promo-code.controller";
 
 @Module({
   imports: [
@@ -46,21 +44,13 @@ import { LoyaltyPromoCodeController } from "./controllers/promo-code.controller"
     ReferralController,
     AchievementController,
     QuestController,
-    LoyaltyPromoCodeController,
   ],
   providers: [
     LoyaltyService,
     ReferralService,
     AchievementService,
     QuestService,
-    LoyaltyPromoCodeService,
   ],
-  exports: [
-    LoyaltyService,
-    ReferralService,
-    AchievementService,
-    QuestService,
-    LoyaltyPromoCodeService,
-  ],
+  exports: [LoyaltyService, ReferralService, AchievementService, QuestService],
 })
 export class LoyaltyModule {}
