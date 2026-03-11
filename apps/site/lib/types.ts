@@ -67,6 +67,7 @@ export interface Machine {
   name: string;
   address: string;
   address_uz?: string | null;
+  address_en?: string | null;
   type: string;
   status: "online" | "offline";
   latitude: number | null;
@@ -87,14 +88,18 @@ export interface Promotion {
   id: string;
   title: string;
   title_uz?: string | null;
+  title_en?: string | null;
   badge: string;
   badge_uz?: string | null;
+  badge_en?: string | null;
   description: string;
   description_uz?: string | null;
+  description_en?: string | null;
   promo_code: string | null;
   gradient: string;
   conditions: string[];
   conditions_uz?: string[] | null;
+  conditions_en?: string[] | null;
   valid_until: string | null;
   is_active: boolean;
   sort_order: number;
@@ -102,6 +107,7 @@ export interface Promotion {
   visibility_type: "visible" | "action_required";
   action_instruction: string;
   action_instruction_uz?: string | null;
+  action_instruction_en?: string | null;
   discount_type: "percent" | "fixed" | "special" | null;
   discount_value: string | null;
   updated_at: string;
@@ -111,8 +117,10 @@ export interface BonusAction {
   id: string;
   title: string;
   title_uz?: string | null;
+  title_en?: string | null;
   description: string;
   description_uz?: string | null;
+  description_en?: string | null;
   icon: string;
   points_amount: string;
   type: "earn" | "spend";
@@ -127,6 +135,7 @@ export interface LoyaltyPrivilege {
   key: string;
   label: string;
   label_uz?: string | null;
+  label_en?: string | null;
   is_active: boolean;
   sort_order: number;
   created_at: string;
@@ -152,6 +161,7 @@ export interface SiteContent {
   key: string;
   value: string;
   value_uz?: string | null;
+  value_en?: string | null;
   updated_at: string;
 }
 
@@ -160,12 +170,15 @@ export interface PartnershipModel {
   key: string;
   title: string;
   title_uz: string | null;
+  title_en: string | null;
   description: string;
   description_uz: string | null;
+  description_en: string | null;
   icon: string;
   color_scheme: string;
   benefits: string[];
   benefits_uz: string[] | null;
+  benefits_en: string[] | null;
   is_active: boolean;
   sort_order: number;
   created_at: string;
