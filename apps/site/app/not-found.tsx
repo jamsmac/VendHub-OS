@@ -27,13 +27,17 @@ const TEXTS = {
     subtitle: "Bu ichimlik tugagan ko'rinadi",
     button: "Bosh sahifa",
   },
+  en: {
+    title: "Page not found",
+    subtitle: "Looks like this drink has run out",
+    button: "Go home",
+  },
 } as const;
 
 export default async function NotFound() {
   const locale = await getLocale();
-  const isUz = locale === "uz";
-  const t = isUz ? TEXTS.uz : TEXTS.ru;
-  const homeHref = isUz ? "/uz" : "/";
+  const t = TEXTS[locale as keyof typeof TEXTS] ?? TEXTS.ru;
+  const homeHref = locale === "ru" ? "/" : `/${locale}`;
 
   return (
     <html lang={locale} className={`${playfair.variable} ${dmSans.variable}`}>

@@ -16,19 +16,19 @@ export function localized<T extends object>(
   return typeof value === "string" ? value : "";
 }
 
-/** Uzbek translations for common product option names */
-const OPTION_NAME_UZ: Record<string, string> = {
-  "С сахаром": "Shakarli",
-  "Без сахара": "Shakarsiz",
-  Ванильный: "Vanilli",
-  Карамельный: "Karamelli",
-  Кокосовый: "Kokosli",
+/** Translations for common product option names (keyed by Russian name) */
+const OPTION_NAMES: Record<string, Record<string, string>> = {
+  "С сахаром": { uz: "Shakarli", en: "With sugar" },
+  "Без сахара": { uz: "Shakarsiz", en: "No sugar" },
+  Ванильный: { uz: "Vanilli", en: "Vanilla" },
+  Карамельный: { uz: "Karamelli", en: "Caramel" },
+  Кокосовый: { uz: "Kokosli", en: "Coconut" },
 };
 
-/** Returns localized option name (maps standard RU names to UZ) */
+/** Returns localized option name (maps standard RU names to target locale) */
 export function localizedOptionName(name: string, locale: string): string {
-  if (locale === "uz") return OPTION_NAME_UZ[name] ?? name;
-  return name;
+  if (locale === "ru") return name;
+  return OPTION_NAMES[name]?.[locale] ?? name;
 }
 
 /**

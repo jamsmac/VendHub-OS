@@ -1,4 +1,18 @@
 {
+  "errorPage": {
+    "title": "Xatolik yuz berdi",
+    "description": "Sahifani yuklashda xatolik. Qayta urinib ko'ring.",
+    "retry": "Qayta urinish"
+  },
+  "notFoundPage": {
+    "title": "Sahifa topilmadi",
+    "subtitle": "Bu ichimlik tugagan ko'rinadi",
+    "button": "Bosh sahifa"
+  },
+  "imageValidation": {
+    "invalidFormat": "Ruxsat etilgan formatlar: JPEG, PNG, WebP",
+    "tooLarge": "Fayl hajmi: 5 MB gacha"
+  },
   "common": {
     "loading": "Yuklanmoqda...",
     "saving": "Saqlanmoqda...",

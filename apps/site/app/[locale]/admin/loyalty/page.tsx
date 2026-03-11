@@ -480,7 +480,7 @@ export default function AdminLoyaltyPage() {
                 type="text"
                 value={newPrivLabel}
                 onChange={(e) => setNewPrivLabel(e.target.value)}
-                placeholder="Кэшбэк"
+                placeholder={t("privilegeLabel")}
                 className="admin-input !py-1.5 text-sm"
               />
             </div>

@@ -24,11 +24,15 @@ export default function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const tv = useTranslations("imageValidation");
+
   const handleFile = async (file: File) => {
     setError(null);
     const validation = validateImage(file);
     if (!validation.valid) {
-      setError(validation.error ?? tc("errorOccurred"));
+      setError(
+        validation.errorKey ? tv(validation.errorKey) : tc("errorOccurred"),
+      );
       return;
     }
 

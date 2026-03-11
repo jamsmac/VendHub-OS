@@ -6,8 +6,9 @@ export interface ProductPresentation {
   fallbackEmoji?: string;
 }
 
-/** Fallback emoji for products without images (keyed by product name) */
+/** Fallback emoji for products without images (keyed by product name in all locales) */
 const FALLBACK_EMOJI: Record<string, string> = {
+  // Russian
   Лёд: "\uD83E\uDDCA",
   Вода: "\uD83D\uDCA7",
   Кола: "\uD83E\uDD64",
@@ -17,6 +18,26 @@ const FALLBACK_EMOJI: Record<string, string> = {
   Круассан: "\uD83E\uDD50",
   Какао: "\uD83C\uDF75",
   "Горячий шоколад": "\uD83C\uDF6B",
+  // Uzbek
+  Muz: "\uD83E\uDDCA",
+  Suv: "\uD83D\uDCA7",
+  Kola: "\uD83E\uDD64",
+  "Apelsin sharbati": "\uD83C\uDF4A",
+  "Shokoladli baton": "\uD83C\uDF6B",
+  Chips: "\uD83E\uDD54",
+  Kruassan: "\uD83E\uDD50",
+  Kakao: "\uD83C\uDF75",
+  "Issiq shokolad": "\uD83C\uDF6B",
+  // English
+  Ice: "\uD83E\uDDCA",
+  Water: "\uD83D\uDCA7",
+  Cola: "\uD83E\uDD64",
+  "Orange juice": "\uD83C\uDF4A",
+  "Chocolate bar": "\uD83C\uDF6B",
+  Crisps: "\uD83E\uDD54",
+  Croissant: "\uD83E\uDD50",
+  Cocoa: "\uD83C\uDF75",
+  "Hot chocolate": "\uD83C\uDF6B",
 };
 
 export function getProductPresentation(

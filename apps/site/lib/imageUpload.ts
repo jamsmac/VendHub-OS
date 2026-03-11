@@ -3,15 +3,15 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export interface ImageValidation {
   valid: boolean;
-  error?: string;
+  errorKey?: "invalidFormat" | "tooLarge";
 }
 
 export function validateImage(file: File): ImageValidation {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return { valid: false, error: "Допустимые форматы: JPEG, PNG, WebP" };
+    return { valid: false, errorKey: "invalidFormat" };
   }
   if (file.size > MAX_SIZE) {
-    return { valid: false, error: "Максимальный размер файла: 5 МБ" };
+    return { valid: false, errorKey: "tooLarge" };
   }
   return { valid: true };
 }

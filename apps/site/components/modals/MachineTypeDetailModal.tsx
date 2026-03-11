@@ -26,39 +26,78 @@ interface MachineTypeDetailModalProps {
   onClose: () => void;
 }
 
+/** Maps spec label keywords (ru/uz/en) to icons */
 function getSpecIcon(label: string): ReactNode {
   const lower = label.toLowerCase();
-  if (lower.includes("модель") || lower.includes("model"))
+  if (
+    lower.includes("модель") ||
+    lower.includes("model") ||
+    lower.includes("modeli")
+  )
     return <FileText size={18} />;
-  if (lower.includes("размер") || lower.includes("dimension"))
+  if (
+    lower.includes("размер") ||
+    lower.includes("dimension") ||
+    lower.includes("o'lcham")
+  )
     return <Ruler size={18} />;
-  if (lower.includes("вес") || lower.includes("weight"))
+  if (
+    lower.includes("вес") ||
+    lower.includes("weight") ||
+    lower.includes("og'irlik")
+  )
     return <Scale size={18} />;
   if (
     lower.includes("дисплей") ||
     lower.includes("экран") ||
-    lower.includes("display")
+    lower.includes("display") ||
+    lower.includes("ekran")
   )
     return <Monitor size={18} />;
   if (
     lower.includes("слот") ||
     lower.includes("ячей") ||
-    lower.includes("отсек")
+    lower.includes("отсек") ||
+    lower.includes("slot") ||
+    lower.includes("katak")
   )
     return <LayoutGrid size={18} />;
-  if (lower.includes("температур")) return <Thermometer size={18} />;
-  if (lower.includes("оплат") || lower.includes("payment"))
+  if (
+    lower.includes("температур") ||
+    lower.includes("temperatur") ||
+    lower.includes("harorat")
+  )
+    return <Thermometer size={18} />;
+  if (
+    lower.includes("оплат") ||
+    lower.includes("payment") ||
+    lower.includes("to'lov")
+  )
     return <CreditCard size={18} />;
-  if (lower.includes("связь") || lower.includes("connect"))
+  if (
+    lower.includes("связь") ||
+    lower.includes("connect") ||
+    lower.includes("aloqa")
+  )
     return <Wifi size={18} />;
-  if (lower.includes("подсветк") || lower.includes("light"))
+  if (
+    lower.includes("подсветк") ||
+    lower.includes("light") ||
+    lower.includes("yoritish")
+  )
     return <Lightbulb size={18} />;
-  if (lower === "по" || lower.includes("software") || lower.includes("програм"))
+  if (
+    lower === "по" ||
+    lower.includes("software") ||
+    lower.includes("програм") ||
+    lower.includes("dastur")
+  )
     return <Cpu size={18} />;
   if (
     lower.includes("мощност") ||
     lower.includes("питан") ||
-    lower.includes("power")
+    lower.includes("power") ||
+    lower.includes("quvvat")
   )
     return <Zap size={18} />;
   return <Box size={18} />;

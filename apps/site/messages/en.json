@@ -1,4 +1,18 @@
 {
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "An error occurred while loading the page. Please try refreshing.",
+    "retry": "Try again"
+  },
+  "notFoundPage": {
+    "title": "Page not found",
+    "subtitle": "Looks like this drink has run out",
+    "button": "Go home"
+  },
+  "imageValidation": {
+    "invalidFormat": "Allowed formats: JPEG, PNG, WebP",
+    "tooLarge": "Maximum file size: 5 MB"
+  },
   "common": {
     "loading": "Loading...",
     "saving": "Saving...",
