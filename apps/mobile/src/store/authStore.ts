@@ -69,7 +69,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const axiosError = error as {
         response?: { data?: { message?: string } };
       };
-      const message = axiosError.response?.data?.message || "Ошибка входа";
+      const message = axiosError.response?.data?.message || "Login error";
       set({ error: message, isLoading: false });
       throw new Error(message);
     }

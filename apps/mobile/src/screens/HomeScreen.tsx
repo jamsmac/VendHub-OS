@@ -42,12 +42,12 @@ export function HomeScreen() {
     refetch,
   } = useQuery({
     queryKey: ["dashboard-stats"],
-    queryFn: () => reportsApi.getDashboard().then((res) => res.data.data),
+    queryFn: () => reportsApi.getDashboard().then((res) => res.data),
   });
 
   const { data: myTasks } = useQuery({
     queryKey: ["my-tasks"],
-    queryFn: () => tasksApi.getMy().then((res) => res.data.data),
+    queryFn: () => tasksApi.getMy().then((res) => res.data),
   });
 
   const activeTasks =

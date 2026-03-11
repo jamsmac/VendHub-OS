@@ -64,7 +64,7 @@ export function ReferralScreen() {
 
   const { data: statsData, refetch: refetchStats } = useQuery({
     queryKey: ["referral-stats"],
-    queryFn: () => api.get("/referrals/my/stats").then((res) => res.data),
+    queryFn: () => api.get("/referrals/stats").then((res) => res.data),
     staleTime: 5 * 60 * 1000,
   });
 

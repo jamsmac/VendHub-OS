@@ -92,13 +92,16 @@ export function LoyaltyScreen() {
 
   const { data: loyaltyData, refetch: refetchLoyalty } = useQuery({
     queryKey: ["loyalty-data"],
-    queryFn: () => api.get("/loyalty/profile").then((res) => res.data),
+    queryFn: () => api.get("/loyalty/balance").then((res) => res.data),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: pointsHistory } = useQuery({
     queryKey: ["points-history"],
-    queryFn: () => api.get("/loyalty/history?limit=5").then((res) => res.data),
+    queryFn: () =>
+      api
+        .get("/loyalty/history", { params: { limit: 5 } })
+        .then((res) => res.data),
     staleTime: 2 * 60 * 1000,
   });
 

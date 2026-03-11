@@ -39,13 +39,19 @@ export function ClientHomeScreen({ navigation }: Props) {
 
   const { data: nearbyMachines, refetch: refetchMachines } = useQuery({
     queryKey: ["nearby-machines"],
-    queryFn: () => api.get("/machines/nearby").then((res) => res.data),
+    queryFn: () =>
+      api
+        .get("/machines", { params: { status: "online", limit: 5 } })
+        .then((res) => res.data),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: recentOrders, refetch: refetchOrders } = useQuery({
     queryKey: ["recent-orders"],
-    queryFn: () => api.get("/orders/recent?limit=3").then((res) => res.data),
+    queryFn: () =>
+      api
+        .get("/orders", { params: { limit: 3, sort: "createdAt:desc" } })
+        .then((res) => res.data),
     staleTime: 2 * 60 * 1000,
   });
 
