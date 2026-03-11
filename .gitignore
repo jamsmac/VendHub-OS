@@ -83,3 +83,4 @@ scripts/railway-set-vars*.sh
 
 # Binary documents
 *.docx
+.playwright-mcp/
