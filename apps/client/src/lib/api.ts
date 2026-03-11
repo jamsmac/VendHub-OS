@@ -343,7 +343,7 @@ export const questsApi = {
 export const referralsApi = {
   getStats: () => api.get<ReferralStats>("/referrals/stats"),
   getHistory: (params?: Record<string, unknown>) =>
-    api.get("/referrals/history", { params }),
+    api.get("/referrals/my", { params }),
 };
 
 export const complaintsApi = {

@@ -3,10 +3,10 @@
  * Invite friends and earn rewards
  */
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Gift,
@@ -18,10 +18,10 @@ import {
   User,
   QrCode,
   ExternalLink,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import { formatNumber } from '@/lib/utils';
+} from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 
 interface ReferralStats {
   totalReferrals: number;
@@ -39,7 +39,7 @@ interface Referral {
     username?: string;
     photoUrl?: string;
   };
-  status: 'pending' | 'active' | 'expired';
+  status: "pending" | "active" | "expired";
   reward: number;
   rewardClaimed: boolean;
   createdAt: string;
@@ -55,7 +55,7 @@ interface ReferralTier {
 }
 
 // Tier names and bonuses are localized inside the component via t() calls
-const tiersData: Omit<ReferralTier, 'name' | 'bonus'>[] = [
+const tiersData: Omit<ReferralTier, "name" | "bonus">[] = [
   { level: 1, minReferrals: 0, reward: 5000 },
   { level: 2, minReferrals: 5, reward: 7500 },
   { level: 3, minReferrals: 15, reward: 10000 },
@@ -67,32 +67,32 @@ export function ReferralsPage() {
   const [showQR, setShowQR] = useState(false);
 
   const tierNames: Record<number, string> = {
-    1: t('referralTierNewbie'),
-    2: t('referralTierActivist'),
-    3: t('referralTierAmbassador'),
-    4: t('referralTierLegend'),
+    1: t("referralTierNewbie"),
+    2: t("referralTierActivist"),
+    3: t("referralTierAmbassador"),
+    4: t("referralTierLegend"),
   };
 
   const tiers: ReferralTier[] = tiersData.map((td) => ({
     ...td,
     name: tierNames[td.level],
-    bonus: t('referralBonusPerFriend', { amount: formatNumber(td.reward) }),
+    bonus: t("referralBonusPerFriend", { amount: formatNumber(td.reward) }),
   }));
 
   // Fetch referral stats
   const { data: stats, isLoading: statsLoading } = useQuery<ReferralStats>({
-    queryKey: ['referrals', 'stats'],
+    queryKey: ["referrals", "stats"],
     queryFn: async () => {
-      const res = await api.get('/referrals/stats');
+      const res = await api.get("/referrals/stats");
       return res.data;
     },
   });
 
   // Fetch referral history
   const { data: referrals } = useQuery<Referral[]>({
-    queryKey: ['referrals', 'history'],
+    queryKey: ["referrals", "history"],
     queryFn: async () => {
-      const res = await api.get('/referrals/history');
+      const res = await api.get("/referrals/my");
       return res.data;
     },
   });
@@ -102,19 +102,21 @@ export function ReferralsPage() {
     return prev;
   }, tiers[0]);
 
-  const nextTier = tiers.find((tierItem) => tierItem.minReferrals > (stats?.totalReferrals || 0));
+  const nextTier = tiers.find(
+    (tierItem) => tierItem.minReferrals > (stats?.totalReferrals || 0),
+  );
 
   const handleCopyCode = () => {
     if (stats?.referralCode) {
       navigator.clipboard.writeText(stats.referralCode);
-      toast.success(t('codeCopied'));
+      toast.success(t("codeCopied"));
     }
   };
 
   const handleCopyLink = () => {
     if (stats?.referralLink) {
       navigator.clipboard.writeText(stats.referralLink);
-      toast.success(t('linkCopied'));
+      toast.success(t("linkCopied"));
     }
   };
 
@@ -122,8 +124,8 @@ export function ReferralsPage() {
     if (!stats?.referralLink) return;
 
     const shareData = {
-      title: 'VendHub',
-      text: t('referralShareText'),
+      title: "VendHub",
+      text: t("referralShareText"),
       url: stats.referralLink,
     };
 
@@ -140,9 +142,9 @@ export function ReferralsPage() {
 
   const handleTelegramShare = () => {
     if (!stats?.referralLink) return;
-    const text = encodeURIComponent(t('referralTelegramShareText'));
+    const text = encodeURIComponent(t("referralTelegramShareText"));
     const url = encodeURIComponent(stats.referralLink);
-    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+    window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank");
   };
 
   if (statsLoading) {
@@ -152,7 +154,7 @@ export function ReferralsPage() {
           <Link to="/loyalty" className="p-2 -ml-2 text-muted-foreground">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl font-bold">{t('inviteFriends')}</h1>
+          <h1 className="text-xl font-bold">{t("inviteFriends")}</h1>
         </div>
         <div className="h-48 rounded-3xl bg-muted animate-pulse" />
         <div className="h-32 rounded-2xl bg-muted animate-pulse" />
@@ -170,7 +172,7 @@ export function ReferralsPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-xl font-bold">{t('inviteFriends')}</h1>
+        <h1 className="text-xl font-bold">{t("inviteFriends")}</h1>
       </div>
 
       {/* Hero Card */}
@@ -178,21 +180,21 @@ export function ReferralsPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-4">
             <Gift className="w-6 h-6" />
-            <span className="font-semibold">{t('inviteFriendsAction')}</span>
+            <span className="font-semibold">{t("inviteFriendsAction")}</span>
           </div>
           <h2 className="text-3xl font-bold mb-2">
-            {t('referralGetReward', { amount: formatNumber(currentTier.reward) })}
+            {t("referralGetReward", {
+              amount: formatNumber(currentTier.reward),
+            })}
           </h2>
-          <p className="text-white/80 mb-4">
-            {t('referralForEachFriend')}
-          </p>
+          <p className="text-white/80 mb-4">{t("referralForEachFriend")}</p>
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-white/60 text-xs">{t('referralInvited')}</p>
+              <p className="text-white/60 text-xs">{t("referralInvited")}</p>
               <p className="text-2xl font-bold">{stats?.totalReferrals || 0}</p>
             </div>
             <div>
-              <p className="text-white/60 text-xs">{t('referralEarned')}</p>
+              <p className="text-white/60 text-xs">{t("referralEarned")}</p>
               <p className="text-2xl font-bold">
                 {formatNumber(stats?.totalEarned || 0)}
               </p>
@@ -204,13 +206,13 @@ export function ReferralsPage() {
 
       {/* Referral Code */}
       <div className="card-coffee p-4 space-y-4">
-        <h3 className="font-semibold">{t('yourReferralCode')}</h3>
+        <h3 className="font-semibold">{t("yourReferralCode")}</h3>
 
         {/* Code Display */}
         <div className="flex gap-2">
           <div className="flex-1 p-4 bg-muted rounded-xl text-center">
             <p className="text-2xl font-bold tracking-wider">
-              {stats?.referralCode || 'XXXXXX'}
+              {stats?.referralCode || "XXXXXX"}
             </p>
           </div>
           <button
@@ -241,7 +243,7 @@ export function ReferralsPage() {
             className="flex items-center justify-center gap-2 p-3 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors"
           >
             <Share2 className="w-4 h-4" />
-            {t('share')}
+            {t("share")}
           </button>
         </div>
       </div>
@@ -249,7 +251,7 @@ export function ReferralsPage() {
       {/* Tier Progress */}
       <div className="card-coffee p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">{t('yourLevel')}</h3>
+          <h3 className="font-semibold">{t("yourLevel")}</h3>
           <span className="text-sm text-primary font-medium">
             {currentTier.name}
           </span>
@@ -259,7 +261,7 @@ export function ReferralsPage() {
           <>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-muted-foreground">
-                {t('untilLevel', { level: nextTier.name })}
+                {t("untilLevel", { level: nextTier.name })}
               </span>
               <span className="font-medium">
                 {stats?.totalReferrals || 0} / {nextTier.minReferrals}
@@ -270,8 +272,9 @@ export function ReferralsPage() {
                 className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all"
                 style={{
                   width: `${Math.min(
-                    ((stats?.totalReferrals || 0) / nextTier.minReferrals) * 100,
-                    100
+                    ((stats?.totalReferrals || 0) / nextTier.minReferrals) *
+                      100,
+                    100,
                   )}%`,
                 }}
               />
@@ -281,7 +284,8 @@ export function ReferralsPage() {
 
         <div className="space-y-2">
           {tiers.map((tier) => {
-            const isUnlocked = (stats?.totalReferrals || 0) >= tier.minReferrals;
+            const isUnlocked =
+              (stats?.totalReferrals || 0) >= tier.minReferrals;
             const isCurrent = currentTier.level === tier.level;
 
             return (
@@ -289,17 +293,19 @@ export function ReferralsPage() {
                 key={tier.level}
                 className={`flex items-center gap-3 p-3 rounded-xl ${
                   isCurrent
-                    ? 'bg-primary/10 border border-primary/20'
+                    ? "bg-primary/10 border border-primary/20"
                     : isUnlocked
-                    ? 'bg-muted/50'
-                    : ''
+                      ? "bg-muted/50"
+                      : ""
                 }`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isUnlocked
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    isUnlocked
+                      ? "bg-gradient-to-br from-purple-500 to-pink-500 text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
                   {isUnlocked ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : (
@@ -311,7 +317,7 @@ export function ReferralsPage() {
                   <p className="text-xs text-muted-foreground">{tier.bonus}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('referralFriendsCount', { count: tier.minReferrals })}
+                  {t("referralFriendsCount", { count: tier.minReferrals })}
                 </p>
               </div>
             );
@@ -321,7 +327,7 @@ export function ReferralsPage() {
 
       {/* Referral History */}
       <div className="space-y-3">
-        <h3 className="font-semibold">{t('referralHistory')}</h3>
+        <h3 className="font-semibold">{t("referralHistory")}</h3>
 
         {referrals?.length ? (
           <div className="space-y-2">
@@ -343,25 +349,27 @@ export function ReferralsPage() {
                     <p className="font-medium">
                       {referral.referredUser.firstName ||
                         referral.referredUser.username ||
-                        t('referralUser')}
+                        t("referralUser")}
                     </p>
                     <div className="flex items-center gap-2 text-sm">
-                      {referral.status === 'active' ? (
+                      {referral.status === "active" ? (
                         <span className="text-green-500 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          {t('referralActivated')}
+                          {t("referralActivated")}
                         </span>
-                      ) : referral.status === 'pending' ? (
+                      ) : referral.status === "pending" ? (
                         <span className="text-amber-500 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {t('referralAwaitingPurchase')}
+                          {t("referralAwaitingPurchase")}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">{t('referralExpired')}</span>
+                        <span className="text-muted-foreground">
+                          {t("referralExpired")}
+                        </span>
                       )}
                     </div>
                   </div>
-                  {referral.status === 'active' && (
+                  {referral.status === "active" && (
                     <div className="text-right">
                       <p className="font-semibold text-green-500">
                         +{formatNumber(referral.reward)}
@@ -376,20 +384,20 @@ export function ReferralsPage() {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>{t('noReferralsYet')}</p>
-            <p className="text-sm mt-1">{t('shareCodeGetReward')}</p>
+            <p>{t("noReferralsYet")}</p>
+            <p className="text-sm mt-1">{t("shareCodeGetReward")}</p>
           </div>
         )}
       </div>
 
       {/* How It Works */}
       <div className="card-coffee p-4 space-y-4">
-        <h3 className="font-semibold">{t('howItWorks')}</h3>
+        <h3 className="font-semibold">{t("howItWorks")}</h3>
         <div className="space-y-3">
           {[
-            { step: 1, text: t('referralStep1') },
-            { step: 2, text: t('referralStep2') },
-            { step: 3, text: t('referralStep3') },
+            { step: 1, text: t("referralStep1") },
+            { step: 2, text: t("referralStep2") },
+            { step: 3, text: t("referralStep3") },
           ].map((item) => (
             <div key={item.step} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
@@ -411,7 +419,9 @@ export function ReferralsPage() {
             className="bg-background rounded-3xl p-6 max-w-sm w-full space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-center">{t('referralQRCode')}</h3>
+            <h3 className="text-lg font-semibold text-center">
+              {t("referralQRCode")}
+            </h3>
             <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center">
               {/* QR Code would be generated here */}
               <div className="w-full h-full bg-muted rounded-xl flex items-center justify-center">
@@ -419,13 +429,13 @@ export function ReferralsPage() {
               </div>
             </div>
             <p className="text-center text-sm text-muted-foreground">
-              {t('showQRToFriend')}
+              {t("showQRToFriend")}
             </p>
             <button
               onClick={() => setShowQR(false)}
               className="w-full py-3 border border-border rounded-xl font-medium hover:bg-muted/50 transition-colors"
             >
-              {t('close')}
+              {t("close")}
             </button>
           </div>
         </div>

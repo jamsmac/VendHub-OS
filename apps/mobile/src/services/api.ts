@@ -279,5 +279,5 @@ export const promoCodesApi = {
 export const referralsApi = {
   getStats: () => api.get("/referrals/stats"),
   getHistory: (params?: Record<string, unknown>) =>
-    api.get("/referrals/history", { params }),
+    api.get("/referrals/my", { params }),
 };
