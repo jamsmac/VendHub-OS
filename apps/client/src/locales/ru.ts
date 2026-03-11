@@ -633,6 +633,18 @@ export const ru = {
     mapApiKeyMissing: "API ключ Google Maps не настроен",
     mapYouAreHere: "Вы здесь",
 
+    // PWA Install Banner
+    pwaInstallTitle: "Установите VendHub",
+    pwaInstallDescription: "Быстрый доступ к заказам и карте",
+    pwaInstall: "Установить",
+
+    // Menu
+    scan: "Скан",
+    customize: "Настроить",
+
+    // Loyalty
+    loyaltyMedal: "Медаль",
+
     // Machine Card
     machineAddressUnknown: "Адрес не указан",
   },

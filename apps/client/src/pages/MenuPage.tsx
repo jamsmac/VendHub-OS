@@ -134,6 +134,7 @@ function ProductCard({
   product: ProductCardItem;
   machineId?: string;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const isCustomizable = product.type === "coffee" || product.type === "drink";
 
@@ -173,7 +174,7 @@ function ProductCard({
         {isCustomizable && (
           <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-medium px-2 py-0.5 rounded-full text-primary flex items-center gap-1">
             <Star className="w-3 h-3" />
-            Настроить
+            {t("customize")}
           </div>
         )}
       </div>

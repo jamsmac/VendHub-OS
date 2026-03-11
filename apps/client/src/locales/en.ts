@@ -631,6 +631,18 @@ export const en = {
     mapApiKeyMissing: "Google Maps API key is not configured",
     mapYouAreHere: "You are here",
 
+    // PWA Install Banner
+    pwaInstallTitle: "Install VendHub",
+    pwaInstallDescription: "Quick access to orders and map",
+    pwaInstall: "Install",
+
+    // Menu
+    scan: "Scan",
+    customize: "Customize",
+
+    // Loyalty
+    loyaltyMedal: "Medal",
+
     // Machine Card
     machineAddressUnknown: "Address not specified",
   },

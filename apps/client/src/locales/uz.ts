@@ -635,6 +635,18 @@ export const uz = {
     mapApiKeyMissing: "Google Maps API kaliti sozlanmagan",
     mapYouAreHere: "Siz shu yerdasiz",
 
+    // PWA Install Banner
+    pwaInstallTitle: "VendHub ni o'rnating",
+    pwaInstallDescription: "Buyurtmalar va xaritaga tezkor kirish",
+    pwaInstall: "O'rnatish",
+
+    // Menu
+    scan: "Skan",
+    customize: "Sozlash",
+
+    // Loyalty
+    loyaltyMedal: "Medal",
+
     // Machine Card
     machineAddressUnknown: "Manzil ko'rsatilmagan",
   },

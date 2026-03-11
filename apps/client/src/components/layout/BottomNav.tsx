@@ -1,14 +1,14 @@
-import { NavLink } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Home, Map, QrCode, Receipt, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Home, Map, QrCode, Receipt, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const navItems = [
-  { path: '/', icon: Home, label: 'home' },
-  { path: '/map', icon: Map, label: 'map' },
-  { path: '/scan', icon: QrCode, label: 'scan' },
-  { path: '/transactions', icon: Receipt, label: 'История' },
-  { path: '/profile', icon: User, label: 'Профиль' },
+  { path: "/", icon: Home, label: "home" },
+  { path: "/map", icon: Map, label: "map" },
+  { path: "/scan", icon: QrCode, label: "scan" },
+  { path: "/transactions", icon: Receipt, label: "history" },
+  { path: "/profile", icon: User, label: "profile" },
 ];
 
 export function BottomNav() {
@@ -24,10 +24,10 @@ export function BottomNav() {
               to={item.path}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors',
+                  "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors",
                   isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
                 )
               }
             >
@@ -35,13 +35,11 @@ export function BottomNav() {
                 <>
                   <item.icon
                     className={cn(
-                      'w-5 h-5 transition-transform',
-                      isActive && 'scale-110'
+                      "w-5 h-5 transition-transform",
+                      isActive && "scale-110",
                     )}
                   />
-                  <span className="text-xs font-medium">
-                    {item.label === 'Профиль' ? item.label : t(item.label)}
-                  </span>
+                  <span className="text-xs font-medium">{t(item.label)}</span>
                 </>
               )}
             </NavLink>

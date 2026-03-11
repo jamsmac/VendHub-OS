@@ -745,7 +745,7 @@ function AchievementsPreview() {
                 {ua.achievement?.icon || "🏆"}
               </div>
               <span className="text-[10px] text-muted-foreground text-center line-clamp-1 w-14">
-                {ua.achievement?.title || "Медаль"}
+                {ua.achievement?.title || t("loyaltyMedal")}
               </span>
             </div>
           ))}
