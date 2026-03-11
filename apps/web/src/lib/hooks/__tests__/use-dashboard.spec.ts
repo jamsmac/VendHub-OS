@@ -30,15 +30,15 @@ describe("useDashboardKpi", () => {
     availableProducts: 28,
   };
 
-  it("fetches KPI data from /analytics/dashboard/kpi", async () => {
-    mockGet.mockResolvedValueOnce({ data: kpiData } as never);
+  it("fetches KPI data from /analytics/dashboard and extracts kpi", async () => {
+    mockGet.mockResolvedValueOnce({ data: { kpi: kpiData } } as never);
 
     const { result } = renderHook(() => useDashboardKpi(), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard/kpi");
+    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard");
     expect(result.current.data).toEqual(kpiData);
   });
 
@@ -68,8 +68,11 @@ describe("useSalesChart", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard/sales-chart", {
-      params: { days: 7 },
+    expect(mockGet).toHaveBeenCalledWith("/analytics/daily", {
+      params: expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String),
+      }),
     });
     expect(result.current.data).toEqual(chartData);
   });
@@ -82,8 +85,11 @@ describe("useSalesChart", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard/sales-chart", {
-      params: { days: 30 },
+    expect(mockGet).toHaveBeenCalledWith("/analytics/daily", {
+      params: expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String),
+      }),
     });
   });
 });
@@ -111,7 +117,7 @@ describe("useDashboardAlerts", () => {
 });
 
 describe("useRevenueStats", () => {
-  it("fetches revenue stats with default 30 days", async () => {
+  it("fetches revenue stats from /analytics/revenue-trend", async () => {
     const stats = {
       totalRevenue: 5000000,
       averageDailyRevenue: 166666,
@@ -125,8 +131,11 @@ describe("useRevenueStats", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard/revenue-stats", {
-      params: { days: 30 },
+    expect(mockGet).toHaveBeenCalledWith("/analytics/revenue-trend", {
+      params: expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String),
+      }),
     });
     expect(result.current.data).toEqual(stats);
   });
@@ -156,7 +165,7 @@ describe("useRecentActivity", () => {
 });
 
 describe("useDashboardSummary", () => {
-  it("fetches complete dashboard summary", async () => {
+  it("fetches complete dashboard summary from /analytics/dashboard", async () => {
     const summary = {
       kpi: { totalMachines: 23, activeMachines: 19 },
       alerts: [],
@@ -170,7 +179,7 @@ describe("useDashboardSummary", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard/summary");
+    expect(mockGet).toHaveBeenCalledWith("/analytics/dashboard");
     expect(result.current.data).toEqual(summary);
   });
 });

@@ -22,21 +22,14 @@ jest.mock("../../api", () => ({
 import { api } from "../../api";
 const mockGet = api.get as jest.MockedFunction<typeof api.get>;
 const mockPost = api.post as jest.MockedFunction<typeof api.post>;
-const mockPatch = api.patch as jest.MockedFunction<typeof api.patch>;
 const mockDelete = api.delete as jest.MockedFunction<typeof api.delete>;
 
-const sampleTransaction = {
-  id: "ft-1",
-  type: "income",
-  category: "sales",
-  description: "Продажи VH-005",
+const sampleDeposit = {
+  id: "dep-1",
   amount: 500000,
-  counterparty_id: null,
-  counterparty_name: null,
-  payment_method: "card",
-  machine_id: "m-1",
-  status: "completed",
-  created_at: "2026-03-09T10:00:00Z",
+  depositDate: "2026-03-09",
+  notes: "Ежедневный депозит",
+  createdAt: "2026-03-09T10:00:00Z",
 };
 
 beforeEach(() => {
@@ -44,57 +37,65 @@ beforeEach(() => {
 });
 
 describe("useFinanceTransactions", () => {
-  it("fetches transactions with default limit 50", async () => {
-    mockGet.mockResolvedValueOnce({ data: [sampleTransaction] } as never);
+  it("fetches deposits from /finance/deposits and transforms to transactions", async () => {
+    mockGet.mockResolvedValueOnce({ data: [sampleDeposit] } as never);
 
     const { result } = renderHook(() => useFinanceTransactions(), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/cash-finance/transactions", {
-      params: { limit: 50 },
+    expect(mockGet).toHaveBeenCalledWith("/finance/deposits");
+    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.[0]).toMatchObject({
+      id: "dep-1",
+      type: "expense",
+      category: "bank_deposit",
+      amount: 500000,
+      payment_method: "bank_transfer",
+      status: "completed",
     });
   });
 
-  it("accepts custom limit", async () => {
-    mockGet.mockResolvedValueOnce({ data: [] } as never);
+  it("respects limit parameter", async () => {
+    const deposits = Array.from({ length: 20 }, (_, i) => ({
+      ...sampleDeposit,
+      id: `dep-${i}`,
+    }));
+    mockGet.mockResolvedValueOnce({ data: deposits } as never);
 
-    renderHook(() => useFinanceTransactions(10), {
+    const { result } = renderHook(() => useFinanceTransactions(5), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
-    await waitFor(() =>
-      expect(mockGet).toHaveBeenCalledWith("/cash-finance/transactions", {
-        params: { limit: 10 },
-      }),
-    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toHaveLength(5);
   });
 });
 
 describe("useFinanceStats", () => {
-  it("fetches finance stats", async () => {
-    const stats = {
-      totalRevenue: 5000000,
-      totalExpenses: 2000000,
-      netProfit: 3000000,
-      pendingPayouts: 100000,
-      taxDue: 450000,
-    };
-    mockGet.mockResolvedValueOnce({ data: stats } as never);
+  it("fetches balance from /finance/balance and maps to FinanceStats", async () => {
+    const balance = { received: 5000000, deposited: 2000000, balance: 3000000 };
+    mockGet.mockResolvedValueOnce({ data: balance } as never);
 
     const { result } = renderHook(() => useFinanceStats(), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/cash-finance/stats");
-    expect(result.current.data).toEqual(stats);
+    expect(mockGet).toHaveBeenCalledWith("/finance/balance");
+    expect(result.current.data).toEqual({
+      totalRevenue: 5000000,
+      totalExpenses: 2000000,
+      netProfit: 3000000,
+      pendingPayouts: 0,
+      taxDue: 0,
+    });
   });
 });
 
 describe("useDailyRevenue", () => {
-  it("fetches daily revenue with default 30 days", async () => {
+  it("fetches from /analytics/daily with date range params", async () => {
     mockGet.mockResolvedValueOnce({ data: [] } as never);
 
     const { result } = renderHook(() => useDailyRevenue(), {
@@ -102,28 +103,29 @@ describe("useDailyRevenue", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/cash-finance/daily-revenue", {
-      params: { days: 30 },
+    expect(mockGet).toHaveBeenCalledWith("/analytics/daily", {
+      params: expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String),
+      }),
     });
   });
 });
 
 describe("usePayoutRequests", () => {
-  it("fetches payout requests", async () => {
-    mockGet.mockResolvedValueOnce({ data: [] } as never);
-
+  it("returns empty array (no backend endpoint)", async () => {
     const { result } = renderHook(() => usePayoutRequests(), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("/cash-finance/payout-requests");
+    expect(result.current.data).toEqual([]);
   });
 });
 
 describe("useCreateFinanceTransaction", () => {
-  it("creates transaction and invalidates caches", async () => {
-    mockPost.mockResolvedValueOnce({ data: sampleTransaction } as never);
+  it("posts to /finance/deposits and invalidates caches", async () => {
+    mockPost.mockResolvedValueOnce({ data: sampleDeposit } as never);
 
     const { wrapper, queryClient } = createWrapperWithClient();
     const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
@@ -132,30 +134,37 @@ describe("useCreateFinanceTransaction", () => {
       wrapper,
     });
 
-    const { id, created_at, ...createData } = sampleTransaction;
     await act(async () => {
-      await result.current.mutateAsync(createData as never);
+      await result.current.mutateAsync({
+        type: "expense",
+        category: "bank_deposit",
+        description: "Test deposit",
+        amount: 500000,
+        counterparty_id: null,
+        counterparty_name: null,
+        payment_method: "bank_transfer",
+        machine_id: null,
+        status: "completed",
+      });
     });
 
-    expect(mockPost).toHaveBeenCalledWith(
-      "/cash-finance/transactions",
-      createData,
-    );
+    expect(mockPost).toHaveBeenCalledWith("/finance/deposits", {
+      amount: 500000,
+      date: expect.any(String),
+      notes: "Test deposit",
+    });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["finance-transactions"],
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["finance-stats"],
     });
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["daily-revenue"],
-    });
   });
 });
 
 describe("useUpdateFinanceTransaction", () => {
-  it("updates transaction by id", async () => {
-    mockPatch.mockResolvedValueOnce({ data: sampleTransaction } as never);
+  it("logs warning (deposits are immutable)", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation();
 
     const { result } = renderHook(() => useUpdateFinanceTransaction(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -163,19 +172,20 @@ describe("useUpdateFinanceTransaction", () => {
 
     await act(async () => {
       await result.current.mutateAsync({
-        id: "ft-1",
+        id: "dep-1",
         updates: { amount: 600000 },
       });
     });
 
-    expect(mockPatch).toHaveBeenCalledWith("/cash-finance/transactions/ft-1", {
-      amount: 600000,
-    });
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Update not supported"),
+    );
+    warnSpy.mockRestore();
   });
 });
 
 describe("useDeleteFinanceTransaction", () => {
-  it("deletes transaction and invalidates", async () => {
+  it("deletes via /finance/deposits/:id and invalidates", async () => {
     mockDelete.mockResolvedValueOnce({} as never);
 
     const { wrapper, queryClient } = createWrapperWithClient();
@@ -186,10 +196,10 @@ describe("useDeleteFinanceTransaction", () => {
     });
 
     await act(async () => {
-      await result.current.mutateAsync("ft-1");
+      await result.current.mutateAsync("dep-1");
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("/cash-finance/transactions/ft-1");
+    expect(mockDelete).toHaveBeenCalledWith("/finance/deposits/dep-1");
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["finance-transactions"],
     });

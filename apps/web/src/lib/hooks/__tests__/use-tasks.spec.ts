@@ -159,6 +159,19 @@ describe("useTask", () => {
 });
 
 describe("useTaskStats", () => {
+  beforeEach(() => {
+    // Pin date so overdue calculation is deterministic:
+    // t-1 (due 2026-03-08T18:00:00Z, status todo) → overdue
+    // t-2 (due 2026-03-10T18:00:00Z, status in_progress) → not yet
+    // t-3 (due 2026-03-05T18:00:00Z, status done) → excluded
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-03-09T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("calculates correct stats including overdue", async () => {
     mockGetAll.mockResolvedValueOnce({ data: sampleTasks } as never);
 
@@ -173,7 +186,6 @@ describe("useTaskStats", () => {
     expect(stats?.todo).toBe(1);
     expect(stats?.inProgress).toBe(1);
     expect(stats?.done).toBe(1);
-    // t-1 is overdue (due_date 2026-03-08 < now 2026-03-09, status todo)
     expect(stats?.overdue).toBe(1);
   });
 });

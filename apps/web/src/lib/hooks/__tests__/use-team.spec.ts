@@ -90,37 +90,36 @@ describe("useTeamMembers", () => {
 });
 
 describe("useTeamStats", () => {
-  it("fetches team stats", async () => {
-    const stats = {
-      totalMembers: 10,
-      activeMembers: 8,
-      byRole: { admin: 2, operator: 6 },
-      avgTasksPerMember: 3.5,
-    };
-    mockApiGet.mockResolvedValueOnce({ data: stats } as never);
+  it("computes team stats client-side from usersApi.getAll()", async () => {
+    mockGetAll.mockResolvedValueOnce({ data: sampleMembers } as never);
 
     const { result } = renderHook(() => useTeamStats(), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockApiGet).toHaveBeenCalledWith("/users/stats");
-    expect(result.current.data).toEqual(stats);
+    expect(mockGetAll).toHaveBeenCalled();
+    expect(result.current.data).toEqual({
+      totalMembers: 2,
+      activeMembers: 1,
+      byRole: { admin: 1, operator: 1 },
+      avgTasksPerMember: 0,
+    });
   });
 });
 
 describe("useUsersByRole", () => {
-  it("fetches users filtered by role", async () => {
-    mockApiGet.mockResolvedValueOnce({ data: [sampleMembers[0]] } as never);
+  it("filters users by role client-side from usersApi.getAll()", async () => {
+    mockGetAll.mockResolvedValueOnce({ data: sampleMembers } as never);
 
     const { result } = renderHook(() => useUsersByRole("admin"), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockApiGet).toHaveBeenCalledWith("/users/by-role", {
-      params: { role: "admin" },
-    });
+    expect(mockGetAll).toHaveBeenCalled();
+    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.[0].role).toBe("admin");
   });
 
   it("is disabled when role is empty", () => {
