@@ -93,7 +93,7 @@ export function useUpdatePromotion() {
       id: string;
       updates: Partial<Omit<DbPromotion, "id" | "created_at">>;
     }) => {
-      const response = await api.patch(`/promo-codes/${id}`, updates);
+      const response = await api.put(`/promo-codes/${id}`, updates);
       return response.data;
     },
     onSuccess: () => {
@@ -107,7 +107,7 @@ export function useTogglePromotionStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await api.patch(`/promo-codes/${id}`, {
+      const response = await api.put(`/promo-codes/${id}`, {
         is_active: isActive,
       });
       return response.data;

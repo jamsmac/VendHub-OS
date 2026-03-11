@@ -14,7 +14,7 @@ jest.mock("../../api", () => ({
   api: {
     get: jest.fn(),
     post: jest.fn(),
-    patch: jest.fn(),
+    put: jest.fn(),
     delete: jest.fn(),
   },
 }));
@@ -22,7 +22,7 @@ jest.mock("../../api", () => ({
 import { api } from "../../api";
 const mockGet = api.get as jest.MockedFunction<typeof api.get>;
 const mockPost = api.post as jest.MockedFunction<typeof api.post>;
-const mockPatch = api.patch as jest.MockedFunction<typeof api.patch>;
+const mockPut = api.put as jest.MockedFunction<typeof api.put>;
 const mockDelete = api.delete as jest.MockedFunction<typeof api.delete>;
 
 const samplePromotion = {
@@ -126,7 +126,7 @@ describe("useCreatePromotion", () => {
 
 describe("useUpdatePromotion", () => {
   it("updates promotion by id", async () => {
-    mockPatch.mockResolvedValueOnce({ data: samplePromotion } as never);
+    mockPut.mockResolvedValueOnce({ data: samplePromotion } as never);
 
     const { result } = renderHook(() => useUpdatePromotion(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -139,7 +139,7 @@ describe("useUpdatePromotion", () => {
       });
     });
 
-    expect(mockPatch).toHaveBeenCalledWith("/promo-codes/promo-1", {
+    expect(mockPut).toHaveBeenCalledWith("/promo-codes/promo-1", {
       discount_value: 25,
     });
   });
@@ -147,7 +147,7 @@ describe("useUpdatePromotion", () => {
 
 describe("useTogglePromotionStatus", () => {
   it("toggles promotion status", async () => {
-    mockPatch.mockResolvedValueOnce({
+    mockPut.mockResolvedValueOnce({
       data: { ...samplePromotion, is_active: false },
     } as never);
 
@@ -159,7 +159,7 @@ describe("useTogglePromotionStatus", () => {
       await result.current.mutateAsync({ id: "promo-1", isActive: false });
     });
 
-    expect(mockPatch).toHaveBeenCalledWith("/promo-codes/promo-1", {
+    expect(mockPut).toHaveBeenCalledWith("/promo-codes/promo-1", {
       is_active: false,
     });
   });
