@@ -27,6 +27,7 @@ export const products: Product[] = [
     id: "prod-espresso",
     name: "Espresso",
     name_uz: "Espresso",
+    name_en: "Espresso",
     price: 20000,
     category: "coffee",
     temperature: "hot",
@@ -35,10 +36,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Классический крепкий эспрессо",
     description_uz: "Klassik kuchli espresso",
+    description_en: "Classic strong espresso",
     detail_description:
       "100% арабика. Концентрированный кофе, приготовленный под высоким давлением. Насыщенный вкус с плотной крема-пенкой.",
     detail_description_uz:
       "100% arabika. Yuqori bosim ostida tayyorlangan konsentrlangan qahva. Boy ta'm va qalin krema ko'pik bilan.",
+    detail_description_en:
+      "100% Arabica. Concentrated coffee brewed under high pressure. Rich flavor with a dense crema.",
     calories: 5,
     rating: 4.8,
     options: [
@@ -55,6 +59,7 @@ export const products: Product[] = [
     id: "prod-americano",
     name: "Americano",
     name_uz: "Americano",
+    name_en: "Americano",
     price: 20000,
     category: "coffee",
     temperature: "both",
@@ -63,10 +68,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Эспрессо с горячей водой",
     description_uz: "Espresso issiq suv bilan",
+    description_en: "Espresso with hot water",
     detail_description:
       "Эспрессо, разбавленный горячей водой. Мягкий вкус с лёгкой кислинкой. Доступен с сахаром, ванильным и карамельным сиропом.",
     detail_description_uz:
       "Issiq suv bilan suyultirilgan espresso. Engil nordonlik bilan yumshoq ta'm. Shakar, vanil va karamel siropi bilan mavjud.",
+    detail_description_en:
+      "Espresso diluted with hot water. Smooth taste with a light acidity. Available with sugar, vanilla, and caramel syrup.",
     calories: 15,
     rating: 4.7,
     options: [
@@ -88,6 +96,7 @@ export const products: Product[] = [
     id: "prod-cappuccino",
     name: "Cappuccino",
     name_uz: "Cappuccino",
+    name_en: "Cappuccino",
     price: 20000,
     category: "coffee",
     temperature: "both",
@@ -96,10 +105,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Эспрессо с молочной пенкой",
     description_uz: "Espresso sutli ko'pik bilan",
+    description_en: "Espresso with milk foam",
     detail_description:
       "Эспрессо с пышной молочной пенкой в пропорции 1:1:1. Нежный, сливочный вкус. Выбирайте классический, ванильный, карамельный или кокосовый.",
     detail_description_uz:
       "1:1:1 nisbatda sut ko'pigi bilan espresso. Nozik, kremli ta'm. Klassik, vanil, karamel yoki kokos turini tanlang.",
+    detail_description_en:
+      "Espresso with fluffy milk foam in a 1:1:1 ratio. Delicate, creamy taste. Choose classic, vanilla, caramel, or coconut.",
     calories: 120,
     rating: 4.9,
     options: [
@@ -123,6 +135,7 @@ export const products: Product[] = [
     id: "prod-latte",
     name: "Latte",
     name_uz: "Latte",
+    name_en: "Latte",
     price: 20000,
     category: "coffee",
     temperature: "both",
@@ -131,10 +144,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Эспрессо с большим количеством молока",
     description_uz: "Espresso ko'p miqdorda sut bilan",
+    description_en: "Espresso with a generous amount of milk",
     detail_description:
       "Эспрессо с большим количеством вспененного молока. Мягкий, молочный вкус идеален для тех, кто любит кофе не слишком крепким.",
     detail_description_uz:
       "Ko'p miqdorda ko'pikli sut bilan espresso. Yumshoq, sutli ta'm — kuchli bo'lmagan qahvani yaxshi ko'ruvchilar uchun ideal.",
+    detail_description_en:
+      "Espresso with a generous amount of steamed milk. Smooth, milky taste — perfect for those who prefer their coffee not too strong.",
     calories: 150,
     rating: 4.8,
     options: [
@@ -158,6 +174,7 @@ export const products: Product[] = [
     id: "prod-flat-white",
     name: "Flat White",
     name_uz: "Flat White",
+    name_en: "Flat White",
     price: 25000,
     category: "coffee",
     temperature: "hot",
@@ -166,10 +183,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Двойной эспрессо с бархатистым молоком",
     description_uz: "Ikki espresso baxmal sut bilan",
+    description_en: "Double espresso with velvety milk",
     detail_description:
       "Двойной эспрессо с тонким слоем бархатистого молока. Более крепкий и кофейный, чем латте.",
     detail_description_uz:
       "Yupqa baxmal sut qatlami bilan ikki espresso. Lattega qaraganda kuchliroq va qahvali.",
+    detail_description_en:
+      "Double espresso with a thin layer of velvety milk. Stronger and more coffee-forward than a latte.",
     calories: 120,
     rating: 4.7,
     options: [{ name: "Flat White", price: 0, temperature: "hot" }],
@@ -183,6 +203,7 @@ export const products: Product[] = [
     id: "prod-maccoffee",
     name: "MacCoffee 3-in-1",
     name_uz: "MacCoffee 3-in-1",
+    name_en: "MacCoffee 3-in-1",
     price: 10000,
     category: "coffee",
     temperature: "hot",
@@ -191,10 +212,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Растворимый кофе 3-в-1",
     description_uz: "Tezkor qahva 3-in-1",
+    description_en: "Instant coffee 3-in-1",
     detail_description:
       "Растворимый кофе с сухим молоком и сахаром. Быстро и удобно — готов за 30 секунд.",
     detail_description_uz:
       "Quruq sut va shakar bilan tezkor qahva. Tez va qulay — 30 soniyada tayyor.",
+    detail_description_en:
+      "Instant coffee with powdered milk and sugar. Quick and convenient — ready in 30 seconds.",
     calories: 90,
     rating: 4.2,
     options: [{ name: "MacCoffee 3-in-1", price: 0, temperature: "hot" }],
@@ -208,6 +232,7 @@ export const products: Product[] = [
     id: "prod-ice-latte",
     name: "Ice Latte",
     name_uz: "Ice Latte",
+    name_en: "Ice Latte",
     price: 20000,
     category: "coffee",
     temperature: "cold",
@@ -216,10 +241,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Холодный латте со льдом",
     description_uz: "Muzli sovuq latte",
+    description_en: "Iced latte",
     detail_description:
       "Холодный латте со льдом. Освежающий кофейный напиток с молоком. Доступен без сахара, ванильный, карамельный и кокосовый.",
     detail_description_uz:
       "Muzli sovuq latte. Sut bilan tetiklantiruvchi qahva ichimligi. Shakarsiz, vanil, karamel va kokos turlarida mavjud.",
+    detail_description_en:
+      "Iced latte. A refreshing coffee drink with milk. Available sugar-free, vanilla, caramel, and coconut.",
     calories: 140,
     rating: 4.8,
     options: [
@@ -238,6 +266,7 @@ export const products: Product[] = [
     id: "prod-ice-americano",
     name: "Ice Americano",
     name_uz: "Ice Americano",
+    name_en: "Ice Americano",
     price: 20000,
     category: "coffee",
     temperature: "cold",
@@ -246,10 +275,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Холодный американо со льдом",
     description_uz: "Muzli sovuq americano",
+    description_en: "Iced americano",
     detail_description:
       "Холодный американо со льдом. Чистый кофейный вкус без молока. Доступен без сахара, ванильный и карамельный.",
     detail_description_uz:
       "Muzli sovuq americano. Sutsiz sof qahva ta'mi. Shakarsiz, vanil va karamel turlarida mavjud.",
+    detail_description_en:
+      "Iced americano. Pure coffee flavor without milk. Available sugar-free, vanilla, and caramel.",
     calories: 10,
     rating: 4.6,
     options: [
@@ -268,6 +300,7 @@ export const products: Product[] = [
     id: "prod-tea-lemon",
     name: "Чай с лимоном",
     name_uz: "Limonli choy",
+    name_en: "Lemon Tea",
     price: 10000,
     category: "tea",
     temperature: "hot",
@@ -276,10 +309,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Чёрный чай с лимоном",
     description_uz: "Limonli qora choy",
+    description_en: "Black tea with lemon",
     detail_description:
       "Чёрный чай с натуральным лимоном. Классический согревающий напиток с приятной цитрусовой кислинкой.",
     detail_description_uz:
       "Tabiiy limon bilan qora choy. Yoqimli sitrus nordonligi bilan klassik isituvchi ichimlik.",
+    detail_description_en:
+      "Black tea with natural lemon. A classic warming drink with a pleasant citrus tang.",
     calories: 25,
     rating: 4.5,
     options: [{ name: "Чай с лимоном", price: 0, temperature: "hot" }],
@@ -293,6 +329,7 @@ export const products: Product[] = [
     id: "prod-tea-fruit",
     name: "Чай фруктовый",
     name_uz: "Mevali choy",
+    name_en: "Fruit Tea",
     price: 15000,
     category: "tea",
     temperature: "hot",
@@ -301,10 +338,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Ароматный фруктовый чай",
     description_uz: "Xushbo'y mevali choy",
+    description_en: "Aromatic fruit tea",
     detail_description:
       "Ароматный фруктовый чай из натуральных ингредиентов. Яркий вкус ягод и фруктов без кофеина.",
     detail_description_uz:
       "Tabiiy ingrediyentlardan xushbo'y mevali choy. Kofeinsiz mevalar va rezavorlarning yorqin ta'mi.",
+    detail_description_en:
+      "Aromatic fruit tea made from natural ingredients. Vibrant berry and fruit flavor, caffeine-free.",
     calories: 35,
     rating: 4.4,
     options: [{ name: "Чай фруктовый", price: 0, temperature: "hot" }],
@@ -318,6 +358,7 @@ export const products: Product[] = [
     id: "prod-matcha-latte",
     name: "Matcha Latte",
     name_uz: "Matcha Latte",
+    name_en: "Matcha Latte",
     price: 30000,
     category: "tea",
     temperature: "both",
@@ -326,10 +367,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Японский чай матча с молоком",
     description_uz: "Yaponiya matcha choyi sut bilan",
+    description_en: "Japanese matcha tea with milk",
     detail_description:
       "Японский зелёный чай матча, взбитый с молоком. Кремовый вкус с лёгкой горчинкой и высоким содержанием антиоксидантов.",
     detail_description_uz:
       "Sut bilan ko'pirilgan yapon yashil matcha choyi. Engil achchiqlik va yuqori antioksidant tarkibi bilan kremli ta'm.",
+    detail_description_en:
+      "Japanese green matcha tea whisked with milk. Creamy taste with a light bitterness and high antioxidant content.",
     calories: 160,
     rating: 4.6,
     options: [{ name: "Matcha Latte", price: 0, temperature: "hot" }],
@@ -345,6 +389,7 @@ export const products: Product[] = [
     id: "prod-cocoa",
     name: "Какао",
     name_uz: "Kakao",
+    name_en: "Cocoa",
     price: 15000,
     category: "other",
     temperature: "hot",
@@ -353,10 +398,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Горячее какао с молоком",
     description_uz: "Sutli issiq kakao",
+    description_en: "Hot cocoa with milk",
     detail_description:
       "Горячее какао с молоком. Насыщенный шоколадный вкус, идеален в холодную погоду.",
     detail_description_uz:
       "Sutli issiq kakao. Boy shokolad ta'mi, sovuq ob-havoda ideal.",
+    detail_description_en:
+      "Hot cocoa with milk. Rich chocolate flavor, perfect for cold weather.",
     calories: 190,
     rating: 4.5,
     options: [{ name: "Какао", price: 0, temperature: "hot" }],
@@ -370,6 +418,7 @@ export const products: Product[] = [
     id: "prod-ice",
     name: "Лёд",
     name_uz: "Muz",
+    name_en: "Ice",
     price: 10000,
     category: "other",
     temperature: "cold",
@@ -378,10 +427,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Порция льда",
     description_uz: "Bir porsiya muz",
+    description_en: "A serving of ice",
     detail_description:
       "Порция кубиков льда для любого напитка. Добавьте в кофе, чай или воду.",
     detail_description_uz:
       "Har qanday ichimlik uchun muz bo'laklari porsiyasi. Qahva, choy yoki suvga qo'shing.",
+    detail_description_en:
+      "A serving of ice cubes for any drink. Add to coffee, tea, or water.",
     calories: 0,
     rating: 4.0,
     options: [{ name: "Лёд", price: 0, temperature: "cold" }],
@@ -397,6 +449,7 @@ export const products: Product[] = [
     id: "prod-water",
     name: "Вода",
     name_uz: "Suv",
+    name_en: "Water",
     price: 5000,
     category: "snack",
     temperature: "cold",
@@ -405,9 +458,12 @@ export const products: Product[] = [
     image_url: null,
     description: "Питьевая вода",
     description_uz: "Ichimlik suvi",
+    description_en: "Drinking water",
     detail_description: "Чистая питьевая вода. Освежает и утоляет жажду.",
     detail_description_uz:
       "Toza ichimlik suvi. Tetiklantiradi va chanqoqni qondiradi.",
+    detail_description_en:
+      "Pure drinking water. Refreshing and thirst-quenching.",
     calories: 0,
     rating: 4.3,
     options: [{ name: "Вода", price: 0, temperature: "cold" }],
@@ -421,6 +477,7 @@ export const products: Product[] = [
     id: "prod-cola",
     name: "Кола",
     name_uz: "Kola",
+    name_en: "Cola",
     price: 8000,
     category: "snack",
     temperature: "cold",
@@ -429,10 +486,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Газированный напиток",
     description_uz: "Gazlangan ichimlik",
+    description_en: "Carbonated drink",
     detail_description:
       "Классический газированный напиток. Охлаждённый, с насыщенным вкусом.",
     detail_description_uz:
       "Klassik gazlangan ichimlik. Sovutilgan, boy ta'm bilan.",
+    detail_description_en:
+      "Classic carbonated drink. Chilled, with a rich flavor.",
     calories: 139,
     rating: 4.4,
     options: [{ name: "Кола", price: 0, temperature: "cold" }],
@@ -446,6 +506,7 @@ export const products: Product[] = [
     id: "prod-orange-juice",
     name: "Сок апельсин",
     name_uz: "Apelsin sharbati",
+    name_en: "Orange Juice",
     price: 10000,
     category: "snack",
     temperature: "cold",
@@ -454,10 +515,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Апельсиновый сок",
     description_uz: "Tabiiy apelsin sharbati",
+    description_en: "Orange juice",
     detail_description:
       "Натуральный апельсиновый сок. Богат витамином C, освежающий цитрусовый вкус.",
     detail_description_uz:
       "Tabiiy apelsin sharbati. C vitamini bilan boy, tetiklantiruvchi sitrus ta'mi.",
+    detail_description_en:
+      "Natural orange juice. Rich in vitamin C with a refreshing citrus flavor.",
     calories: 112,
     rating: 4.5,
     options: [{ name: "Сок апельсин", price: 0, temperature: "cold" }],
@@ -471,6 +535,7 @@ export const products: Product[] = [
     id: "prod-chocolate-bar",
     name: "Шоколадный батончик",
     name_uz: "Shokolad batoncik",
+    name_en: "Chocolate Bar",
     price: 7000,
     category: "snack",
     temperature: "none",
@@ -479,10 +544,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Шоколадный батончик",
     description_uz: "Sutli shokolad batoncik",
+    description_en: "Chocolate bar",
     detail_description:
       "Шоколадный батончик — сладкий перекус к кофе. Молочный шоколад с начинкой.",
     detail_description_uz:
       "Shokolad batoncik — qahvaga shirin gazak. Ichki bilan sutli shokolad.",
+    detail_description_en:
+      "Chocolate bar — a sweet snack to go with coffee. Milk chocolate with filling.",
     calories: 230,
     rating: 4.3,
     options: [{ name: "Шоколадный батончик", price: 0, temperature: "cold" }],
@@ -496,6 +564,7 @@ export const products: Product[] = [
     id: "prod-chips",
     name: "Чипсы",
     name_uz: "Chipslar",
+    name_en: "Chips",
     price: 8000,
     category: "snack",
     temperature: "none",
@@ -504,10 +573,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Картофельные чипсы",
     description_uz: "Kartoshka chipslari",
+    description_en: "Potato chips",
     detail_description:
       "Хрустящие картофельные чипсы. Солёная закуска к любому напитку.",
     detail_description_uz:
       "Qarsildoq kartoshka chipslari. Har qanday ichimlikka tuzli gazak.",
+    detail_description_en:
+      "Crunchy potato chips. A salty snack to pair with any drink.",
     calories: 270,
     rating: 4.2,
     options: [{ name: "Чипсы", price: 0, temperature: "cold" }],
@@ -521,6 +593,7 @@ export const products: Product[] = [
     id: "prod-croissant",
     name: "Круассан",
     name_uz: "Kruassan",
+    name_en: "Croissant",
     price: 12000,
     category: "snack",
     temperature: "none",
@@ -529,10 +602,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Свежий круассан",
     description_uz: "Yangi kruassan",
+    description_en: "Fresh croissant",
     detail_description:
       "Свежий слоёный круассан с маслом. Идеальное дополнение к утреннему кофе.",
     detail_description_uz:
       "Sariyog'li yangi qatlamali kruassan. Ertalabki qahvaga ideal qo'shimcha.",
+    detail_description_en:
+      "Fresh flaky butter croissant. The perfect complement to your morning coffee.",
     calories: 310,
     rating: 4.6,
     options: [{ name: "Круассан", price: 0, temperature: "cold" }],
@@ -548,6 +624,7 @@ export const products: Product[] = [
     id: "prod-frappe",
     name: "Frappe",
     name_uz: "Frappe",
+    name_en: "Frappe",
     price: 26000,
     category: "coffee",
     temperature: "cold",
@@ -556,10 +633,13 @@ export const products: Product[] = [
     image_url: null,
     description: "Холодный кофейный напиток с пенкой",
     description_uz: "Ko'pikli sovuq qahva ichimligi",
+    description_en: "Cold coffee drink with foam",
     detail_description:
       "Холодный кофейный напиток с ледяной пенкой. Освежающий и сладкий — идеален в жаркий день.",
     detail_description_uz:
       "Muzli ko'pikli sovuq qahva ichimligi. Tetiklantiruvchi va shirin — issiq kunda ideal.",
+    detail_description_en:
+      "Cold coffee drink with icy foam. Refreshing and sweet — perfect on a hot day.",
     calories: 220,
     rating: 4.5,
     options: [{ name: "Frappe", price: 0, temperature: "cold" }],

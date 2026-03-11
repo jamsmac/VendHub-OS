@@ -1,6 +1,6 @@
 /**
- * Returns the Uzbek version of a field when locale is 'uz' and the _uz field exists,
- * otherwise falls back to the default (Russian) field.
+ * Returns the localized version of a field (e.g. field_uz, field_en).
+ * Falls back to the default (Russian) field if no locale-specific variant exists.
  */
 export function localized<T extends object>(
   item: T,
@@ -8,9 +8,10 @@ export function localized<T extends object>(
   locale: string,
 ): string {
   const obj = item as Record<string, unknown>;
-  if (locale === "uz") {
-    const uzValue = obj[`${field}_uz`];
-    if (uzValue && typeof uzValue === "string") return uzValue;
+  if (locale !== "ru") {
+    const localizedValue = obj[`${field}_${locale}`];
+    if (localizedValue && typeof localizedValue === "string")
+      return localizedValue;
   }
   const value = obj[field];
   return typeof value === "string" ? value : "";
@@ -32,7 +33,7 @@ export function localizedOptionName(name: string, locale: string): string {
 }
 
 /**
- * Returns the Uzbek version of a JSONB array field (e.g., conditions_uz).
+ * Returns the localized version of a JSONB array field (e.g., conditions_uz, conditions_en).
  */
 export function localizedArray<T extends object>(
   item: T,
@@ -40,9 +41,10 @@ export function localizedArray<T extends object>(
   locale: string,
 ): string[] {
   const obj = item as Record<string, unknown>;
-  if (locale === "uz") {
-    const uzValue = obj[`${field}_uz`];
-    if (Array.isArray(uzValue) && uzValue.length > 0) return uzValue;
+  if (locale !== "ru") {
+    const localizedValue = obj[`${field}_${locale}`];
+    if (Array.isArray(localizedValue) && localizedValue.length > 0)
+      return localizedValue;
   }
   const value = obj[field];
   return Array.isArray(value) ? value : [];

@@ -12,6 +12,7 @@ export interface Product {
   id: string;
   name: string;
   name_uz?: string | null;
+  name_en?: string | null;
   price: number;
   category: "coffee" | "tea" | "other" | "snack";
   temperature: "hot" | "cold" | "both" | "none";
@@ -20,8 +21,10 @@ export interface Product {
   image_url: string | null;
   description: string | null;
   description_uz?: string | null;
+  description_en?: string | null;
   detail_description?: string | null;
   detail_description_uz?: string | null;
+  detail_description_en?: string | null;
   calories?: number | null;
   rating: number;
   options: ProductOption[];
