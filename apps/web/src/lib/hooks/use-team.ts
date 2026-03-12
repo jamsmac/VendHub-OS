@@ -49,7 +49,7 @@ export function useTeamStats() {
     queryKey: ["team-stats"],
     queryFn: async () => {
       const response = await usersApi.getAll();
-      const users: UserRow[] = response.data?.data ?? response.data ?? [];
+      const users: UserRow[] = response.data.data ?? [];
       const activeMembers = users.filter((u) => u.is_active).length;
       const byRole: Record<string, number> = {};
       for (const u of users) {
@@ -70,7 +70,7 @@ export function useUsersByRole(role: string) {
     queryKey: ["users-by-role", role],
     queryFn: async () => {
       const response = await usersApi.getAll();
-      const users: UserRow[] = response.data?.data ?? response.data ?? [];
+      const users: UserRow[] = response.data.data ?? [];
       return users.filter((u) => u.role === role);
     },
     enabled: !!role,

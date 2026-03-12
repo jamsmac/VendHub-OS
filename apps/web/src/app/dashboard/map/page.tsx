@@ -145,7 +145,7 @@ export default function MapPage() {
     queryKey: ["machines-map"],
     queryFn: async () => {
       const res = await machinesApi.getMap();
-      return (res.data?.data || res.data || []) as MachineMapItem[];
+      return (res.data || []) as MachineMapItem[];
     },
     refetchInterval: 60000, // Refresh every minute
   });

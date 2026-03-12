@@ -156,7 +156,7 @@ export default function AchievementsPage() {
       > = {};
       if (categoryFilter !== "all") params.category = categoryFilter;
       const res = await achievementsApi.getAll(params);
-      return (res.data?.data || res.data || []) as Achievement[];
+      return (res.data || []) as Achievement[];
     },
   });
 

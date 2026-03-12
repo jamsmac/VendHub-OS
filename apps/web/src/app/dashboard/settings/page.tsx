@@ -162,7 +162,7 @@ export default function SettingsPage() {
     queryKey: ["settings"],
     queryFn: async () => {
       const res = await api.get("/settings");
-      const data = res.data?.data || res.data;
+      const data = res.data;
       if (data) {
         if (data.general) setGeneralForm(data.general);
         if (data.notifications) setNotifPrefs(data.notifications);

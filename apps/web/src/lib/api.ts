@@ -25,8 +25,8 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory only (no localStorage)
-// httpOnly cookies persist across page refreshes; localStorage is an XSS vector.
+// Token helpers — in-memory + localStorage for persistence across refreshes.
+// TODO: migrate to httpOnly cookies to eliminate XSS token-theft risk.
 // ============================================
 
 let _accessToken: string | null = null;

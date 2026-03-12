@@ -46,9 +46,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await authApi.login(email, password, twoFactorCode);
-          // Backend TransformInterceptor wraps response:
-          // { success, data: { accessToken, user, ... }, timestamp }
-          const payload = response.data?.data ?? response.data;
+          // Response interceptor already strips the TransformInterceptor envelope
+          const payload = response.data;
 
           if (payload.requiresTwoFactor) {
             set({ isLoading: false });
@@ -113,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
         // Verify with server in both cases.
         try {
           const response = await authApi.me();
-          const userData = response.data?.data ?? response.data;
+          const userData = response.data;
 
           // Restore in-memory token from response if server returned one
           if (userData.accessToken) {

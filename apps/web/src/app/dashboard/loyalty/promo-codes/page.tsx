@@ -112,7 +112,7 @@ export default function PromoCodesPage() {
     queryKey: ["promo-codes"],
     queryFn: async () => {
       const res = await promoCodesApi.getAll();
-      return (res.data?.data || res.data || []) as PromoCode[];
+      return (res.data.data || []) as PromoCode[];
     },
   });
 

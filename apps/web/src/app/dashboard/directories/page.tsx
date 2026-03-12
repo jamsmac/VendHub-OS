@@ -109,7 +109,7 @@ export default function DirectoriesPage() {
       if (typeFilter !== "all") params.append("type", typeFilter);
 
       const response = await directoriesApi.getAll(Object.fromEntries(params));
-      return (response.data?.data ?? response.data) as Directory[];
+      return response.data.data as Directory[];
     },
   });
 

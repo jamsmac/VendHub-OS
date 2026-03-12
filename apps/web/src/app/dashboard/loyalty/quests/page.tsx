@@ -161,7 +161,7 @@ export default function QuestsPage() {
       > = {};
       if (periodFilter !== "all") params.period = periodFilter;
       const res = await questsApi.getAll(params);
-      return (res.data?.data || res.data || []) as Quest[];
+      return (res.data.data || []) as Quest[];
     },
   });
 

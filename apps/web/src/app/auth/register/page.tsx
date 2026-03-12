@@ -88,7 +88,7 @@ export default function RegisterWithInvitePage() {
         password: data.password,
       });
 
-      const payload = response.data?.data ?? response.data;
+      const payload = response.data;
 
       // Store tokens and set auth state
       setTokens(payload.accessToken);
