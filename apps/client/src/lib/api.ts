@@ -13,7 +13,7 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory only (no localStorage)
+// Token helpers — in-memory + localStorage fallback
 // ============================================
 
 let _accessToken: string | null = null;
@@ -145,7 +145,9 @@ api.interceptors.response.use(
         { withCredentials: true },
       );
 
-      const { accessToken: newAccessToken } = response.data;
+      // Raw axios (not `api` instance), so envelope is NOT auto-unwrapped
+      const payload = response.data?.data ?? response.data;
+      const newAccessToken = payload.accessToken || payload.access_token;
 
       setTokens(newAccessToken);
       processQueue(null, newAccessToken);

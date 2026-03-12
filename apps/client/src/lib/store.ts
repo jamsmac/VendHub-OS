@@ -5,6 +5,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import i18n from "../i18n";
+import { clearTokens } from "./api";
 
 // ============================================
 // Cart Store
@@ -165,6 +166,7 @@ export const useUserStore = create<UserState>()(
       },
 
       logout: () => {
+        clearTokens();
         set({ user: null, isAuthenticated: false });
       },
     }),

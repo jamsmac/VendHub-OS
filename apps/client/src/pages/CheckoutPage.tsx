@@ -99,25 +99,22 @@ export function CheckoutPage() {
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: item.price,
         })),
         paymentMethod: selectedPayment,
-        totalAmount: total,
       });
       return res.data;
     },
     onSuccess: (data) => {
-      clearCart();
-
       if (selectedPayment === "telegram_stars") {
-        // Redirect to Telegram payment
+        // Cart cleared on success page after payment confirmation
         window.location.href = data.telegramPaymentUrl;
       } else if (data.paymentUrl) {
-        // Redirect to payment provider
+        // Cart cleared on success page after payment confirmation
         window.location.href = data.paymentUrl;
       } else {
-        // Order created, go to success page
-        navigate(`/order/${data.id}/success`);
+        // No redirect — order is complete, safe to clear cart now
+        clearCart();
+        navigate(`/order-success/${data.id}`);
       }
     },
     onError: (error: Error) => {

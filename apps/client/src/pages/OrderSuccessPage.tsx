@@ -1,21 +1,27 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CheckCircle, Receipt, RotateCcw, Home, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 import { ordersApi } from "../lib/api";
+import { useCartStore } from "../lib/store";
 
 export function OrderSuccessPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const { t } = useTranslation();
-  useNavigate();
+  const clearCart = useCartStore((s) => s.clearCart);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => ordersApi.getById(orderId!).then((r) => r.data),
     enabled: !!orderId,
   });
+
+  // Clear cart on arrival (covers redirect-based payment returns)
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
 
   // Celebration effect
   useEffect(() => {

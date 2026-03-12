@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { authApi } from "../lib/api";
+import { authApi, setTokens } from "../lib/api";
 import { useUserStore } from "../lib/store";
 
 /** Telegram WebApp global type declaration */
@@ -62,6 +62,10 @@ export function useTelegramAuth() {
       .loginTelegram(tg.initData)
       .then((res) => {
         const data = res.data;
+        // Store JWT so all subsequent API calls are authenticated
+        if (data.accessToken) {
+          setTokens(data.accessToken, data.refreshToken);
+        }
         setUser(data.user as unknown as Parameters<typeof setUser>[0]);
       })
       .catch((err) => {
