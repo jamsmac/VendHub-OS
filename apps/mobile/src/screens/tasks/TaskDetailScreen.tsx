@@ -3,7 +3,7 @@
  * Full task information and actions
  */
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,10 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -31,10 +35,12 @@ export function TaskDetailScreen() {
   const route = useRoute<RouteType>();
   const queryClient = useQueryClient();
   const { taskId } = route.params;
+  const [showAmountModal, setShowAmountModal] = useState(false);
+  const [cashAmount, setCashAmount] = useState("");
 
   const { data: task, isLoading } = useQuery({
     queryKey: ["task", taskId],
-    queryFn: () => tasksApi.getById(taskId).then((res) => res.data.data),
+    queryFn: () => tasksApi.getById(taskId).then((res) => res.data),
   });
 
   const startMutation = useMutation({
@@ -120,26 +126,9 @@ export function TaskDetailScreen() {
     }
 
     if (task.taskType === "collection") {
-      // For collection tasks, prompt for cash amount
-      Alert.prompt(
-        t("tasks.detail.collectionAmount"),
-        t("tasks.detail.enterActualAmount"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("tasks.detail.complete"),
-            onPress: (amount) => {
-              if (amount) {
-                completeMutation.mutate({
-                  actualCashAmount: parseFloat(amount),
-                });
-              }
-            },
-          },
-        ],
-        "plain-text",
-        String(task.expectedCashAmount || ""),
-      );
+      // Show cross-platform modal for cash amount input
+      setCashAmount(String(task.expectedCashAmount || ""));
+      setShowAmountModal(true);
     } else {
       completeMutation.mutate({});
     }
@@ -373,6 +362,59 @@ export function TaskDetailScreen() {
       </View>
 
       <View style={styles.bottomSpacer} />
+
+      {/* Cash Amount Modal (cross-platform replacement for Alert.prompt) */}
+      <Modal
+        visible={showAmountModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAmountModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {t("tasks.detail.collectionAmount")}
+            </Text>
+            <Text style={styles.modalMessage}>
+              {t("tasks.detail.enterActualAmount")}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              value={cashAmount}
+              onChangeText={setCashAmount}
+              keyboardType="numeric"
+              placeholder="0"
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowAmountModal(false)}
+              >
+                <Text style={styles.modalCancelText}>{t("common.cancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmButton}
+                onPress={() => {
+                  setShowAmountModal(false);
+                  if (cashAmount) {
+                    completeMutation.mutate({
+                      actualCashAmount: parseFloat(cashAmount),
+                    });
+                  }
+                }}
+              >
+                <Text style={styles.modalConfirmText}>
+                  {t("tasks.detail.complete")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -557,5 +599,66 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 24,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    width: "85%",
+    maxWidth: 360,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: "#1F2937",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  modalConfirmButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+  },
+  modalConfirmText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

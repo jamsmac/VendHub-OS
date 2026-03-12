@@ -15,6 +15,12 @@ const API_URL =
 const TOKEN_KEY = "vendhub_access_token";
 const REFRESH_TOKEN_KEY = "vendhub_refresh_token";
 
+// Callback for notifying auth store when session expires (avoids circular import)
+let onSessionExpired: (() => void) | null = null;
+export function setOnSessionExpired(cb: () => void) {
+  onSessionExpired = cb;
+}
+
 export const api = axios.create({
   baseURL: `${API_URL}/api/v1`,
   timeout: 30000,
@@ -123,6 +129,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         await tokenStorage.clearTokens();
+        onSessionExpired?.();
       } finally {
         isRefreshing = false;
       }

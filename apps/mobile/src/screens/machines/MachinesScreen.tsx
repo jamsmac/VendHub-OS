@@ -75,7 +75,7 @@ export function MachinesScreen() {
     refetch,
   } = useQuery({
     queryKey: ["my-machines"],
-    queryFn: () => machinesApi.getMy().then((res) => res.data.data),
+    queryFn: () => machinesApi.getMy().then((res) => res.data),
   });
 
   const renderMachine = ({ item }: { item: Machine }) => {

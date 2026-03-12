@@ -131,7 +131,9 @@ export function ClientHomeScreen({ navigation }: Props) {
           <QuickActionButton
             icon="qr-code"
             label={t("client.home.qrScan")}
-            onPress={() => navigation.navigate("BarcodeScan")}
+            onPress={() =>
+              Alert.alert(t("client.home.qrScan"), t("common.comingSoon"))
+            }
           />
           <QuickActionButton
             icon="heart"
@@ -200,12 +202,24 @@ export function ClientHomeScreen({ navigation }: Props) {
           recentOrders.map((order: any) => (
             <View key={order.id} style={styles.orderItem}>
               <View style={styles.orderInfo}>
-                <Text style={styles.orderProduct}>{order.product_name}</Text>
+                <Text style={styles.orderProduct}>
+                  {order.productName || order.product_name || order.orderNumber}
+                </Text>
                 <Text style={styles.orderTime}>
-                  {new Date(order.created_at).toLocaleDateString()}
+                  {new Date(
+                    order.createdAt || order.created_at,
+                  ).toLocaleDateString()}
                 </Text>
               </View>
-              <Text style={styles.orderPrice}>{order.total_price} UZS</Text>
+              <Text style={styles.orderPrice}>
+                {(
+                  order.totalAmount ||
+                  order.totalPrice ||
+                  order.total_price ||
+                  0
+                ).toLocaleString()}{" "}
+                UZS
+              </Text>
             </View>
           ))
         ) : (

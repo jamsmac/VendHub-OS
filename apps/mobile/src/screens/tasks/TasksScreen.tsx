@@ -73,7 +73,7 @@ export function TasksScreen() {
     refetch,
   } = useQuery({
     queryKey: ["my-tasks"],
-    queryFn: () => tasksApi.getMy().then((res) => res.data.data),
+    queryFn: () => tasksApi.getMy().then((res) => res.data),
   });
 
   const filteredTasks = tasks?.filter((task: Task) => {

@@ -5,7 +5,7 @@
 
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
-import { api } from "../services/api";
+import { api, setOnSessionExpired } from "../services/api";
 
 interface User {
   id: string;
@@ -77,6 +77,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     try {
+      // Invalidate JWT on server (best-effort, don't block logout on failure)
+      try {
+        await api.post("/auth/logout");
+      } catch {
+        // Server may be unreachable — continue with local cleanup
+      }
+
       // Clear stored tokens
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
@@ -164,3 +171,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearError: () => set({ error: null }),
 }));
+
+// When the API interceptor detects an expired session, force logout in Zustand
+setOnSessionExpired(() => {
+  useAuthStore.getState().logout();
+});
