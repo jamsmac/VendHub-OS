@@ -50,20 +50,11 @@ import {
   type DbContract,
 } from "@/lib/hooks";
 
-// DB → UI type mapping
-const DB_TYPE_MAP: Record<DbCounterparty["type"], CounterpartyType> = {
-  supplier: "Поставщик",
-  landlord: "Арендодатель",
-  client: "Клиент",
-  partner: "Партнёр",
-  service: "Сервис",
-};
-
 function mapDbCounterparty(db: DbCounterparty): Counterparty {
   return {
     id: db.id,
     name: db.name,
-    type: DB_TYPE_MAP[db.type] ?? "Поставщик",
+    type: db.type ?? "supplier",
     inn: db.inn ?? "",
     contactPerson: db.contact_person ?? "",
     phone: db.phone ?? "",
@@ -84,7 +75,7 @@ function mapDbContract(db: DbContract): Contract {
     number: db.number,
     counterpartyId: db.counterparty_id,
     counterpartyName: db.counterparty_name ?? "",
-    type: (db.type as ContractType) || "Поставка",
+    type: (db.type as ContractType) || "supply",
     startDate: db.start_date,
     endDate: db.end_date,
     monthlyAmount: db.monthly_amount,
@@ -94,19 +85,19 @@ function mapDbContract(db: DbContract): Contract {
 
 // Types
 type CounterpartyType =
-  | "Поставщик"
-  | "Арендодатель"
-  | "Клиент"
-  | "Партнёр"
-  | "Сервис";
+  | "supplier"
+  | "landlord"
+  | "client"
+  | "partner"
+  | "service";
 type CounterpartyStatus = "active" | "suspended";
 type CounterpartyTab = "counterparties" | "contracts" | "analytics";
 type ContractType =
-  | "Поставка"
-  | "Аренда"
-  | "Сервис"
-  | "Партнёрство"
-  | "Поставка расходников";
+  | "supply"
+  | "rent"
+  | "service"
+  | "partnership"
+  | "consumables";
 type ContractStatus = "active" | "expiring" | "expired";
 
 interface Counterparty {
@@ -157,7 +148,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "1",
     name: 'ООО "КофеМастер"',
-    type: "Поставщик",
+    type: "supplier",
     inn: "307520145",
     contactPerson: "Рахимов А.К.",
     phone: "+998 90 123 45 67",
@@ -188,7 +179,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "2",
     name: "ИП Алимов Р.Т.",
-    type: "Поставщик",
+    type: "supplier",
     inn: "512489630",
     contactPerson: "Алимов Р.Т.",
     phone: "+998 91 234 56 78",
@@ -213,7 +204,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "3",
     name: 'ТЦ "Мега Чиланзар"',
-    type: "Арендодатель",
+    type: "landlord",
     inn: "201548796",
     contactPerson: "Юсупова Н.И.",
     phone: "+998 71 256 78 90",
@@ -237,7 +228,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "4",
     name: "KIUT University",
-    type: "Арендодатель",
+    type: "landlord",
     inn: "305681247",
     contactPerson: "Ибрагимов О.Д.",
     phone: "+998 71 234 00 01",
@@ -261,7 +252,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "5",
     name: "Necta Uzbekistan",
-    type: "Сервис",
+    type: "service",
     inn: "308741256",
     contactPerson: "Ли Д.В.",
     phone: "+998 93 345 67 89",
@@ -285,7 +276,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "6",
     name: 'ООО "CleanPro"',
-    type: "Поставщик",
+    type: "supplier",
     inn: "309852147",
     contactPerson: "Каримов Б.С.",
     phone: "+998 94 456 78 90",
@@ -309,7 +300,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "7",
     name: "Payme Processing",
-    type: "Партнёр",
+    type: "partner",
     inn: "302159648",
     contactPerson: "Тур М.А.",
     phone: "+998 71 200 11 22",
@@ -333,7 +324,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "8",
     name: 'ООО "ВендСервис"',
-    type: "Сервис",
+    type: "service",
     inn: "311254789",
     contactPerson: "Петров И.С.",
     phone: "+998 95 567 89 01",
@@ -358,7 +349,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "9",
     name: "Humo Arena",
-    type: "Арендодатель",
+    type: "landlord",
     inn: "304561298",
     contactPerson: "Назаров К.Л.",
     phone: "+998 71 211 33 44",
@@ -383,7 +374,7 @@ const mockCounterparties: Counterparty[] = [
   {
     id: "10",
     name: "IT Park Yashnabad",
-    type: "Арендодатель",
+    type: "landlord",
     inn: "306987412",
     contactPerson: "Мирзаев А.А.",
     phone: "+998 71 200 55 66",
@@ -412,7 +403,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-001",
     counterpartyId: "1",
     counterpartyName: 'ООО "КофеМастер"',
-    type: "Поставка",
+    type: "supply",
     startDate: "2025-01-15",
     endDate: "2026-01-15",
     monthlyAmount: 18000000,
@@ -423,7 +414,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-002",
     counterpartyId: "3",
     counterpartyName: 'ТЦ "Мега Чиланзар"',
-    type: "Аренда",
+    type: "rent",
     startDate: "2025-03-01",
     endDate: "2026-03-01",
     monthlyAmount: 4500000,
@@ -434,7 +425,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-003",
     counterpartyId: "4",
     counterpartyName: "KIUT University",
-    type: "Аренда",
+    type: "rent",
     startDate: "2025-06-01",
     endDate: "2026-06-01",
     monthlyAmount: 2000000,
@@ -445,7 +436,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-004",
     counterpartyId: "5",
     counterpartyName: "Necta Uzbekistan",
-    type: "Сервис",
+    type: "service",
     startDate: "2025-04-01",
     endDate: "2026-04-01",
     monthlyAmount: 3500000,
@@ -456,7 +447,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-005",
     counterpartyId: "6",
     counterpartyName: 'ООО "CleanPro"',
-    type: "Поставка",
+    type: "supply",
     startDate: "2025-07-01",
     endDate: "2026-07-01",
     monthlyAmount: 1200000,
@@ -467,7 +458,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-006",
     counterpartyId: "7",
     counterpartyName: "Payme Processing",
-    type: "Партнёрство",
+    type: "partnership",
     startDate: "2025-01-01",
     endDate: "2027-01-01",
     monthlyAmount: 0,
@@ -478,7 +469,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-007",
     counterpartyId: "9",
     counterpartyName: "Humo Arena",
-    type: "Аренда",
+    type: "rent",
     startDate: "2025-09-01",
     endDate: "2026-09-01",
     monthlyAmount: 5000000,
@@ -489,7 +480,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-008",
     counterpartyId: "10",
     counterpartyName: "IT Park Yashnabad",
-    type: "Аренда",
+    type: "rent",
     startDate: "2025-10-01",
     endDate: "2026-10-01",
     monthlyAmount: 1500000,
@@ -500,7 +491,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2026-001",
     counterpartyId: "1",
     counterpartyName: 'ООО "КофеМастер"',
-    type: "Поставка",
+    type: "supply",
     startDate: "2026-01-20",
     endDate: "2027-01-20",
     monthlyAmount: 20000000,
@@ -511,7 +502,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-009",
     counterpartyId: "2",
     counterpartyName: "ИП Алимов Р.Т.",
-    type: "Поставка",
+    type: "supply",
     startDate: "2025-05-01",
     endDate: "2026-05-01",
     monthlyAmount: 5500000,
@@ -522,7 +513,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-010",
     counterpartyId: "8",
     counterpartyName: 'ООО "ВендСервис"',
-    type: "Сервис",
+    type: "service",
     startDate: "2025-08-01",
     endDate: "2026-02-01",
     monthlyAmount: 2800000,
@@ -533,7 +524,7 @@ const mockContracts: Contract[] = [
     number: "ДОГ-2025-011",
     counterpartyId: "1",
     counterpartyName: 'ООО "КофеМастер"',
-    type: "Поставка расходников",
+    type: "consumables",
     startDate: "2025-11-01",
     endDate: "2026-11-01",
     monthlyAmount: 3200000,
@@ -542,27 +533,27 @@ const mockContracts: Contract[] = [
 ];
 
 const typeColors: Record<CounterpartyType, { bg: string; text: string }> = {
-  Поставщик: { bg: "bg-blue-100", text: "text-blue-700" },
-  Арендодатель: { bg: "bg-amber-100", text: "text-amber-700" },
-  Клиент: { bg: "bg-emerald-100", text: "text-emerald-700" },
-  Партнёр: { bg: "bg-purple-100", text: "text-purple-700" },
-  Сервис: { bg: "bg-cyan-100", text: "text-cyan-700" },
+  supplier: { bg: "bg-blue-100", text: "text-blue-700" },
+  landlord: { bg: "bg-amber-100", text: "text-amber-700" },
+  client: { bg: "bg-emerald-100", text: "text-emerald-700" },
+  partner: { bg: "bg-purple-100", text: "text-purple-700" },
+  service: { bg: "bg-cyan-100", text: "text-cyan-700" },
 };
 
 const TYPE_TRANSLATION_KEYS: Record<CounterpartyType, string> = {
-  Поставщик: "typeSupplier",
-  Арендодатель: "typeLandlord",
-  Клиент: "typeClient",
-  Партнёр: "typePartner",
-  Сервис: "typeService",
+  supplier: "typeSupplier",
+  landlord: "typeLandlord",
+  client: "typeClient",
+  partner: "typePartner",
+  service: "typeService",
 };
 
 const CONTRACT_TYPE_TRANSLATION_KEYS: Record<ContractType, string> = {
-  Поставка: "contractTypeSupply",
-  Аренда: "contractTypeRent",
-  Сервис: "contractTypeService",
-  Партнёрство: "contractTypePartnership",
-  "Поставка расходников": "contractTypeConsumables",
+  supply: "contractTypeSupply",
+  rent: "contractTypeRent",
+  service: "contractTypeService",
+  partnership: "contractTypePartnership",
+  consumables: "contractTypeConsumables",
 };
 
 const CHART_COLORS = [
@@ -630,7 +621,7 @@ export default function CounterpartiesPage() {
 
   // Procurement by supplier (top 5)
   const procurementData = counterparties
-    .filter((cp) => cp.type === "Поставщик")
+    .filter((cp) => cp.type === "supplier")
     .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
     .slice(0, 5)
     .map((cp) => ({
@@ -640,11 +631,11 @@ export default function CounterpartiesPage() {
 
   // Expenses by type
   const expensesByType: Record<CounterpartyType, number> = {
-    Поставщик: 0,
-    Арендодатель: 0,
-    Клиент: 0,
-    Партнёр: 0,
-    Сервис: 0,
+    supplier: 0,
+    landlord: 0,
+    client: 0,
+    partner: 0,
+    service: 0,
   };
   counterparties.forEach((cp) => {
     if (cp.balance < 0) {
@@ -655,7 +646,7 @@ export default function CounterpartiesPage() {
   const expenseData = Object.entries(expensesByType)
     .filter(([, value]) => value > 0)
     .map(([type, value]) => ({
-      name: type,
+      name: t(TYPE_TRANSLATION_KEYS[type as CounterpartyType]),
       value,
     }));
 
@@ -729,11 +720,11 @@ export default function CounterpartiesPage() {
               className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="all">{t("allTypes")}</option>
-              <option value="Поставщик">{t("typeSupplier")}</option>
-              <option value="Арендодатель">{t("typeLandlord")}</option>
-              <option value="Клиент">{t("typeClient")}</option>
-              <option value="Партнёр">{t("typePartner")}</option>
-              <option value="Сервис">{t("typeService")}</option>
+              <option value="supplier">{t("typeSupplier")}</option>
+              <option value="landlord">{t("typeLandlord")}</option>
+              <option value="client">{t("typeClient")}</option>
+              <option value="partner">{t("typePartner")}</option>
+              <option value="service">{t("typeService")}</option>
             </select>
             <select
               value={statusFilter}
