@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -18,20 +19,22 @@ export function TransactionFormModal({
   isPending,
   error,
 }: TransactionFormModalProps) {
+  const t = useTranslations("finance");
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Добавить транзакцию</CardTitle>
+          <CardTitle>{t("txFormTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
             {/* Type */}
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-1">
-                Тип
+                {t("txFormType")}
               </label>
               <select
                 name="type"
@@ -39,21 +42,21 @@ export function TransactionFormModal({
                 className="w-full rounded-lg border border-espresso/20 px-3 py-2 text-sm"
                 required
               >
-                <option value="income">Доход</option>
-                <option value="expense">Расход</option>
-                <option value="transfer">Перевод</option>
+                <option value="income">{t("txFormIncome")}</option>
+                <option value="expense">{t("txFormExpense")}</option>
+                <option value="transfer">{t("txFormTransfer")}</option>
               </select>
             </div>
 
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-1">
-                Категория
+                {t("txFormCategory")}
               </label>
               <input
                 type="text"
                 name="category"
-                placeholder="Продажи, Закупки, Зарплата..."
+                placeholder={t("txFormCategoryPlaceholder")}
                 className="w-full rounded-lg border border-espresso/20 px-3 py-2 text-sm"
                 required
               />
@@ -62,12 +65,12 @@ export function TransactionFormModal({
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-1">
-                Описание
+                {t("txFormDescription")}
               </label>
               <input
                 type="text"
                 name="description"
-                placeholder="Например: Инкассация VM-001 до VM-010"
+                placeholder={t("txFormDescPlaceholder")}
                 className="w-full rounded-lg border border-espresso/20 px-3 py-2 text-sm"
                 required
               />
@@ -76,7 +79,7 @@ export function TransactionFormModal({
             {/* Amount */}
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-1">
-                Сумма (UZS)
+                {t("txFormAmount")}
               </label>
               <input
                 type="number"
@@ -91,20 +94,20 @@ export function TransactionFormModal({
             {/* Payment Method */}
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-1">
-                Способ оплаты
+                {t("txFormPaymentMethod")}
               </label>
               <select
                 name="payment_method"
                 className="w-full rounded-lg border border-espresso/20 px-3 py-2 text-sm"
               >
-                <option value="">Не указан</option>
-                <option value="cash">Наличные</option>
+                <option value="">{t("txFormNotSpecified")}</option>
+                <option value="cash">{t("txFormCash")}</option>
                 <option value="payme">Payme</option>
                 <option value="click">Click</option>
                 <option value="uzum">Uzum</option>
                 <option value="humo">HUMO</option>
                 <option value="uzcard">UZCARD</option>
-                <option value="transfer">Перевод</option>
+                <option value="transfer">{t("txFormTransferPayment")}</option>
               </select>
             </div>
 
@@ -122,19 +125,21 @@ export function TransactionFormModal({
                 onClick={onClose}
                 disabled={isPending}
               >
-                Отмена
+                {t("txFormCancel")}
               </Button>
               <Button
                 type="submit"
                 className="flex-1 bg-espresso hover:bg-espresso-dark"
                 disabled={isPending}
               >
-                {isPending ? "Создание..." : "Создать"}
+                {isPending ? t("txFormCreating") : t("txFormCreate")}
               </Button>
             </div>
 
             {!!error && (
-              <p className="text-sm text-red-500">Ошибка: {String(error)}</p>
+              <p className="text-sm text-red-500">
+                {t("txFormError")}: {String(error)}
+              </p>
             )}
           </form>
         </CardContent>

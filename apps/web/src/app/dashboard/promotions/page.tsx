@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Users, Clock, Gift, Sparkles, CheckCircle2 } from "lucide-react";
 import {
   usePromotions,
@@ -668,6 +669,7 @@ function mapDbPromotion(db: DbPromotion, idx: number): Promotion {
 // ═══ Main Page ═══
 
 export default function PromotionsPage() {
+  const t = useTranslations("promotions");
   const { data: dbPromotions } = usePromotions();
   const [activeTab, setActiveTab] = useState<
     "list" | "analytics" | "coupons" | "abtests" | "wizard"
@@ -716,11 +718,11 @@ export default function PromotionsPage() {
       {/* Tabs */}
       <div className="flex gap-2 border-b border-espresso/10 pb-1 overflow-x-auto">
         {[
-          { id: "list" as const, label: "Акции" },
-          { id: "analytics" as const, label: "Аналитика" },
-          { id: "coupons" as const, label: "Купоны" },
-          { id: "abtests" as const, label: "A/B Тесты" },
-          { id: "wizard" as const, label: "Создать акцию" },
+          { id: "list" as const, label: t("tabList") },
+          { id: "analytics" as const, label: t("tabAnalytics") },
+          { id: "coupons" as const, label: t("tabCoupons") },
+          { id: "abtests" as const, label: t("tabABTests") },
+          { id: "wizard" as const, label: t("tabWizard") },
         ].map((tab) => (
           <Button
             key={tab.id}

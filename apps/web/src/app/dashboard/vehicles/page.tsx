@@ -150,7 +150,7 @@ export default function VehiclesPage() {
   );
 
   const formatOdometer = (km: number) =>
-    new Intl.NumberFormat("ru-RU").format(km) + " км";
+    new Intl.NumberFormat("ru-RU").format(km) + ` ${t("form.odometerUnit")}`;
 
   // ── Error state ───────────────────────────────────────────────────────────
   if (isError) {
@@ -752,7 +752,7 @@ function OdometerForm({
       </p>
       <div>
         <label className="text-sm font-medium block mb-1">
-          {t("form.odometer")} (км)
+          {t("form.odometer")} ({t("form.odometerUnit")})
         </label>
         <Input
           type="number"

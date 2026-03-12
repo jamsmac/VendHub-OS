@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Download,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export function PaymentsTab({
   expandedPayment,
   onExpandChange,
 }: PaymentsTabProps) {
+  const t = useTranslations("finance");
   const totalBalance = paymentSystems.reduce((s, p) => s + p.balance, 0);
   const totalPending = paymentSystems.reduce((s, p) => s + p.pending, 0);
   const totalTxCount = paymentSystems.reduce((s, p) => s + p.txCount, 0);
@@ -34,7 +36,9 @@ export function PaymentsTab({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Общий баланс</p>
+            <p className="text-xs text-espresso-light">
+              {t("payTotalBalance")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-espresso-dark">
               {fmtShort(totalBalance)} UZS
             </p>
@@ -42,7 +46,9 @@ export function PaymentsTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Ожидают зачисления</p>
+            <p className="text-xs text-espresso-light">
+              {t("payPendingDeposits")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-amber-600">
               {fmtShort(totalPending)} UZS
             </p>
@@ -50,7 +56,9 @@ export function PaymentsTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Транзакций сегодня</p>
+            <p className="text-xs text-espresso-light">
+              {t("payTransactionsToday")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-espresso-dark">
               {totalTxCount}
             </p>
@@ -79,26 +87,32 @@ export function PaymentsTab({
                         {ps.name}
                       </p>
                       <p className="text-xs text-espresso-light">
-                        {ps.txCount} транзакций
+                        {ps.txCount} {t("payTransactions")}
                       </p>
                     </div>
                   </div>
                   <Badge
                     variant={ps.status === "active" ? "success" : "destructive"}
                   >
-                    {ps.status === "active" ? "Активен" : "Офлайн"}
+                    {ps.status === "active"
+                      ? t("payStatusActive")
+                      : t("payStatusOffline")}
                   </Badge>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-lg bg-espresso-50/50 p-2">
-                    <p className="text-[11px] text-espresso-light">Баланс</p>
+                    <p className="text-[11px] text-espresso-light">
+                      {t("payBalance")}
+                    </p>
                     <p className="text-sm font-bold text-espresso-dark">
                       {fmtShort(ps.balance)}
                     </p>
                   </div>
                   <div className="rounded-lg bg-amber-50/50 p-2">
-                    <p className="text-[11px] text-espresso-light">Ожидают</p>
+                    <p className="text-[11px] text-espresso-light">
+                      {t("payPending")}
+                    </p>
                     <p className="text-sm font-bold text-amber-600">
                       {fmtShort(ps.pending)}
                     </p>
@@ -116,21 +130,23 @@ export function PaymentsTab({
                   ) : (
                     <ChevronDown className="h-3 w-3" />
                   )}
-                  {isExpanded ? "Скрыть" : "Подробнее"}
+                  {isExpanded ? t("payHide") : t("payDetails")}
                 </Button>
 
                 {isExpanded && (
                   <div className="mt-3 space-y-2 border-t border-espresso/10 pt-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-espresso-light">
-                        Оборот сегодня
+                        {t("payTodayTurnover")}
                       </span>
                       <span className="text-espresso-dark font-medium">
                         {fmtShort(ps.todayVolume)} UZS
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-espresso-light">Комиссия</span>
+                      <span className="text-espresso-light">
+                        {t("payCommission")}
+                      </span>
                       <span className="text-espresso-dark font-medium">
                         {ps.id === "cash" ? "0%" : "1.5%"}
                       </span>
@@ -141,14 +157,14 @@ export function PaymentsTab({
                         size="sm"
                         className="flex-1 text-xs gap-1"
                       >
-                        <RefreshCw className="h-3 w-3" /> Синхронизация
+                        <RefreshCw className="h-3 w-3" /> {t("paySync")}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1 text-xs gap-1"
                       >
-                        <Download className="h-3 w-3" /> Выписка
+                        <Download className="h-3 w-3" /> {t("payStatement")}
                       </Button>
                     </div>
                   </div>
@@ -162,7 +178,9 @@ export function PaymentsTab({
       {/* Payment channels bar */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Распределение по каналам</CardTitle>
+          <CardTitle className="text-lg">
+            {t("payChannelDistribution")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

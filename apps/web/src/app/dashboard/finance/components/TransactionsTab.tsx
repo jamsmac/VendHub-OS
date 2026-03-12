@@ -158,7 +158,9 @@ export function TransactionsTab({
                 stroke="#92400e"
                 fontSize={11}
               />
-              <Tooltip formatter={(v: number) => [`${fmt(v)} UZS / чек`]} />
+              <Tooltip
+                formatter={(v: number) => [`${fmt(v)} ${t("perReceipt")}`]}
+              />
               <Bar
                 yAxisId="left"
                 dataKey="amount"
@@ -202,7 +204,7 @@ export function TransactionsTab({
           <CardContent className="p-4">
             <p className="text-xs text-espresso-light">{t("throughput")}</p>
             <p className="mt-1 text-2xl font-bold text-emerald-600">
-              421 чек/дн
+              {t("receiptsPerDay", { count: 421 })}
             </p>
           </CardContent>
         </Card>

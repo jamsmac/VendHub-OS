@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Mail, Phone, Send, Star, Edit3, Lock, Trash2 } from "lucide-react";
 import {
   SlideOver,
@@ -30,13 +31,15 @@ export function MemberPreview({
   onToggleActive,
   onDeactivate,
 }: MemberPreviewProps) {
+  const t = useTranslations("team");
+
   if (!member) return null;
 
   const roleMeta = ROLE_META[member.role] || ROLE_META.viewer;
   const statusMeta = STATUS_META[member.status];
 
   return (
-    <SlideOver open={open} onClose={onClose} title="Карточка сотрудника">
+    <SlideOver open={open} onClose={onClose} title={t("memberCard")}>
       <SlideOverBody>
         {/* Header */}
         <div className="flex items-start gap-4 mb-6">
@@ -69,7 +72,7 @@ export function MemberPreview({
         {/* Contacts */}
         <div className="space-y-3 mb-6">
           <h4 className="text-xs font-semibold text-espresso-light uppercase tracking-wider">
-            Контакты
+            {t("memberContacts")}
           </h4>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
@@ -100,47 +103,57 @@ export function MemberPreview({
             <p className="text-xl font-bold text-espresso-dark">
               {member.tasksCompleted}
             </p>
-            <p className="text-[10px] text-espresso-light">Задач выполнено</p>
+            <p className="text-[10px] text-espresso-light">
+              {t("memberTasksCompleted")}
+            </p>
           </div>
           <div className="rounded-xl bg-espresso-50/50 dark:bg-gray-800/50 p-3 text-center">
             <p className="text-xl font-bold text-espresso-dark flex items-center justify-center gap-1">
               <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
               {member.rating}
             </p>
-            <p className="text-[10px] text-espresso-light">Рейтинг</p>
+            <p className="text-[10px] text-espresso-light">
+              {t("memberRating")}
+            </p>
           </div>
         </div>
 
         {/* Info */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-espresso-light uppercase tracking-wider">
-            Информация
+            {t("memberInfo")}
           </h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-espresso-light">Отдел</span>
+              <span className="text-espresso-light">
+                {t("memberDepartment")}
+              </span>
               <span className="text-espresso-dark font-medium">
                 {DEPARTMENTS.find((d) => d.id === member.department)?.name}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-espresso-light">Зона</span>
+              <span className="text-espresso-light">{t("memberZone")}</span>
               <span className="text-espresso-dark font-medium">{ZONES[0]}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-espresso-light">Дата вступления</span>
+              <span className="text-espresso-light">{t("memberJoinDate")}</span>
               <span className="text-espresso-dark font-medium">
                 {member.joinedAt ? formatDate(member.joinedAt) : "—"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-espresso-light">Последняя активность</span>
+              <span className="text-espresso-light">
+                {t("memberLastActivity")}
+              </span>
               <span className="text-espresso-dark font-medium">
                 {member.lastActive}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-espresso-light">Активных сессий</span>
+              <span className="text-espresso-light">
+                {t("memberActiveSessions")}
+              </span>
               <span className="text-espresso-dark font-medium">
                 {member.sessions}
               </span>
@@ -158,7 +171,7 @@ export function MemberPreview({
             }}
           >
             <Edit3 className="h-4 w-4" />
-            Редактировать
+            {t("memberEdit")}
           </Button>
           <Button
             variant="outline"
@@ -166,7 +179,9 @@ export function MemberPreview({
             disabled={isToggleLoading}
             onClick={onToggleActive}
             title={
-              member.status === "inactive" ? "Активировать" : "Деактивировать"
+              member.status === "inactive"
+                ? t("memberActivate")
+                : t("memberDeactivate")
             }
           >
             <Lock

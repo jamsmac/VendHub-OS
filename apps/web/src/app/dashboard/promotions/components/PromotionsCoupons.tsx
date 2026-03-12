@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Copy, Download, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export function PromotionsCoupons({
   couponStats,
   coupons,
 }: PromotionsCouponsProps) {
+  const t = useTranslations("promotions");
   const [couponFilter, setCouponFilter] = useState<
     "all" | "active" | "used" | "expired"
   >("all");
@@ -46,25 +48,25 @@ export function PromotionsCoupons({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
-            label: "Выдано",
+            label: t("couponIssued"),
             value: couponStats.totalIssued,
             color: "text-blue-600",
             bg: "bg-blue-50",
           },
           {
-            label: "Использовано",
+            label: t("couponUsed"),
             value: couponStats.totalUsed,
             color: "text-emerald-600",
             bg: "bg-emerald-50",
           },
           {
-            label: "Активных",
+            label: t("couponActive"),
             value: couponStats.activeRate + "%",
             color: "text-purple-600",
             bg: "bg-purple-50",
           },
           {
-            label: "Истекло",
+            label: t("couponExpired"),
             value: couponStats.totalExpired,
             color: "text-red-600",
             bg: "bg-red-50",
@@ -85,31 +87,31 @@ export function PromotionsCoupons({
       {/* Coupon generator */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Генератор купонов</CardTitle>
+          <CardTitle className="text-lg">{t("couponGenerator")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-2">
-                Префикс
+                {t("couponPrefix")}
               </label>
-              <Input placeholder="е.г. MORNING" />
+              <Input placeholder={t("couponPrefixPlaceholder")} />
             </div>
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-2">
-                Количество
+                {t("couponQuantity")}
               </label>
               <Input type="number" placeholder="100" defaultValue="100" />
             </div>
             <div className="flex items-end">
               <Button className="w-full gap-2 bg-espresso hover:bg-espresso-dark">
-                <Sparkles className="h-4 w-4" /> Сгенерировать
+                <Sparkles className="h-4 w-4" /> {t("couponGenerate")}
               </Button>
             </div>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-sm text-amber-900">
-              ✨ Будет создано 100 уникальных кодов формата:{" "}
+              {t("couponGenerateHint")}{" "}
               <code className="font-mono font-semibold">MORNING_XXXXXX</code>
             </p>
           </div>
@@ -120,9 +122,9 @@ export function PromotionsCoupons({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Список купонов</CardTitle>
+            <CardTitle className="text-lg">{t("couponList")}</CardTitle>
             <Button variant="outline" size="sm" className="gap-1">
-              <Download className="h-3.5 w-3.5" /> Экспорт
+              <Download className="h-3.5 w-3.5" /> {t("export")}
             </Button>
           </div>
         </CardHeader>
@@ -141,12 +143,12 @@ export function PromotionsCoupons({
                 }`}
               >
                 {f === "all"
-                  ? "Все"
+                  ? t("couponFilterAll")
                   : f === "active"
-                    ? "Активные"
+                    ? t("couponFilterActive")
                     : f === "used"
-                      ? "Использованные"
-                      : "Истекшие"}
+                      ? t("couponFilterUsed")
+                      : t("couponFilterExpired")}
               </Button>
             ))}
           </div>
@@ -156,19 +158,19 @@ export function PromotionsCoupons({
               <TableHeader>
                 <TableRow className="border-b border-espresso/10">
                   <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
-                    Код
+                    {t("couponColCode")}
                   </TableHead>
                   <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
-                    Статус
+                    {t("couponColStatus")}
                   </TableHead>
                   <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
-                    Создан
+                    {t("couponColCreated")}
                   </TableHead>
                   <TableHead className="text-left py-3 px-4 font-semibold text-espresso-dark">
-                    Использован
+                    {t("couponColUsed")}
                   </TableHead>
                   <TableHead className="text-right py-3 px-4 font-semibold text-espresso-dark">
-                    Действия
+                    {t("couponColActions")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -185,13 +187,17 @@ export function PromotionsCoupons({
                     </TableCell>
                     <TableCell className="py-3 px-4">
                       {coupon.status === "active" && (
-                        <Badge variant="success">Активен</Badge>
+                        <Badge variant="success">
+                          {t("couponStatusActive")}
+                        </Badge>
                       )}
                       {coupon.status === "used" && (
-                        <Badge variant="default">Использован</Badge>
+                        <Badge variant="default">{t("couponStatusUsed")}</Badge>
                       )}
                       {coupon.status === "expired" && (
-                        <Badge variant="outline">Истёк</Badge>
+                        <Badge variant="outline">
+                          {t("couponStatusExpired")}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-espresso-light text-xs">
@@ -202,7 +208,7 @@ export function PromotionsCoupons({
                     </TableCell>
                     <TableCell className="py-3 px-4 text-right">
                       <Button variant="ghost" size="sm" className="gap-1">
-                        <Copy className="h-3.5 w-3.5" /> Скопировать
+                        <Copy className="h-3.5 w-3.5" /> {t("couponCopy")}
                       </Button>
                     </TableCell>
                   </TableRow>

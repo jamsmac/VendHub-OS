@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   useTeamMembers,
   useActivityLog,
@@ -32,6 +33,7 @@ import type {
 } from "./components/types";
 
 export default function TeamPage() {
+  const t = useTranslations("team");
   const [activeTab, setActiveTab] = useState("members");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -75,7 +77,7 @@ export default function TeamPage() {
         };
         return {
           id: user.id || "",
-          name: user.full_name || user.email || "Без имени",
+          name: user.full_name || user.email || t("unnamed"),
           email: user.email || null,
           phone: user.phone || null,
           avatar: (user.full_name || "??")
@@ -85,7 +87,7 @@ export default function TeamPage() {
             .slice(0, 2),
           role: (user.role || "viewer") as UserRole,
           department: "operations",
-          position: user.role ? `${user.role} role` : "Сотрудник",
+          position: user.role ? `${user.role} role` : t("employee"),
           status: (user.is_active ? "active" : "inactive") as
             | "active"
             | "inactive"
@@ -119,7 +121,7 @@ export default function TeamPage() {
         return {
           id: activity.id || 0,
           userId: 0,
-          userName: activity.user_name || "Система",
+          userName: activity.user_name || t("system"),
           action: (activity.action || "edit") as
             | "edit"
             | "create"
@@ -207,37 +209,37 @@ export default function TeamPage() {
             value="members"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            Сотрудники
+            {t("tabMembers")}
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            Аналитика
+            {t("tabAnalytics")}
           </TabsTrigger>
           <TabsTrigger
             value="schedule"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            Расписание
+            {t("tabSchedule")}
           </TabsTrigger>
           <TabsTrigger
             value="salary"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            Зарплата
+            {t("tabSalary")}
           </TabsTrigger>
           <TabsTrigger
             value="roles"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            Роли & права
+            {t("tabRoles")}
           </TabsTrigger>
           <TabsTrigger
             value="activity"
             className="rounded data-[state=active]:bg-espresso data-[state=active]:text-white"
           >
-            История
+            {t("tabHistory")}
           </TabsTrigger>
         </TabsList>
 

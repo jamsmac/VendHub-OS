@@ -11,6 +11,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { StatusBadge } from "./StatusBadge";
 import { fmt } from "./config";
 import { ReconciliationItem } from "./types";
@@ -28,12 +29,15 @@ export function ReconciliationTab({
   discrepancyCount,
   totalDifference,
 }: ReconciliationTabProps) {
+  const t = useTranslations("finance");
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Всего проверок</p>
+            <p className="text-xs text-espresso-light">
+              {t("reconTotalChecks")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-espresso-dark">
               {reconciliationItems.length}
             </p>
@@ -41,7 +45,7 @@ export function ReconciliationTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Сверено</p>
+            <p className="text-xs text-espresso-light">{t("reconMatched")}</p>
             <p className="mt-1 text-2xl font-bold text-emerald-600">
               {matchedCount}
             </p>
@@ -49,7 +53,9 @@ export function ReconciliationTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Расхождения</p>
+            <p className="text-xs text-espresso-light">
+              {t("reconDiscrepancies")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-red-500">
               {discrepancyCount}
             </p>
@@ -57,7 +63,9 @@ export function ReconciliationTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Разница</p>
+            <p className="text-xs text-espresso-light">
+              {t("reconDifference")}
+            </p>
             <p
               className={`mt-1 text-2xl font-bold ${totalDifference < 0 ? "text-red-500" : "text-emerald-600"}`}
             >
@@ -71,13 +79,13 @@ export function ReconciliationTab({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Сверка данных</CardTitle>
+            <CardTitle className="text-lg">{t("reconTitle")}</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2">
-                <RefreshCw className="h-4 w-4" /> Обновить
+                <RefreshCw className="h-4 w-4" /> {t("reconRefresh")}
               </Button>
               <Button className="gap-2 bg-espresso hover:bg-espresso-dark">
-                <Scale className="h-4 w-4" /> Новая сверка
+                <Scale className="h-4 w-4" /> {t("reconNew")}
               </Button>
             </div>
           </div>
@@ -88,17 +96,17 @@ export function ReconciliationTab({
               <TableHeader>
                 <TableRow className="border-b border-espresso/10">
                   {[
-                    "#",
-                    "Источник",
-                    "Дата",
-                    "В системе",
-                    "Фактически",
-                    "Разница",
-                    "Статус",
-                  ].map((h) => (
+                    t("reconColId"),
+                    t("reconColSource"),
+                    t("reconColDate"),
+                    t("reconColSystem"),
+                    t("reconColActual"),
+                    t("reconColDifference"),
+                    t("reconColStatus"),
+                  ].map((h, i) => (
                     <TableHead
                       key={h}
-                      className={`px-4 py-3 text-xs font-medium text-espresso-light ${["В системе", "Фактически", "Разница"].includes(h) ? "text-right" : "text-left"}`}
+                      className={`px-4 py-3 text-xs font-medium text-espresso-light ${i >= 3 && i <= 5 ? "text-right" : "text-left"}`}
                     >
                       {h}
                     </TableHead>

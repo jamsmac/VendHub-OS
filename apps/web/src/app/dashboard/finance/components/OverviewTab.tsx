@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   TrendingUp,
   TrendingDown,
@@ -73,12 +74,13 @@ export function OverviewTab({
   profitTrend,
   fiscalData,
 }: OverviewTabProps) {
+  const t = useTranslations("finance");
   return (
     <>
       {/* KPI 6 cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KPICard
-          label="Выручка"
+          label={t("kpiRevenue")}
           value={financialSummary.totalRevenue}
           change={financialSummary.revenueGrowth}
           icon={TrendingUp}
@@ -86,7 +88,7 @@ export function OverviewTab({
           iconColor="text-emerald-600"
         />
         <KPICard
-          label="Расходы"
+          label={t("kpiExpenses")}
           value={financialSummary.totalExpenses}
           change={financialSummary.expenseGrowth}
           icon={TrendingDown}
@@ -94,7 +96,7 @@ export function OverviewTab({
           iconColor="text-red-500"
         />
         <KPICard
-          label="Чистая прибыль"
+          label={t("kpiNetProfit")}
           value={financialSummary.netProfit}
           change={financialSummary.profitMargin}
           icon={Wallet}
@@ -103,21 +105,21 @@ export function OverviewTab({
           suffix="% margin"
         />
         <KPICard
-          label="Ожидают"
+          label={t("kpiPending")}
           value={financialSummary.pendingPayments}
           icon={Clock}
           bg="bg-amber-50"
           iconColor="text-amber-600"
         />
         <KPICard
-          label="Касса"
+          label={t("kpiCashOnHand")}
           value={financialSummary.cashOnHand}
           icon={Banknote}
           bg="bg-blue-50"
           iconColor="text-blue-600"
         />
         <KPICard
-          label="Дебиторка"
+          label={t("kpiReceivables")}
           value={financialSummary.accountsReceivable}
           icon={Receipt}
           bg="bg-purple-50"
@@ -130,7 +132,9 @@ export function OverviewTab({
         {/* Income/Expense bar chart */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Доходы и расходы</CardTitle>
+            <CardTitle className="text-lg">
+              {t("chartIncomeExpenses")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
@@ -145,13 +149,13 @@ export function OverviewTab({
                 <Tooltip formatter={(v: number) => [`${fmt(v)} UZS`]} />
                 <Bar
                   dataKey="income"
-                  name="Доход"
+                  name={t("chartIncome")}
                   fill="#10b981"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="expense"
-                  name="Расход"
+                  name={t("chartExpense")}
                   fill="#f59e0b"
                   radius={[4, 4, 0, 0]}
                 />
@@ -163,7 +167,9 @@ export function OverviewTab({
         {/* Expense pie + channels */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Структура расходов</CardTitle>
+            <CardTitle className="text-lg">
+              {t("chartExpenseStructure")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={160}>
@@ -212,7 +218,7 @@ export function OverviewTab({
       {/* Profit trend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Тренд прибыли (6 мес)</CardTitle>
+          <CardTitle className="text-lg">{t("chartProfitTrend")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -228,7 +234,7 @@ export function OverviewTab({
               <Line
                 type="monotone"
                 dataKey="revenue"
-                name="Выручка"
+                name={t("chartRevenue")}
                 stroke="#10b981"
                 strokeWidth={2}
                 dot={{ r: 3 }}
@@ -236,7 +242,7 @@ export function OverviewTab({
               <Line
                 type="monotone"
                 dataKey="expenses"
-                name="Расходы"
+                name={t("chartExpenses")}
                 stroke="#ef4444"
                 strokeWidth={2}
                 dot={{ r: 3 }}
@@ -244,7 +250,7 @@ export function OverviewTab({
               <Line
                 type="monotone"
                 dataKey="profit"
-                name="Прибыль"
+                name={t("chartProfit")}
                 stroke="#f59e0b"
                 strokeWidth={2.5}
                 dot={{ r: 4 }}
@@ -257,19 +263,19 @@ export function OverviewTab({
       {/* Unit economics */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Юнит-экономика</CardTitle>
+          <CardTitle className="text-lg">{t("unitEconomics")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                label: "Выручка на автомат",
+                label: t("revenuePerMachine"),
                 value: 52_953_000,
-                subtext: "в месяц (16 машин)",
+                subtext: t("perMonthMachines"),
               },
-              { label: "Стоимость товара", value: 8_936, subtext: "на чашку" },
-              { label: "Средний чек", value: 19_600, subtext: "UZS" },
-              { label: "Прибыль на сделку", value: 12_340, subtext: "UZS" },
+              { label: t("costPerItem"), value: 8_936, subtext: t("perCup") },
+              { label: t("avgReceipt"), value: 19_600, subtext: "UZS" },
+              { label: t("profitPerDeal"), value: 12_340, subtext: "UZS" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -292,32 +298,37 @@ export function OverviewTab({
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-espresso" /> Фискализация —{" "}
+            <Receipt className="h-5 w-5 text-espresso" /> {t("fiscOverview")} —{" "}
             {fiscalData.provider}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
-              { label: "Терминал", value: fiscalData.terminalId },
+              { label: t("fiscTerminal"), value: fiscalData.terminalId },
               {
-                label: "Статус",
+                label: t("fiscStatusLabel"),
                 value:
-                  fiscalData.status === "active" ? "🟢 Активен" : "🔴 Офлайн",
+                  fiscalData.status === "active"
+                    ? "🟢 " + t("fiscStatusActive")
+                    : "🔴 " + t("fiscStatusOffline"),
               },
               {
-                label: "Чеков сегодня",
+                label: t("fiscReceiptsToday"),
                 value: String(fiscalData.todayReceipts),
               },
               {
-                label: "Сумма сегодня",
+                label: t("fiscAmountToday"),
                 value: `${fmtShort(fiscalData.todayAmount)} UZS`,
               },
-              { label: "Последний чек", value: fiscalData.lastReceipt },
-              { label: "Синхронизация", value: "🟢 Синхронизировано" },
-              { label: "Чеков за месяц", value: fmt(fiscalData.monthReceipts) },
+              { label: t("fiscLastReceipt"), value: fiscalData.lastReceipt },
+              { label: t("fiscSyncStatus"), value: "🟢 " + t("fiscSynced") },
               {
-                label: "Оборот за месяц",
+                label: t("fiscMonthReceipts"),
+                value: fmt(fiscalData.monthReceipts),
+              },
+              {
+                label: t("fiscMonthTurnover"),
                 value: `${fmtShort(fiscalData.monthAmount)} UZS`,
               },
             ].map((item) => (

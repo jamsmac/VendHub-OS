@@ -20,6 +20,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { useTranslations } from "next-intl";
 import { fmt } from "./config";
 
 interface PNLTabProps {
@@ -39,11 +40,12 @@ interface PNLTabProps {
 }
 
 export function PNLTab({ pAndLData }: PNLTabProps) {
+  const t = useTranslations("finance");
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Прибыль и убытки (P&L)</CardTitle>
+          <CardTitle className="text-lg">{t("pnlTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -51,7 +53,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
               <TableHeader>
                 <TableRow className="border-b border-espresso/10">
                   <TableHead className="px-4 py-3 text-left font-medium text-espresso-dark">
-                    Показатель
+                    {t("pnlIndicator")}
                   </TableHead>
                   {pAndLData.map((p) => (
                     <TableHead
@@ -65,33 +67,37 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
               </TableHeader>
               <TableBody>
                 {[
-                  { key: "revenue", label: "Выручка", format: "currency" },
-                  { key: "cogs", label: "Себестоимость", format: "currency" },
+                  {
+                    key: "revenue",
+                    label: t("pnlRevenue"),
+                    format: "currency",
+                  },
+                  { key: "cogs", label: t("pnlCogs"), format: "currency" },
                   {
                     key: "grossProfit",
-                    label: "Валовая прибыль",
+                    label: t("pnlGrossProfit"),
                     format: "currency",
                     bold: true,
                   },
                   {
                     key: "opex",
-                    label: "Операционные расходы",
+                    label: t("pnlOpex"),
                     format: "currency",
                   },
                   {
                     key: "ebitda",
-                    label: "EBITDA",
+                    label: t("pnlEbitda"),
                     format: "currency",
                     bold: true,
                   },
                   {
                     key: "depreciation",
-                    label: "Амортизация",
+                    label: t("pnlDepreciation"),
                     format: "currency",
                   },
                   {
                     key: "netProfit",
-                    label: "Чистая прибыль",
+                    label: t("pnlNetProfit"),
                     format: "currency",
                     bold: true,
                   },
@@ -128,7 +134,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Маржинальность (%)</CardTitle>
+            <CardTitle className="text-lg">{t("pnlMargin")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -140,7 +146,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
                 <Line
                   type="monotone"
                   dataKey="margin"
-                  name="Маржа %"
+                  name={t("pnlMarginLabel")}
                   stroke="#f59e0b"
                   strokeWidth={2.5}
                   dot={{ r: 4 }}
@@ -152,7 +158,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Динамика изменений</CardTitle>
+            <CardTitle className="text-lg">{t("pnlDynamics")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -163,7 +169,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
                       {p.month}
                     </span>
                     <span className="text-xs text-espresso-light">
-                      MoM / YoY
+                      {t("pnlMomYoy")}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -202,9 +208,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
       {/* P&L Trend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            Тренд P&L (выручка, расходы, прибыль)
-          </CardTitle>
+          <CardTitle className="text-lg">{t("pnlTrend")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -220,7 +224,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
               <Area
                 type="monotone"
                 dataKey="revenue"
-                name="Выручка"
+                name={t("pnlRevenue")}
                 fill="#10b981"
                 stroke="#10b981"
                 strokeWidth={2}
@@ -228,7 +232,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
               <Area
                 type="monotone"
                 dataKey="cogs"
-                name="Себестоимость"
+                name={t("pnlCogs")}
                 fill="#f59e0b"
                 stroke="#f59e0b"
                 strokeWidth={2}
@@ -236,7 +240,7 @@ export function PNLTab({ pAndLData }: PNLTabProps) {
               <Area
                 type="monotone"
                 dataKey="netProfit"
-                name="Чистая прибыль"
+                name={t("pnlNetProfit")}
                 fill="#3b82f6"
                 stroke="#3b82f6"
                 strokeWidth={2}

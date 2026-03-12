@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   CheckCircle2,
   Clock,
@@ -32,6 +33,7 @@ export function PromotionsWizard({
   onCreatePromotion,
   onCancel,
 }: PromotionsWizardProps) {
+  const t = useTranslations("promotions");
   const [wizardStep, setWizardStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [wizardForm, setWizardForm] = useState<WizardForm>({
@@ -71,7 +73,7 @@ export function PromotionsWizard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Создание новой акции</CardTitle>
+        <CardTitle className="text-lg">{t("wizardTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         {/* Step indicators */}
@@ -108,33 +110,33 @@ export function PromotionsWizard({
         {wizardStep === 1 && (
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-espresso-dark mb-4">
-              Выберите тип акции
+              {t("wizardSelectType")}
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
                 {
                   type: "discount",
-                  label: "Скидка",
+                  label: t("wizardTypeDiscount"),
                   icon: Percent,
-                  description: "Процент или фиксированная сумма",
+                  description: t("wizardTypeDiscountDesc"),
                 },
                 {
                   type: "bundle",
-                  label: "Комбо",
+                  label: t("wizardTypeBundle"),
                   icon: Gift,
-                  description: "Несколько товаров по цене одного",
+                  description: t("wizardTypeBundleDesc"),
                 },
                 {
                   type: "happy_hour",
-                  label: "Happy Hour",
+                  label: t("wizardTypeHappyHour"),
                   icon: Clock,
-                  description: "Специальная цена в определённое время",
+                  description: t("wizardTypeHappyHourDesc"),
                 },
                 {
                   type: "seasonal",
-                  label: "Сезонная",
+                  label: t("wizardTypeSeasonal"),
                   icon: Sparkles,
-                  description: "К празднику или событию",
+                  description: t("wizardTypeSeasonalDesc"),
                 },
               ].map((item) => {
                 const Icon = item.icon;
@@ -175,14 +177,14 @@ export function PromotionsWizard({
         {wizardStep === 2 && (
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-espresso-dark mb-4">
-              Конфигурация
+              {t("wizardConfig")}
             </h3>
             <div>
               <label className="block text-sm font-medium text-espresso-dark mb-2">
-                Название
+                {t("wizardName")}
               </label>
               <Input
-                placeholder="е.г. Утренняя скидка 20%"
+                placeholder={t("wizardNamePlaceholder")}
                 value={wizardForm.title}
                 onChange={(e) =>
                   setWizardForm({ ...wizardForm, title: e.target.value })
@@ -192,7 +194,7 @@ export function PromotionsWizard({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-espresso-dark mb-2">
-                  Скидка (%)
+                  {t("wizardDiscount")}
                 </label>
                 <Input
                   type="number"
@@ -208,7 +210,7 @@ export function PromotionsWizard({
               </div>
               <div>
                 <label className="block text-sm font-medium text-espresso-dark mb-2">
-                  Мин. сумма заказа
+                  {t("wizardMinOrder")}
                 </label>
                 <Input
                   type="number"
@@ -226,7 +228,7 @@ export function PromotionsWizard({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-espresso-dark mb-2">
-                  Макс. использований
+                  {t("wizardMaxUsage")}
                 </label>
                 <Input
                   type="number"
@@ -242,7 +244,7 @@ export function PromotionsWizard({
               </div>
               <div>
                 <label className="block text-sm font-medium text-espresso-dark mb-2">
-                  Срок действия
+                  {t("wizardValidity")}
                 </label>
                 <Input
                   type="date"
@@ -260,13 +262,13 @@ export function PromotionsWizard({
         {wizardStep === 3 && (
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-espresso-dark mb-4">
-              Таргетирование
+              {t("wizardTargeting")}
             </h3>
             <div className="space-y-3">
               {[
-                { label: "Все пользователи", value: "all" },
-                { label: "По уровню лояльности", value: "level" },
-                { label: "По сегменту", value: "segment" },
+                { label: t("wizardTargetAll"), value: "all" },
+                { label: t("wizardTargetLevel"), value: "level" },
+                { label: t("wizardTargetSegment"), value: "segment" },
               ].map((option) => (
                 <label
                   key={option.value}
@@ -298,7 +300,7 @@ export function PromotionsWizard({
         {wizardStep === 4 && (
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-espresso-dark mb-4">
-              Превью
+              {t("wizardPreview")}
             </h3>
             <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl p-6 text-white">
               <p className="text-sm font-bold uppercase tracking-wider opacity-80">
@@ -322,11 +324,11 @@ export function PromotionsWizard({
             onClick={() => setWizardStep(Math.max(1, wizardStep - 1))}
             disabled={wizardStep === 1}
           >
-            Назад
+            {t("wizardBack")}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onCancel}>
-              Отмена
+              {t("wizardCancel")}
             </Button>
             {wizardStep === 4 ? (
               <Button
@@ -334,14 +336,14 @@ export function PromotionsWizard({
                 onClick={handleCreate}
                 disabled={isLoading || !wizardForm.title}
               >
-                <Plus className="h-4 w-4" /> Создать акцию
+                <Plus className="h-4 w-4" /> {t("wizardCreate")}
               </Button>
             ) : (
               <Button
                 className="gap-2 bg-espresso hover:bg-espresso-dark"
                 onClick={() => setWizardStep(wizardStep + 1)}
               >
-                Далее
+                {t("wizardNext")}
               </Button>
             )}
           </div>

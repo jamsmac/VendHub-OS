@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,8 @@ interface InviteModalProps {
 }
 
 export function InviteModal({ open, onClose }: InviteModalProps) {
+  const t = useTranslations("team");
+
   if (!open) return null;
 
   return (
@@ -23,7 +26,7 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-espresso-dark mb-4">
-          Пригласить сотрудника
+          {t("inviteTitle")}
         </h3>
         <div className="space-y-4">
           <div>
@@ -34,7 +37,7 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Роль
+              {t("inviteRole")}
             </label>
             <select className="w-full rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso">
               {Object.entries(ROLE_META)
@@ -48,7 +51,7 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Зона
+              {t("inviteZone")}
             </label>
             <select className="w-full rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso">
               {ZONES.map((z) => (
@@ -60,7 +63,7 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Отдел
+              {t("inviteDept")}
             </label>
             <select className="w-full rounded-lg border border-espresso/20 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-espresso">
               {DEPARTMENTS.map((d) => (
@@ -72,13 +75,13 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Должность
+              {t("invitePosition")}
             </label>
             <Input placeholder="Оператор" />
           </div>
           <div className="p-3 rounded-lg bg-espresso-50/50 dark:bg-gray-800/50">
             <p className="text-xs text-espresso-light mb-1">
-              Ссылка-приглашение
+              {t("inviteLink")}
             </p>
             <div className="flex items-center gap-2">
               <code className="text-xs text-espresso-dark flex-1 truncate">
@@ -92,11 +95,11 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
         </div>
         <div className="flex gap-3 mt-6">
           <Button variant="outline" className="flex-1" onClick={onClose}>
-            Отмена
+            {t("inviteCancel")}
           </Button>
           <Button className="flex-1 bg-espresso hover:bg-espresso-dark gap-2">
             <Send className="h-4 w-4" />
-            Отправить
+            {t("inviteSend")}
           </Button>
         </div>
       </div>

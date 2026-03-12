@@ -11,47 +11,50 @@ import {
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export function ReportsTab() {
+  const t = useTranslations("finance");
+
   const reports = [
     {
-      title: "P&L (Прибыль/Убыток)",
-      desc: "Ежемесячный отчёт прибылей и убытков",
+      title: t("repPnlTitle"),
+      desc: t("repPnlDesc"),
       icon: TrendingUp,
       color: "bg-emerald-50 text-emerald-600",
       format: "XLSX / PDF",
     },
     {
-      title: "Cash Flow",
-      desc: "Движение денежных средств за период",
+      title: t("repCashFlowTitle"),
+      desc: t("repCashFlowDesc"),
       icon: ArrowLeftRight,
       color: "bg-blue-50 text-blue-600",
       format: "XLSX / PDF",
     },
     {
-      title: "Дебиторская задолженность",
-      desc: "Aging report — просрочки по контрагентам",
+      title: t("repReceivablesTitle"),
+      desc: t("repReceivablesDesc"),
       icon: Clock,
       color: "bg-amber-50 text-amber-600",
       format: "XLSX",
     },
     {
-      title: "Налоговая отчётность",
-      desc: "НДС, налог на прибыль, ЕНП",
+      title: t("repTaxTitle"),
+      desc: t("repTaxDesc"),
       icon: Building,
       color: "bg-purple-50 text-purple-600",
       format: "XML / PDF",
     },
     {
-      title: "Фискальный отчёт",
-      desc: "Отчёт по чекам Multikassa",
+      title: t("repFiscalTitle"),
+      desc: t("repFiscalDesc"),
       icon: Receipt,
       color: "bg-cyan-50 text-cyan-600",
       format: "XLSX / PDF",
     },
     {
-      title: "Сверка платёжных систем",
-      desc: "Payme, Click, Uzum — ежедневный реконсайл",
+      title: t("repPayReconciliation"),
+      desc: t("repPayReconciliationDesc"),
       icon: Scale,
       color: "bg-red-50 text-red-500",
       format: "XLSX",
@@ -85,7 +88,7 @@ export function ReportsTab() {
                         {report.format}
                       </span>
                       <Button variant="outline" size="sm" className="gap-1">
-                        <Download className="h-3.5 w-3.5" /> Скачать
+                        <Download className="h-3.5 w-3.5" /> {t("repDownload")}
                       </Button>
                     </div>
                   </div>
@@ -99,32 +102,32 @@ export function ReportsTab() {
       {/* Quick report settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Автоматические отчёты</CardTitle>
+          <CardTitle className="text-lg">{t("repAutoReports")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[
               {
-                name: "Ежедневная сводка",
-                schedule: "Каждый день в 09:00",
+                name: t("repDailySummary"),
+                schedule: t("repDailySchedule"),
                 recipients: "owner@vendhub.uz",
                 enabled: true,
               },
               {
-                name: "Еженедельный P&L",
-                schedule: "Каждый понедельник в 10:00",
+                name: t("repWeeklyPnl"),
+                schedule: t("repWeeklySchedule"),
                 recipients: "cfo@vendhub.uz",
                 enabled: true,
               },
               {
-                name: "Месячный отчёт",
-                schedule: "1-го числа каждого месяца",
+                name: t("repMonthlyReport"),
+                schedule: t("repMonthlySchedule"),
                 recipients: "team@vendhub.uz",
                 enabled: true,
               },
               {
-                name: "Сверка платежей",
-                schedule: "Каждый день в 23:00",
+                name: t("repPayReconciliationReport"),
+                schedule: t("repPayReconciliationSchedule"),
                 recipients: "finance@vendhub.uz",
                 enabled: false,
               },
@@ -147,7 +150,7 @@ export function ReportsTab() {
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
-                  Настроить
+                  {t("repConfigure")}
                 </Button>
               </div>
             ))}

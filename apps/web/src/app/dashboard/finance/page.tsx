@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+import {
+  Download,
+  Plus,
+  PieChart,
+  TrendingUp,
+  ArrowLeftRight,
+  FileText,
+  CreditCard,
+  Scale,
+  Receipt,
+  Wallet,
+  BarChart3,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   useFinanceTransactions,
@@ -11,10 +24,8 @@ import {
   useUpdateFinanceTransaction,
   useDeleteFinanceTransaction,
 } from "@/lib/hooks";
-import type { Transaction } from "./components/types";
+import type { Transaction, Tab } from "./components/types";
 import {
-  tabs,
-  dateRanges,
   TabNavigation,
   DateRangeFilter,
   OverviewTab,
@@ -588,12 +599,34 @@ const budgetData = [
 // ═══ Main Page ═══
 
 export default function FinancePage() {
+  const t = useTranslations("finance");
   const { data: dbTransactions } = useFinanceTransactions();
   const { data: dbFinStats } = useFinanceStats();
   const { data: dbDailyRevenue } = useDailyRevenue(7);
   const createTransaction = useCreateFinanceTransaction();
   const _updateTransaction = useUpdateFinanceTransaction();
   const _deleteTransaction = useDeleteFinanceTransaction();
+
+  const localTabs: Tab[] = [
+    { id: "overview", label: t("tabOverview"), icon: PieChart },
+    { id: "pnl", label: t("tabPnl"), icon: TrendingUp },
+    { id: "cashflow", label: t("tabCashflow"), icon: ArrowLeftRight },
+    { id: "transactions", label: t("tabTransactions"), icon: ArrowLeftRight },
+    { id: "invoices", label: t("tabInvoices"), icon: FileText },
+    { id: "payments", label: t("tabPayments"), icon: CreditCard },
+    { id: "reconciliation", label: t("tabReconciliation"), icon: Scale },
+    { id: "fiscalization", label: t("tabFiscalization"), icon: Receipt },
+    { id: "budget", label: t("tabBudget"), icon: Wallet },
+    { id: "reports", label: t("tabReports"), icon: BarChart3 },
+  ];
+
+  const localDateRanges = [
+    t("rangeToday"),
+    t("rangeWeek"),
+    t("rangeMonth"),
+    t("rangeQuarter"),
+    t("rangeYear"),
+  ];
 
   // Wire API data into overview cards (fall back to mock when API not available)
   const liveFinancialSummary = dbFinStats
@@ -665,7 +698,7 @@ export default function FinancePage() {
     : transactions;
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [activeRange, setActiveRange] = useState("Месяц");
+  const [activeRange, setActiveRange] = useState(t("rangeMonth"));
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [txPage, setTxPage] = useState(1);
@@ -775,16 +808,14 @@ export default function FinancePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-espresso-dark font-display">
-            Финансы
+            {t("title")}
           </h1>
-          <p className="mt-1 text-sm text-espresso-light">
-            Выручка, платежи, сверки, Multikassa, P&L, Cash Flow
-          </p>
+          <p className="mt-1 text-sm text-espresso-light">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
-            Экспорт
+            {t("export")}
           </Button>
           <Button
             className="gap-2 bg-espresso hover:bg-espresso-dark"
@@ -792,14 +823,16 @@ export default function FinancePage() {
             disabled={createTransaction.isPending}
           >
             <Plus className="h-4 w-4" />
-            {createTransaction.isPending ? "Создание..." : "Транзакция"}
+            {createTransaction.isPending
+              ? t("creatingTransaction")
+              : t("newTransaction")}
           </Button>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <TabNavigation
-        tabs={tabs}
+        tabs={localTabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
@@ -808,7 +841,7 @@ export default function FinancePage() {
       {activeTab === "overview" && (
         <>
           <DateRangeFilter
-            ranges={dateRanges}
+            ranges={localDateRanges}
             activeRange={activeRange}
             onRangeChange={setActiveRange}
           />

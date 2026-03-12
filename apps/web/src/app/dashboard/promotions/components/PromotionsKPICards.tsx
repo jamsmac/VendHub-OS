@@ -1,6 +1,7 @@
 "use client";
 
 import { BarChart3, Tag, TrendingUp, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Promotion } from "./types";
 
@@ -15,6 +16,7 @@ const fmtShort = (n: number) => {
 };
 
 export function PromotionsKPICards({ promotions }: PromotionsKPICardsProps) {
+  const t = useTranslations("promotions");
   const totalActive = promotions.filter((p) => p.isActive).length;
   const totalUsage = promotions.reduce((s, p) => s + p.usageCount, 0);
   const totalRevenue = promotions.reduce((s, p) => s + p.revenueImpact, 0);
@@ -22,36 +24,36 @@ export function PromotionsKPICards({ promotions }: PromotionsKPICardsProps) {
 
   const kpis = [
     {
-      label: "Всего акций",
+      label: t("kpiTotal"),
       value: promotions.length,
-      sub: `${totalActive} активных`,
+      sub: t("kpiActiveCount", { count: totalActive }),
       icon: Tag,
       bg: "bg-caramel/10",
       iconColor: "text-caramel-dark",
     },
     {
-      label: "Использований",
+      label: t("kpiUsage"),
       value: totalUsage,
-      sub: `${totalUniqueUsers} уник. польз.`,
+      sub: t("kpiUniqueUsers", { count: totalUniqueUsers }),
       icon: Users,
       bg: "bg-blue-50",
       iconColor: "text-blue-600",
     },
     {
-      label: "Влияние на выручку",
+      label: t("kpiRevenueImpact"),
       value: `${fmtShort(totalRevenue)}`,
-      sub: "за текущий период",
+      sub: t("kpiCurrentPeriod"),
       icon: TrendingUp,
       bg: "bg-emerald-50",
       iconColor: "text-emerald-600",
     },
     {
-      label: "Конверсия",
+      label: t("kpiConversion"),
       value:
         totalUsage > 0
           ? `${((totalUniqueUsers / totalUsage) * 100).toFixed(1)}%`
           : "0%",
-      sub: "уники / использования",
+      sub: t("kpiConversionSub"),
       icon: BarChart3,
       bg: "bg-purple-50",
       iconColor: "text-purple-600",

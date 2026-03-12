@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -59,6 +60,7 @@ interface PromotionsAnalyticsProps {
 // fmt is now imported as formatNumber from "@/lib/utils"
 
 export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
+  const t = useTranslations("promotions");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<
     "overview" | "roi" | "toppromos"
   >("overview");
@@ -68,9 +70,9 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
       {/* Analytics sub-tabs */}
       <div className="flex gap-2 border-b border-espresso/10 pb-1">
         {[
-          { id: "overview" as const, label: "Обзор" },
-          { id: "roi" as const, label: "ROI и эффективность" },
-          { id: "toppromos" as const, label: "Топ акции" },
+          { id: "overview" as const, label: t("analyticsOverview") },
+          { id: "roi" as const, label: t("analyticsROI") },
+          { id: "toppromos" as const, label: t("analyticsTopPromos") },
         ].map((tab) => (
           <Button
             key={tab.id}
@@ -93,9 +95,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Использование акций за 30 дней
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartUsage30d")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -107,7 +107,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <Area
                     type="monotone"
                     dataKey="uses"
-                    name="Использований"
+                    name={t("chartUsagesLabel")}
                     stroke="#f59e0b"
                     fill="#f59e0b"
                     fillOpacity={0.2}
@@ -119,9 +119,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Выручка: с акциями vs без акций
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartRevenueVs")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -137,13 +135,13 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <Legend />
                   <Bar
                     dataKey="withPromo"
-                    name="С акциями"
+                    name={t("chartWithPromo")}
                     fill="#10b981"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="withoutPromo"
-                    name="Без акций"
+                    name={t("chartWithoutPromo")}
                     fill="#ef4444"
                     radius={[4, 4, 0, 0]}
                   />
@@ -155,7 +153,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                Конверсия по типам акций
+                {t("chartConversionByType")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -182,9 +180,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Использование акций по дням недели
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartUsageByDay")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -195,7 +191,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <Tooltip />
                   <Bar
                     dataKey="uses"
-                    name="Использований"
+                    name={t("chartUsagesLabel")}
                     fill="#f59e0b"
                     radius={[4, 4, 0, 0]}
                   />
@@ -208,28 +204,28 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                label: "Выдано кодов",
+                label: t("codeStatsIssued"),
                 value: data.couponStats.totalIssued,
                 icon: Code2,
                 color: "text-blue-600",
                 bg: "bg-blue-50",
               },
               {
-                label: "Использовано",
+                label: t("codeStatsUsed"),
                 value: data.couponStats.totalUsed,
                 icon: CheckCheck,
                 color: "text-emerald-600",
                 bg: "bg-emerald-50",
               },
               {
-                label: "Истекло",
+                label: t("codeStatsExpired"),
                 value: data.couponStats.totalExpired,
                 icon: AlertTriangle,
                 color: "text-amber-600",
                 bg: "bg-amber-50",
               },
               {
-                label: "Активных",
+                label: t("codeStatsActive"),
                 value: `${data.couponStats.activeRate}%`,
                 icon: ZapIcon,
                 color: "text-purple-600",
@@ -262,9 +258,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           {/* Hourly heatmap */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Тепловая карта использования по часам (7 дней)
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartHeatmap")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -274,9 +268,17 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                     style={{ gridTemplateColumns: "auto repeat(7, 1fr)" }}
                   >
                     <div className="text-xs font-semibold text-espresso-dark text-right pr-2">
-                      Часы
+                      {t("chartHeatmapHours")}
                     </div>
-                    {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                    {[
+                      t("dayMon"),
+                      t("dayTue"),
+                      t("dayWed"),
+                      t("dayThu"),
+                      t("dayFri"),
+                      t("daySat"),
+                      t("daySun"),
+                    ].map((day) => (
                       <div
                         key={day}
                         className="text-xs font-semibold text-espresso-dark text-center"
@@ -334,12 +336,13 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           {/* Conversion funnel */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Воронка конверсии</CardTitle>
+              <CardTitle className="text-lg">{t("chartFunnel")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {data.conversionFunnelData.map((stage, idx) => {
-                  const isRevenue = stage.stage === "Выручка";
+                  const isRevenue =
+                    idx === data.conversionFunnelData.length - 1;
                   const width = stage.percentage;
                   const colors = [
                     "bg-blue-500",
@@ -388,9 +391,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                ROI и эффективность по акциям
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartROITitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -405,7 +406,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                           #{idx + 1} {promo.title}
                         </p>
                         <p className="text-xs text-espresso-light mt-0.5">
-                          {promo.usageCount} использований
+                          {promo.usageCount} {t("chartUsagesSuffix")}
                         </p>
                       </div>
                       <div className="text-right">
@@ -417,7 +418,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-espresso-light">
-                        Влияние на выручку:
+                        {t("chartRevenueImpact")}
                       </span>
                       <span className="font-semibold text-espresso-dark">
                         {formatNumber(promo.revenueImpact)} UZS
@@ -439,9 +440,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Влияние акций на выручку (6 месяцев)
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartRevenue6m")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -457,7 +456,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    name="Общая выручка"
+                    name={t("chartTotalRevenue")}
                     stroke="#f59e0b"
                     fill="#f59e0b"
                     fillOpacity={0.1}
@@ -465,7 +464,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   <Area
                     type="monotone"
                     dataKey="promos"
-                    name="От акций"
+                    name={t("chartFromPromos")}
                     stroke="#10b981"
                     fill="#10b981"
                     fillOpacity={0.2}
@@ -477,9 +476,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
-                Географическая производительность (Топ 5 районов)
-              </CardTitle>
+              <CardTitle className="text-lg">{t("chartGeoTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -498,7 +495,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                   />
                   <Bar
                     dataKey="usage"
-                    name="Использования"
+                    name={t("chartUsagesGeo")}
                     fill="#f59e0b"
                     radius={[0, 4, 4, 0]}
                   />
@@ -515,7 +512,7 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                Топ 5 самых эффективных акций по влиянию на выручку
+                {t("chartTopEffective")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -550,7 +547,9 @@ export function PromotionsAnalytics({ data }: PromotionsAnalyticsProps) {
                           />
                         </div>
                         <div className="mt-0.5 flex gap-4 text-[11px] text-espresso-light">
-                          <span>{promo.usageCount} исп.</span>
+                          <span>
+                            {promo.usageCount} {t("chartUsageSuffix")}
+                          </span>
                           <span>ROI: {promo.roi}%</span>
                         </div>
                       </div>

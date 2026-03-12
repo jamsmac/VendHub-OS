@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   BarChart,
   Bar,
@@ -29,6 +31,41 @@ import {
 } from "./constants";
 
 export function SalaryTab() {
+  const t = useTranslations("team");
+
+  const salaryRoleMap: Record<string, string> = {
+    Владелец: t("roleOwner"),
+    Администратор: t("roleAdmin"),
+    Менеджер: t("roleManager"),
+    Бухгалтер: t("roleAccountant"),
+    Оператор: t("roleOperator"),
+    Склад: t("roleWarehouse"),
+  };
+
+  const bonusMap: Record<string, string> = {
+    Премии: t("bonusPremium"),
+    "Бонусы производительности": t("bonusPerformance"),
+    Стимулы: t("bonusIncentives"),
+  };
+
+  const translatedSalaryByRole = useMemo(
+    () =>
+      SALARY_BY_ROLE.map((item) => ({
+        ...item,
+        role: salaryRoleMap[item.role] || item.role,
+      })),
+    [t],
+  );
+
+  const translatedBonusDistribution = useMemo(
+    () =>
+      BONUS_DISTRIBUTION.map((item) => ({
+        ...item,
+        name: bonusMap[item.name] || item.name,
+      })),
+    [t],
+  );
+
   const totalPayroll = SALARY_DATA.reduce(
     (s, e) => s + e.base + e.bonus - e.deductions,
     0,
@@ -43,7 +80,7 @@ export function SalaryTab() {
         <Card className="coffee-card">
           <CardContent className="p-4">
             <p className="text-xs text-espresso-light mb-1">
-              Общий фонд оплаты труда
+              {t("totalPayroll")}
             </p>
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(totalPayroll)}
@@ -53,7 +90,7 @@ export function SalaryTab() {
         </Card>
         <Card className="coffee-card">
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light mb-1">Средняя зарплата</p>
+            <p className="text-xs text-espresso-light mb-1">{t("avgSalary")}</p>
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(avgSalary)}
             </p>
@@ -64,7 +101,9 @@ export function SalaryTab() {
         </Card>
         <Card className="coffee-card">
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light mb-1">Всего премий</p>
+            <p className="text-xs text-espresso-light mb-1">
+              {t("totalBonuses")}
+            </p>
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(totalBonuses)}
             </p>
@@ -73,7 +112,9 @@ export function SalaryTab() {
         </Card>
         <Card className="coffee-card">
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light mb-1">Всего вычетов</p>
+            <p className="text-xs text-espresso-light mb-1">
+              {t("totalDeductions")}
+            </p>
             <p className="text-2xl font-bold text-red-600">
               {fmt(totalDeductions)}
             </p>
@@ -87,12 +128,12 @@ export function SalaryTab() {
         <Card className="coffee-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-espresso-dark">
-              Зарплата по ролям
+              {t("salaryByRole")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={SALARY_BY_ROLE}>
+              <BarChart data={translatedSalaryByRole}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d0" />
                 <XAxis
                   dataKey="role"
@@ -120,14 +161,14 @@ export function SalaryTab() {
         <Card className="coffee-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-espresso-dark">
-              Распределение стимулов
+              {t("incentiveDistribution")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={BONUS_DISTRIBUTION}
+                  data={translatedBonusDistribution}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -135,7 +176,7 @@ export function SalaryTab() {
                   outerRadius={100}
                   label
                 >
-                  {BONUS_DISTRIBUTION.map((entry, index) => (
+                  {translatedBonusDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
@@ -156,7 +197,7 @@ export function SalaryTab() {
       <Card className="coffee-card overflow-x-auto">
         <CardHeader className="pb-3">
           <CardTitle className="text-base text-espresso-dark">
-            Детализация зарплаты сотрудников
+            {t("salaryDetails")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -164,19 +205,19 @@ export function SalaryTab() {
             <TableHeader>
               <TableRow className="border-b border-espresso/10">
                 <TableHead className="text-left py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Сотрудник
+                  {t("employee")}
                 </TableHead>
                 <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Базовая
+                  {t("colBase")}
                 </TableHead>
                 <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Премия
+                  {t("colBonus")}
                 </TableHead>
                 <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Вычеты
+                  {t("colDeductions")}
                 </TableHead>
                 <TableHead className="text-right py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Итого к выплате
+                  {t("colNetPay")}
                 </TableHead>
               </TableRow>
             </TableHeader>

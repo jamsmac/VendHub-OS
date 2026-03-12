@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,12 +14,20 @@ import {
 import { SCHEDULE_DATA, SHIFT_TYPES } from "./constants";
 
 export function ScheduleTab() {
+  const t = useTranslations("team");
+
+  const shiftLabels: Record<string, string> = {
+    morning: t("shiftMorning"),
+    day: t("shiftDay"),
+    evening: t("shiftEvening"),
+  };
+
   return (
     <div className="space-y-4">
       <Card className="coffee-card overflow-x-auto">
         <CardHeader className="pb-3">
           <CardTitle className="text-base text-espresso-dark">
-            Еженедельное расписание
+            {t("weeklySchedule")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -26,9 +35,17 @@ export function ScheduleTab() {
             <TableHeader>
               <TableRow className="border-b-2 border-espresso/20">
                 <TableHead className="text-left py-2 px-3 text-xs font-semibold text-espresso-light whitespace-nowrap">
-                  Сотрудник
+                  {t("employee")}
                 </TableHead>
-                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                {[
+                  t("dayMon"),
+                  t("dayTue"),
+                  t("dayWed"),
+                  t("dayThu"),
+                  t("dayFri"),
+                  t("daySat"),
+                  t("daySun"),
+                ].map((day) => (
                   <TableHead
                     key={day}
                     className="text-center py-2 px-2 text-xs font-semibold text-espresso-light"
@@ -37,7 +54,7 @@ export function ScheduleTab() {
                   </TableHead>
                 ))}
                 <TableHead className="text-center py-2 px-3 text-xs font-semibold text-espresso-light">
-                  Часов/неделю
+                  {t("hoursPerWeek")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -62,7 +79,7 @@ export function ScheduleTab() {
                               variant="outline"
                               className={`text-[10px] ${shiftType.color}`}
                             >
-                              {shiftType.name}
+                              {shiftLabels[shiftType.id] || shiftType.name}
                             </Badge>
                           ) : (
                             <span className="text-[10px] text-espresso-light">
@@ -95,15 +112,15 @@ export function ScheduleTab() {
               <div
                 className={`inline-block px-3 py-1 rounded-lg ${shift.color} text-xs font-medium mb-2`}
               >
-                {shift.name}
+                {shiftLabels[shift.id] || shift.name}
               </div>
               <p className="text-sm font-semibold text-espresso-dark">
                 {shift.time}
               </p>
               <p className="text-xs text-espresso-light mt-1">
-                {shift.name === "Утро"
+                {shift.id === "morning"
                   ? "6 часов"
-                  : shift.name === "День"
+                  : shift.id === "day"
                     ? "8 часов"
                     : "8 часов"}
               </p>

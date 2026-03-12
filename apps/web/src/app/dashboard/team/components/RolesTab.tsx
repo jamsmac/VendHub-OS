@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Plus, CheckCircle, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,34 @@ interface RolesTabProps {
 }
 
 export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
+  const t = useTranslations("team");
+
+  const permCategoryLabels: Record<string, string> = {
+    machines: t("permMachines"),
+    inventory: t("permInventory"),
+    tasks: t("permTasks"),
+    finance: t("permFinance"),
+    reports: t("permReports"),
+    team: t("permTeam"),
+  };
+
+  const roleLabels: Record<string, string> = {
+    owner: t("roleOwner"),
+    admin: t("roleAdmin"),
+    manager: t("roleManager"),
+    operator: t("roleOperator"),
+    warehouse: t("roleWarehouse"),
+    accountant: t("roleAccountant"),
+    viewer: t("roleViewer"),
+  };
+
   return (
     <div className="space-y-4">
       <Card className="coffee-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base text-espresso-dark">
-              Матрица ролей и прав доступа
+              {t("rolesMatrix")}
             </CardTitle>
             <Button
               size="sm"
@@ -32,7 +54,7 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
               onClick={onCreateRoleClick}
             >
               <Plus className="h-4 w-4" />
-              Создать роль
+              {t("createRole")}
             </Button>
           </div>
         </CardHeader>
@@ -41,14 +63,14 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
             <TableHeader>
               <TableRow className="bg-espresso-50/50">
                 <TableHead className="text-left py-3 px-3 text-xs font-semibold text-espresso-light border border-espresso/10">
-                  Роль
+                  {t("roleCol")}
                 </TableHead>
                 {PERMISSION_CATEGORIES.map((cat) => (
                   <TableHead
                     key={cat.id}
                     className="text-center py-3 px-2 text-xs font-semibold text-espresso-light border border-espresso/10"
                   >
-                    {cat.name}
+                    {permCategoryLabels[cat.id] || cat.name}
                   </TableHead>
                 ))}
               </TableRow>
@@ -64,7 +86,7 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
                       className={`inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-medium ${roleMeta.color}`}
                     >
                       <roleMeta.icon className="h-3 w-3" />
-                      {roleMeta.label}
+                      {roleLabels[roleKey] || roleMeta.label}
                     </span>
                   </TableCell>
                   {PERMISSION_CATEGORIES.map((cat) => {
@@ -98,7 +120,7 @@ export function RolesTab({ onCreateRoleClick }: RolesTabProps) {
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-espresso-dark flex items-center gap-2">
                 <cat.icon className="h-5 w-5" />
-                {cat.name}
+                {permCategoryLabels[cat.id] || cat.name}
               </CardTitle>
             </CardHeader>
             <CardContent>

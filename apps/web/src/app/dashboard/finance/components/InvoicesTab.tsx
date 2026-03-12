@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { StatusBadge } from "./StatusBadge";
 import { fmt } from "./config";
 import { Invoice } from "./types";
@@ -25,11 +26,13 @@ export function InvoicesTab({
   invoiceFilter,
   onFilterChange,
 }: InvoicesTabProps) {
+  const t = useTranslations("finance");
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Счета и акты</CardTitle>
+          <CardTitle className="text-lg">{t("invTitle")}</CardTitle>
           <div className="flex gap-2">
             <div className="flex gap-1">
               {["all", "incoming", "outgoing", "pending", "overdue"].map(
@@ -42,21 +45,21 @@ export function InvoicesTab({
                     className={`${invoiceFilter === f ? "bg-espresso text-white hover:bg-espresso-dark" : "bg-espresso-50 text-espresso-light"}`}
                   >
                     {f === "all"
-                      ? "Все"
+                      ? t("invAll")
                       : f === "incoming"
-                        ? "Входящие"
+                        ? t("invIncoming")
                         : f === "outgoing"
-                          ? "Исходящие"
+                          ? t("invOutgoing")
                           : f === "pending"
-                            ? "Ожидают"
-                            : "Просрочены"}
+                            ? t("invPending")
+                            : t("invOverdue")}
                   </Button>
                 ),
               )}
             </div>
             <Button className="gap-2 bg-espresso hover:bg-espresso-dark">
               <FileText className="h-4 w-4" />
-              Создать счёт
+              {t("invCreate")}
             </Button>
           </div>
         </div>
@@ -89,7 +92,8 @@ export function InvoicesTab({
                     {inv.counterparty} · {inv.description}
                   </p>
                   <p className="text-[11px] text-espresso-light/70">
-                    до {inv.dueDate} · {inv.items} поз.
+                    {t("invDueDate")} {inv.dueDate} · {inv.items}{" "}
+                    {t("invItems")}
                   </p>
                 </div>
               </div>

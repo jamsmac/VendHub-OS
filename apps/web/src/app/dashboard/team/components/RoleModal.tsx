@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PERMISSION_CATEGORIES } from "./constants";
@@ -10,6 +11,17 @@ interface RoleModalProps {
 }
 
 export function RoleModal({ open, onClose }: RoleModalProps) {
+  const t = useTranslations("team");
+
+  const permCategoryLabels: Record<string, string> = {
+    machines: t("permMachines"),
+    inventory: t("permInventory"),
+    tasks: t("permTasks"),
+    finance: t("permFinance"),
+    reports: t("permReports"),
+    team: t("permTeam"),
+  };
+
   if (!open) return null;
 
   return (
@@ -22,24 +34,24 @@ export function RoleModal({ open, onClose }: RoleModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-espresso-dark mb-4">
-          Создать роль
+          {t("roleModalTitle")}
         </h3>
         <div className="space-y-4">
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Название
+              {t("roleName")}
             </label>
-            <Input placeholder="Название роли" />
+            <Input placeholder={t("roleName")} />
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Описание
+              {t("roleDescription")}
             </label>
-            <Input placeholder="Описание роли" />
+            <Input placeholder={t("roleDescription")} />
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-1 block">
-              Цвет
+              {t("roleColor")}
             </label>
             <div className="flex gap-2">
               {[
@@ -62,13 +74,13 @@ export function RoleModal({ open, onClose }: RoleModalProps) {
           </div>
           <div>
             <label className="text-sm text-espresso-light mb-2 block">
-              Права доступа
+              {t("rolePermissions")}
             </label>
             <div className="space-y-3 max-h-[300px] overflow-y-auto">
               {PERMISSION_CATEGORIES.map((cat) => (
                 <div key={cat.id}>
                   <p className="text-xs font-semibold text-espresso-dark mb-1">
-                    {cat.name}
+                    {permCategoryLabels[cat.id] || cat.name}
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {cat.perms.map((perm) => (
@@ -91,10 +103,10 @@ export function RoleModal({ open, onClose }: RoleModalProps) {
         </div>
         <div className="flex gap-3 mt-6">
           <Button variant="outline" className="flex-1" onClick={onClose}>
-            Отмена
+            {t("roleCancel")}
           </Button>
           <Button className="flex-1 bg-espresso hover:bg-espresso-dark">
-            Сохранить
+            {t("roleSave")}
           </Button>
         </div>
       </div>

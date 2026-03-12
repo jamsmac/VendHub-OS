@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Calendar,
   ChevronDown,
@@ -44,6 +45,7 @@ export function PromotionCard({
   onToggleStatus,
   onDelete,
 }: PromotionCardProps) {
+  const t = useTranslations("promotions");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const usagePercentage = promo.usageLimit
@@ -87,14 +89,16 @@ export function PromotionCard({
                     {promo.title}
                   </h3>
                   <Badge variant={promo.isActive ? "success" : "outline"}>
-                    {promo.isActive ? "Активна" : "Неактивна"}
+                    {promo.isActive ? t("cardActive") : t("cardInactive")}
                   </Badge>
                   {promo.visibilityType === "action_required" && (
-                    <Badge variant="destructive">Требует действия</Badge>
+                    <Badge variant="destructive">
+                      {t("cardActionRequired")}
+                    </Badge>
                   )}
                   {promo.geographicRestriction === "specific" && (
                     <Badge variant="outline" className="gap-1">
-                      <MapPin className="h-3 w-3" /> Ограничено
+                      <MapPin className="h-3 w-3" /> {t("cardRestricted")}
                     </Badge>
                   )}
                 </div>
@@ -106,7 +110,9 @@ export function PromotionCard({
                 {promo.usageLimit && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-espresso-light">Использовано:</span>
+                      <span className="text-espresso-light">
+                        {t("cardUsed")}
+                      </span>
                       <span className="font-medium text-espresso-dark">
                         {promo.usageCount} / {promo.usageLimit}
                       </span>
@@ -125,7 +131,7 @@ export function PromotionCard({
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-espresso-light">
-                        Прогресс времени:
+                        {t("cardTimeProgress")}
                       </span>
                       <span className="font-medium text-espresso-dark">
                         {Math.min(Math.max(timeProgress, 0), 100).toFixed(0)}%
@@ -200,23 +206,23 @@ export function PromotionCard({
                   ? `${promo.discountValue}%`
                   : promo.discountType === "fixed"
                     ? `${formatNumber(promo.discountValue)} UZS`
-                    : "Специальная"}
+                    : t("cardSpecial")}
               </span>
             </span>
             <span className="text-espresso-light">
               <span className="font-medium text-espresso-dark">
                 {promo.usageCount}
               </span>{" "}
-              использований
+              {t("cardUsages")}
             </span>
             <span className="text-espresso-light">
               <span className="font-medium text-espresso-dark">
                 {promo.uniqueUsers}
               </span>{" "}
-              уников
+              {t("cardUniques")}
             </span>
             <span className="text-espresso-light">
-              Выручка:{" "}
+              {t("cardRevenue")}{" "}
               <span className="font-medium text-emerald-600">
                 +{fmtShort(promo.revenueImpact)}
               </span>
@@ -224,7 +230,7 @@ export function PromotionCard({
             {promo.validUntil && (
               <span className="flex items-center gap-1 text-espresso-light">
                 <Calendar className="h-3 w-3" />
-                до {formatDate(promo.validUntil)}
+                {t("cardUntil")} {formatDate(promo.validUntil)}
               </span>
             )}
           </div>
@@ -235,7 +241,7 @@ export function PromotionCard({
               {/* Conditions */}
               <div>
                 <p className="text-xs font-medium text-espresso-dark mb-2">
-                  Условия
+                  {t("cardConditions")}
                 </p>
                 <div className="space-y-1">
                   {promo.conditions.map((c, i) => (
@@ -259,35 +265,41 @@ export function PromotionCard({
               {promo.schedule && (
                 <div>
                   <p className="text-xs font-medium text-espresso-dark mb-2">
-                    📅 Расписание
+                    {`📅 ${t("cardSchedule")}`}
                   </p>
                   {promo.schedule.startHour !== undefined &&
                     promo.schedule.endHour !== undefined && (
                       <div className="text-xs text-espresso-light space-y-1">
                         <p>
-                          ⏰ Время: {promo.schedule.startHour}:00 —{" "}
-                          {promo.schedule.endHour}:00
+                          {`⏰ ${t("cardTime")}`} {promo.schedule.startHour}:00
+                          — {promo.schedule.endHour}:00
                         </p>
                       </div>
                     )}
                   {promo.schedule.daysOfWeek && (
                     <div className="mt-1 text-xs text-espresso-light">
-                      <p>📆 Дни:</p>
+                      <p>{`📆 ${t("cardDays")}`}</p>
                       <div className="flex gap-1 mt-0.5">
-                        {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map(
-                          (day, idx) => (
-                            <span
-                              key={day}
-                              className={`text-[10px] px-1.5 py-0.5 rounded ${
-                                promo.schedule!.daysOfWeek!.includes(idx)
-                                  ? "bg-espresso-dark text-white"
-                                  : "bg-espresso-50 text-espresso-light"
-                              }`}
-                            >
-                              {day}
-                            </span>
-                          ),
-                        )}
+                        {[
+                          t("dayMon"),
+                          t("dayTue"),
+                          t("dayWed"),
+                          t("dayThu"),
+                          t("dayFri"),
+                          t("daySat"),
+                          t("daySun"),
+                        ].map((day, idx) => (
+                          <span
+                            key={day}
+                            className={`text-[10px] px-1.5 py-0.5 rounded ${
+                              promo.schedule!.daysOfWeek!.includes(idx)
+                                ? "bg-espresso-dark text-white"
+                                : "bg-espresso-50 text-espresso-light"
+                            }`}
+                          >
+                            {day}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -298,12 +310,12 @@ export function PromotionCard({
               {promo.audience && (
                 <div>
                   <p className="text-xs font-medium text-espresso-dark mb-2">
-                    👥 Аудитория
+                    {`👥 ${t("cardAudience")}`}
                   </p>
                   <div className="space-y-1 text-xs text-espresso-light">
                     {promo.audience.minLevel && (
                       <p>
-                        Минимальный уровень:{" "}
+                        {t("cardMinLevel")}{" "}
                         <span className="font-medium">
                           {promo.audience.minLevel}
                         </span>
@@ -311,17 +323,17 @@ export function PromotionCard({
                     )}
                     {promo.audience.segment && (
                       <p>
-                        Сегмент:{" "}
+                        {t("cardSegment")}{" "}
                         <span className="font-medium">
                           {promo.audience.segment === "students"
-                            ? "Студенты"
-                            : "Все"}
+                            ? t("cardStudents")
+                            : t("cardAll")}
                         </span>
                       </p>
                     )}
                     {promo.audience.device && (
                       <p>
-                        Устройство:{" "}
+                        {t("cardDevice")}{" "}
                         <span className="font-medium">
                           {promo.audience.device}
                         </span>
@@ -334,7 +346,7 @@ export function PromotionCard({
               {/* Preview card */}
               <div>
                 <p className="text-xs font-medium text-espresso-dark mb-2">
-                  Превью карточки
+                  {t("cardPreview")}
                 </p>
                 <div
                   className={`rounded-xl bg-gradient-to-r ${promo.gradient} p-4 text-white`}
@@ -357,14 +369,14 @@ export function PromotionCard({
               {/* Actions */}
               <div>
                 <p className="text-xs font-medium text-espresso-dark mb-2">
-                  Действия
+                  {t("cardActions")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" className="gap-1">
-                    <Edit2 className="h-3.5 w-3.5" /> Редактировать
+                    <Edit2 className="h-3.5 w-3.5" /> {t("cardEdit")}
                   </Button>
                   <Button variant="outline" size="sm" className="gap-1">
-                    <Copy className="h-3.5 w-3.5" /> Дублировать
+                    <Copy className="h-3.5 w-3.5" /> {t("cardDuplicate")}
                   </Button>
                   <Button
                     variant="outline"
@@ -374,11 +386,11 @@ export function PromotionCard({
                   >
                     {promo.isActive ? (
                       <>
-                        <EyeOff className="h-3.5 w-3.5" /> Деактивировать
+                        <EyeOff className="h-3.5 w-3.5" /> {t("cardDeactivate")}
                       </>
                     ) : (
                       <>
-                        <Eye className="h-3.5 w-3.5" /> Активировать
+                        <Eye className="h-3.5 w-3.5" /> {t("cardActivate")}
                       </>
                     )}
                   </Button>
@@ -387,17 +399,17 @@ export function PromotionCard({
                     size="sm"
                     className="gap-1 text-red-500 hover:text-red-700"
                     onClick={() => {
-                      if (confirm("Вы уверены? Это действие необратимо.")) {
+                      if (confirm(t("cardDeleteConfirm"))) {
                         onDelete(promo.id);
                       }
                     }}
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Удалить
+                    <Trash2 className="h-3.5 w-3.5" /> {t("cardDelete")}
                   </Button>
                 </div>
                 <div className="mt-3 text-[11px] text-espresso-light">
-                  Создана: {formatDate(promo.createdAt)} · Порядок: #
-                  {promo.sortOrder}
+                  {t("cardCreated")} {formatDate(promo.createdAt)} ·{" "}
+                  {t("cardOrder")} #{promo.sortOrder}
                 </div>
               </div>
             </div>

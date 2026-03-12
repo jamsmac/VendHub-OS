@@ -9,6 +9,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { useTranslations } from "next-intl";
 import { fmt } from "./config";
 
 interface FiscalReportItem {
@@ -40,46 +41,62 @@ export function FiscalizationTab({
   totalFiscalFailed,
   totalTaxAmount,
 }: FiscalizationTabProps) {
+  const t = useTranslations("finance");
+
   return (
     <>
       {/* Multikassa Status Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Статус Multikassa</p>
+            <p className="text-xs text-espresso-light">
+              {t("fiscTabMultikassaStatus")}
+            </p>
             <p className="mt-1 text-lg font-bold text-emerald-600">
-              🟢 Активен
+              {"🟢 " + t("fiscTabActive")}
             </p>
             <p className="text-[11px] text-espresso-light/70">
-              Синхронизировано
+              {t("fiscTabSynced")}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">ID терминала</p>
+            <p className="text-xs text-espresso-light">
+              {t("fiscTabTerminalId")}
+            </p>
             <p className="mt-1 text-lg font-bold text-espresso-dark">
               {fiscalData.terminalId}
             </p>
-            <p className="text-[11px] text-espresso-light/70">Активный</p>
+            <p className="text-[11px] text-espresso-light/70">
+              {t("fiscTabActiveLabel")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Последний чек</p>
+            <p className="text-xs text-espresso-light">
+              {t("fiscTabLastReceipt")}
+            </p>
             <p className="mt-1 text-sm font-bold text-espresso-dark">
               {fiscalData.lastReceipt}
             </p>
-            <p className="text-[11px] text-espresso-light/70">Успешно</p>
+            <p className="text-[11px] text-espresso-light/70">
+              {t("fiscTabSuccessful")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">НДС собрано</p>
+            <p className="text-xs text-espresso-light">
+              {t("fiscTabVatCollected")}
+            </p>
             <p className="mt-1 text-lg font-bold text-blue-600">
               {fmt(totalTaxAmount)} UZS
             </p>
-            <p className="text-[11px] text-espresso-light/70">За период</p>
+            <p className="text-[11px] text-espresso-light/70">
+              {t("fiscTabForPeriod")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -88,31 +105,39 @@ export function FiscalizationTab({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Статистика чеков</CardTitle>
+            <CardTitle className="text-lg">
+              {t("fiscTabReceiptStats")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-espresso/10">
-                <span className="text-sm text-espresso">Выдано чеков</span>
+                <span className="text-sm text-espresso">
+                  {t("fiscTabReceiptsIssued")}
+                </span>
                 <span className="text-lg font-bold text-espresso-dark">
                   {fmt(totalFiscalReceipts)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-espresso/10">
-                <span className="text-sm text-emerald-600">✓ Успешно</span>
+                <span className="text-sm text-emerald-600">
+                  {t("fiscTabSuccess")}
+                </span>
                 <span className="text-lg font-bold text-emerald-600">
                   {fmt(totalFiscalSuccessful)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-espresso/10">
-                <span className="text-sm text-red-500">✗ Ошибка</span>
+                <span className="text-sm text-red-500">
+                  {t("fiscTabError")}
+                </span>
                 <span className="text-lg font-bold text-red-500">
                   {totalFiscalFailed}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-t-2 border-espresso-dark">
                 <span className="text-sm font-semibold text-espresso-dark">
-                  Процент успеха
+                  {t("fiscTabSuccessRate")}
                 </span>
                 <span className="text-lg font-bold text-emerald-600">
                   {(
@@ -128,7 +153,9 @@ export function FiscalizationTab({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Сумма по статусам</CardTitle>
+            <CardTitle className="text-lg">
+              {t("fiscTabAmountByStatus")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -139,7 +166,7 @@ export function FiscalizationTab({
                       {f.date}
                     </span>
                     <span className="text-sm text-espresso-light">
-                      {f.issued} чеков
+                      {f.issued} {t("fiscTabReceipts")}
                     </span>
                   </div>
                   <div className="flex gap-1">
@@ -165,7 +192,7 @@ export function FiscalizationTab({
       {/* Daily Fiscal Report Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Ежедневный фискальный отчёт</CardTitle>
+          <CardTitle className="text-lg">{t("fiscTabDailyReport")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -173,17 +200,17 @@ export function FiscalizationTab({
               <TableHeader>
                 <TableRow className="border-b border-espresso/10">
                   {[
-                    "Дата",
-                    "Выдано",
-                    "Успешно",
-                    "Ошибок",
-                    "Успешность",
-                    "Сумма",
-                    "НДС (12%)",
-                  ].map((h) => (
+                    t("fiscTabColDate"),
+                    t("fiscTabColIssued"),
+                    t("fiscTabColSuccessful"),
+                    t("fiscTabColErrors"),
+                    t("fiscTabColSuccessRate"),
+                    t("fiscTabColAmount"),
+                    t("fiscTabColVat"),
+                  ].map((h, i) => (
                     <TableHead
                       key={h}
-                      className={`px-4 py-3 text-xs font-medium text-espresso-light ${["Выдано", "Успешно", "Ошибок", "Сумма", "НДС (12%)"].includes(h) ? "text-right" : "text-left"}`}
+                      className={`px-4 py-3 text-xs font-medium text-espresso-light ${[1, 2, 3, 5, 6].includes(i) ? "text-right" : "text-left"}`}
                     >
                       {h}
                     </TableHead>
@@ -233,37 +260,41 @@ export function FiscalizationTab({
       {/* Tax Summary */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Налоговая сводка</CardTitle>
+          <CardTitle className="text-lg">{t("fiscTabTaxSummary")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-lg border border-espresso/10 p-4">
               <p className="text-xs text-espresso-light">
-                Налогооблагаемая база
+                {t("fiscTabTaxableBase")}
               </p>
               <p className="mt-1 text-2xl font-bold text-espresso-dark">
                 547.2M UZS
               </p>
               <p className="mt-1 text-[11px] text-espresso-light/70">
-                Товары и услуги
+                {t("fiscTabGoodsAndServices")}
               </p>
             </div>
             <div className="rounded-lg border border-espresso/10 p-4">
-              <p className="text-xs text-espresso-light">НДС к уплате (12%)</p>
+              <p className="text-xs text-espresso-light">
+                {t("fiscTabVatPayable")}
+              </p>
               <p className="mt-1 text-2xl font-bold text-blue-600">
                 {fmt(totalTaxAmount)} UZS
               </p>
               <p className="mt-1 text-[11px] text-espresso-light/70">
-                Квартальный отчёт
+                {t("fiscTabQuarterlyReport")}
               </p>
             </div>
             <div className="rounded-lg border border-espresso/10 p-4">
-              <p className="text-xs text-espresso-light">Сумма к выплате</p>
+              <p className="text-xs text-espresso-light">
+                {t("fiscTabAmountDue")}
+              </p>
               <p className="mt-1 text-2xl font-bold text-amber-600">
                 {fmt(Math.round(totalTaxAmount))} UZS
               </p>
               <p className="mt-1 text-[11px] text-espresso-light/70">
-                До 15 числа
+                {t("fiscTabDueBy15th")}
               </p>
             </div>
           </div>

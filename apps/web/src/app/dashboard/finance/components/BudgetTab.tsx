@@ -9,6 +9,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { useTranslations } from "next-intl";
 import { fmt, fmtShort } from "./config";
 import { BudgetItem } from "./types";
 
@@ -27,13 +28,14 @@ export function BudgetTab({
   totalVariance,
   avgUtilization,
 }: BudgetTabProps) {
+  const t = useTranslations("finance");
   return (
     <>
       {/* Budget Summary */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Бюджет</p>
+            <p className="text-xs text-espresso-light">{t("budBudget")}</p>
             <p className="mt-1 text-2xl font-bold text-espresso-dark">
               {fmtShort(totalBudget)} UZS
             </p>
@@ -41,7 +43,7 @@ export function BudgetTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Потрачено</p>
+            <p className="text-xs text-espresso-light">{t("budSpent")}</p>
             <p className="mt-1 text-2xl font-bold text-amber-600">
               {fmtShort(totalActual)} UZS
             </p>
@@ -49,7 +51,7 @@ export function BudgetTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Остаток</p>
+            <p className="text-xs text-espresso-light">{t("budRemaining")}</p>
             <p className="mt-1 text-2xl font-bold text-emerald-600">
               +{fmtShort(totalVariance)} UZS
             </p>
@@ -57,7 +59,9 @@ export function BudgetTab({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-espresso-light">Ср. утилизация</p>
+            <p className="text-xs text-espresso-light">
+              {t("budAvgUtilization")}
+            </p>
             <p className="mt-1 text-2xl font-bold text-blue-600">
               {avgUtilization}%
             </p>
@@ -68,7 +72,7 @@ export function BudgetTab({
       {/* Budget vs Actual */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Бюджет vs Факт</CardTitle>
+          <CardTitle className="text-lg">{t("budVsActual")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -76,19 +80,19 @@ export function BudgetTab({
               <TableHeader>
                 <TableRow className="border-b border-espresso/10">
                   <TableHead className="px-4 py-3 text-left font-medium text-espresso-dark">
-                    Категория
+                    {t("budColCategory")}
                   </TableHead>
                   <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
-                    Бюджет
+                    {t("budColBudget")}
                   </TableHead>
                   <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
-                    Потрачено
+                    {t("budColSpent")}
                   </TableHead>
                   <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
-                    Разница
+                    {t("budColDifference")}
                   </TableHead>
                   <TableHead className="px-4 py-3 text-right font-medium text-espresso-dark">
-                    Утилизация
+                    {t("budColUtilization")}
                   </TableHead>
                 </TableRow>
               </TableHeader>

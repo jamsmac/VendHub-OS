@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CheckCircle2, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +11,9 @@ interface PromotionsABTestsProps {
 }
 
 export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
-  const activeTests = abTests.filter((t) => t.isActive);
-  const completedTests = abTests.filter((t) => !t.isActive);
+  const t = useTranslations("promotions");
+  const activeTests = abTests.filter((test) => test.isActive);
+  const completedTests = abTests.filter((test) => !test.isActive);
 
   return (
     <>
@@ -22,14 +24,14 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{test.name}</CardTitle>
-                <Badge variant="success">Активный тест</Badge>
+                <Badge variant="success">{t("abActiveTest")}</Badge>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {[
-                  { key: "variantA" as const, label: "Вариант A" },
-                  { key: "variantB" as const, label: "Вариант B" },
+                  { key: "variantA" as const, label: t("abVariantA") },
+                  { key: "variantB" as const, label: t("abVariantB") },
                 ].map(({ key, label }) => {
                   const variant = test[key];
                   const isWinner = test.winner === key.slice(-1).toUpperCase();
@@ -53,7 +55,7 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                         </div>
                         {isWinner && (
                           <Badge variant="success" className="ml-2">
-                            Лучший
+                            {t("abBest")}
                           </Badge>
                         )}
                       </div>
@@ -61,7 +63,7 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                         <div>
                           <div className="flex justify-between mb-1">
                             <span className="text-xs text-espresso-light">
-                              Конверсия
+                              {t("abConversion")}
                             </span>
                             <span className="text-sm font-bold text-espresso-dark">
                               {variant.rate.toFixed(1)}%
@@ -76,13 +78,17 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="bg-espresso-50 rounded p-2">
-                            <p className="text-espresso-light">Конверсии</p>
+                            <p className="text-espresso-light">
+                              {t("abConversions")}
+                            </p>
                             <p className="font-bold text-espresso-dark">
                               {variant.conversions}
                             </p>
                           </div>
                           <div className="bg-espresso-50 rounded p-2">
-                            <p className="text-espresso-light">Пользователей</p>
+                            <p className="text-espresso-light">
+                              {t("abUsers")}
+                            </p>
                             <p className="font-bold text-espresso-dark">
                               {variant.users}
                             </p>
@@ -96,7 +102,7 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
               {test.statisticalSignificance && (
                 <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-xs text-blue-900">
-                    📊 Статистическая значимость:{" "}
+                    {t("abSignificance")}{" "}
                     <span className="font-semibold">
                       {test.statisticalSignificance}%
                     </span>
@@ -111,7 +117,7 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
           <>
             <div className="mt-8 pt-8 border-t border-espresso/10">
               <h3 className="text-lg font-semibold text-espresso-dark mb-4">
-                Завершённые тесты
+                {t("abCompletedTests")}
               </h3>
               <div className="space-y-4">
                 {completedTests.map((test) => (
@@ -121,8 +127,8 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                         <CardTitle className="text-lg">{test.name}</CardTitle>
                         {test.winner && (
                           <Badge variant="outline" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> Победитель:
-                            Вариант {test.winner}
+                            <CheckCircle2 className="h-3 w-3" />{" "}
+                            {t("abWinner", { variant: test.winner })}
                           </Badge>
                         )}
                       </div>
@@ -131,7 +137,7 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                       <div className="flex gap-4 text-sm">
                         <div>
                           <p className="text-espresso-light">
-                            Вариант A (текущий)
+                            {t("abVariantACurrent")}
                           </p>
                           <p className="font-semibold text-espresso-dark">
                             {test.variantA.rate.toFixed(1)}%
@@ -141,7 +147,9 @@ export function PromotionsABTests({ abTests }: PromotionsABTestsProps) {
                           <TrendingDown className="h-4 w-4 text-espresso-light" />
                         </div>
                         <div>
-                          <p className="text-espresso-light">Вариант B</p>
+                          <p className="text-espresso-light">
+                            {t("abVariantB")}
+                          </p>
                           <p className="font-semibold text-espresso-dark">
                             {test.variantB.rate.toFixed(1)}%
                           </p>

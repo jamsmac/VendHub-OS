@@ -1,6 +1,7 @@
 "use client";
 
 import { Users, UserCheck, Clock, UserX, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import type { TeamStats } from "./types";
 
@@ -9,6 +10,7 @@ interface TeamStatsProps {
 }
 
 export function TeamStats({ stats }: TeamStatsProps) {
+  const t = useTranslations("team");
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
       <Card className="coffee-card">
@@ -20,7 +22,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
             <p className="text-2xl font-bold text-espresso-dark">
               {stats.total}
             </p>
-            <p className="text-xs text-espresso-light">Всего</p>
+            <p className="text-xs text-espresso-light">{t("statsTotal")}</p>
           </div>
         </CardContent>
       </Card>
@@ -33,7 +35,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
             <p className="text-2xl font-bold text-emerald-600">
               {stats.active}
             </p>
-            <p className="text-xs text-espresso-light">Активны</p>
+            <p className="text-xs text-espresso-light">{t("statsActive")}</p>
           </div>
         </CardContent>
       </Card>
@@ -44,7 +46,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
           </div>
           <div>
             <p className="text-2xl font-bold text-amber-600">{stats.away}</p>
-            <p className="text-xs text-espresso-light">Отсутствуют</p>
+            <p className="text-xs text-espresso-light">{t("statsAway")}</p>
           </div>
         </CardContent>
       </Card>
@@ -55,7 +57,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-600">{stats.inactive}</p>
-            <p className="text-xs text-espresso-light">Неактивны</p>
+            <p className="text-xs text-espresso-light">{t("statsInactive")}</p>
           </div>
         </CardContent>
       </Card>
@@ -68,7 +70,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
             <p className="text-2xl font-bold text-espresso-dark">
               {stats.avgRating}
             </p>
-            <p className="text-xs text-espresso-light">Средний рейтинг</p>
+            <p className="text-xs text-espresso-light">{t("statsAvgRating")}</p>
           </div>
         </CardContent>
       </Card>
