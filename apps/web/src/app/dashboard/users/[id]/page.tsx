@@ -80,8 +80,7 @@ export default function UserDetailPage() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["user", userId],
-    queryFn: () =>
-      usersApi.getById(userId).then((res) => res.data.data || res.data),
+    queryFn: () => usersApi.getById(userId).then((res) => res.data),
     enabled: !!userId,
   });
 

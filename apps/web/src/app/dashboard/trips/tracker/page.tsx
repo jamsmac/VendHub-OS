@@ -68,9 +68,7 @@ export default function TripTrackerPage() {
   } = useQuery({
     queryKey: ["trips", "active-all"],
     queryFn: () =>
-      tripsApi
-        .getAll({ status: "active" })
-        .then((res) => res.data.data || res.data),
+      tripsApi.getAll({ status: "active" }).then((res) => res.data.data),
     refetchInterval: REFETCH_INTERVAL,
     refetchIntervalInBackground: false,
   });

@@ -150,13 +150,12 @@ export default function MachinesPage() {
 
   const { data: stats } = useQuery({
     queryKey: ["machines-stats"],
-    queryFn: () => machinesApi.getStats().then((res) => res.data.data),
+    queryFn: () => machinesApi.getStats().then((res) => res.data),
   });
 
   const { data: mapData } = useQuery({
     queryKey: ["machines", "map"],
-    queryFn: () =>
-      machinesApi.getMap().then((res) => res.data.data || res.data),
+    queryFn: () => machinesApi.getMap().then((res) => res.data),
     enabled: viewMode === "map",
   });
 

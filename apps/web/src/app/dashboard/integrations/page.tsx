@@ -174,7 +174,7 @@ export default function IntegrationsPage() {
       setLoading(true);
       setError(null);
       const response = await integrationsApi.getAll();
-      setIntegrations(response.data.data || response.data);
+      setIntegrations(response.data);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       const message = error.response?.data?.message || t("loadFailed");
@@ -188,7 +188,7 @@ export default function IntegrationsPage() {
   const fetchTemplates = useCallback(async () => {
     try {
       const response = await integrationsApi.getTemplates();
-      setTemplates(response.data.data || response.data);
+      setTemplates(response.data);
     } catch {
       // Template loading is non-critical; silently ignore
     }
@@ -495,7 +495,7 @@ export default function IntegrationsPage() {
               logo: template.logo,
               sandboxMode: true,
             });
-            const newIntegration = response.data.data || response.data;
+            const newIntegration = response.data;
             setShowAddModal(false);
             setSelectedIntegration(newIntegration);
             setShowConfigModal(true);

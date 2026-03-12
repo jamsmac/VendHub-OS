@@ -125,7 +125,7 @@ export default function RoutesPage() {
     queryFn: () =>
       routesApi
         .getAll({ search: debouncedSearch, status: statusFilter })
-        .then((res) => res.data.data || res.data),
+        .then((res) => res.data.data),
   });
 
   const deleteMutation = useMutation({

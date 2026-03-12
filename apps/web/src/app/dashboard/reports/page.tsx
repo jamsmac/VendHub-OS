@@ -120,7 +120,7 @@ export default function ReportsPage() {
     isFetching,
   } = useQuery({
     queryKey: ["reports", "dashboard", period],
-    queryFn: () => reportsApi.getDashboard().then((res) => res.data.data),
+    queryFn: () => reportsApi.getDashboard().then((res) => res.data),
   });
 
   const {
@@ -132,7 +132,7 @@ export default function ReportsPage() {
     queryFn: () =>
       reportsApi
         .getSales({ period, startDate, endDate })
-        .then((res) => res.data.data),
+        .then((res) => res.data),
   });
 
   const periodLabels: Record<PeriodType, string> = {

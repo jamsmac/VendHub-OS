@@ -167,7 +167,7 @@ export default function AuditPage() {
           category: categoryFilter ? [categoryFilter] : undefined,
           limit: 50,
         })
-        .then((res) => res.data.data || res.data),
+        .then((res) => res.data.data),
   });
 
   const { data: statsData, isLoading: statsLoading } = useQuery({

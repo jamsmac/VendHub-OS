@@ -79,7 +79,7 @@ export default function RouteBuilderPage() {
     queryFn: () =>
       machinesApi
         .getAll({ search: debouncedMachineSearch })
-        .then((res) => res.data.data || res.data),
+        .then((res) => res.data.data),
   });
 
   const machineList: Machine[] = Array.isArray(machines) ? machines : [];

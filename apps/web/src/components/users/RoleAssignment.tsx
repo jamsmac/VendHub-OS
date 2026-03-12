@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Shield, Plus, X, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Shield, Plus, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 interface Role {
   id: string;
@@ -22,39 +28,43 @@ interface RoleAssignmentProps {
 export function RoleAssignment({ userId }: RoleAssignmentProps) {
   // Fetch all roles
   const { data: allRoles, isLoading: rolesLoading } = useQuery({
-    queryKey: ['roles'],
-    queryFn: () => api.get('/rbac/roles').then((res) => res.data.data || res.data),
+    queryKey: ["roles"],
+    queryFn: () => api.get("/rbac/roles").then((res) => res.data),
   });
 
   // Fetch user's current roles
   const { data: userRoles, isLoading: userRolesLoading } = useQuery({
-    queryKey: ['user-roles', userId],
+    queryKey: ["user-roles", userId],
     queryFn: () =>
-      api.get(`/rbac/users/${userId}/roles`).then((res) => res.data.data || res.data),
+      api.get(`/rbac/users/${userId}/roles`).then((res) => res.data),
   });
 
   const queryClient = useQueryClient();
 
   const assignMutation = useMutation({
-    mutationFn: (roleId: string) => api.post(`/rbac/users/${userId}/roles`, { roleId }),
+    mutationFn: (roleId: string) =>
+      api.post(`/rbac/users/${userId}/roles`, { roleId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-roles', userId] });
-      toast.success('Роль назначена');
+      queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
+      toast.success("Роль назначена");
     },
-    onError: () => toast.error('Ошибка назначения роли'),
+    onError: () => toast.error("Ошибка назначения роли"),
   });
 
   const removeMutation = useMutation({
-    mutationFn: (roleId: string) => api.delete(`/rbac/users/${userId}/roles/${roleId}`),
+    mutationFn: (roleId: string) =>
+      api.delete(`/rbac/users/${userId}/roles/${roleId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-roles', userId] });
-      toast.success('Роль удалена');
+      queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
+      toast.success("Роль удалена");
     },
-    onError: () => toast.error('Ошибка удаления роли'),
+    onError: () => toast.error("Ошибка удаления роли"),
   });
 
   const userRoleIds = (userRoles || []).map((r: Role) => r.id);
-  const availableRoles = (allRoles || []).filter((r: Role) => !userRoleIds.includes(r.id));
+  const availableRoles = (allRoles || []).filter(
+    (r: Role) => !userRoleIds.includes(r.id),
+  );
 
   if (rolesLoading || userRolesLoading) {
     return (
@@ -80,7 +90,9 @@ export function RoleAssignment({ userId }: RoleAssignmentProps) {
         <div>
           <p className="text-sm font-medium mb-2">Назначенные роли</p>
           {(userRoles || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Нет назначенных ролей</p>
+            <p className="text-sm text-muted-foreground">
+              Нет назначенных ролей
+            </p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {(userRoles || []).map((role: Role) => (

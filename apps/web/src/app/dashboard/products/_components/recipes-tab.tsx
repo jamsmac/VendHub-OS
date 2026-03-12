@@ -126,7 +126,7 @@ export function RecipesTab() {
         .map(async (p: Product) => {
           try {
             const res = await productsApi.getRecipes(p.id);
-            const recipes = res.data.data || res.data || [];
+            const recipes = res.data || [];
             return recipes.map((r: Recipe) => ({
               ...r,
               product: { id: p.id, name: p.name, imageUrl: p.imageUrl },

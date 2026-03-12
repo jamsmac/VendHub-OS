@@ -76,13 +76,13 @@ export default function InventoryPage() {
 
   const { data: lowStock, isLoading: lowStockLoading } = useQuery({
     queryKey: ["inventory", "low-stock"],
-    queryFn: () => inventoryApi.getLowStock().then((res) => res.data.data),
+    queryFn: () => inventoryApi.getLowStock().then((res) => res.data),
     enabled: activeTab === "low-stock",
   });
 
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ["inventory", "movements"],
-    queryFn: () => inventoryApi.getMovements().then((res) => res.data.data),
+    queryFn: () => inventoryApi.getMovements().then((res) => res.data),
     enabled: activeTab === "movements",
   });
 

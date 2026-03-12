@@ -631,7 +631,7 @@ export default function LocationsPage() {
       setLoading(true);
       setError(null);
       const response = await locationsApi.getAll();
-      setLocations(response.data.data || response.data);
+      setLocations(response.data.data);
     } catch (err: unknown) {
       const apiErr = err as { response?: { data?: { message?: string } } };
       const message = apiErr.response?.data?.message || t("loadFailed");

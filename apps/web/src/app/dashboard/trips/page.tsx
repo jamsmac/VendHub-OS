@@ -133,7 +133,7 @@ export default function TripsPage() {
     queryFn: () =>
       tripsApi
         .getAll({ search: debouncedSearch, status: statusFilter })
-        .then((res) => res.data.data || res.data),
+        .then((res) => res.data.data),
   });
 
   const cancelMutation = useMutation({
