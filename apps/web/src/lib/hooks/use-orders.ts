@@ -36,7 +36,7 @@ export function useOrders(limit = 50) {
     queryKey: ["orders", limit],
     queryFn: async () => {
       const response = await ordersApi.getAll({ limit: limit.toString() });
-      return response.data as DbOrder[];
+      return (response.data.items || []) as DbOrder[];
     },
   });
 }

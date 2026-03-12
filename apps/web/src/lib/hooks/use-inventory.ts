@@ -53,7 +53,7 @@ export function useWarehouses() {
     queryKey: ["warehouses"],
     queryFn: async () => {
       const response = await warehousesApi.getAll();
-      return response.data as DbWarehouse[];
+      return (response.data.data || []) as DbWarehouse[];
     },
   });
 }
@@ -63,7 +63,7 @@ export function useAllInventory() {
     queryKey: ["all-inventory"],
     queryFn: async () => {
       const response = await inventoryApi.getWarehouse();
-      return response.data as DbInventoryItem[];
+      return (response.data.data || []) as DbInventoryItem[];
     },
   });
 }

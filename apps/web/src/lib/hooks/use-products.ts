@@ -32,7 +32,7 @@ export function useProducts() {
     queryKey: ["products"],
     queryFn: async () => {
       const response = await productsApi.getAll();
-      return response.data as DbProduct[];
+      return (response.data.data || []) as DbProduct[];
     },
   });
 }
@@ -53,7 +53,7 @@ export function useProductStats() {
     queryKey: ["product-stats"],
     queryFn: async () => {
       const response = await productsApi.getAll();
-      const products = response.data as DbProduct[];
+      const products = (response.data.data || []) as DbProduct[];
 
       return {
         total: products.length,

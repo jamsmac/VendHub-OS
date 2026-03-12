@@ -39,7 +39,7 @@ export function useDirectories() {
     queryKey: ["directories"],
     queryFn: async () => {
       const response = await directoriesApi.getAll();
-      return response.data as DbDirectory[];
+      return (response.data.data || []) as DbDirectory[];
     },
   });
 }
@@ -60,7 +60,7 @@ export function useDirectoryEntries(directoryId: string) {
     queryKey: ["directory-entries", directoryId],
     queryFn: async () => {
       const response = await directoriesApi.getEntries(directoryId);
-      return response.data as DbDirectoryEntry[];
+      return (response.data.data || []) as DbDirectoryEntry[];
     },
     enabled: !!directoryId,
   });

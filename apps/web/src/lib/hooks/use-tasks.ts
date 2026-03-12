@@ -44,7 +44,7 @@ export function useTasks(limit = 100) {
     queryKey: ["tasks", limit],
     queryFn: async () => {
       const response = await tasksApi.getAll({ limit: limit.toString() });
-      return response.data as DbTask[];
+      return (response.data.data || []) as DbTask[];
     },
   });
 }
@@ -65,7 +65,7 @@ export function useTaskStats() {
     queryKey: ["task-stats"],
     queryFn: async () => {
       const response = await tasksApi.getAll();
-      const tasks = response.data as DbTask[];
+      const tasks = (response.data.data || []) as DbTask[];
 
       const now = new Date();
 
@@ -91,7 +91,7 @@ export function useTasksByAssignee(assigneeId: string) {
     queryKey: ["tasks-by-assignee", assigneeId],
     queryFn: async () => {
       const response = await tasksApi.getAll({ assignee_id: assigneeId });
-      return response.data as DbTask[];
+      return (response.data.data || []) as DbTask[];
     },
     enabled: !!assigneeId,
   });
@@ -102,7 +102,7 @@ export function useTasksByMachine(machineId: string) {
     queryKey: ["tasks-by-machine", machineId],
     queryFn: async () => {
       const response = await tasksApi.getAll({ machine_id: machineId });
-      return response.data as DbTask[];
+      return (response.data.data || []) as DbTask[];
     },
     enabled: !!machineId,
   });
