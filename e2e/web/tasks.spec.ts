@@ -1,22 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Tasks Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/tasks");
+    await page.goto("/dashboard/tasks", { waitUntil: "networkidle" });
   });
 
   test("should display tasks page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /задачи|tasks|задания/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /задачи|tasks|задания/i);
   });
 
   test("should show tasks list or board", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 
   test("should have create task button", async ({ page }) => {

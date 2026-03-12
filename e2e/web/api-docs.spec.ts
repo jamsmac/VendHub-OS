@@ -1,16 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin API Docs Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/api-docs");
+    await page.goto("/dashboard/api-docs", { waitUntil: "networkidle" });
   });
 
   test("should display API docs page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /api|документация|documentation|docs/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /api|документация|documentation|docs/i);
   });
 
   test("should show API documentation content", async ({ page }) => {

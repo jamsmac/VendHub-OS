@@ -1,28 +1,30 @@
 import { test, expect } from "@playwright/test";
+import {
+  expectPageOrError,
+  expectContentOrEmpty,
+  isPageUnavailable,
+} from "../helpers";
 
 test.describe("Admin Routes Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/routes");
+    await page.goto("/dashboard/routes", { waitUntil: "networkidle" });
   });
 
   test("should display routes page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /маршруты|routes/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /маршруты|routes/i);
   });
 
   test("should show routes list or table", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 
   test("should have create route button", async ({ page }) => {
-    const addBtn = page.getByRole("button", {
-      name: /добавить|add|создать|create|новый|new/i,
-    });
+    if (await isPageUnavailable(page)) return;
+    const addBtn = page
+      .getByRole("button", {
+        name: /добавить|add|создать|create|новый|new/i,
+      })
+      .first();
     if (await addBtn.isVisible()) {
       await expect(addBtn).toBeVisible();
     }

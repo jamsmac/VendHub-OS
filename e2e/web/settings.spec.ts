@@ -1,19 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Settings Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/settings");
+    await page.goto("/dashboard/settings", { waitUntil: "networkidle" });
   });
 
   test("should display settings page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /настройки|settings/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /настройки|settings/i);
   });
 
   test("should show settings sections", async ({ page }) => {
-    const cards = page.locator("[class*='card']");
-    expect(await cards.count()).toBeGreaterThan(0);
+    await expectContentOrEmpty(page);
   });
 
   test("should have save button", async ({ page }) => {

@@ -7,6 +7,7 @@ import { setTokens, clearTokens, getAccessToken } from "@/lib/api";
 describe("api token management", () => {
   beforeEach(() => {
     clearTokens();
+    localStorage.clear();
   });
 
   it("initially has no access token", () => {
@@ -21,7 +22,6 @@ describe("api token management", () => {
   it("ignores refresh token param (stored server-side in httpOnly cookie)", () => {
     setTokens("access-123", "refresh-456");
     expect(getAccessToken()).toBe("access-123");
-    // No way to verify refresh token is NOT stored — that's the point
   });
 
   it("clears access token via clearTokens", () => {
@@ -44,13 +44,21 @@ describe("api token management", () => {
     expect(getAccessToken()).toBeNull();
   });
 
-  it("does not use localStorage for token storage", () => {
+  it("persists token to localStorage", () => {
     const setSpy = vi.spyOn(Storage.prototype, "setItem");
-    setTokens("memory-only-token");
-    expect(setSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining("token"),
-      expect.anything(),
+    setTokens("persisted-token");
+    expect(setSpy).toHaveBeenCalledWith(
+      "vendhub_access_token",
+      "persisted-token",
     );
     setSpy.mockRestore();
+  });
+
+  it("clears token from localStorage on clearTokens", () => {
+    setTokens("token-to-clear");
+    const removeSpy = vi.spyOn(Storage.prototype, "removeItem");
+    clearTokens();
+    expect(removeSpy).toHaveBeenCalledWith("vendhub_access_token");
+    removeSpy.mockRestore();
   });
 });

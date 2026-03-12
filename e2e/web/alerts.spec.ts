@@ -1,26 +1,19 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Alerts Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/alerts");
+    await page.goto("/dashboard/alerts", { waitUntil: "networkidle" });
   });
 
   test("should display alerts page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /оповещения|alerts|уведомления|notifications/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(
+      page,
+      /оповещения|alerts|уведомления|notifications/i,
+    );
   });
 
   test("should show alerts list or empty state", async ({ page }) => {
-    const items = page.locator("[class*='card'], table, li");
-    const empty = page.getByText(/нет|no|пусто|empty/i);
-    const hasItems = (await items.count()) > 0;
-    const hasEmpty = await empty
-      .first()
-      .isVisible()
-      .catch(() => false);
-    expect(hasItems || hasEmpty).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

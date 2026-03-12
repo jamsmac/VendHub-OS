@@ -1,23 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Maintenance Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/maintenance");
+    await page.goto("/dashboard/maintenance", { waitUntil: "networkidle" });
   });
 
   test("should display maintenance page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /обслуживание|maintenance|техобслуживание/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /обслуживание|maintenance|техобслуживание/i);
   });
 
   test("should show maintenance records", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

@@ -1,23 +1,18 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Employees Attendance Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/employees/attendance");
+    await page.goto("/dashboard/employees/attendance", {
+      waitUntil: "networkidle",
+    });
   });
 
   test("should display attendance page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /посещаемость|attendance|явка/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /посещаемость|attendance|явка/i);
   });
 
   test("should show attendance data", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

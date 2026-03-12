@@ -9,13 +9,19 @@ const API_PREFIX = "/api/v1";
 
 /**
  * Global setup - authenticate admin and user before tests
+ *
+ * Web app auth flow:
+ * 1. Zustand persist stores { user, isAuthenticated } under "vendhub-auth" key
+ * 2. In-memory _accessToken holds the JWT (lost on refresh)
+ * 3. Dashboard layout checks getAccessToken() first, then falls back to checkAuth()
+ *
+ * We set both: Zustand state in localStorage + access token for init script injection.
  */
 setup("authenticate admin", async () => {
   const apiContext = await request.newContext({
     baseURL: process.env.API_URL || "http://localhost:4000",
   });
 
-  // Login as admin
   const adminResponse = await apiContext.post(`${API_PREFIX}/auth/login`, {
     data: {
       email: "admin@vendhub.uz",
@@ -28,19 +34,35 @@ setup("authenticate admin", async () => {
     fs.mkdirSync(authDir, { recursive: true });
   }
 
-  if (adminResponse.ok()) {
-    const adminData = await adminResponse.json();
+  const webOrigin = process.env.WEB_URL || "http://localhost:3000";
 
-    // Save admin auth state
-    // Web app uses vendhub_access_token / vendhub_refresh_token keys
+  if (adminResponse.ok()) {
+    const adminBody = await adminResponse.json();
+    // API wraps responses in { success, data, timestamp } envelope
+    const adminData = adminBody.data ?? adminBody;
+
+    // Zustand persist state — the web app reads this on hydration
+    const zustandState = JSON.stringify({
+      state: {
+        user: adminData.user,
+        isAuthenticated: true,
+        isLoading: false,
+      },
+      version: 0,
+    });
+
     await fs.promises.writeFile(
       ADMIN_AUTH_FILE,
       JSON.stringify({
         cookies: [],
         origins: [
           {
-            origin: process.env.WEB_URL || "http://localhost:3000",
+            origin: webOrigin,
             localStorage: [
+              {
+                name: "vendhub-auth",
+                value: zustandState,
+              },
               {
                 name: "vendhub_access_token",
                 value: adminData.accessToken,
@@ -55,8 +77,6 @@ setup("authenticate admin", async () => {
       }),
     );
   } else {
-    // Create empty auth file — tests will run without auth
-    // (pages may redirect to login, but smoke tests still verify rendering)
     await fs.promises.writeFile(
       ADMIN_AUTH_FILE,
       JSON.stringify({
@@ -74,7 +94,6 @@ setup("authenticate user", async () => {
     baseURL: process.env.API_URL || "http://localhost:4000",
   });
 
-  // For Mini App, we may use Telegram auth or a test user
   const userResponse = await apiContext.post(`${API_PREFIX}/auth/login`, {
     data: {
       email: "customer@vendhub.uz",
@@ -82,15 +101,25 @@ setup("authenticate user", async () => {
     },
   });
 
-  // If customer doesn't exist, the test will still pass
-  // as Mini App may use anonymous sessions
-  if (userResponse.ok()) {
-    const userData = await userResponse.json();
+  const authDir = path.dirname(USER_AUTH_FILE);
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+  }
 
-    const authDir = path.dirname(USER_AUTH_FILE);
-    if (!fs.existsSync(authDir)) {
-      fs.mkdirSync(authDir, { recursive: true });
-    }
+  const clientOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+
+  if (userResponse.ok()) {
+    const userBody = await userResponse.json();
+    const userData = userBody.data ?? userBody;
+
+    const zustandState = JSON.stringify({
+      state: {
+        user: userData.user,
+        isAuthenticated: true,
+        isLoading: false,
+      },
+      version: 0,
+    });
 
     await fs.promises.writeFile(
       USER_AUTH_FILE,
@@ -98,8 +127,12 @@ setup("authenticate user", async () => {
         cookies: [],
         origins: [
           {
-            origin: process.env.CLIENT_URL || "http://localhost:5173",
+            origin: clientOrigin,
             localStorage: [
+              {
+                name: "vendhub-auth",
+                value: zustandState,
+              },
               {
                 name: "vendhub_access_token",
                 value: userData.accessToken,
@@ -114,12 +147,6 @@ setup("authenticate user", async () => {
       }),
     );
   } else {
-    // Create empty auth file for anonymous session
-    const authDir = path.dirname(USER_AUTH_FILE);
-    if (!fs.existsSync(authDir)) {
-      fs.mkdirSync(authDir, { recursive: true });
-    }
-
     await fs.promises.writeFile(
       USER_AUTH_FILE,
       JSON.stringify({

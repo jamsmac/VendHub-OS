@@ -33,15 +33,25 @@ let _accessToken: string | null = null;
 
 function setTokens(accessToken: string, _refreshToken?: string) {
   _accessToken = accessToken;
-  // Refresh token is stored in httpOnly cookie by the server —
-  // no client-side storage needed
+  if (typeof window !== "undefined") {
+    localStorage.setItem("vendhub_access_token", accessToken);
+  }
 }
 
 function clearTokens() {
   _accessToken = null;
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("vendhub_access_token");
+  }
 }
 
 export function getAccessToken(): string | null {
+  if (!_accessToken && typeof window !== "undefined") {
+    const stored = localStorage.getItem("vendhub_access_token");
+    if (stored) {
+      _accessToken = stored;
+    }
+  }
   return _accessToken;
 }
 

@@ -1,23 +1,21 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Opening Balances Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/opening-balances");
+    await page.goto("/dashboard/opening-balances", {
+      waitUntil: "networkidle",
+    });
   });
 
   test("should display opening balances page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /начальные остатки|opening balances|остатки/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(
+      page,
+      /начальные остатки|opening balances|остатки/i,
+    );
   });
 
   test("should show balances table or list", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

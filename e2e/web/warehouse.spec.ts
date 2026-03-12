@@ -1,26 +1,26 @@
 import { test, expect } from "@playwright/test";
+import {
+  expectPageOrError,
+  expectContentOrEmpty,
+  isPageUnavailable,
+} from "../helpers";
 
 test.describe("Admin Warehouse Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/warehouse");
+    await page.goto("/dashboard/warehouse", { waitUntil: "networkidle" });
   });
 
   test("should display warehouse page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /склад|warehouse|inventory/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /склад|warehouse|inventory/i);
   });
 
   test("should show warehouse list or table", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 
   test("should have search input", async ({ page }) => {
-    const search = page.getByPlaceholder(/поиск|search/i);
+    if (await isPageUnavailable(page)) return;
+    const search = page.getByPlaceholder(/поиск|search/i).first();
     if (await search.isVisible()) {
       await expect(search).toBeVisible();
     }

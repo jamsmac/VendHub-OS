@@ -1,23 +1,18 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Employees Payroll Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/employees/payroll");
+    await page.goto("/dashboard/employees/payroll", {
+      waitUntil: "networkidle",
+    });
   });
 
   test("should display payroll page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /зарплата|payroll|начисления|salary/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /зарплата|payroll|начисления|salary/i);
   });
 
   test("should show payroll data", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

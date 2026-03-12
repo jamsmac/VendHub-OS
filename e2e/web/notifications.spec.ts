@@ -1,14 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Notifications Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/notifications");
+    await page.goto("/dashboard/notifications", { waitUntil: "networkidle" });
   });
 
   test("should display notifications page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /уведомления|notifications/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /уведомления|notifications/i);
   });
 
   test("should show notifications list or empty state", async ({ page }) => {

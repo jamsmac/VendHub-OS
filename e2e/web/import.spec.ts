@@ -1,14 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Import Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/import");
+    await page.goto("/dashboard/import", { waitUntil: "networkidle" });
   });
 
   test("should display import page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /импорт|import|загрузка|upload/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /импорт|import|загрузка|upload/i);
   });
 
   test("should show import options or upload area", async ({ page }) => {

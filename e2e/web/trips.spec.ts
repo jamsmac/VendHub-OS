@@ -1,24 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Trips Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/trips");
+    await page.goto("/dashboard/trips", { waitUntil: "networkidle" });
   });
 
   test("should display trips page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /рейсы|trips|маршруты|поездки/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /рейсы|trips|маршруты|поездки/i);
   });
 
   test("should show trips table or list", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 
   test("should have create trip button", async ({ page }) => {

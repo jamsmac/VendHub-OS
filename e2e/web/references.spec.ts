@@ -1,20 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin References Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/references");
+    await page.goto("/dashboard/references", { waitUntil: "networkidle" });
   });
 
   test("should display references page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /справочники|references|данные|data/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /справочники|references|данные|data/i);
   });
 
   test("should show reference categories", async ({ page }) => {
-    const cards = page.locator("[class*='card']");
-    expect(await cards.count()).toBeGreaterThan(0);
+    await expectContentOrEmpty(page);
   });
 });

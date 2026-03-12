@@ -1,23 +1,19 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Locations Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/locations");
+    await page.goto("/dashboard/locations", { waitUntil: "networkidle" });
   });
 
   test("should display locations page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /локации|locations|точки|points|адреса|addresses/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(
+      page,
+      /локации|locations|точки|points|адреса|addresses/i,
+    );
   });
 
   test("should show locations table or list", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

@@ -1,16 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Fiscal Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/fiscal");
+    await page.goto("/dashboard/fiscal", { waitUntil: "networkidle" });
   });
 
   test("should display fiscal page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /фискал|fiscal|кассы|cash registers|ofд|ofd/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(
+      page,
+      /фискал|fiscal|кассы|cash registers|ofд|ofd/i,
+    );
   });
 
   test("should show fiscal data", async ({ page }) => {

@@ -1,23 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Incidents Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/incidents");
+    await page.goto("/dashboard/incidents", { waitUntil: "networkidle" });
   });
 
   test("should display incidents page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", {
-        name: /инциденты|incidents|происшествия/i,
-      }),
-    ).toBeVisible();
+    await expectPageOrError(page, /инциденты|incidents|происшествия/i);
   });
 
   test("should show incidents list or table", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 });

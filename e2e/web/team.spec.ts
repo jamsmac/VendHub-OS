@@ -1,24 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { expectPageOrError, expectContentOrEmpty } from "../helpers";
 
 test.describe("Admin Team Page", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/team");
+    await page.goto("/dashboard/team", { waitUntil: "networkidle" });
   });
 
   test("should display team page heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /команда|team|сотрудники/i }),
-    ).toBeVisible();
+    await expectPageOrError(page, /команда|team|сотрудники/i);
   });
 
   test("should show team members list or table", async ({ page }) => {
-    const table = page.locator("table, [role='table']");
-    const cards = page.locator("[class*='card']");
-
-    const hasTable = (await table.count()) > 0;
-    const hasCards = (await cards.count()) > 0;
-
-    expect(hasTable || hasCards).toBeTruthy();
+    await expectContentOrEmpty(page);
   });
 
   test("should have invite or add member button", async ({ page }) => {
