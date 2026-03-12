@@ -130,7 +130,7 @@ export class MachinesCoreService {
     if (organizationId) where.organizationId = organizationId;
     return this.machineRepository.findOne({
       where,
-      relations: ["slots", "slots.product"],
+      relations: ["slots"],
     });
   }
 

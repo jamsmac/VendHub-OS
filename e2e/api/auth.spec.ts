@@ -17,22 +17,32 @@ test.describe("Auth API", () => {
 
     expect(response.status()).toBe(200);
 
-    const data = await response.json();
+    const body = await response.json();
+    const data = body.data ?? body;
     expect(data).toHaveProperty("accessToken");
     expect(data).toHaveProperty("refreshToken");
     expect(data).toHaveProperty("user");
     expect(data.user.email).toBe("admin@vendhub.uz");
   });
 
-  test("should reject login with invalid credentials", async ({ request }) => {
-    const response = await request.post(`${baseURL}${API_PREFIX}/auth/login`, {
-      data: {
-        email: "admin@vendhub.uz",
-        password: "wrongpassword",
-      },
-    });
+  test.describe("invalid credentials", () => {
+    test.describe.configure({ retries: 0 });
 
-    expect(response.status()).toBe(401);
+    test("should reject login with invalid credentials", async ({
+      request,
+    }) => {
+      const response = await request.post(
+        `${baseURL}${API_PREFIX}/auth/login`,
+        {
+          data: {
+            email: "admin@vendhub.uz",
+            password: "wrongpassword",
+          },
+        },
+      );
+
+      expect(response.status()).toBe(401);
+    });
   });
 
   test("should reject login with invalid email format", async ({ request }) => {
@@ -58,7 +68,8 @@ test.describe("Auth API", () => {
       },
     );
 
-    const loginData = await loginResponse.json();
+    const loginBody = await loginResponse.json();
+    const loginData = loginBody.data ?? loginBody;
 
     // Get profile
     const profileResponse = await request.get(
@@ -72,7 +83,8 @@ test.describe("Auth API", () => {
 
     expect(profileResponse.status()).toBe(200);
 
-    const profile = await profileResponse.json();
+    const profileBody = await profileResponse.json();
+    const profile = profileBody.data ?? profileBody;
     expect(profile.email).toBe("admin@vendhub.uz");
     expect(profile).toHaveProperty("id");
     expect(profile).toHaveProperty("role");
@@ -96,7 +108,8 @@ test.describe("Auth API", () => {
       },
     );
 
-    const loginData = await loginResponse.json();
+    const loginBody = await loginResponse.json();
+    const loginData = loginBody.data ?? loginBody;
 
     // Refresh token
     const refreshResponse = await request.post(
@@ -110,7 +123,8 @@ test.describe("Auth API", () => {
 
     expect(refreshResponse.status()).toBe(200);
 
-    const refreshData = await refreshResponse.json();
+    const refreshBody = await refreshResponse.json();
+    const refreshData = refreshBody.data ?? refreshBody;
     expect(refreshData).toHaveProperty("accessToken");
     expect(refreshData).toHaveProperty("refreshToken");
     // New tokens should be different
