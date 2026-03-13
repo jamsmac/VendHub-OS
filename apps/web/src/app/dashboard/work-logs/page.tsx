@@ -30,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { formatTime } from "@/lib/utils";
+import { formatTime, formatDate } from "@/lib/utils";
 
 interface WorkLog {
   id: string;
@@ -387,13 +387,7 @@ export default function WorkLogsPage() {
                       <TableCell>
                         {log.clockOut ? (
                           <p className="font-medium">
-                            {new Date(log.clockOut).toLocaleTimeString(
-                              "ru-RU",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
+                            {formatTime(log.clockOut)}
                           </p>
                         ) : (
                           <Badge className="bg-green-500/10 text-green-500">
@@ -525,15 +519,10 @@ export default function WorkLogsPage() {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">
-                          {new Date(request.startDate).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          {formatDate(request.startDate)}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          —{" "}
-                          {new Date(request.endDate).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          — {formatDate(request.endDate)}
                         </p>
                       </TableCell>
                       <TableCell>

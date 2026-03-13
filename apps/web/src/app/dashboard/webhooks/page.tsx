@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime, formatDate as fmtDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -203,13 +204,7 @@ export default function WebhooksPage() {
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "—";
-    return new Intl.DateTimeFormat("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(iso));
+    return formatDateTime(iso);
   };
 
   const truncateUrl = (url: string, max = 50) =>
@@ -783,14 +778,14 @@ function WebhookLogsDialog({
   });
 
   const formatDate = (iso: string) =>
-    new Intl.DateTimeFormat("ru-RU", {
+    fmtDate(iso, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    }).format(new Date(iso));
+    });
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>

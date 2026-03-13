@@ -44,7 +44,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatDate, formatTime, formatDateTime } from "@/lib/utils";
+import {
+  formatDate,
+  formatTime,
+  formatDateTime,
+  formatCurrency,
+} from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -171,9 +176,7 @@ export default function OrdersPage() {
     [orders],
   );
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
-  };
+  const formatMoney = formatCurrency;
 
   if (isError) {
     return (
@@ -558,9 +561,7 @@ export default function OrdersPage() {
                 {selectedOrder.completedAt && (
                   <p>
                     {t("dialogCompleted")}:{" "}
-                    {new Date(selectedOrder.completedAt).toLocaleString(
-                      "ru-RU",
-                    )}
+                    {formatDateTime(selectedOrder.completedAt)}
                   </p>
                 )}
               </div>

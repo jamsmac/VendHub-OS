@@ -19,6 +19,7 @@ import {
   MessageCircle,
   DollarSign,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -391,9 +392,7 @@ export default function ComplaintsPage() {
                           )}
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {new Date(complaint.createdAt).toLocaleDateString(
-                              "ru-RU",
-                            )}
+                            {formatDate(complaint.createdAt)}
                           </span>
                         </div>
                       </div>

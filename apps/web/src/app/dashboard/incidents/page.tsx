@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -162,13 +163,7 @@ const INCIDENT_PRIORITIES: IncidentPriority[] = ["LOW", "MEDIUM", "HIGH"];
 // ---- Helpers ----
 function formatDate(dateStr?: string) {
   if (!dateStr) return "—";
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateStr));
+  return formatDateTime(dateStr);
 }
 
 function userName(

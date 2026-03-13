@@ -22,6 +22,7 @@ import {
   LayoutList,
   Kanban,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -454,9 +455,7 @@ export default function TasksPage() {
                               {task.dueDate && (
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
-                                  {new Date(task.dueDate).toLocaleDateString(
-                                    "ru-RU",
-                                  )}
+                                  {formatDate(task.dueDate)}
                                 </span>
                               )}
                               <span className={priorityStyle}>
@@ -585,9 +584,7 @@ export default function TasksPage() {
                               </span>
                               {task.dueDate && (
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(task.dueDate).toLocaleDateString(
-                                    "ru-RU",
-                                  )}
+                                  {formatDate(task.dueDate)}
                                 </span>
                               )}
                             </div>

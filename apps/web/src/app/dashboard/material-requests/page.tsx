@@ -611,17 +611,13 @@ export default function MaterialRequestsPage() {
                 {selectedRequest.approvedAt && (
                   <p>
                     {t("detailApprovedAt")}{" "}
-                    {new Date(selectedRequest.approvedAt).toLocaleString(
-                      "ru-RU",
-                    )}
+                    {formatDateTime(selectedRequest.approvedAt)}
                   </p>
                 )}
                 {selectedRequest.deliveredAt && (
                   <p>
                     {t("detailDeliveredAt")}{" "}
-                    {new Date(selectedRequest.deliveredAt).toLocaleString(
-                      "ru-RU",
-                    )}
+                    {formatDateTime(selectedRequest.deliveredAt)}
                   </p>
                 )}
               </div>

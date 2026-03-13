@@ -917,14 +917,10 @@ export default function CounterpartiesPage() {
                           {t(CONTRACT_TYPE_TRANSLATION_KEYS[contract.type])}
                         </TableCell>
                         <TableCell className="text-sm text-espresso-light">
-                          {new Date(contract.startDate).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          {formatDate(contract.startDate)}
                         </TableCell>
                         <TableCell className="text-sm text-espresso-light">
-                          {new Date(contract.endDate).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          {formatDate(contract.endDate)}
                         </TableCell>
                         <TableCell className="text-right font-medium text-espresso">
                           {formatCurrency(contract.monthlyAmount)}
@@ -1124,9 +1120,7 @@ export default function CounterpartiesPage() {
                         <TableCell className="text-sm text-espresso-light">
                           {item.lastPaymentDate === "—"
                             ? "—"
-                            : new Date(item.lastPaymentDate).toLocaleDateString(
-                                "ru-RU",
-                              )}
+                            : formatDate(item.lastPaymentDate)}
                         </TableCell>
                       </TableRow>
                     ))}

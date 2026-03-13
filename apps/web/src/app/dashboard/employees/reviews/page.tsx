@@ -407,11 +407,7 @@ export default function ReviewsPage() {
                   <span className="text-muted-foreground">
                     {t("reviewDate")}
                   </span>
-                  <span>
-                    {new Date(detailReview.review_date).toLocaleDateString(
-                      "ru-RU",
-                    )}
-                  </span>
+                  <span>{formatDate(detailReview.review_date)}</span>
                 </div>
                 {detailReview.overall_rating !== undefined &&
                   detailReview.overall_rating !== null && (

@@ -590,9 +590,7 @@ export default function TripDetailPage({
                             </p>
                           )}
                           <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(anomaly.detectedAt).toLocaleString(
-                              "ru-RU",
-                            )}
+                            {formatDateTime(anomaly.detectedAt)}
                           </p>
                         </div>
                       </div>

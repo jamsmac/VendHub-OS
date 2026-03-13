@@ -19,6 +19,7 @@ import {
   DollarSign,
   AlertTriangle,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -155,9 +156,7 @@ export default function ContractorsPage() {
     [contractors],
   );
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
-  };
+  const formatMoney = formatCurrency;
 
   if (isError) {
     return (

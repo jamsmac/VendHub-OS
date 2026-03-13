@@ -62,6 +62,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { formatDate, formatDateTime } from "@/lib/utils";
 import { api } from "@/lib/api";
 
 import type {
@@ -697,9 +698,7 @@ export default function NotificationsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(notification.created_at).toLocaleDateString(
-                          "ru-RU",
-                        )}
+                        {formatDate(notification.created_at)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -1129,9 +1128,7 @@ export default function NotificationsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(campaign.created_at).toLocaleDateString(
-                          "ru-RU",
-                        )}
+                        {formatDate(campaign.created_at)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -1523,11 +1520,7 @@ export default function NotificationsPage() {
                   <span className="text-muted-foreground">
                     {t("detail_date")}:
                   </span>{" "}
-                  <span>
-                    {new Date(selectedNotification.created_at).toLocaleString(
-                      "ru-RU",
-                    )}
-                  </span>
+                  <span>{formatDateTime(selectedNotification.created_at)}</span>
                 </div>
               </div>
               {selectedNotification.related_entity_type &&

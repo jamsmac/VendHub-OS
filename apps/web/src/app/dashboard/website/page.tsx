@@ -1660,10 +1660,8 @@ function PartnershipTab() {
                     {t("contract")}
                   </p>
                   <p className="text-xs text-espresso-dark">
-                    {new Date(selectedPartner.contractStart).toLocaleDateString(
-                      "ru-RU",
-                    )}{" "}
-                    — {formatDate(selectedPartner.contractEnd || "")}
+                    {formatDate(selectedPartner.contractStart)} —{" "}
+                    {formatDate(selectedPartner.contractEnd || "")}
                   </p>
                 </div>
               )}

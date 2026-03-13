@@ -425,10 +425,7 @@ export default function UsersPage() {
                       </span>
                       {user.lastLoginAt && (
                         <span>
-                          {tCommon("lastLogin")}:{" "}
-                          {new Date(user.lastLoginAt).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          {tCommon("lastLogin")}: {formatDate(user.lastLoginAt)}
                         </span>
                       )}
                     </div>

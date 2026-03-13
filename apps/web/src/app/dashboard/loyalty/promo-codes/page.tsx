@@ -39,7 +39,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { promoCodesApi } from "@/lib/api";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatDate, formatDateTime } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -386,9 +386,7 @@ export default function PromoCodesPage() {
                         >
                           <Calendar className="h-3 w-3" />
                           {t("expiresDate", {
-                            date: new Date(code.expiresAt).toLocaleDateString(
-                              "ru-RU",
-                            ),
+                            date: formatDate(code.expiresAt),
                           })}
                         </Badge>
                       )}
@@ -610,9 +608,7 @@ export default function PromoCodesPage() {
                         {redemption.userName || redemption.userId}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(redemption.createdAt || "").toLocaleString(
-                          "ru-RU",
-                        )}
+                        {formatDateTime(redemption.createdAt || "")}
                       </p>
                     </div>
                     <Badge variant="secondary">

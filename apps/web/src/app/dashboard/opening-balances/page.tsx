@@ -55,7 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { openingBalancesApi } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -191,8 +191,7 @@ export default function OpeningBalancesPage() {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  const formatMoney = (amount: number) =>
-    new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
+  const formatMoney = formatCurrency;
 
   const formatDateShort = (dateStr: string) =>
     formatDate(dateStr, {

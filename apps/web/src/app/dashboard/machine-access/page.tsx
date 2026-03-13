@@ -17,6 +17,7 @@ import {
   Edit,
   Play,
 } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -184,13 +185,7 @@ export default function MachineAccessPage() {
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "—";
-    return new Intl.DateTimeFormat("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateStr));
+    return formatDateTime(dateStr);
   };
 
   const getUserDisplayName = (record: MachineAccess) => {

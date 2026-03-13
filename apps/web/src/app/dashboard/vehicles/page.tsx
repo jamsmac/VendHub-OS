@@ -55,7 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { vehiclesApi } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatNumber } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -150,7 +150,7 @@ export default function VehiclesPage() {
   );
 
   const formatOdometer = (km: number) =>
-    new Intl.NumberFormat("ru-RU").format(km) + ` ${t("form.odometerUnit")}`;
+    formatNumber(km) + ` ${t("form.odometerUnit")}`;
 
   // ── Error state ───────────────────────────────────────────────────────────
   if (isError) {

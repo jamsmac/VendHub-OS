@@ -43,7 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency as fmtCurrency } from "@/lib/utils";
 
 interface PayrollRecord {
   id: string;
@@ -85,8 +85,7 @@ const payrollStatusColors: Record<string, string> = {
   CANCELLED: "bg-red-500/10 text-red-500",
 };
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("ru-RU").format(amount) + " UZS";
+const formatCurrency = fmtCurrency;
 
 const monthKeys = [
   "monthJanuary",
@@ -345,13 +344,8 @@ export default function PayrollPage() {
                     {detailPayroll.employee?.lastName}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(detailPayroll.period_start).toLocaleDateString(
-                      "ru-RU",
-                    )}{" "}
-                    --{" "}
-                    {new Date(detailPayroll.period_end).toLocaleDateString(
-                      "ru-RU",
-                    )}
+                    {formatDate(detailPayroll.period_start)} --{" "}
+                    {formatDate(detailPayroll.period_end)}
                   </p>
                 </div>
                 <Badge
@@ -419,11 +413,7 @@ export default function PayrollPage() {
                     <span className="text-muted-foreground">
                       {t("paidDate")}
                     </span>
-                    <span>
-                      {new Date(detailPayroll.paid_at).toLocaleDateString(
-                        "ru-RU",
-                      )}
-                    </span>
+                    <span>{formatDate(detailPayroll.paid_at)}</span>
                   </div>
                 )}
               </div>
@@ -502,10 +492,8 @@ export default function PayrollPage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {new Date(record.period_start).toLocaleDateString(
-                        "ru-RU",
-                      )}{" "}
-                      -- {formatDate(record.period_end)}
+                      {formatDate(record.period_start)} --{" "}
+                      {formatDate(record.period_end)}
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-sm">

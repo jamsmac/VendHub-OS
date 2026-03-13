@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/table";
 import { equipmentApi, sparePartsApi, washingSchedulesApi } from "@/lib/api";
 import Link from "next/link";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 // --- Interfaces ---
 
@@ -721,9 +721,7 @@ export default function EquipmentPage() {
                       </TableCell>
                       <TableCell className="py-3 px-4 text-right">
                         {part.costPrice != null
-                          ? new Intl.NumberFormat("ru-RU").format(
-                              part.costPrice,
-                            ) + " UZS"
+                          ? formatCurrency(part.costPrice)
                           : "-"}
                       </TableCell>
                       <TableCell className="py-3 px-4">
@@ -888,9 +886,7 @@ export default function EquipmentPage() {
                       </TableCell>
                       <TableCell className="py-3 px-4 text-muted-foreground">
                         {schedule.lastWashDate
-                          ? new Date(schedule.lastWashDate).toLocaleDateString(
-                              "ru-RU",
-                            )
+                          ? formatDate(schedule.lastWashDate)
                           : "-"}
                       </TableCell>
                       <TableCell className="py-3 px-4 text-muted-foreground">

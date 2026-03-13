@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Box,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -766,9 +767,7 @@ export default function WarehousePage() {
                           {movement.note ?? "—"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {new Date(movement.created_at).toLocaleDateString(
-                            "ru-RU",
-                          )}
+                          {formatDate(movement.created_at)}
                         </TableCell>
                       </TableRow>
                     ))
