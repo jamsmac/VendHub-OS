@@ -51,7 +51,9 @@ registerSW({
     }
   },
   onOfflineReady() {
-    console.warn("VendHub PWA: ready for offline use");
+    if (import.meta.env.DEV) {
+      console.warn("VendHub PWA: ready for offline use");
+    }
   },
 });
 

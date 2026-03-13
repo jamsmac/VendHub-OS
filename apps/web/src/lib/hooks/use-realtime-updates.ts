@@ -123,10 +123,12 @@ async function getIO(): Promise<unknown> {
     ioModule = await import("socket.io-client");
     return ioModule;
   } catch {
-    console.warn(
-      "[WebSocket] socket.io-client not installed. Real-time updates disabled.",
-    );
-    console.warn("[WebSocket] Install with: pnpm add socket.io-client");
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[WebSocket] socket.io-client not installed. Real-time updates disabled.",
+      );
+      console.warn("[WebSocket] Install with: pnpm add socket.io-client");
+    }
     return null;
   }
 }
@@ -172,7 +174,9 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
 
     const token = getAccessToken();
     if (!token) {
-      console.warn("[WebSocket] No auth token — skipping connection");
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[WebSocket] No auth token — skipping connection");
+      }
       return;
     }
 
@@ -198,7 +202,9 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
 
     socket.on("connect", () => {
       setIsConnected(true);
-      console.log(`[WebSocket] Connected to ${namespace}`);
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[WebSocket] Connected to ${namespace}`);
+      }
 
       // Subscribe to rooms
       subscribeRooms.forEach((room) => {
@@ -214,15 +220,19 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
 
     socket.on("disconnect", (...args: unknown[]) => {
       setIsConnected(false);
-      console.log(`[WebSocket] Disconnected from ${namespace}:`, args[0]);
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[WebSocket] Disconnected from ${namespace}:`, args[0]);
+      }
     });
 
     socket.on("connect_error", (...args: unknown[]) => {
       const error = args[0] as Error | undefined;
-      console.warn(
-        `[WebSocket] Connection error on ${namespace}:`,
-        error?.message,
-      );
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[WebSocket] Connection error on ${namespace}:`,
+          error?.message,
+        );
+      }
       setIsConnected(false);
     });
 
@@ -316,7 +326,9 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
     if (socketRef.current?.connected) {
       socketRef.current.emit(event, data);
     } else {
-      console.warn(`[WebSocket] Cannot emit "${event}" — not connected`);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`[WebSocket] Cannot emit "${event}" — not connected`);
+      }
     }
   }, []);
 

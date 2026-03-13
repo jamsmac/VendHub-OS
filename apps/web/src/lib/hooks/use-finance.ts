@@ -160,9 +160,11 @@ export function useUpdateFinanceTransaction() {
       id: string;
       updates: Partial<Omit<DbFinanceTransaction, "id" | "created_at">>;
     }) => {
-      console.warn(
-        `[useUpdateFinanceTransaction] Update not supported for deposit ${id}`,
-      );
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[useUpdateFinanceTransaction] Update not supported for deposit ${id}`,
+        );
+      }
       return { id };
     },
     onSuccess: () => {
