@@ -875,24 +875,20 @@
     "title": "Jamoa",
     "subtitle": "Xodimlar, rollar va kirish huquqlarini boshqarish (RBAC)",
     "invite": "Taklif qilish",
-
     "tabMembers": "Xodimlar",
     "tabAnalytics": "Analitika",
     "tabSchedule": "Jadval",
     "tabSalary": "Maosh",
     "tabRoles": "Rollar va huquqlar",
     "tabHistory": "Tarix",
-
     "unnamed": "Nomsiz",
     "employee": "Xodim",
     "system": "Tizim",
-
     "statsTotal": "Jami",
     "statsActive": "Faol",
     "statsAway": "Yo'q",
     "statsInactive": "Nofaol",
     "statsAvgRating": "O'rtacha reyting",
-
     "roleOwner": "Egasi",
     "roleAdmin": "Administrator",
     "roleManager": "Menejer",
@@ -900,7 +896,6 @@
     "roleWarehouse": "Ombor",
     "roleAccountant": "Buxgalter",
     "roleViewer": "Kuzatuvchi",
-
     "roleDescOwner": "To'liq kirish va tizimga egalik",
     "roleDescAdmin": "Barcha funksiyalarga to'liq kirish",
     "roleDescManager": "Operatsiyalar va xodimlarni boshqarish",
@@ -908,30 +903,25 @@
     "roleDescWarehouse": "Ombor va zaxiralarni boshqarish",
     "roleDescAccountant": "Moliya va hisobotlar",
     "roleDescViewer": "Faqat ko'rish huquqi",
-
     "statusActive": "Faol",
     "statusAway": "Yo'q",
     "statusInactive": "Nofaol",
     "statusSuspended": "To'xtatilgan",
     "statusInvited": "Taklif qilingan",
-
     "deptManagement": "Rahbariyat",
     "deptOperations": "Operatsiyalar",
     "deptService": "Xizmat",
     "deptFinance": "Moliya",
     "deptAnalytics": "Analitika",
-
     "shiftMorning": "Ertalab",
     "shiftDay": "Kunduzi",
     "shiftEvening": "Kechqurun",
-
     "permMachines": "Avtomatlar",
     "permInventory": "Ombor",
     "permTasks": "Topshiriqlar",
     "permFinance": "Moliya",
     "permReports": "Hisobotlar",
     "permTeam": "Jamoa",
-
     "inviteTitle": "Xodimni taklif qilish",
     "inviteRole": "Rol",
     "inviteZone": "Hudud",
@@ -940,7 +930,6 @@
     "inviteLink": "Taklif havolasi",
     "inviteCancel": "Bekor qilish",
     "inviteSend": "Yuborish",
-
     "memberCard": "Xodim kartasi",
     "memberContacts": "Kontaktlar",
     "memberTasksCompleted": "Bajarilgan topshiriqlar",
@@ -954,7 +943,6 @@
     "memberEdit": "Tahrirlash",
     "memberActivate": "Faollashtirish",
     "memberDeactivate": "O'chirish",
-
     "rolesMatrix": "Rollar va kirish huquqlari matritsasi",
     "createRole": "Rol yaratish",
     "roleCol": "Rol",
@@ -965,7 +953,6 @@
     "rolePermissions": "Kirish huquqlari",
     "roleCancel": "Bekor qilish",
     "roleSave": "Saqlash",
-
     "weeklySchedule": "Haftalik jadval",
     "dayMon": "Du",
     "dayTue": "Se",
@@ -975,7 +962,6 @@
     "daySat": "Sha",
     "daySun": "Ya",
     "hoursPerWeek": "Soat/hafta",
-
     "totalPayroll": "Umumiy ish haqi fondi",
     "avgSalary": "O'rtacha maosh",
     "totalBonuses": "Jami mukofotlar",
@@ -987,14 +973,12 @@
     "colBonus": "Mukofot",
     "colDeductions": "Ushlanmalar",
     "colNetPay": "To'lovga jami",
-
     "activityHistory": "O'zgarishlar tarixi",
     "actionCreate": "xodim qo'shdi",
     "actionEdit": "tahrirladi",
     "actionDelete": "o'chirdi",
     "actionRoleChange": "rolni o'zgartirdi",
     "actionLogin": "tizimga kirdi",
-
     "headcountByRole": "Rollar bo'yicha xodimlar soni",
     "hiringTimeline": "12 oy davomida yollash",
     "tenureDistribution": "Ish staji taqsimoti",
@@ -1004,7 +988,6 @@
     "colTimeliness": "O'z vaqtidalik",
     "topPerformers": "Eng yaxshi xodimlar (bajarilgan topshiriqlar bo'yicha)",
     "tasksSuffix": "topshiriq",
-
     "monthJan": "Yanvar",
     "monthFeb": "Fevral",
     "monthMar": "Mart",
@@ -1017,16 +1000,13 @@
     "monthOct": "Oktyabr",
     "monthNov": "Noyabr",
     "monthDec": "Dekabr",
-
     "tenure0to3": "0-3 oy",
     "tenure3to6": "3-6 oy",
     "tenure6to12": "6-12 oy",
     "tenure12plus": "12+ oy",
-
     "bonusPremium": "Mukofotlar",
     "bonusPerformance": "Samaradorlik bonuslari",
     "bonusIncentives": "Rag'batlantirish",
-
     "bulkSelected": "Tanlangan: {count} xodim",
     "bulkRole": "Rol",
     "bulkZone": "Hudud",
@@ -1659,7 +1639,15 @@
     "prevPage": "Orqaga",
     "nextPage": "Keyingi",
     "perReceipt": "UZS / chek",
-    "receiptsPerDay": "{count} chek/kun"
+    "receiptsPerDay": "{count} chek/kun",
+    "payMethodCash": "Naqd",
+    "payMethodPayme": "Payme",
+    "payMethodClick": "Click",
+    "payMethodUzum": "Uzum",
+    "payMethodHumo": "HUMO",
+    "payMethodUzcard": "UZCARD",
+    "payMethodTransfer": "O'tkazma",
+    "payMethodBonus": "Bonus"
   },
   "finance": {
     "title": "Moliya",
@@ -1667,7 +1655,6 @@
     "export": "Eksport",
     "newTransaction": "Tranzaksiya",
     "creatingTransaction": "Yaratilmoqda...",
-
     "tabOverview": "Umumiy ko'rinish",
     "tabPnl": "P&L",
     "tabCashflow": "Pul oqimi",
@@ -1678,13 +1665,11 @@
     "tabFiscalization": "Fiskalizatsiya",
     "tabBudget": "Byudjet",
     "tabReports": "Hisobotlar",
-
     "rangeToday": "Bugun",
     "rangeWeek": "Hafta",
     "rangeMonth": "Oy",
     "rangeQuarter": "Chorak",
     "rangeYear": "Yil",
-
     "statusCompleted": "Amalga oshirildi",
     "statusPending": "Kutilmoqda",
     "statusFailed": "Xatolik",
@@ -1692,14 +1677,12 @@
     "statusOverdue": "Muddati o'tgan",
     "statusMatched": "Solishtirildi",
     "statusDiscrepancy": "Nomuvofiqlik",
-
     "kpiRevenue": "Daromad",
     "kpiExpenses": "Xarajatlar",
     "kpiNetProfit": "Sof foyda",
     "kpiPending": "Kutilmoqda",
     "kpiCashOnHand": "Kassa",
     "kpiReceivables": "Debitorlik",
-
     "chartIncomeExpenses": "Daromad va xarajatlar",
     "chartIncome": "Daromad",
     "chartExpense": "Xarajat",
@@ -1708,7 +1691,6 @@
     "chartRevenue": "Daromad",
     "chartExpenses": "Xarajatlar",
     "chartProfit": "Foyda",
-
     "unitEconomics": "Birlik iqtisodiyoti",
     "revenuePerMachine": "Avtomat boshiga daromad",
     "perMonthMachines": "oyiga (16 ta mashina)",
@@ -1716,7 +1698,6 @@
     "perCup": "bir stakan uchun",
     "avgReceipt": "O'rtacha chek",
     "profitPerDeal": "Bitim boshiga foyda",
-
     "fiscOverview": "Fiskalizatsiya",
     "fiscTerminal": "Terminal",
     "fiscStatusLabel": "Status",
@@ -1729,7 +1710,6 @@
     "fiscSynced": "Sinxronlangan",
     "fiscMonthReceipts": "Oylik cheklar",
     "fiscMonthTurnover": "Oylik aylanma",
-
     "pnlTitle": "Foyda va zarar (P&L)",
     "pnlIndicator": "Ko'rsatkich",
     "pnlRevenue": "Daromad",
@@ -1744,7 +1724,6 @@
     "pnlDynamics": "O'zgarish dinamikasi",
     "pnlMomYoy": "OoO / YoY",
     "pnlTrend": "P&L trendi (daromad, xarajat, foyda)",
-
     "cfCurrentBalance": "Joriy balans",
     "cfOperating7d": "Operatsion CF (7 kun)",
     "cfInvesting7d": "Investitsion CF (7 kun)",
@@ -1776,7 +1755,6 @@
     "cfScenario": "Stsenariy",
     "cfHealthy": "Sog'lom",
     "cfSufficientFunds": "mablag'lar yetarli",
-
     "reconTotalChecks": "Jami tekshiruvlar",
     "reconMatched": "Solishtirildi",
     "reconDiscrepancies": "Nomuvofiqliklar",
@@ -1791,7 +1769,6 @@
     "reconColActual": "Haqiqiy",
     "reconColDifference": "Farq",
     "reconColStatus": "Status",
-
     "invTitle": "Hisob-fakturalar va hujjatlar",
     "invAll": "Hammasi",
     "invIncoming": "Kiruvchi",
@@ -1801,7 +1778,6 @@
     "invCreate": "Hisob-faktura yaratish",
     "invDueDate": "gacha",
     "invItems": "pozitsiya",
-
     "payTotalBalance": "Umumiy balans",
     "payPendingDeposits": "Kirim kutilmoqda",
     "payTransactionsToday": "Bugungi tranzaksiyalar",
@@ -1817,7 +1793,6 @@
     "paySync": "Sinxronizatsiya",
     "payStatement": "Ko'chirma",
     "payChannelDistribution": "Kanallar bo'yicha taqsimot",
-
     "txFormTitle": "Tranzaksiya qo'shish",
     "txFormType": "Turi",
     "txFormIncome": "Daromad",
@@ -1836,7 +1811,6 @@
     "txFormCreating": "Yaratilmoqda...",
     "txFormCreate": "Yaratish",
     "txFormError": "Xatolik",
-
     "repPnlTitle": "P&L (Foyda/Zarar)",
     "repPnlDesc": "Oylik foyda va zarar hisoboti",
     "repCashFlowTitle": "Cash Flow",
@@ -1860,7 +1834,6 @@
     "repPayReconciliationReport": "To'lovlarni solishtirish",
     "repPayReconciliationSchedule": "Har kuni soat 23:00 da",
     "repConfigure": "Sozlash",
-
     "budBudget": "Byudjet",
     "budSpent": "Sarflangan",
     "budRemaining": "Qoldiq",
@@ -1871,7 +1844,6 @@
     "budColSpent": "Sarflangan",
     "budColDifference": "Farq",
     "budColUtilization": "Foydalanish",
-
     "fiscTabMultikassaStatus": "Multikassa holati",
     "fiscTabActive": "Faol",
     "fiscTabSynced": "Sinxronlangan",
@@ -2803,13 +2775,11 @@
     "subtitle": "Promokodlar, chegirmalar va marketing aksiyalarini boshqarish",
     "export": "Eksport",
     "newPromo": "Yangi aksiya",
-
     "tabList": "Aksiyalar",
     "tabAnalytics": "Analitika",
     "tabCoupons": "Kuponlar",
     "tabABTests": "A/B Testlar",
     "tabWizard": "Aksiya yaratish",
-
     "kpiTotal": "Jami aksiyalar",
     "kpiActiveCount": "{count} faol",
     "kpiUsage": "Foydalanishlar",
@@ -2818,7 +2788,6 @@
     "kpiCurrentPeriod": "joriy davr",
     "kpiConversion": "Konversiya",
     "kpiConversionSub": "noyob / foydalanishlar",
-
     "cardActive": "Faol",
     "cardInactive": "Nofaol",
     "cardActionRequired": "Harakat talab qilinadi",
@@ -2850,7 +2819,6 @@
     "cardDeleteConfirm": "Ishonchingiz komilmi? Bu amalni qaytarib bo'lmaydi.",
     "cardCreated": "Yaratilgan:",
     "cardOrder": "Tartib:",
-
     "dayMon": "Du",
     "dayTue": "Se",
     "dayWed": "Cho",
@@ -2858,7 +2826,6 @@
     "dayFri": "Ju",
     "daySat": "Sha",
     "daySun": "Ya",
-
     "analyticsOverview": "Umumiy ko'rinish",
     "analyticsROI": "ROI va samaradorlik",
     "analyticsTopPromos": "Top aksiyalar",
@@ -2882,12 +2849,10 @@
     "chartUsagesGeo": "Foydalanishlar",
     "chartTopEffective": "Daromadga ta'sir bo'yicha eng samarali 5 aksiya",
     "chartUsageSuffix": "foyd.",
-
     "codeStatsIssued": "Berilgan kodlar",
     "codeStatsUsed": "Ishlatilgan",
     "codeStatsExpired": "Muddati o'tgan",
     "codeStatsActive": "Faol",
-
     "couponIssued": "Berilgan",
     "couponUsed": "Ishlatilgan",
     "couponActive": "Faol",
@@ -2912,7 +2877,6 @@
     "couponStatusUsed": "Ishlatilgan",
     "couponStatusExpired": "Muddati o'tgan",
     "couponCopy": "Nusxa olish",
-
     "abActiveTest": "Faol test",
     "abVariantA": "Variant A",
     "abVariantB": "Variant B",
@@ -2924,7 +2888,6 @@
     "abCompletedTests": "Yakunlangan testlar",
     "abWinner": "G'olib: Variant {variant}",
     "abVariantACurrent": "Variant A (joriy)",
-
     "wizardTitle": "Yangi aksiya yaratish",
     "wizardSelectType": "Aksiya turini tanlang",
     "wizardTypeDiscount": "Chegirma",

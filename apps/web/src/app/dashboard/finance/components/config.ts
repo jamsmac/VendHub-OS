@@ -9,15 +9,8 @@ import {
   Building,
   ArrowLeftRight,
   CircleDollarSign,
-  PieChart,
-  TrendingUp,
-  FileText,
-  Receipt,
-  Scale,
-  Wallet,
-  BarChart3,
 } from "lucide-react";
-import { StatusKey, PaymentMethod, Tab } from "./types";
+import { StatusKey, PaymentMethod } from "./types";
 
 export const STATUS_CONFIG: Record<
   StatusKey,
@@ -75,20 +68,7 @@ export const PAYMENT_METHODS: Record<string, PaymentMethod> = {
   bonus: { label: "Бонусы", icon: CircleDollarSign, color: "bg-purple-600" },
 };
 
-export const tabs: Tab[] = [
-  { id: "overview", label: "Обзор", icon: PieChart },
-  { id: "pnl", label: "P&L", icon: TrendingUp },
-  { id: "cashflow", label: "Денежный поток", icon: ArrowLeftRight },
-  { id: "transactions", label: "Транзакции", icon: ArrowLeftRight },
-  { id: "invoices", label: "Счета", icon: FileText },
-  { id: "payments", label: "Платежи", icon: CreditCard },
-  { id: "reconciliation", label: "Сверка", icon: Scale },
-  { id: "fiscalization", label: "Фискализация", icon: Receipt },
-  { id: "budget", label: "Бюджет", icon: Wallet },
-  { id: "reports", label: "Отчёты", icon: BarChart3 },
-];
-
-export const dateRanges = ["Сегодня", "Неделя", "Месяц", "Квартал", "Год"];
+// tabs and dateRanges are defined in page.tsx using useTranslations("finance")
 
 export { formatNumber as fmt } from "@/lib/utils";
 

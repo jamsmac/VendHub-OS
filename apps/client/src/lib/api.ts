@@ -13,32 +13,23 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory + localStorage fallback
+// Token helpers — in-memory ONLY (no localStorage).
+// httpOnly cookies handle persistence across page refreshes.
+// In-memory token kept only for callers that need raw token
+// (e.g. Socket.IO auth).
 // ============================================
 
 let _accessToken: string | null = null;
 
 function setTokens(accessToken: string, _refreshToken?: string) {
   _accessToken = accessToken;
-  if (typeof window !== "undefined") {
-    localStorage.setItem("vendhub_access_token", accessToken);
-  }
 }
 
 function clearTokens() {
   _accessToken = null;
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("vendhub_access_token");
-  }
 }
 
 function getAccessToken(): string | null {
-  if (!_accessToken && typeof window !== "undefined") {
-    const stored = localStorage.getItem("vendhub_access_token");
-    if (stored) {
-      _accessToken = stored;
-    }
-  }
   return _accessToken;
 }
 
@@ -49,10 +40,8 @@ export { setTokens, clearTokens, getAccessToken };
 // ============================================
 
 api.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  // Auth is handled by httpOnly cookies (sent automatically via withCredentials).
+  // No manual Authorization header needed.
 
   // Strip empty-string, null, and undefined query params
   if (config.params) {
@@ -76,13 +65,13 @@ api.interceptors.request.use((config) => {
 
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (err: unknown) => void;
 }> = [];
 
-const processQueue = (error: unknown, token: string | null) => {
+const processQueue = (error: unknown, success: boolean) => {
   failedQueue.forEach((prom) => {
-    if (token) prom.resolve(token);
+    if (success) prom.resolve();
     else prom.reject(error);
   });
   failedQueue = [];
@@ -124,10 +113,7 @@ api.interceptors.response.use(
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
-          resolve: (token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          },
+          resolve: () => resolve(api(originalRequest)),
           reject,
         });
       });
@@ -150,13 +136,12 @@ api.interceptors.response.use(
       const newAccessToken = payload.accessToken || payload.access_token;
 
       setTokens(newAccessToken);
-      processQueue(null, newAccessToken);
+      processQueue(null, true);
 
-      // Retry the original request with the new token
-      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      // Retry the original request — cookies handle auth
       return api(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
+      processQueue(refreshError, false);
       clearTokens();
       useUserStore.getState().logout();
       return Promise.reject(refreshError);

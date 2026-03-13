@@ -875,24 +875,20 @@
     "title": "Команда",
     "subtitle": "Управление сотрудниками, ролями и правами доступа (RBAC)",
     "invite": "Пригласить",
-
     "tabMembers": "Сотрудники",
     "tabAnalytics": "Аналитика",
     "tabSchedule": "Расписание",
     "tabSalary": "Зарплата",
     "tabRoles": "Роли & права",
     "tabHistory": "История",
-
     "unnamed": "Без имени",
     "employee": "Сотрудник",
     "system": "Система",
-
     "statsTotal": "Всего",
     "statsActive": "Активны",
     "statsAway": "Отсутствуют",
     "statsInactive": "Неактивны",
     "statsAvgRating": "Средний рейтинг",
-
     "roleOwner": "Владелец",
     "roleAdmin": "Администратор",
     "roleManager": "Менеджер",
@@ -900,7 +896,6 @@
     "roleWarehouse": "Склад",
     "roleAccountant": "Бухгалтер",
     "roleViewer": "Наблюдатель",
-
     "roleDescOwner": "Полный доступ и владение системой",
     "roleDescAdmin": "Полный доступ ко всем функциям",
     "roleDescManager": "Управление операциями и персоналом",
@@ -908,30 +903,25 @@
     "roleDescWarehouse": "Управление складом и запасами",
     "roleDescAccountant": "Финансы и отчётность",
     "roleDescViewer": "Только просмотр данных",
-
     "statusActive": "Активен",
     "statusAway": "Отсутствует",
     "statusInactive": "Неактивен",
     "statusSuspended": "Приостановлен",
     "statusInvited": "Приглашён",
-
     "deptManagement": "Руководство",
     "deptOperations": "Операции",
     "deptService": "Сервис",
     "deptFinance": "Финансы",
     "deptAnalytics": "Аналитика",
-
     "shiftMorning": "Утро",
     "shiftDay": "День",
     "shiftEvening": "Вечер",
-
     "permMachines": "Автоматы",
     "permInventory": "Склад",
     "permTasks": "Задачи",
     "permFinance": "Финансы",
     "permReports": "Отчёты",
     "permTeam": "Команда",
-
     "inviteTitle": "Пригласить сотрудника",
     "inviteRole": "Роль",
     "inviteZone": "Зона",
@@ -940,7 +930,6 @@
     "inviteLink": "Ссылка-приглашение",
     "inviteCancel": "Отмена",
     "inviteSend": "Отправить",
-
     "memberCard": "Карточка сотрудника",
     "memberContacts": "Контакты",
     "memberTasksCompleted": "Задач выполнено",
@@ -954,7 +943,6 @@
     "memberEdit": "Редактировать",
     "memberActivate": "Активировать",
     "memberDeactivate": "Деактивировать",
-
     "rolesMatrix": "Матрица ролей и прав доступа",
     "createRole": "Создать роль",
     "roleCol": "Роль",
@@ -965,7 +953,6 @@
     "rolePermissions": "Права доступа",
     "roleCancel": "Отмена",
     "roleSave": "Сохранить",
-
     "weeklySchedule": "Еженедельное расписание",
     "dayMon": "Пн",
     "dayTue": "Вт",
@@ -975,7 +962,6 @@
     "daySat": "Сб",
     "daySun": "Вс",
     "hoursPerWeek": "Часов/неделю",
-
     "totalPayroll": "Общий фонд оплаты труда",
     "avgSalary": "Средняя зарплата",
     "totalBonuses": "Всего премий",
@@ -987,14 +973,12 @@
     "colBonus": "Премия",
     "colDeductions": "Вычеты",
     "colNetPay": "Итого к выплате",
-
     "activityHistory": "История изменений",
     "actionCreate": "добавил сотрудника",
     "actionEdit": "отредактировал",
     "actionDelete": "удалил",
     "actionRoleChange": "изменил роль",
     "actionLogin": "вошёл",
-
     "headcountByRole": "Численность по ролям",
     "hiringTimeline": "Найм за 12 месяцев",
     "tenureDistribution": "Распределение стажа",
@@ -1004,7 +988,6 @@
     "colTimeliness": "Своевременность",
     "topPerformers": "Лучшие сотрудники (по выполненным задачам)",
     "tasksSuffix": "задач",
-
     "monthJan": "Январь",
     "monthFeb": "Февраль",
     "monthMar": "Март",
@@ -1017,16 +1000,13 @@
     "monthOct": "Октябрь",
     "monthNov": "Ноябрь",
     "monthDec": "Декабрь",
-
     "tenure0to3": "0-3 месяца",
     "tenure3to6": "3-6 месяцев",
     "tenure6to12": "6-12 месяцев",
     "tenure12plus": "12+ месяцев",
-
     "bonusPremium": "Премии",
     "bonusPerformance": "Бонусы производительности",
     "bonusIncentives": "Стимулы",
-
     "bulkSelected": "Выбрано: {count} сотрудников",
     "bulkRole": "Роль",
     "bulkZone": "Зона",
@@ -1659,7 +1639,15 @@
     "prevPage": "Назад",
     "nextPage": "Далее",
     "perReceipt": "UZS / чек",
-    "receiptsPerDay": "{count} чек/дн"
+    "receiptsPerDay": "{count} чек/дн",
+    "payMethodCash": "Наличные",
+    "payMethodPayme": "Payme",
+    "payMethodClick": "Click",
+    "payMethodUzum": "Uzum",
+    "payMethodHumo": "HUMO",
+    "payMethodUzcard": "UZCARD",
+    "payMethodTransfer": "Перевод",
+    "payMethodBonus": "Бонусы"
   },
   "finance": {
     "title": "Финансы",
@@ -1667,7 +1655,6 @@
     "export": "Экспорт",
     "newTransaction": "Транзакция",
     "creatingTransaction": "Создание...",
-
     "tabOverview": "Обзор",
     "tabPnl": "P&L",
     "tabCashflow": "Денежный поток",
@@ -1678,13 +1665,11 @@
     "tabFiscalization": "Фискализация",
     "tabBudget": "Бюджет",
     "tabReports": "Отчёты",
-
     "rangeToday": "Сегодня",
     "rangeWeek": "Неделя",
     "rangeMonth": "Месяц",
     "rangeQuarter": "Квартал",
     "rangeYear": "Год",
-
     "statusCompleted": "Проведён",
     "statusPending": "Ожидает",
     "statusFailed": "Ошибка",
@@ -1692,14 +1677,12 @@
     "statusOverdue": "Просрочено",
     "statusMatched": "Сверено",
     "statusDiscrepancy": "Расхождение",
-
     "kpiRevenue": "Выручка",
     "kpiExpenses": "Расходы",
     "kpiNetProfit": "Чистая прибыль",
     "kpiPending": "Ожидают",
     "kpiCashOnHand": "Касса",
     "kpiReceivables": "Дебиторка",
-
     "chartIncomeExpenses": "Доходы и расходы",
     "chartIncome": "Доход",
     "chartExpense": "Расход",
@@ -1708,7 +1691,6 @@
     "chartRevenue": "Выручка",
     "chartExpenses": "Расходы",
     "chartProfit": "Прибыль",
-
     "unitEconomics": "Юнит-экономика",
     "revenuePerMachine": "Выручка на автомат",
     "perMonthMachines": "в месяц (16 машин)",
@@ -1716,7 +1698,6 @@
     "perCup": "на чашку",
     "avgReceipt": "Средний чек",
     "profitPerDeal": "Прибыль на сделку",
-
     "fiscOverview": "Фискализация",
     "fiscTerminal": "Терминал",
     "fiscStatusLabel": "Статус",
@@ -1729,7 +1710,6 @@
     "fiscSynced": "Синхронизировано",
     "fiscMonthReceipts": "Чеков за месяц",
     "fiscMonthTurnover": "Оборот за месяц",
-
     "pnlTitle": "Прибыль и убытки (P&L)",
     "pnlIndicator": "Показатель",
     "pnlRevenue": "Выручка",
@@ -1744,7 +1724,6 @@
     "pnlDynamics": "Динамика изменений",
     "pnlMomYoy": "MoM / YoY",
     "pnlTrend": "Тренд P&L (выручка, расходы, прибыль)",
-
     "cfCurrentBalance": "Текущий баланс",
     "cfOperating7d": "Операционный CF (7 дн)",
     "cfInvesting7d": "Инвестиционный CF (7 дн)",
@@ -1776,7 +1755,6 @@
     "cfScenario": "Сценарий",
     "cfHealthy": "Здоров",
     "cfSufficientFunds": "достаточно средств",
-
     "reconTotalChecks": "Всего проверок",
     "reconMatched": "Сверено",
     "reconDiscrepancies": "Расхождения",
@@ -1791,7 +1769,6 @@
     "reconColActual": "Фактически",
     "reconColDifference": "Разница",
     "reconColStatus": "Статус",
-
     "invTitle": "Счета и акты",
     "invAll": "Все",
     "invIncoming": "Входящие",
@@ -1801,7 +1778,6 @@
     "invCreate": "Создать счёт",
     "invDueDate": "до",
     "invItems": "поз.",
-
     "payTotalBalance": "Общий баланс",
     "payPendingDeposits": "Ожидают зачисления",
     "payTransactionsToday": "Транзакций сегодня",
@@ -1817,7 +1793,6 @@
     "paySync": "Синхронизация",
     "payStatement": "Выписка",
     "payChannelDistribution": "Распределение по каналам",
-
     "txFormTitle": "Добавить транзакцию",
     "txFormType": "Тип",
     "txFormIncome": "Доход",
@@ -1836,7 +1811,6 @@
     "txFormCreating": "Создание...",
     "txFormCreate": "Создать",
     "txFormError": "Ошибка",
-
     "repPnlTitle": "P&L (Прибыль/Убыток)",
     "repPnlDesc": "Ежемесячный отчёт прибылей и убытков",
     "repCashFlowTitle": "Cash Flow",
@@ -1860,7 +1834,6 @@
     "repPayReconciliationReport": "Сверка платежей",
     "repPayReconciliationSchedule": "Каждый день в 23:00",
     "repConfigure": "Настроить",
-
     "budBudget": "Бюджет",
     "budSpent": "Потрачено",
     "budRemaining": "Остаток",
@@ -1871,7 +1844,6 @@
     "budColSpent": "Потрачено",
     "budColDifference": "Разница",
     "budColUtilization": "Утилизация",
-
     "fiscTabMultikassaStatus": "Статус Multikassa",
     "fiscTabActive": "Активен",
     "fiscTabSynced": "Синхронизировано",
@@ -2803,13 +2775,11 @@
     "subtitle": "Управление промокодами, скидками и маркетинговыми акциями",
     "export": "Экспорт",
     "newPromo": "Новая акция",
-
     "tabList": "Акции",
     "tabAnalytics": "Аналитика",
     "tabCoupons": "Купоны",
     "tabABTests": "A/B Тесты",
     "tabWizard": "Создать акцию",
-
     "kpiTotal": "Всего акций",
     "kpiActiveCount": "{count} активных",
     "kpiUsage": "Использований",
@@ -2818,7 +2788,6 @@
     "kpiCurrentPeriod": "за текущий период",
     "kpiConversion": "Конверсия",
     "kpiConversionSub": "уники / использования",
-
     "cardActive": "Активна",
     "cardInactive": "Неактивна",
     "cardActionRequired": "Требует действия",
@@ -2850,7 +2819,6 @@
     "cardDeleteConfirm": "Вы уверены? Это действие необратимо.",
     "cardCreated": "Создана:",
     "cardOrder": "Порядок:",
-
     "dayMon": "Пн",
     "dayTue": "Вт",
     "dayWed": "Ср",
@@ -2858,7 +2826,6 @@
     "dayFri": "Пт",
     "daySat": "Сб",
     "daySun": "Вс",
-
     "analyticsOverview": "Обзор",
     "analyticsROI": "ROI и эффективность",
     "analyticsTopPromos": "Топ акции",
@@ -2882,12 +2849,10 @@
     "chartUsagesGeo": "Использования",
     "chartTopEffective": "Топ 5 самых эффективных акций по влиянию на выручку",
     "chartUsageSuffix": "исп.",
-
     "codeStatsIssued": "Выдано кодов",
     "codeStatsUsed": "Использовано",
     "codeStatsExpired": "Истекло",
     "codeStatsActive": "Активных",
-
     "couponIssued": "Выдано",
     "couponUsed": "Использовано",
     "couponActive": "Активных",
@@ -2912,7 +2877,6 @@
     "couponStatusUsed": "Использован",
     "couponStatusExpired": "Истёк",
     "couponCopy": "Скопировать",
-
     "abActiveTest": "Активный тест",
     "abVariantA": "Вариант A",
     "abVariantB": "Вариант B",
@@ -2924,7 +2888,6 @@
     "abCompletedTests": "Завершённые тесты",
     "abWinner": "Победитель: Вариант {variant}",
     "abVariantACurrent": "Вариант A (текущий)",
-
     "wizardTitle": "Создание новой акции",
     "wizardSelectType": "Выберите тип акции",
     "wizardTypeDiscount": "Скидка",

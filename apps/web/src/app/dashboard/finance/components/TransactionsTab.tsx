@@ -27,7 +27,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "./StatusBadge";
-import { PAYMENT_METHODS, fmt } from "./config";
+import { fmt } from "./config";
 import { Transaction } from "./types";
 
 interface TransactionsTabProps {
@@ -74,6 +74,17 @@ export function TransactionsTab({
   refundRate,
 }: TransactionsTabProps) {
   const t = useTranslations("financeTransactions");
+
+  const payMethodLabels: Record<string, string> = {
+    cash: t("payMethodCash"),
+    payme: t("payMethodPayme"),
+    click: t("payMethodClick"),
+    uzum: t("payMethodUzum"),
+    humo: t("payMethodHumo"),
+    uzcard: t("payMethodUzcard"),
+    transfer: t("payMethodTransfer"),
+    bonus: t("payMethodBonus"),
+  };
 
   return (
     <>
@@ -294,7 +305,6 @@ export function TransactionsTab({
               </TableHeader>
               <TableBody>
                 {txSlice.map((tx) => {
-                  const pm = PAYMENT_METHODS[tx.payment];
                   return (
                     <TableRow
                       key={tx.id}
@@ -329,7 +339,7 @@ export function TransactionsTab({
                         {fmt(tx.amount)} UZS
                       </TableCell>
                       <TableCell className="px-3 py-3 text-xs text-espresso-light">
-                        {pm?.label || tx.payment}
+                        {payMethodLabels[tx.payment] || tx.payment}
                       </TableCell>
                       <TableCell className="px-3 py-3">
                         <StatusBadge status={tx.status} />

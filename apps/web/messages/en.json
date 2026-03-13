@@ -875,24 +875,20 @@
     "title": "Team",
     "subtitle": "Manage employees, roles and access rights (RBAC)",
     "invite": "Invite",
-
     "tabMembers": "Members",
     "tabAnalytics": "Analytics",
     "tabSchedule": "Schedule",
     "tabSalary": "Salary",
     "tabRoles": "Roles & access",
     "tabHistory": "History",
-
     "unnamed": "Unnamed",
     "employee": "Employee",
     "system": "System",
-
     "statsTotal": "Total",
     "statsActive": "Active",
     "statsAway": "Away",
     "statsInactive": "Inactive",
     "statsAvgRating": "Avg. rating",
-
     "roleOwner": "Owner",
     "roleAdmin": "Administrator",
     "roleManager": "Manager",
@@ -900,7 +896,6 @@
     "roleWarehouse": "Warehouse",
     "roleAccountant": "Accountant",
     "roleViewer": "Viewer",
-
     "roleDescOwner": "Full access and system ownership",
     "roleDescAdmin": "Full access to all features",
     "roleDescManager": "Operations and personnel management",
@@ -908,30 +903,25 @@
     "roleDescWarehouse": "Warehouse and stock management",
     "roleDescAccountant": "Finance and reporting",
     "roleDescViewer": "View-only access",
-
     "statusActive": "Active",
     "statusAway": "Away",
     "statusInactive": "Inactive",
     "statusSuspended": "Suspended",
     "statusInvited": "Invited",
-
     "deptManagement": "Management",
     "deptOperations": "Operations",
     "deptService": "Service",
     "deptFinance": "Finance",
     "deptAnalytics": "Analytics",
-
     "shiftMorning": "Morning",
     "shiftDay": "Day",
     "shiftEvening": "Evening",
-
     "permMachines": "Machines",
     "permInventory": "Inventory",
     "permTasks": "Tasks",
     "permFinance": "Finance",
     "permReports": "Reports",
     "permTeam": "Team",
-
     "inviteTitle": "Invite employee",
     "inviteRole": "Role",
     "inviteZone": "Zone",
@@ -940,7 +930,6 @@
     "inviteLink": "Invitation link",
     "inviteCancel": "Cancel",
     "inviteSend": "Send",
-
     "memberCard": "Employee card",
     "memberContacts": "Contacts",
     "memberTasksCompleted": "Tasks completed",
@@ -954,7 +943,6 @@
     "memberEdit": "Edit",
     "memberActivate": "Activate",
     "memberDeactivate": "Deactivate",
-
     "rolesMatrix": "Roles and access rights matrix",
     "createRole": "Create role",
     "roleCol": "Role",
@@ -965,7 +953,6 @@
     "rolePermissions": "Access rights",
     "roleCancel": "Cancel",
     "roleSave": "Save",
-
     "weeklySchedule": "Weekly schedule",
     "dayMon": "Mon",
     "dayTue": "Tue",
@@ -975,7 +962,6 @@
     "daySat": "Sat",
     "daySun": "Sun",
     "hoursPerWeek": "Hours/week",
-
     "totalPayroll": "Total payroll",
     "avgSalary": "Average salary",
     "totalBonuses": "Total bonuses",
@@ -987,14 +973,12 @@
     "colBonus": "Bonus",
     "colDeductions": "Deductions",
     "colNetPay": "Net pay",
-
     "activityHistory": "Change history",
     "actionCreate": "added employee",
     "actionEdit": "edited",
     "actionDelete": "deleted",
     "actionRoleChange": "changed role",
     "actionLogin": "logged in",
-
     "headcountByRole": "Headcount by role",
     "hiringTimeline": "Hiring over 12 months",
     "tenureDistribution": "Tenure distribution",
@@ -1004,7 +988,6 @@
     "colTimeliness": "Timeliness",
     "topPerformers": "Top performers (by completed tasks)",
     "tasksSuffix": "tasks",
-
     "monthJan": "January",
     "monthFeb": "February",
     "monthMar": "March",
@@ -1017,16 +1000,13 @@
     "monthOct": "October",
     "monthNov": "November",
     "monthDec": "December",
-
     "tenure0to3": "0-3 months",
     "tenure3to6": "3-6 months",
     "tenure6to12": "6-12 months",
     "tenure12plus": "12+ months",
-
     "bonusPremium": "Premiums",
     "bonusPerformance": "Performance bonuses",
     "bonusIncentives": "Incentives",
-
     "bulkSelected": "Selected: {count} employees",
     "bulkRole": "Role",
     "bulkZone": "Zone",
@@ -1659,7 +1639,15 @@
     "prevPage": "Back",
     "nextPage": "Next",
     "perReceipt": "UZS / receipt",
-    "receiptsPerDay": "{count} receipts/day"
+    "receiptsPerDay": "{count} receipts/day",
+    "payMethodCash": "Cash",
+    "payMethodPayme": "Payme",
+    "payMethodClick": "Click",
+    "payMethodUzum": "Uzum",
+    "payMethodHumo": "HUMO",
+    "payMethodUzcard": "UZCARD",
+    "payMethodTransfer": "Transfer",
+    "payMethodBonus": "Bonus"
   },
   "finance": {
     "title": "Finance",
@@ -1667,7 +1655,6 @@
     "export": "Export",
     "newTransaction": "Transaction",
     "creatingTransaction": "Creating...",
-
     "tabOverview": "Overview",
     "tabPnl": "P&L",
     "tabCashflow": "Cash Flow",
@@ -1678,13 +1665,11 @@
     "tabFiscalization": "Fiscalization",
     "tabBudget": "Budget",
     "tabReports": "Reports",
-
     "rangeToday": "Today",
     "rangeWeek": "Week",
     "rangeMonth": "Month",
     "rangeQuarter": "Quarter",
     "rangeYear": "Year",
-
     "statusCompleted": "Completed",
     "statusPending": "Pending",
     "statusFailed": "Failed",
@@ -1692,14 +1677,12 @@
     "statusOverdue": "Overdue",
     "statusMatched": "Matched",
     "statusDiscrepancy": "Discrepancy",
-
     "kpiRevenue": "Revenue",
     "kpiExpenses": "Expenses",
     "kpiNetProfit": "Net Profit",
     "kpiPending": "Pending",
     "kpiCashOnHand": "Cash on Hand",
     "kpiReceivables": "Receivables",
-
     "chartIncomeExpenses": "Income & Expenses",
     "chartIncome": "Income",
     "chartExpense": "Expense",
@@ -1708,7 +1691,6 @@
     "chartRevenue": "Revenue",
     "chartExpenses": "Expenses",
     "chartProfit": "Profit",
-
     "unitEconomics": "Unit Economics",
     "revenuePerMachine": "Revenue per Machine",
     "perMonthMachines": "per month (16 machines)",
@@ -1716,7 +1698,6 @@
     "perCup": "per cup",
     "avgReceipt": "Avg Receipt",
     "profitPerDeal": "Profit per Deal",
-
     "fiscOverview": "Fiscalization",
     "fiscTerminal": "Terminal",
     "fiscStatusLabel": "Status",
@@ -1729,7 +1710,6 @@
     "fiscSynced": "Synced",
     "fiscMonthReceipts": "Month receipts",
     "fiscMonthTurnover": "Month turnover",
-
     "pnlTitle": "Profit & Loss (P&L)",
     "pnlIndicator": "Indicator",
     "pnlRevenue": "Revenue",
@@ -1744,7 +1724,6 @@
     "pnlDynamics": "Change Dynamics",
     "pnlMomYoy": "MoM / YoY",
     "pnlTrend": "P&L Trend (revenue, expenses, profit)",
-
     "cfCurrentBalance": "Current Balance",
     "cfOperating7d": "Operating CF (7 days)",
     "cfInvesting7d": "Investing CF (7 days)",
@@ -1776,7 +1755,6 @@
     "cfScenario": "Scenario",
     "cfHealthy": "Healthy",
     "cfSufficientFunds": "sufficient funds",
-
     "reconTotalChecks": "Total checks",
     "reconMatched": "Matched",
     "reconDiscrepancies": "Discrepancies",
@@ -1791,7 +1769,6 @@
     "reconColActual": "Actual",
     "reconColDifference": "Difference",
     "reconColStatus": "Status",
-
     "invTitle": "Invoices & Documents",
     "invAll": "All",
     "invIncoming": "Incoming",
@@ -1801,7 +1778,6 @@
     "invCreate": "Create invoice",
     "invDueDate": "due",
     "invItems": "items",
-
     "payTotalBalance": "Total Balance",
     "payPendingDeposits": "Pending Deposits",
     "payTransactionsToday": "Transactions today",
@@ -1817,7 +1793,6 @@
     "paySync": "Sync",
     "payStatement": "Statement",
     "payChannelDistribution": "Channel Distribution",
-
     "txFormTitle": "Add Transaction",
     "txFormType": "Type",
     "txFormIncome": "Income",
@@ -1836,7 +1811,6 @@
     "txFormCreating": "Creating...",
     "txFormCreate": "Create",
     "txFormError": "Error",
-
     "repPnlTitle": "P&L (Profit/Loss)",
     "repPnlDesc": "Monthly profit and loss report",
     "repCashFlowTitle": "Cash Flow",
@@ -1860,7 +1834,6 @@
     "repPayReconciliationReport": "Payment reconciliation",
     "repPayReconciliationSchedule": "Every day at 23:00",
     "repConfigure": "Configure",
-
     "budBudget": "Budget",
     "budSpent": "Spent",
     "budRemaining": "Remaining",
@@ -1871,7 +1844,6 @@
     "budColSpent": "Spent",
     "budColDifference": "Difference",
     "budColUtilization": "Utilization",
-
     "fiscTabMultikassaStatus": "Multikassa Status",
     "fiscTabActive": "Active",
     "fiscTabSynced": "Synced",
@@ -2803,13 +2775,11 @@
     "subtitle": "Manage promo codes, discounts and marketing campaigns",
     "export": "Export",
     "newPromo": "New promotion",
-
     "tabList": "Promotions",
     "tabAnalytics": "Analytics",
     "tabCoupons": "Coupons",
     "tabABTests": "A/B Tests",
     "tabWizard": "Create promotion",
-
     "kpiTotal": "Total promotions",
     "kpiActiveCount": "{count} active",
     "kpiUsage": "Usages",
@@ -2818,7 +2788,6 @@
     "kpiCurrentPeriod": "current period",
     "kpiConversion": "Conversion",
     "kpiConversionSub": "unique / usages",
-
     "cardActive": "Active",
     "cardInactive": "Inactive",
     "cardActionRequired": "Action required",
@@ -2850,7 +2819,6 @@
     "cardDeleteConfirm": "Are you sure? This action is irreversible.",
     "cardCreated": "Created:",
     "cardOrder": "Order:",
-
     "dayMon": "Mon",
     "dayTue": "Tue",
     "dayWed": "Wed",
@@ -2858,7 +2826,6 @@
     "dayFri": "Fri",
     "daySat": "Sat",
     "daySun": "Sun",
-
     "analyticsOverview": "Overview",
     "analyticsROI": "ROI & efficiency",
     "analyticsTopPromos": "Top promotions",
@@ -2882,12 +2849,10 @@
     "chartUsagesGeo": "Usages",
     "chartTopEffective": "Top 5 most effective promotions by revenue impact",
     "chartUsageSuffix": "uses",
-
     "codeStatsIssued": "Codes issued",
     "codeStatsUsed": "Used",
     "codeStatsExpired": "Expired",
     "codeStatsActive": "Active",
-
     "couponIssued": "Issued",
     "couponUsed": "Used",
     "couponActive": "Active",
@@ -2912,7 +2877,6 @@
     "couponStatusUsed": "Used",
     "couponStatusExpired": "Expired",
     "couponCopy": "Copy",
-
     "abActiveTest": "Active test",
     "abVariantA": "Variant A",
     "abVariantB": "Variant B",
@@ -2924,7 +2888,6 @@
     "abCompletedTests": "Completed tests",
     "abWinner": "Winner: Variant {variant}",
     "abVariantACurrent": "Variant A (current)",
-
     "wizardTitle": "Create new promotion",
     "wizardSelectType": "Select promotion type",
     "wizardTypeDiscount": "Discount",
