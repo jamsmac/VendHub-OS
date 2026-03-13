@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { Mail, Phone, Send, Star, Edit3, Lock, Trash2 } from "lucide-react";
 import {
   SlideOver,
@@ -32,6 +33,7 @@ export function MemberPreview({
   onDeactivate,
 }: MemberPreviewProps) {
   const t = useTranslations("team");
+  const router = useRouter();
 
   if (!member) return null;
 
@@ -167,7 +169,8 @@ export function MemberPreview({
             variant="outline"
             className="flex-1 gap-2"
             onClick={() => {
-              // TODO: implement edit profile navigation
+              onClose();
+              router.push(`/dashboard/users/${member.id}`);
             }}
           >
             <Edit3 className="h-4 w-4" />

@@ -13,7 +13,7 @@ import {
   Send,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { invitesApi } from "@/lib/api";
+import { invitesApi, websiteConfigApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +79,23 @@ export default function InvitesPage() {
     },
   });
 
+  // Fetch bot username from website config (fallback to env or default)
+  const { data: botConfig } = useQuery({
+    queryKey: ["website-config", "telegram_bot_username"],
+    queryFn: async () => {
+      try {
+        return await websiteConfigApi.getByKey("telegram_bot_username");
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+  const botUsername =
+    (botConfig as { value?: string } | null)?.value ||
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ||
+    "VendHubBot";
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const res = await invitesApi.create({
@@ -113,7 +130,6 @@ export default function InvitesPage() {
   };
 
   const copyTelegramLink = (code: string) => {
-    const botUsername = "VendHubBot"; // TODO: make configurable
     const url = `https://t.me/${botUsername}?start=invite_${code}`;
     navigator.clipboard.writeText(url);
     toast.success("Telegram invite link copied!");

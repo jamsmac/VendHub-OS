@@ -15,7 +15,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authApi, setTokens, clearTokens, getAccessToken } from "../api";
+import { authApi, setTokens, clearTokens } from "../api";
 import { useAuthStore } from "../store/auth";
 import type { UserRole } from "@/types";
 
@@ -48,10 +48,9 @@ export function useAuth() {
 
   // Check if user is authenticated.
   // After page refresh, in-memory token is lost but httpOnly cookie persists.
-  // Trust storeIsAuthenticated (from Zustand persist) OR in-memory token.
+  // Trust storeIsAuthenticated from Zustand persist (user state survives refresh).
   const isAuthenticated =
-    (!!getAccessToken() || storeIsAuthenticated) &&
-    (!!user || storeIsAuthenticated);
+    storeIsAuthenticated && (!!user || storeIsAuthenticated);
 
   // Fetch current user profile (on mount, if authenticated or possibly authenticated)
   // After page refresh: in-memory token is null but httpOnly cookie is still valid,
@@ -63,13 +62,13 @@ export function useAuth() {
         const response = await authApi.me();
         return response.data as AuthUser;
       } catch {
-        // Token invalid — clear state
+        // Cookie invalid — clear state
         clearTokens();
         useAuthStore.getState().logout();
         return null;
       }
     },
-    enabled: !!getAccessToken() || storeIsAuthenticated,
+    enabled: storeIsAuthenticated,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

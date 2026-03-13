@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
-import { getAccessToken } from "@/lib/api";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
@@ -34,22 +33,20 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!hydrated) return;
 
-    const token = getAccessToken();
-
     // All auth state is consistent — allow access
-    if (token && isAuthenticated && user) {
+    if (isAuthenticated && user) {
       setReady(true);
       return;
     }
 
-    // No token at all — definitely not authenticated
-    if (!token) {
+    // No persisted auth state — definitely not authenticated
+    if (!isAuthenticated) {
       router.replace("/auth");
       return;
     }
 
-    // Token exists but user/isAuthenticated not synced yet.
-    // Verify once via API instead of immediately redirecting.
+    // Persisted isAuthenticated but no user data (page refresh).
+    // httpOnly cookie is still valid — verify once via API.
     if (!hasChecked.current) {
       hasChecked.current = true;
       checkAuth();

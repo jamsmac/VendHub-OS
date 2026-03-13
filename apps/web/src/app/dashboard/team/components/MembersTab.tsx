@@ -2,6 +2,7 @@
 
 import { ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   Search,
   LayoutGrid,
@@ -68,6 +69,7 @@ export function MembersTab({
   onPreviewMember,
 }: MembersTabProps) {
   const t = useTranslations("teamMembers");
+  const router = useRouter();
 
   const renderMemberCard = (member: ExtendedEmployee) => {
     const roleMeta = ROLE_META[member.role] || ROLE_META.viewer;
@@ -227,8 +229,11 @@ export function MembersTab({
               size="sm"
               className="h-7 w-7 p-0"
               title={t("sendMessage")}
-              onClick={() => {
-                /* TODO: implement messaging */
+              onClick={(e) => {
+                e.stopPropagation();
+                if (member.email) {
+                  window.location.href = `mailto:${member.email}`;
+                }
               }}
             >
               <MessageSquare className="h-3 w-3" />
@@ -238,8 +243,9 @@ export function MembersTab({
               size="sm"
               className="h-7 w-7 p-0"
               title={t("assignTask")}
-              onClick={() => {
-                /* TODO: implement task assignment */
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/dashboard/tasks?assignTo=${member.id}`);
               }}
             >
               <Target className="h-3 w-3" />

@@ -25,45 +25,30 @@ export const api = axios.create({
 });
 
 // ============================================
-// Token helpers — in-memory + localStorage for persistence across refreshes.
-// TODO: migrate to httpOnly cookies to eliminate XSS token-theft risk.
+// Token helpers — in-memory ONLY (no localStorage).
+// httpOnly cookies handle persistence across page refreshes.
+// In-memory token is used only for Socket.IO auth and direct-fetch callers
+// that bypass the proxy (e.g., /docs-json).
 // ============================================
 
 let _accessToken: string | null = null;
 
 function setTokens(accessToken: string, _refreshToken?: string) {
   _accessToken = accessToken;
-  if (typeof window !== "undefined") {
-    localStorage.setItem("vendhub_access_token", accessToken);
-  }
 }
 
 function clearTokens() {
   _accessToken = null;
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("vendhub_access_token");
-  }
 }
 
 export function getAccessToken(): string | null {
-  if (!_accessToken && typeof window !== "undefined") {
-    const stored = localStorage.getItem("vendhub_access_token");
-    if (stored) {
-      _accessToken = stored;
-    }
-  }
   return _accessToken;
 }
 
 export { setTokens, clearTokens };
 
-// Request interceptor — attach in-memory access token + strip empty params
+// Request interceptor — strip empty params (auth handled by httpOnly cookies).
 api.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
   // Strip empty-string, null, and undefined query params.
   // Frontend selects/filters often send status="" which fails enum validation on the API.
   if (config.params) {
@@ -134,10 +119,7 @@ api.interceptors.response.use(
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
-          resolve: (token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          },
+          resolve: () => resolve(api(originalRequest)),
           reject,
         });
       });
@@ -157,14 +139,15 @@ api.interceptors.response.use(
 
       // Unwrap TransformInterceptor envelope: { success, data: { accessToken, ... }, timestamp }
       const payload = response.data?.data ?? response.data;
-      const { accessToken, refreshToken: newRefreshToken } = payload;
-      setTokens(accessToken, newRefreshToken);
+      // Store in memory for Socket.IO and non-proxy callers
+      if (payload?.accessToken) {
+        setTokens(payload.accessToken, payload.refreshToken);
+      }
 
-      // Resolve all queued requests with the new token
-      processQueue(null, accessToken);
+      // Resolve all queued requests — cookies carry the new token automatically
+      processQueue(null, payload?.accessToken || "");
 
-      // Retry the original request with the new token
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      // Retry the original request (cookie handles auth)
       return api(originalRequest);
     } catch (refreshError) {
       // Refresh failed — reject all queued requests and logout

@@ -40,7 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getAccessToken } from "@/lib/api";
+// Auth handled via httpOnly cookies — credentials: 'include' on fetch calls
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -271,9 +271,8 @@ export default function ApiDocsPage() {
   } = useQuery<SwaggerSpec>({
     queryKey: ["swagger-spec"],
     queryFn: async () => {
-      const token = getAccessToken();
       const res = await fetch(`${API_URL}/docs-json`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
       });
       if (!res.ok) throw new Error(`Failed to fetch API spec: ${res.status}`);
       return res.json();
@@ -290,9 +289,8 @@ export default function ApiDocsPage() {
   } = useQuery<HealthStatus>({
     queryKey: ["api-health"],
     queryFn: async () => {
-      const token = getAccessToken();
       const res = await fetch(`${API_URL}/api/v1/health`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
       });
       if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
       return res.json();
@@ -381,12 +379,7 @@ export default function ApiDocsPage() {
   }, []);
 
   const openSwaggerUI = useCallback(() => {
-    const token = getAccessToken();
-    if (token) {
-      window.open(`${API_URL}/docs/auth?token=${token}`, "_blank");
-    } else {
-      window.open(`${API_URL}/docs`, "_blank");
-    }
+    window.open(`${API_URL}/docs`, "_blank");
   }, []);
 
   // ─── Render ─────────────────────────────────────────────────

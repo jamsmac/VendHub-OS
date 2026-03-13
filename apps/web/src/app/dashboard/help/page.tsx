@@ -41,8 +41,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-// import { useCmsArticles } from "@/lib/hooks/use-cms";
+import { useCmsArticles } from "@/lib/hooks/use-cms";
+import type { CmsArticle } from "@/lib/hooks/use-cms";
 import { useTranslations } from "next-intl";
+import { formatDate } from "@/lib/utils";
 
 // ============= FAQ DATA STRUCTURE (keys for i18n) =============
 const faqCategories = [
@@ -437,8 +439,14 @@ const contactChannels = [
 export default function HelpPage() {
   const t = useTranslations("help");
 
-  // TODO: integrate CMS articles into knowledge base tab when articles are available
-  // const { data: cmsArticles } = useCmsArticles({ limit: 50, isPublished: true });
+  // Fetch published CMS articles for the knowledge base tab
+  const { data: cmsArticlesRaw } = useCmsArticles({
+    limit: 50,
+    isPublished: true,
+  });
+  const cmsArticles = (
+    Array.isArray(cmsArticlesRaw) ? cmsArticlesRaw : cmsArticlesRaw?.data || []
+  ) as CmsArticle[];
 
   const [activeTab, setActiveTab] = useState<
     "faq" | "training" | "support" | "knowledge" | "changelog"
@@ -852,6 +860,67 @@ export default function HelpPage() {
                 ))}
               </div>
             </div>
+
+            {/* CMS Articles (dynamic, from API) */}
+            {cmsArticles.length > 0 && (
+              <div>
+                <h3 className="text-lg font-display font-bold text-espresso-dark mb-4">
+                  {t("cmsArticles", { defaultValue: "Articles" })}
+                </h3>
+                <div className="space-y-3">
+                  {cmsArticles.map((article) => (
+                    <Card
+                      key={article.id}
+                      className="bg-white border-2 border-amber-100 hover:border-amber-300 transition-all hover:shadow-md cursor-pointer"
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-espresso-dark mb-1">
+                              {article.title}
+                            </h4>
+                            {article.metaDescription && (
+                              <p className="text-sm text-espresso-light mb-2 line-clamp-2">
+                                {article.metaDescription}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 text-xs text-espresso-light">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(
+                                  article.publishedAt || article.createdAt,
+                                )}
+                              </span>
+                              {article.tags && article.tags.length > 0 && (
+                                <div className="flex gap-1">
+                                  {article.tags.slice(0, 3).map((tag) => (
+                                    <Badge
+                                      key={tag}
+                                      variant="outline"
+                                      className="text-[10px]"
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {article.category && (
+                            <Badge
+                              variant="default"
+                              className="text-xs bg-amber-100 text-amber-800 flex-shrink-0"
+                            >
+                              {article.category}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Recent Updates */}
             <div>
