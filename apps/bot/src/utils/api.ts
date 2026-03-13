@@ -44,9 +44,21 @@ class ApiClient {
       },
     );
 
-    // Response interceptor
+    // Response interceptor — unwrap API envelope { success, data, timestamp }
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        const d = response.data;
+        if (
+          d &&
+          typeof d === "object" &&
+          !Array.isArray(d) &&
+          "success" in d &&
+          "data" in d
+        ) {
+          response.data = d.data;
+        }
+        return response;
+      },
       (error) => {
         logger.error(
           "API Response Error:",
@@ -470,7 +482,7 @@ class ApiClient {
       const response = await this.client.get("/tasks", {
         params: { assignedTo: userId, status },
       });
-      return response.data?.data || response.data || [];
+      return response.data || [];
     } catch {
       return [];
     }
@@ -482,7 +494,7 @@ class ApiClient {
       const response = await this.client.get("/reports/my-stats", {
         params: { userId },
       });
-      return response.data?.data || response.data;
+      return response.data;
     } catch {
       return null;
     }
@@ -494,7 +506,7 @@ class ApiClient {
       const response = await this.client.get("/notifications", {
         params: { userId, type: "alert" },
       });
-      return response.data?.data || response.data || [];
+      return response.data || [];
     } catch {
       return [];
     }
