@@ -119,7 +119,7 @@ export function useRecentActivity(limit = 10) {
     queryKey: ["recent-activity", limit],
     queryFn: async () => {
       const response = await api.get("/audit", { params: { limit } });
-      return response.data;
+      return (response.data.data || []) as ActivityLogEntry[];
     },
   });
 }

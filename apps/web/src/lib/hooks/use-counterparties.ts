@@ -40,7 +40,7 @@ export function useCounterparties() {
     queryKey: ["counterparties"],
     queryFn: async () => {
       const response = await api.get("/contractors");
-      return response.data;
+      return (response.data.items || []) as DbCounterparty[];
     },
   });
 }
@@ -61,7 +61,7 @@ export function useContracts() {
     queryKey: ["contracts"],
     queryFn: async () => {
       const response = await api.get("/contractors/invoices/all");
-      return response.data;
+      return (response.data.items || []) as DbContract[];
     },
   });
 }

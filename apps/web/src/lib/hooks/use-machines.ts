@@ -29,7 +29,7 @@ export function useMachines() {
     queryKey: ["machines"],
     queryFn: async () => {
       const response = await machinesApi.getAll();
-      return response.data;
+      return (response.data.data || []) as DbMachine[];
     },
   });
 }

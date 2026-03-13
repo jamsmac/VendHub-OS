@@ -38,7 +38,7 @@ export function usePromotions() {
     queryKey: ["promotions"],
     queryFn: async () => {
       const response = await api.get("/promo-codes");
-      return response.data;
+      return (response.data.data || []) as DbPromotion[];
     },
   });
 }

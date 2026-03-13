@@ -57,7 +57,7 @@ export function useTopLoyaltyUsers(limit = 10) {
     queryKey: ["top-loyalty-users", limit],
     queryFn: async () => {
       const response = await loyaltyApi.getLeaderboard({ limit });
-      return response.data as TopLoyaltyUser[];
+      return (response.data.entries || []) as TopLoyaltyUser[];
     },
   });
 }
@@ -67,7 +67,7 @@ export function useLoyaltyTiers() {
     queryKey: ["loyalty-tiers"],
     queryFn: async () => {
       const response = await loyaltyApi.getLevelsInfo();
-      return response.data as LoyaltyTier[];
+      return (response.data.levels || []) as LoyaltyTier[];
     },
   });
 }
@@ -77,7 +77,7 @@ export function useLoyaltyPrivileges() {
     queryKey: ["loyalty-privileges"],
     queryFn: async () => {
       const response = await loyaltyApi.getLevelsInfo();
-      const tiers = response.data as LoyaltyTier[];
+      const tiers = (response.data.levels || []) as LoyaltyTier[];
       const privileges: LoyaltyPrivilege[] = [];
 
       tiers.forEach((tier) => {
