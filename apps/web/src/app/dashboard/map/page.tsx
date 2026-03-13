@@ -49,10 +49,10 @@ const LeafletDashboardMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border bg-muted flex items-center justify-center">
+      <div className="w-full h-[50vh] md:h-[calc(100vh-320px)] min-h-[250px] rounded-lg border bg-muted flex items-center justify-center">
         <div className="text-center text-muted-foreground">
           <MapPin className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-          <p className="text-sm">Загрузка карты…</p>
+          <p className="text-sm">Loading map…</p>
         </div>
       </div>
     ),
@@ -253,7 +253,7 @@ export default function MapPage() {
                 machines.find((m) => m.id === clicked.id) ?? null,
               )
             }
-            className="w-full h-[calc(100vh-320px)] min-h-[400px] rounded-lg border"
+            className="w-full h-[50vh] md:h-[calc(100vh-320px)] min-h-[250px] rounded-lg border"
           />
 
           {/* Floating stats overlay — z-[1000] to stay above Leaflet tiles */}

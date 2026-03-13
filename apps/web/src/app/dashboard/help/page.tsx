@@ -41,7 +41,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useCmsArticles } from "@/lib/hooks/use-cms";
+// import { useCmsArticles } from "@/lib/hooks/use-cms";
 import { useTranslations } from "next-intl";
 
 // ============= FAQ DATA STRUCTURE (keys for i18n) =============
@@ -437,11 +437,8 @@ const contactChannels = [
 export default function HelpPage() {
   const t = useTranslations("help");
 
-  // Fetch CMS articles from API
-  const { data: _articlesData, isLoading: _articlesLoading } = useCmsArticles({
-    limit: 50,
-    isPublished: true,
-  });
+  // TODO: integrate CMS articles into knowledge base tab when articles are available
+  // const { data: cmsArticles } = useCmsArticles({ limit: 50, isPublished: true });
 
   const [activeTab, setActiveTab] = useState<
     "faq" | "training" | "support" | "knowledge" | "changelog"

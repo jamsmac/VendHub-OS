@@ -223,7 +223,7 @@ function MapPicker({
       <div className="relative">
         <div
           ref={mapRef}
-          className="w-full h-[400px] bg-muted rounded-lg border overflow-hidden"
+          className="w-full h-[50vh] md:h-[400px] bg-muted rounded-lg border overflow-hidden"
         >
           {!mapLoaded && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
@@ -868,7 +868,7 @@ export default function LocationsPage() {
           {viewMode === "map" ? (
             <Card>
               <CardContent className="pt-6">
-                <div className="h-[500px] bg-muted rounded-lg flex items-center justify-center">
+                <div className="h-[50vh] md:h-[500px] bg-muted rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <Map className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground mb-2">
