@@ -802,6 +802,26 @@ export const clientApi = {
 // === Phase 4: HR ===
 
 export const hrApi = {
+  // Employee CRUD
+  getEmployees: (params?: QueryParams) => api.get("/employees", { params }),
+  getEmployee: (id: string) => api.get(`/employees/${id}`),
+  createEmployee: (data: RequestBody) => api.post("/employees", data),
+  updateEmployee: (id: string, data: RequestBody) =>
+    api.put(`/employees/${id}`, data),
+  deleteEmployee: (id: string) => api.delete(`/employees/${id}`),
+  terminateEmployee: (id: string, data: RequestBody) =>
+    api.post(`/employees/${id}/terminate`, data),
+  linkUser: (id: string, data: RequestBody) =>
+    api.post(`/employees/${id}/link-user`, data),
+  unlinkUser: (id: string) => api.post(`/employees/${id}/unlink-user`),
+  getStats: () => api.get("/employees/stats"),
+  getActive: (params?: QueryParams) => api.get("/employees/active", { params }),
+  getByRole: (role: string, params?: QueryParams) =>
+    api.get(`/employees/by-role/${role}`, { params }),
+  getByTelegram: (telegramId: string) =>
+    api.get(`/employees/by-telegram/${telegramId}`),
+  cancelLeave: (id: string) => api.post(`/employees/leave/${id}/cancel`),
+  // Departments
   getDepartments: (params?: QueryParams) =>
     api.get("/employees/departments", { params }),
   createDepartment: (data: RequestBody) =>
@@ -1141,4 +1161,172 @@ export const invitesApi = {
   revoke: (id: string) => api.delete(`/invites/${id}`),
   registerWithInvite: (data: RequestBody) =>
     api.post("/auth/register/invite", data),
+};
+
+// === Complaints ===
+
+export const complaintsApi = {
+  getAll: (params?: QueryParams) => api.get("/complaints", { params }),
+  getById: (id: string) => api.get(`/complaints/${id}`),
+  create: (data: RequestBody) => api.post("/complaints", data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/complaints/${id}`, data),
+  delete: (id: string) => api.delete(`/complaints/${id}`),
+  assign: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/assign`, data),
+  resolve: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/resolve`, data),
+  escalate: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/escalate`, data),
+  reject: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/reject`, data),
+  feedback: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/feedback`, data),
+  getComments: (id: string, params?: QueryParams) =>
+    api.get(`/complaints/${id}/comments`, { params }),
+  addComment: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/comments`, data),
+  getRefunds: (id: string) => api.get(`/complaints/${id}/refunds`),
+  createRefund: (id: string, data: RequestBody) =>
+    api.post(`/complaints/${id}/refunds`, data),
+  getQrCode: (machineId: string) => api.get(`/complaints/qr/${machineId}`),
+  submitPublic: (data: FormData) =>
+    api.post("/complaints/public", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};
+
+// === Contractors ===
+
+export const contractorsApi = {
+  getAll: (params?: QueryParams) => api.get("/contractors", { params }),
+  getById: (id: string) => api.get(`/contractors/${id}`),
+  create: (data: RequestBody) => api.post("/contractors", data),
+  update: (id: string, data: RequestBody) =>
+    api.put(`/contractors/${id}`, data),
+  delete: (id: string) => api.delete(`/contractors/${id}`),
+  getStats: () => api.get("/contractors/stats"),
+  getByServiceType: (serviceType: string) =>
+    api.get(`/contractors/by-service/${serviceType}`),
+  getInvoices: (contractorId: string, params?: QueryParams) =>
+    api.get(`/contractors/${contractorId}/invoices`, { params }),
+  getInvoice: (contractorId: string, invoiceId: string) =>
+    api.get(`/contractors/${contractorId}/invoices/${invoiceId}`),
+  createInvoice: (contractorId: string, data: RequestBody) =>
+    api.post(`/contractors/${contractorId}/invoices`, data),
+  updateInvoice: (contractorId: string, invoiceId: string, data: RequestBody) =>
+    api.put(`/contractors/${contractorId}/invoices/${invoiceId}`, data),
+  deleteInvoice: (contractorId: string, invoiceId: string) =>
+    api.delete(`/contractors/${contractorId}/invoices/${invoiceId}`),
+  approveInvoice: (contractorId: string, invoiceId: string) =>
+    api.post(`/contractors/${contractorId}/invoices/${invoiceId}/approve`),
+  payInvoice: (contractorId: string, invoiceId: string, data: RequestBody) =>
+    api.post(`/contractors/${contractorId}/invoices/${invoiceId}/pay`, data),
+};
+
+// === Maintenance ===
+
+export const maintenanceApi = {
+  getAll: (params?: QueryParams) => api.get("/maintenance", { params }),
+  getById: (id: string) => api.get(`/maintenance/${id}`),
+  create: (data: RequestBody) => api.post("/maintenance", data),
+  update: (id: string, data: RequestBody) =>
+    api.put(`/maintenance/${id}`, data),
+  delete: (id: string) => api.delete(`/maintenance/${id}`),
+  submit: (id: string) => api.post(`/maintenance/${id}/submit`),
+  approve: (id: string) => api.post(`/maintenance/${id}/approve`),
+  reject: (id: string, data: RequestBody) =>
+    api.post(`/maintenance/${id}/reject`, data),
+  assign: (id: string, data: RequestBody) =>
+    api.post(`/maintenance/${id}/assign`, data),
+  start: (id: string) => api.post(`/maintenance/${id}/start`),
+  awaitingParts: (id: string) => api.post(`/maintenance/${id}/awaiting-parts`),
+  complete: (id: string, data?: RequestBody) =>
+    api.post(`/maintenance/${id}/complete`, data),
+  verify: (id: string) => api.post(`/maintenance/${id}/verify`),
+  cancel: (id: string, data?: RequestBody) =>
+    api.post(`/maintenance/${id}/cancel`, data),
+  getParts: (id: string) => api.get(`/maintenance/${id}/parts`),
+  addPart: (id: string, data: RequestBody) =>
+    api.post(`/maintenance/${id}/parts`, data),
+  updatePart: (id: string, partId: string, data: RequestBody) =>
+    api.put(`/maintenance/${id}/parts/${partId}`, data),
+  removePart: (id: string, partId: string) =>
+    api.delete(`/maintenance/${id}/parts/${partId}`),
+  getWorkLogs: (id: string) => api.get(`/maintenance/${id}/work-logs`),
+  addWorkLog: (id: string, data: RequestBody) =>
+    api.post(`/maintenance/${id}/work-logs`, data),
+  getSchedules: (params?: QueryParams) =>
+    api.get("/maintenance/schedules", { params }),
+  createSchedule: (data: RequestBody) =>
+    api.post("/maintenance/schedules", data),
+  updateSchedule: (scheduleId: string, data: RequestBody) =>
+    api.put(`/maintenance/schedules/${scheduleId}`, data),
+  deleteSchedule: (scheduleId: string) =>
+    api.delete(`/maintenance/schedules/${scheduleId}`),
+};
+
+// === Material Requests ===
+
+export const materialRequestsApi = {
+  getAll: (params?: QueryParams) => api.get("/material-requests", { params }),
+  getById: (id: string) => api.get(`/material-requests/${id}`),
+  create: (data: RequestBody) => api.post("/material-requests", data),
+  update: (id: string, data: RequestBody) =>
+    api.put(`/material-requests/${id}`, data),
+  delete: (id: string) => api.delete(`/material-requests/${id}`),
+  submit: (id: string) => api.post(`/material-requests/${id}/submit`),
+  approve: (id: string, data?: RequestBody) =>
+    api.post(`/material-requests/${id}/approve`, data),
+  reject: (id: string, data: RequestBody) =>
+    api.post(`/material-requests/${id}/reject`, data),
+  send: (id: string) => api.post(`/material-requests/${id}/send`),
+  markPayment: (id: string, data: RequestBody) =>
+    api.post(`/material-requests/${id}/payment`, data),
+  markDelivery: (id: string, data: RequestBody) =>
+    api.post(`/material-requests/${id}/delivery`, data),
+  complete: (id: string) => api.post(`/material-requests/${id}/complete`),
+  cancel: (id: string, data?: RequestBody) =>
+    api.post(`/material-requests/${id}/cancel`, data),
+  returnToDraft: (id: string) =>
+    api.post(`/material-requests/${id}/return-to-draft`),
+  getHistory: (id: string) => api.get(`/material-requests/${id}/history`),
+};
+
+// === Work Logs ===
+
+export const workLogsApi = {
+  getAll: (params?: QueryParams) => api.get("/work-logs", { params }),
+  getById: (id: string) => api.get(`/work-logs/${id}`),
+  create: (data: RequestBody) => api.post("/work-logs", data),
+  update: (id: string, data: RequestBody) => api.put(`/work-logs/${id}`, data),
+  delete: (id: string) => api.delete(`/work-logs/${id}`),
+  submit: (id: string) => api.post(`/work-logs/${id}/submit`),
+  approve: (id: string) => api.post(`/work-logs/${id}/approve`),
+  reject: (id: string, data?: RequestBody) =>
+    api.post(`/work-logs/${id}/reject`, data),
+  bulkApprove: (data: RequestBody) => api.post("/work-logs/bulk-approve", data),
+  clockIn: (data: RequestBody) => api.post("/work-logs/clock-in", data),
+  clockOut: (data?: RequestBody) => api.post("/work-logs/clock-out", data),
+  getTimeOff: (params?: QueryParams) =>
+    api.get("/work-logs/time-off", { params }),
+  getTimeOffById: (id: string) => api.get(`/work-logs/time-off/${id}`),
+  createTimeOff: (data: RequestBody) => api.post("/work-logs/time-off", data),
+  updateTimeOff: (id: string, data: RequestBody) =>
+    api.put(`/work-logs/time-off/${id}`, data),
+  deleteTimeOff: (id: string) => api.delete(`/work-logs/time-off/${id}`),
+  approveTimeOff: (id: string) => api.post(`/work-logs/time-off/${id}/approve`),
+  rejectTimeOff: (id: string, data?: RequestBody) =>
+    api.post(`/work-logs/time-off/${id}/reject`, data),
+  getTimesheets: (params?: QueryParams) =>
+    api.get("/work-logs/timesheets", { params }),
+  getTimesheetById: (id: string) => api.get(`/work-logs/timesheets/${id}`),
+  createTimesheet: (data: RequestBody) =>
+    api.post("/work-logs/timesheets", data),
+  submitTimesheet: (id: string) =>
+    api.post(`/work-logs/timesheets/${id}/submit`),
+  approveTimesheet: (id: string) =>
+    api.post(`/work-logs/timesheets/${id}/approve`),
+  rejectTimesheet: (id: string, data?: RequestBody) =>
+    api.post(`/work-logs/timesheets/${id}/reject`, data),
 };
