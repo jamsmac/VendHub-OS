@@ -66,7 +66,7 @@ export default function RegisterWithInvitePage() {
     invitesApi
       .validate(inviteCode)
       .then((res) => {
-        const data = res.data?.data ?? res.data;
+        const data = res.data;
         setInviteValid(true);
         setInviteRole(data.role);
         setValue("inviteCode", inviteCode);

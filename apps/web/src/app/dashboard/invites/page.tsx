@@ -75,8 +75,7 @@ export default function InvitesPage() {
     queryKey: ["invites"],
     queryFn: async () => {
       const res = await invitesApi.getAll({ includeExpired: "true" });
-      const payload = res.data?.data ?? res.data;
-      return (payload as Invite[]) || [];
+      return (res.data || []) as Invite[];
     },
   });
 
@@ -87,7 +86,7 @@ export default function InvitesPage() {
         expiresInHours: Number(expiresInHours),
         description: description || undefined,
       });
-      return res.data?.data ?? res.data;
+      return res.data;
     },
     onSuccess: (data: { code: string }) => {
       queryClient.invalidateQueries({ queryKey: ["invites"] });

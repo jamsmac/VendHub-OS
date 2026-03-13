@@ -222,7 +222,7 @@ export default function IncidentsPage() {
       if (typeFilter !== "all") params.type = typeFilter;
       if (priorityFilter !== "all") params.priority = priorityFilter;
       const res = await incidentsApi.getAll(params);
-      return res.data?.data ?? res.data ?? [];
+      return (res.data.data || []) as Incident[];
     },
   });
 
