@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { api } from "@/lib/api";
+import { complaintsApi } from "@/lib/api";
 import Link from "next/link";
 
 interface Complaint {
@@ -133,10 +133,8 @@ export default function ComplaintsPage() {
   } = useQuery({
     queryKey: ["complaints", debouncedSearch, statusFilter],
     queryFn: () =>
-      api
-        .get("/complaints", {
-          params: { search: debouncedSearch, status: statusFilter },
-        })
+      complaintsApi
+        .getAll({ search: debouncedSearch, status: statusFilter })
         .then((res) => res.data.data),
   });
 

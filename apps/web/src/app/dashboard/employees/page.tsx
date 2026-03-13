@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 interface Employee {
@@ -127,11 +127,11 @@ export default function EmployeesPage() {
   } = useQuery<Employee[]>({
     queryKey: ["employees", debouncedSearch, statusFilter, roleFilter],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (debouncedSearch) params.append("search", debouncedSearch);
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (roleFilter !== "all") params.append("role", roleFilter);
-      const res = await api.get(`/employees?${params}`);
+      const params: Record<string, string> = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (roleFilter !== "all") params.role = roleFilter;
+      const res = await hrApi.getEmployees(params);
       return res.data;
     },
   });
@@ -139,7 +139,7 @@ export default function EmployeesPage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/employees/${id}`);
+      await hrApi.deleteEmployee(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
@@ -485,9 +485,9 @@ function EmployeeForm({
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (employee) {
-        return api.patch(`/employees/${employee.id}`, data);
+        return hrApi.updateEmployee(employee.id, data);
       }
-      return api.post("/employees", data);
+      return hrApi.createEmployee(data);
     },
     onSuccess: () => {
       toast.success(employee ? t("updated") : t("added"));

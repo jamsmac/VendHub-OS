@@ -29,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { workLogsApi } from "@/lib/api";
 import { formatTime, formatDate } from "@/lib/utils";
 
 interface WorkLog {
@@ -127,7 +127,7 @@ export default function WorkLogsPage() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.append("search", debouncedSearch);
       params.append("date", selectedDate);
-      const res = await api.get(`/work-logs?${params}`);
+      const res = await workLogsApi.getAll(Object.fromEntries(params));
       return res.data;
     },
     enabled: activeTab === "logs",
@@ -141,7 +141,7 @@ export default function WorkLogsPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      const res = await api.get(`/work-logs/time-off?${params}`);
+      const res = await workLogsApi.getTimeOff(Object.fromEntries(params));
       return res.data;
     },
     enabled: activeTab === "time-off",
@@ -156,7 +156,9 @@ export default function WorkLogsPage() {
       id: string;
       action: "approve" | "reject";
     }) => {
-      return api.post(`/work-logs/time-off/${id}/${action}`);
+      return action === "approve"
+        ? workLogsApi.approveTimeOff(id)
+        : workLogsApi.rejectTimeOff(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-off-requests"] });
@@ -176,7 +178,9 @@ export default function WorkLogsPage() {
       id: string;
       action: "approve" | "reject";
     }) => {
-      return api.post(`/work-logs/${id}/${action}`);
+      return action === "approve"
+        ? workLogsApi.approve(id)
+        : workLogsApi.reject(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-logs"] });

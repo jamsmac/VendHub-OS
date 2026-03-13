@@ -54,7 +54,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { maintenanceApi } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 interface MaintenanceRequest {
@@ -172,15 +172,31 @@ export default function MaintenancePage() {
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (typeFilter !== "all") params.append("type", typeFilter);
       if (priorityFilter !== "all") params.append("priority", priorityFilter);
-      const res = await api.get(`/maintenance?${params}`);
+      const res = await maintenanceApi.getAll(Object.fromEntries(params));
       return res.data;
     },
   });
 
   // Status transition mutation
+  const maintenanceActions: Record<
+    string,
+    (id: string) => ReturnType<typeof maintenanceApi.submit>
+  > = {
+    submit: (id) => maintenanceApi.submit(id),
+    approve: (id) => maintenanceApi.approve(id),
+    reject: (id) => maintenanceApi.reject(id, {}),
+    assign: (id) => maintenanceApi.assign(id, {}),
+    start: (id) => maintenanceApi.start(id),
+    "awaiting-parts": (id) => maintenanceApi.awaitingParts(id),
+    complete: (id) => maintenanceApi.complete(id),
+    verify: (id) => maintenanceApi.verify(id),
+    cancel: (id) => maintenanceApi.cancel(id),
+  };
   const transitionMutation = useMutation({
     mutationFn: async ({ id, action }: { id: string; action: string }) => {
-      return api.post(`/maintenance/${id}/${action}`);
+      const fn = maintenanceActions[action];
+      if (!fn) throw new Error(`Unknown action: ${action}`);
+      return fn(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
@@ -592,9 +608,9 @@ function MaintenanceForm({
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (request) {
-        return api.patch(`/maintenance/${request.id}`, data);
+        return maintenanceApi.update(request.id, data);
       }
-      return api.post("/maintenance", data);
+      return maintenanceApi.create(data);
     },
     onSuccess: () => {
       toast.success(request ? t("requestUpdated") : t("requestCreated"));

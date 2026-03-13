@@ -51,7 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 interface LeaveRequest {
@@ -137,7 +137,7 @@ export default function LeavePage() {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (typeFilter !== "all") params.append("leave_type", typeFilter);
-      const res = await api.get(`/employees/leave?${params}`);
+      const res = await hrApi.getLeaveRequests(Object.fromEntries(params));
       return res.data;
     },
   });
@@ -145,14 +145,14 @@ export default function LeavePage() {
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get("/employees");
+      const res = await hrApi.getEmployees();
       return res.data;
     },
   });
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      return api.post(`/employees/leave/${id}/approve`);
+      return hrApi.approveLeave(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
@@ -165,7 +165,7 @@ export default function LeavePage() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
-      return api.post(`/employees/leave/${id}/reject`, { reason });
+      return hrApi.rejectLeave(id, { reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
@@ -180,7 +180,7 @@ export default function LeavePage() {
 
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => {
-      return api.post(`/employees/leave/${id}/cancel`);
+      return hrApi.cancelLeave(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
@@ -574,7 +574,7 @@ function LeaveRequestForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/employees/leave", data);
+      return hrApi.createLeaveRequest(data);
     },
     onSuccess: () => {
       toast.success(tl("requestCreated"));

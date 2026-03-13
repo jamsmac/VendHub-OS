@@ -56,7 +56,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { materialRequestsApi } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
@@ -158,15 +158,32 @@ export default function MaterialRequestsPage() {
       if (debouncedSearch) params.append("search", debouncedSearch);
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (priorityFilter !== "all") params.append("priority", priorityFilter);
-      const res = await api.get(`/material-requests?${params}`);
+      const res = await materialRequestsApi.getAll(Object.fromEntries(params));
       return res.data;
     },
   });
 
   // Status transition mutation
+  const mrActions: Record<
+    string,
+    (id: string) => ReturnType<typeof materialRequestsApi.submit>
+  > = {
+    submit: (id) => materialRequestsApi.submit(id),
+    approve: (id) => materialRequestsApi.approve(id),
+    reject: (id) => materialRequestsApi.reject(id, {}),
+    send: (id) => materialRequestsApi.send(id),
+    process: (id) => materialRequestsApi.send(id),
+    ship: (id) => materialRequestsApi.markDelivery(id, {}),
+    deliver: (id) => materialRequestsApi.complete(id),
+    complete: (id) => materialRequestsApi.complete(id),
+    cancel: (id) => materialRequestsApi.cancel(id),
+    "return-to-draft": (id) => materialRequestsApi.returnToDraft(id),
+  };
   const transitionMutation = useMutation({
     mutationFn: async ({ id, action }: { id: string; action: string }) => {
-      return api.post(`/material-requests/${id}/${action}`);
+      const fn = mrActions[action];
+      if (!fn) throw new Error(`Unknown action: ${action}`);
+      return fn(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requests"] });
@@ -640,7 +657,7 @@ function MaterialRequestForm({ onSuccess }: { onSuccess: () => void }) {
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/material-requests", data);
+      return materialRequestsApi.create(data);
     },
     onSuccess: () => {
       toast.success(t("requestCreated"));

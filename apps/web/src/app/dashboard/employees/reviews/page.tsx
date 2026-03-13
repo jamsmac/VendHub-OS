@@ -43,7 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 interface Review {
@@ -187,7 +187,7 @@ export default function ReviewsPage() {
   const { data: reviews, isLoading } = useQuery<Review[]>({
     queryKey: ["reviews"],
     queryFn: async () => {
-      const res = await api.get("/employees/reviews");
+      const res = await hrApi.getReviews();
       return res.data;
     },
   });
@@ -195,7 +195,7 @@ export default function ReviewsPage() {
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get("/employees");
+      const res = await hrApi.getEmployees();
       return res.data;
     },
   });
@@ -627,7 +627,7 @@ function CreateReviewForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/employees/reviews", data);
+      return hrApi.createReview(data);
     },
     onSuccess: () => {
       toast.success(t("toastCreated"));
@@ -764,7 +764,7 @@ function SubmitReviewForm({
       for (const [key, value] of Object.entries(data.ratings)) {
         translatedRatings[t(key)] = value;
       }
-      return api.post(`/employees/reviews/${reviewId}/submit`, {
+      return hrApi.submitReview(reviewId, {
         ...data,
         ratings: translatedRatings,
       });

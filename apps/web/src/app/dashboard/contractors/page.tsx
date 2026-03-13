@@ -54,7 +54,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { contractorsApi } from "@/lib/api";
 
 interface Contractor {
   id: string;
@@ -124,11 +124,11 @@ export default function ContractorsPage() {
   } = useQuery<Contractor[]>({
     queryKey: ["contractors", debouncedSearch, statusFilter, typeFilter],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (debouncedSearch) params.append("search", debouncedSearch);
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (typeFilter !== "all") params.append("type", typeFilter);
-      const res = await api.get(`/contractors?${params}`);
+      const params: Record<string, string> = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (typeFilter !== "all") params.type = typeFilter;
+      const res = await contractorsApi.getAll(params);
       return res.data;
     },
   });
@@ -136,7 +136,7 @@ export default function ContractorsPage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/contractors/${id}`);
+      await contractorsApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractors"] });
@@ -461,9 +461,9 @@ function ContractorForm({
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (contractor) {
-        return api.patch(`/contractors/${contractor.id}`, data);
+        return contractorsApi.update(contractor.id, data);
       }
-      return api.post("/contractors", data);
+      return contractorsApi.create(data);
     },
     onSuccess: () => {
       toast.success(contractor ? t("updated") : t("added"));

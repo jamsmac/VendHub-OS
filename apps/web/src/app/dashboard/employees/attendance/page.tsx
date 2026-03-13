@@ -43,7 +43,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 
 interface AttendanceRecord {
@@ -113,7 +113,7 @@ export default function AttendancePage() {
   const { data: attendance, isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ["attendance", selectedDate],
     queryFn: async () => {
-      const res = await api.get(`/employees/attendance?date=${selectedDate}`);
+      const res = await hrApi.getAttendance({ date: selectedDate });
       return res.data;
     },
   });
@@ -121,9 +121,7 @@ export default function AttendancePage() {
   const { data: dailyReport } = useQuery<DailyReport>({
     queryKey: ["attendance-daily-report", selectedDate],
     queryFn: async () => {
-      const res = await api.get(
-        `/employees/attendance/daily-report?date=${selectedDate}`,
-      );
+      const res = await hrApi.getDailyReport({ date: selectedDate });
       return res.data;
     },
   });
@@ -131,7 +129,7 @@ export default function AttendancePage() {
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get("/employees");
+      const res = await hrApi.getEmployees();
       return res.data;
     },
   });
@@ -419,7 +417,7 @@ function CheckInForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/employees/attendance/check-in", {
+      return hrApi.checkIn({
         employee_id: data.employee_id,
         time: data.time,
         note: data.note || undefined,
@@ -521,7 +519,7 @@ function CheckOutForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/employees/attendance/check-out", {
+      return hrApi.checkOut({
         employee_id: data.employee_id,
         time: data.time,
       });

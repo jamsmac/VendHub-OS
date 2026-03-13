@@ -50,7 +50,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 
 interface Department {
   id: string;
@@ -90,7 +90,7 @@ export default function DepartmentsPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      const res = await api.get(`/employees/departments?${params}`);
+      const res = await hrApi.getDepartments(Object.fromEntries(params));
       return res.data;
     },
   });
@@ -98,14 +98,14 @@ export default function DepartmentsPage() {
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get("/employees");
+      const res = await hrApi.getEmployees();
       return res.data;
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/employees/departments/${id}`);
+      await hrApi.deleteDepartment(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["departments"] });
@@ -488,9 +488,9 @@ function DepartmentForm({
         parent_id: data.parent_id || null,
       };
       if (department) {
-        return api.put(`/employees/departments/${department.id}`, payload);
+        return hrApi.updateDepartment(department.id, payload);
       }
-      return api.post("/employees/departments", payload);
+      return hrApi.createDepartment(payload);
     },
     onSuccess: () => {
       toast.success(department ? t("updated") : t("created"));

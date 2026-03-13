@@ -42,7 +42,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { hrApi } from "@/lib/api";
 import { formatDate, formatCurrency as fmtCurrency } from "@/lib/utils";
 
 interface PayrollRecord {
@@ -122,7 +122,7 @@ export default function PayrollPage() {
       const params = new URLSearchParams();
       params.append("month", String(Number(selectedMonth) + 1));
       params.append("year", selectedYear);
-      const res = await api.get(`/employees/payroll?${params}`);
+      const res = await hrApi.getPayrolls(Object.fromEntries(params));
       return res.data;
     },
   });
@@ -130,14 +130,14 @@ export default function PayrollPage() {
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees-list"],
     queryFn: async () => {
-      const res = await api.get("/employees");
+      const res = await hrApi.getEmployees();
       return res.data;
     },
   });
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      return api.post(`/employees/payroll/${id}/approve`);
+      return hrApi.approvePayroll(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payrolls"] });
@@ -150,7 +150,7 @@ export default function PayrollPage() {
 
   const payMutation = useMutation({
     mutationFn: async (id: string) => {
-      return api.post(`/employees/payroll/${id}/pay`);
+      return hrApi.payPayroll(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payrolls"] });
@@ -628,7 +628,7 @@ function CalculatePayrollForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.post("/employees/payroll/calculate", {
+      return hrApi.calculatePayroll({
         employee_id: data.employee_id,
         period_start: data.period_start,
         period_end: data.period_end,
