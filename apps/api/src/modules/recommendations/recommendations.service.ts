@@ -55,8 +55,12 @@ export interface RecommendationContext {
 export class RecommendationsService {
   private readonly logger = new Logger(RecommendationsService.name);
 
-  private static readonly CACHE_TTL = 300; // 5 minutes in seconds
+  /** Cache TTL: 5 minutes in milliseconds (cache-manager v5 expects ms) */
+  private static readonly CACHE_TTL_MS = 300_000;
   private static readonly POPULAR_CACHE_PREFIX = "recommendations:popular:";
+  private static readonly MACHINE_POPULAR_CACHE_PREFIX =
+    "recommendations:machine-popular:";
+  private static readonly TIME_BASED_CACHE_PREFIX = "recommendations:time:";
   private static readonly TRENDING_CACHE_PREFIX = "recommendations:trending:";
 
   constructor(
@@ -250,7 +254,7 @@ export class RecommendationsService {
   }
 
   /**
-   * Рекомендации по времени суток
+   * Рекомендации по времени суток (cached in Redis per org + time category)
    */
   async getTimeBasedRecommendations(
     organizationId: string,
@@ -268,6 +272,13 @@ export class RecommendationsService {
       timeCategory = "evening";
     } else {
       timeCategory = "night";
+    }
+
+    // Check Redis cache
+    const cacheKey = `${RecommendationsService.TIME_BASED_CACHE_PREFIX}${organizationId}:${timeCategory}`;
+    const cached = await this.cacheManager.get<RecommendedProduct[]>(cacheKey);
+    if (cached && cached.length >= limit) {
+      return cached.slice(0, limit);
     }
 
     // Анализ заказов по времени
@@ -309,12 +320,19 @@ export class RecommendationsService {
       night: "Популярно ночью",
     };
 
-    return products.map((p) => ({
+    const results = products.map((p) => ({
       product: p,
       score: 0.75,
       reason: RecommendationReason.TRENDING,
       reasonText: timeLabels[timeCategory],
     }));
+
+    await this.cacheManager.set(
+      cacheKey,
+      results,
+      RecommendationsService.CACHE_TTL_MS,
+    );
+    return results.slice(0, limit);
   }
 
   /**
@@ -525,7 +543,7 @@ export class RecommendationsService {
       await this.cacheManager.set(
         cacheKey,
         products,
-        RecommendationsService.CACHE_TTL * 1000,
+        RecommendationsService.CACHE_TTL_MS,
       );
       return products.slice(0, limit);
     }
@@ -535,18 +553,24 @@ export class RecommendationsService {
     await this.cacheManager.set(
       cacheKey,
       products,
-      RecommendationsService.CACHE_TTL * 1000,
+      RecommendationsService.CACHE_TTL_MS,
     );
     return products.slice(0, limit);
   }
 
   /**
-   * Популярные на конкретном автомате
+   * Популярные на конкретном автомате (cached in Redis)
    */
   private async getMachinePopularProducts(
     machineId: string,
     limit: number,
   ): Promise<Product[]> {
+    const cacheKey = `${RecommendationsService.MACHINE_POPULAR_CACHE_PREFIX}${machineId}`;
+    const cached = await this.cacheManager.get<Product[]>(cacheKey);
+    if (cached && cached.length >= limit) {
+      return cached.slice(0, limit);
+    }
+
     const popular = await this.orderRepo
       .createQueryBuilder("o")
       .innerJoin("o.items", "oi")
@@ -569,7 +593,14 @@ export class RecommendationsService {
       return [];
     }
 
-    return this.productRepo.findBy({ id: In(productIds) });
+    const products = await this.productRepo.findBy({ id: In(productIds) });
+
+    await this.cacheManager.set(
+      cacheKey,
+      products,
+      RecommendationsService.CACHE_TTL_MS,
+    );
+    return products.slice(0, limit);
   }
 
   /**
@@ -603,19 +634,53 @@ export class RecommendationsService {
   }
 
   // ============================================================================
+  // CACHE INVALIDATION
+  // ============================================================================
+
+  /**
+   * Invalidate all recommendation caches for a given organization.
+   * Call this when products or orders change significantly.
+   */
+  async invalidateOrganizationCache(organizationId: string): Promise<void> {
+    const keys = [
+      `${RecommendationsService.POPULAR_CACHE_PREFIX}${organizationId}`,
+      `${RecommendationsService.TIME_BASED_CACHE_PREFIX}${organizationId}:morning`,
+      `${RecommendationsService.TIME_BASED_CACHE_PREFIX}${organizationId}:afternoon`,
+      `${RecommendationsService.TIME_BASED_CACHE_PREFIX}${organizationId}:evening`,
+      `${RecommendationsService.TIME_BASED_CACHE_PREFIX}${organizationId}:night`,
+    ];
+
+    await Promise.all(keys.map((key) => this.cacheManager.del(key)));
+
+    this.logger.debug(
+      `Invalidated recommendation caches for org ${organizationId}`,
+    );
+  }
+
+  /**
+   * Invalidate cached recommendations for a specific machine.
+   */
+  async invalidateMachineCache(machineId: string): Promise<void> {
+    const cacheKey = `${RecommendationsService.MACHINE_POPULAR_CACHE_PREFIX}${machineId}`;
+    await this.cacheManager.del(cacheKey);
+
+    this.logger.debug(
+      `Invalidated machine recommendation cache for machine ${machineId}`,
+    );
+  }
+
+  // ============================================================================
   // CRON JOBS
   // ============================================================================
 
   /**
-   * Обновить кэш популярных продуктов (каждый час)
+   * Heartbeat log for popular products cache (every hour).
+   * Redis TTL (5 min) handles expiry automatically — no explicit invalidation needed.
    */
   @Cron("0 * * * *")
   async updatePopularProductsCache(): Promise<void> {
     this.logger.log(
       "Popular products cache refresh cycle — Redis TTL (300s) handles expiry automatically",
     );
-    // With Redis-backed cache and a 5-minute TTL, entries expire automatically.
-    // This cron serves as a monitoring heartbeat. No explicit invalidation needed
-    // since cache-manager's reset() would clear ALL services' caches (global store).
   }
 }

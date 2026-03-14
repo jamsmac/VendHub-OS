@@ -56,6 +56,12 @@ describe("RecommendationsService", () => {
   let orderRepo: MockRepository<Order>;
   let userRepo: MockRepository<User>;
   let machineRepo: MockRepository<Machine>;
+  let cacheManager: {
+    get: jest.Mock;
+    set: jest.Mock;
+    del: jest.Mock;
+    reset: jest.Mock;
+  };
 
   const orgId = "org-1";
   const userId = "user-1";
@@ -65,6 +71,12 @@ describe("RecommendationsService", () => {
     orderRepo = createMockRepository<Order>();
     userRepo = createMockRepository<User>();
     machineRepo = createMockRepository<Machine>();
+    cacheManager = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(undefined),
+      reset: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -75,12 +87,7 @@ describe("RecommendationsService", () => {
         { provide: getRepositoryToken(Machine), useValue: machineRepo },
         {
           provide: CACHE_MANAGER,
-          useValue: {
-            get: jest.fn(),
-            set: jest.fn(),
-            del: jest.fn(),
-            reset: jest.fn(),
-          },
+          useValue: cacheManager,
         },
       ],
     }).compile();
@@ -432,6 +439,124 @@ describe("RecommendationsService", () => {
       const result = dedup.call(service, recs, 2);
 
       expect(result).toHaveLength(2);
+    });
+  });
+
+  // ==========================================================================
+  // Redis cache behavior
+  // ==========================================================================
+
+  describe("Redis caching", () => {
+    it("should return cached time-based recommendations when available", async () => {
+      const cachedResults = [
+        {
+          product: { id: "p-1", name: "Cached Coffee" },
+          score: 0.75,
+          reason: RecommendationReason.TRENDING,
+          reasonText: "Популярно утром",
+        },
+      ];
+      cacheManager.get.mockResolvedValue(cachedResults);
+
+      const result = await service.getTimeBasedRecommendations(orgId, 8, 1);
+
+      expect(result).toEqual(cachedResults);
+      expect(cacheManager.get).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:morning`,
+      );
+      // Should not hit the database
+      expect(orderRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it("should cache time-based results in Redis with 5 min TTL", async () => {
+      cacheManager.get.mockResolvedValue(null);
+      const mockQb = createMockQueryBuilder();
+      mockQb.getRawMany.mockResolvedValue([{ productId: "p-1", count: "10" }]);
+      orderRepo.createQueryBuilder!.mockReturnValue(mockQb);
+      productRepo.findBy!.mockResolvedValue([{ id: "p-1", name: "Coffee" }]);
+
+      await service.getTimeBasedRecommendations(orgId, 8);
+
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:morning`,
+        expect.any(Array),
+        300_000,
+      );
+    });
+
+    it("should return cached machine popular products when available", async () => {
+      // getMachinePopularProducts requests limit=5, so cache must have >= 5 items
+      const cachedProducts = Array.from({ length: 5 }, (_, i) => ({
+        id: `p-${i}`,
+        name: `Cached Product ${i}`,
+      }));
+      cacheManager.get.mockResolvedValue(cachedProducts);
+
+      const result = await service.getMachineRecommendations("m-1", orgId);
+
+      expect(result).toHaveLength(5);
+      expect(result[0].reason).toBe(RecommendationReason.FREQUENTLY_BOUGHT);
+      expect(cacheManager.get).toHaveBeenCalledWith(
+        "recommendations:machine-popular:m-1",
+      );
+      // Should not hit the database when cache has enough items
+      expect(orderRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it("should cache machine popular products in Redis with 5 min TTL", async () => {
+      cacheManager.get.mockResolvedValue(null);
+      const mockQb = createMockQueryBuilder();
+      mockQb.getRawMany.mockResolvedValue([{ productId: "p-1", count: "20" }]);
+      orderRepo.createQueryBuilder!.mockReturnValue(mockQb);
+      productRepo.findBy!.mockResolvedValue([
+        { id: "p-1", name: "Machine Product" },
+      ]);
+
+      await service.getMachineRecommendations("m-1", orgId);
+
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        "recommendations:machine-popular:m-1",
+        expect.any(Array),
+        300_000,
+      );
+    });
+  });
+
+  // ==========================================================================
+  // Cache invalidation
+  // ==========================================================================
+
+  describe("invalidateOrganizationCache", () => {
+    it("should delete all cache keys for an organization", async () => {
+      await service.invalidateOrganizationCache(orgId);
+
+      expect(cacheManager.del).toHaveBeenCalledTimes(5);
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `recommendations:popular:${orgId}`,
+      );
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:morning`,
+      );
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:afternoon`,
+      );
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:evening`,
+      );
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `recommendations:time:${orgId}:night`,
+      );
+    });
+  });
+
+  describe("invalidateMachineCache", () => {
+    it("should delete the cache key for a specific machine", async () => {
+      await service.invalidateMachineCache("m-1");
+
+      expect(cacheManager.del).toHaveBeenCalledTimes(1);
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        "recommendations:machine-popular:m-1",
+      );
     });
   });
 

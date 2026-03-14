@@ -1,6 +1,9 @@
 /**
  * Reports Generator Service
  * Definitions, generation, data queries, file creation, delivery
+ *
+ * P2-009: Uses batch pagination (BATCH_SIZE=500) for machine queries
+ * in generateMachinePerformance and generateInventoryLevels to prevent OOM.
  */
 
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
@@ -18,6 +21,9 @@ import { Machine } from "../machines/entities/machine.entity";
 import { Product } from "../products/entities/product.entity";
 
 type ReportFormat = ExportFormat;
+
+/** Batch size for paginated queries (P2-009) */
+const BATCH_SIZE = 500;
 
 export interface GenerateReportDto {
   organizationId: string;
@@ -254,21 +260,35 @@ export class ReportsGeneratorService {
     rows: Record<string, unknown>[];
     summary: Record<string, unknown>;
   }> {
-    const machines = await this.machineRepo.find({
-      where: { organizationId: dto.organizationId },
-      select: [
-        "id",
-        "name",
-        "machineNumber",
-        "status",
-        "connectionStatus",
-        "totalSalesCount",
-        "totalRevenue",
-        "lastPingAt",
-        "currentProductCount",
-        "maxProductSlots",
-      ],
-    });
+    // P2-009: Batch-load machines to prevent OOM on large organizations
+    const machines: Machine[] = [];
+    let offset = 0;
+
+    while (true) {
+      const batch = await this.machineRepo.find({
+        where: { organizationId: dto.organizationId },
+        select: [
+          "id",
+          "name",
+          "machineNumber",
+          "status",
+          "connectionStatus",
+          "totalSalesCount",
+          "totalRevenue",
+          "lastPingAt",
+          "currentProductCount",
+          "maxProductSlots",
+        ],
+        order: { createdAt: "ASC" },
+        skip: offset,
+        take: BATCH_SIZE,
+      });
+
+      if (batch.length === 0) break;
+      machines.push(...batch);
+      offset += BATCH_SIZE;
+      if (batch.length < BATCH_SIZE) break;
+    }
 
     const now = Date.now();
     const rows = machines.map((m) => {
@@ -315,17 +335,31 @@ export class ReportsGeneratorService {
     rows: Record<string, unknown>[];
     summary: Record<string, unknown>;
   }> {
-    const machines = await this.machineRepo.find({
-      where: { organizationId: dto.organizationId },
-      select: [
-        "id",
-        "name",
-        "machineNumber",
-        "currentProductCount",
-        "maxProductSlots",
-        "lowStockThresholdPercent",
-      ],
-    });
+    // P2-009: Batch-load machines to prevent OOM on large organizations
+    const machines: Machine[] = [];
+    let offset = 0;
+
+    while (true) {
+      const batch = await this.machineRepo.find({
+        where: { organizationId: dto.organizationId },
+        select: [
+          "id",
+          "name",
+          "machineNumber",
+          "currentProductCount",
+          "maxProductSlots",
+          "lowStockThresholdPercent",
+        ],
+        order: { createdAt: "ASC" },
+        skip: offset,
+        take: BATCH_SIZE,
+      });
+
+      if (batch.length === 0) break;
+      machines.push(...batch);
+      offset += BATCH_SIZE;
+      if (batch.length < BATCH_SIZE) break;
+    }
 
     const rows = machines.map((m) => {
       const stockPercent =

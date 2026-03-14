@@ -6,6 +6,10 @@
  * - Daily organization-level statistics
  * - Cron-based nightly/weekly/monthly data aggregation
  * - Dashboard data compilation
+ *
+ * P2-009: getDailyStats uses a safety limit (MAX_DAILY_STATS_ROWS) to prevent
+ * unbounded result sets. All dashboard/aggregation queries use SQL-level
+ * aggregation (getRawOne/getRawMany with GROUP BY + LIMIT) which are inherently safe.
  */
 
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
@@ -441,19 +445,23 @@ export class AnalyticsService {
   // ============================================================================
 
   /**
-   * Query daily stats for a date range
+   * Query daily stats for a date range.
+   * P2-009: Caps results at 366 rows (max ~1 year) to prevent unbounded queries.
    */
   async getDailyStats(
     organizationId: string,
     dateFrom: string,
     dateTo: string,
   ): Promise<DailyStats[]> {
+    const MAX_DAILY_STATS_ROWS = 366;
+
     return this.dailyStatsRepo.find({
       where: {
         organizationId,
         statDate: Between(new Date(dateFrom), new Date(dateTo)),
       },
       order: { statDate: "ASC" },
+      take: MAX_DAILY_STATS_ROWS,
     });
   }
 
