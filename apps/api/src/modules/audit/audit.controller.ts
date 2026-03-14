@@ -47,6 +47,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { ICurrentUser } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 
 @ApiTags("Audit")
@@ -102,8 +103,7 @@ export class AuditController {
   @Roles("owner", "admin")
   async createLog(
     @Body() dto: CreateAuditLogDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ): Promise<AuditLog> {
     const organizationId =
       user.role === UserRole.OWNER && dto.organization_id
@@ -218,8 +218,7 @@ export class AuditController {
   @Roles("owner", "admin")
   async createSnapshot(
     @Body() dto: CreateSnapshotDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ): Promise<AuditSnapshot> {
     const organizationId =
       user.role === UserRole.OWNER && dto.organization_id
@@ -321,8 +320,7 @@ export class AuditController {
   @Roles("owner", "admin")
   async generateReport(
     @Body() dto: GenerateReportDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ): Promise<AuditReport> {
     const organizationId =
       user.role === UserRole.OWNER && dto.organization_id

@@ -58,10 +58,13 @@ export function ForgotPasswordScreen() {
     try {
       await authApi.forgotPassword(email.trim());
       setIsSent(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosError = err as {
+        response?: { data?: { message?: string } };
+      };
       const message =
-        err.response?.data?.message || t("auth.forgotPassword.errorSend");
+        axiosError.response?.data?.message ||
+        t("auth.forgotPassword.errorSend");
       Alert.alert(t("common.error"), message);
     } finally {
       setIsLoading(false);

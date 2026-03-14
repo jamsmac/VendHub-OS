@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, IsNull } from "typeorm";
+import { Repository, IsNull, FindOptionsWhere } from "typeorm";
 import { CmsArticle } from "./entities/cms-article.entity";
 import {
   CreateCmsArticleDto,
@@ -55,8 +55,10 @@ export class CmsService {
     const limit = pagination?.limit || 10;
     const offset = pagination?.offset || 0;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { organizationId, deletedAt: IsNull() };
+    const where: FindOptionsWhere<CmsArticle> = {
+      organizationId,
+      deletedAt: IsNull(),
+    };
 
     if (pagination?.isPublished !== undefined) {
       where.isPublished = pagination.isPublished;

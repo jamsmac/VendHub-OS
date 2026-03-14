@@ -75,7 +75,7 @@ async function main() {
   try {
     validateConfig();
     logger.info("Configuration validated");
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error("Configuration error:", error);
     process.exit(1);
   }
@@ -84,7 +84,7 @@ async function main() {
   try {
     await redis.ping();
     logger.info("Redis connected");
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error("Redis connection failed:", error);
     process.exit(1);
   }

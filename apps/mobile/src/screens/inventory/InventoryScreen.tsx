@@ -18,6 +18,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { inventoryApi } from "../../services/api";
 
+const LOCALE_MAP: Record<string, string> = {
+  ru: "ru-RU",
+  en: "en-US",
+  uz: "uz-UZ",
+};
+
 type TabKey = "operator" | "movements";
 
 interface InventoryItem {
@@ -51,7 +57,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function InventoryScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   useNavigation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const route = useRoute<any>();
@@ -176,7 +182,9 @@ export function InventoryScreen() {
             {item.toLocation && ` → ${item.toLocation}`}
           </Text>
           <Text style={styles.movementDate}>
-            {new Date(item.createdAt).toLocaleString("ru-RU")}
+            {new Date(item.createdAt).toLocaleString(
+              LOCALE_MAP[i18n.language] || "ru-RU",
+            )}
           </Text>
         </View>
         <Text style={[styles.movementQty, { color }]}>

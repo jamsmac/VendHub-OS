@@ -99,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: false,
         isLoading: false,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Logout error:", error);
     }
   },
@@ -163,7 +163,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           await get().logout();
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Check auth error:", error);
       set({ isLoading: false, isAuthenticated: false });
     }

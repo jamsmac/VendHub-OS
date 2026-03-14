@@ -39,6 +39,7 @@ import {
   CurrentUserId,
   CurrentOrganizationId,
   CurrentUser,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 
@@ -62,8 +63,7 @@ export class MachineAccessController {
     @Body() dto: CreateMachineAccessDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -177,8 +177,7 @@ export class MachineAccessController {
   async createTemplate(
     @Body() dto: CreateAccessTemplateDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId

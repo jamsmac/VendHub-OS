@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, LessThan } from "typeorm";
+import { Repository, LessThan, FindOptionsWhere } from "typeorm";
 import {
   SecurityEvent,
   SecurityEventType,
@@ -152,8 +152,7 @@ export class SecurityEventService {
   }
 
   async getUnresolvedCount(organizationId?: string): Promise<number> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isResolved: false };
+    const where: FindOptionsWhere<SecurityEvent> = { isResolved: false };
     if (organizationId) {
       where.organizationId = organizationId;
     }

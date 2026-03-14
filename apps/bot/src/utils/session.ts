@@ -42,7 +42,7 @@ export const sessionStore = {
       const session = JSON.parse(data) as SessionData;
       session.lastActivity = Date.now();
       return session;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Session get error:", error);
       return undefined;
     }
@@ -60,7 +60,7 @@ export const sessionStore = {
         "EX",
         SESSION_TTL,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Session set error:", error);
     }
   },
@@ -71,7 +71,7 @@ export const sessionStore = {
   async delete(key: string): Promise<void> {
     try {
       await redis.del(`${SESSION_PREFIX}${key}`);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Session delete error:", error);
     }
   },
@@ -106,8 +106,10 @@ export const sessionStore = {
 // ============================================
 
 export function createSessionMiddleware() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return async (ctx: any, next: () => Promise<void>) => {
+  return async (
+    ctx: { from?: { id: number }; session: SessionData },
+    next: () => Promise<void>,
+  ) => {
     const key = ctx.from?.id?.toString();
 
     if (key) {
@@ -188,7 +190,7 @@ export const cache = {
         "EX",
         ttl,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Cache set error:", error);
     }
   },

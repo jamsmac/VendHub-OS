@@ -130,9 +130,11 @@ export function RegisterScreen() {
           },
         ],
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      const message = err.response?.data?.message || t("common.error");
+    } catch (err: unknown) {
+      const axiosError = err as {
+        response?: { data?: { message?: string } };
+      };
+      const message = axiosError.response?.data?.message || t("common.error");
       Alert.alert(t("common.error"), message);
     } finally {
       setIsLoading(false);

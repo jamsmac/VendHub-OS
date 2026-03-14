@@ -7,6 +7,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Telegraf, Markup } from "telegraf";
+import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { Task, TaskStatus, TaskType } from "../../tasks/entities/task.entity";
 import { Machine } from "../../machines/entities/machine.entity";
 import { BotContext, TelegramSession } from "./bot-types";
@@ -144,8 +145,7 @@ export class BotMachineOpsService {
       message += `💵 В кассе: ~${Number(machine.currentCashAmount).toLocaleString()} сум\n`;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buttons: any[][] = [
+    const buttons: InlineKeyboardButton[][] = [
       [
         Markup.button.callback("🔋 Пополнить", `machine_refill:${machine.id}`),
         Markup.button.callback(

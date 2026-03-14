@@ -62,8 +62,7 @@ export class TelegramBotController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Telegram webhook endpoint" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleWebhook(@Body() _update: any) {
+  async handleWebhook(@Body() _update: Record<string, unknown>) {
     // If using webhook mode instead of long-polling
     // The Telegraf instance would handle this internally
     return { ok: true };

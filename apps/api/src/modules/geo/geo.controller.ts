@@ -17,7 +17,8 @@ import { Roles } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { Public } from "../auth/decorators/public.decorator";
 import { User, UserRole } from "../users/entities/user.entity";
-import { GeoService } from "./geo.service";
+import { GeoService, NearbyMachine } from "./geo.service";
+import { Machine } from "../machines/entities/machine.entity";
 import {
   CoordinatesDto,
   NearbyMachinesQueryDto,
@@ -142,11 +143,10 @@ export class GeoController {
       },
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const machines = nearbyMachines.map((nm: any) => ({
+    const machines = nearbyMachines.map((nm: NearbyMachine) => ({
       id: nm.machine.id,
       name: nm.machine.name,
-      code: nm.machine.code || nm.machine.serialNumber,
+      code: nm.machine.machineNumber || nm.machine.serialNumber,
       address: nm.machine.address,
       coordinates: { lat: nm.machine.latitude, lng: nm.machine.longitude },
       distance: nm.distance,
@@ -195,11 +195,10 @@ export class GeoController {
     );
 
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      machines: machines.map((m: any) => ({
+      machines: machines.map((m: Machine) => ({
         id: m.id,
         name: m.name,
-        code: m.code || m.serialNumber,
+        code: m.machineNumber || m.serialNumber,
         latitude: m.latitude,
         longitude: m.longitude,
         isOnline: m.isOnline,

@@ -30,6 +30,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentOrganizationId,
   CurrentUser,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 
@@ -57,8 +58,7 @@ export class OperatorRatingsController {
   async calculateRating(
     @Body() dto: CalculateRatingDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -77,8 +77,7 @@ export class OperatorRatingsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CalculateRatingDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -111,8 +110,7 @@ export class OperatorRatingsController {
   async query(
     @Query() query: QueryRatingsDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && query.organizationId

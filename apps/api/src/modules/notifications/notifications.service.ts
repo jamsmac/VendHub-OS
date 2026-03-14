@@ -42,14 +42,28 @@ import {
   UpdateNotificationTemplateDto,
 } from "./dto/notification-template.dto";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let firebaseAdmin: any;
+// Firebase Admin SDK is optional — typed as module shape we actually use
+interface FirebaseMulticastResponse {
+  successCount: number;
+  failureCount: number;
+  responses: Array<{ success: boolean; error?: { code: string } }>;
+}
+let firebaseAdmin: {
+  apps: unknown[];
+  initializeApp: (config: Record<string, unknown>) => void;
+  credential: { cert: (serviceAccount: Record<string, unknown>) => unknown };
+  messaging: () => {
+    send: (message: Record<string, unknown>) => Promise<string>;
+    sendEachForMulticast: (
+      message: Record<string, unknown>,
+    ) => Promise<FirebaseMulticastResponse>;
+  };
+} | null = null;
 try {
   firebaseAdmin = require("firebase-admin");
 } catch {
   /* firebase-admin not installed */
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ============================================================================
 // DTOs

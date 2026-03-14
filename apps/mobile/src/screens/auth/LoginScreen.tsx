@@ -41,9 +41,11 @@ export function LoginScreen() {
 
     try {
       await login(email.trim(), password);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      Alert.alert(t("auth.login.errorLogin"), err.message);
+    } catch (err: unknown) {
+      Alert.alert(
+        t("auth.login.errorLogin"),
+        err instanceof Error ? err.message : String(err),
+      );
     }
   };
 

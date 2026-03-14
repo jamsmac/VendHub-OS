@@ -417,6 +417,7 @@
     "stops": "stops",
     "done": "done",
     "totalTime": "total",
+    "timeFormat": "{{hours}}h {{minutes}}m",
     "minutes": "min",
     "tasksCount": "tasks",
     "empty": "Route is empty",

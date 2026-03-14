@@ -10,7 +10,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In, Not, IsNull } from "typeorm";
+import { Repository, In, Not, IsNull, FindOptionsWhere } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Complaint,
@@ -399,8 +399,7 @@ export class ComplaintsCoreService {
     complaintId: string,
     includeInternal: boolean = true,
   ): Promise<ComplaintComment[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { complaintId };
+    const where: FindOptionsWhere<ComplaintComment> = { complaintId };
     if (!includeInternal) {
       where.isInternal = false;
     }

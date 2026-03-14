@@ -40,7 +40,7 @@ export default function AdminMachinesPage() {
       } else {
         setMachines(data as Machine[]);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Machines fetch failed:", err);
       showToast(t("loadError"), "error");
     } finally {

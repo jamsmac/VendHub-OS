@@ -15,8 +15,7 @@ export interface CartItem {
 
 export interface SessionData {
   step?: SessionStep;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   machineId?: string;
   cart?: CartItem[];
   selectedProductId?: string;

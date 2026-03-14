@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
             : (promotionsRes.count ?? 0),
           partners: partnersRes.error ? null : (partnersRes.count ?? 0),
         });
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Dashboard stats fetch failed:", err);
       }
     }

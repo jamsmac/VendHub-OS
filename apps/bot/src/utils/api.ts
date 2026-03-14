@@ -98,7 +98,7 @@ class ApiClient {
         lastName,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error registering user:", error);
       return null;
     }
@@ -110,7 +110,7 @@ class ApiClient {
         phone,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error updating user phone:", error);
       return null;
     }
@@ -245,7 +245,7 @@ class ApiClient {
         items,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error creating order:", error);
       return null;
     }
@@ -301,7 +301,7 @@ class ApiClient {
         message,
       });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error creating complaint:", error);
       return false;
     }
@@ -345,7 +345,7 @@ class ApiClient {
         routeId,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error starting trip:", error);
       return null;
     }
@@ -355,7 +355,7 @@ class ApiClient {
     try {
       const response = await this.client.post<Trip>(`/trips/${tripId}/end`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error ending trip:", error);
       return null;
     }
@@ -432,8 +432,13 @@ class ApiClient {
     total: number;
     unlocked: number;
     claimed: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    achievements: any[];
+    achievements: Array<{
+      id: string;
+      name: string;
+      description?: string;
+      unlocked: boolean;
+      claimed: boolean;
+    }>;
   } | null> {
     try {
       const response = await this.client.get(`/achievements/users/${userId}`);
@@ -476,8 +481,18 @@ class ApiClient {
   // Staff Task Methods
   // ============================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getStaffTasks(userId: string, status?: string): Promise<any[]> {
+  async getStaffTasks(
+    userId: string,
+    status?: string,
+  ): Promise<
+    Array<{
+      id: string;
+      title: string;
+      status: string;
+      type: string;
+      assignedTo?: string;
+    }>
+  > {
     try {
       const response = await this.client.get("/tasks", {
         params: { assignedTo: userId, status },
@@ -488,8 +503,12 @@ class ApiClient {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getStaffDayStats(userId: string): Promise<any> {
+  async getStaffDayStats(userId: string): Promise<{
+    tasksCompleted: number;
+    tasksTotal: number;
+    collectionsAmount: number;
+    machinesVisited: number;
+  } | null> {
     try {
       const response = await this.client.get("/reports/my-stats", {
         params: { userId },
@@ -500,8 +519,9 @@ class ApiClient {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getStaffAlerts(userId: string): Promise<any[]> {
+  async getStaffAlerts(
+    userId: string,
+  ): Promise<Array<{ id: string; title: string; body: string; type: string }>> {
     try {
       const response = await this.client.get("/notifications", {
         params: { userId, type: "alert" },
@@ -530,7 +550,7 @@ class ApiClient {
         comment,
       });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error("Error submitting feedback:", error);
       return false;
     }

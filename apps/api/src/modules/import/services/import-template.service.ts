@@ -5,7 +5,7 @@
 
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, FindOptionsWhere } from "typeorm";
 
 import { ImportTemplate, ImportType } from "../entities/import.entity";
 
@@ -34,8 +34,10 @@ export class ImportTemplateService {
     organizationId: string,
     importType?: ImportType,
   ): Promise<ImportTemplate[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { organizationId, isActive: true };
+    const where: FindOptionsWhere<ImportTemplate> = {
+      organizationId,
+      isActive: true,
+    };
     if (importType) {
       where.importType = importType;
     }

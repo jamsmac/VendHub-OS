@@ -417,6 +417,7 @@
     "stops": "nuqta",
     "done": "tayyor",
     "totalTime": "jami",
+    "timeFormat": "{{hours}} soat {{minutes}} daq",
     "minutes": "daq",
     "tasksCount": "vazifa",
     "empty": "Yo'nalish bo'sh",

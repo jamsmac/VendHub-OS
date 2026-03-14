@@ -213,8 +213,11 @@ export class ReferralsService {
    * Активировать реферал при первом заказе
    */
   @OnEvent("order.completed")
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleOrderCompleted(payload: any): Promise<void> {
+  async handleOrderCompleted(payload: {
+    userId: string;
+    orderId: string;
+    amount: number;
+  }): Promise<void> {
     const { userId, orderId, amount } = payload;
 
     // Check if user has pending referral

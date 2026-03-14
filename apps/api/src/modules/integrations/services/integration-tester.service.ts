@@ -95,8 +95,7 @@ export class IntegrationTesterService {
     const startTime = Date.now();
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let response: any;
+      let response: unknown;
 
       // Execute based on endpoint type
       switch (testCase.endpoint) {
@@ -411,8 +410,7 @@ export class IntegrationTesterService {
   // Assertion Checking
   // ============================================
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private checkAssertion(assertion: TestAssertion, response: any): boolean {
+  private checkAssertion(assertion: TestAssertion, response: unknown): boolean {
     const actual = this.getValueByPath(response, assertion.path);
 
     switch (assertion.type) {
@@ -447,9 +445,18 @@ export class IntegrationTesterService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getValueByPath(obj: any, path: string): any {
-    return path.split(".").reduce((current, key) => current?.[key], obj);
+  private getValueByPath(obj: unknown, path: string): unknown {
+    return path
+      .split(".")
+      .reduce(
+        (current: unknown, key: string) =>
+          current != null &&
+          typeof current === "object" &&
+          key in (current as Record<string, unknown>)
+            ? (current as Record<string, unknown>)[key]
+            : undefined,
+        obj,
+      );
   }
 
   // ============================================

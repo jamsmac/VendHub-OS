@@ -19,6 +19,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { UserRole } from "../../common/decorators/roles.decorator";
 import { SecurityEventService } from "./services/security-event.service";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { ICurrentUser } from "../../common/decorators/current-user.decorator";
 import { FilterSecurityEventsDto } from "./dto/filter-security-events.dto";
 import { ResolveSecurityEventDto } from "./dto/resolve-security-event.dto";
 
@@ -35,8 +36,7 @@ export class SecurityController {
   @ApiResponse({ status: 200, description: "Security events list" })
   async findAll(
     @Query() filterDto: FilterSecurityEventsDto,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     // Multi-tenant isolation: only owner can query across organizations
     const organizationId =
@@ -86,8 +86,7 @@ export class SecurityController {
   @ApiResponse({ status: 200, description: "Event resolved" })
   async resolve(
     @Param("id", ParseUUIDPipe) id: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
     @Body() resolveDto: ResolveSecurityEventDto,
   ) {
     return this.securityEventService.resolve(id, user.id, resolveDto.notes);

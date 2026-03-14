@@ -10,7 +10,13 @@ import {
   Optional,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, LessThan, MoreThan } from "typeorm";
+import {
+  Repository,
+  Between,
+  LessThan,
+  MoreThan,
+  FindOptionsWhere,
+} from "typeorm";
 import { NotificationsService } from "../notifications/notifications.service";
 import {
   NotificationType,
@@ -55,8 +61,11 @@ export interface CreateAuditLogInput {
   description?: string;
   oldValues?: Record<string, unknown>;
   newValues?: Record<string, unknown>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  changes?: any[];
+  changes?: Array<{
+    field: string;
+    oldValue: unknown;
+    newValue: unknown;
+  }>;
   affectedFields?: string[];
   context?: AuditContext;
   ipAddress?: string;
@@ -649,8 +658,7 @@ export class AuditService {
     userId: string,
     activeOnly: boolean = true,
   ): Promise<AuditSession[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { userId };
+    const where: FindOptionsWhere<AuditSession> = { userId };
     if (activeOnly) {
       where.isActive = true;
     }

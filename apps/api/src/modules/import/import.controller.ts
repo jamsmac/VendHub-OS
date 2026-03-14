@@ -77,10 +77,6 @@ interface UploadImportBody {
   delimiter?: string;
 }
 
-interface ImportRowData {
-  [key: string]: string | number | boolean | null | undefined;
-}
-
 class _CreateImportDto {
   importType: ImportType;
   source: ImportSource;
@@ -145,7 +141,7 @@ export class ImportController {
     @Body() body: UploadImportBody,
   ): Promise<{
     job: ImportJob;
-    preview: { headers: string[]; sampleRows: ImportRowData[] };
+    preview: { headers: string[]; sampleRows: Record<string, unknown>[] };
   }> {
     if (!file) {
       throw new BadRequestException("No file provided");
@@ -171,7 +167,7 @@ export class ImportController {
     }
 
     // Parse file for preview
-    let parsed: { headers: string[]; rows: ImportRowData[] };
+    let parsed: { headers: string[]; rows: Record<string, unknown>[] };
 
     if (source === ImportSource.CSV) {
       parsed = await this.importService.parseCSV(file.buffer, {

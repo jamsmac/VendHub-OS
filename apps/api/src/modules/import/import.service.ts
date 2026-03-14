@@ -52,8 +52,7 @@ export interface ImportOptions {
 
 export interface ParsedRow {
   rowNumber: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   errors: { field: string; message: string }[];
   warnings: { field: string; message: string }[];
 }
@@ -216,23 +215,20 @@ export class ImportService {
   async parseCSV(
     buffer: Buffer,
     options?: { delimiter?: string; encoding?: string; headerRow?: number },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     return this.parserService.parseCSV(buffer, options);
   }
 
   async parseExcel(
     buffer: Buffer,
     options?: { sheetName?: string; headerRow?: number; startRow?: number },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     return this.parserService.parseExcel(buffer, options);
   }
 
   async parseJSON(
     buffer: Buffer,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+  ): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
     return this.parserService.parseJSON(buffer);
   }
 
@@ -243,15 +239,13 @@ export class ImportService {
   async validateImportData(
     organizationId: string,
     jobId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rows: Record<string, any>[],
+    rows: Record<string, unknown>[],
     importType: ImportType,
     mapping?: Record<string, string>,
   ): Promise<{
     validRows: ParsedRow[];
     invalidRows: ParsedRow[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    warnings: any[];
+    warnings: Array<{ row: number; field: string; message: string }>;
   }> {
     const job = await this.getImportJob(organizationId, jobId);
 
@@ -261,8 +255,7 @@ export class ImportService {
 
     const validRows: ParsedRow[] = [];
     const invalidRows: ParsedRow[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const warnings: any[] = [];
+    const warnings: Array<{ row: number; field: string; message: string }> = [];
 
     const validator = this.validatorService.getValidator(importType);
 

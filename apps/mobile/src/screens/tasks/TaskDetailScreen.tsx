@@ -26,11 +26,17 @@ import { useTranslation } from "react-i18next";
 import { tasksApi } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
+const LOCALE_MAP: Record<string, string> = {
+  ru: "ru-RU",
+  en: "en-US",
+  uz: "uz-UZ",
+};
+
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type RouteType = RouteProp<MainStackParamList, "TaskDetail">;
 
 export function TaskDetailScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteType>();
   const queryClient = useQueryClient();
@@ -198,7 +204,9 @@ export function TaskDetailScreen() {
               <Ionicons name="time-outline" size={20} color="#6B7280" />
               <Text style={styles.infoLabel}>{t("tasks.detail.dueDate")}:</Text>
               <Text style={styles.infoValue}>
-                {new Date(task.dueDate).toLocaleString("ru-RU")}
+                {new Date(task.dueDate).toLocaleString(
+                  LOCALE_MAP[i18n.language] || "ru-RU",
+                )}
               </Text>
             </View>
           )}
@@ -240,7 +248,7 @@ export function TaskDetailScreen() {
               <View key={index} style={styles.itemRow}>
                 <Text style={styles.itemName}>{item.productName}</Text>
                 <Text style={styles.itemQty}>
-                  {item.plannedQuantity} {item.unit || "шт"}
+                  {item.plannedQuantity} {item.unit || t("common.pcs")}
                 </Text>
               </View>
             ))}
@@ -259,7 +267,8 @@ export function TaskDetailScreen() {
                 {t("tasks.detail.expectedAmount")}:
               </Text>
               <Text style={styles.infoValue}>
-                {Number(task.expectedCashAmount || 0).toLocaleString()} сум
+                {Number(task.expectedCashAmount || 0).toLocaleString()}{" "}
+                {t("common.currency")}
               </Text>
             </View>
           </View>

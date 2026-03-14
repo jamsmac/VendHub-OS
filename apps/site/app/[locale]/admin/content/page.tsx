@@ -43,7 +43,7 @@ export default function AdminContentPage() {
           }
           setEdits(newEdits);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Content fetch failed:", err);
         showToast(t("loadError"), "error");
       } finally {

@@ -63,8 +63,7 @@ export class UsersController {
       },
     },
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findAll(@CurrentUser() user: any) {
+  findAll(@CurrentUser() user: ICurrentUser) {
     // Admin sees only their organization's users
     // Super admin sees all users
     const organizationId =

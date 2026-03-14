@@ -14,8 +14,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { api } from "../../services/api";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Navigation = NativeStackNavigationProp<any>;
+type Navigation = NativeStackNavigationProp<Record<string, object | undefined>>;
 
 interface Props {
   navigation: Navigation;
@@ -62,8 +61,10 @@ const SUGAR_LEVELS: (0 | 25 | 50 | 100)[] = [0, 25, 50, 100];
 export function DrinkDetailScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const route = useRoute();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { machineId, productId } = route.params as any;
+  const { machineId, productId } = route.params as {
+    machineId: string;
+    productId: string;
+  };
 
   const [customization, setCustomization] = useState<Customization>({
     volume: "medium",
@@ -100,7 +101,7 @@ export function DrinkDetailScreen({ navigation }: Props) {
 
       // Show success feedback
       navigation.navigate("Cart");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error adding to cart:", error);
     }
   };

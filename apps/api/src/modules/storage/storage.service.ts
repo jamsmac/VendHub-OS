@@ -14,17 +14,39 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { FileRecord } from "./entities/file.entity";
-// AWS SDK is optional - provide mock types if not installed
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let S3Client: any,
-  PutObjectCommand: any,
-  GetObjectCommand: any,
-  DeleteObjectCommand: any,
-  ListObjectsV2Command: any,
-  CopyObjectCommand: any,
-  HeadObjectCommand: any;
-let getSignedUrl: any;
-/* eslint-enable @typescript-eslint/no-explicit-any */
+// AWS SDK is optional - provide types for dynamic require
+type S3CommandConstructor = new (input: Record<string, unknown>) => unknown;
+interface S3Response {
+  [key: string]: unknown;
+  ETag?: string;
+  ContentLength?: number;
+  ContentType?: string;
+  LastModified?: Date;
+  Contents?: Array<{
+    Key?: string;
+    Size?: number;
+    LastModified?: Date;
+    ETag?: string;
+  }>;
+  Body?: unknown;
+}
+type S3ClientConstructor = new (config: Record<string, unknown>) => {
+  send: (command: unknown) => Promise<S3Response>;
+};
+type GetSignedUrlFn = (
+  client: unknown,
+  command: unknown,
+  options: { expiresIn: number },
+) => Promise<string>;
+
+let S3Client: S3ClientConstructor | undefined;
+let PutObjectCommand: S3CommandConstructor | undefined;
+let GetObjectCommand: S3CommandConstructor | undefined;
+let DeleteObjectCommand: S3CommandConstructor | undefined;
+let ListObjectsV2Command: S3CommandConstructor | undefined;
+let CopyObjectCommand: S3CommandConstructor | undefined;
+let HeadObjectCommand: S3CommandConstructor | undefined;
+let getSignedUrl: GetSignedUrlFn | undefined;
 
 try {
   const s3Module = require("@aws-sdk/client-s3");
@@ -71,7 +93,9 @@ export interface FileMetadata {
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
-  private readonly s3Client: typeof S3Client;
+  private readonly s3Client: {
+    send: (command: unknown) => Promise<S3Response>;
+  };
   private readonly bucket: string;
   private readonly cdnDomain?: string;
   private readonly region: string;
@@ -166,7 +190,7 @@ export class StorageService {
     const key = this.generateKey(organizationId, folder, fileName);
 
     try {
-      const command = new PutObjectCommand({
+      const command = new (PutObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
         Body: buffer,
@@ -270,7 +294,7 @@ export class StorageService {
     const key = this.generateKey(organizationId, folder, fileName);
 
     try {
-      const command = new PutObjectCommand({
+      const command = new (PutObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
         ContentType: mimeType,
@@ -283,9 +307,13 @@ export class StorageService {
         // s3:content-length-range condition, or by verifying after upload.
       });
 
-      const uploadUrl = await getSignedUrl(this.s3Client, command, {
-        expiresIn: expiresInSeconds,
-      });
+      const uploadUrl = await (getSignedUrl as GetSignedUrlFn)(
+        this.s3Client,
+        command,
+        {
+          expiresIn: expiresInSeconds,
+        },
+      );
 
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + expiresInSeconds);
@@ -315,7 +343,7 @@ export class StorageService {
   ): Promise<{ buffer: Buffer; contentType: string }> {
     this.validateKeyAccess(key, organizationId);
     try {
-      const command = new GetObjectCommand({
+      const command = new (GetObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
       });
@@ -352,7 +380,7 @@ export class StorageService {
   ): Promise<string> {
     this.validateKeyAccess(key, organizationId);
     try {
-      const command = new GetObjectCommand({
+      const command = new (GetObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
         ResponseContentDisposition: downloadFileName
@@ -360,7 +388,7 @@ export class StorageService {
           : undefined,
       });
 
-      return await getSignedUrl(this.s3Client, command, {
+      return await (getSignedUrl as GetSignedUrlFn)(this.s3Client, command, {
         expiresIn: expiresInSeconds,
       });
     } catch (error: unknown) {
@@ -379,7 +407,7 @@ export class StorageService {
   async fileExists(organizationId: string, key: string): Promise<boolean> {
     this.validateKeyAccess(key, organizationId);
     try {
-      const command = new HeadObjectCommand({
+      const command = new (HeadObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
       });
@@ -403,7 +431,7 @@ export class StorageService {
   ): Promise<FileMetadata> {
     this.validateKeyAccess(key, organizationId);
     try {
-      const command = new HeadObjectCommand({
+      const command = new (HeadObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
       });
@@ -431,7 +459,7 @@ export class StorageService {
   async deleteFile(organizationId: string, key: string): Promise<void> {
     this.validateKeyAccess(key, organizationId);
     try {
-      const command = new DeleteObjectCommand({
+      const command = new (DeleteObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         Key: key,
       });
@@ -476,7 +504,7 @@ export class StorageService {
   ): Promise<string> {
     this.validateKeyAccess(sourceKey, organizationId);
     try {
-      const command = new CopyObjectCommand({
+      const command = new (CopyObjectCommand as S3CommandConstructor)({
         Bucket: this.bucket,
         CopySource: `${this.bucket}/${sourceKey}`,
         Key: destinationKey,
@@ -520,7 +548,7 @@ export class StorageService {
     const prefix = `org/${organizationId}/${folder}/`;
 
     try {
-      const command = new ListObjectsV2Command({
+      const command = new (ListObjectsV2Command as S3CommandConstructor)({
         Bucket: this.bucket,
         Prefix: prefix,
         MaxKeys: maxFiles,
@@ -528,13 +556,7 @@ export class StorageService {
 
       const response = await this.s3Client.send(command);
 
-      interface ListItem {
-        Key?: string;
-        Size?: number;
-        LastModified?: Date;
-        ETag?: string;
-      }
-      return (response.Contents || []).map((item: ListItem) => ({
+      return (response.Contents || []).map((item) => ({
         key: item.Key || "",
         size: item.Size || 0,
         lastModified: item.LastModified || new Date(),

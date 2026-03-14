@@ -181,7 +181,10 @@ export function RouteScreen() {
           <View style={styles.summaryItem}>
             <Ionicons name="time" size={20} color={COLORS.amber} />
             <Text style={styles.summaryValue}>
-              {Math.round(totalTime / 60)}ч {totalTime % 60}м
+              {t("route.timeFormat", {
+                hours: Math.round(totalTime / 60),
+                minutes: totalTime % 60,
+              })}
             </Text>
             <Text style={styles.summaryLabel}>{t("route.totalTime")}</Text>
           </View>

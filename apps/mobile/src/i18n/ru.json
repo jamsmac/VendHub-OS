@@ -417,6 +417,7 @@
     "stops": "точек",
     "done": "готово",
     "totalTime": "всего",
+    "timeFormat": "{{hours}}ч {{minutes}}м",
     "minutes": "мин",
     "tasksCount": "задач",
     "empty": "Маршрут пуст",

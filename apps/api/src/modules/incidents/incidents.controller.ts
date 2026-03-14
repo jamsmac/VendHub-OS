@@ -40,6 +40,7 @@ import {
   CurrentUserId,
   CurrentOrganizationId,
   CurrentUser,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 import { ResolveIncidentDto } from "./dto/incident-operations.dto";
@@ -63,8 +64,7 @@ export class IncidentsController {
     @Body() dto: CreateIncidentDto,
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && dto.organizationId
@@ -89,8 +89,7 @@ export class IncidentsController {
   async query(
     @Query() query: QueryIncidentsDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && query.organizationId

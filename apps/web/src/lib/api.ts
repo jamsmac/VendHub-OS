@@ -149,7 +149,7 @@ api.interceptors.response.use(
 
       // Retry the original request (cookie handles auth)
       return api(originalRequest);
-    } catch (refreshError) {
+    } catch (refreshError: unknown) {
       // Refresh failed — reject all queued requests and logout
       processQueue(refreshError, null);
       clearTokens();

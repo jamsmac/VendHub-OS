@@ -43,7 +43,7 @@ export default function ImageUpload({
       }
       const url = await uploadImage(file, folder);
       onChange(url);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : tc("errorOccurred"));
     } finally {
       setUploading(false);

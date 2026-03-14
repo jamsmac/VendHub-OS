@@ -140,7 +140,7 @@ api.interceptors.response.use(
 
       // Retry the original request — cookies handle auth
       return api(originalRequest);
-    } catch (refreshError) {
+    } catch (refreshError: unknown) {
       processQueue(refreshError, false);
       clearTokens();
       useUserStore.getState().logout();

@@ -59,6 +59,7 @@ import {
   CurrentUser,
   CurrentUserId,
   CurrentOrganizationId,
+  ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 import { StorageService } from "../storage/storage.service";
@@ -86,8 +87,7 @@ export class ComplaintsController {
   async create(
     @Body() dto: CreateComplaintDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user && user.role === UserRole.OWNER && dto.organizationId
@@ -251,8 +251,7 @@ export class ComplaintsController {
   async query(
     @Query() query: QueryComplaintsDto,
     @CurrentOrganizationId() orgId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId =
       user.role === UserRole.OWNER && query.organizationId
@@ -413,8 +412,7 @@ export class ComplaintsController {
   async getComments(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("includeInternal") includeInternal?: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    @CurrentUser() user?: any,
+    @CurrentUser() user?: ICurrentUser,
   ) {
     // Only internal users can see internal comments
     const canSeeInternal =

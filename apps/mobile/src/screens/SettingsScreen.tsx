@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import { authApi } from "../services/api";
 import { useAuthStore } from "../store/authStore";
 
@@ -77,9 +78,18 @@ export function SettingsScreen() {
       t("settings.languageSelect"),
       t("settings.languageSelectSubtitle"),
       [
-        { text: "Русский", onPress: () => {} },
-        { text: "O'zbekcha", onPress: () => {} },
-        { text: "English", onPress: () => {} },
+        {
+          text: languageLabels.ru,
+          onPress: () => i18n.changeLanguage("ru"),
+        },
+        {
+          text: languageLabels.uz,
+          onPress: () => i18n.changeLanguage("uz"),
+        },
+        {
+          text: languageLabels.en,
+          onPress: () => i18n.changeLanguage("en"),
+        },
         { text: t("common.cancel"), style: "cancel" },
       ],
     );
