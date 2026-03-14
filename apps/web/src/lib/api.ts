@@ -1330,3 +1330,20 @@ export const workLogsApi = {
   rejectTimesheet: (id: string, data?: RequestBody) =>
     api.post(`/work-logs/timesheets/${id}/reject`, data),
 };
+
+// === Trip Analytics ===
+
+export const tripAnalyticsApi = {
+  getMain: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/main", { params }),
+  getActivity: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/activity", { params }),
+  getEmployees: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/employees", { params }),
+  getVehicles: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/vehicles", { params }),
+  getAnomalies: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/anomalies", { params }),
+  getTaxi: (params?: QueryParams) =>
+    api.get("/analytics/trips/dashboard/taxi", { params }),
+};
