@@ -4,6 +4,8 @@ import { TripsService } from "./trips.service";
 import { TripsController } from "./trips.controller";
 import { TripsCronService } from "./trips.cron";
 import { GpsProcessingService } from "./services/gps-processing.service";
+import { TripRouteService } from "./services/trip-route.service";
+import { TripAnalyticsService } from "./services/trip-analytics.service";
 import { Trip } from "./entities/trip.entity";
 import { TripPoint } from "./entities/trip-point.entity";
 import { TripStop } from "./entities/trip-stop.entity";
@@ -25,7 +27,18 @@ import { Vehicle } from "../vehicles/entities/vehicle.entity";
     ]),
   ],
   controllers: [TripsController],
-  providers: [TripsService, TripsCronService, GpsProcessingService],
-  exports: [TripsService, GpsProcessingService],
+  providers: [
+    TripsService,
+    TripsCronService,
+    GpsProcessingService,
+    TripRouteService,
+    TripAnalyticsService,
+  ],
+  exports: [
+    TripsService,
+    GpsProcessingService,
+    TripRouteService,
+    TripAnalyticsService,
+  ],
 })
 export class TripsModule {}

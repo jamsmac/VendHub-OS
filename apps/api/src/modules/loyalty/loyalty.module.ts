@@ -23,6 +23,8 @@ import { AchievementService } from "./services/achievement.service";
 import { AchievementController } from "./controllers/achievement.controller";
 import { QuestService } from "./services/quest.service";
 import { QuestController } from "./controllers/quest.controller";
+import { LoyaltyAnalyticsService } from "./services/loyalty-analytics.service";
+import { BonusEngineService } from "./services/bonus-engine.service";
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { QuestController } from "./controllers/quest.controller";
   ],
   providers: [
     LoyaltyService,
+    LoyaltyAnalyticsService,
+    BonusEngineService,
     ReferralService,
     AchievementService,
     QuestService,

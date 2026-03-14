@@ -12,7 +12,6 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In, IsNull, LessThan, MoreThan } from "typeorm";
-import { HttpService } from "@nestjs/axios";
 // BullMQ is optional - queue functionality can be disabled
 // import { InjectQueue } from '@nestjs/bullmq';
 // import { Queue } from 'bullmq';
@@ -32,38 +31,13 @@ import {
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
-import { EmailService } from "../email/email.service";
-import { SmsService } from "../sms/sms.service";
-import { WebPushService } from "../web-push/web-push.service";
-import { ConfigService } from "@nestjs/config";
 import { UpdateNotificationSettingsDto } from "./dto/update-notification-settings.dto";
 import {
   CreateNotificationTemplateDto,
   UpdateNotificationTemplateDto,
 } from "./dto/notification-template.dto";
-
-// Firebase Admin SDK is optional — typed as module shape we actually use
-interface FirebaseMulticastResponse {
-  successCount: number;
-  failureCount: number;
-  responses: Array<{ success: boolean; error?: { code: string } }>;
-}
-let firebaseAdmin: {
-  apps: unknown[];
-  initializeApp: (config: Record<string, unknown>) => void;
-  credential: { cert: (serviceAccount: Record<string, unknown>) => unknown };
-  messaging: () => {
-    send: (message: Record<string, unknown>) => Promise<string>;
-    sendEachForMulticast: (
-      message: Record<string, unknown>,
-    ) => Promise<FirebaseMulticastResponse>;
-  };
-} | null = null;
-try {
-  firebaseAdmin = require("firebase-admin");
-} catch {
-  /* firebase-admin not installed */
-}
+import { PushNotificationService } from "./services/push-notification.service";
+import { NotificationDeliveryService } from "./services/notification-delivery.service";
 
 // ============================================================================
 // DTOs
@@ -152,58 +126,11 @@ export class NotificationsService {
     private logRepo: Repository<NotificationLog>,
     @InjectRepository(NotificationCampaign)
     private campaignRepo: Repository<NotificationCampaign>,
-    @InjectRepository(PushSubscription)
-    private pushSubscriptionRepo: Repository<PushSubscription>,
-    @InjectRepository(FcmToken)
-    private fcmTokenRepo: Repository<FcmToken>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
-    private readonly emailService: EmailService,
-    private readonly smsService: SmsService,
-    private readonly webPushService: WebPushService,
-    private readonly configService: ConfigService,
-    private readonly httpService: HttpService,
-    // @InjectQueue('notifications') private notificationQueue: Queue,
-  ) {
-    this.initFirebase();
-  }
-
-  private firebaseInitialized = false;
-
-  private initFirebase(): void {
-    if (!firebaseAdmin) {
-      this.logger.warn(
-        "firebase-admin not installed — push notifications disabled",
-      );
-      return;
-    }
-    if (this.firebaseInitialized) return;
-
-    const serviceAccountKey = this.configService.get<string>(
-      "FIREBASE_SERVICE_ACCOUNT_KEY",
-    );
-    if (!serviceAccountKey) {
-      this.logger.warn(
-        "FIREBASE_SERVICE_ACCOUNT_KEY not set — push notifications disabled",
-      );
-      return;
-    }
-
-    try {
-      const credential = JSON.parse(serviceAccountKey);
-      if (firebaseAdmin.apps.length === 0) {
-        firebaseAdmin.initializeApp({
-          credential: firebaseAdmin.credential.cert(credential),
-        });
-      }
-      this.firebaseInitialized = true;
-      this.logger.log("Firebase Admin initialized for push notifications");
-    } catch (error) {
-      this.logger.error(
-        `Firebase init failed: ${error instanceof Error ? error.message : error}`,
-      );
-    }
-  }
+    private readonly pushNotificationService: PushNotificationService,
+    private readonly deliveryService: NotificationDeliveryService,
+  ) {}
 
   // ============================================================================
   // NOTIFICATION CRUD
@@ -237,7 +164,7 @@ export class NotificationsService {
 
     // Queue for sending if not scheduled
     if (!dto.scheduledFor) {
-      await this.queueNotification(saved);
+      await this.deliveryService.queueNotification(saved);
     }
 
     return saved;
@@ -819,342 +746,11 @@ export class NotificationsService {
   }
 
   // ============================================================================
-  // QUEUE MANAGEMENT
-  // ============================================================================
-
-  private async queueNotification(notification: Notification): Promise<void> {
-    for (const channel of notification.channels) {
-      const queueEntry = this.queueRepo.create({
-        organizationId: notification.organizationId,
-        notificationId: notification.id,
-        channel,
-        status: NotificationStatus.QUEUED,
-        scheduledAt: notification.scheduledAt || new Date(),
-        userId: notification.userId,
-        recipient: {},
-        content: {
-          title: notification.content?.title || "",
-          body: notification.content?.body || "",
-        },
-      });
-
-      await this.queueRepo.save(queueEntry);
-    }
-
-    // Add to BullMQ queue for processing (disabled)
-    // await this.notificationQueue.add('send', { notificationId: notification.id });
-  }
-
-  private getPriorityWeight(priority: NotificationPriority): number {
-    const weights = {
-      [NotificationPriority.URGENT]: 100,
-      [NotificationPriority.HIGH]: 75,
-      [NotificationPriority.NORMAL]: 50,
-      [NotificationPriority.LOW]: 25,
-    };
-    return weights[priority] || 50;
-  }
-
-  // ============================================================================
-  // SENDING (Channel-specific implementations)
+  // QUEUE & DELIVERY (delegated to NotificationDeliveryService)
   // ============================================================================
 
   async processQueue(): Promise<void> {
-    const pending = await this.queueRepo.find({
-      where: {
-        status: NotificationStatus.QUEUED,
-        scheduledAt: LessThan(new Date()),
-      },
-      order: { createdAt: "ASC" },
-      take: 100,
-    });
-
-    for (const entry of pending) {
-      try {
-        await this.sendToChannel(entry);
-        entry.status = NotificationStatus.SENT;
-        entry.processedAt = new Date();
-      } catch (error: unknown) {
-        entry.status = NotificationStatus.FAILED;
-        entry.lastError =
-          error instanceof Error ? error.message : String(error);
-        entry.retryCount++;
-
-        if (entry.retryCount < entry.maxRetries) {
-          entry.status = NotificationStatus.QUEUED;
-          entry.nextRetryAt = new Date(Date.now() + entry.retryCount * 60000); // Exponential backoff
-        }
-      }
-
-      await this.queueRepo.save(entry);
-    }
-  }
-
-  private async sendToChannel(entry: NotificationQueueEntity): Promise<void> {
-    const notification = await this.notificationRepo.findOne({
-      where: { id: entry.notificationId },
-    });
-
-    if (!notification) return;
-
-    switch (entry.channel) {
-      case NotificationChannel.PUSH:
-        await this.sendPush(notification);
-        break;
-      case NotificationChannel.EMAIL:
-        await this.sendEmail(notification);
-        break;
-      case NotificationChannel.SMS:
-        await this.sendSms(notification);
-        break;
-      case NotificationChannel.TELEGRAM:
-        await this.sendTelegram(notification);
-        break;
-      case NotificationChannel.WEBHOOK:
-        await this.sendWebhook(notification);
-        break;
-    }
-
-    // Log
-    await this.logRepo.save(
-      this.logRepo.create({
-        organizationId: notification.organizationId,
-        notificationId: notification.id,
-        channel: entry.channel,
-        status: NotificationStatus.SENT,
-      }),
-    );
-  }
-
-  private async loadRecipient(userId: string): Promise<User | null> {
-    return this.userRepo.findOne({ where: { id: userId } });
-  }
-
-  private async sendPush(notification: Notification): Promise<void> {
-    if (!notification.userId) {
-      this.logger.warn("Push: no userId, skipping");
-      return;
-    }
-
-    const tokens = await this.fcmTokenRepo.find({
-      where: { userId: notification.userId, isActive: true },
-    });
-
-    if (tokens.length === 0) {
-      this.logger.warn(
-        `Push: no active FCM tokens for user ${notification.userId}`,
-      );
-      return;
-    }
-
-    if (!firebaseAdmin || !this.firebaseInitialized) {
-      this.logger.log(
-        `Push: firebase not available — would send "${notification.content?.title}" to ${tokens.length} device(s)`,
-      );
-      return;
-    }
-
-    const tokenStrings = tokens.map((t) => t.token);
-    const message = {
-      notification: {
-        title: notification.content?.title || "VendHub",
-        body: notification.content?.body || "",
-      },
-      data: {
-        notificationId: notification.id,
-        type: notification.type,
-        ...(notification.content?.actionUrl
-          ? { actionUrl: notification.content.actionUrl }
-          : {}),
-      },
-      tokens: tokenStrings,
-    };
-
-    try {
-      const response = await firebaseAdmin
-        .messaging()
-        .sendEachForMulticast(message);
-      this.logger.log(
-        `Push: sent to ${response.successCount}/${tokenStrings.length} device(s) for user ${notification.userId}`,
-      );
-
-      // Mark failed tokens as inactive
-      if (response.responses) {
-        for (let i = 0; i < response.responses.length; i++) {
-          const resp = response.responses[i];
-          if (
-            !resp.success &&
-            resp.error?.code === "messaging/registration-token-not-registered"
-          ) {
-            const staleToken = tokens[i];
-            staleToken.isActive = false;
-            await this.fcmTokenRepo.save(staleToken);
-            this.logger.warn(`Deactivated stale FCM token ${staleToken.id}`);
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.error(
-        `Push: FCM send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
-      );
-    }
-
-    // Web Push (browser subscriptions via VAPID)
-    try {
-      const webPushSent = await this.webPushService.sendToUser(
-        notification.userId,
-        notification.content?.title || "VendHub",
-        notification.content?.body || "",
-        notification.content?.actionUrl,
-      );
-      if (webPushSent > 0) {
-        this.logger.log(
-          `Push: web-push sent to ${webPushSent} browser(s) for user ${notification.userId}`,
-        );
-      }
-    } catch (error) {
-      this.logger.error(
-        `Push: web-push failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
-      );
-    }
-  }
-
-  private async sendEmail(notification: Notification): Promise<void> {
-    if (!notification.userId) {
-      this.logger.warn("Email: no userId, skipping");
-      return;
-    }
-
-    const user = await this.loadRecipient(notification.userId);
-    if (!user?.email) {
-      this.logger.warn(`Email: no email for user ${notification.userId}`);
-      return;
-    }
-
-    try {
-      await this.emailService.sendEmail({
-        to: user.email,
-        subject: notification.content?.title || "VendHub Notification",
-        text: notification.content?.body || "",
-        html: notification.content?.body
-          ? `<p>${notification.content.body}</p>`
-          : undefined,
-      });
-    } catch (error: unknown) {
-      this.logger.error(
-        `Email send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
-      );
-      throw error;
-    }
-  }
-
-  private async sendSms(notification: Notification): Promise<void> {
-    if (!notification.userId) {
-      this.logger.warn("SMS: no userId, skipping");
-      return;
-    }
-
-    const user = await this.loadRecipient(notification.userId);
-    if (!user?.phone) {
-      this.logger.warn(`SMS: no phone for user ${notification.userId}`);
-      return;
-    }
-
-    try {
-      await this.smsService.send({
-        to: user.phone,
-        message:
-          notification.content?.body || notification.content?.title || "",
-      });
-    } catch (error: unknown) {
-      this.logger.error(
-        `SMS send failed for user ${notification.userId}: ${error instanceof Error ? error.message : error}`,
-      );
-      throw error;
-    }
-  }
-
-  private async sendTelegram(notification: Notification): Promise<void> {
-    if (!notification.userId) {
-      this.logger.warn("Telegram: no userId, skipping");
-      return;
-    }
-
-    const user = await this.loadRecipient(notification.userId);
-    if (!user?.telegramId) {
-      this.logger.warn(
-        `Telegram: no telegramId for user ${notification.userId}`,
-      );
-      return;
-    }
-
-    const telegramBotToken =
-      this.configService.get<string>("TELEGRAM_BOT_TOKEN");
-    if (!telegramBotToken) {
-      this.logger.warn("Telegram: TELEGRAM_BOT_TOKEN not configured");
-      return;
-    }
-
-    try {
-      const message = notification.content?.title
-        ? `${notification.content.title}${notification.content?.body ? `\n\n${notification.content.body}` : ""}`
-        : notification.content?.body || "Notification";
-
-      await this.httpService.axiosRef.post(
-        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
-        {
-          chat_id: user.telegramId,
-          text: message,
-          parse_mode: "HTML",
-        },
-      );
-      this.logger.log(
-        `Telegram: sent "${notification.content?.title}" to user ${notification.userId}`,
-      );
-    } catch (error: unknown) {
-      this.logger.error(
-        `Telegram: failed to send to user ${notification.userId}`,
-        error instanceof Error ? error.stack : String(error),
-      );
-    }
-  }
-
-  private async sendWebhook(notification: Notification): Promise<void> {
-    if (!notification.recipient?.webhookUrl) {
-      this.logger.warn("Webhook: no webhookUrl in recipient, skipping");
-      return;
-    }
-
-    try {
-      const payload = {
-        id: notification.id,
-        notificationId: notification.notificationId,
-        type: notification.type,
-        priority: notification.priority,
-        title: notification.content?.title,
-        body: notification.content?.body,
-        timestamp: new Date().toISOString(),
-        organizationId: notification.organizationId,
-        metadata: notification.metadata,
-      };
-
-      await this.httpService.axiosRef.post(
-        notification.recipient.webhookUrl,
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 10000,
-        },
-      );
-      this.logger.log(
-        `Webhook: sent notification ${notification.notificationId} to ${notification.recipient.webhookUrl}`,
-      );
-    } catch (error: unknown) {
-      this.logger.error(
-        `Webhook: failed to call ${notification.recipient?.webhookUrl}`,
-        error instanceof Error ? error.stack : String(error),
-      );
-    }
+    return this.deliveryService.processQueue();
   }
 
   // ============================================================================
@@ -1270,12 +866,9 @@ export class NotificationsService {
   }
 
   // ============================================================================
-  // PUSH SUBSCRIPTIONS (Web Push)
+  // PUSH SUBSCRIPTIONS & FCM TOKENS (delegated to PushNotificationService)
   // ============================================================================
 
-  /**
-   * Register a Web Push subscription for a user
-   */
   async subscribePush(
     userId: string,
     organizationId: string,
@@ -1284,60 +877,20 @@ export class NotificationsService {
     auth: string,
     userAgent?: string,
   ): Promise<PushSubscription> {
-    // Upsert: if endpoint already exists, update it
-    const existing = await this.pushSubscriptionRepo.findOne({
-      where: { endpoint },
-    });
-
-    if (existing) {
-      existing.userId = userId;
-      existing.organizationId = organizationId;
-      existing.p256dh = p256dh;
-      existing.auth = auth;
-      existing.userAgent = userAgent || existing.userAgent;
-      existing.isActive = true;
-      existing.lastUsedAt = new Date();
-      return this.pushSubscriptionRepo.save(existing);
-    }
-
-    const subscription = this.pushSubscriptionRepo.create({
+    return this.pushNotificationService.subscribePush(
       userId,
       organizationId,
       endpoint,
       p256dh,
       auth,
-      userAgent: userAgent || null,
-      isActive: true,
-      lastUsedAt: new Date(),
-    });
-
-    return this.pushSubscriptionRepo.save(subscription);
+      userAgent,
+    );
   }
 
-  /**
-   * Remove a Web Push subscription by endpoint
-   */
   async unsubscribePush(endpoint: string): Promise<void> {
-    const subscription = await this.pushSubscriptionRepo.findOne({
-      where: { endpoint },
-    });
-
-    if (!subscription) {
-      throw new NotFoundException("Push subscription not found");
-    }
-
-    // Soft deactivate rather than hard delete
-    subscription.isActive = false;
-    await this.pushSubscriptionRepo.save(subscription);
+    return this.pushNotificationService.unsubscribePush(endpoint);
   }
 
-  // ============================================================================
-  // FCM TOKENS (Firebase Cloud Messaging)
-  // ============================================================================
-
-  /**
-   * Register an FCM token for a user's device
-   */
   async registerFcm(
     userId: string,
     organizationId: string,
@@ -1346,50 +899,17 @@ export class NotificationsService {
     deviceName?: string,
     deviceId?: string,
   ): Promise<FcmToken> {
-    // Upsert: if token already exists, update it
-    const existing = await this.fcmTokenRepo.findOne({
-      where: { token },
-    });
-
-    if (existing) {
-      existing.userId = userId;
-      existing.organizationId = organizationId;
-      existing.deviceType = deviceType;
-      existing.deviceName = deviceName || existing.deviceName;
-      existing.deviceId = deviceId || existing.deviceId;
-      existing.isActive = true;
-      existing.lastUsedAt = new Date();
-      return this.fcmTokenRepo.save(existing);
-    }
-
-    const fcmToken = this.fcmTokenRepo.create({
+    return this.pushNotificationService.registerFcm(
       userId,
       organizationId,
       token,
       deviceType,
-      deviceName: deviceName || null,
-      deviceId: deviceId || null,
-      isActive: true,
-      lastUsedAt: new Date(),
-    });
-
-    return this.fcmTokenRepo.save(fcmToken);
+      deviceName,
+      deviceId,
+    );
   }
 
-  /**
-   * Unregister an FCM token
-   */
   async unregisterFcm(token: string): Promise<void> {
-    const fcmToken = await this.fcmTokenRepo.findOne({
-      where: { token },
-    });
-
-    if (!fcmToken) {
-      throw new NotFoundException("FCM token not found");
-    }
-
-    // Soft deactivate rather than hard delete
-    fcmToken.isActive = false;
-    await this.fcmTokenRepo.save(fcmToken);
+    return this.pushNotificationService.unregisterFcm(token);
   }
 }

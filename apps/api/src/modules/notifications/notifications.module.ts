@@ -8,6 +8,8 @@ import { ConfigModule } from "@nestjs/config";
 import { HttpModule } from "@nestjs/axios";
 import { NotificationsController } from "./notifications.controller";
 import { NotificationsService } from "./notifications.service";
+import { PushNotificationService } from "./services/push-notification.service";
+import { NotificationDeliveryService } from "./services/notification-delivery.service";
 import {
   Notification,
   NotificationTemplate,
@@ -45,7 +47,11 @@ import { WebPushModule } from "../web-push/web-push.module";
     WebPushModule,
   ],
   controllers: [NotificationsController],
-  providers: [NotificationsService],
+  providers: [
+    PushNotificationService,
+    NotificationDeliveryService,
+    NotificationsService,
+  ],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

@@ -11,6 +11,8 @@ import { InvitesModule } from "../invites/invites.module";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
 import { CookieService } from "./services/cookie.service";
+import { TwoFactorService } from "./services/two-factor.service";
+import { AuthSessionService } from "./services/auth-session.service";
 import {
   User,
   UserSession,
@@ -51,6 +53,8 @@ import {
     TokenBlacklistService,
     PasswordPolicyService,
     CookieService,
+    TwoFactorService,
+    AuthSessionService,
   ],
   exports: [
     AuthService,
@@ -58,6 +62,8 @@ import {
     TokenBlacklistService,
     PasswordPolicyService,
     CookieService,
+    TwoFactorService,
+    AuthSessionService,
   ],
 })
 export class AuthModule {}

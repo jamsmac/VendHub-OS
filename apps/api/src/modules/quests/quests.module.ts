@@ -3,14 +3,15 @@
  * Система квестов и достижений VendHub
  */
 
-import { Module, forwardRef } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Quest } from './entities/quest.entity';
-import { UserQuest } from './entities/user-quest.entity';
-import { User } from '../users/entities/user.entity';
-import { QuestsService } from './quests.service';
-import { QuestsController } from './quests.controller';
-import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { Module, forwardRef } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Quest } from "./entities/quest.entity";
+import { UserQuest } from "./entities/user-quest.entity";
+import { User } from "../users/entities/user.entity";
+import { QuestsService } from "./quests.service";
+import { QuestProgressService } from "./services/quest-progress.service";
+import { QuestsController } from "./quests.controller";
+import { LoyaltyModule } from "../loyalty/loyalty.module";
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
     forwardRef(() => LoyaltyModule),
   ],
   controllers: [QuestsController],
-  providers: [QuestsService],
-  exports: [QuestsService],
+  providers: [QuestsService, QuestProgressService],
+  exports: [QuestsService, QuestProgressService],
 })
 export class QuestsModule {}

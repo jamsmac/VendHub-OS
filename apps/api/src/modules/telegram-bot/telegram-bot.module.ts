@@ -30,6 +30,7 @@ import { CustomerCatalogService } from "./services/customer-catalog.service";
 import { CustomerLoyaltyService } from "./services/customer-loyalty.service";
 import { CustomerOrdersService } from "./services/customer-orders.service";
 import { CustomerComplaintsService } from "./services/customer-complaints.service";
+import { BotOrderService } from "./services/bot-order.service";
 
 // --- Staff Bot Entities ---
 import { User } from "../users/entities/user.entity";
@@ -81,6 +82,7 @@ import { AccessRequest } from "./entities/access-request.entity";
     CustomerLoyaltyService,
     CustomerOrdersService,
     CustomerComplaintsService,
+    BotOrderService,
   ],
   exports: [TelegramBotService, TelegramCustomerBotService],
 })

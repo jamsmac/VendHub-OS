@@ -1,5 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { VendHubExcelExportService } from "./vendhub-excel-export.service";
+import { ExcelStructureABuilder } from "./excel-structure-a.builder";
+import { ExcelStructureBBuilder } from "./excel-structure-b.builder";
 import {
   VendHubFullReportDto,
   ReportStructure,
@@ -195,7 +197,11 @@ describe("VendHubExcelExportService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [VendHubExcelExportService],
+      providers: [
+        VendHubExcelExportService,
+        ExcelStructureABuilder,
+        ExcelStructureBBuilder,
+      ],
     }).compile();
 
     service = module.get<VendHubExcelExportService>(VendHubExcelExportService);

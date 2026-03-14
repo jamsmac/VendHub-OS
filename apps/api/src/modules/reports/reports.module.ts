@@ -23,6 +23,8 @@ import { ReportsDashboardService } from "./reports-dashboard.service";
 import { VendHubReportController } from "./controllers/vendhub-report.controller";
 import { VendHubReportGeneratorService } from "./services/vendhub-report-generator.service";
 import { VendHubExcelExportService } from "./services/vendhub-excel-export.service";
+import { ExcelStructureABuilder } from "./services/excel-structure-a.builder";
+import { ExcelStructureBBuilder } from "./services/excel-structure-b.builder";
 
 // Split Report Generators
 import { SalesReportGenerator } from "./services/sales-report.generator";
@@ -32,6 +34,7 @@ import { InventoryReportGenerator } from "./services/inventory-report.generator"
 // Analytics System
 import { AnalyticsController } from "./controllers/analytics.controller";
 import { AnalyticsService } from "./services/analytics.service";
+import { DashboardAnalyticsService } from "./services/dashboard-analytics.service";
 import { AnalyticsListener } from "./services/analytics.listener";
 
 // Entities
@@ -92,7 +95,10 @@ import { Task } from "../tasks/entities/task.entity";
     SalesReportGenerator,
     FinancialReportGenerator,
     VendHubReportGeneratorService,
+    ExcelStructureABuilder,
+    ExcelStructureBBuilder,
     VendHubExcelExportService,
+    DashboardAnalyticsService,
     AnalyticsService,
     AnalyticsListener,
   ],
@@ -103,6 +109,7 @@ import { Task } from "../tasks/entities/task.entity";
     FinancialReportGenerator,
     InventoryReportGenerator,
     VendHubExcelExportService,
+    DashboardAnalyticsService,
     AnalyticsService,
   ],
 })

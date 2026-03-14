@@ -16,13 +16,10 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
-import { authenticator } from "otplib";
-import * as QRCode from "qrcode";
 
 import {
   User,
   UserSession,
-  TwoFactorAuth,
   PasswordResetToken,
   LoginAttempt,
   UserRole,
@@ -32,6 +29,8 @@ import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
+import { TwoFactorService } from "./services/two-factor.service";
+import { AuthSessionService } from "./services/auth-session.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
 import { InvitesService } from "../invites/invites.service";
 import { RegisterWithInviteDto } from "./dto/register-with-invite.dto";
@@ -46,30 +45,18 @@ interface TokenPayload {
   jti: string;
 }
 
-interface DeviceInfo {
-  os?: string;
-  osVersion?: string;
-  browser?: string;
-  browserVersion?: string;
-  deviceType?: "desktop" | "mobile" | "tablet" | "unknown";
-  userAgent?: string;
-}
-
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly MAX_LOGIN_ATTEMPTS = 5;
   private readonly LOCKOUT_DURATION_MINUTES = 30;
   private readonly SESSION_DURATION_DAYS = 7;
-  private readonly TOTP_WINDOW = 1;
 
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserSession)
     private readonly sessionRepository: Repository<UserSession>,
-    @InjectRepository(TwoFactorAuth)
-    private readonly twoFactorRepository: Repository<TwoFactorAuth>,
     @InjectRepository(PasswordResetToken)
     private readonly passwordResetRepository: Repository<PasswordResetToken>,
     @InjectRepository(LoginAttempt)
@@ -80,12 +67,9 @@ export class AuthService {
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly passwordPolicyService: PasswordPolicyService,
     private readonly invitesService: InvitesService,
-  ) {
-    // Configure TOTP
-    authenticator.options = {
-      window: this.TOTP_WINDOW,
-    };
-  }
+    private readonly twoFactorService: TwoFactorService,
+    private readonly authSessionService: AuthSessionService,
+  ) {}
 
   // ==================== Challenge Token (prevents IDOR in 2FA/first-login) ====================
 
@@ -187,7 +171,7 @@ export class AuthService {
 
   /**
    * Register via invite code + Telegram auth (or email/password fallback).
-   * Atomic transaction: verify invite → create user → claim invite.
+   * Atomic transaction: verify invite -> create user -> claim invite.
    */
   async registerWithInvite(
     dto: RegisterWithInviteDto,
@@ -280,8 +264,12 @@ export class AuthService {
     await this.invitesService.claimInvite(dto.inviteCode, user.id);
 
     // 7. Create session & generate tokens
-    const deviceInfo = this.parseUserAgent(userAgent);
-    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const deviceInfo = this.authSessionService.parseUserAgent(userAgent);
+    const session = await this.authSessionService.createSession(
+      user,
+      ipAddress,
+      deviceInfo,
+    );
     const tokens = await this.generateTokens(user, session.id);
 
     this.logger.log(
@@ -453,12 +441,12 @@ export class AuthService {
         return {
           requiresTwoFactor: true,
           challengeToken: this.issueChallengeToken(user.id, "2fa"),
-          methods: await this.getAvailable2FAMethods(user.id),
+          methods: await this.twoFactorService.getAvailable2FAMethods(user.id),
         };
       }
 
       // Verify 2FA
-      const isValid = await this.verify2FA(
+      const isValid = await this.twoFactorService.verify2FA(
         user.id,
         dto.totpCode,
         dto.backupCode,
@@ -484,10 +472,14 @@ export class AuthService {
     await this.userRepository.save(user);
 
     // Parse device info
-    const deviceInfo = this.parseUserAgent(userAgent);
+    const deviceInfo = this.authSessionService.parseUserAgent(userAgent);
 
     // Create session
-    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const session = await this.authSessionService.createSession(
+      user,
+      ipAddress,
+      deviceInfo,
+    );
 
     // Generate tokens
     const tokens = await this.generateTokens(user, session.id);
@@ -591,8 +583,12 @@ export class AuthService {
     await this.userRepository.save(user);
 
     // Create session
-    const deviceInfo = this.parseUserAgent(userAgent);
-    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const deviceInfo = this.authSessionService.parseUserAgent(userAgent);
+    const session = await this.authSessionService.createSession(
+      user,
+      ipAddress,
+      deviceInfo,
+    );
 
     // Generate tokens
     const tokens = await this.generateTokens(user, session.id);
@@ -640,13 +636,13 @@ export class AuthService {
 
     // Check expiration
     if (session.isExpired) {
-      await this.revokeSession(session.id, "Token expired");
+      await this.authSessionService.revokeSession(session.id, "Token expired");
       throw new UnauthorizedException("Refresh token expired");
     }
 
     // Check user status
     if (!session.user.isActive) {
-      await this.revokeSession(session.id, "User inactive");
+      await this.authSessionService.revokeSession(session.id, "User inactive");
       throw new ForbiddenException("Account is not active");
     }
 
@@ -686,7 +682,7 @@ export class AuthService {
    * Logout (revoke session)
    */
   async logout(sessionId: string, jti?: string) {
-    await this.revokeSession(sessionId, "User logout");
+    await this.authSessionService.revokeSession(sessionId, "User logout");
     if (jti) {
       await this.tokenBlacklistService.blacklist(jti, 15 * 60); // 15 min access token TTL
     }
@@ -716,32 +712,14 @@ export class AuthService {
    * Get active sessions for user
    */
   async getSessions(userId: string) {
-    const sessions = await this.sessionRepository.find({
-      where: {
-        userId,
-        isRevoked: false,
-        expiresAt: MoreThan(new Date()),
-      },
-      order: { lastActivityAt: "DESC" },
-    });
-
-    return sessions.map((s) => ({
-      id: s.id,
-      deviceInfo: s.deviceInfo,
-      ipAddress: s.ipAddress,
-      lastActivityAt: s.lastActivityAt,
-      createdAt: s.createdAt,
-    }));
+    return this.authSessionService.getSessions(userId);
   }
 
   /**
    * Revoke specific session
    */
   async revokeSession(sessionId: string, reason: string = "Manual revocation") {
-    await this.sessionRepository.update(
-      { id: sessionId },
-      { isRevoked: true, revokedAt: new Date(), revokedReason: reason },
-    );
+    return this.authSessionService.revokeSession(sessionId, reason);
   }
 
   // ==================== 2FA Methods ====================
@@ -752,78 +730,14 @@ export class AuthService {
   async setupTotp(
     userId: string,
   ): Promise<{ secret: string; qrCode: string; backupCodes: string[] }> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new BadRequestException("User not found");
-    }
-
-    // Generate secret
-    const secret = authenticator.generateSecret();
-
-    // Generate QR code
-    const otpauth = authenticator.keyuri(user.email, "VendHub OS", secret);
-    const qrCode = await QRCode.toDataURL(otpauth);
-
-    // Generate backup codes
-    const backupCodes = this.generateBackupCodes(10);
-    const hashedBackupCodes = await Promise.all(
-      backupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
-
-    // Encrypt secret
-    const { encrypted, iv } = this.encryptTotpSecret(secret);
-
-    // Save or update 2FA record
-    let twoFactor = await this.twoFactorRepository.findOne({
-      where: { userId },
-    });
-
-    if (twoFactor) {
-      twoFactor.totpSecret = encrypted;
-      twoFactor.totpSecretIv = iv;
-      twoFactor.backupCodes = hashedBackupCodes;
-      twoFactor.usedBackupCodes = [];
-    } else {
-      twoFactor = this.twoFactorRepository.create({
-        userId,
-        totpSecret: encrypted,
-        totpSecretIv: iv,
-        backupCodes: hashedBackupCodes,
-        usedBackupCodes: [],
-      });
-    }
-
-    await this.twoFactorRepository.save(twoFactor);
-
-    return { secret, qrCode, backupCodes };
+    return this.twoFactorService.setupTotp(userId);
   }
 
   /**
    * Verify and enable TOTP
    */
   async verifyAndEnableTotp(userId: string, code: string) {
-    const twoFactor = await this.twoFactorRepository.findOne({
-      where: { userId },
-    });
-    if (!twoFactor?.totpSecret) {
-      throw new BadRequestException("TOTP not set up");
-    }
-
-    // Decrypt and verify
-    const secret = this.decryptTotpSecret(
-      twoFactor.totpSecret,
-      twoFactor.totpSecretIv,
-    );
-    const isValid = authenticator.verify({ token: code, secret });
-
-    if (!isValid) {
-      throw new BadRequestException("Invalid verification code");
-    }
-
-    // Enable 2FA on user
-    await this.userRepository.update(userId, { twoFactorEnabled: true });
-
-    return { message: "2FA enabled successfully" };
+    return this.twoFactorService.verifyAndEnableTotp(userId, code);
   }
 
   /**
@@ -832,128 +746,14 @@ export class AuthService {
   async regenerateBackupCodes(
     userId: string,
   ): Promise<{ backupCodes: string[] }> {
-    const twoFactor = await this.twoFactorRepository.findOne({
-      where: { userId },
-    });
-    if (!twoFactor) {
-      throw new BadRequestException("2FA not enabled");
-    }
-
-    // Generate new backup codes
-    const backupCodes = this.generateBackupCodes(10);
-    const hashedBackupCodes = await Promise.all(
-      backupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
-
-    // Update record
-    twoFactor.backupCodes = hashedBackupCodes;
-    twoFactor.usedBackupCodes = [];
-    await this.twoFactorRepository.save(twoFactor);
-
-    return { backupCodes };
+    return this.twoFactorService.regenerateBackupCodes(userId);
   }
 
   /**
    * Disable 2FA
    */
   async disable2FA(userId: string, password: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new BadRequestException("User not found");
-    }
-
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      throw new UnauthorizedException("Invalid password");
-    }
-
-    // Disable 2FA
-    await this.userRepository.update(userId, { twoFactorEnabled: false });
-    await this.twoFactorRepository.softDelete({ userId });
-
-    return { message: "2FA disabled successfully" };
-  }
-
-  /**
-   * Verify 2FA code (TOTP or backup)
-   */
-  private async verify2FA(
-    userId: string,
-    totpCode?: string,
-    backupCode?: string,
-  ): Promise<boolean> {
-    const twoFactor = await this.twoFactorRepository.findOne({
-      where: { userId },
-    });
-    if (!twoFactor) {
-      return false;
-    }
-
-    // Check if locked
-    if (twoFactor.isLocked) {
-      return false;
-    }
-
-    // Try TOTP first
-    if (totpCode && twoFactor.totpSecret) {
-      const secret = this.decryptTotpSecret(
-        twoFactor.totpSecret,
-        twoFactor.totpSecretIv,
-      );
-      const isValid = authenticator.verify({ token: totpCode, secret });
-
-      if (isValid) {
-        twoFactor.lastUsedAt = new Date();
-        twoFactor.failedAttempts = 0;
-        await this.twoFactorRepository.save(twoFactor);
-        return true;
-      }
-    }
-
-    // Try backup code
-    if (backupCode && twoFactor.backupCodes?.length > 0) {
-      for (const hashedCode of twoFactor.backupCodes) {
-        const isValid = await bcrypt.compare(backupCode, hashedCode);
-        if (isValid && !twoFactor.usedBackupCodes?.includes(hashedCode)) {
-          twoFactor.usedBackupCodes = [
-            ...(twoFactor.usedBackupCodes || []),
-            hashedCode,
-          ];
-          twoFactor.lastUsedAt = new Date();
-          twoFactor.failedAttempts = 0;
-          await this.twoFactorRepository.save(twoFactor);
-          return true;
-        }
-      }
-    }
-
-    // Increment failed attempts
-    twoFactor.failedAttempts += 1;
-    if (twoFactor.failedAttempts >= 5) {
-      twoFactor.lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-    }
-    await this.twoFactorRepository.save(twoFactor);
-
-    return false;
-  }
-
-  /**
-   * Get available 2FA methods for user
-   */
-  private async getAvailable2FAMethods(userId: string): Promise<string[]> {
-    const twoFactor = await this.twoFactorRepository.findOne({
-      where: { userId },
-    });
-    if (!twoFactor) return [];
-
-    const methods: string[] = [];
-    if (twoFactor.hasTotp) methods.push("totp");
-    if (twoFactor.hasSms) methods.push("sms");
-    if (twoFactor.hasEmail) methods.push("email");
-    if (twoFactor.hasBackupCodes) methods.push("backup");
-
-    return methods;
+    return this.twoFactorService.disable2FA(userId, password);
   }
 
   // ==================== Password Reset ====================
@@ -1161,7 +961,11 @@ export class AuthService {
       throw new BadRequestException("2FA is not enabled for this user");
     }
 
-    const isValid = await this.verify2FA(userId, totpCode, backupCode);
+    const isValid = await this.twoFactorService.verify2FA(
+      userId,
+      totpCode,
+      backupCode,
+    );
     if (!isValid) {
       await this.logLoginAttempt(
         user.email,
@@ -1181,8 +985,12 @@ export class AuthService {
     user.lastLoginIp = ipAddress;
     await this.userRepository.save(user);
 
-    const deviceInfo = this.parseUserAgent(userAgent);
-    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const deviceInfo = this.authSessionService.parseUserAgent(userAgent);
+    const session = await this.authSessionService.createSession(
+      user,
+      ipAddress,
+      deviceInfo,
+    );
     const tokens = await this.generateTokens(user, session.id);
 
     await this.logLoginAttempt(user.email, ipAddress, userAgent, true, userId);
@@ -1246,8 +1054,12 @@ export class AuthService {
     await this.userRepository.save(user);
 
     // Create session and return tokens
-    const deviceInfo = this.parseUserAgent(userAgent);
-    const session = await this.createSession(user, ipAddress, deviceInfo);
+    const deviceInfo = this.authSessionService.parseUserAgent(userAgent);
+    const session = await this.authSessionService.createSession(
+      user,
+      ipAddress,
+      deviceInfo,
+    );
     const tokens = await this.generateTokens(user, session.id);
 
     return {
@@ -1383,31 +1195,7 @@ export class AuthService {
     }
   }
 
-  private async createSession(
-    user: User,
-    ipAddress: string,
-    deviceInfo: DeviceInfo,
-  ): Promise<UserSession> {
-    const refreshToken = this.generateRefreshToken();
-    const tokenHash = crypto
-      .createHash("sha256")
-      .update(refreshToken)
-      .digest("hex");
-
-    const session = this.sessionRepository.create({
-      userId: user.id,
-      refreshTokenHash: tokenHash,
-      refreshTokenHint: tokenHash.substring(0, 16),
-      deviceInfo,
-      ipAddress,
-      lastActivityAt: new Date(),
-      expiresAt: new Date(
-        Date.now() + this.SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000,
-      ),
-    });
-
-    return this.sessionRepository.save(session);
-  }
+  // ==================== Private Helpers ====================
 
   private async generateTokens(
     user: User,
@@ -1450,97 +1238,6 @@ export class AuthService {
 
   private generateRefreshToken(): string {
     return crypto.randomBytes(64).toString("hex");
-  }
-
-  private generateBackupCodes(count: number): string[] {
-    const codes: string[] = [];
-    for (let i = 0; i < count; i++) {
-      codes.push(crypto.randomBytes(4).toString("hex").toUpperCase());
-    }
-    return codes;
-  }
-
-  private encryptTotpSecret(secret: string): { encrypted: string; iv: string } {
-    const key = this.getEncryptionKey();
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-
-    let encrypted = cipher.update(secret, "utf8", "hex");
-    encrypted += cipher.final("hex");
-    const authTag = cipher.getAuthTag().toString("hex");
-
-    return {
-      encrypted: encrypted + ":" + authTag,
-      iv: iv.toString("hex"),
-    };
-  }
-
-  private decryptTotpSecret(encryptedData: string, ivHex: string): string {
-    const key = this.getEncryptionKey();
-    const iv = Buffer.from(ivHex, "hex");
-    const [encrypted, authTag] = encryptedData.split(":");
-
-    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-    decipher.setAuthTag(Buffer.from(authTag, "hex"));
-
-    let decrypted = decipher.update(encrypted, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-
-    return decrypted;
-  }
-
-  private getEncryptionKey(): Buffer {
-    const keyHex = this.configService.get("ENCRYPTION_KEY");
-    const nodeEnv = this.configService.get("NODE_ENV");
-
-    if (!keyHex || keyHex.length !== 64) {
-      // SECURITY: In production, encryption key MUST be set
-      if (nodeEnv === "production") {
-        throw new InternalServerErrorException(
-          "CRITICAL: ENCRYPTION_KEY must be set in production. " +
-            "Generate with: openssl rand -hex 32",
-        );
-      }
-
-      // Development only: use derived key with warning
-      this.logger.warn(
-        "⚠️  ENCRYPTION_KEY not set - using development fallback. " +
-          "DO NOT use in production!",
-      );
-      return crypto.scryptSync("vendhub-dev-key-unsafe", "vendhub-salt", 32);
-    }
-
-    return Buffer.from(keyHex, "hex");
-  }
-
-  private parseUserAgent(userAgent: string): DeviceInfo {
-    const info: DeviceInfo = {
-      userAgent,
-      deviceType: "unknown",
-    };
-
-    if (/mobile/i.test(userAgent)) {
-      info.deviceType = "mobile";
-    } else if (/tablet|ipad/i.test(userAgent)) {
-      info.deviceType = "tablet";
-    } else {
-      info.deviceType = "desktop";
-    }
-
-    if (/windows/i.test(userAgent)) info.os = "Windows";
-    else if (/macintosh|mac os/i.test(userAgent)) info.os = "macOS";
-    else if (/linux/i.test(userAgent)) info.os = "Linux";
-    else if (/android/i.test(userAgent)) info.os = "Android";
-    else if (/iphone|ipad/i.test(userAgent)) info.os = "iOS";
-
-    if (/chrome/i.test(userAgent) && !/edge/i.test(userAgent))
-      info.browser = "Chrome";
-    else if (/firefox/i.test(userAgent)) info.browser = "Firefox";
-    else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent))
-      info.browser = "Safari";
-    else if (/edge/i.test(userAgent)) info.browser = "Edge";
-
-    return info;
   }
 
   private async getRecentFailedAttempts(

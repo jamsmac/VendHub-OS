@@ -3,11 +3,12 @@
  * Provides comprehensive audit trail functionality
  */
 
-import { Module, Global } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditController } from './audit.controller';
-import { AuditService } from './audit.service';
-import { AuditSubscriber } from './subscribers/audit.subscriber';
+import { Module, Global } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuditController } from "./audit.controller";
+import { AuditService } from "./audit.service";
+import { AuditSubscriber } from "./subscribers/audit.subscriber";
+import { AuditReportingService } from "./services/audit-reporting.service";
 import {
   AuditLog,
   AuditSnapshot,
@@ -16,8 +17,8 @@ import {
   AuditAlertHistory,
   AuditSession,
   AuditReport,
-} from './entities/audit.entity';
-import { NotificationsModule } from '../notifications/notifications.module';
+} from "./entities/audit.entity";
+import { NotificationsModule } from "../notifications/notifications.module";
 
 @Global() // Make audit service available globally
 @Module({
@@ -34,7 +35,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [AuditController],
-  providers: [AuditService, AuditSubscriber],
+  providers: [AuditService, AuditSubscriber, AuditReportingService],
   exports: [AuditService],
 })
 export class AuditModule {}

@@ -10,6 +10,7 @@ import {
   TaskPhoto,
 } from "./entities/task.entity";
 import { Incident } from "../incidents/entities/incident.entity";
+import { TaskAnalyticsService } from "./services/task-analytics.service";
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { Incident } from "../incidents/entities/incident.entity";
     ]),
   ],
   controllers: [TasksController],
-  providers: [TasksService],
+  providers: [TasksService, TaskAnalyticsService],
   exports: [TasksService],
 })
 export class TasksModule {}
