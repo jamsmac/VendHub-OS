@@ -647,5 +647,11 @@ export const ru = {
 
     // Machine Card
     machineAddressUnknown: "Адрес не указан",
+
+    // Relative time
+    relativeTimeJustNow: "только что",
+    relativeTimeMinutesAgo: "{{count}} мин назад",
+    relativeTimeHoursAgo: "{{count}} ч назад",
+    relativeTimeDaysAgo: "{{count}} дн назад",
   },
 } as const;

@@ -28,6 +28,7 @@ import {
   Users,
   TicketPercent,
 } from "lucide-react";
+import i18n from "@/i18n";
 import { api, UserAchievement } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
 
@@ -416,12 +417,19 @@ export function LoyaltyPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium">{item.description}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(item.createdAt).toLocaleDateString("ru-RU", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(item.createdAt).toLocaleDateString(
+                      i18n.language === "uz"
+                        ? "uz-UZ"
+                        : i18n.language === "en"
+                          ? "en-US"
+                          : "ru-RU",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </p>
                 </div>
                 <div

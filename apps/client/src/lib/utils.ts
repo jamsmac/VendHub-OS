@@ -1,7 +1,20 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistance } from "@vendhub/shared/utils";
+import i18n from "../i18n";
+
 export { formatDistance };
+
+/** Map i18n language code to Intl locale string */
+function getLocale(): string {
+  const lang = i18n.language || "ru";
+  const localeMap: Record<string, string> = {
+    ru: "ru-RU",
+    uz: "uz-UZ",
+    en: "en-US",
+  };
+  return localeMap[lang] || "ru-RU";
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,12 +75,16 @@ export function getMachineStatusColor(status: string): string {
 }
 
 export function formatCurrency(amount: number): string {
+  const locale = getLocale();
+  const currencyLabel = i18n.t("currency");
   return (
-    new Intl.NumberFormat("uz-UZ", {
+    new Intl.NumberFormat(locale, {
       style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount) + " сум"
+    }).format(amount) +
+    " " +
+    currencyLabel
   );
 }
 
@@ -84,7 +101,7 @@ export function formatDate(dateString: string, includeTime = false): string {
     options.minute = "2-digit";
   }
 
-  return date.toLocaleDateString("ru-RU", options);
+  return date.toLocaleDateString(getLocale(), options);
 }
 
 export function formatRelativeTime(dateString: string): string {
@@ -95,14 +112,16 @@ export function formatRelativeTime(dateString: string): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "только что";
-  if (diffMins < 60) return `${diffMins} мин назад`;
-  if (diffHours < 24) return `${diffHours} ч назад`;
-  if (diffDays < 7) return `${diffDays} дн назад`;
+  if (diffMins < 1) return i18n.t("relativeTimeJustNow");
+  if (diffMins < 60)
+    return i18n.t("relativeTimeMinutesAgo", { count: diffMins });
+  if (diffHours < 24)
+    return i18n.t("relativeTimeHoursAgo", { count: diffHours });
+  if (diffDays < 7) return i18n.t("relativeTimeDaysAgo", { count: diffDays });
 
   return formatDate(dateString);
 }
 
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat("ru-RU").format(num);
+  return new Intl.NumberFormat(getLocale()).format(num);
 }

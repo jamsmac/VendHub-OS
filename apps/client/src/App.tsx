@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast, Toaster } from "sonner";
 import { Layout } from "./components/layout/Layout";
 import { useUserStore } from "./lib/store";
@@ -98,15 +99,16 @@ function LoadingFallback() {
  */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useUserStore();
+  const { t } = useTranslation();
   const location = useLocation();
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast.error("Для доступа необходимо войти в аккаунт", {
+      toast.error(t("loginRequired"), {
         duration: 4000,
       });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, t]);
 
   if (!isAuthenticated) {
     return <Navigate to="/" state={{ from: location.pathname }} replace />;

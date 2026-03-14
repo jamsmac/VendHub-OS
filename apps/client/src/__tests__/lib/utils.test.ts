@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import {
   cn,
   formatPrice,
@@ -9,6 +9,12 @@ import {
   formatNumber,
   formatRelativeTime,
 } from "@/lib/utils";
+
+// Ensure i18n is initialised with Russian before util functions are called
+beforeAll(async () => {
+  const i18n = (await import("@/i18n")).default;
+  await i18n.changeLanguage("ru");
+});
 
 describe("cn", () => {
   it("merges class names", () => {

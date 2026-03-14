@@ -645,5 +645,11 @@ export const en = {
 
     // Machine Card
     machineAddressUnknown: "Address not specified",
+
+    // Relative time
+    relativeTimeJustNow: "just now",
+    relativeTimeMinutesAgo: "{{count}} min ago",
+    relativeTimeHoursAgo: "{{count}} hr ago",
+    relativeTimeDaysAgo: "{{count}} days ago",
   },
 } as const;

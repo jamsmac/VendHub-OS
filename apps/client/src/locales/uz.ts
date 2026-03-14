@@ -649,5 +649,11 @@ export const uz = {
 
     // Machine Card
     machineAddressUnknown: "Manzil ko'rsatilmagan",
+
+    // Relative time
+    relativeTimeJustNow: "hozirgina",
+    relativeTimeMinutesAgo: "{{count}} daq oldin",
+    relativeTimeHoursAgo: "{{count}} soat oldin",
+    relativeTimeDaysAgo: "{{count}} kun oldin",
   },
 } as const;
