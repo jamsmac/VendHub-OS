@@ -288,8 +288,11 @@ export class NotificationsController {
   @Get("templates/:id")
   @ApiOperation({ summary: "Get template by ID" })
   @Roles("owner", "admin", "manager")
-  async getTemplate(@Param("id", ParseUUIDPipe) id: string) {
-    return this.notificationsService.getTemplate(id);
+  async getTemplate(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.notificationsService.getTemplate(id, orgId);
   }
 
   @Post("templates")
@@ -311,9 +314,10 @@ export class NotificationsController {
   @Roles("owner", "admin")
   async updateTemplate(
     @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
     @Body() data: UpdateNotificationTemplateDto,
   ) {
-    return this.notificationsService.updateTemplate(id, data);
+    return this.notificationsService.updateTemplate(id, orgId, data);
   }
 
   // ============================================================================

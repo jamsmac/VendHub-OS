@@ -639,8 +639,16 @@ export class NotificationsService {
     });
   }
 
-  async getTemplate(id: string): Promise<NotificationTemplate> {
-    const template = await this.templateRepo.findOne({ where: { id } });
+  async getTemplate(
+    id: string,
+    organizationId: string,
+  ): Promise<NotificationTemplate> {
+    const template = await this.templateRepo.findOne({
+      where: [
+        { id, organizationId },
+        { id, isSystem: true },
+      ],
+    });
     if (!template) {
       throw new NotFoundException(`Шаблон ${id} не найден`);
     }
@@ -660,9 +668,10 @@ export class NotificationsService {
 
   async updateTemplate(
     id: string,
+    organizationId: string,
     data: UpdateNotificationTemplateDto,
   ): Promise<NotificationTemplate> {
-    const template = await this.getTemplate(id);
+    const template = await this.getTemplate(id, organizationId);
     Object.assign(template, data);
     template.updatedAt = new Date();
     return this.templateRepo.save(template);

@@ -303,23 +303,21 @@ export class MachinesCoreService {
   ): Promise<Machine[]> {
     const minThreshold = threshold ?? 20;
 
-    const machines = await this.machineRepository
+    return this.machineRepository
       .createQueryBuilder("machine")
-      .leftJoinAndSelect("machine.slots", "slot")
+      .innerJoin(
+        "machine.slots",
+        "slot",
+        "slot.capacity > 0 AND (slot.currentQuantity::float / slot.capacity) * 100 <= :minThreshold",
+        { minThreshold },
+      )
+      .leftJoinAndSelect("machine.slots", "allSlots")
       .where("machine.organizationId = :organizationId", { organizationId })
       .andWhere("machine.status != :disabled", {
         disabled: MachineStatus.DISABLED,
       })
+      .take(200)
       .getMany();
-
-    return machines.filter((machine) => {
-      if (!machine.slots?.length) return false;
-      return machine.slots.some(
-        (slot) =>
-          slot.capacity > 0 &&
-          (slot.currentQuantity / slot.capacity) * 100 <= minThreshold,
-      );
-    });
   }
 
   // ── Shared helper ──────────────────────────────────────

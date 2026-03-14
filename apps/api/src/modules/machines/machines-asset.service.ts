@@ -216,9 +216,17 @@ export class MachinesAssetService {
   ): Promise<{ updated: number }> {
     const machines = await this.machineRepository.find({
       where: { organizationId },
+      select: [
+        "id",
+        "purchasePrice",
+        "depreciationYears",
+        "purchaseDate",
+        "depreciationMethod",
+        "accumulatedDepreciation",
+      ],
     });
 
-    let updated = 0;
+    const toUpdate: { id: string; accumulatedDepreciation: number }[] = [];
     for (const machine of machines) {
       if (
         !machine.purchasePrice ||
@@ -229,17 +237,38 @@ export class MachinesAssetService {
 
       const { accumulated } = this.calculateDepreciation(machine);
       if (Number(machine.accumulatedDepreciation) !== accumulated) {
-        machine.accumulatedDepreciation = accumulated;
-        machine.lastDepreciationDate = new Date();
-        await this.machineRepository.save(machine);
-        updated++;
+        toUpdate.push({ id: machine.id, accumulatedDepreciation: accumulated });
+      }
+    }
+
+    if (toUpdate.length > 0) {
+      const now = new Date();
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+        const batch = toUpdate.slice(i, i + BATCH_SIZE);
+        const ids = batch.map((m) => m.id);
+        // Batch update — all get same depreciation recalc date
+        await this.machineRepository
+          .createQueryBuilder()
+          .update()
+          .set({ lastDepreciationDate: now })
+          .whereInIds(ids)
+          .execute();
+        // Individual accumulated values via save (TypeORM batches internally)
+        await this.machineRepository.save(
+          batch.map((m) => ({
+            id: m.id,
+            accumulatedDepreciation: m.accumulatedDepreciation,
+            lastDepreciationDate: now,
+          })),
+        );
       }
     }
 
     this.logger.log(
-      `Depreciation batch: updated ${updated} machines for org ${organizationId}`,
+      `Depreciation batch: updated ${toUpdate.length} machines for org ${organizationId}`,
     );
-    return { updated };
+    return { updated: toUpdate.length };
   }
 
   // ── Connectivity ───────────────────────────────────────
@@ -288,30 +317,34 @@ export class MachinesAssetService {
     stale: number;
     total: number;
   }> {
-    const machines = await this.machineRepository.find({
-      where: { organizationId },
-      select: ["id", "lastPingAt"],
-    });
+    const now = new Date();
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-    const now = Date.now();
-    const tenMinutes = 10 * 60 * 1000;
-    const oneHour = 60 * 60 * 1000;
+    const result = await this.machineRepository
+      .createQueryBuilder("m")
+      .select("COUNT(*)::int", "total")
+      .addSelect(
+        "COUNT(CASE WHEN m.last_ping_at > :tenMinutesAgo THEN 1 END)::int",
+        "online",
+      )
+      .addSelect(
+        "COUNT(CASE WHEN m.last_ping_at > :oneHourAgo AND m.last_ping_at <= :tenMinutesAgo THEN 1 END)::int",
+        "stale",
+      )
+      .addSelect(
+        "COUNT(CASE WHEN m.last_ping_at IS NULL OR m.last_ping_at <= :oneHourAgo THEN 1 END)::int",
+        "offline",
+      )
+      .where("m.organization_id = :organizationId", { organizationId })
+      .setParameters({ tenMinutesAgo, oneHourAgo })
+      .getRawOne();
 
-    let online = 0;
-    let stale = 0;
-    let offline = 0;
-
-    for (const m of machines) {
-      if (!m.lastPingAt) {
-        offline++;
-        continue;
-      }
-      const age = now - new Date(m.lastPingAt).getTime();
-      if (age <= tenMinutes) online++;
-      else if (age <= oneHour) stale++;
-      else offline++;
-    }
-
-    return { online, offline, stale, total: machines.length };
+    return {
+      online: result?.online || 0,
+      offline: result?.offline || 0,
+      stale: result?.stale || 0,
+      total: result?.total || 0,
+    };
   }
 }

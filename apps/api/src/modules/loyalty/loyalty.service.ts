@@ -214,7 +214,9 @@ export class LoyaltyService {
       throw new BadRequestException("Amount must be positive");
     }
 
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId, organizationId },
+    });
     if (!user) {
       throw new NotFoundException("User not found");
     }
@@ -403,7 +405,9 @@ export class LoyaltyService {
     reason: string,
     adminId: string,
   ): Promise<EarnPointsResultDto | SpendPointsResultDto> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId, organizationId },
+    });
     if (!user) {
       throw new NotFoundException("User not found");
     }

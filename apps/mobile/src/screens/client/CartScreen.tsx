@@ -8,6 +8,7 @@ import {
   Animated,
   ActivityIndicator,
   Switch,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -75,6 +76,10 @@ export function CartScreen({ navigation }: Props) {
     mutationFn: (itemId: string) =>
       api.delete(`/cart/items/${itemId}`).then((res) => res.data),
     onSuccess: () => refetch(),
+    onError: () => {
+      Alert.alert(t("cart.error"), t("cart.removeError"));
+      refetch();
+    },
   });
 
   const checkoutMutation = useMutation({
@@ -86,6 +91,10 @@ export function CartScreen({ navigation }: Props) {
         .then((res) => res.data),
     onSuccess: () => {
       navigation.replace("OrderSuccess");
+    },
+    onError: () => {
+      setIsProcessing(false);
+      Alert.alert(t("cart.error"), t("cart.checkoutError"));
     },
   });
 
@@ -109,8 +118,11 @@ export function CartScreen({ navigation }: Props) {
 
   const handleCheckout = async () => {
     setIsProcessing(true);
-    await checkoutMutation.mutateAsync();
-    setIsProcessing(false);
+    try {
+      await checkoutMutation.mutateAsync();
+    } catch {
+      // onError handler in mutation handles the alert
+    }
   };
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
@@ -118,8 +130,13 @@ export function CartScreen({ navigation }: Props) {
       handleRemoveItem(itemId);
       return;
     }
-    await api.patch(`/cart/items/${itemId}`, { quantity: newQuantity });
-    refetch();
+    try {
+      await api.patch(`/cart/items/${itemId}`, { quantity: newQuantity });
+      refetch();
+    } catch {
+      Alert.alert(t("cart.error"), t("cart.updateError"));
+      refetch();
+    }
   };
 
   if (isLoading) {
