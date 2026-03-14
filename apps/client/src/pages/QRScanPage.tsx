@@ -27,6 +27,7 @@ export function QRScanPage() {
   );
   const [manualCode, setManualCode] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const startedRef = useRef(false);
   const navigatedRef = useRef(false);
 
   const handleScanResult = useCallback(
@@ -52,14 +53,20 @@ export function QRScanPage() {
         handleScanResult,
         () => {},
       )
-      .then(() => setStatus("scanning"))
+      .then(() => {
+        startedRef.current = true;
+        setStatus("scanning");
+      })
       .catch(() => setStatus("denied"));
 
     return () => {
-      scanner
-        .stop()
-        .then(() => scanner.clear())
-        .catch(() => {});
+      if (startedRef.current) {
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {});
+        startedRef.current = false;
+      }
     };
   }, [handleScanResult]);
 

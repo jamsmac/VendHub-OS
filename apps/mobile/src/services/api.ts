@@ -151,7 +151,7 @@ export const authApi = {
     password: string;
   }) => api.post("/auth/register", data),
   forgotPassword: (email: string) =>
-    api.post("/auth/forgot-password", { email }),
+    api.post("/auth/password/forgot", { email }),
   me: () => api.get("/auth/me"),
   refresh: (refreshToken: string) =>
     api.post("/auth/refresh", { refreshToken }),

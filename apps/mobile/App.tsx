@@ -12,7 +12,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { OfflineBanner } from "./src/components/OfflineBanner";
-import { queryClient, asyncStoragePersister } from "./src/lib/offline";
+import { queryClient, persistOptions } from "./src/lib/offline";
 
 export default function App() {
   return (
@@ -20,7 +20,7 @@ export default function App() {
       <SafeAreaProvider>
         <PersistQueryClientProvider
           client={queryClient}
-          persistOptions={{ persister: asyncStoragePersister }}
+          persistOptions={persistOptions}
         >
           <NavigationContainer>
             <StatusBar style="auto" />
