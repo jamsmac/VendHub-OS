@@ -1,6 +1,6 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { Layout } from "./components/layout/Layout";
 import { useUserStore } from "./lib/store";
 import { useTelegramAuth } from "./hooks/useTelegramAuth";
@@ -94,11 +94,19 @@ function LoadingFallback() {
 }
 
 /**
- * Protected route wrapper - redirects to home if not authenticated
+ * Protected route wrapper - redirects to home with auth message if not authenticated
  */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useUserStore();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("Для доступа необходимо войти в аккаунт", {
+        duration: 4000,
+      });
+    }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return <Navigate to="/" state={{ from: location.pathname }} replace />;

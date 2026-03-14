@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MobileSidebar } from "./sidebar";
+import { useAuthStore } from "@/lib/store/auth";
 
 interface User {
   firstName?: string;
@@ -29,6 +30,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { logout } = useAuthStore();
   const t = useTranslations("common");
   const tAuth = useTranslations("auth");
   const tSettings = useTranslations("settings");
@@ -122,11 +124,23 @@ export function Header({ user }: HeaderProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>{tAuth("login")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>{tSettings("general")}</DropdownMenuItem>
-            <DropdownMenuItem>{tSettings("settings")}</DropdownMenuItem>
-            <DropdownMenuItem>{tSettings("security")}</DropdownMenuItem>
+            <DropdownMenuItem>
+              {tSettings.has("general")
+                ? tSettings("general")
+                : tSettings("tabGeneral")}
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              {tSettings.has("settings")
+                ? tSettings("settings")
+                : tSettings("title")}
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              {tSettings.has("security")
+                ? tSettings("security")
+                : tSettings("tabSecurity")}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={logout}>
               {tAuth("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>

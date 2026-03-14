@@ -111,17 +111,18 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/api\.vendhub\.uz\/api\/.*/i,
+            urlPattern:
+              /^https:\/\/api\.vendhub\.uz\/api\/v1\/(?:machines|products|locations)\/?(?:\?.*)?$/i,
             handler: "NetworkFirst",
             options: {
-              cacheName: "api-cache",
+              cacheName: "api-public-cache",
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60, // 1 hour
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 5, // 5 minutes
               },
               networkTimeoutSeconds: 10,
               cacheableResponse: {
-                statuses: [0, 200],
+                statuses: [200],
               },
             },
           },
