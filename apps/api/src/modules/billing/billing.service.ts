@@ -52,48 +52,55 @@ export class BillingService {
     userId: string,
     dto: CreateInvoiceDto,
   ): Promise<Invoice> {
-    // Auto-generate invoice number
-    const invoiceNumber = await this.generateInvoiceNumber(organizationId);
+    return this.dataSource.transaction(async (manager) => {
+      const txInvoiceRepo = manager.getRepository(Invoice);
 
-    // Calculate totals from line items
-    let subtotal = 0;
-    let taxAmount = 0;
+      // Auto-generate invoice number
+      const invoiceNumber = await this.generateInvoiceNumber(
+        organizationId,
+        txInvoiceRepo,
+      );
 
-    for (const item of dto.lineItems) {
-      subtotal += item.amount;
-      if (item.taxRate) {
-        taxAmount += item.amount * (item.taxRate / 100);
+      // Calculate totals from line items
+      let subtotal = 0;
+      let taxAmount = 0;
+
+      for (const item of dto.lineItems) {
+        subtotal += item.amount;
+        if (item.taxRate) {
+          taxAmount += item.amount * (item.taxRate / 100);
+        }
       }
-    }
 
-    const totalAmount = subtotal + taxAmount;
+      const totalAmount = subtotal + taxAmount;
 
-    const invoice = this.invoiceRepo.create({
-      organizationId,
-      invoiceNumber,
-      customerId: dto.customerId || null,
-      customerName: dto.customerName || null,
-      issueDate: new Date(dto.issueDate),
-      dueDate: new Date(dto.dueDate),
-      status: InvoiceStatus.DRAFT,
-      subtotal,
-      taxAmount,
-      discountAmount: 0,
-      totalAmount,
-      paidAmount: 0,
-      currency: dto.currency || "UZS",
-      lineItems: dto.lineItems,
-      notes: dto.notes || null,
-      createdById: userId,
+      const invoice = txInvoiceRepo.create({
+        organizationId,
+        invoiceNumber,
+        customerId: dto.customerId || null,
+        customerName: dto.customerName || null,
+        issueDate: new Date(dto.issueDate),
+        dueDate: new Date(dto.dueDate),
+        status: InvoiceStatus.DRAFT,
+        subtotal,
+        taxAmount,
+        discountAmount: 0,
+        totalAmount,
+        paidAmount: 0,
+        currency: dto.currency || "UZS",
+        lineItems: dto.lineItems,
+        notes: dto.notes || null,
+        createdById: userId,
+      });
+
+      const saved = await txInvoiceRepo.save(invoice);
+
+      this.logger.log(
+        `Invoice ${invoiceNumber} created for org ${organizationId} (total: ${totalAmount} ${invoice.currency})`,
+      );
+
+      return saved;
     });
-
-    const saved = await this.invoiceRepo.save(invoice);
-
-    this.logger.log(
-      `Invoice ${invoiceNumber} created for org ${organizationId} (total: ${totalAmount} ${invoice.currency})`,
-    );
-
-    return saved;
   }
 
   // ============================================================================
@@ -536,10 +543,13 @@ export class BillingService {
   // HELPERS
   // ============================================================================
 
-  private async generateInvoiceNumber(organizationId: string): Promise<string> {
+  private async generateInvoiceNumber(
+    organizationId: string,
+    repo: Repository<Invoice> = this.invoiceRepo,
+  ): Promise<string> {
     const year = new Date().getFullYear();
     const month = String(new Date().getMonth() + 1).padStart(2, "0");
-    const count = await this.invoiceRepo.count({ where: { organizationId } });
+    const count = await repo.count({ where: { organizationId } });
     return `INV-${year}${month}-${String(count + 1).padStart(5, "0")}`;
   }
 }

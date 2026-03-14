@@ -36,6 +36,11 @@ import { EmailService } from "../email/email.service";
 import { SmsService } from "../sms/sms.service";
 import { WebPushService } from "../web-push/web-push.service";
 import { ConfigService } from "@nestjs/config";
+import { UpdateNotificationSettingsDto } from "./dto/update-notification-settings.dto";
+import {
+  CreateNotificationTemplateDto,
+  UpdateNotificationTemplateDto,
+} from "./dto/notification-template.dto";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let firebaseAdmin: any;
@@ -659,7 +664,7 @@ export class NotificationsService {
   async updateSettings(
     userId: string,
     organizationId: string,
-    updates: Partial<UserNotificationSettings>,
+    updates: UpdateNotificationSettingsDto,
   ): Promise<UserNotificationSettings> {
     let settings = await this.settingsRepo.findOne({ where: { userId } });
 
@@ -702,7 +707,7 @@ export class NotificationsService {
   }
 
   async createTemplate(
-    data: Partial<NotificationTemplate>,
+    data: CreateNotificationTemplateDto & { organizationId: string },
   ): Promise<NotificationTemplate> {
     const template = this.templateRepo.create({
       ...data,
@@ -714,7 +719,7 @@ export class NotificationsService {
 
   async updateTemplate(
     id: string,
-    data: Partial<NotificationTemplate>,
+    data: UpdateNotificationTemplateDto,
   ): Promise<NotificationTemplate> {
     const template = await this.getTemplate(id);
     Object.assign(template, data);

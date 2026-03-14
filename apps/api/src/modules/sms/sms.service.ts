@@ -3,7 +3,7 @@
  * Sends SMS via Uzbekistan providers: Eskiz (primary) and PlayMobile (fallback)
  */
 
-import { Injectable, Logger } from "@nestjs/common";
+import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 import {
@@ -205,14 +205,16 @@ export class SmsService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Eskiz auth failed (${response.status}): ${errorText}`);
+      throw new BadGatewayException(
+        `Eskiz auth failed (${response.status}): ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as { data?: { token?: string } };
     const token = data?.data?.token;
 
     if (!token) {
-      throw new Error("Eskiz auth response missing token");
+      throw new BadGatewayException("Eskiz auth response missing token");
     }
 
     // Cache token for 29 days (Eskiz tokens expire in ~30 days)
@@ -274,7 +276,7 @@ export class SmsService {
 
         if (!retryResponse.ok) {
           const retryError = await retryResponse.text();
-          throw new Error(
+          throw new BadGatewayException(
             `Eskiz send failed after retry (${retryResponse.status}): ${retryError}`,
           );
         }
@@ -288,7 +290,9 @@ export class SmsService {
         };
       }
 
-      throw new Error(`Eskiz send failed (${response.status}): ${errorText}`);
+      throw new BadGatewayException(
+        `Eskiz send failed (${response.status}): ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as { id?: string };
@@ -349,7 +353,7 @@ export class SmsService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
+      throw new BadGatewayException(
         `PlayMobile send failed (${response.status}): ${errorText}`,
       );
     }

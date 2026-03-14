@@ -48,6 +48,11 @@ import {
 } from "../../common/decorators/current-user.decorator";
 import { UserRole } from "../../common/enums";
 import { CleanupNotificationsDto } from "./dto/notification-operations.dto";
+import { UpdateNotificationSettingsDto } from "./dto/update-notification-settings.dto";
+import {
+  CreateNotificationTemplateDto,
+  UpdateNotificationTemplateDto,
+} from "./dto/notification-template.dto";
 
 @ApiTags("Notifications")
 @ApiBearerAuth()
@@ -196,7 +201,7 @@ export class NotificationsController {
   async updateSettings(
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
-    @Body() updates: Record<string, unknown>,
+    @Body() updates: UpdateNotificationSettingsDto,
   ) {
     return this.notificationsService.updateSettings(userId, orgId, updates);
   }
@@ -292,7 +297,7 @@ export class NotificationsController {
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createTemplate(
-    @Body() data: Record<string, unknown>,
+    @Body() data: CreateNotificationTemplateDto,
     @CurrentOrganizationId() orgId: string,
   ) {
     return this.notificationsService.createTemplate({
@@ -306,7 +311,7 @@ export class NotificationsController {
   @Roles("owner", "admin")
   async updateTemplate(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() data: Record<string, unknown>,
+    @Body() data: UpdateNotificationTemplateDto,
   ) {
     return this.notificationsService.updateTemplate(id, data);
   }

@@ -10,7 +10,7 @@
 
 import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
 import { Job } from "bullmq";
-import { Logger } from "@nestjs/common";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import {
@@ -66,18 +66,20 @@ export class WriteoffProcessor extends WorkerHost {
       });
 
       if (!machine) {
-        throw new Error(`Machine with ID ${machineId} not found`);
+        throw new NotFoundException(`Machine with ID ${machineId} not found`);
       }
 
       // Step 2: Validate
       await job.updateProgress(20);
 
       if (machine.isDisposed) {
-        throw new Error(`Machine ${machine.machineNumber} is already disposed`);
+        throw new BadRequestException(
+          `Machine ${machine.machineNumber} is already disposed`,
+        );
       }
 
       if (!machine.purchasePrice) {
-        throw new Error(
+        throw new BadRequestException(
           `Cannot writeoff machine ${machine.machineNumber}: missing purchase price`,
         );
       }
