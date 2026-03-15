@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~93%** (updated from 88%)
+**Readiness: ~97%** (updated from 93%)
 
 ### Landing Site (site app)
 
@@ -322,6 +322,19 @@ pnpm docker:logs            # View logs
   - Database schema documentation
   - Integration guides
   - Deployment procedures
+
+### Architecture Improvements (2026-03-16)
+
+- **29 duplicate enums** consolidated to `@vendhub/shared` (single source of truth)
+- **6 ambiguous enum names** disambiguated (PaymentStatus×3, RefundStatus×2, MaintenanceType×2)
+- **5 shared enums** synced with API (ComplaintStatus, ComplaintCategory, NotificationType, TransactionStatus, UserStatus)
+- **18 bot TypeScript errors** fixed (property mismatches, session typing)
+- **Bot session** properly typed with `SessionPayload` interface
+- **AnalyticsService** renamed to `DashboardStatsService` (clarity)
+- **Counterparty module** completed: REST controller (11 endpoints), DTOs, tests
+- **Client Dockerfile** added (Vite → nginx multi-stage)
+- **Site admin stubs** documented (static data by design, full admin in apps/web)
+- **DTO bug fix**: task DTO had divergent enum values from entity/DB
 
 ## Skills (AI Agent Tools)
 
