@@ -640,8 +640,8 @@ async function handleSendComplaint(ctx: BotContext) {
     return;
   }
 
-  const machineId = (ctx.session.data?.machineId as string) || null;
-  const message = ctx.session.data?.complaintMessage as string | undefined;
+  const machineId = ctx.session.data?.machineId || null;
+  const message = ctx.session.data?.complaintMessage;
 
   if (message) {
     await api.createComplaint(user.id, machineId, "other", message);

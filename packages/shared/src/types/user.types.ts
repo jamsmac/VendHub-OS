@@ -18,6 +18,8 @@ export enum UserStatus {
   INACTIVE = "inactive",
   SUSPENDED = "suspended",
   PENDING = "pending", // Ожидает одобрения
+  REJECTED = "rejected", // Отклонён
+  PASSWORD_CHANGE_REQUIRED = "password_change_required",
 }
 
 export interface IUser {
@@ -340,6 +342,8 @@ export const USER_STATUS_LABELS: Record<UserStatus, string> = {
   [UserStatus.INACTIVE]: "Неактивен",
   [UserStatus.SUSPENDED]: "Заблокирован",
   [UserStatus.PENDING]: "Ожидает одобрения",
+  [UserStatus.REJECTED]: "Отклонён",
+  [UserStatus.PASSWORD_CHANGE_REQUIRED]: "Требуется смена пароля",
 };
 
 // Status colors for UI
@@ -348,6 +352,8 @@ export const USER_STATUS_COLORS: Record<UserStatus, string> = {
   [UserStatus.INACTIVE]: "bg-gray-100 text-gray-800",
   [UserStatus.SUSPENDED]: "bg-red-100 text-red-800",
   [UserStatus.PENDING]: "bg-yellow-100 text-yellow-800",
+  [UserStatus.REJECTED]: "bg-red-100 text-red-800",
+  [UserStatus.PASSWORD_CHANGE_REQUIRED]: "bg-orange-100 text-orange-800",
 };
 
 // Default user preferences

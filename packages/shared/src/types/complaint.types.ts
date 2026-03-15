@@ -9,12 +9,18 @@
 
 export enum ComplaintStatus {
   NEW = "new",
+  PENDING = "pending",
   IN_PROGRESS = "in_progress",
-  WAITING_CUSTOMER = "waiting_customer",
+  ASSIGNED = "assigned",
+  INVESTIGATING = "investigating",
+  AWAITING_CUSTOMER = "awaiting_customer",
+  AWAITING_PARTS = "awaiting_parts",
   RESOLVED = "resolved",
   CLOSED = "closed",
-  ESCALATED = "escalated",
   REJECTED = "rejected",
+  DUPLICATE = "duplicate",
+  ESCALATED = "escalated",
+  REOPENED = "reopened",
 }
 
 export enum ComplaintPriority {
@@ -25,14 +31,35 @@ export enum ComplaintPriority {
 }
 
 export enum ComplaintCategory {
-  PAYMENT = "payment",
+  // Machine issues
+  MACHINE_NOT_WORKING = "machine_not_working",
+  MACHINE_ERROR = "machine_error",
+  MACHINE_DIRTY = "machine_dirty",
+  // Payment issues
+  PAYMENT_FAILED = "payment_failed",
+  CARD_NOT_ACCEPTED = "card_not_accepted",
+  CASH_NOT_ACCEPTED = "cash_not_accepted",
+  NO_CHANGE = "no_change",
+  DOUBLE_CHARGE = "double_charge",
+  CHARGE_WITHOUT_PRODUCT = "charge_without_product",
+  // Product issues
   PRODUCT_NOT_DISPENSED = "product_not_dispensed",
-  PRODUCT_QUALITY = "product_quality",
+  PRODUCT_STUCK = "product_stuck",
   WRONG_PRODUCT = "wrong_product",
-  MACHINE_MALFUNCTION = "machine_malfunction",
-  PRICE_ISSUE = "price_issue",
+  PRODUCT_EXPIRED = "product_expired",
+  PRODUCT_DAMAGED = "product_damaged",
+  PRODUCT_QUALITY = "product_quality",
+  PRODUCT_OUT_OF_STOCK = "product_out_of_stock",
+  // Hygiene & safety
+  HYGIENE_ISSUE = "hygiene_issue",
+  SAFETY_CONCERN = "safety_concern",
+  // Financial
   REFUND_REQUEST = "refund_request",
+  // Feedback
   SUGGESTION = "suggestion",
+  PRODUCT_REQUEST = "product_request",
+  PRICE_FEEDBACK = "price_feedback",
+  // Other
   OTHER = "other",
 }
 
@@ -230,18 +257,27 @@ export const COMPLAINT_STATUS_LABELS: Record<
   { ru: string; uz: string }
 > = {
   [ComplaintStatus.NEW]: { ru: "Новая", uz: "Yangi" },
+  [ComplaintStatus.PENDING]: { ru: "Ожидает", uz: "Kutmoqda" },
   [ComplaintStatus.IN_PROGRESS]: { ru: "В обработке", uz: "Jarayonda" },
-  [ComplaintStatus.WAITING_CUSTOMER]: {
+  [ComplaintStatus.ASSIGNED]: { ru: "Назначена", uz: "Tayinlandi" },
+  [ComplaintStatus.INVESTIGATING]: { ru: "Расследуется", uz: "Tekshirilmoqda" },
+  [ComplaintStatus.AWAITING_CUSTOMER]: {
     ru: "Ожидает клиента",
     uz: "Mijozni kutmoqda",
   },
+  [ComplaintStatus.AWAITING_PARTS]: {
+    ru: "Ожидает запчасти",
+    uz: "Ehtiyot qismlarni kutmoqda",
+  },
   [ComplaintStatus.RESOLVED]: { ru: "Решена", uz: "Hal qilindi" },
   [ComplaintStatus.CLOSED]: { ru: "Закрыта", uz: "Yopildi" },
+  [ComplaintStatus.REJECTED]: { ru: "Отклонена", uz: "Rad etildi" },
+  [ComplaintStatus.DUPLICATE]: { ru: "Дубликат", uz: "Dublikat" },
   [ComplaintStatus.ESCALATED]: {
     ru: "Эскалирована",
     uz: "Escalatsiya qilindi",
   },
-  [ComplaintStatus.REJECTED]: { ru: "Отклонена", uz: "Rad etildi" },
+  [ComplaintStatus.REOPENED]: { ru: "Переоткрыта", uz: "Qayta ochildi" },
 };
 
 export const COMPLAINT_PRIORITY_LABELS: Record<
@@ -258,35 +294,82 @@ export const COMPLAINT_CATEGORY_LABELS: Record<
   ComplaintCategory,
   { ru: string; uz: string }
 > = {
-  [ComplaintCategory.PAYMENT]: {
-    ru: "Проблема с оплатой",
-    uz: "To'lov muammosi",
+  [ComplaintCategory.MACHINE_NOT_WORKING]: {
+    ru: "Автомат не работает",
+    uz: "Avtomat ishlamayapti",
+  },
+  [ComplaintCategory.MACHINE_ERROR]: {
+    ru: "Ошибка автомата",
+    uz: "Avtomat xatosi",
+  },
+  [ComplaintCategory.MACHINE_DIRTY]: {
+    ru: "Автомат грязный",
+    uz: "Avtomat iflos",
+  },
+  [ComplaintCategory.PAYMENT_FAILED]: {
+    ru: "Ошибка оплаты",
+    uz: "To'lov xatosi",
+  },
+  [ComplaintCategory.CARD_NOT_ACCEPTED]: {
+    ru: "Карта не принимается",
+    uz: "Karta qabul qilinmadi",
+  },
+  [ComplaintCategory.CASH_NOT_ACCEPTED]: {
+    ru: "Наличные не принимаются",
+    uz: "Naqd qabul qilinmadi",
+  },
+  [ComplaintCategory.NO_CHANGE]: { ru: "Нет сдачи", uz: "Qaytim yo'q" },
+  [ComplaintCategory.DOUBLE_CHARGE]: {
+    ru: "Двойное списание",
+    uz: "Ikki marta yechildi",
+  },
+  [ComplaintCategory.CHARGE_WITHOUT_PRODUCT]: {
+    ru: "Списание без товара",
+    uz: "Mahsulotsiz yechildi",
   },
   [ComplaintCategory.PRODUCT_NOT_DISPENSED]: {
     ru: "Товар не выдан",
     uz: "Mahsulot berilmadi",
   },
-  [ComplaintCategory.PRODUCT_QUALITY]: {
-    ru: "Качество товара",
-    uz: "Mahsulot sifati",
+  [ComplaintCategory.PRODUCT_STUCK]: {
+    ru: "Товар застрял",
+    uz: "Mahsulot tiqilib qoldi",
   },
   [ComplaintCategory.WRONG_PRODUCT]: {
     ru: "Неверный товар",
     uz: "Noto'g'ri mahsulot",
   },
-  [ComplaintCategory.MACHINE_MALFUNCTION]: {
-    ru: "Неисправность автомата",
-    uz: "Avtomat nosozligi",
+  [ComplaintCategory.PRODUCT_EXPIRED]: {
+    ru: "Просроченный товар",
+    uz: "Muddati o'tgan mahsulot",
   },
-  [ComplaintCategory.PRICE_ISSUE]: {
-    ru: "Проблема с ценой",
-    uz: "Narx muammosi",
+  [ComplaintCategory.PRODUCT_DAMAGED]: {
+    ru: "Повреждённый товар",
+    uz: "Shikastlangan mahsulot",
   },
+  [ComplaintCategory.PRODUCT_QUALITY]: {
+    ru: "Качество товара",
+    uz: "Mahsulot sifati",
+  },
+  [ComplaintCategory.PRODUCT_OUT_OF_STOCK]: {
+    ru: "Товар закончился",
+    uz: "Mahsulot tugadi",
+  },
+  [ComplaintCategory.HYGIENE_ISSUE]: { ru: "Гигиена", uz: "Gigiena" },
+  [ComplaintCategory.SAFETY_CONCERN]: { ru: "Безопасность", uz: "Xavfsizlik" },
   [ComplaintCategory.REFUND_REQUEST]: {
     ru: "Запрос возврата",
     uz: "Qaytarish so'rovi",
   },
   [ComplaintCategory.SUGGESTION]: { ru: "Предложение", uz: "Taklif" },
+  [ComplaintCategory.PRODUCT_REQUEST]: {
+    ru: "Запрос товара",
+    uz: "Mahsulot so'rovi",
+  },
+  [ComplaintCategory.PRICE_FEEDBACK]: {
+    ru: "Отзыв о цене",
+    uz: "Narx haqida fikr",
+  },
   [ComplaintCategory.OTHER]: { ru: "Другое", uz: "Boshqa" },
 };
 
@@ -348,12 +431,18 @@ export const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
 
 export const COMPLAINT_STATUS_ICONS: Record<ComplaintStatus, string> = {
   [ComplaintStatus.NEW]: "🆕",
+  [ComplaintStatus.PENDING]: "⏳",
   [ComplaintStatus.IN_PROGRESS]: "🔄",
-  [ComplaintStatus.WAITING_CUSTOMER]: "⏳",
+  [ComplaintStatus.ASSIGNED]: "👤",
+  [ComplaintStatus.INVESTIGATING]: "🔍",
+  [ComplaintStatus.AWAITING_CUSTOMER]: "⏳",
+  [ComplaintStatus.AWAITING_PARTS]: "🔧",
   [ComplaintStatus.RESOLVED]: "✅",
   [ComplaintStatus.CLOSED]: "📁",
-  [ComplaintStatus.ESCALATED]: "⚠️",
   [ComplaintStatus.REJECTED]: "❌",
+  [ComplaintStatus.DUPLICATE]: "📋",
+  [ComplaintStatus.ESCALATED]: "⚠️",
+  [ComplaintStatus.REOPENED]: "🔁",
 };
 
 export const COMPLAINT_PRIORITY_ICONS: Record<ComplaintPriority, string> = {
@@ -364,13 +453,27 @@ export const COMPLAINT_PRIORITY_ICONS: Record<ComplaintPriority, string> = {
 };
 
 export const COMPLAINT_CATEGORY_ICONS: Record<ComplaintCategory, string> = {
-  [ComplaintCategory.PAYMENT]: "💳",
+  [ComplaintCategory.MACHINE_NOT_WORKING]: "🔧",
+  [ComplaintCategory.MACHINE_ERROR]: "⚙️",
+  [ComplaintCategory.MACHINE_DIRTY]: "🧹",
+  [ComplaintCategory.PAYMENT_FAILED]: "💳",
+  [ComplaintCategory.CARD_NOT_ACCEPTED]: "💳",
+  [ComplaintCategory.CASH_NOT_ACCEPTED]: "💵",
+  [ComplaintCategory.NO_CHANGE]: "🪙",
+  [ComplaintCategory.DOUBLE_CHARGE]: "⚠️",
+  [ComplaintCategory.CHARGE_WITHOUT_PRODUCT]: "⚠️",
   [ComplaintCategory.PRODUCT_NOT_DISPENSED]: "📦",
-  [ComplaintCategory.PRODUCT_QUALITY]: "⭐",
+  [ComplaintCategory.PRODUCT_STUCK]: "📦",
   [ComplaintCategory.WRONG_PRODUCT]: "🔀",
-  [ComplaintCategory.MACHINE_MALFUNCTION]: "🔧",
-  [ComplaintCategory.PRICE_ISSUE]: "💰",
+  [ComplaintCategory.PRODUCT_EXPIRED]: "📅",
+  [ComplaintCategory.PRODUCT_DAMAGED]: "💥",
+  [ComplaintCategory.PRODUCT_QUALITY]: "⭐",
+  [ComplaintCategory.PRODUCT_OUT_OF_STOCK]: "🚫",
+  [ComplaintCategory.HYGIENE_ISSUE]: "🧼",
+  [ComplaintCategory.SAFETY_CONCERN]: "🛡️",
   [ComplaintCategory.REFUND_REQUEST]: "💸",
   [ComplaintCategory.SUGGESTION]: "💡",
+  [ComplaintCategory.PRODUCT_REQUEST]: "🛒",
+  [ComplaintCategory.PRICE_FEEDBACK]: "💰",
   [ComplaintCategory.OTHER]: "❓",
 };

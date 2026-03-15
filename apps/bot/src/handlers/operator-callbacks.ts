@@ -143,7 +143,7 @@ async function handleTripVehicleSelect(ctx: BotContext) {
 async function handleTripRouteSelect(ctx: BotContext) {
   await ctx.answerCbQuery();
   const routeId = ctx.match?.[1];
-  const vehicleId = ctx.session.data?.vehicleId as string | undefined;
+  const vehicleId = ctx.session.data?.vehicleId;
 
   if (!vehicleId) {
     await ctx.editMessageText(

@@ -36,24 +36,28 @@ export enum NotificationPriority {
 
 export enum NotificationType {
   // System
-  SYSTEM_ALERT = "system_alert",
-  SYSTEM_UPDATE = "system_update",
+  SYSTEM = "system",
+  ANNOUNCEMENT = "announcement",
+  MAINTENANCE = "maintenance",
 
   // Machine
-  MACHINE_OFFLINE = "machine_offline",
-  MACHINE_ONLINE = "machine_online",
-  MACHINE_LOW_STOCK = "machine_low_stock",
+  MACHINE_ALERT = "machine_alert",
   MACHINE_ERROR = "machine_error",
-  MACHINE_MAINTENANCE = "machine_maintenance",
+  MACHINE_OFFLINE = "machine_offline",
+  MACHINE_LOW_STOCK = "machine_low_stock",
+  MACHINE_OUT_OF_STOCK = "machine_out_of_stock",
+  MACHINE_TEMPERATURE = "machine_temperature",
 
   // Tasks
   TASK_ASSIGNED = "task_assigned",
   TASK_UPDATED = "task_updated",
   TASK_COMPLETED = "task_completed",
   TASK_OVERDUE = "task_overdue",
+  TASK_REMINDER = "task_reminder",
 
   // Complaints
   COMPLAINT_NEW = "complaint_new",
+  COMPLAINT_ASSIGNED = "complaint_assigned",
   COMPLAINT_UPDATED = "complaint_updated",
   COMPLAINT_RESOLVED = "complaint_resolved",
   COMPLAINT_SLA_WARNING = "complaint_sla_warning",
@@ -61,18 +65,29 @@ export enum NotificationType {
   // Inventory
   INVENTORY_LOW = "inventory_low",
   INVENTORY_EXPIRING = "inventory_expiring",
-  INVENTORY_RECEIVED = "inventory_received",
+  INVENTORY_TRANSFER = "inventory_transfer",
 
   // Financial
-  TRANSACTION_COMPLETED = "transaction_completed",
-  PAYMENT_FAILED = "payment_failed",
-  DAILY_REPORT = "daily_report",
-  REVENUE_ALERT = "revenue_alert",
+  TRANSACTION_ALERT = "transaction_alert",
+  COLLECTION_DUE = "collection_due",
+  COLLECTION_COMPLETED = "collection_completed",
+  PAYMENT_RECEIVED = "payment_received",
+  REVENUE_MILESTONE = "revenue_milestone",
 
   // User
-  USER_WELCOME = "user_welcome",
-  PASSWORD_RESET = "password_reset",
-  ACCOUNT_SECURITY = "account_security",
+  USER_LOGIN = "user_login",
+  USER_INVITED = "user_invited",
+  PASSWORD_CHANGED = "password_changed",
+  ROLE_CHANGED = "role_changed",
+
+  // Contracts
+  CONTRACT_EXPIRING = "contract_expiring",
+  CONTRACT_EXPIRED = "contract_expired",
+  CONTRACT_PAYMENT_DUE = "contract_payment_due",
+
+  // Reports
+  REPORT_READY = "report_ready",
+  REPORT_SCHEDULED = "report_scheduled",
 
   // Custom
   CUSTOM = "custom",
@@ -340,38 +355,33 @@ export const NOTIFICATION_PRIORITY_LABELS: Record<
   [NotificationPriority.URGENT]: { ru: "Срочный", uz: "Shoshilinch" },
 };
 
-export const NOTIFICATION_TYPE_LABELS: Record<
-  NotificationType,
-  { ru: string; uz: string }
+export const NOTIFICATION_TYPE_LABELS: Partial<
+  Record<NotificationType, { ru: string; uz: string }>
 > = {
-  [NotificationType.SYSTEM_ALERT]: {
-    ru: "Системное оповещение",
-    uz: "Tizim ogohlantirishlari",
-  },
-  [NotificationType.SYSTEM_UPDATE]: {
-    ru: "Обновление системы",
-    uz: "Tizim yangilanishi",
-  },
-  [NotificationType.MACHINE_OFFLINE]: {
-    ru: "Автомат оффлайн",
-    uz: "Avtomat oflayn",
-  },
-  [NotificationType.MACHINE_ONLINE]: {
-    ru: "Автомат онлайн",
-    uz: "Avtomat onlayn",
-  },
-  [NotificationType.MACHINE_LOW_STOCK]: {
-    ru: "Низкий запас",
-    uz: "Kam zaxira",
+  [NotificationType.SYSTEM]: { ru: "Системное", uz: "Tizim" },
+  [NotificationType.ANNOUNCEMENT]: { ru: "Объявление", uz: "E'lon" },
+  [NotificationType.MAINTENANCE]: { ru: "Обслуживание", uz: "Texnik xizmat" },
+  [NotificationType.MACHINE_ALERT]: {
+    ru: "Оповещение автомата",
+    uz: "Avtomat ogohlantirishi",
   },
   [NotificationType.MACHINE_ERROR]: {
     ru: "Ошибка автомата",
     uz: "Avtomat xatosi",
   },
-  [NotificationType.MACHINE_MAINTENANCE]: {
-    ru: "Обслуживание",
-    uz: "Texnik xizmat",
+  [NotificationType.MACHINE_OFFLINE]: {
+    ru: "Автомат оффлайн",
+    uz: "Avtomat oflayn",
   },
+  [NotificationType.MACHINE_LOW_STOCK]: {
+    ru: "Низкий запас",
+    uz: "Kam zaxira",
+  },
+  [NotificationType.MACHINE_OUT_OF_STOCK]: {
+    ru: "Нет товара",
+    uz: "Mahsulot yo'q",
+  },
+  [NotificationType.MACHINE_TEMPERATURE]: { ru: "Температура", uz: "Harorat" },
   [NotificationType.TASK_ASSIGNED]: {
     ru: "Задача назначена",
     uz: "Vazifa tayinlandi",
@@ -388,9 +398,14 @@ export const NOTIFICATION_TYPE_LABELS: Record<
     ru: "Просроченная задача",
     uz: "Muddati o'tgan vazifa",
   },
+  [NotificationType.TASK_REMINDER]: { ru: "Напоминание", uz: "Eslatma" },
   [NotificationType.COMPLAINT_NEW]: {
     ru: "Новая жалоба",
     uz: "Yangi shikoyat",
+  },
+  [NotificationType.COMPLAINT_ASSIGNED]: {
+    ru: "Жалоба назначена",
+    uz: "Shikoyat tayinlandi",
   },
   [NotificationType.COMPLAINT_UPDATED]: {
     ru: "Жалоба обновлена",
@@ -404,42 +419,52 @@ export const NOTIFICATION_TYPE_LABELS: Record<
     ru: "Предупреждение SLA",
     uz: "SLA ogohlantirishi",
   },
-  [NotificationType.INVENTORY_LOW]: {
-    ru: "Низкий запас на складе",
-    uz: "Omborda kam zaxira",
-  },
+  [NotificationType.INVENTORY_LOW]: { ru: "Низкий запас", uz: "Kam zaxira" },
   [NotificationType.INVENTORY_EXPIRING]: {
-    ru: "Истекающий срок годности",
-    uz: "Yaroqlilik muddati tugayapti",
+    ru: "Истекает срок",
+    uz: "Muddati tugayapti",
   },
-  [NotificationType.INVENTORY_RECEIVED]: {
-    ru: "Товар получен",
-    uz: "Mahsulot qabul qilindi",
+  [NotificationType.INVENTORY_TRANSFER]: {
+    ru: "Перемещение товара",
+    uz: "Mahsulot ko'chirish",
   },
-  [NotificationType.TRANSACTION_COMPLETED]: {
-    ru: "Транзакция завершена",
-    uz: "Tranzaksiya yakunlandi",
+  [NotificationType.TRANSACTION_ALERT]: { ru: "Оповещение", uz: "Tranzaksiya" },
+  [NotificationType.COLLECTION_DUE]: { ru: "Инкассация", uz: "Inkassatsiya" },
+  [NotificationType.COLLECTION_COMPLETED]: {
+    ru: "Инкассация завершена",
+    uz: "Inkassatsiya yakunlandi",
   },
-  [NotificationType.PAYMENT_FAILED]: {
-    ru: "Ошибка платежа",
-    uz: "To'lov xatosi",
+  [NotificationType.PAYMENT_RECEIVED]: {
+    ru: "Платёж получен",
+    uz: "To'lov qabul qilindi",
   },
-  [NotificationType.DAILY_REPORT]: {
-    ru: "Ежедневный отчет",
-    uz: "Kunlik hisobot",
+  [NotificationType.REVENUE_MILESTONE]: { ru: "Выручка", uz: "Daromad" },
+  [NotificationType.USER_LOGIN]: { ru: "Вход в систему", uz: "Tizimga kirish" },
+  [NotificationType.USER_INVITED]: { ru: "Приглашение", uz: "Taklif" },
+  [NotificationType.PASSWORD_CHANGED]: {
+    ru: "Пароль изменён",
+    uz: "Parol o'zgartirildi",
   },
-  [NotificationType.REVENUE_ALERT]: {
-    ru: "Уведомление о выручке",
-    uz: "Daromad haqida xabar",
+  [NotificationType.ROLE_CHANGED]: {
+    ru: "Роль изменена",
+    uz: "Rol o'zgartirildi",
   },
-  [NotificationType.USER_WELCOME]: { ru: "Приветствие", uz: "Xush kelibsiz" },
-  [NotificationType.PASSWORD_RESET]: {
-    ru: "Сброс пароля",
-    uz: "Parolni tiklash",
+  [NotificationType.CONTRACT_EXPIRING]: {
+    ru: "Контракт истекает",
+    uz: "Shartnoma tugayapti",
   },
-  [NotificationType.ACCOUNT_SECURITY]: {
-    ru: "Безопасность аккаунта",
-    uz: "Hisob xavfsizligi",
+  [NotificationType.CONTRACT_EXPIRED]: {
+    ru: "Контракт истёк",
+    uz: "Shartnoma tugadi",
+  },
+  [NotificationType.CONTRACT_PAYMENT_DUE]: {
+    ru: "Оплата контракта",
+    uz: "Shartnoma to'lovi",
+  },
+  [NotificationType.REPORT_READY]: { ru: "Отчёт готов", uz: "Hisobot tayyor" },
+  [NotificationType.REPORT_SCHEDULED]: {
+    ru: "Отчёт запланирован",
+    uz: "Hisobot rejalashtirildi",
   },
   [NotificationType.CUSTOM]: { ru: "Пользовательское", uz: "Maxsus" },
 };
@@ -458,31 +483,44 @@ export const NOTIFICATION_CHANNEL_ICONS: Record<NotificationChannel, string> = {
   [NotificationChannel.WEBHOOK]: "🔗",
 };
 
-export const NOTIFICATION_TYPE_ICONS: Record<NotificationType, string> = {
-  [NotificationType.SYSTEM_ALERT]: "⚠️",
-  [NotificationType.SYSTEM_UPDATE]: "🔄",
-  [NotificationType.MACHINE_OFFLINE]: "🔴",
-  [NotificationType.MACHINE_ONLINE]: "🟢",
-  [NotificationType.MACHINE_LOW_STOCK]: "📦",
+export const NOTIFICATION_TYPE_ICONS: Partial<
+  Record<NotificationType, string>
+> = {
+  [NotificationType.SYSTEM]: "⚙️",
+  [NotificationType.ANNOUNCEMENT]: "📢",
+  [NotificationType.MAINTENANCE]: "🔧",
+  [NotificationType.MACHINE_ALERT]: "⚠️",
   [NotificationType.MACHINE_ERROR]: "❌",
-  [NotificationType.MACHINE_MAINTENANCE]: "🔧",
+  [NotificationType.MACHINE_OFFLINE]: "🔴",
+  [NotificationType.MACHINE_LOW_STOCK]: "📦",
+  [NotificationType.MACHINE_OUT_OF_STOCK]: "🚫",
+  [NotificationType.MACHINE_TEMPERATURE]: "🌡️",
   [NotificationType.TASK_ASSIGNED]: "📋",
   [NotificationType.TASK_UPDATED]: "✏️",
   [NotificationType.TASK_COMPLETED]: "✅",
   [NotificationType.TASK_OVERDUE]: "⏰",
+  [NotificationType.TASK_REMINDER]: "🔔",
   [NotificationType.COMPLAINT_NEW]: "🆕",
+  [NotificationType.COMPLAINT_ASSIGNED]: "👤",
   [NotificationType.COMPLAINT_UPDATED]: "📝",
   [NotificationType.COMPLAINT_RESOLVED]: "✅",
   [NotificationType.COMPLAINT_SLA_WARNING]: "⚠️",
   [NotificationType.INVENTORY_LOW]: "📉",
   [NotificationType.INVENTORY_EXPIRING]: "⏳",
-  [NotificationType.INVENTORY_RECEIVED]: "📥",
-  [NotificationType.TRANSACTION_COMPLETED]: "💰",
-  [NotificationType.PAYMENT_FAILED]: "💳",
-  [NotificationType.DAILY_REPORT]: "📊",
-  [NotificationType.REVENUE_ALERT]: "💵",
-  [NotificationType.USER_WELCOME]: "👋",
-  [NotificationType.PASSWORD_RESET]: "🔑",
-  [NotificationType.ACCOUNT_SECURITY]: "🔒",
+  [NotificationType.INVENTORY_TRANSFER]: "📥",
+  [NotificationType.TRANSACTION_ALERT]: "💰",
+  [NotificationType.COLLECTION_DUE]: "💵",
+  [NotificationType.COLLECTION_COMPLETED]: "✅",
+  [NotificationType.PAYMENT_RECEIVED]: "💳",
+  [NotificationType.REVENUE_MILESTONE]: "🎯",
+  [NotificationType.USER_LOGIN]: "🔑",
+  [NotificationType.USER_INVITED]: "👋",
+  [NotificationType.PASSWORD_CHANGED]: "🔐",
+  [NotificationType.ROLE_CHANGED]: "👤",
+  [NotificationType.CONTRACT_EXPIRING]: "📋",
+  [NotificationType.CONTRACT_EXPIRED]: "📋",
+  [NotificationType.CONTRACT_PAYMENT_DUE]: "💰",
+  [NotificationType.REPORT_READY]: "📊",
+  [NotificationType.REPORT_SCHEDULED]: "📅",
   [NotificationType.CUSTOM]: "📢",
 };

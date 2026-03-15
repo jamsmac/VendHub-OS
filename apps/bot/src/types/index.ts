@@ -13,9 +13,21 @@ export interface CartItem {
   image?: string;
 }
 
+/** Typed session payload — replaces Record<string, unknown> */
+export interface SessionPayload {
+  tripId?: string;
+  vehicleId?: string;
+  machineId?: string;
+  complaintMessage?: string;
+  photoId?: string;
+  notificationsEnabled?: boolean;
+  orderId?: string;
+  rating?: number;
+}
+
 export interface SessionData {
   step?: SessionStep;
-  data?: Record<string, unknown>;
+  data?: SessionPayload;
   machineId?: string;
   cart?: CartItem[];
   selectedProductId?: string;

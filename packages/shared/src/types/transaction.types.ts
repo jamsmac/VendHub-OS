@@ -17,6 +17,7 @@ export enum TransactionStatus {
   FAILED = "failed",
   REFUNDED = "refunded",
   CANCELLED = "cancelled",
+  PARTIALLY_REFUNDED = "partially_refunded",
 }
 
 export enum PaymentMethod {
@@ -210,6 +211,7 @@ export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
   [TransactionStatus.FAILED]: "Ошибка",
   [TransactionStatus.REFUNDED]: "Возврат",
   [TransactionStatus.CANCELLED]: "Отменено",
+  [TransactionStatus.PARTIALLY_REFUNDED]: "Частичный возврат",
 };
 
 // Transaction status colors
@@ -220,6 +222,7 @@ export const TRANSACTION_STATUS_COLORS: Record<TransactionStatus, string> = {
   [TransactionStatus.FAILED]: "bg-red-100 text-red-800",
   [TransactionStatus.REFUNDED]: "bg-purple-100 text-purple-800",
   [TransactionStatus.CANCELLED]: "bg-gray-100 text-gray-500",
+  [TransactionStatus.PARTIALLY_REFUNDED]: "bg-purple-100 text-purple-600",
 };
 
 // Currency codes
