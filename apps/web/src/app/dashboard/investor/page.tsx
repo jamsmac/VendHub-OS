@@ -74,7 +74,7 @@ const investorData = {
 
 const topLocations = [
   {
-    name: 'ТЦ "Навруз"',
+    name: 'TC "Navruz"',
     machines: 8,
     revenue: "45.7M",
     roi: 156,
@@ -83,7 +83,7 @@ const topLocations = [
     margin: 68.2,
   },
   {
-    name: 'БЦ "Пойтахт"',
+    name: 'BC "Poytakht"',
     machines: 5,
     revenue: "38.9M",
     roi: 142,
@@ -92,7 +92,7 @@ const topLocations = [
     margin: 65.1,
   },
   {
-    name: "ИНХА Университет",
+    name: "INHA University",
     machines: 12,
     revenue: "35.4M",
     roi: 128,
@@ -101,7 +101,7 @@ const topLocations = [
     margin: 62.4,
   },
   {
-    name: "Аэропорт Ташкент",
+    name: "Tashkent Airport",
     machines: 6,
     revenue: "32.1M",
     roi: 118,
@@ -110,7 +110,7 @@ const topLocations = [
     margin: 58.9,
   },
   {
-    name: 'ТЦ "Мега Планет"',
+    name: 'TC "Mega Planet"',
     machines: 10,
     revenue: "28.5M",
     roi: 105,
@@ -119,7 +119,7 @@ const topLocations = [
     margin: 55.3,
   },
   {
-    name: "Ташкент Сити",
+    name: "Tashkent City",
     machines: 4,
     revenue: "26.8M",
     roi: 134,
@@ -178,56 +178,56 @@ const dividends = [
 
 const documents = [
   {
-    name: "Годовой отчёт 2025",
+    name: "Annual Report 2025",
     date: "15.01.2026",
     type: "PDF",
     size: "2.4 MB",
     category: "financial" as const,
   },
   {
-    name: "Финансовая модель 2026",
+    name: "Financial Model 2026",
     date: "01.02.2026",
     type: "XLSX",
     size: "1.8 MB",
     category: "financial" as const,
   },
   {
-    name: "Презентация для инвесторов Q1",
+    name: "Investor Presentation Q1",
     date: "10.01.2026",
     type: "PPTX",
     size: "5.2 MB",
     category: "reports" as const,
   },
   {
-    name: "Аудит Ernst & Young 2025",
+    name: "Ernst & Young Audit 2025",
     date: "20.02.2026",
     type: "PDF",
     size: "3.1 MB",
     category: "legal" as const,
   },
   {
-    name: "Бизнес-план расширения 2026-2027",
+    name: "Expansion Business Plan 2026-2027",
     date: "01.03.2026",
     type: "PDF",
     size: "4.6 MB",
     category: "reports" as const,
   },
   {
-    name: "Договор с основным инвестором",
+    name: "Main Investor Agreement",
     date: "01.01.2025",
     type: "PDF",
     size: "0.8 MB",
     category: "legal" as const,
   },
   {
-    name: "Квартальный отчёт Q4 2025",
+    name: "Quarterly Report Q4 2025",
     date: "28.02.2026",
     type: "PDF",
     size: "3.2 MB",
     category: "reports" as const,
   },
   {
-    name: "Финансовый прогноз 2026-2028",
+    name: "Financial Forecast 2026-2028",
     date: "15.02.2026",
     type: "XLSX",
     size: "2.1 MB",
@@ -268,7 +268,7 @@ const competitors = [
     name: "VendHub",
     metrics: {
       machines: 156,
-      coverage: "7 районов",
+      coverage: "7 districts",
       avgCheck: "12.5K",
       monthlyRev: "118M",
       nps: 72,
@@ -278,7 +278,7 @@ const competitors = [
     name: "CoffeePro",
     metrics: {
       machines: 89,
-      coverage: "4 района",
+      coverage: "4 districts",
       avgCheck: "11.2K",
       monthlyRev: "65M",
       nps: 58,
@@ -288,7 +288,7 @@ const competitors = [
     name: "SnackMaster",
     metrics: {
       machines: 67,
-      coverage: "3 района",
+      coverage: "3 districts",
       avgCheck: "10.8K",
       monthlyRev: "52M",
       nps: 54,
@@ -298,7 +298,7 @@ const competitors = [
     name: "QuickBrew",
     metrics: {
       machines: 45,
-      coverage: "2 района",
+      coverage: "2 districts",
       avgCheck: "10.5K",
       monthlyRev: "38M",
       nps: 51,
@@ -1631,8 +1631,8 @@ export default function InvestorPage() {
                   },
                   {
                     label: t("opsKpis.maintenanceCost"),
-                    value: "450K UZS/м",
-                    target: "<500K/м",
+                    value: "450K UZS/mo",
+                    target: "<500K/mo",
                     icon: Zap,
                     color: "text-amber-600",
                   },
