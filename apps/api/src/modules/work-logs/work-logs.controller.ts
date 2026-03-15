@@ -68,7 +68,9 @@ export class WorkLogsController {
   @Post()
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Create work log" })
-  @ApiResponse({ status: 201, type: WorkLog })
+  @ApiResponse({ status: 201, description: "Work log created", type: WorkLog })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async createWorkLog(
     @CurrentOrganizationId() organizationId: string,
     @Body() dto: CreateWorkLogDto,
@@ -79,6 +81,12 @@ export class WorkLogsController {
   @Get()
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "List work logs" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of work logs",
+    type: [WorkLog],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAllWorkLogs(
     @CurrentOrganizationId() organizationId: string,
     @Query() query: WorkLogQueryDto,
@@ -89,6 +97,8 @@ export class WorkLogsController {
   @Get("stats")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Get work log statistics" })
+  @ApiResponse({ status: 200, description: "Returns work log statistics" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getStats(
     @CurrentOrganizationId() organizationId: string,
     @Query("employeeId") employeeId?: string,
@@ -106,6 +116,8 @@ export class WorkLogsController {
   @Get("attendance")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Get attendance report" })
+  @ApiResponse({ status: 200, description: "Returns attendance report" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getAttendance(
     @CurrentOrganizationId() organizationId: string,
     @Query("startDate") startDate: Date,
@@ -121,6 +133,12 @@ export class WorkLogsController {
   @Get("time-off")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "List time off requests" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of time off requests",
+    type: [TimeOffRequest],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAllTimeOffRequests(
     @CurrentOrganizationId() organizationId: string,
     @Query() query: TimeOffQueryDto,
@@ -131,6 +149,12 @@ export class WorkLogsController {
   @Get("timesheets")
   @Roles("manager", "admin", "owner", "accountant")
   @ApiOperation({ summary: "List timesheets" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of timesheets",
+    type: [Timesheet],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAllTimesheets(
     @CurrentOrganizationId() organizationId: string,
     @Query() query: TimesheetQueryDto,
@@ -141,6 +165,9 @@ export class WorkLogsController {
   @Get(":id")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Get work log by ID" })
+  @ApiResponse({ status: 200, description: "Work log found", type: WorkLog })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   async findOneWorkLog(
     @CurrentOrganizationId() organizationId: string,
@@ -152,6 +179,10 @@ export class WorkLogsController {
   @Put(":id")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Update work log" })
+  @ApiResponse({ status: 200, description: "Work log updated", type: WorkLog })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   async updateWorkLog(
     @CurrentOrganizationId() organizationId: string,
@@ -164,6 +195,9 @@ export class WorkLogsController {
   @Delete(":id")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Delete work log" })
+  @ApiResponse({ status: 204, description: "Work log deleted" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteWorkLog(
@@ -180,6 +214,13 @@ export class WorkLogsController {
   @Post("clock-in")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Clock in" })
+  @ApiResponse({
+    status: 201,
+    description: "Clocked in successfully",
+    type: WorkLog,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async clockIn(
     @CurrentOrganizationId() organizationId: string,
 
@@ -192,6 +233,13 @@ export class WorkLogsController {
   @Post("clock-out")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Clock out" })
+  @ApiResponse({
+    status: 201,
+    description: "Clocked out successfully",
+    type: WorkLog,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async clockOut(
     @CurrentOrganizationId() organizationId: string,
 
@@ -208,6 +256,13 @@ export class WorkLogsController {
   @Post(":id/submit")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Submit work log for approval" })
+  @ApiResponse({
+    status: 201,
+    description: "Work log submitted",
+    type: WorkLog,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   async submitWorkLog(
     @CurrentOrganizationId() organizationId: string,
@@ -219,6 +274,9 @@ export class WorkLogsController {
   @Post(":id/approve")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Approve work log" })
+  @ApiResponse({ status: 201, description: "Work log approved", type: WorkLog })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   async approveWorkLog(
     @CurrentOrganizationId() organizationId: string,
@@ -238,6 +296,9 @@ export class WorkLogsController {
   @Post(":id/reject")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Reject work log" })
+  @ApiResponse({ status: 201, description: "Work log rejected", type: WorkLog })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Work log not found" })
   @ApiParam({ name: "id", type: "string" })
   async rejectWorkLog(
     @CurrentOrganizationId() organizationId: string,
@@ -252,6 +313,9 @@ export class WorkLogsController {
   @Post("bulk-approve")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Bulk approve work logs" })
+  @ApiResponse({ status: 201, description: "Work logs bulk approved" })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async bulkApprove(
     @CurrentOrganizationId() organizationId: string,
     @CurrentUser() user: ICurrentUser,
@@ -267,6 +331,13 @@ export class WorkLogsController {
   @Post("time-off")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Create time off request" })
+  @ApiResponse({
+    status: 201,
+    description: "Time off request created",
+    type: TimeOffRequest,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async createTimeOffRequest(
     @CurrentOrganizationId() organizationId: string,
 
@@ -283,6 +354,13 @@ export class WorkLogsController {
   @Post("time-off/:id/approve")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Approve time off request" })
+  @ApiResponse({
+    status: 201,
+    description: "Time off request approved",
+    type: TimeOffRequest,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Time off request not found" })
   @ApiParam({ name: "id", type: "string" })
   async approveTimeOff(
     @CurrentOrganizationId() organizationId: string,
@@ -302,6 +380,13 @@ export class WorkLogsController {
   @Post("time-off/:id/reject")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Reject time off request" })
+  @ApiResponse({
+    status: 201,
+    description: "Time off request rejected",
+    type: TimeOffRequest,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Time off request not found" })
   @ApiParam({ name: "id", type: "string" })
   async rejectTimeOff(
     @CurrentOrganizationId() organizationId: string,
@@ -316,6 +401,13 @@ export class WorkLogsController {
   @Post("time-off/:id/cancel")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Cancel time off request" })
+  @ApiResponse({
+    status: 201,
+    description: "Time off request cancelled",
+    type: TimeOffRequest,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Time off request not found" })
   @ApiParam({ name: "id", type: "string" })
   async cancelTimeOff(
     @CurrentOrganizationId() organizationId: string,
@@ -333,6 +425,13 @@ export class WorkLogsController {
   @Post("timesheets")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Create timesheet" })
+  @ApiResponse({
+    status: 201,
+    description: "Timesheet created",
+    type: Timesheet,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async createTimesheet(
     @CurrentOrganizationId() organizationId: string,
     @Body() dto: CreateTimesheetDto,
@@ -343,6 +442,13 @@ export class WorkLogsController {
   @Post("timesheets/:id/submit")
   @Roles("operator", "manager", "admin", "owner")
   @ApiOperation({ summary: "Submit timesheet for approval" })
+  @ApiResponse({
+    status: 201,
+    description: "Timesheet submitted",
+    type: Timesheet,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Timesheet not found" })
   @ApiParam({ name: "id", type: "string" })
   async submitTimesheet(
     @CurrentOrganizationId() organizationId: string,
@@ -354,6 +460,13 @@ export class WorkLogsController {
   @Post("timesheets/:id/approve")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Approve timesheet" })
+  @ApiResponse({
+    status: 201,
+    description: "Timesheet approved",
+    type: Timesheet,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Timesheet not found" })
   @ApiParam({ name: "id", type: "string" })
   async approveTimesheet(
     @CurrentOrganizationId() organizationId: string,
@@ -373,6 +486,13 @@ export class WorkLogsController {
   @Post("timesheets/:id/mark-paid")
   @Roles("accountant", "admin", "owner")
   @ApiOperation({ summary: "Mark timesheet as paid" })
+  @ApiResponse({
+    status: 201,
+    description: "Timesheet marked as paid",
+    type: Timesheet,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Timesheet not found" })
   @ApiParam({ name: "id", type: "string" })
   async markTimesheetPaid(
     @CurrentOrganizationId() organizationId: string,

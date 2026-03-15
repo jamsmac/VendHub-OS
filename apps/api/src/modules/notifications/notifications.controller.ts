@@ -21,6 +21,7 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
+  ApiResponse,
 } from "@nestjs/swagger";
 import {
   NotificationsService,
@@ -32,6 +33,12 @@ import {
 import {
   NotificationType,
   NotificationStatus,
+} from "./entities/notification.entity";
+import {
+  Notification,
+  NotificationTemplate,
+  NotificationCampaign,
+  UserNotificationSettings,
 } from "./entities/notification.entity";
 import {
   SubscribePushDto,
@@ -90,6 +97,12 @@ export class NotificationsController {
   @ApiQuery({ name: "isRead", required: false, type: Boolean })
   @ApiQuery({ name: "page", required: false })
   @ApiQuery({ name: "limit", required: false })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of notifications",
+    type: [Notification],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getMyNotifications(
     @CurrentUserId() userId: string,
     @Query() query: Omit<QueryNotificationsDto, "userId">,
@@ -108,6 +121,8 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Get unread notifications count" })
+  @ApiResponse({ status: 200, description: "Returns unread count" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getUnreadCount(@CurrentUserId() userId: string) {
     const count = await this.notificationsService.getUnreadCount(userId);
     return { count };
@@ -124,6 +139,13 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Mark notification as read" })
+  @ApiResponse({
+    status: 200,
+    description: "Notification marked as read",
+    type: Notification,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Notification not found" })
   @HttpCode(HttpStatus.OK)
   async markAsRead(
     @Param("id", ParseUUIDPipe) id: string,
@@ -143,6 +165,8 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Mark all notifications as read" })
+  @ApiResponse({ status: 200, description: "All notifications marked as read" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @HttpCode(HttpStatus.OK)
   async markAllAsRead(@CurrentUserId() userId: string) {
     const count = await this.notificationsService.markAllAsRead(userId);
@@ -160,6 +184,9 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Delete notification" })
+  @ApiResponse({ status: 204, description: "Notification deleted" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Notification not found" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
     @Param("id", ParseUUIDPipe) id: string,
@@ -183,6 +210,12 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Get my notification settings" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns notification settings",
+    type: UserNotificationSettings,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getSettings(@CurrentUserId() userId: string) {
     return this.notificationsService.getSettings(userId);
   }
@@ -198,6 +231,13 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Update my notification settings" })
+  @ApiResponse({
+    status: 200,
+    description: "Notification settings updated",
+    type: UserNotificationSettings,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async updateSettings(
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
@@ -212,6 +252,13 @@ export class NotificationsController {
 
   @Post()
   @ApiOperation({ summary: "Create and send notification" })
+  @ApiResponse({
+    status: 201,
+    description: "Notification created",
+    type: Notification,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async create(
@@ -231,6 +278,13 @@ export class NotificationsController {
 
   @Post("send-templated")
   @ApiOperation({ summary: "Send templated notification" })
+  @ApiResponse({
+    status: 201,
+    description: "Templated notification sent",
+    type: Notification,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin", "manager")
   @HttpCode(HttpStatus.CREATED)
   async sendTemplated(
@@ -266,6 +320,12 @@ export class NotificationsController {
   @ApiQuery({ name: "dateTo", required: false })
   @ApiQuery({ name: "page", required: false })
   @ApiQuery({ name: "limit", required: false })
+  @ApiResponse({
+    status: 200,
+    description: "Returns organization notifications",
+    type: [Notification],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin", "manager")
   async getOrganizationNotifications(
     @CurrentOrganizationId() orgId: string,
@@ -280,6 +340,12 @@ export class NotificationsController {
 
   @Get("templates")
   @ApiOperation({ summary: "Get notification templates" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of templates",
+    type: [NotificationTemplate],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin", "manager")
   async getTemplates(@CurrentOrganizationId() orgId: string) {
     return this.notificationsService.getTemplates(orgId);
@@ -287,6 +353,13 @@ export class NotificationsController {
 
   @Get("templates/:id")
   @ApiOperation({ summary: "Get template by ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Template found",
+    type: NotificationTemplate,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Template not found" })
   @Roles("owner", "admin", "manager")
   async getTemplate(
     @Param("id", ParseUUIDPipe) id: string,
@@ -297,6 +370,13 @@ export class NotificationsController {
 
   @Post("templates")
   @ApiOperation({ summary: "Create notification template" })
+  @ApiResponse({
+    status: 201,
+    description: "Template created",
+    type: NotificationTemplate,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createTemplate(
@@ -311,6 +391,14 @@ export class NotificationsController {
 
   @Patch("templates/:id")
   @ApiOperation({ summary: "Update notification template" })
+  @ApiResponse({
+    status: 200,
+    description: "Template updated",
+    type: NotificationTemplate,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Template not found" })
   @Roles("owner", "admin")
   async updateTemplate(
     @Param("id", ParseUUIDPipe) id: string,
@@ -326,6 +414,12 @@ export class NotificationsController {
 
   @Get("campaigns")
   @ApiOperation({ summary: "Get notification campaigns" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns list of campaigns",
+    type: [NotificationCampaign],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin", "manager")
   async getCampaigns(@CurrentOrganizationId() orgId: string) {
     return this.notificationsService.getCampaigns(orgId);
@@ -333,6 +427,13 @@ export class NotificationsController {
 
   @Post("campaigns")
   @ApiOperation({ summary: "Create notification campaign" })
+  @ApiResponse({
+    status: 201,
+    description: "Campaign created",
+    type: NotificationCampaign,
+  })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createCampaign(
@@ -352,6 +453,13 @@ export class NotificationsController {
 
   @Post("campaigns/:id/start")
   @ApiOperation({ summary: "Start notification campaign" })
+  @ApiResponse({
+    status: 200,
+    description: "Campaign started",
+    type: NotificationCampaign,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Campaign not found" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async startCampaign(@Param("id", ParseUUIDPipe) id: string) {
@@ -364,6 +472,8 @@ export class NotificationsController {
 
   @Post("cleanup")
   @ApiOperation({ summary: "Cleanup old notifications" })
+  @ApiResponse({ status: 200, description: "Old notifications cleaned up" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async cleanup(@Body() dto: CleanupNotificationsDto) {
@@ -375,6 +485,8 @@ export class NotificationsController {
 
   @Post("process-queue")
   @ApiOperation({ summary: "Process notification queue manually" })
+  @ApiResponse({ status: 200, description: "Queue processed successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
   async processQueue() {
@@ -397,6 +509,9 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Register a Web Push subscription" })
+  @ApiResponse({ status: 201, description: "Push subscription registered" })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @HttpCode(HttpStatus.CREATED)
   async subscribePush(
     @Body() dto: SubscribePushDto,
@@ -424,6 +539,8 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Remove a Web Push subscription by endpoint" })
+  @ApiResponse({ status: 204, description: "Push subscription removed" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribePush(@Body() dto: UnsubscribePushDto) {
     await this.notificationsService.unsubscribePush(dto.endpoint);
@@ -444,6 +561,9 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Register an FCM device token" })
+  @ApiResponse({ status: 201, description: "FCM token registered" })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @HttpCode(HttpStatus.CREATED)
   async registerFcm(
     @Body() dto: RegisterFcmDto,
@@ -471,6 +591,8 @@ export class NotificationsController {
     "owner",
   )
   @ApiOperation({ summary: "Remove an FCM device token" })
+  @ApiResponse({ status: 204, description: "FCM token removed" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async unregisterFcm(@Body() dto: UnregisterFcmDto) {
     await this.notificationsService.unregisterFcm(dto.token);
