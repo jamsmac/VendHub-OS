@@ -69,37 +69,37 @@ const revenueByDay = [
 
 const profitTrend = [
   {
-    month: "Сен",
+    month: "Sep",
     revenue: 520_000_000,
     expenses: 210_000_000,
     profit: 310_000_000,
   },
   {
-    month: "Окт",
+    month: "Oct",
     revenue: 580_000_000,
     expenses: 230_000_000,
     profit: 350_000_000,
   },
   {
-    month: "Ноя",
+    month: "Nov",
     revenue: 640_000_000,
     expenses: 250_000_000,
     profit: 390_000_000,
   },
   {
-    month: "Дек",
+    month: "Dec",
     revenue: 720_000_000,
     expenses: 280_000_000,
     profit: 440_000_000,
   },
   {
-    month: "Янв",
+    month: "Jan",
     revenue: 780_000_000,
     expenses: 300_000_000,
     profit: 480_000_000,
   },
   {
-    month: "Фев",
+    month: "Feb",
     revenue: 847_000_000,
     expenses: 312_000_000,
     profit: 535_000_000,
@@ -108,7 +108,7 @@ const profitTrend = [
 
 const pAndLData = [
   {
-    month: "Янв",
+    month: "Jan",
     revenue: 780_000_000,
     cogs: 312_000_000,
     grossProfit: 468_000_000,
@@ -121,7 +121,7 @@ const pAndLData = [
     margin: 38.2,
   },
   {
-    month: "Фев",
+    month: "Feb",
     revenue: 847_000_000,
     cogs: 325_000_000,
     grossProfit: 522_000_000,
@@ -181,22 +181,22 @@ const cashFlowData = [
 ];
 
 const expenseCategories = [
-  { name: "Закупки", amount: 156_780_000, percent: 50.2, color: "#3b82f6" },
-  { name: "Зарплата", amount: 67_500_000, percent: 21.6, color: "#10b981" },
-  { name: "Аренда", amount: 45_000_000, percent: 14.4, color: "#f59e0b" },
-  { name: "Обслуживание", amount: 23_450_000, percent: 7.5, color: "#8b5cf6" },
-  { name: "Транспорт", amount: 12_340_000, percent: 3.9, color: "#06b6d4" },
-  { name: "Прочее", amount: 7_380_000, percent: 2.4, color: "#6b7280" },
+  { name: "Purchases", amount: 156_780_000, percent: 50.2, color: "#3b82f6" },
+  { name: "Salary", amount: 67_500_000, percent: 21.6, color: "#10b981" },
+  { name: "Rent", amount: 45_000_000, percent: 14.4, color: "#f59e0b" },
+  { name: "Maintenance", amount: 23_450_000, percent: 7.5, color: "#8b5cf6" },
+  { name: "Transport", amount: 12_340_000, percent: 3.9, color: "#06b6d4" },
+  { name: "Other", amount: 7_380_000, percent: 2.4, color: "#6b7280" },
 ];
 
 const paymentMethodBreakdown = [
-  { name: "Наличные", value: 245_000_000, percent: 28.9, color: "#10b981" },
+  { name: "Cash", value: 245_000_000, percent: 28.9, color: "#10b981" },
   { name: "Payme", value: 189_000_000, percent: 22.3, color: "#06b6d4" },
   { name: "Click", value: 156_000_000, percent: 18.4, color: "#3b82f6" },
   { name: "UZCARD", value: 124_000_000, percent: 14.6, color: "#0ea5e9" },
   { name: "Uzum", value: 89_000_000, percent: 10.5, color: "#8b5cf6" },
   { name: "HUMO", value: 34_250_000, percent: 4.0, color: "#06b6d4" },
-  { name: "Бонусы", value: 10_000_000, percent: 1.2, color: "#ec4899" },
+  { name: "Bonuses", value: 10_000_000, percent: 1.2, color: "#ec4899" },
 ];
 
 const dailyTransactionVolume = [
@@ -219,7 +219,7 @@ const invoices = [
     amount: 8_750_000,
     status: "pending" as const,
     items: 12,
-    description: "Поставка напитков — март",
+    description: "Beverage delivery — Mar",
   },
   {
     id: "INV-2026-0088",
@@ -230,7 +230,7 @@ const invoices = [
     amount: 6_340_000,
     status: "pending" as const,
     items: 8,
-    description: "Снеки и конфеты",
+    description: "Snacks & candy",
   },
   {
     id: "INV-2026-0087",
@@ -241,7 +241,7 @@ const invoices = [
     amount: 4_500_000,
     status: "overdue" as const,
     items: 1,
-    description: "Аренда серверов — Q1",
+    description: "Server rental — Q1",
   },
   {
     id: "INV-2026-0086",
@@ -252,7 +252,7 @@ const invoices = [
     amount: 5_670_000,
     status: "paid" as const,
     items: 6,
-    description: "Напитки — партия 12",
+    description: "Beverages — batch 12",
   },
   {
     id: "INV-2026-0085",
@@ -263,7 +263,7 @@ const invoices = [
     amount: 5_500_000,
     status: "paid" as const,
     items: 1,
-    description: "Аренда — март",
+    description: "Rent — Mar",
   },
   {
     id: "INV-2026-0084",
@@ -274,62 +274,62 @@ const invoices = [
     amount: 3_200_000,
     status: "paid" as const,
     items: 4,
-    description: "Кофейные зёрна",
+    description: "Coffee beans",
   },
 ];
 
 function generateTransactions() {
   const categories = [
     {
-      cat: "Продажи",
+      cat: "Sales",
       type: "income" as const,
       desc: (i: number) =>
-        `Инкассация VM-${String(i * 3 + 1).padStart(3, "0")} — VM-${String(i * 3 + 15).padStart(3, "0")}`,
+        `Cash collection VM-${String(i * 3 + 1).padStart(3, "0")} — VM-${String(i * 3 + 15).padStart(3, "0")}`,
     },
     {
-      cat: "Безналичные",
+      cat: "Non-cash",
       type: "income" as const,
-      desc: () => "Payme транзакции",
+      desc: () => "Payme transactions",
     },
     {
-      cat: "Безналичные",
+      cat: "Non-cash",
       type: "income" as const,
-      desc: () => "Click транзакции",
+      desc: () => "Click transactions",
     },
     {
-      cat: "Безналичные",
+      cat: "Non-cash",
       type: "income" as const,
-      desc: () => "Uzum транзакции",
+      desc: () => "Uzum transactions",
     },
     {
-      cat: "Закупки",
+      cat: "Purchases",
       type: "expense" as const,
-      desc: () => "Пополнение запасов — напитки",
+      desc: () => "Stock refill — beverages",
     },
     {
-      cat: "Обслуживание",
+      cat: "Maintenance",
       type: "expense" as const,
-      desc: (i: number) => `Ремонт VM-${String(i + 10).padStart(3, "0")}`,
+      desc: (i: number) => `Repair VM-${String(i + 10).padStart(3, "0")}`,
     },
     {
-      cat: "Зарплата",
+      cat: "Salary",
       type: "expense" as const,
-      desc: () => "Аванс — март 2026",
+      desc: () => "Advance — Mar 2026",
     },
     {
-      cat: "Аренда",
+      cat: "Rent",
       type: "expense" as const,
-      desc: () => "Аренда точек — март",
+      desc: () => "Location rent — Mar",
     },
     {
-      cat: "Транспорт",
+      cat: "Transport",
       type: "expense" as const,
-      desc: () => "Логистика — доставка",
+      desc: () => "Logistics — delivery",
     },
     {
-      cat: "Безналичные",
+      cat: "Non-cash",
       type: "income" as const,
-      desc: () => "HUMO транзакции",
+      desc: () => "HUMO transactions",
     },
   ];
   const payments = [
@@ -372,7 +372,7 @@ function generateTransactions() {
       status: statuses[i % statuses.length],
       ref: `${tmpl.type === "income" ? "INC" : "EXP"}-2026-${String(i + 1).padStart(4, "0")}`,
       collector:
-        tmpl.type === "income" && tmpl.cat === "Продажи"
+        tmpl.type === "income" && tmpl.cat === "Sales"
           ? ["Азиз Каримов", "Бахтиёр Усмонов", "Равшан Мирзаев"][i % 3]
           : undefined,
     };
@@ -384,7 +384,7 @@ const transactions = generateTransactions();
 const paymentSystems = [
   {
     id: "cash",
-    name: "Наличные",
+    name: "Cash",
     balance: 45_670_000,
     pending: 0,
     todayVolume: 4_567_000,
@@ -459,7 +459,7 @@ const reconciliationItems = [
   },
   {
     id: 3,
-    source: "Инкассация",
+    source: "Cash collection",
     date: "28.02.2026",
     systemAmount: 4_567_000,
     actualAmount: 4_520_000,
@@ -477,7 +477,7 @@ const reconciliationItems = [
   },
   {
     id: 5,
-    source: "Инкассация",
+    source: "Cash collection",
     date: "27.02.2026",
     systemAmount: 5_230_000,
     actualAmount: 5_230_000,
@@ -553,42 +553,42 @@ const fiscalReportData = [
 
 const budgetData = [
   {
-    category: "Закупки напитков",
+    category: "Beverage purchases",
     budget: 180_000_000,
     actual: 156_780_000,
     variance: 23_220_000,
     utilization: 87.1,
   },
   {
-    category: "Зарплата",
+    category: "Salary",
     budget: 75_000_000,
     actual: 67_500_000,
     variance: 7_500_000,
     utilization: 90,
   },
   {
-    category: "Аренда",
+    category: "Rent",
     budget: 45_000_000,
     actual: 45_000_000,
     variance: 0,
     utilization: 100,
   },
   {
-    category: "Обслуживание",
+    category: "Maintenance",
     budget: 30_000_000,
     actual: 23_450_000,
     variance: 6_550_000,
     utilization: 78.2,
   },
   {
-    category: "Маркетинг",
+    category: "Marketing",
     budget: 20_000_000,
     actual: 18_900_000,
     variance: 1_100_000,
     utilization: 94.5,
   },
   {
-    category: "Логистика",
+    category: "Logistics",
     budget: 15_000_000,
     actual: 12_340_000,
     variance: 2_660_000,

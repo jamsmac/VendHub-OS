@@ -52,7 +52,7 @@ export function useFinanceTransactions(limit = 50) {
           id: d.id,
           type: "expense",
           category: "bank_deposit",
-          description: d.notes ?? "Банковский депозит",
+          description: d.notes ?? "Bank deposit",
           amount: d.amount,
           counterparty_id: null,
           counterparty_name: null,
