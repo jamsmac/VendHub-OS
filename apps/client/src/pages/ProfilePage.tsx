@@ -3,9 +3,9 @@
  * User profile with settings and preferences
  */
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   User,
@@ -24,12 +24,12 @@ import {
   QrCode,
   History,
   Heart,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import type { LucideIcon } from 'lucide-react';
+} from "lucide-react";
+import { toast } from "sonner";
+import type { LucideIcon } from "lucide-react";
 
-type Language = 'ru' | 'uz' | 'en';
-type Theme = 'light' | 'dark' | 'system';
+type Language = "ru" | "uz" | "en";
+type Theme = "light" | "dark" | "system";
 
 interface MenuItem {
   icon: LucideIcon;
@@ -42,17 +42,17 @@ interface MenuItem {
 }
 
 const languages: Record<Language, string> = {
-  ru: 'Русский',
+  ru: "Russkiy",
   uz: "O'zbekcha",
-  en: 'English',
+  en: "English",
 };
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>("system");
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState<Language>(
-    (i18n.language as Language) || 'ru'
+    (i18n.language as Language) || "ru",
   );
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
@@ -60,109 +60,127 @@ export function ProfilePage() {
     setLanguage(lang);
     i18n.changeLanguage(lang);
     setShowLanguagePicker(false);
-    toast.success(t('languageChangedTo', { lang: languages[lang] }));
+    toast.success(t("languageChangedTo", { lang: languages[lang] }));
   };
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
     // Apply theme
-    if (newTheme === 'system') {
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', systemDark);
+    if (newTheme === "system") {
+      const systemDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      document.documentElement.classList.toggle("dark", systemDark);
     } else {
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+      document.documentElement.classList.toggle("dark", newTheme === "dark");
     }
-    toast.success(t('themeChanged'));
+    toast.success(t("themeChanged"));
   };
 
   const menuItems: { group: string; items: MenuItem[] }[] = [
     {
-      group: t('profileGroupAccount'),
+      group: t("profileGroupAccount"),
       items: [
         {
           icon: History,
-          label: t('purchaseHistory'),
-          href: '/transactions',
+          label: t("purchaseHistory"),
+          href: "/transactions",
         },
         {
           icon: Heart,
-          label: t('favoriteMachines'),
-          href: '/favorites',
+          label: t("favoriteMachines"),
+          href: "/favorites",
         },
         {
           icon: QrCode,
-          label: t('scanQR'),
-          href: '/scan',
+          label: t("scanQR"),
+          href: "/scan",
         },
       ],
     },
     {
-      group: t('settings'),
+      group: t("settings"),
       items: [
         {
           icon: Globe,
-          label: t('language'),
+          label: t("language"),
           value: languages[language],
           onClick: () => setShowLanguagePicker(true),
         },
         {
-          icon: theme === 'dark' ? Moon : Sun,
-          label: t('profileTheme'),
-          value: theme === 'light' ? t('themeLight') : theme === 'dark' ? t('themeDark') : t('themeSystem'),
-          onClick: () => handleThemeChange(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'),
+          icon: theme === "dark" ? Moon : Sun,
+          label: t("profileTheme"),
+          value:
+            theme === "light"
+              ? t("themeLight")
+              : theme === "dark"
+                ? t("themeDark")
+                : t("themeSystem"),
+          onClick: () =>
+            handleThemeChange(
+              theme === "light"
+                ? "dark"
+                : theme === "dark"
+                  ? "system"
+                  : "light",
+            ),
         },
         {
           icon: Bell,
-          label: t('notifications'),
+          label: t("notifications"),
           toggle: true,
           value: notifications,
           onClick: () => {
             setNotifications(!notifications);
-            toast.success(notifications ? t('notificationsDisabled') : t('notificationsEnabled'));
+            toast.success(
+              notifications
+                ? t("notificationsDisabled")
+                : t("notificationsEnabled"),
+            );
           },
         },
       ],
     },
     {
-      group: t('profileGroupSupport'),
+      group: t("profileGroupSupport"),
       items: [
         {
           icon: MessageCircle,
-          label: t('telegramBot'),
-          href: 'https://t.me/VendHubBot',
+          label: t("telegramBot"),
+          href: "https://t.me/VendHubBot",
           external: true,
         },
         {
           icon: Phone,
-          label: t('hotline'),
-          value: '+998 71 200 00 00',
-          onClick: () => window.open('tel:+998712000000'),
+          label: t("hotline"),
+          value: "+998 71 200 00 00",
+          onClick: () => window.open("tel:+998712000000"),
         },
         {
           icon: Mail,
-          label: t('supportEmail'),
-          value: 'support@vendhub.uz',
-          onClick: () => window.open('mailto:support@vendhub.uz'),
+          label: t("supportEmail"),
+          value: "support@vendhub.uz",
+          onClick: () => window.open("mailto:support@vendhub.uz"),
         },
         {
           icon: HelpCircle,
-          label: t('faq'),
-          href: '/faq',
+          label: t("faq"),
+          href: "/faq",
         },
       ],
     },
     {
-      group: t('profileGroupInfo'),
+      group: t("profileGroupInfo"),
       items: [
         {
           icon: FileText,
-          label: t('termsOfService'),
-          href: '/terms',
+          label: t("termsOfService"),
+          href: "/terms",
         },
         {
           icon: Shield,
-          label: t('privacyPolicy'),
-          href: '/privacy',
+          label: t("privacyPolicy"),
+          href: "/privacy",
         },
       ],
     },
@@ -178,7 +196,7 @@ export function ProfilePage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-xl font-bold">{t('profile')}</h1>
+        <h1 className="text-xl font-bold">{t("profile")}</h1>
       </div>
 
       {/* User Card */}
@@ -188,9 +206,9 @@ export function ProfilePage() {
             <User className="w-8 h-8 text-primary" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">{t('guest')}</h2>
+            <h2 className="text-lg font-semibold">{t("guest")}</h2>
             <p className="text-sm text-muted-foreground">
-              {t('loginToSaveHistory')}
+              {t("loginToSaveHistory")}
             </p>
           </div>
         </div>
@@ -198,11 +216,15 @@ export function ProfilePage() {
         <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t">
           <Link to="/transactions" className="text-center">
             <p className="text-2xl font-bold text-primary">0</p>
-            <p className="text-xs text-muted-foreground">{t('profilePurchases')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("profilePurchases")}
+            </p>
           </Link>
           <Link to="/favorites" className="text-center">
             <p className="text-2xl font-bold text-primary">0</p>
-            <p className="text-xs text-muted-foreground">{t('profileFavorites')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("profileFavorites")}
+            </p>
           </Link>
           <div className="text-center">
             <p className="text-2xl font-bold text-primary">0</p>
@@ -227,7 +249,7 @@ export function ProfilePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium">{item.label}</p>
-                    {item.value && typeof item.value === 'string' && (
+                    {item.value && typeof item.value === "string" && (
                       <p className="text-sm text-muted-foreground truncate">
                         {item.value}
                       </p>
@@ -237,12 +259,12 @@ export function ProfilePage() {
                     <button
                       onClick={item.onClick}
                       className={`w-12 h-6 rounded-full transition-colors ${
-                        item.value ? 'bg-primary' : 'bg-muted'
+                        item.value ? "bg-primary" : "bg-muted"
                       }`}
                     >
                       <div
                         className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                          item.value ? 'translate-x-6' : 'translate-x-0.5'
+                          item.value ? "translate-x-6" : "translate-x-0.5"
                         }`}
                       />
                     </button>
@@ -256,7 +278,11 @@ export function ProfilePage() {
 
               if (item.href && !item.external) {
                 return (
-                  <Link key={idx} to={item.href} className="block hover:bg-muted/50 transition-colors">
+                  <Link
+                    key={idx}
+                    to={item.href}
+                    className="block hover:bg-muted/50 transition-colors"
+                  >
                     {content}
                   </Link>
                 );
@@ -292,11 +318,9 @@ export function ProfilePage() {
 
       {/* App Version */}
       <div className="text-center py-4">
-        <p className="text-xs text-muted-foreground">
-          VendHub v1.0.0
-        </p>
+        <p className="text-xs text-muted-foreground">VendHub v1.0.0</p>
         <p className="text-xs text-muted-foreground mt-1">
-          {t('allRightsReserved')}
+          {t("allRightsReserved")}
         </p>
       </div>
 
@@ -304,27 +328,31 @@ export function ProfilePage() {
       {showLanguagePicker && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
           <div className="bg-background rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-center">{t('chooseLanguage')}</h3>
+            <h3 className="text-lg font-semibold text-center">
+              {t("chooseLanguage")}
+            </h3>
             <div className="space-y-2">
-              {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
-                <button
-                  key={code}
-                  onClick={() => handleLanguageChange(code)}
-                  className={`w-full p-4 rounded-xl text-left transition-colors ${
-                    language === code
-                      ? 'bg-primary text-white'
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
+              {(Object.entries(languages) as [Language, string][]).map(
+                ([code, name]) => (
+                  <button
+                    key={code}
+                    onClick={() => handleLanguageChange(code)}
+                    className={`w-full p-4 rounded-xl text-left transition-colors ${
+                      language === code
+                        ? "bg-primary text-white"
+                        : "bg-muted hover:bg-muted/80"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                ),
+              )}
             </div>
             <button
               onClick={() => setShowLanguagePicker(false)}
               className="w-full py-3 border border-border rounded-xl font-medium"
             >
-              {t('cancel')}
+              {t("cancel")}
             </button>
           </div>
         </div>

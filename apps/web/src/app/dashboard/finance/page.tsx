@@ -236,7 +236,7 @@ const invoices = [
     id: "INV-2026-0087",
     date: "20.02.2026",
     dueDate: "20.03.2026",
-    counterparty: "ООО Технопарк",
+    counterparty: "OOO Tekhnopark",
     type: "outgoing" as const,
     amount: 4_500_000,
     status: "overdue" as const,
@@ -258,7 +258,7 @@ const invoices = [
     id: "INV-2026-0085",
     date: "15.02.2026",
     dueDate: "15.03.2026",
-    counterparty: "ТЦ Навруз",
+    counterparty: "TC Navruz",
     type: "outgoing" as const,
     amount: 5_500_000,
     status: "paid" as const,
@@ -269,7 +269,7 @@ const invoices = [
     id: "INV-2026-0084",
     date: "10.02.2026",
     dueDate: "10.03.2026",
-    counterparty: "ООО Арома-Кофе",
+    counterparty: "OOO Aroma-Kofe",
     type: "incoming" as const,
     amount: 3_200_000,
     status: "paid" as const,
@@ -373,7 +373,7 @@ function generateTransactions() {
       ref: `${tmpl.type === "income" ? "INC" : "EXP"}-2026-${String(i + 1).padStart(4, "0")}`,
       collector:
         tmpl.type === "income" && tmpl.cat === "Sales"
-          ? ["Азиз Каримов", "Бахтиёр Усмонов", "Равшан Мирзаев"][i % 3]
+          ? ["Aziz Karimov", "Bakhtiyor Usmonov", "Ravshan Mirzaev"][i % 3]
           : undefined,
     };
   });

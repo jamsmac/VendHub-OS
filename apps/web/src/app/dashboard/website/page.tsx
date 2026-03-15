@@ -146,15 +146,14 @@ function getContentSections(
         {
           key: "hero_title",
           label: t("fieldTitle"),
-          value: "Кофе, который вас разбудит",
+          value: "Coffee that wakes you up",
           saved: true,
           charLimit: 80,
         },
         {
           key: "hero_subtitle",
           label: t("fieldSubtitle"),
-          value:
-            "Премиальный кофе из автоматов VendHub. Свежий. Горячий. 24/7.",
+          value: "Premium coffee from VendHub machines. Fresh. Hot. 24/7.",
           saved: true,
           isLong: true,
           charLimit: 200,
@@ -182,7 +181,7 @@ function getContentSections(
         {
           key: "feat_title",
           label: t("fieldTitle"),
-          value: "Почему VendHub?",
+          value: "Why VendHub?",
           saved: true,
           charLimit: 60,
         },
@@ -209,14 +208,14 @@ function getContentSections(
         {
           key: "prod_title",
           label: t("fieldTitle"),
-          value: "Наше меню",
+          value: "Our Menu",
           saved: true,
           charLimit: 60,
         },
         {
           key: "prod_desc",
           label: t("fieldDescription"),
-          value: "22 премиальных напитков и закусок на любой вкус",
+          value: "22 premium drinks and snacks for every taste",
           saved: true,
           isLong: true,
           charLimit: 200,
@@ -241,13 +240,14 @@ function getContentSections(
         {
           key: "loc_title",
           label: t("fieldTitle"),
-          value: "Где нас найти",
+          value: "Where to Find Us",
           saved: true,
         },
         {
           key: "loc_text",
           label: t("fieldDescription"),
-          value: "Наши автоматы расположены в самых посещаемых местах Ташкента",
+          value:
+            "Our machines are located in the most visited places in Tashkent",
           saved: true,
           charLimit: 200,
         },
@@ -278,7 +278,7 @@ function getContentSections(
         {
           key: "address",
           label: t("fieldAddress"),
-          value: "Ташкент, ул. Мустакиллик 59, офис 402",
+          value: "Tashkent, Mustaqillik st. 59, office 402",
           saved: true,
         },
       ],
@@ -298,7 +298,8 @@ function getContentSections(
         {
           key: "meta_title",
           label: "Meta Title",
-          value: "VendHub — кофейные автоматы в Ташкенте | Свежий кофе 24/7",
+          value:
+            "VendHub — Coffee Vending Machines in Tashkent | Fresh Coffee 24/7",
           saved: true,
           charLimit: 60,
         },
@@ -306,7 +307,7 @@ function getContentSections(
           key: "meta_desc",
           label: "Meta Description",
           value:
-            "Премиальный кофе из автоматов VendHub. 22 напитка, 16 точек по Ташкенту. Оплата Payme, Click, UZUM, наличные.",
+            "Premium coffee from VendHub machines. 22 drinks, 16 locations in Tashkent. Pay with Payme, Click, UZUM, cash.",
           saved: true,
           charLimit: 160,
         },
@@ -326,10 +327,10 @@ function getContentSections(
 const PARTNERS: Partner[] = [
   {
     id: "1",
-    name: "ТЦ Мега Планет",
+    name: "Mega Planet Mall",
     type: "location",
     status: "active",
-    contact: "Алишер Х.",
+    contact: "Alisher Kh.",
     phone: "+998 90 123 45 67",
     since: "2025-08-15",
     machines: 2,
@@ -337,14 +338,14 @@ const PARTNERS: Partner[] = [
     contractStart: "2025-08-15",
     contractEnd: "2027-08-14",
     commission: 15,
-    notes: "ТЦ в центре Ташкента, высокая посещаемость",
+    notes: "Mall in central Tashkent, high foot traffic",
   },
   {
     id: "2",
     name: "IT Park Tashkent",
     type: "location",
     status: "active",
-    contact: "Бахтиёр М.",
+    contact: "Bakhtiyor M.",
     phone: "+998 91 234 56 78",
     since: "2025-09-01",
     machines: 1,
@@ -355,10 +356,10 @@ const PARTNERS: Partner[] = [
   },
   {
     id: "3",
-    name: "ИНХА Университет",
+    name: "INHA University",
     type: "location",
     status: "active",
-    contact: "Шахзод К.",
+    contact: "Shahzod K.",
     phone: "+998 93 345 67 89",
     since: "2025-10-10",
     machines: 1,
@@ -369,10 +370,10 @@ const PARTNERS: Partner[] = [
   },
   {
     id: "4",
-    name: "ТРЦ Samarqand Darvoza",
+    name: "Samarqand Darvoza Mall",
     type: "location",
     status: "active",
-    contact: "Нодира А.",
+    contact: "Nodira A.",
     phone: "+998 94 456 78 90",
     since: "2025-11-20",
     machines: 1,
@@ -411,7 +412,7 @@ const PARTNERS: Partner[] = [
     name: "Lavazza",
     type: "supplier",
     status: "active",
-    contact: "Дмитрий В.",
+    contact: "Dmitriy V.",
     phone: "+998 90 987 65 43",
     since: "2025-07-01",
     machines: 0,
@@ -419,10 +420,10 @@ const PARTNERS: Partner[] = [
   },
   {
     id: "8",
-    name: "ТехноСервис",
+    name: "TekhnoServis",
     type: "service",
     status: "active",
-    contact: "Фарход И.",
+    contact: "Farkhod I.",
     phone: "+998 91 876 54 32",
     since: "2025-08-01",
     machines: 0,
@@ -548,21 +549,21 @@ function getPagePerformance(
 
 const KEYWORD_RANKINGS: KeywordRanking[] = [
   {
-    keyword: "кофейные автоматы Ташкент",
+    keyword: "coffee vending machines Tashkent",
     position: 3,
     change: 1,
     searchVolume: 2400,
     difficulty: 65,
   },
   {
-    keyword: "вендинг кофе",
+    keyword: "vending coffee",
     position: 5,
     change: -1,
     searchVolume: 1800,
     difficulty: 58,
   },
   {
-    keyword: "кофе автомат",
+    keyword: "coffee machine",
     position: 2,
     change: 0,
     searchVolume: 3200,
@@ -576,42 +577,42 @@ const KEYWORD_RANKINGS: KeywordRanking[] = [
     difficulty: 15,
   },
   {
-    keyword: "купить кофе на работу",
+    keyword: "buy coffee at work",
     position: 8,
     change: 2,
     searchVolume: 1200,
     difficulty: 42,
   },
   {
-    keyword: "вендинг Узбекистан",
+    keyword: "vending Uzbekistan",
     position: 12,
     change: -2,
     searchVolume: 900,
     difficulty: 55,
   },
   {
-    keyword: "кофе автомат Узбекистан",
+    keyword: "coffee machine Uzbekistan",
     position: 4,
     change: 1,
     searchVolume: 1500,
     difficulty: 68,
   },
   {
-    keyword: "горячие напитки автомат",
+    keyword: "hot drinks vending machine",
     position: 6,
     change: 0,
     searchVolume: 2100,
     difficulty: 48,
   },
   {
-    keyword: "вендинг оборудование",
+    keyword: "vending equipment",
     position: 9,
     change: 1,
     searchVolume: 800,
     difficulty: 62,
   },
   {
-    keyword: "кофейные машины",
+    keyword: "coffee machines",
     position: 11,
     change: -1,
     searchVolume: 950,
@@ -903,23 +904,24 @@ function SeoTab() {
   const [seoPages, _setSeoPages] = useState([
     {
       path: "/",
-      title: "VendHub — кофейные автоматы в Ташкенте | Свежий кофе 24/7",
+      title:
+        "VendHub — Coffee Vending Machines in Tashkent | Fresh Coffee 24/7",
       description:
-        "Премиальный кофе из автоматов VendHub. 22 напитка, 16 точек по Ташкенту.",
+        "Premium coffee from VendHub machines. 22 drinks, 16 locations in Tashkent.",
       ogImage: "/og-home.jpg",
     },
     {
       path: "/menu",
-      title: "Меню VendHub — все напитки и закуски",
+      title: "VendHub Menu — All Drinks and Snacks",
       description:
-        "Полное меню с 22 премиальными напитками и закусками. Состав, цены, калории.",
+        "Full menu with 22 premium drinks and snacks. Ingredients, prices, calories.",
       ogImage: "/og-menu.jpg",
     },
     {
       path: "/locations",
-      title: "Локации VendHub в Ташкенте — все адреса",
+      title: "VendHub Locations in Tashkent — All Addresses",
       description:
-        "Найдите ближайший автомат VendHub. Интерактивная карта всех 16 точек.",
+        "Find the nearest VendHub machine. Interactive map of all 16 locations.",
       ogImage: "/og-locations.jpg",
     },
   ]);
@@ -1140,7 +1142,7 @@ function SeoTab() {
   );
 }
 
-// ═══ Tab: Аналитика ═══
+// ═══ Tab: Analytics ═══
 
 function AnalyticsTab() {
   const t = useTranslations("websiteMgmt");
@@ -1289,7 +1291,7 @@ function AnalyticsTab() {
   );
 }
 
-// ═══ Tab: Настройки ═══
+// ═══ Tab: Settings ═══
 
 function SettingsTab() {
   const t = useTranslations("websiteMgmt");

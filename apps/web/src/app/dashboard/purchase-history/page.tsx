@@ -583,11 +583,11 @@ function CreatePurchaseDialog({ onSuccess }: { onSuccess: () => void }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pcs">шт</SelectItem>
-                  <SelectItem value="kg">кг</SelectItem>
-                  <SelectItem value="l">л</SelectItem>
-                  <SelectItem value="m">м</SelectItem>
-                  <SelectItem value="pack">уп</SelectItem>
+                  <SelectItem value="pcs">pcs</SelectItem>
+                  <SelectItem value="kg">kg</SelectItem>
+                  <SelectItem value="l">L</SelectItem>
+                  <SelectItem value="m">m</SelectItem>
+                  <SelectItem value="pack">pack</SelectItem>
                 </SelectContent>
               </Select>
             </div>
