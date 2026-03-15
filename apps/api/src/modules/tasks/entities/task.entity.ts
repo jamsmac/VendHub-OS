@@ -13,82 +13,20 @@ import { Organization } from "../../organizations/entities/organization.entity";
 import { Machine } from "../../machines/entities/machine.entity";
 import { User } from "../../users/entities/user.entity";
 
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-/**
- * Task Types
- */
-export enum TaskType {
-  // Basic operations
-  REFILL = "refill", // Stock replenishment
-  COLLECTION = "collection", // Cash collection
-  CLEANING = "cleaning", // Machine cleaning/washing
-  REPAIR = "repair", // Repair/maintenance
-  INSTALL = "install", // Machine installation
-  REMOVAL = "removal", // Machine removal/decommission
-  AUDIT = "audit", // Inventory audit
-  INSPECTION = "inspection", // Machine inspection
-
-  // Component replacement
-  REPLACE_HOPPER = "replace_hopper", // Hopper replacement
-  REPLACE_GRINDER = "replace_grinder", // Grinder replacement
-  REPLACE_BREW_UNIT = "replace_brew_unit", // Brew unit replacement
-  REPLACE_MIXER = "replace_mixer", // Mixer replacement
-}
-
-/**
- * Task Status
- */
-export enum TaskStatus {
-  PENDING = "pending", // Awaiting assignment
-  ASSIGNED = "assigned", // Assigned to operator
-  IN_PROGRESS = "in_progress", // Being executed
-  COMPLETED = "completed", // Successfully completed
-  REJECTED = "rejected", // Rejected by admin (rollback done)
-  POSTPONED = "postponed", // Postponed by operator
-  CANCELLED = "cancelled", // Cancelled
-}
-
-/**
- * Task Priority
- */
-export enum TaskPriority {
-  LOW = "low",
-  NORMAL = "normal",
-  HIGH = "high",
-  URGENT = "urgent",
-}
-
-/**
- * Component Role for replacement tasks
- */
-export enum ComponentRole {
-  OLD = "old", // Component being removed
-  NEW = "new", // Component being installed
-  TARGET = "target", // Target component (for inspection)
-}
-
-/**
- * Valid status transitions
- */
-export const VALID_TASK_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  [TaskStatus.PENDING]: [TaskStatus.ASSIGNED, TaskStatus.CANCELLED],
-  [TaskStatus.ASSIGNED]: [
-    TaskStatus.IN_PROGRESS,
-    TaskStatus.POSTPONED,
-    TaskStatus.CANCELLED,
-  ],
-  [TaskStatus.IN_PROGRESS]: [
-    TaskStatus.COMPLETED,
-    TaskStatus.POSTPONED,
-    TaskStatus.CANCELLED,
-  ],
-  [TaskStatus.POSTPONED]: [TaskStatus.ASSIGNED, TaskStatus.CANCELLED],
-  [TaskStatus.COMPLETED]: [TaskStatus.REJECTED],
-  [TaskStatus.CANCELLED]: [],
-  [TaskStatus.REJECTED]: [],
+// Enums & constants — single source of truth in @vendhub/shared
+import {
+  TaskType,
+  TaskStatus,
+  TaskPriority,
+  ComponentRole,
+  VALID_TASK_TRANSITIONS,
+} from "@vendhub/shared";
+export {
+  TaskType,
+  TaskStatus,
+  TaskPriority,
+  ComponentRole,
+  VALID_TASK_TRANSITIONS,
 };
 
 // ============================================================================

@@ -14,82 +14,21 @@ import {
 } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-export enum ProductCategory {
-  // Coffee & Tea
-  COFFEE_BEANS = "coffee_beans",
-  COFFEE_INSTANT = "coffee_instant",
-  TEA = "tea",
-  CHOCOLATE = "chocolate",
-
-  // Ingredients
-  MILK = "milk",
-  SUGAR = "sugar",
-  CREAM = "cream",
-  SYRUP = "syrup",
-  WATER = "water",
-
-  // Ready products
-  HOT_DRINKS = "hot_drinks",
-  COLD_DRINKS = "cold_drinks",
-  SNACKS = "snacks",
-  SANDWICHES = "sandwiches",
-  SALADS = "salads",
-  ICE_CREAM = "ice_cream",
-
-  // Consumables
-  CUPS = "cups",
-  LIDS = "lids",
-  STIRRERS = "stirrers",
-  NAPKINS = "napkins",
-
-  // Other
-  OTHER = "other",
-}
-
-export enum ProductStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  DISCONTINUED = "discontinued",
-  OUT_OF_STOCK = "out_of_stock",
-}
-
-export enum UnitOfMeasure {
-  // Weight
-  GRAM = "g",
-  KILOGRAM = "kg",
-
-  // Volume
-  MILLILITER = "ml",
-  LITER = "l",
-
-  // Count
-  PIECE = "pcs",
-  PACK = "pack",
-  BOX = "box",
-
-  // Servings
-  PORTION = "portion",
-  CUP = "cup",
-}
-
-export enum RecipeType {
-  PRIMARY = "primary",
-  ALTERNATIVE = "alternative",
-  PROMOTIONAL = "promotional",
-  TEST = "test",
-}
-
-export enum IngredientBatchStatus {
-  IN_STOCK = "in_stock",
-  DEPLETED = "depleted",
-  EXPIRED = "expired",
-  RETURNED = "returned",
-  RESERVED = "reserved",
-}
+// Enums — single source of truth in @vendhub/shared
+import {
+  ProductCategory,
+  ProductStatus,
+  UnitOfMeasure,
+  RecipeType,
+  IngredientBatchStatus,
+} from "@vendhub/shared";
+export {
+  ProductCategory,
+  ProductStatus,
+  UnitOfMeasure,
+  RecipeType,
+  IngredientBatchStatus,
+};
 
 // ============================================================================
 // PRODUCT (NOMENCLATURE) ENTITY

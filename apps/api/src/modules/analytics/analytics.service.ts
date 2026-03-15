@@ -22,8 +22,8 @@ import { Machine, MachineStatus } from "../machines/entities/machine.entity";
 import { Task, TaskStatus, TaskType } from "../tasks/entities/task.entity";
 
 @Injectable()
-export class AnalyticsService {
-  private readonly logger = new Logger(AnalyticsService.name);
+export class DashboardStatsService {
+  private readonly logger = new Logger(DashboardStatsService.name);
 
   constructor(
     @InjectRepository(DailyStats)

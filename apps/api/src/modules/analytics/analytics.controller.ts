@@ -20,7 +20,7 @@ import {
   ApiResponse,
   ApiParam,
 } from "@nestjs/swagger";
-import { AnalyticsService } from "./analytics.service";
+import { DashboardStatsService } from "./analytics.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -41,7 +41,7 @@ import {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: DashboardStatsService) {}
 
   // ========================================================================
   // DAILY STATS

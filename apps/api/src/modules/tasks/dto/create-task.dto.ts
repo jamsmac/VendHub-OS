@@ -19,37 +19,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-
-export enum TaskType {
-  REPLENISHMENT = "replenishment",
-  COLLECTION = "collection",
-  MAINTENANCE = "maintenance",
-  CLEANING = "cleaning",
-  INSTALLATION = "installation",
-  RELOCATION = "relocation",
-  DECOMMISSION = "decommission",
-  INSPECTION = "inspection",
-  REPAIR = "repair",
-  COMPLAINT = "complaint",
-  OTHER = "other",
-}
-
-export enum TaskStatus {
-  PENDING = "pending",
-  ASSIGNED = "assigned",
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
-  ON_HOLD = "on_hold",
-  FAILED = "failed",
-}
-
-export enum TaskPriority {
-  LOW = "low",
-  NORMAL = "normal",
-  HIGH = "high",
-  URGENT = "urgent",
-}
+import { TaskType, TaskStatus, TaskPriority } from "@vendhub/shared";
 
 export class TaskChecklistItemDto {
   @ApiProperty()
@@ -66,7 +36,7 @@ export class TaskChecklistItemDto {
 }
 
 export class CreateTaskDto {
-  @ApiProperty({ enum: TaskType, default: TaskType.OTHER })
+  @ApiProperty({ enum: TaskType })
   @IsEnum(TaskType)
   @IsNotEmpty()
   type: TaskType;

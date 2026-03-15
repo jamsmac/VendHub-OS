@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { NotFoundException, ForbiddenException } from "@nestjs/common";
-import { AnalyticsService } from "./analytics.service";
+import { DashboardStatsService } from "./analytics.service";
 import {
   DailyStats,
   DashboardWidget,
@@ -15,8 +15,8 @@ import { Transaction } from "../transactions/entities/transaction.entity";
 import { Machine } from "../machines/entities/machine.entity";
 import { Task } from "../tasks/entities/task.entity";
 
-describe("AnalyticsService", () => {
-  let service: AnalyticsService;
+describe("DashboardStatsService", () => {
+  let service: DashboardStatsService;
   let dailyStatsRepo: jest.Mocked<Repository<DailyStats>>;
   let widgetRepo: jest.Mocked<Repository<DashboardWidget>>;
   let snapshotRepo: jest.Mocked<Repository<AnalyticsSnapshot>>;
@@ -152,7 +152,7 @@ describe("AnalyticsService", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AnalyticsService,
+        DashboardStatsService,
         {
           provide: getRepositoryToken(DailyStats),
           useValue: {
@@ -204,7 +204,7 @@ describe("AnalyticsService", () => {
       ],
     }).compile();
 
-    service = module.get<AnalyticsService>(AnalyticsService);
+    service = module.get<DashboardStatsService>(DashboardStatsService);
     dailyStatsRepo = module.get(getRepositoryToken(DailyStats));
     widgetRepo = module.get(getRepositoryToken(DashboardWidget));
     snapshotRepo = module.get(getRepositoryToken(AnalyticsSnapshot));

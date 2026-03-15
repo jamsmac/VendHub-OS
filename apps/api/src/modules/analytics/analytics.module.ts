@@ -11,7 +11,7 @@ import {
   AnalyticsSnapshot,
   CustomReport,
 } from "./entities/analytics.entity";
-import { AnalyticsService } from "./analytics.service";
+import { DashboardStatsService } from "./analytics.service";
 import { AnalyticsController } from "./analytics.controller";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { Machine } from "../machines/entities/machine.entity";
@@ -30,7 +30,7 @@ import { Task } from "../tasks/entities/task.entity";
     ]),
   ],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  providers: [DashboardStatsService],
+  exports: [DashboardStatsService],
 })
 export class AnalyticsModule {}

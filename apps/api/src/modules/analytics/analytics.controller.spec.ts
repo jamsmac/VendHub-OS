@@ -5,7 +5,7 @@ import {
   TEST_UUID,
 } from "../../common/test-utils/controller-test.helper";
 import { AnalyticsController } from "./analytics.controller";
-import { AnalyticsService } from "./analytics.service";
+import { DashboardStatsService } from "./analytics.service";
 
 describe("AnalyticsController", () => {
   let app: any;
@@ -14,7 +14,7 @@ describe("AnalyticsController", () => {
   beforeAll(async () => {
     ({ app, mockService } = await createControllerTestApp(
       AnalyticsController,
-      AnalyticsService,
+      DashboardStatsService,
       [
         "getDailyStats",
         "aggregateDailyStats",
