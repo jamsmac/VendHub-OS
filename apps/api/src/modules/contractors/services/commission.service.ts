@@ -18,7 +18,7 @@ import {
   ContractStatus,
   CommissionType,
   CommissionCalculation,
-  PaymentStatus,
+  CommissionPaymentStatus,
   CommissionTier,
 } from "../entities/contract.entity";
 import { Transaction } from "../../transactions/entities/transaction.entity";
@@ -98,7 +98,7 @@ export class CommissionService {
       commissionAmount,
       commissionType: contract.commissionType,
       calculationDetails,
-      paymentStatus: PaymentStatus.PENDING,
+      paymentStatus: CommissionPaymentStatus.PENDING,
       paymentDueDate,
       calculatedByUserId: userId,
       createdById: userId,
@@ -206,15 +206,15 @@ export class CommissionService {
       throw new NotFoundException("Commission calculation not found");
     }
 
-    if (commission.paymentStatus === PaymentStatus.PAID) {
+    if (commission.paymentStatus === CommissionPaymentStatus.PAID) {
       throw new BadRequestException("Commission is already marked as paid");
     }
 
-    if (commission.paymentStatus === PaymentStatus.CANCELLED) {
+    if (commission.paymentStatus === CommissionPaymentStatus.CANCELLED) {
       throw new BadRequestException("Cannot pay a cancelled commission");
     }
 
-    commission.paymentStatus = PaymentStatus.PAID;
+    commission.paymentStatus = CommissionPaymentStatus.PAID;
     commission.paymentDate = new Date();
     commission.paymentTransactionId = paymentTransactionId;
     if (notes) {
@@ -252,14 +252,14 @@ export class CommissionService {
 
     const overdueCommissions = await this.commissionRepo.find({
       where: {
-        paymentStatus: PaymentStatus.PENDING,
+        paymentStatus: CommissionPaymentStatus.PENDING,
         paymentDueDate: LessThan(today),
       },
       relations: ["contract"],
     });
 
     for (const commission of overdueCommissions) {
-      commission.paymentStatus = PaymentStatus.OVERDUE;
+      commission.paymentStatus = CommissionPaymentStatus.OVERDUE;
       await this.commissionRepo.save(commission);
 
       this.eventEmitter.emit("commission.overdue", {

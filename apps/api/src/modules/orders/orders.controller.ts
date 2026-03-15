@@ -25,7 +25,7 @@ import { OrdersService } from "./orders.service";
 import {
   CreateOrderDto,
   UpdateOrderStatusDto,
-  UpdatePaymentStatusDto,
+  UpdateOrderPaymentStatusDto,
   OrderFilterDto,
   OrderDto,
   OrderListDto,
@@ -181,9 +181,9 @@ export class OrdersController {
   async updatePayment(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser("organizationId") organizationId: string,
-    @Body() dto: UpdatePaymentStatusDto,
+    @Body() dto: UpdateOrderPaymentStatusDto,
   ): Promise<OrderDto> {
-    return this.service.updatePaymentStatus(id, organizationId, dto);
+    return this.service.updateOrderPaymentStatus(id, organizationId, dto);
   }
 
   // ============================================================================

@@ -2,7 +2,7 @@
  * Order DTOs
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsUUID,
   IsString,
@@ -14,36 +14,36 @@ import {
   MaxLength,
   IsInt,
   IsDateString,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 import {
   OrderStatus,
-  PaymentStatus,
+  OrderPaymentStatus,
   PaymentMethod,
-} from '../entities/order.entity';
+} from "../entities/order.entity";
 
 // ============================================================================
 // ORDER ITEM DTOs
 // ============================================================================
 
 export class OrderItemCustomizationsDto {
-  @ApiPropertyOptional({ description: 'Size (S, M, L, XL)' })
+  @ApiPropertyOptional({ description: "Size (S, M, L, XL)" })
   @IsOptional()
   @IsString()
   size?: string;
 
-  @ApiPropertyOptional({ description: 'Sugar level (0-5)' })
+  @ApiPropertyOptional({ description: "Sugar level (0-5)" })
   @IsOptional()
   @IsInt()
   @Min(0)
   sugar?: number;
 
-  @ApiPropertyOptional({ description: 'Milk type' })
+  @ApiPropertyOptional({ description: "Milk type" })
   @IsOptional()
   @IsString()
   milk?: string;
 
-  @ApiPropertyOptional({ description: 'Extra ingredients' })
+  @ApiPropertyOptional({ description: "Extra ingredients" })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -51,22 +51,22 @@ export class OrderItemCustomizationsDto {
 }
 
 export class CreateOrderItemDto {
-  @ApiProperty({ description: 'Product ID' })
+  @ApiProperty({ description: "Product ID" })
   @IsUUID()
   productId: string;
 
-  @ApiProperty({ description: 'Quantity', minimum: 1 })
+  @ApiProperty({ description: "Quantity", minimum: 1 })
   @IsInt()
   @Min(1)
   quantity: number;
 
-  @ApiPropertyOptional({ description: 'Customizations' })
+  @ApiPropertyOptional({ description: "Customizations" })
   @IsOptional()
   @ValidateNested()
   @Type(() => OrderItemCustomizationsDto)
   customizations?: OrderItemCustomizationsDto;
 
-  @ApiPropertyOptional({ description: 'Notes' })
+  @ApiPropertyOptional({ description: "Notes" })
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -78,35 +78,35 @@ export class CreateOrderItemDto {
 // ============================================================================
 
 export class CreateOrderDto {
-  @ApiPropertyOptional({ description: 'Machine ID' })
+  @ApiPropertyOptional({ description: "Machine ID" })
   @IsOptional()
   @IsUUID()
   machineId?: string;
 
-  @ApiProperty({ description: 'Order items', type: [CreateOrderItemDto] })
+  @ApiProperty({ description: "Order items", type: [CreateOrderItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   items: CreateOrderItemDto[];
 
-  @ApiPropertyOptional({ description: 'Payment method', enum: PaymentMethod })
+  @ApiPropertyOptional({ description: "Payment method", enum: PaymentMethod })
   @IsOptional()
   @IsEnum(PaymentMethod)
   paymentMethod?: PaymentMethod;
 
-  @ApiPropertyOptional({ description: 'Promo code' })
+  @ApiPropertyOptional({ description: "Promo code" })
   @IsOptional()
   @IsString()
   @MaxLength(50)
   promoCode?: string;
 
-  @ApiPropertyOptional({ description: 'Use bonus points' })
+  @ApiPropertyOptional({ description: "Use bonus points" })
   @IsOptional()
   @IsInt()
   @Min(0)
   usePoints?: number;
 
-  @ApiPropertyOptional({ description: 'Notes' })
+  @ApiPropertyOptional({ description: "Notes" })
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -114,23 +114,23 @@ export class CreateOrderDto {
 }
 
 export class UpdateOrderStatusDto {
-  @ApiProperty({ description: 'New status', enum: OrderStatus })
+  @ApiProperty({ description: "New status", enum: OrderStatus })
   @IsEnum(OrderStatus)
   status: OrderStatus;
 
-  @ApiPropertyOptional({ description: 'Reason (for cancellation)' })
+  @ApiPropertyOptional({ description: "Reason (for cancellation)" })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   reason?: string;
 }
 
-export class UpdatePaymentStatusDto {
-  @ApiProperty({ description: 'Payment status', enum: PaymentStatus })
-  @IsEnum(PaymentStatus)
-  paymentStatus: PaymentStatus;
+export class UpdateOrderPaymentStatusDto {
+  @ApiProperty({ description: "Payment status", enum: OrderPaymentStatus })
+  @IsEnum(OrderPaymentStatus)
+  paymentStatus: OrderPaymentStatus;
 
-  @ApiPropertyOptional({ description: 'Payment method', enum: PaymentMethod })
+  @ApiPropertyOptional({ description: "Payment method", enum: PaymentMethod })
   @IsOptional()
   @IsEnum(PaymentMethod)
   paymentMethod?: PaymentMethod;
@@ -141,50 +141,53 @@ export class UpdatePaymentStatusDto {
 // ============================================================================
 
 export class OrderFilterDto {
-  @ApiPropertyOptional({ description: 'Order status', enum: OrderStatus })
+  @ApiPropertyOptional({ description: "Order status", enum: OrderStatus })
   @IsOptional()
   @IsEnum(OrderStatus)
   status?: OrderStatus;
 
-  @ApiPropertyOptional({ description: 'Payment status', enum: PaymentStatus })
+  @ApiPropertyOptional({
+    description: "Payment status",
+    enum: OrderPaymentStatus,
+  })
   @IsOptional()
-  @IsEnum(PaymentStatus)
-  paymentStatus?: PaymentStatus;
+  @IsEnum(OrderPaymentStatus)
+  paymentStatus?: OrderPaymentStatus;
 
-  @ApiPropertyOptional({ description: 'Machine ID' })
+  @ApiPropertyOptional({ description: "Machine ID" })
   @IsOptional()
   @IsUUID()
   machineId?: string;
 
-  @ApiPropertyOptional({ description: 'User ID' })
+  @ApiPropertyOptional({ description: "User ID" })
   @IsOptional()
   @IsUUID()
   userId?: string;
 
-  @ApiPropertyOptional({ description: 'From date' })
+  @ApiPropertyOptional({ description: "From date" })
   @IsOptional()
   @IsDateString()
   fromDate?: string;
 
-  @ApiPropertyOptional({ description: 'To date' })
+  @ApiPropertyOptional({ description: "To date" })
   @IsOptional()
   @IsDateString()
   toDate?: string;
 
-  @ApiPropertyOptional({ description: 'Search by order number' })
+  @ApiPropertyOptional({ description: "Search by order number" })
   @IsOptional()
   @IsString()
   @MaxLength(50)
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -250,8 +253,8 @@ export class OrderDto {
   @ApiProperty({ enum: OrderStatus })
   status: OrderStatus;
 
-  @ApiProperty({ enum: PaymentStatus })
-  paymentStatus: PaymentStatus;
+  @ApiProperty({ enum: OrderPaymentStatus })
+  paymentStatus: OrderPaymentStatus;
 
   @ApiPropertyOptional({ enum: PaymentMethod })
   paymentMethod?: PaymentMethod;

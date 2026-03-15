@@ -16,7 +16,7 @@ import {
   Order,
   OrderItem,
   OrderStatus,
-  PaymentStatus,
+  OrderPaymentStatus,
   PaymentMethod,
 } from "./entities/order.entity";
 import { Product } from "../products/entities/product.entity";
@@ -25,7 +25,7 @@ import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   CreateOrderDto,
   UpdateOrderStatusDto,
-  UpdatePaymentStatusDto,
+  UpdateOrderPaymentStatusDto,
   OrderFilterDto,
   OrderDto,
   OrderListDto,
@@ -165,7 +165,7 @@ export class OrdersService {
         userId,
         machineId: dto.machineId,
         status: OrderStatus.PENDING,
-        paymentStatus: PaymentStatus.PENDING,
+        paymentStatus: OrderPaymentStatus.PENDING,
         paymentMethod: dto.paymentMethod,
         subtotalAmount: subtotal,
         discountAmount,
@@ -251,7 +251,7 @@ export class OrdersService {
     // Calculate loyalty points on completion
     if (
       dto.status === OrderStatus.COMPLETED &&
-      order.paymentStatus === PaymentStatus.PAID
+      order.paymentStatus === OrderPaymentStatus.PAID
     ) {
       this.eventEmitter.emit("order.completed", {
         orderId: order.id,
@@ -267,10 +267,10 @@ export class OrdersService {
   /**
    * Обновить статус оплаты
    */
-  async updatePaymentStatus(
+  async updateOrderPaymentStatus(
     orderId: string,
     organizationId: string,
-    dto: UpdatePaymentStatusDto,
+    dto: UpdateOrderPaymentStatusDto,
   ): Promise<OrderDto> {
     const order = await this.findOrder(orderId, organizationId);
 
@@ -279,7 +279,7 @@ export class OrdersService {
       order.paymentMethod = dto.paymentMethod;
     }
 
-    if (dto.paymentStatus === PaymentStatus.PAID) {
+    if (dto.paymentStatus === OrderPaymentStatus.PAID) {
       order.paidAt = new Date();
     }
 
@@ -444,7 +444,7 @@ export class OrdersService {
       .addSelect("COALESCE(SUM(o.pointsEarned), 0)", "pointsEarned")
       .addSelect("COALESCE(SUM(o.pointsUsed), 0)", "pointsUsed")
       .andWhere("o.paymentStatus = :paidStatus", {
-        paidStatus: PaymentStatus.PAID,
+        paidStatus: OrderPaymentStatus.PAID,
       })
       .groupBy("o.paymentMethod")
       .getRawMany();

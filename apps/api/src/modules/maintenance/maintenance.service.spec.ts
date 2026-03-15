@@ -11,7 +11,7 @@ import {
   MaintenanceWorkLog,
   MaintenanceSchedule,
   MaintenanceStatus,
-  MaintenanceType,
+  MaintenanceWorkType,
   MaintenancePriority,
 } from "./entities/maintenance.entity";
 import {
@@ -89,7 +89,7 @@ describe("MaintenanceService", () => {
     id: "mnt-uuid-1",
     organizationId: ORG_ID,
     requestNumber: "MNT-2025-000001",
-    maintenanceType: MaintenanceType.CORRECTIVE,
+    maintenanceType: MaintenanceWorkType.CORRECTIVE,
     status: MaintenanceStatus.DRAFT,
     priority: MaintenancePriority.NORMAL,
     machineId: MACHINE_ID,
@@ -185,7 +185,7 @@ describe("MaintenanceService", () => {
       maintenanceRepo.save!.mockResolvedValue(mockRequest);
 
       const dto = {
-        maintenanceType: MaintenanceType.CORRECTIVE,
+        maintenanceType: MaintenanceWorkType.CORRECTIVE,
         priority: MaintenancePriority.NORMAL,
         machineId: MACHINE_ID,
         title: "Machine coin acceptor broken",
@@ -218,7 +218,7 @@ describe("MaintenanceService", () => {
       );
 
       const dto = {
-        maintenanceType: MaintenanceType.EMERGENCY,
+        maintenanceType: MaintenanceWorkType.EMERGENCY,
         priority: MaintenancePriority.CRITICAL,
         machineId: MACHINE_ID,
         title: "Machine on fire",
@@ -692,7 +692,7 @@ describe("MaintenanceService", () => {
       const requests = [
         {
           status: MaintenanceStatus.COMPLETED,
-          maintenanceType: MaintenanceType.CORRECTIVE,
+          maintenanceType: MaintenanceWorkType.CORRECTIVE,
           priority: MaintenancePriority.NORMAL,
           totalCost: 500000,
           downtimeMinutes: 120,
@@ -702,7 +702,7 @@ describe("MaintenanceService", () => {
         },
         {
           status: MaintenanceStatus.IN_PROGRESS,
-          maintenanceType: MaintenanceType.PREVENTIVE,
+          maintenanceType: MaintenanceWorkType.PREVENTIVE,
           priority: MaintenancePriority.HIGH,
           totalCost: 0,
           downtimeMinutes: 0,
@@ -743,7 +743,7 @@ describe("MaintenanceService", () => {
         id: "sched-uuid-1",
         organizationId: ORG_ID,
         name: "Monthly cleaning",
-        maintenanceType: MaintenanceType.CLEANING,
+        maintenanceType: MaintenanceWorkType.CLEANING,
         frequencyType: "monthly",
         frequencyValue: 1,
         isActive: true,
@@ -761,7 +761,7 @@ describe("MaintenanceService", () => {
 
       const dto = {
         name: "Monthly cleaning",
-        maintenanceType: MaintenanceType.CLEANING,
+        maintenanceType: MaintenanceWorkType.CLEANING,
         frequencyType: "monthly",
         frequencyValue: 1,
       };

@@ -17,7 +17,10 @@ import {
   PaymentProvider,
   PaymentTransactionStatus,
 } from "./entities/payment-transaction.entity";
-import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
+import {
+  PaymentRefund,
+  PaymentRefundStatus,
+} from "./entities/payment-refund.entity";
 import { InitiateRefundDto } from "./dto/refund.dto";
 import { QueryTransactionsDto } from "./dto/refund.dto";
 import { Machine } from "../machines/entities/machine.entity";
@@ -64,7 +67,7 @@ describe("PaymentsService", () => {
     paymentTransactionId: "tx-uuid-1",
     amount: 50000,
     reason: "customer_request",
-    status: RefundStatus.PENDING,
+    status: PaymentRefundStatus.PENDING,
     processedByUserId: "user-uuid-1",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -403,7 +406,7 @@ describe("PaymentsService", () => {
         {
           ...mockRefund,
           amount: 50000,
-          status: RefundStatus.COMPLETED,
+          status: PaymentRefundStatus.COMPLETED,
         } as unknown as PaymentRefund,
       ]);
 

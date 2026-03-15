@@ -77,7 +77,7 @@ describe("IntegrationTesterService", () => {
   beforeEach(async () => {
     paymentExecutor = {
       createPayment: jest.fn(),
-      checkPaymentStatus: jest.fn(),
+      checkGatewayPaymentStatus: jest.fn(),
       cancelPayment: jest.fn(),
     } as Record<string, jest.Mock>;
 
@@ -122,7 +122,7 @@ describe("IntegrationTesterService", () => {
         currency: "UZS",
       });
 
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-001",
         status: "pending" as any,
@@ -148,7 +148,7 @@ describe("IntegrationTesterService", () => {
         currency: "UZS",
       });
 
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-001",
         status: "pending" as any,
@@ -173,7 +173,7 @@ describe("IntegrationTesterService", () => {
         new Error("Connection refused"),
       );
 
-      paymentExecutor.checkPaymentStatus!.mockRejectedValue(
+      paymentExecutor.checkGatewayPaymentStatus!.mockRejectedValue(
         new Error("Connection refused"),
       );
 
@@ -210,7 +210,7 @@ describe("IntegrationTesterService", () => {
         currency: "UZS",
       });
 
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-001",
         status: "pending" as any,
@@ -331,7 +331,7 @@ describe("IntegrationTesterService", () => {
     });
 
     it("should handle checkStatus endpoint", async () => {
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-001",
         status: "completed",
@@ -363,7 +363,7 @@ describe("IntegrationTesterService", () => {
       );
 
       expect(result.passed).toBe(true);
-      expect(paymentExecutor.checkPaymentStatus).toHaveBeenCalledWith(
+      expect(paymentExecutor.checkGatewayPaymentStatus).toHaveBeenCalledWith(
         mockIntegration,
         "pay-001",
       );
@@ -790,7 +790,7 @@ describe("IntegrationTesterService", () => {
         currency: "UZS",
       });
 
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-001",
         status: "pending" as any,
@@ -822,7 +822,7 @@ describe("IntegrationTesterService", () => {
         currency: "UZS",
       });
 
-      paymentExecutor.checkPaymentStatus!.mockResolvedValue({
+      paymentExecutor.checkGatewayPaymentStatus!.mockResolvedValue({
         success: true,
         paymentId: "pay-002",
         status: "pending" as any,

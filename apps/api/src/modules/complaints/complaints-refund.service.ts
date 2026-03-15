@@ -16,7 +16,7 @@ import {
   ComplaintRefund,
   ComplaintAction,
   ComplaintActionType,
-  RefundStatus,
+  ComplaintRefundStatus,
 } from "./entities/complaint.entity";
 import { CreateRefundDto } from "./complaints.types";
 
@@ -44,7 +44,7 @@ export class ComplaintsRefundService {
       refundMethod: dto.method,
       reason: dto.reason,
       refundDetails: dto.bankDetails,
-      status: RefundStatus.PENDING,
+      status: ComplaintRefundStatus.PENDING,
       createdById: dto.requestedById,
     } as Partial<ComplaintRefund>);
 
@@ -74,11 +74,11 @@ export class ComplaintsRefundService {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
 
-    if (refund.status !== RefundStatus.PENDING) {
+    if (refund.status !== ComplaintRefundStatus.PENDING) {
       throw new BadRequestException("Возврат уже обработан");
     }
 
-    refund.status = RefundStatus.APPROVED;
+    refund.status = ComplaintRefundStatus.APPROVED;
     refund.approvedById = approvedById;
 
     const saved = await this.refundRepo.save(refund);
@@ -96,11 +96,11 @@ export class ComplaintsRefundService {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
 
-    if (refund.status !== RefundStatus.APPROVED) {
+    if (refund.status !== ComplaintRefundStatus.APPROVED) {
       throw new BadRequestException("Возврат должен быть сначала одобрен");
     }
 
-    refund.status = RefundStatus.COMPLETED;
+    refund.status = ComplaintRefundStatus.COMPLETED;
     refund.processedAt = new Date();
     refund.completedAt = new Date();
     if (referenceNumber) {
@@ -130,7 +130,7 @@ export class ComplaintsRefundService {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
 
-    refund.status = RefundStatus.REJECTED;
+    refund.status = ComplaintRefundStatus.REJECTED;
     refund.rejectionReason = reason;
 
     return this.refundRepo.save(refund);

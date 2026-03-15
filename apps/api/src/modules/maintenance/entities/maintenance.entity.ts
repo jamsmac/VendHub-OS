@@ -38,7 +38,7 @@ export enum MaintenanceStatus {
 /**
  * Maintenance Type
  */
-export enum MaintenanceType {
+export enum MaintenanceWorkType {
   PREVENTIVE = "preventive", // Плановое ТО
   CORRECTIVE = "corrective", // Ремонт после поломки
   PREDICTIVE = "predictive", // На основе мониторинга
@@ -138,9 +138,9 @@ export class MaintenanceRequest extends BaseEntity {
   @Column({ type: "varchar", length: 50, unique: true })
   requestNumber: string;
 
-  @ApiProperty({ enum: MaintenanceType })
-  @Column({ type: "enum", enum: MaintenanceType })
-  maintenanceType: MaintenanceType;
+  @ApiProperty({ enum: MaintenanceWorkType })
+  @Column({ type: "enum", enum: MaintenanceWorkType })
+  maintenanceType: MaintenanceWorkType;
 
   @ApiProperty({ enum: MaintenanceStatus })
   @Column({
@@ -531,9 +531,9 @@ export class MaintenanceSchedule extends BaseEntity {
   @Column({ type: "text", nullable: true })
   description?: string;
 
-  @ApiProperty({ enum: MaintenanceType })
-  @Column({ type: "enum", enum: MaintenanceType })
-  maintenanceType: MaintenanceType;
+  @ApiProperty({ enum: MaintenanceWorkType })
+  @Column({ type: "enum", enum: MaintenanceWorkType })
+  maintenanceType: MaintenanceWorkType;
 
   @ApiPropertyOptional({
     description: "Specific machine ID (null = all machines)",

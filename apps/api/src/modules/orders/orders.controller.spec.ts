@@ -23,7 +23,7 @@ describe("OrdersController", () => {
         "getStats",
         "getOrderByNumber",
         "updateStatus",
-        "updatePaymentStatus",
+        "updateOrderPaymentStatus",
       ],
     ));
   });
@@ -157,7 +157,7 @@ describe("OrdersController", () => {
   });
 
   it("PUT /orders/:id/payment returns 200 for admin", async () => {
-    mockService.updatePaymentStatus.mockResolvedValue({ id: TEST_UUID });
+    mockService.updateOrderPaymentStatus.mockResolvedValue({ id: TEST_UUID });
     await request(app.getHttpServer())
       .put(`/orders/${TEST_UUID}/payment`)
       .set("Authorization", "Bearer admin-token")

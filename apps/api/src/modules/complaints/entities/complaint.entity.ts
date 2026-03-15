@@ -23,7 +23,7 @@ export {
   ComplaintSource,
   ComplaintActionType,
   RefundType,
-  RefundStatus,
+  ComplaintRefundStatus,
   SatisfactionRating,
 } from "./complaint.enums";
 
@@ -43,7 +43,7 @@ import {
   ComplaintSource,
   ComplaintActionType,
   RefundType,
-  RefundStatus,
+  ComplaintRefundStatus,
   SatisfactionRating,
 } from "./complaint.enums";
 
@@ -612,10 +612,10 @@ export class ComplaintRefund extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: RefundStatus,
-    default: RefundStatus.PENDING,
+    enum: ComplaintRefundStatus,
+    default: ComplaintRefundStatus.PENDING,
   })
-  status: RefundStatus;
+  status: ComplaintRefundStatus;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
   amount: number;

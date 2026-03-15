@@ -17,7 +17,7 @@ import { CommissionType, ContractStatus } from "../../../common/enums";
 
 export { CommissionType, ContractStatus };
 
-export enum PaymentStatus {
+export enum CommissionPaymentStatus {
   PENDING = "pending",
   PAID = "paid",
   OVERDUE = "overdue",
@@ -191,10 +191,10 @@ export class CommissionCalculation extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: PaymentStatus,
-    default: PaymentStatus.PENDING,
+    enum: CommissionPaymentStatus,
+    default: CommissionPaymentStatus.PENDING,
   })
-  paymentStatus: PaymentStatus;
+  paymentStatus: CommissionPaymentStatus;
 
   @Column({ type: "date", nullable: true })
   paymentDueDate: Date;

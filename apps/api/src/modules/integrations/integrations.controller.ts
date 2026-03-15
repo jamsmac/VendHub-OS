@@ -384,7 +384,7 @@ export class IntegrationsController {
   @Get(":id/pay/:paymentId")
   @Roles("admin")
   @ApiOperation({ summary: "Check payment status (sandbox testing)" })
-  async checkPaymentStatus(
+  async checkGatewayPaymentStatus(
     @Param("id") id: string,
     @Param("paymentId") paymentId: string,
     @Req() req: Request & { user: ICurrentUser },
@@ -393,6 +393,9 @@ export class IntegrationsController {
       id,
       req.user.organizationId,
     );
-    return this.paymentExecutor.checkPaymentStatus(integration, paymentId);
+    return this.paymentExecutor.checkGatewayPaymentStatus(
+      integration,
+      paymentId,
+    );
   }
 }

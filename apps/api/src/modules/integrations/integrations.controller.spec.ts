@@ -31,7 +31,7 @@ describe("IntegrationsController", () => {
 
     const mockPaymentExecutor: Record<string, jest.Mock> = {
       createPayment: jest.fn().mockResolvedValue({}),
-      checkPaymentStatus: jest.fn().mockResolvedValue({}),
+      checkGatewayPaymentStatus: jest.fn().mockResolvedValue({}),
     };
 
     ({ app, mockService } = await createControllerTestApp(

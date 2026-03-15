@@ -136,7 +136,7 @@ export enum RefundType {
 /**
  * Статус возврата
  */
-export enum RefundStatus {
+export enum ComplaintRefundStatus {
   PENDING = "pending", // Ожидает
   APPROVED = "approved", // Одобрен
   PROCESSING = "processing", // В обработке

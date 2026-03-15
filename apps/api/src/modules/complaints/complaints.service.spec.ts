@@ -21,7 +21,7 @@ import {
   ComplaintPriority,
   ComplaintCategory,
   ComplaintSource,
-  RefundStatus,
+  ComplaintRefundStatus,
 } from "./entities/complaint.entity";
 
 const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
@@ -88,7 +88,7 @@ describe("ComplaintsService", () => {
     organizationId: ORG_ID,
     amount: 5000,
     currency: "UZS",
-    status: RefundStatus.PENDING,
+    status: ComplaintRefundStatus.PENDING,
     reason: "Product not dispensed",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -510,7 +510,7 @@ describe("ComplaintsService", () => {
 
       const result = await service.approveRefund("refund-uuid-1", USER_ID);
 
-      expect(result.status).toBe(RefundStatus.APPROVED);
+      expect(result.status).toBe(ComplaintRefundStatus.APPROVED);
       expect(result.approvedById).toBe(USER_ID);
     });
 
@@ -525,7 +525,7 @@ describe("ComplaintsService", () => {
     it("should throw BadRequestException when refund is not pending", async () => {
       refundRepo.findOne.mockResolvedValue({
         ...mockRefund,
-        status: RefundStatus.COMPLETED,
+        status: ComplaintRefundStatus.COMPLETED,
       } as any);
 
       await expect(

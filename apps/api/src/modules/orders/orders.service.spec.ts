@@ -9,7 +9,7 @@ import {
   Order,
   OrderItem,
   OrderStatus,
-  PaymentStatus,
+  OrderPaymentStatus,
   PaymentMethod,
 } from "./entities/order.entity";
 import { Product } from "../products/entities/product.entity";
@@ -76,7 +76,7 @@ describe("OrdersService", () => {
     machineId: "machine-uuid-1",
     machine: { id: "machine-uuid-1", name: "Machine A" },
     status: OrderStatus.PENDING,
-    paymentStatus: PaymentStatus.PENDING,
+    paymentStatus: OrderPaymentStatus.PENDING,
     paymentMethod: PaymentMethod.CASH,
     subtotalAmount: 30000,
     discountAmount: 0,
@@ -268,7 +268,7 @@ describe("OrdersService", () => {
       expect(result).toBeDefined();
       expect(result.id).toBe("order-uuid-new");
       expect(result.status).toBe(OrderStatus.PENDING);
-      expect(result.paymentStatus).toBe(PaymentStatus.PENDING);
+      expect(result.paymentStatus).toBe(OrderPaymentStatus.PENDING);
       expect(result.subtotalAmount).toBe(30000); // 15000 * 2
       expect(result.totalAmount).toBe(30000);
       expect(orderRepo.create).toHaveBeenCalled();
@@ -527,7 +527,7 @@ describe("OrdersService", () => {
       const readyOrder = {
         ...mockOrder,
         status: OrderStatus.READY,
-        paymentStatus: PaymentStatus.PAID,
+        paymentStatus: OrderPaymentStatus.PAID,
       } as any;
       orderRepo.findOne.mockResolvedValue(readyOrder);
 
@@ -607,24 +607,28 @@ describe("OrdersService", () => {
   // UPDATE PAYMENT STATUS
   // ==========================================================================
 
-  describe("updatePaymentStatus", () => {
+  describe("updateOrderPaymentStatus", () => {
     it("should update payment status to PAID and set paidAt timestamp", async () => {
       const order = { ...mockOrder } as any;
       orderRepo.findOne.mockResolvedValue(order);
 
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
-      const result = await service.updatePaymentStatus("order-uuid-1", orgId, {
-        paymentStatus: PaymentStatus.PAID,
-      });
+      const result = await service.updateOrderPaymentStatus(
+        "order-uuid-1",
+        orgId,
+        {
+          paymentStatus: OrderPaymentStatus.PAID,
+        },
+      );
 
-      expect(result.paymentStatus).toBe(PaymentStatus.PAID);
+      expect(result.paymentStatus).toBe(OrderPaymentStatus.PAID);
       expect(result.paidAt).toBeDefined();
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         "order.payment-updated",
         expect.objectContaining({
           orderId: "order-uuid-1",
-          paymentStatus: PaymentStatus.PAID,
+          paymentStatus: OrderPaymentStatus.PAID,
           organizationId: orgId,
         }),
       );
@@ -636,11 +640,15 @@ describe("OrdersService", () => {
 
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
-      const result = await service.updatePaymentStatus("order-uuid-1", orgId, {
-        paymentStatus: PaymentStatus.FAILED,
-      });
+      const result = await service.updateOrderPaymentStatus(
+        "order-uuid-1",
+        orgId,
+        {
+          paymentStatus: OrderPaymentStatus.FAILED,
+        },
+      );
 
-      expect(result.paymentStatus).toBe(PaymentStatus.FAILED);
+      expect(result.paymentStatus).toBe(OrderPaymentStatus.FAILED);
       // paidAt should not be set for FAILED
       expect(order.paidAt).toBeNull();
     });
@@ -651,12 +659,16 @@ describe("OrdersService", () => {
 
       orderRepo.save.mockImplementation((o) => Promise.resolve(o as any));
 
-      const result = await service.updatePaymentStatus("order-uuid-1", orgId, {
-        paymentStatus: PaymentStatus.PAID,
-        paymentMethod: PaymentMethod.PAYME,
-      });
+      const result = await service.updateOrderPaymentStatus(
+        "order-uuid-1",
+        orgId,
+        {
+          paymentStatus: OrderPaymentStatus.PAID,
+          paymentMethod: PaymentMethod.PAYME,
+        },
+      );
 
-      expect(result.paymentStatus).toBe(PaymentStatus.PAID);
+      expect(result.paymentStatus).toBe(OrderPaymentStatus.PAID);
       expect(result.paymentMethod).toBe(PaymentMethod.PAYME);
     });
 
@@ -664,8 +676,8 @@ describe("OrdersService", () => {
       orderRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updatePaymentStatus("non-existent", orgId, {
-          paymentStatus: PaymentStatus.PAID,
+        service.updateOrderPaymentStatus("non-existent", orgId, {
+          paymentStatus: OrderPaymentStatus.PAID,
         }),
       ).rejects.toThrow(NotFoundException);
     });

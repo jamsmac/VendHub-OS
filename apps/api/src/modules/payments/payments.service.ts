@@ -25,7 +25,10 @@ import {
   PaymentProvider,
   PaymentTransactionStatus,
 } from "./entities/payment-transaction.entity";
-import { PaymentRefund, RefundStatus } from "./entities/payment-refund.entity";
+import {
+  PaymentRefund,
+  PaymentRefundStatus,
+} from "./entities/payment-refund.entity";
 import { UzumCreateDto } from "./dto/create-payment.dto";
 import { InitiateRefundDto, QueryTransactionsDto } from "./dto/refund.dto";
 import { Machine } from "../machines/entities/machine.entity";
@@ -312,7 +315,7 @@ export class PaymentsService {
       where: {
         paymentTransactionId: transaction.id,
         organizationId,
-        status: RefundStatus.COMPLETED,
+        status: PaymentRefundStatus.COMPLETED,
       },
     });
     const totalRefunded = existingRefunds.reduce(
@@ -333,7 +336,7 @@ export class PaymentsService {
       amount: refundAmount,
       reason: dto.reason,
       reasonNote: dto.reasonNote || null,
-      status: RefundStatus.PENDING,
+      status: PaymentRefundStatus.PENDING,
       processedByUserId: userId,
     });
     const saved = await this.refundRepo.save(refund);
@@ -372,7 +375,7 @@ export class PaymentsService {
     refund: PaymentRefund,
     transaction: PaymentTransaction,
   ): Promise<PaymentRefund> {
-    refund.status = RefundStatus.PROCESSING;
+    refund.status = PaymentRefundStatus.PROCESSING;
     await this.refundRepo.save(refund);
 
     try {
@@ -393,7 +396,7 @@ export class PaymentsService {
         case PaymentProvider.WALLET:
         case PaymentProvider.TELEGRAM_STARS:
           // Internal refunds: mark as completed immediately
-          refund.status = RefundStatus.COMPLETED;
+          refund.status = PaymentRefundStatus.COMPLETED;
           refund.processedAt = new Date();
           break;
 
@@ -412,7 +415,8 @@ export class PaymentsService {
       });
       const totalRefunded = allRefunds
         .filter(
-          (r) => r.status === RefundStatus.COMPLETED || r.id === refund.id,
+          (r) =>
+            r.status === PaymentRefundStatus.COMPLETED || r.id === refund.id,
         )
         .reduce((sum, r) => sum + Number(r.amount), 0);
 
@@ -421,7 +425,7 @@ export class PaymentsService {
         await this.transactionRepo.save(transaction);
       }
     } catch (error) {
-      refund.status = RefundStatus.FAILED;
+      refund.status = PaymentRefundStatus.FAILED;
       this.logger.error(
         `Refund processing failed: ${(error as Error).message}`,
         (error as Error).stack,
@@ -450,7 +454,7 @@ export class PaymentsService {
       this.logger.warn(
         `Payme refund for transaction ${transaction.providerTxId}: PAYME_SECRET_KEY or PAYME_MERCHANT_ID not configured, leaving as PROCESSING`,
       );
-      refund.status = RefundStatus.PROCESSING;
+      refund.status = PaymentRefundStatus.PROCESSING;
       return;
     }
 
@@ -504,7 +508,7 @@ export class PaymentsService {
       this.logger.error(
         `Payme refund failed for receipt ${transaction.providerTxId}: ${errorMsg}`,
       );
-      refund.status = RefundStatus.FAILED;
+      refund.status = PaymentRefundStatus.FAILED;
       throw new InternalServerErrorException(
         `Payme refund failed: ${errorMsg}`,
       );
@@ -513,7 +517,7 @@ export class PaymentsService {
     this.logger.log(
       `Payme refund successful for receipt ${transaction.providerTxId}, refund ${refund.id}`,
     );
-    refund.status = RefundStatus.COMPLETED;
+    refund.status = PaymentRefundStatus.COMPLETED;
     refund.processedAt = new Date();
     refund.providerRefundId = transaction.providerTxId;
   }
@@ -534,7 +538,7 @@ export class PaymentsService {
       this.logger.warn(
         `Click refund for transaction ${transaction.providerTxId}: CLICK_SECRET_KEY, CLICK_MERCHANT_ID, or CLICK_SERVICE_ID not configured, leaving as PROCESSING`,
       );
-      refund.status = RefundStatus.PROCESSING;
+      refund.status = PaymentRefundStatus.PROCESSING;
       return;
     }
 
@@ -586,7 +590,7 @@ export class PaymentsService {
       this.logger.error(
         `Click refund failed for payment ${transaction.providerTxId}: ${errorMsg}`,
       );
-      refund.status = RefundStatus.FAILED;
+      refund.status = PaymentRefundStatus.FAILED;
       throw new InternalServerErrorException(
         `Click refund failed: ${errorMsg}`,
       );
@@ -595,7 +599,7 @@ export class PaymentsService {
     this.logger.log(
       `Click refund successful for payment ${transaction.providerTxId}, refund ${refund.id}`,
     );
-    refund.status = RefundStatus.COMPLETED;
+    refund.status = PaymentRefundStatus.COMPLETED;
     refund.processedAt = new Date();
     refund.providerRefundId = body.payment_id || transaction.providerTxId;
   }
@@ -614,7 +618,7 @@ export class PaymentsService {
       this.logger.warn(
         `Uzum refund for transaction ${transaction.id}: UZUM_SECRET_KEY not configured, leaving as PROCESSING`,
       );
-      refund.status = RefundStatus.PROCESSING;
+      refund.status = PaymentRefundStatus.PROCESSING;
       return;
     }
 
@@ -666,14 +670,14 @@ export class PaymentsService {
       this.logger.error(
         `Uzum refund failed for payment ${paymentId}: ${errorMsg}`,
       );
-      refund.status = RefundStatus.FAILED;
+      refund.status = PaymentRefundStatus.FAILED;
       throw new InternalServerErrorException(`Uzum refund failed: ${errorMsg}`);
     }
 
     this.logger.log(
       `Uzum refund successful for payment ${paymentId}, refund ${refund.id}`,
     );
-    refund.status = RefundStatus.COMPLETED;
+    refund.status = PaymentRefundStatus.COMPLETED;
     refund.processedAt = new Date();
     refund.providerRefundId = body.refundId || body.id || paymentId;
   }

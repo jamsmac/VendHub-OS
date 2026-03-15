@@ -12,7 +12,7 @@ import { PaymentTransaction } from "./payment-transaction.entity";
 // ENUMS
 // ============================================================================
 
-export enum RefundStatus {
+export enum PaymentRefundStatus {
   PENDING = "pending",
   PROCESSING = "processing",
   COMPLETED = "completed",
@@ -66,10 +66,10 @@ export class PaymentRefund extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: RefundStatus,
-    default: RefundStatus.PENDING,
+    enum: PaymentRefundStatus,
+    default: PaymentRefundStatus.PENDING,
   })
-  status: RefundStatus;
+  status: PaymentRefundStatus;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   providerRefundId: string | null;

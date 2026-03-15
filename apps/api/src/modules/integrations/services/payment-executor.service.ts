@@ -38,7 +38,7 @@ export interface CreatePaymentRequest {
 export interface PaymentResponse {
   success: boolean;
   paymentId: string;
-  status: PaymentStatus;
+  status: GatewayPaymentStatus;
   amount: number;
   currency: string;
   redirectUrl?: string;
@@ -50,7 +50,7 @@ export interface PaymentResponse {
   };
 }
 
-export enum PaymentStatus {
+export enum GatewayPaymentStatus {
   PENDING = "pending",
   PROCESSING = "processing",
   COMPLETED = "completed",
@@ -147,7 +147,7 @@ export class PaymentExecutorService {
   /**
    * Check payment status
    */
-  async checkPaymentStatus(
+  async checkGatewayPaymentStatus(
     integration: Integration,
     paymentId: string,
   ): Promise<PaymentResponse> {
@@ -559,7 +559,7 @@ export class PaymentExecutorService {
     const response: PaymentResponse = {
       success: true,
       paymentId: "",
-      status: PaymentStatus.PENDING,
+      status: GatewayPaymentStatus.PENDING,
       amount: 0,
       currency: "UZS",
       rawResponse: data,
@@ -596,36 +596,37 @@ export class PaymentExecutorService {
     return response;
   }
 
-  private mapStatus(status: string): PaymentStatus {
-    const statusMap: Record<string, PaymentStatus> = {
+  private mapStatus(status: string): GatewayPaymentStatus {
+    const statusMap: Record<string, GatewayPaymentStatus> = {
       // Common statuses
-      pending: PaymentStatus.PENDING,
-      processing: PaymentStatus.PROCESSING,
-      completed: PaymentStatus.COMPLETED,
-      success: PaymentStatus.COMPLETED,
-      paid: PaymentStatus.COMPLETED,
-      failed: PaymentStatus.FAILED,
-      error: PaymentStatus.FAILED,
-      cancelled: PaymentStatus.CANCELLED,
-      canceled: PaymentStatus.CANCELLED,
-      refunded: PaymentStatus.REFUNDED,
-      expired: PaymentStatus.EXPIRED,
+      pending: GatewayPaymentStatus.PENDING,
+      processing: GatewayPaymentStatus.PROCESSING,
+      completed: GatewayPaymentStatus.COMPLETED,
+      success: GatewayPaymentStatus.COMPLETED,
+      paid: GatewayPaymentStatus.COMPLETED,
+      failed: GatewayPaymentStatus.FAILED,
+      error: GatewayPaymentStatus.FAILED,
+      cancelled: GatewayPaymentStatus.CANCELLED,
+      canceled: GatewayPaymentStatus.CANCELLED,
+      refunded: GatewayPaymentStatus.REFUNDED,
+      expired: GatewayPaymentStatus.EXPIRED,
 
       // Payme statuses
-      "0": PaymentStatus.PENDING,
-      "1": PaymentStatus.PROCESSING,
-      "2": PaymentStatus.COMPLETED,
-      "-1": PaymentStatus.CANCELLED,
-      "-2": PaymentStatus.FAILED,
+      "0": GatewayPaymentStatus.PENDING,
+      "1": GatewayPaymentStatus.PROCESSING,
+      "2": GatewayPaymentStatus.COMPLETED,
+      "-1": GatewayPaymentStatus.CANCELLED,
+      "-2": GatewayPaymentStatus.FAILED,
 
       // Click statuses
-      waiting: PaymentStatus.PENDING,
-      preauth: PaymentStatus.PROCESSING,
-      confirmed: PaymentStatus.COMPLETED,
+      waiting: GatewayPaymentStatus.PENDING,
+      preauth: GatewayPaymentStatus.PROCESSING,
+      confirmed: GatewayPaymentStatus.COMPLETED,
     };
 
     return (
-      statusMap[status?.toString()?.toLowerCase()] || PaymentStatus.PENDING
+      statusMap[status?.toString()?.toLowerCase()] ||
+      GatewayPaymentStatus.PENDING
     );
   }
 

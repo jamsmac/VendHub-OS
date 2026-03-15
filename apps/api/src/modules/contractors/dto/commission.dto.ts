@@ -3,7 +3,7 @@
  * Calculate, query, and manage commission calculations
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsUUID,
   IsString,
@@ -13,24 +13,24 @@ import {
   IsInt,
   MaxLength,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { PaymentStatus } from '../entities/contract.entity';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { CommissionPaymentStatus } from "../entities/contract.entity";
 
 // ============================================================================
 // CALCULATE COMMISSION DTO
 // ============================================================================
 
 export class CalculateCommissionDto {
-  @ApiProperty({ description: 'Contract ID' })
+  @ApiProperty({ description: "Contract ID" })
   @IsUUID()
   contractId: string;
 
-  @ApiProperty({ description: 'Period start date (inclusive)' })
+  @ApiProperty({ description: "Period start date (inclusive)" })
   @IsDateString()
   periodStart: string;
 
-  @ApiProperty({ description: 'Period end date (inclusive)' })
+  @ApiProperty({ description: "Period end date (inclusive)" })
   @IsDateString()
   periodEnd: string;
 }
@@ -40,34 +40,37 @@ export class CalculateCommissionDto {
 // ============================================================================
 
 export class QueryCommissionsDto {
-  @ApiPropertyOptional({ description: 'Filter by contract ID' })
+  @ApiPropertyOptional({ description: "Filter by contract ID" })
   @IsOptional()
   @IsUUID()
   contractId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by payment status', enum: PaymentStatus })
+  @ApiPropertyOptional({
+    description: "Filter by payment status",
+    enum: CommissionPaymentStatus,
+  })
   @IsOptional()
-  @IsEnum(PaymentStatus)
-  paymentStatus?: PaymentStatus;
+  @IsEnum(CommissionPaymentStatus)
+  paymentStatus?: CommissionPaymentStatus;
 
-  @ApiPropertyOptional({ description: 'Date from (inclusive)' })
+  @ApiPropertyOptional({ description: "Date from (inclusive)" })
   @IsOptional()
   @IsDateString()
   dateFrom?: string;
 
-  @ApiPropertyOptional({ description: 'Date to (inclusive)' })
+  @ApiPropertyOptional({ description: "Date to (inclusive)" })
   @IsOptional()
   @IsDateString()
   dateTo?: string;
 
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 20 })
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -80,11 +83,11 @@ export class QueryCommissionsDto {
 // ============================================================================
 
 export class MarkCommissionPaidDto {
-  @ApiProperty({ description: 'Payment transaction ID' })
+  @ApiProperty({ description: "Payment transaction ID" })
   @IsUUID()
   paymentTransactionId: string;
 
-  @ApiPropertyOptional({ description: 'Notes about the payment' })
+  @ApiPropertyOptional({ description: "Notes about the payment" })
   @IsOptional()
   @IsString()
   @MaxLength(2000)

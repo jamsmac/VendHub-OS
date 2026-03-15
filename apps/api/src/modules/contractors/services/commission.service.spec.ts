@@ -10,7 +10,7 @@ import {
   ContractStatus,
   CommissionType,
   CommissionCalculation,
-  PaymentStatus,
+  CommissionPaymentStatus,
 } from "../entities/contract.entity";
 import { Transaction } from "../../transactions/entities/transaction.entity";
 
@@ -53,7 +53,7 @@ describe("CommissionService", () => {
     transactionCount: 50,
     commissionAmount: 150000,
     commissionType: CommissionType.PERCENTAGE,
-    paymentStatus: PaymentStatus.PENDING,
+    paymentStatus: CommissionPaymentStatus.PENDING,
     paymentDueDate: new Date("2025-03-02"),
     contract: makeContract(),
   } as unknown as CommissionCalculation;
@@ -147,7 +147,7 @@ describe("CommissionService", () => {
       expect(commissionRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           commissionAmount: 150000,
-          paymentStatus: PaymentStatus.PENDING,
+          paymentStatus: CommissionPaymentStatus.PENDING,
         }),
       );
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -301,7 +301,7 @@ describe("CommissionService", () => {
         "Payment received",
       );
 
-      expect(result.paymentStatus).toBe(PaymentStatus.PAID);
+      expect(result.paymentStatus).toBe(CommissionPaymentStatus.PAID);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         "commission.paid",
         expect.any(Object),
@@ -319,7 +319,7 @@ describe("CommissionService", () => {
     it("should throw BadRequestException when already paid", async () => {
       const paidCommission = {
         ...mockCommission,
-        paymentStatus: PaymentStatus.PAID,
+        paymentStatus: CommissionPaymentStatus.PAID,
       } as any;
       commissionRepo.findOne.mockResolvedValue(paidCommission);
 
@@ -331,7 +331,7 @@ describe("CommissionService", () => {
     it("should throw BadRequestException when commission is cancelled", async () => {
       const cancelled = {
         ...mockCommission,
-        paymentStatus: PaymentStatus.CANCELLED,
+        paymentStatus: CommissionPaymentStatus.CANCELLED,
       } as any;
       commissionRepo.findOne.mockResolvedValue(cancelled);
 
@@ -345,7 +345,7 @@ describe("CommissionService", () => {
     it("should mark pending commissions past due date as overdue", async () => {
       const overdueCommission = {
         ...mockCommission,
-        paymentStatus: PaymentStatus.PENDING,
+        paymentStatus: CommissionPaymentStatus.PENDING,
         paymentDueDate: new Date("2024-01-01"),
       } as any;
       commissionRepo.find.mockResolvedValue([overdueCommission]);

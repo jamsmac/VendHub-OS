@@ -20,7 +20,7 @@ import {
   MaintenanceWorkLog,
   MaintenanceSchedule,
   MaintenanceStatus,
-  MaintenanceType,
+  MaintenanceWorkType,
   MaintenancePriority,
   VALID_MAINTENANCE_TRANSITIONS,
 } from "./entities/maintenance.entity";
@@ -751,8 +751,8 @@ export class MaintenanceService {
       MaintenanceStatus,
       number
     >;
-    const byType: Record<MaintenanceType, number> = {} as Record<
-      MaintenanceType,
+    const byType: Record<MaintenanceWorkType, number> = {} as Record<
+      MaintenanceWorkType,
       number
     >;
     const byPriority: Record<MaintenancePriority, number> = {} as Record<
@@ -761,7 +761,7 @@ export class MaintenanceService {
     >;
 
     Object.values(MaintenanceStatus).forEach((s) => (byStatus[s] = 0));
-    Object.values(MaintenanceType).forEach((t) => (byType[t] = 0));
+    Object.values(MaintenanceWorkType).forEach((t) => (byType[t] = 0));
     Object.values(MaintenancePriority).forEach((p) => (byPriority[p] = 0));
 
     let totalCost = 0;

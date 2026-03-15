@@ -33,7 +33,7 @@ export enum OrderStatus {
   REFUNDED = "refunded",
 }
 
-export enum PaymentStatus {
+export enum OrderPaymentStatus {
   PENDING = "pending",
   PAID = "paid",
   FAILED = "failed",
@@ -81,10 +81,10 @@ export class Order extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: PaymentStatus,
-    default: PaymentStatus.PENDING,
+    enum: OrderPaymentStatus,
+    default: OrderPaymentStatus.PENDING,
   })
-  paymentStatus: PaymentStatus;
+  paymentStatus: OrderPaymentStatus;
 
   @Column({
     type: "enum",

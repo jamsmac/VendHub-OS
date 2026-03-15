@@ -15,7 +15,7 @@ import { Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ConfigService } from "@nestjs/config";
 import { TelegramPayment } from "./entities/telegram-payment.entity";
-import { Order, PaymentStatus } from "../orders/entities/order.entity";
+import { Order, OrderPaymentStatus } from "../orders/entities/order.entity";
 import {
   TelegramPaymentStatus,
   TelegramPaymentProvider,
@@ -342,7 +342,7 @@ export class TelegramPaymentsService {
     // Update order if exists
     if (payment.orderId) {
       await this.orderRepo.update(payment.orderId, {
-        paymentStatus: PaymentStatus.PAID,
+        paymentStatus: OrderPaymentStatus.PAID,
         paidAt: new Date(),
       } as unknown as Parameters<typeof this.orderRepo.update>[1]);
     }

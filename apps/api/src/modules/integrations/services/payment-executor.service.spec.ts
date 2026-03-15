@@ -312,10 +312,10 @@ describe("PaymentExecutorService", () => {
   });
 
   // ================================================================
-  // checkPaymentStatus
+  // checkGatewayPaymentStatus
   // ================================================================
 
-  describe("checkPaymentStatus", () => {
+  describe("checkGatewayPaymentStatus", () => {
     it("should check payment status successfully", async () => {
       axiosMock.mockResolvedValue({
         status: 200,
@@ -328,7 +328,7 @@ describe("PaymentExecutorService", () => {
         },
       });
 
-      const result = await service.checkPaymentStatus(
+      const result = await service.checkGatewayPaymentStatus(
         mockIntegration as Integration,
         "pay-001",
       );
@@ -344,7 +344,7 @@ describe("PaymentExecutorService", () => {
         data: { id: "pay-001", status: "pending" },
       });
 
-      await service.checkPaymentStatus(
+      await service.checkGatewayPaymentStatus(
         mockIntegration as Integration,
         "pay-001",
       );
@@ -369,7 +369,7 @@ describe("PaymentExecutorService", () => {
       };
 
       await expect(
-        service.checkPaymentStatus(
+        service.checkGatewayPaymentStatus(
           noStatusIntegration as any as Integration,
           "pay-001",
         ),

@@ -107,7 +107,7 @@ export class IntegrationTesterService {
           break;
 
         case "checkStatus":
-          response = await this.paymentExecutor.checkPaymentStatus(
+          response = await this.paymentExecutor.checkGatewayPaymentStatus(
             integration,
             String(testCase.requestData.paymentId),
           );
