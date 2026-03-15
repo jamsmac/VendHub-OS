@@ -37,56 +37,56 @@ export const ROLE_META: Record<
   }
 > = {
   owner: {
-    label: "Владелец",
+    label: "Owner",
     color:
       "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
     icon: Crown,
-    description: "Полный доступ и владение системой",
+    description: "Full access and system ownership",
     isSystem: true,
   },
   admin: {
-    label: "Администратор",
+    label: "Administrator",
     color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     icon: Shield,
-    description: "Полный доступ ко всем функциям",
+    description: "Full access to all features",
     isSystem: true,
   },
   manager: {
-    label: "Менеджер",
+    label: "Manager",
     color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
     icon: Briefcase,
-    description: "Управление операциями и персоналом",
+    description: "Operations and personnel management",
     isSystem: true,
   },
   operator: {
-    label: "Оператор",
+    label: "Operator",
     color:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: UserCheck,
-    description: "Обслуживание и заправка автоматов",
+    description: "Machine service and refilling",
     isSystem: false,
   },
   warehouse: {
-    label: "Склад",
+    label: "Warehouse",
     color:
       "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     icon: Layers,
-    description: "Управление складом и запасами",
+    description: "Warehouse and stock management",
     isSystem: false,
   },
   accountant: {
-    label: "Бухгалтер",
+    label: "Accountant",
     color:
       "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
     icon: BarChart3,
-    description: "Финансы и отчётность",
+    description: "Finance and reporting",
     isSystem: false,
   },
   viewer: {
-    label: "Наблюдатель",
+    label: "Viewer",
     color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
     icon: Eye,
-    description: "Только просмотр данных",
+    description: "View-only access",
     isSystem: false,
   },
 };
@@ -96,52 +96,52 @@ export const STATUS_META: Record<
   { label: string; color: string; dot: string }
 > = {
   active: {
-    label: "Активен",
+    label: "Active",
     color: "text-emerald-600",
     dot: "bg-emerald-500",
   },
-  away: { label: "Отсутствует", color: "text-amber-600", dot: "bg-amber-500" },
-  inactive: { label: "Неактивен", color: "text-gray-500", dot: "bg-gray-400" },
+  away: { label: "Away", color: "text-amber-600", dot: "bg-amber-500" },
+  inactive: { label: "Inactive", color: "text-gray-500", dot: "bg-gray-400" },
   suspended: {
-    label: "Приостановлен",
+    label: "Suspended",
     color: "text-red-600",
     dot: "bg-red-500",
   },
-  invited: { label: "Приглашён", color: "text-blue-600", dot: "bg-blue-500" },
+  invited: { label: "Invited", color: "text-blue-600", dot: "bg-blue-500" },
 };
 
 export const DEPARTMENTS = [
   {
     id: "management",
-    name: "Руководство",
+    name: "Management",
     icon: Crown,
     color: "text-purple-600",
     bgColor: "bg-purple-50 dark:bg-purple-900/20",
   },
   {
     id: "operations",
-    name: "Операции",
+    name: "Operations",
     icon: Zap,
     color: "text-amber-600",
     bgColor: "bg-amber-50 dark:bg-amber-900/20",
   },
   {
     id: "service",
-    name: "Сервис",
+    name: "Service",
     icon: Settings,
     color: "text-blue-600",
     bgColor: "bg-blue-50 dark:bg-blue-900/20",
   },
   {
     id: "finance",
-    name: "Финансы",
+    name: "Finance",
     icon: Shield,
     color: "text-emerald-600",
     bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
   },
   {
     id: "analytics",
-    name: "Аналитика",
+    name: "Analytics",
     icon: BarChart3,
     color: "text-cyan-600",
     bgColor: "bg-cyan-50 dark:bg-cyan-900/20",
@@ -149,33 +149,33 @@ export const DEPARTMENTS = [
 ];
 
 export const ZONES = [
-  "Мирзо-Улугбекский",
-  "Юнусабадский",
-  "Чиланзарский",
-  "Яккасарайский",
-  "Сирдарёвский",
-  "Алмазарский",
-  "Шайхантахурский",
-  "Ташкентский",
-  "Бектемирский",
+  "Mirzo Ulugbek",
+  "Yunusabad",
+  "Chilanzar",
+  "Yakkasaray",
+  "Sirdaryo",
+  "Almazar",
+  "Shaykhantakhur",
+  "Tashkent",
+  "Bektemir",
 ];
 
 export const SHIFT_TYPES = [
   {
     id: "morning",
-    name: "Утро",
+    name: "Morning",
     time: "06:00-14:00",
     color: "bg-amber-100 text-amber-800",
   },
   {
     id: "day",
-    name: "День",
+    name: "Day",
     time: "10:00-18:00",
     color: "bg-blue-100 text-blue-800",
   },
   {
     id: "evening",
-    name: "Вечер",
+    name: "Evening",
     time: "14:00-22:00",
     color: "bg-purple-100 text-purple-800",
   },
@@ -184,7 +184,7 @@ export const SHIFT_TYPES = [
 export const PERMISSION_CATEGORIES = [
   {
     id: "machines",
-    name: "Автоматы",
+    name: "Machines",
     icon: Building,
     perms: [
       "machines_view",
@@ -195,7 +195,7 @@ export const PERMISSION_CATEGORIES = [
   },
   {
     id: "inventory",
-    name: "Склад",
+    name: "Inventory",
     icon: Layers,
     perms: [
       "inventory_view",
@@ -206,25 +206,25 @@ export const PERMISSION_CATEGORIES = [
   },
   {
     id: "tasks",
-    name: "Задачи",
+    name: "Tasks",
     icon: Target,
     perms: ["tasks_view", "tasks_create", "tasks_assign", "tasks_manage"],
   },
   {
     id: "finance",
-    name: "Финансы",
+    name: "Finance",
     icon: Shield,
     perms: ["finance_view", "finance_reports", "collections", "finance_full"],
   },
   {
     id: "reports",
-    name: "Отчёты",
+    name: "Reports",
     icon: FileText,
     perms: ["reports_view", "analytics", "export", "reports_create"],
   },
   {
     id: "team",
-    name: "Команда",
+    name: "Team",
     icon: Users,
     perms: ["staff_view", "staff_manage", "roles_manage", "full_access"],
   },
@@ -300,63 +300,63 @@ export const ACTION_ICON: Record<
 };
 
 export const HEADCOUNT_BY_ROLE = [
-  { role: "Владелец", count: 1, fill: "#8b5cf6" },
-  { role: "Администратор", count: 1, fill: "#ef4444" },
-  { role: "Менеджер", count: 1, fill: "#3b82f6" },
-  { role: "Оператор", count: 3, fill: "#10b981" },
-  { role: "Склад", count: 1, fill: "#f59e0b" },
-  { role: "Бухгалтер", count: 1, fill: "#6366f1" },
-  { role: "Наблюдатель", count: 0, fill: "#6b7280" },
+  { role: "Owner", count: 1, fill: "#8b5cf6" },
+  { role: "Administrator", count: 1, fill: "#ef4444" },
+  { role: "Manager", count: 1, fill: "#3b82f6" },
+  { role: "Operator", count: 3, fill: "#10b981" },
+  { role: "Warehouse", count: 1, fill: "#f59e0b" },
+  { role: "Accountant", count: 1, fill: "#6366f1" },
+  { role: "Viewer", count: 0, fill: "#6b7280" },
 ];
 
 export const HIRING_TIMELINE = [
-  { month: "Январь", hired: 1 },
-  { month: "Февраль", hired: 1 },
-  { month: "Март", hired: 1 },
-  { month: "Апрель", hired: 1 },
-  { month: "Май", hired: 1 },
-  { month: "Июнь", hired: 1 },
-  { month: "Июль", hired: 1 },
-  { month: "Август", hired: 1 },
-  { month: "Сентябрь", hired: 0 },
-  { month: "Октябрь", hired: 0 },
-  { month: "Ноябрь", hired: 0 },
-  { month: "Декабрь", hired: 0 },
+  { month: "January", hired: 1 },
+  { month: "February", hired: 1 },
+  { month: "March", hired: 1 },
+  { month: "April", hired: 1 },
+  { month: "May", hired: 1 },
+  { month: "June", hired: 1 },
+  { month: "July", hired: 1 },
+  { month: "August", hired: 1 },
+  { month: "September", hired: 0 },
+  { month: "October", hired: 0 },
+  { month: "November", hired: 0 },
+  { month: "December", hired: 0 },
 ];
 
 export const TENURE_DISTRIBUTION = [
-  { name: "0-3 месяца", value: 2, fill: "#ef4444" },
-  { name: "3-6 месяцев", value: 3, fill: "#f59e0b" },
-  { name: "6-12 месяцев", value: 2, fill: "#3b82f6" },
-  { name: "12+ месяцев", value: 1, fill: "#10b981" },
+  { name: "0-3 months", value: 2, fill: "#ef4444" },
+  { name: "3-6 months", value: 3, fill: "#f59e0b" },
+  { name: "6-12 months", value: 2, fill: "#3b82f6" },
+  { name: "12+ months", value: 1, fill: "#10b981" },
 ];
 
 export const PERFORMANCE_DATA = [
-  { name: "Алексей Петров", tasks: 95, rating: 98, timelyCompletion: 92 },
-  { name: "Азиз Каримов", tasks: 85, rating: 96, timelyCompletion: 88 },
-  { name: "Малика Рахимова", tasks: 82, rating: 94, timelyCompletion: 90 },
-  { name: "Дмитрий Козлов", tasks: 88, rating: 90, timelyCompletion: 85 },
-  { name: "Нодира Хасанова", tasks: 72, rating: 92, timelyCompletion: 80 },
+  { name: "Alexey Petrov", tasks: 95, rating: 98, timelyCompletion: 92 },
+  { name: "Aziz Karimov", tasks: 85, rating: 96, timelyCompletion: 88 },
+  { name: "Malika Rakhimova", tasks: 82, rating: 94, timelyCompletion: 90 },
+  { name: "Dmitry Kozlov", tasks: 88, rating: 90, timelyCompletion: 85 },
+  { name: "Nodira Khasanova", tasks: 72, rating: 92, timelyCompletion: 80 },
 ];
 
 export const RESPONSE_TIME_DATA = [
-  { week: "Неделя 1", avgTime: 45 },
-  { week: "Неделя 2", avgTime: 38 },
-  { week: "Неделя 3", avgTime: 32 },
-  { week: "Неделя 4", avgTime: 28 },
+  { week: "Week 1", avgTime: 45 },
+  { week: "Week 2", avgTime: 38 },
+  { week: "Week 3", avgTime: 32 },
+  { week: "Week 4", avgTime: 28 },
 ];
 
 export const TOP_PERFORMERS = [
-  { rank: 1, name: "Дмитрий Козлов", tasks: 312 },
-  { rank: 2, name: "Азиз Каримов", tasks: 234 },
-  { rank: 3, name: "Малика Рахимова", tasks: 189 },
-  { rank: 4, name: "Алексей Петров", tasks: 156 },
-  { rank: 5, name: "Сергей Новиков", tasks: 145 },
+  { rank: 1, name: "Dmitry Kozlov", tasks: 312 },
+  { rank: 2, name: "Aziz Karimov", tasks: 234 },
+  { rank: 3, name: "Malika Rakhimova", tasks: 189 },
+  { rank: 4, name: "Alexey Petrov", tasks: 156 },
+  { rank: 5, name: "Sergey Novikov", tasks: 145 },
 ];
 
 export const SCHEDULE_DATA: Record<string, string[]> = {
-  "Алексей Петров": ["day", "day", "day", "day", "day", "", ""],
-  "Азиз Каримов": [
+  "Alexey Petrov": ["day", "day", "day", "day", "day", "", ""],
+  "Aziz Karimov": [
     "morning",
     "morning",
     "morning",
@@ -365,8 +365,8 @@ export const SCHEDULE_DATA: Record<string, string[]> = {
     "",
     "",
   ],
-  "Малика Рахимова": ["day", "day", "day", "day", "day", "day", ""],
-  "Дмитрий Козлов": [
+  "Malika Rakhimova": ["day", "day", "day", "day", "day", "day", ""],
+  "Dmitry Kozlov": [
     "evening",
     "evening",
     "evening",
@@ -375,8 +375,8 @@ export const SCHEDULE_DATA: Record<string, string[]> = {
     "",
     "",
   ],
-  "Нодира Хасанова": ["day", "day", "day", "", "", "", ""],
-  "Елена Сидорова": [
+  "Nodira Khasanova": ["day", "day", "day", "", "", "", ""],
+  "Elena Sidorova": [
     "morning",
     "morning",
     "morning",
@@ -385,34 +385,39 @@ export const SCHEDULE_DATA: Record<string, string[]> = {
     "morning",
     "morning",
   ],
-  "Сергей Новиков": ["evening", "evening", "", "", "", "", ""],
-  "Алишер Усманов": ["day", "", "", "", "", "", ""],
+  "Sergey Novikov": ["evening", "evening", "", "", "", "", ""],
+  "Alisher Usmanov": ["day", "", "", "", "", "", ""],
 };
 
 export const SALARY_DATA = [
-  { name: "Алексей Петров", base: 5000000, bonus: 500000, deductions: 200000 },
-  { name: "Азиз Каримов", base: 4500000, bonus: 400000, deductions: 180000 },
-  { name: "Малика Рахимова", base: 3500000, bonus: 350000, deductions: 140000 },
-  { name: "Дмитрий Козлов", base: 2500000, bonus: 250000, deductions: 100000 },
-  { name: "Нодира Хасанова", base: 2000000, bonus: 200000, deductions: 80000 },
-  { name: "Елена Сидорова", base: 3000000, bonus: 300000, deductions: 120000 },
-  { name: "Сергей Новиков", base: 2300000, bonus: 230000, deductions: 92000 },
-  { name: "Алишер Усманов", base: 1800000, bonus: 180000, deductions: 72000 },
+  { name: "Alexey Petrov", base: 5000000, bonus: 500000, deductions: 200000 },
+  { name: "Aziz Karimov", base: 4500000, bonus: 400000, deductions: 180000 },
+  {
+    name: "Malika Rakhimova",
+    base: 3500000,
+    bonus: 350000,
+    deductions: 140000,
+  },
+  { name: "Dmitry Kozlov", base: 2500000, bonus: 250000, deductions: 100000 },
+  { name: "Nodira Khasanova", base: 2000000, bonus: 200000, deductions: 80000 },
+  { name: "Elena Sidorova", base: 3000000, bonus: 300000, deductions: 120000 },
+  { name: "Sergey Novikov", base: 2300000, bonus: 230000, deductions: 92000 },
+  { name: "Alisher Usmanov", base: 1800000, bonus: 180000, deductions: 72000 },
 ];
 
 export const SALARY_BY_ROLE = [
-  { role: "Владелец", amount: 5000000, fill: "#8b5cf6" },
-  { role: "Администратор", amount: 4500000, fill: "#ef4444" },
-  { role: "Менеджер", amount: 3500000, fill: "#3b82f6" },
-  { role: "Бухгалтер", amount: 3000000, fill: "#6366f1" },
-  { role: "Оператор", amount: 2200000, fill: "#10b981" },
-  { role: "Склад", amount: 2000000, fill: "#f59e0b" },
+  { role: "Owner", amount: 5000000, fill: "#8b5cf6" },
+  { role: "Administrator", amount: 4500000, fill: "#ef4444" },
+  { role: "Manager", amount: 3500000, fill: "#3b82f6" },
+  { role: "Accountant", amount: 3000000, fill: "#6366f1" },
+  { role: "Operator", amount: 2200000, fill: "#10b981" },
+  { role: "Warehouse", amount: 2000000, fill: "#f59e0b" },
 ];
 
 export const BONUS_DISTRIBUTION = [
-  { name: "Премии", value: 2410000, fill: "#f59e0b" },
-  { name: "Бонусы производительности", value: 1960000, fill: "#10b981" },
-  { name: "Стимулы", value: 980000, fill: "#3b82f6" },
+  { name: "Premiums", value: 2410000, fill: "#f59e0b" },
+  { name: "Performance bonuses", value: 1960000, fill: "#10b981" },
+  { name: "Incentives", value: 980000, fill: "#3b82f6" },
 ];
 
 export function hasPermForRole(role: string, perm: string): boolean {
