@@ -670,9 +670,9 @@ async function handleAchievements(ctx: BotContext) {
 
   const list = data.achievements
     .slice(0, 8)
-    .map((a: { unlocked: boolean; name: string; description: string }) => {
+    .map((a) => {
       const icon = a.unlocked ? "🏆" : "🔒";
-      return `${icon} *${a.name}*\n   ${a.description}`;
+      return `${icon} *${a.name}*\n   ${a.description || ""}`;
     })
     .join("\n\n");
 
@@ -714,31 +714,12 @@ async function handleStaffTasks(ctx: BotContext) {
     maintenance: "⚙️ ТО",
   };
 
-  const priorityIcons: Record<string, string> = {
-    urgent: "🔴",
-    high: "🟠",
-    normal: "🔵",
-    low: "⚪",
-  };
-
   const tasksList = tasks
     .slice(0, 10)
-    .map(
-      (
-        t: {
-          taskType: string;
-          priority: string;
-          machine?: { name: string };
-          machineName?: string;
-        },
-        i: number,
-      ) => {
-        const type = taskTypeLabels[t.taskType] || t.taskType;
-        const priority = priorityIcons[t.priority] || "⚪";
-        const machine = t.machine?.name || t.machineName || "";
-        return `${i + 1}. ${priority} ${type}\n   📍 ${machine}`;
-      },
-    )
+    .map((t, i: number) => {
+      const type = taskTypeLabels[t.type] || t.type;
+      return `${i + 1}. ${type}\n   📝 ${t.title || ""}`;
+    })
     .join("\n\n");
 
   await ctx.reply(`📋 *Мои задачи* (${tasks.length})\n\n${tasksList}`, {
@@ -825,12 +806,10 @@ async function handleStaffReport(ctx: BotContext) {
 
   await ctx.reply(
     `📊 *Дневной отчёт*\n\n` +
-      `✅ Выполнено задач: ${stats.completedTasks || 0}\n` +
-      `📋 В работе: ${stats.inProgressTasks || 0}\n` +
-      `⏳ Ожидают: ${stats.pendingTasks || 0}\n` +
-      `🚗 Пройдено: ${stats.distanceKm ? `${stats.distanceKm} км` : "N/A"}\n` +
-      `⏱ Время работы: ${stats.workHours ? `${stats.workHours}ч` : "N/A"}\n` +
-      `🏭 Обслужено автоматов: ${stats.machinesServiced || 0}`,
+      `✅ Выполнено задач: ${stats.tasksCompleted || 0}\n` +
+      `📋 Всего задач: ${stats.tasksTotal || 0}\n` +
+      `💰 Инкассация: ${stats.collectionsAmount || 0} UZS\n` +
+      `🏭 Посещено автоматов: ${stats.machinesVisited || 0}`,
     { parse_mode: "Markdown", ...mainMenuInline },
   );
 }
@@ -858,30 +837,15 @@ async function handleStaffAlerts(ctx: BotContext) {
     critical: "🔴",
     warning: "🟡",
     info: "🔵",
+    alert: "🟠",
   };
 
   const alertsList = alerts
     .slice(0, 10)
-    .map(
-      (
-        a: {
-          severity: string;
-          createdAt?: string;
-          title?: string;
-          message?: string;
-        },
-        _i: number,
-      ) => {
-        const icon = alertIcons[a.severity] || "🔔";
-        const time = a.createdAt
-          ? new Date(a.createdAt).toLocaleTimeString("ru-RU", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "";
-        return `${icon} ${a.title || a.message}\n   ${time}`;
-      },
-    )
+    .map((a) => {
+      const icon = alertIcons[a.type] || "🔔";
+      return `${icon} *${a.title}*\n   ${a.body}`;
+    })
     .join("\n\n");
 
   await ctx.reply(`🔔 *Уведомления* (${alerts.length})\n\n${alertsList}`, {

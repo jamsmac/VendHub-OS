@@ -640,11 +640,11 @@ async function handleSendComplaint(ctx: BotContext) {
     return;
   }
 
-  const machineId = ctx.session.data?.machineId;
-  const message = ctx.session.data?.complaintMessage;
+  const machineId = (ctx.session.data?.machineId as string) || null;
+  const message = ctx.session.data?.complaintMessage as string | undefined;
 
   if (message) {
-    await api.createComplaint(user.id, machineId || null, "other", message);
+    await api.createComplaint(user.id, machineId, "other", message);
   }
 
   resetStep(ctx);

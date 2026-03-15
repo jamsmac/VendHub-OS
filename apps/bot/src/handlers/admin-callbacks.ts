@@ -141,10 +141,10 @@ async function handleStaffDayStats(ctx: BotContext) {
 
   await ctx.editMessageText(
     `📊 *Статистика дня:*\n\n` +
-      `✅ Выполнено: ${stats.completedTasks || 0}\n` +
-      `📋 В работе: ${stats.inProgressTasks || 0}\n` +
-      `🏭 Автоматов: ${stats.machinesServiced || 0}\n` +
-      `🚗 Расстояние: ${stats.distanceKm || 0} км`,
+      `✅ Выполнено: ${stats.tasksCompleted || 0}\n` +
+      `📋 Всего задач: ${stats.tasksTotal || 0}\n` +
+      `🏭 Автоматов: ${stats.machinesVisited || 0}\n` +
+      `💰 Инкассация: ${stats.collectionsAmount || 0} UZS`,
     { parse_mode: "Markdown", ...mainMenuInline },
   );
 }

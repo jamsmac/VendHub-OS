@@ -14,49 +14,33 @@ import {
 } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-export enum MachineType {
-  COFFEE = "coffee",
-  SNACK = "snack",
-  DRINK = "drink",
-  COMBO = "combo",
-  FRESH = "fresh",
-  ICE_CREAM = "ice_cream",
-  WATER = "water",
-}
-
-export enum MachineStatus {
-  ACTIVE = "active",
-  LOW_STOCK = "low_stock",
-  ERROR = "error",
-  MAINTENANCE = "maintenance",
-  OFFLINE = "offline",
-  DISABLED = "disabled",
-}
-
-export enum MachineConnectionStatus {
-  ONLINE = "online",
-  OFFLINE = "offline",
-  UNSTABLE = "unstable",
-  UNKNOWN = "unknown",
-}
-
-export enum DepreciationMethod {
-  LINEAR = "linear",
-  DECLINING = "declining",
-  UNITS_OF_PRODUCTION = "units_of_production",
-}
-
-export enum DisposalReason {
-  OBSOLETE = "obsolete",
-  DAMAGED = "damaged",
-  SOLD = "sold",
-  WRITTEN_OFF = "written_off",
-  OTHER = "other",
-}
+// Enums — single source of truth in @vendhub/shared
+import {
+  MachineType,
+  MachineStatus,
+  MachineConnectionStatus,
+  DepreciationMethod,
+  DisposalReason,
+  MoveReason,
+  ComponentType,
+  ComponentStatus,
+  ErrorSeverity,
+  MaintenanceType,
+  MaintenanceStatus,
+} from "@vendhub/shared";
+export {
+  MachineType,
+  MachineStatus,
+  MachineConnectionStatus,
+  DepreciationMethod,
+  DisposalReason,
+  MoveReason,
+  ComponentType,
+  ComponentStatus,
+  ErrorSeverity,
+  MaintenanceType,
+  MaintenanceStatus,
+};
 
 // ============================================================================
 // MACHINE ENTITY
@@ -415,15 +399,6 @@ export class MachineSlot extends BaseEntity {
 // MACHINE LOCATION HISTORY ENTITY
 // ============================================================================
 
-export enum MoveReason {
-  INSTALLATION = "installation",
-  RELOCATION = "relocation",
-  REMOVAL = "removal",
-  MAINTENANCE = "maintenance",
-  CONTRACT_CHANGE = "contract_change",
-  OTHER = "other",
-}
-
 @Entity("machine_location_history")
 @Index(["machineId"])
 @Index(["movedAt"])
@@ -461,27 +436,6 @@ export class MachineLocationHistory extends BaseEntity {
 // ============================================================================
 // MACHINE COMPONENT ENTITY (for tracking replaceable parts)
 // ============================================================================
-
-export enum ComponentType {
-  HOPPER = "hopper",
-  GRINDER = "grinder",
-  BREW_UNIT = "brew_unit",
-  MIXER = "mixer",
-  PUMP = "pump",
-  HEATER = "heater",
-  DISPENSER = "dispenser",
-  COMPRESSOR = "compressor",
-  BOARD = "board",
-  MOTOR = "motor",
-  OTHER = "other",
-}
-
-export enum ComponentStatus {
-  INSTALLED = "installed",
-  REMOVED = "removed",
-  IN_REPAIR = "in_repair",
-  DISPOSED = "disposed",
-}
 
 @Entity("machine_components")
 @Index(["machineId"])
@@ -560,13 +514,6 @@ export class MachineComponent extends BaseEntity {
 // MACHINE ERROR LOG ENTITY
 // ============================================================================
 
-export enum ErrorSeverity {
-  INFO = "info",
-  WARNING = "warning",
-  ERROR = "error",
-  CRITICAL = "critical",
-}
-
 @Entity("machine_error_logs")
 @Index(["machineId"])
 @Index(["occurredAt"])
@@ -615,23 +562,6 @@ export class MachineErrorLog extends BaseEntity {
 // ============================================================================
 // MACHINE MAINTENANCE SCHEDULE ENTITY
 // ============================================================================
-
-export enum MaintenanceType {
-  CLEANING = "cleaning",
-  INSPECTION = "inspection",
-  CALIBRATION = "calibration",
-  PARTS_REPLACEMENT = "parts_replacement",
-  SOFTWARE_UPDATE = "software_update",
-  FULL_SERVICE = "full_service",
-}
-
-export enum MaintenanceStatus {
-  SCHEDULED = "scheduled",
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-  SKIPPED = "skipped",
-  OVERDUE = "overdue",
-}
 
 @Entity("machine_maintenance_schedules")
 @Index(["machineId"])

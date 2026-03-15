@@ -45,7 +45,7 @@ async function handleLocation(ctx: BotContext) {
 
   // Handle live location for active trip
   if (ctx.session.step === "trip_active" && ctx.session.data?.tripId) {
-    const tripId = ctx.session.data.tripId;
+    const tripId = ctx.session.data.tripId as string;
     await api.addTripPoint(tripId, latitude, longitude);
     // Don't reply for every point to avoid spam
     return;
@@ -324,10 +324,10 @@ async function handleFeedbackText(ctx: BotContext, text: string) {
   const user = await api.getUserByTelegramId(ctx.from.id);
   if (!user) return;
 
-  const orderId = ctx.session.data?.orderId;
-  const rating = ctx.session.data?.rating || 5;
+  const orderId = (ctx.session.data?.orderId as string) || null;
+  const rating = (ctx.session.data?.rating as number) || 5;
 
-  await api.submitFeedback(user.id, orderId || null, rating, text);
+  await api.submitFeedback(user.id, orderId, rating, text);
 
   resetStep(ctx);
   ctx.session.data = undefined;

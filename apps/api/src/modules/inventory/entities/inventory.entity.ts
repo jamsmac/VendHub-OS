@@ -13,70 +13,14 @@ import { Organization } from "../../organizations/entities/organization.entity";
 import { User } from "../../users/entities/user.entity";
 import { Machine } from "../../machines/entities/machine.entity";
 
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-/**
- * Movement Types for 3-Level Inventory System
- */
-export enum MovementType {
-  // Warehouse operations
-  WAREHOUSE_IN = "warehouse_in", // Stock arrival (purchases)
-  WAREHOUSE_OUT = "warehouse_out", // Stock removal (write-offs)
-
-  // Transfers between levels
-  WAREHOUSE_TO_OPERATOR = "warehouse_to_operator", // Warehouse -> Operator
-  OPERATOR_TO_WAREHOUSE = "operator_to_warehouse", // Operator -> Warehouse (returns)
-  OPERATOR_TO_MACHINE = "operator_to_machine", // Operator -> Machine (refills)
-  MACHINE_TO_OPERATOR = "machine_to_operator", // Machine -> Operator (removals)
-
-  // Machine operations
-  MACHINE_SALE = "machine_sale", // Sales/consumption
-
-  // Adjustments
-  ADJUSTMENT = "adjustment", // Inventory reconciliation
-  WRITE_OFF = "write_off", // Write-offs (expired, defects)
-
-  // Reservations
-  WAREHOUSE_RESERVATION = "warehouse_reservation",
-  WAREHOUSE_RESERVATION_RELEASE = "warehouse_reservation_release",
-  OPERATOR_RESERVATION = "operator_reservation",
-  OPERATOR_RESERVATION_RELEASE = "operator_reservation_release",
-}
-
-/**
- * Reservation status
- */
-export enum ReservationStatus {
-  PENDING = "pending",
-  CONFIRMED = "confirmed",
-  PARTIALLY_FULFILLED = "partially_fulfilled",
-  FULFILLED = "fulfilled",
-  CANCELLED = "cancelled",
-  EXPIRED = "expired",
-}
-
-/**
- * Inventory level for reservation
- */
-export enum InventoryLevel {
-  WAREHOUSE = "warehouse",
-  OPERATOR = "operator",
-  MACHINE = "machine",
-}
-
-/**
- * Adjustment types
- */
-export enum AdjustmentType {
-  STOCKTAKE = "stocktake", // Physical count
-  CORRECTION = "correction", // Manual correction
-  DAMAGE = "damage", // Damaged goods
-  EXPIRY = "expiry", // Expired goods
-  THEFT = "theft", // Theft/loss
-  OTHER = "other",
-}
+// Enums — single source of truth in @vendhub/shared
+import {
+  MovementType,
+  ReservationStatus,
+  InventoryLevel,
+  AdjustmentType,
+} from "@vendhub/shared";
+export { MovementType, ReservationStatus, InventoryLevel, AdjustmentType };
 
 // ============================================================================
 // LEVEL 1: WAREHOUSE INVENTORY
