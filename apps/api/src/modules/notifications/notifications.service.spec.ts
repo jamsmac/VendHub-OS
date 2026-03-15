@@ -3,8 +3,6 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, ObjectLiteral } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { NotificationsService } from "./notifications.service";
-import { ConfigService } from "@nestjs/config";
-import { HttpService } from "@nestjs/axios";
 import {
   Notification,
   NotificationTemplate,
@@ -21,9 +19,8 @@ import {
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
-import { EmailService } from "../email/email.service";
-import { SmsService } from "../sms/sms.service";
-import { WebPushService } from "../web-push/web-push.service";
+import { PushNotificationService } from "./services/push-notification.service";
+import { NotificationDeliveryService } from "./services/notification-delivery.service";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -70,8 +67,8 @@ describe("NotificationsService", () => {
   let queueRepo: MockRepository<NotificationQueueEntity>;
   let logRepo: MockRepository<NotificationLog>;
   let campaignRepo: MockRepository<NotificationCampaign>;
-  let pushSubscriptionRepo: MockRepository<PushSubscription>;
-  let fcmTokenRepo: MockRepository<FcmToken>;
+  let pushNotificationService: { [key: string]: jest.Mock };
+  let deliveryService: { [key: string]: jest.Mock };
 
   beforeEach(async () => {
     notificationRepo = createMockRepository<Notification>();
@@ -81,8 +78,6 @@ describe("NotificationsService", () => {
     queueRepo = createMockRepository<NotificationQueueEntity>();
     logRepo = createMockRepository<NotificationLog>();
     campaignRepo = createMockRepository<NotificationCampaign>();
-    pushSubscriptionRepo = createMockRepository<PushSubscription>();
-    fcmTokenRepo = createMockRepository<FcmToken>();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -110,38 +105,32 @@ describe("NotificationsService", () => {
           useValue: campaignRepo,
         },
         {
-          provide: getRepositoryToken(PushSubscription),
-          useValue: pushSubscriptionRepo,
-        },
-        { provide: getRepositoryToken(FcmToken), useValue: fcmTokenRepo },
-        {
           provide: getRepositoryToken(User),
           useValue: createMockRepository<User>(),
         },
         {
-          provide: EmailService,
-          useValue: { send: jest.fn() },
+          provide: PushNotificationService,
+          useValue: {
+            subscribe: jest.fn(),
+            unsubscribe: jest.fn(),
+            registerFcmToken: jest.fn(),
+            unregisterFcmToken: jest.fn(),
+            sendPush: jest.fn(),
+          },
         },
         {
-          provide: SmsService,
-          useValue: { send: jest.fn() },
-        },
-        {
-          provide: WebPushService,
-          useValue: { send: jest.fn() },
-        },
-        {
-          provide: ConfigService,
-          useValue: { get: jest.fn() },
-        },
-        {
-          provide: HttpService,
-          useValue: { axiosRef: { post: jest.fn() } },
+          provide: NotificationDeliveryService,
+          useValue: {
+            deliver: jest.fn(),
+            processQueue: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<NotificationsService>(NotificationsService);
+    pushNotificationService = module.get(PushNotificationService);
+    deliveryService = module.get(NotificationDeliveryService);
   });
 
   it("should be defined", () => {
@@ -558,7 +547,7 @@ describe("NotificationsService", () => {
       const template = { id: "t-1", name: "Template" };
       templateRepo.findOne!.mockResolvedValue(template);
 
-      const result = await service.getTemplate("t-1");
+      const result = await service.getTemplate("t-1", "org-uuid-1");
 
       expect(result).toEqual(template);
     });
@@ -566,9 +555,9 @@ describe("NotificationsService", () => {
     it("should throw NotFoundException when template not found", async () => {
       templateRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.getTemplate("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getTemplate("non-existent", "org-uuid-1"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -662,11 +651,13 @@ describe("NotificationsService", () => {
   // ==========================================================================
 
   describe("subscribePush", () => {
-    it("should create a new push subscription", async () => {
-      pushSubscriptionRepo.findOne!.mockResolvedValue(null);
-      const sub = { userId: "u-1", endpoint: "https://push.example.com" };
-      pushSubscriptionRepo.create!.mockReturnValue(sub);
-      pushSubscriptionRepo.save!.mockResolvedValue({ id: "ps-1", ...sub });
+    it("should delegate to pushNotificationService", async () => {
+      const sub = {
+        id: "ps-1",
+        userId: "u-1",
+        endpoint: "https://push.example.com",
+      };
+      pushNotificationService.subscribePush.mockResolvedValue(sub);
 
       const result = await service.subscribePush(
         "u-1",
@@ -676,51 +667,33 @@ describe("NotificationsService", () => {
         "auth",
       );
 
-      expect(pushSubscriptionRepo.create).toHaveBeenCalled();
-      expect(result.userId).toBe("u-1");
-    });
-
-    it("should update existing subscription when endpoint already exists", async () => {
-      const existing = {
-        id: "ps-1",
-        endpoint: "https://push.example.com",
-        userId: "old-user",
-        isActive: false,
-        userAgent: "old-ua",
-      };
-      pushSubscriptionRepo.findOne!.mockResolvedValue(existing);
-      pushSubscriptionRepo.save!.mockImplementation((s) => Promise.resolve(s));
-
-      const result = await service.subscribePush(
-        "new-user",
+      expect(pushNotificationService.subscribePush).toHaveBeenCalledWith(
+        "u-1",
         "org-1",
         "https://push.example.com",
-        "new-p256dh",
-        "new-auth",
+        "p256dh",
+        "auth",
+        undefined,
       );
-
-      expect(result.userId).toBe("new-user");
-      expect(result.isActive).toBe(true);
+      expect(result.userId).toBe("u-1");
     });
   });
 
   describe("unsubscribePush", () => {
-    it("should deactivate a push subscription", async () => {
-      const sub = {
-        id: "ps-1",
-        endpoint: "https://push.example.com",
-        isActive: true,
-      };
-      pushSubscriptionRepo.findOne!.mockResolvedValue(sub);
-      pushSubscriptionRepo.save!.mockImplementation((s) => Promise.resolve(s));
+    it("should delegate to pushNotificationService", async () => {
+      pushNotificationService.unsubscribePush.mockResolvedValue(undefined);
 
       await service.unsubscribePush("https://push.example.com");
 
-      expect(sub.isActive).toBe(false);
+      expect(pushNotificationService.unsubscribePush).toHaveBeenCalledWith(
+        "https://push.example.com",
+      );
     });
 
-    it("should throw NotFoundException when subscription not found", async () => {
-      pushSubscriptionRepo.findOne!.mockResolvedValue(null);
+    it("should propagate NotFoundException from pushNotificationService", async () => {
+      pushNotificationService.unsubscribePush.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(service.unsubscribePush("non-existent")).rejects.toThrow(
         NotFoundException,
@@ -733,66 +706,49 @@ describe("NotificationsService", () => {
   // ==========================================================================
 
   describe("registerFcm", () => {
-    it("should create a new FCM token", async () => {
-      fcmTokenRepo.findOne!.mockResolvedValue(null);
+    it("should delegate to pushNotificationService", async () => {
       const token = {
+        id: "ft-1",
         userId: "u-1",
         token: "fcm-token-123",
         deviceType: DeviceType.ANDROID,
       };
-      fcmTokenRepo.create!.mockReturnValue(token);
-      fcmTokenRepo.save!.mockResolvedValue({ id: "ft-1", ...token });
+      pushNotificationService.registerFcm.mockResolvedValue(token);
 
-      await service.registerFcm(
+      const result = await service.registerFcm(
         "u-1",
         "org-1",
         "fcm-token-123",
         DeviceType.ANDROID,
       );
 
-      expect(fcmTokenRepo.create).toHaveBeenCalled();
-    });
-
-    it("should update existing FCM token", async () => {
-      const existing = {
-        id: "ft-1",
-        token: "fcm-token-123",
-        userId: "old-user",
-        deviceType: DeviceType.IOS,
-        isActive: false,
-        deviceName: "Old",
-        deviceId: "old-id",
-      };
-      fcmTokenRepo.findOne!.mockResolvedValue(existing);
-      fcmTokenRepo.save!.mockImplementation((s) => Promise.resolve(s));
-
-      const result = await service.registerFcm(
-        "new-user",
+      expect(pushNotificationService.registerFcm).toHaveBeenCalledWith(
+        "u-1",
         "org-1",
         "fcm-token-123",
         DeviceType.ANDROID,
-        "New Phone",
+        undefined,
+        undefined,
       );
-
-      expect(result.userId).toBe("new-user");
-      expect(result.deviceType).toBe(DeviceType.ANDROID);
-      expect(result.isActive).toBe(true);
+      expect(result.token).toBe("fcm-token-123");
     });
   });
 
   describe("unregisterFcm", () => {
-    it("should deactivate an FCM token", async () => {
-      const token = { id: "ft-1", token: "fcm-token-123", isActive: true };
-      fcmTokenRepo.findOne!.mockResolvedValue(token);
-      fcmTokenRepo.save!.mockImplementation((s) => Promise.resolve(s));
+    it("should delegate to pushNotificationService", async () => {
+      pushNotificationService.unregisterFcm.mockResolvedValue(undefined);
 
       await service.unregisterFcm("fcm-token-123");
 
-      expect(token.isActive).toBe(false);
+      expect(pushNotificationService.unregisterFcm).toHaveBeenCalledWith(
+        "fcm-token-123",
+      );
     });
 
-    it("should throw NotFoundException when token not found", async () => {
-      fcmTokenRepo.findOne!.mockResolvedValue(null);
+    it("should propagate NotFoundException from pushNotificationService", async () => {
+      pushNotificationService.unregisterFcm.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       await expect(service.unregisterFcm("non-existent")).rejects.toThrow(
         NotFoundException,

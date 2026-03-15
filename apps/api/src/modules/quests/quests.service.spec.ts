@@ -2,20 +2,18 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
-import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import { QuestsService } from "./quests.service";
 import { Quest } from "./entities/quest.entity";
 import { UserQuest } from "./entities/user-quest.entity";
 import { User } from "../users/entities/user.entity";
-import { LoyaltyService } from "../loyalty/loyalty.service";
 import {
   QuestPeriod,
   QuestType,
   QuestStatus,
   QuestDifficulty,
 } from "./constants/quest.constants";
-import { PointsSource } from "../loyalty/constants/loyalty.constants";
+import { QuestProgressService } from "./services/quest-progress.service";
 import {
   CreateQuestDto,
   UpdateQuestDto,
@@ -27,8 +25,7 @@ describe("QuestsService", () => {
   let questRepo: jest.Mocked<Repository<Quest>>;
   let userQuestRepo: jest.Mocked<Repository<UserQuest>>;
   let userRepo: jest.Mocked<Repository<User>>;
-  let loyaltyService: jest.Mocked<LoyaltyService>;
-  let eventEmitter: jest.Mocked<EventEmitter2>;
+  let questProgressService: jest.Mocked<QuestProgressService>;
 
   const orgId = "org-uuid-1";
 
@@ -231,15 +228,11 @@ describe("QuestsService", () => {
           },
         },
         {
-          provide: LoyaltyService,
+          provide: QuestProgressService,
           useValue: {
-            earnPoints: jest.fn(),
-          },
-        },
-        {
-          provide: EventEmitter2,
-          useValue: {
-            emit: jest.fn(),
+            updateProgress: jest.fn(),
+            checkCompletion: jest.fn(),
+            getProgress: jest.fn(),
           },
         },
       ],
@@ -249,8 +242,9 @@ describe("QuestsService", () => {
     questRepo = module.get(getRepositoryToken(Quest));
     userQuestRepo = module.get(getRepositoryToken(UserQuest));
     userRepo = module.get(getRepositoryToken(User));
-    loyaltyService = module.get(LoyaltyService) as jest.Mocked<LoyaltyService>;
-    eventEmitter = module.get(EventEmitter2) as jest.Mocked<EventEmitter2>;
+    questProgressService = module.get(
+      QuestProgressService,
+    ) as jest.Mocked<QuestProgressService>;
   });
 
   it("should be defined", () => {
@@ -505,73 +499,35 @@ describe("QuestsService", () => {
   // ==========================================================================
 
   describe("getUserQuestsSummary", () => {
-    it("should return user quests summary grouped by period", async () => {
-      // Stub the internal ensureUserHasQuests path
-      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
-      userQuestRepo.count.mockResolvedValue(1); // existing quests present
-      // Return a dummy achievement so createAchievements doesn't get called
-      questRepo.find.mockResolvedValue([
-        { id: "achievement-1", period: QuestPeriod.ONE_TIME },
-      ] as unknown as Quest[]);
-      userQuestRepo.find.mockResolvedValue([]); // No existing user quests for achievements
-
-      const dailyUQ = {
-        ...mockUserQuest,
-        id: "uq-daily-1",
-        quest: { ...mockQuest, period: QuestPeriod.DAILY },
-        status: QuestStatus.IN_PROGRESS,
-        currentValue: 1,
-        rewardPoints: 20,
-        completedAt: null,
-        get progressPercent() {
-          return 33;
-        },
-        get remaining() {
-          return 2;
-        },
-        get canClaim() {
-          return false;
-        },
+    it("should delegate to questProgressService and return summary", async () => {
+      const mockSummary = {
+        totalActive: 2,
+        readyToClaim: 1,
+        pointsAvailable: 50,
+        daily: [{}, {}],
+        weekly: [],
+        monthly: [],
+        oneTime: [],
       };
-
-      const completedUQ = {
-        ...mockUserQuest,
-        id: "uq-daily-2",
-        quest: { ...mockQuest, period: QuestPeriod.DAILY },
-        status: QuestStatus.COMPLETED,
-        currentValue: 3,
-        rewardPoints: 50,
-        completedAt: new Date(),
-        get progressPercent() {
-          return 100;
-        },
-        get remaining() {
-          return 0;
-        },
-        get canClaim() {
-          return true;
-        },
-      };
-
-      const uqQB = createMockQueryBuilder([dailyUQ, completedUQ]);
-      userQuestRepo.createQueryBuilder.mockReturnValue(
-        uqQB as unknown as ReturnType<
-          Repository<UserQuest>["createQueryBuilder"]
-        >,
-      );
+      questProgressService.getUserQuestsSummary = jest
+        .fn()
+        .mockResolvedValue(mockSummary);
 
       const result = await service.getUserQuestsSummary("user-uuid-1");
 
       expect(result.totalActive).toBe(2);
       expect(result.readyToClaim).toBe(1);
       expect(result.pointsAvailable).toBe(50);
-      expect(result.daily).toHaveLength(2);
+      expect(questProgressService.getUserQuestsSummary).toHaveBeenCalledWith(
+        "user-uuid-1",
+        expect.any(Function),
+      );
     });
 
-    it("should throw NotFoundException when user does not exist", async () => {
-      // First findOne in ensureUserHasQuests returns null; second in
-      // getUserQuestsSummary also returns null.
-      userRepo.findOne.mockResolvedValue(null);
+    it("should propagate errors from questProgressService", async () => {
+      questProgressService.getUserQuestsSummary = jest
+        .fn()
+        .mockRejectedValue(new NotFoundException());
 
       await expect(
         service.getUserQuestsSummary("nonexistent-user"),
@@ -584,25 +540,30 @@ describe("QuestsService", () => {
   // ==========================================================================
 
   describe("getUserQuest", () => {
-    it("should return a single user quest with progress", async () => {
-      userQuestRepo.findOne.mockResolvedValue(
-        mockUserQuest as unknown as UserQuest,
-      );
+    it("should delegate to questProgressService", async () => {
+      const mockProgress = {
+        id: "uq-uuid-1",
+        questId: "quest-uuid-1",
+        status: QuestStatus.COMPLETED,
+      };
+      questProgressService.getUserQuest = jest
+        .fn()
+        .mockResolvedValue(mockProgress);
 
       const result = await service.getUserQuest("user-uuid-1", "uq-uuid-1");
 
       expect(result).toBeDefined();
       expect(result.id).toBe("uq-uuid-1");
-      expect(result.questId).toBe("quest-uuid-1");
-      expect(result.status).toBe(QuestStatus.COMPLETED);
-      expect(userQuestRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "uq-uuid-1", userId: "user-uuid-1" },
-        relations: ["quest"],
-      });
+      expect(questProgressService.getUserQuest).toHaveBeenCalledWith(
+        "user-uuid-1",
+        "uq-uuid-1",
+      );
     });
 
-    it("should throw NotFoundException when user quest not found", async () => {
-      userQuestRepo.findOne.mockResolvedValue(null);
+    it("should propagate NotFoundException from questProgressService", async () => {
+      questProgressService.getUserQuest = jest
+        .fn()
+        .mockRejectedValue(new NotFoundException());
 
       await expect(
         service.getUserQuest("user-uuid-1", "nonexistent-uq"),
@@ -615,151 +576,46 @@ describe("QuestsService", () => {
   // ==========================================================================
 
   describe("claimReward", () => {
-    it("should claim reward for a completed quest and award points", async () => {
-      const completedUQ = {
-        ...mockUserQuest,
-        status: QuestStatus.COMPLETED,
-        quest: {
-          ...mockQuest,
-          period: QuestPeriod.DAILY,
-          additionalRewards: [],
-        },
-      } as unknown as UserQuest;
-
-      userQuestRepo.findOne.mockResolvedValue(completedUQ);
-      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
-      loyaltyService.earnPoints.mockResolvedValue({
-        earned: 50,
+    it("should delegate to questProgressService and return result", async () => {
+      const mockResult = {
+        success: true,
+        pointsEarned: 50,
         newBalance: 550,
-        levelUp: null,
-        streakBonus: null,
-        message: "Earned 50 points",
-      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
-      userQuestRepo.save.mockResolvedValue({
-        ...completedUQ,
-        status: QuestStatus.CLAIMED,
-        claimedAt: new Date(),
-        pointsClaimed: 50,
-      } as unknown as UserQuest);
+        message: "Reward claimed",
+      };
+      questProgressService.claimReward = jest
+        .fn()
+        .mockResolvedValue(mockResult);
 
       const result = await service.claimReward("user-uuid-1", "uq-uuid-1");
 
       expect(result.success).toBe(true);
       expect(result.pointsEarned).toBe(50);
       expect(result.newBalance).toBe(550);
-      expect(loyaltyService.earnPoints).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: "user-uuid-1",
-          organizationId: orgId,
-          amount: 50,
-          source: PointsSource.DAILY_QUEST,
-          referenceId: "uq-uuid-1",
-          referenceType: "user_quest",
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        "quest.claimed",
-        expect.objectContaining({
-          userId: "user-uuid-1",
-          questId: "quest-uuid-1",
-          points: 50,
-        }),
+      expect(questProgressService.claimReward).toHaveBeenCalledWith(
+        "user-uuid-1",
+        "uq-uuid-1",
       );
     });
 
-    it("should throw BadRequestException when quest is not completed", async () => {
-      const inProgressUQ = {
-        ...mockUserQuest,
-        status: QuestStatus.IN_PROGRESS,
-      } as unknown as UserQuest;
-      userQuestRepo.findOne.mockResolvedValue(inProgressUQ);
+    it("should propagate BadRequestException from questProgressService", async () => {
+      questProgressService.claimReward = jest
+        .fn()
+        .mockRejectedValue(new BadRequestException());
 
       await expect(
         service.claimReward("user-uuid-1", "uq-uuid-1"),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should throw NotFoundException when user quest does not exist", async () => {
-      userQuestRepo.findOne.mockResolvedValue(null);
+    it("should propagate NotFoundException from questProgressService", async () => {
+      questProgressService.claimReward = jest
+        .fn()
+        .mockRejectedValue(new NotFoundException());
 
       await expect(
         service.claimReward("user-uuid-1", "nonexistent-uq"),
       ).rejects.toThrow(NotFoundException);
-    });
-
-    it("should throw NotFoundException when user does not exist during claim", async () => {
-      const completedUQ = {
-        ...mockUserQuest,
-        status: QuestStatus.COMPLETED,
-      } as unknown as UserQuest;
-      userQuestRepo.findOne.mockResolvedValue(completedUQ);
-      userRepo.findOne.mockResolvedValue(null);
-
-      await expect(
-        service.claimReward("nonexistent-user", "uq-uuid-1"),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it("should map WEEKLY period to WEEKLY_QUEST points source", async () => {
-      const weeklyUQ = {
-        ...mockUserQuest,
-        status: QuestStatus.COMPLETED,
-        quest: {
-          ...mockQuest,
-          period: QuestPeriod.WEEKLY,
-          additionalRewards: [],
-        },
-      } as unknown as UserQuest;
-
-      userQuestRepo.findOne.mockResolvedValue(weeklyUQ);
-      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
-      loyaltyService.earnPoints.mockResolvedValue({
-        earned: 50,
-        newBalance: 550,
-        levelUp: null,
-        streakBonus: null,
-        message: "Earned",
-      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
-      userQuestRepo.save.mockResolvedValue(weeklyUQ);
-
-      await service.claimReward("user-uuid-1", "uq-uuid-1");
-
-      expect(loyaltyService.earnPoints).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: PointsSource.WEEKLY_QUEST,
-        }),
-      );
-    });
-
-    it("should map ONE_TIME period to ACHIEVEMENT points source", async () => {
-      const achievementUQ = {
-        ...mockUserQuest,
-        status: QuestStatus.COMPLETED,
-        quest: {
-          ...mockQuest,
-          period: QuestPeriod.ONE_TIME,
-          additionalRewards: [],
-        },
-      } as unknown as UserQuest;
-
-      userQuestRepo.findOne.mockResolvedValue(achievementUQ);
-      userRepo.findOne.mockResolvedValue(mockUser as unknown as User);
-      loyaltyService.earnPoints.mockResolvedValue({
-        earned: 50,
-        newBalance: 550,
-        levelUp: null,
-        streakBonus: null,
-        message: "Earned",
-      } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
-      userQuestRepo.save.mockResolvedValue(achievementUQ);
-
-      await service.claimReward("user-uuid-1", "uq-uuid-1");
-
-      expect(loyaltyService.earnPoints).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: PointsSource.ACHIEVEMENT,
-        }),
-      );
     });
   });
 
@@ -768,69 +624,29 @@ describe("QuestsService", () => {
   // ==========================================================================
 
   describe("claimAllRewards", () => {
-    it("should claim all completed-but-unclaimed quests", async () => {
-      const uq1 = {
-        ...mockUserQuest,
-        id: "uq-uuid-1",
-        status: QuestStatus.COMPLETED,
-        rewardPoints: 50,
-        quest: {
-          ...mockQuest,
-          period: QuestPeriod.DAILY,
-          additionalRewards: [],
-        },
-      } as unknown as UserQuest;
-
-      const uq2 = {
-        ...mockUserQuest,
-        id: "uq-uuid-2",
-        status: QuestStatus.COMPLETED,
-        rewardPoints: 100,
-        quest: {
-          ...mockQuest,
-          id: "quest-uuid-2",
-          period: QuestPeriod.WEEKLY,
-          additionalRewards: [],
-        },
-      } as unknown as UserQuest;
-
-      // claimAllRewards first calls find() to get completed quests
-      userQuestRepo.find.mockResolvedValue([uq1, uq2]);
-
-      // Each individual claimReward call needs findOne, userRepo.findOne, etc.
-      userQuestRepo.findOne
-        .mockResolvedValueOnce(uq1)
-        .mockResolvedValueOnce(uq2);
-      userRepo.findOne.mockResolvedValue({
-        ...mockUser,
-        pointsBalance: 650,
-      } as unknown as User);
-      loyaltyService.earnPoints
-        .mockResolvedValueOnce({
-          earned: 50,
-          newBalance: 550,
-          levelUp: null,
-          streakBonus: null,
-          message: "",
-        } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>)
-        .mockResolvedValueOnce({
-          earned: 100,
-          newBalance: 650,
-          levelUp: null,
-          streakBonus: null,
-          message: "",
-        } as unknown as Awaited<ReturnType<LoyaltyService["earnPoints"]>>);
-      userQuestRepo.save.mockResolvedValue({} as unknown as UserQuest);
+    it("should delegate to questProgressService and return result", async () => {
+      const mockResult = {
+        success: true,
+        pointsEarned: 150,
+        message: "Claimed 2 rewards",
+      };
+      questProgressService.claimAllRewards = jest
+        .fn()
+        .mockResolvedValue(mockResult);
 
       const result = await service.claimAllRewards("user-uuid-1");
 
       expect(result.success).toBe(true);
       expect(result.pointsEarned).toBe(150);
-      expect(result.message).toContain("2");
+      expect(questProgressService.claimAllRewards).toHaveBeenCalledWith(
+        "user-uuid-1",
+      );
     });
 
-    it("should throw BadRequestException when no rewards to claim", async () => {
-      userQuestRepo.find.mockResolvedValue([]);
+    it("should propagate BadRequestException from questProgressService", async () => {
+      questProgressService.claimAllRewards = jest
+        .fn()
+        .mockRejectedValue(new BadRequestException());
 
       await expect(service.claimAllRewards("user-uuid-1")).rejects.toThrow(
         BadRequestException,

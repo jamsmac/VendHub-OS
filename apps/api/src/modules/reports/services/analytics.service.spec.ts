@@ -12,6 +12,7 @@ import {
 import { Transaction } from "../../transactions/entities/transaction.entity";
 import { Machine } from "../../machines/entities/machine.entity";
 import { Task } from "../../tasks/entities/task.entity";
+import { DashboardAnalyticsService } from "./dashboard-analytics.service";
 
 describe("AnalyticsService", () => {
   let service: AnalyticsService;
@@ -162,6 +163,13 @@ describe("AnalyticsService", () => {
             createQueryBuilder: jest.fn().mockReturnValue(mockTaskQb),
           },
         },
+        {
+          provide: DashboardAnalyticsService,
+          useValue: {
+            getDashboardData: jest.fn(),
+            getWidgetData: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -285,7 +293,25 @@ describe("AnalyticsService", () => {
   });
 
   describe("getDashboardData", () => {
-    it("should return dashboard shape with KPIs, charts, and recent transactions", async () => {
+    let dashboardService: { getDashboardData: jest.Mock };
+
+    beforeEach(() => {
+      dashboardService = (service as any).dashboardAnalyticsService;
+    });
+
+    it("should delegate to dashboardAnalyticsService and return result", async () => {
+      const mockData = {
+        revenue: { today: 100000, yesterday: 90000, changePercent: 11.1 },
+        transactions: { today: 50 },
+        machines: { total: 10, active: 8 },
+        tasks: { completedToday: 5 },
+        recentTransactions: [],
+        revenueTrend: [],
+        paymentMethods: [],
+        topMachines: [],
+      };
+      dashboardService.getDashboardData.mockResolvedValue(mockData);
+
       const result = await service.getDashboardData(orgId);
 
       expect(result).toHaveProperty("revenue");
@@ -303,11 +329,18 @@ describe("AnalyticsService", () => {
       expect(result.machines).toHaveProperty("active");
     });
 
-    it("should return zeros when no transactions exist", async () => {
-      mockTransactionQb.getRawOne.mockResolvedValue({ total: "0" });
-      mockTransactionQb.getCount.mockResolvedValue(0);
-      mockTransactionQb.getMany.mockResolvedValue([]);
-      mockTaskQb.getCount.mockResolvedValue(0);
+    it("should return zeros when dashboardAnalyticsService returns zeros", async () => {
+      const mockData = {
+        revenue: { today: 0, yesterday: 0, changePercent: 0 },
+        transactions: { today: 0 },
+        machines: { total: 0, active: 0 },
+        tasks: { completedToday: 0 },
+        recentTransactions: [],
+        revenueTrend: [],
+        paymentMethods: [],
+        topMachines: [],
+      };
+      dashboardService.getDashboardData.mockResolvedValue(mockData);
 
       const result = await service.getDashboardData(orgId);
 

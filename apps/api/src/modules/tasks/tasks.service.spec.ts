@@ -13,6 +13,7 @@ import {
   TaskStatus,
 } from "./entities/task.entity";
 import { Incident } from "../incidents/entities/incident.entity";
+import { TaskAnalyticsService } from "./services/task-analytics.service";
 
 describe("TasksService", () => {
   let service: TasksService;
@@ -143,6 +144,14 @@ describe("TasksService", () => {
           provide: DataSource,
           useValue: {
             transaction: jest.fn(),
+          },
+        },
+        {
+          provide: TaskAnalyticsService,
+          useValue: {
+            getTaskAnalytics: jest.fn(),
+            getTaskStats: jest.fn(),
+            getMyTasks: jest.fn().mockResolvedValue({ data: [], total: 0 }),
           },
         },
       ],
@@ -399,20 +408,22 @@ describe("TasksService", () => {
   // ============================================================================
 
   describe("getMyTasks", () => {
-    it("should return active tasks assigned to user", async () => {
-      taskRepository.findAndCount.mockResolvedValue([[mockTask], 1]);
+    it("should delegate to taskAnalyticsService and return result", async () => {
+      const taskAnalyticsSvc = (service as any).taskAnalyticsService;
+      taskAnalyticsSvc.getMyTasks.mockResolvedValue({
+        data: [mockTask],
+        total: 1,
+      });
 
       const result = await service.getMyTasks("user-uuid-1", orgId);
 
       expect(result).toHaveProperty("data");
       expect(result).toHaveProperty("total", 1);
-      expect(taskRepository.findAndCount).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            assignedToUserId: "user-uuid-1",
-            organizationId: orgId,
-          }),
-        }),
+      expect(taskAnalyticsSvc.getMyTasks).toHaveBeenCalledWith(
+        "user-uuid-1",
+        orgId,
+        1,
+        20,
       );
     });
   });

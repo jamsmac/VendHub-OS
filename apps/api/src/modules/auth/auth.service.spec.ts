@@ -15,7 +15,6 @@ import { AuthService } from "./auth.service";
 import {
   User,
   UserSession,
-  TwoFactorAuth,
   PasswordResetToken,
   LoginAttempt,
   UserRole,
@@ -23,6 +22,9 @@ import {
 } from "../users/entities/user.entity";
 import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { PasswordPolicyService } from "./services/password-policy.service";
+import { TwoFactorService } from "./services/two-factor.service";
+import { AuthSessionService } from "./services/auth-session.service";
+import { InvitesService } from "../invites/invites.service";
 
 // Mock bcrypt
 jest.mock("bcrypt", () => ({
@@ -57,12 +59,13 @@ describe("AuthService", () => {
   let service: AuthService;
   let userRepository: jest.Mocked<Repository<User>>;
   let sessionRepository: jest.Mocked<Repository<UserSession>>;
-  let twoFactorRepository: jest.Mocked<Repository<TwoFactorAuth>>;
   let loginAttemptRepository: jest.Mocked<Repository<LoginAttempt>>;
   let _passwordResetRepository: jest.Mocked<Repository<PasswordResetToken>>;
   let _jwtService: jest.Mocked<JwtService>;
   let tokenBlacklistService: jest.Mocked<TokenBlacklistService>;
   let passwordPolicyService: jest.Mocked<PasswordPolicyService>;
+  let twoFactorService: jest.Mocked<TwoFactorService>;
+  let authSessionService: jest.Mocked<AuthSessionService>;
 
   const mockUser = {
     id: "user-uuid-1",
@@ -135,15 +138,6 @@ describe("AuthService", () => {
           },
         },
         {
-          provide: getRepositoryToken(TwoFactorAuth),
-          useValue: {
-            findOne: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            delete: jest.fn(),
-          },
-        },
-        {
           provide: getRepositoryToken(PasswordResetToken),
           useValue: {
             findOne: jest.fn(),
@@ -202,13 +196,52 @@ describe("AuthService", () => {
             getRequirements: jest.fn().mockReturnValue({ minLength: 8 }),
           },
         },
+        {
+          provide: InvitesService,
+          useValue: {
+            validateInvite: jest.fn(),
+            claimInvite: jest.fn(),
+          },
+        },
+        {
+          provide: TwoFactorService,
+          useValue: {
+            getAvailable2FAMethods: jest.fn().mockResolvedValue({
+              totp: true,
+              sms: false,
+              email: false,
+              backupCodes: true,
+            }),
+            verify2FA: jest.fn().mockResolvedValue(true),
+            setupTotp: jest.fn().mockResolvedValue({
+              secret: "MOCK_TOTP_SECRET",
+              qrCode: "data:image/png;base64,mock-qr",
+              backupCodes: Array.from({ length: 10 }, (_, i) => `code-${i}`),
+            }),
+            verifyAndEnableTotp: jest.fn(),
+            regenerateBackupCodes: jest.fn(),
+            disable2FA: jest.fn(),
+          },
+        },
+        {
+          provide: AuthSessionService,
+          useValue: {
+            createSession: jest.fn().mockResolvedValue(mockSession),
+            revokeSession: jest.fn().mockResolvedValue(undefined),
+            getSessions: jest.fn().mockResolvedValue([]),
+            parseUserAgent: jest.fn().mockReturnValue({
+              browser: "Chrome",
+              os: "Linux",
+              device: "desktop",
+            }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     userRepository = module.get(getRepositoryToken(User));
     sessionRepository = module.get(getRepositoryToken(UserSession));
-    twoFactorRepository = module.get(getRepositoryToken(TwoFactorAuth));
     loginAttemptRepository = module.get(getRepositoryToken(LoginAttempt));
     _passwordResetRepository = module.get(
       getRepositoryToken(PasswordResetToken),
@@ -216,6 +249,8 @@ describe("AuthService", () => {
     _jwtService = module.get(JwtService);
     tokenBlacklistService = module.get(TokenBlacklistService);
     passwordPolicyService = module.get(PasswordPolicyService);
+    twoFactorService = module.get(TwoFactorService);
+    authSessionService = module.get(AuthSessionService);
   });
 
   it("should be defined", () => {
@@ -297,9 +332,6 @@ describe("AuthService", () => {
       userRepository.findOne.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
       userRepository.save.mockResolvedValue(mockUser);
-      sessionRepository.create.mockReturnValue(mockSession);
-      sessionRepository.save.mockResolvedValue(mockSession);
-
       sessionRepository.update.mockResolvedValue(undefined as any);
 
       const result = await service.login(
@@ -392,11 +424,11 @@ describe("AuthService", () => {
       } as unknown as User;
       userRepository.findOne.mockResolvedValue(user2fa);
       bcrypt.compare.mockResolvedValue(true);
-      twoFactorRepository.findOne.mockResolvedValue({
-        hasTotp: true,
-        hasSms: false,
-        hasEmail: false,
-        hasBackupCodes: true,
+      twoFactorService.getAvailable2FAMethods.mockResolvedValue({
+        totp: true,
+        sms: false,
+        email: false,
+        backupCodes: true,
       } as any);
 
       const result = await service.login(
@@ -429,14 +461,14 @@ describe("AuthService", () => {
 
   describe("logout", () => {
     it("should logout successfully and blacklist token", async () => {
-      sessionRepository.update.mockResolvedValue(undefined as any);
+      authSessionService.revokeSession.mockResolvedValue(undefined);
 
       const result = await service.logout("session-uuid-1", "jti-123");
 
       expect(result).toEqual({ message: "Logged out successfully" });
-      expect(sessionRepository.update).toHaveBeenCalledWith(
-        { id: "session-uuid-1" },
-        expect.objectContaining({ isRevoked: true }),
+      expect(authSessionService.revokeSession).toHaveBeenCalledWith(
+        "session-uuid-1",
+        "User logout",
       );
       expect(tokenBlacklistService.blacklist).toHaveBeenCalledWith(
         "jti-123",
@@ -445,7 +477,7 @@ describe("AuthService", () => {
     });
 
     it("should logout without blacklisting when no jti provided", async () => {
-      sessionRepository.update.mockResolvedValue(undefined as any);
+      authSessionService.revokeSession.mockResolvedValue(undefined);
 
       const result = await service.logout("session-uuid-1");
 
@@ -460,12 +492,11 @@ describe("AuthService", () => {
 
   describe("setupTotp", () => {
     it("should set up TOTP and return secret, QR code, and backup codes", async () => {
-      userRepository.findOne.mockResolvedValue(mockUser);
-      twoFactorRepository.findOne.mockResolvedValue(null);
-
-      twoFactorRepository.create.mockImplementation((data) => data as any);
-
-      twoFactorRepository.save.mockResolvedValue({} as any);
+      twoFactorService.setupTotp.mockResolvedValue({
+        secret: "MOCK_TOTP_SECRET",
+        qrCode: "data:image/png;base64,mock-qr",
+        backupCodes: Array.from({ length: 10 }, (_, i) => `code-${i}`),
+      });
 
       const result = await service.setupTotp("user-uuid-1");
 
@@ -473,10 +504,13 @@ describe("AuthService", () => {
       expect(result).toHaveProperty("qrCode");
       expect(result).toHaveProperty("backupCodes");
       expect(result.backupCodes).toHaveLength(10);
+      expect(twoFactorService.setupTotp).toHaveBeenCalledWith("user-uuid-1");
     });
 
     it("should throw BadRequestException if user not found", async () => {
-      userRepository.findOne.mockResolvedValue(null);
+      twoFactorService.setupTotp.mockRejectedValue(
+        new BadRequestException("User not found"),
+      );
 
       await expect(service.setupTotp("non-existent")).rejects.toThrow(
         BadRequestException,

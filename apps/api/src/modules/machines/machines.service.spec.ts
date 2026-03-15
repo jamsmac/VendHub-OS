@@ -243,7 +243,7 @@ describe("MachinesService", () => {
       expect(result).toEqual(mockMachine);
       expect(machineRepository.findOne).toHaveBeenCalledWith({
         where: { id: "machine-uuid-1" },
-        relations: ["slots", "slots.product"],
+        relations: ["slots"],
       });
     });
 

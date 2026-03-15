@@ -21,6 +21,7 @@ import {
   AuditSeverity,
 } from "./entities/audit.entity";
 import { NotificationsService } from "../notifications/notifications.service";
+import { AuditReportingService } from "./services/audit-reporting.service";
 
 describe("AuditService", () => {
   let service: AuditService;
@@ -174,6 +175,14 @@ describe("AuditService", () => {
           provide: NotificationsService,
           useValue: {
             create: jest.fn(),
+          },
+        },
+        {
+          provide: AuditReportingService,
+          useValue: {
+            generateReport: jest.fn(),
+            getReportHistory: jest.fn(),
+            getReports: jest.fn().mockResolvedValue([]),
           },
         },
       ],
@@ -589,27 +598,27 @@ describe("AuditService", () => {
   // ============================================================================
 
   describe("getReports", () => {
-    it("should return reports for organization", async () => {
-      reportRepo.find.mockResolvedValue([mockReport]);
+    let auditReportingSvc: { getReports: jest.Mock };
+
+    beforeEach(() => {
+      auditReportingSvc = (service as any).auditReportingService;
+    });
+
+    it("should delegate to auditReportingService", async () => {
+      auditReportingSvc.getReports.mockResolvedValue([mockReport]);
 
       const result = await service.getReports(orgId);
 
       expect(result).toEqual([mockReport]);
-      expect(reportRepo.find).toHaveBeenCalledWith({
-        where: { organizationId: orgId },
-        order: { createdAt: "DESC" },
-        take: 20,
-      });
+      expect(auditReportingSvc.getReports).toHaveBeenCalledWith(orgId, 20);
     });
 
-    it("should apply custom limit", async () => {
-      reportRepo.find.mockResolvedValue([]);
+    it("should pass custom limit to auditReportingService", async () => {
+      auditReportingSvc.getReports.mockResolvedValue([]);
 
       await service.getReports(orgId, 5);
 
-      expect(reportRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 5 }),
-      );
+      expect(auditReportingSvc.getReports).toHaveBeenCalledWith(orgId, 5);
     });
   });
 });

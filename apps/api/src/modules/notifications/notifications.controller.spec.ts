@@ -170,7 +170,13 @@ describe("NotificationsController", () => {
     await request(app.getHttpServer())
       .post("/notifications/templates")
       .set("Authorization", "Bearer admin-token")
-      .send({ name: "welcome", body: "Hello {{name}}" })
+      .send({
+        name: "welcome",
+        code: "WELCOME",
+        type: "system",
+        titleRu: "Добро пожаловать",
+        bodyRu: "Hello {{name}}",
+      })
       .expect(HttpStatus.CREATED);
   });
 

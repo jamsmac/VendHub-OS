@@ -22,6 +22,8 @@ import {
 } from "./entities/trip-task-link.entity";
 import { TripReconciliation } from "./entities/trip-reconciliation.entity";
 import { Vehicle } from "../vehicles/entities/vehicle.entity";
+import { TripRouteService } from "./services/trip-route.service";
+import { TripAnalyticsService } from "./services/trip-analytics.service";
 
 describe("TripsService", () => {
   let service: TripsService;
@@ -163,6 +165,44 @@ describe("TripsService", () => {
           useValue: {
             findOne: jest.fn(),
             update: jest.fn(),
+          },
+        },
+        {
+          provide: TripRouteService,
+          useValue: {
+            calculateRoute: jest.fn(),
+            optimizeRoute: jest.fn(),
+            addPoint: jest.fn(),
+            addPointsBatch: jest.fn(),
+            updateLiveLocationStatus: jest.fn(),
+            getTripRoute: jest.fn(),
+            getTripStops: jest.fn(),
+            calculateHaversineDistance: jest
+              .fn()
+              .mockImplementation(
+                (lat1: number, lon1: number, lat2: number, lon2: number) => {
+                  const R = 6371000;
+                  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+                  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+                  const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos((lat1 * Math.PI) / 180) *
+                      Math.cos((lat2 * Math.PI) / 180) *
+                      Math.sin(dLon / 2) *
+                      Math.sin(dLon / 2);
+                  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                },
+              ),
+          },
+        },
+        {
+          provide: TripAnalyticsService,
+          useValue: {
+            getTripAnalytics: jest.fn(),
+            getTripStats: jest.fn(),
+            getEmployeeStats: jest.fn(),
+            getMachineVisitStats: jest.fn(),
+            getTripsSummary: jest.fn(),
           },
         },
       ],
@@ -383,42 +423,19 @@ describe("TripsService", () => {
   // ============================================================================
 
   describe("addPoint", () => {
-    it("should add a valid GPS point", async () => {
-      const activeTrip = {
-        ...mockTrip,
-        status: TripStatus.ACTIVE,
-      } as unknown as Trip;
-      tripRepository.findOne.mockResolvedValue(activeTrip);
-      pointRepository.findOne.mockResolvedValue(null); // no previous point
+    let tripRouteSvc: { addPoint: jest.Mock };
 
+    beforeEach(() => {
+      tripRouteSvc = (service as any).tripRouteService;
+    });
+
+    it("should delegate to tripRouteService and return point", async () => {
       const savedPoint = {
         id: "point-uuid-1",
         isFiltered: false,
         filterReason: null,
       };
-      pointRepository.create.mockReturnValue(
-        savedPoint as unknown as TripPoint,
-      );
-      pointRepository.save.mockResolvedValue(
-        savedPoint as unknown as TripPoint,
-      );
-
-      const updateQb = createMockUpdateQueryBuilder();
-      tripRepository.createQueryBuilder.mockReturnValue(
-        updateQb as unknown as ReturnType<
-          Repository<Trip>["createQueryBuilder"]
-        >,
-      );
-      tripRepository.update.mockResolvedValue({
-        affected: 1,
-      } as unknown as ReturnType<Repository<Trip>["update"]> extends Promise<
-        infer R
-      >
-        ? R
-        : never);
-
-      // Mock for stop detection
-      pointRepository.find.mockResolvedValue([]);
+      tripRouteSvc.addPoint.mockResolvedValue(savedPoint);
 
       const result = await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
@@ -427,109 +444,44 @@ describe("TripsService", () => {
 
       expect(result.id).toBe("point-uuid-1");
       expect(result.isFiltered).toBe(false);
+      expect(tripRouteSvc.addPoint).toHaveBeenCalledWith("trip-uuid-1", {
+        latitude: 41.2995,
+        longitude: 69.2401,
+      });
     });
 
-    it("should filter point with low accuracy", async () => {
-      const activeTrip = {
-        ...mockTrip,
-        status: TripStatus.ACTIVE,
-      } as unknown as Trip;
-      tripRepository.findOne.mockResolvedValue(activeTrip);
-      pointRepository.findOne.mockResolvedValue(null);
-
-      const savedPoint = {
+    it("should propagate filtered point from tripRouteService", async () => {
+      const filteredPoint = {
         id: "point-uuid-2",
         isFiltered: true,
         filterReason: "LOW_ACCURACY",
       };
-      pointRepository.create.mockReturnValue(
-        savedPoint as unknown as TripPoint,
-      );
-      pointRepository.save.mockResolvedValue(
-        savedPoint as unknown as TripPoint,
-      );
-
-      const updateQb = createMockUpdateQueryBuilder();
-      tripRepository.createQueryBuilder.mockReturnValue(
-        updateQb as unknown as ReturnType<
-          Repository<Trip>["createQueryBuilder"]
-        >,
-      );
+      tripRouteSvc.addPoint.mockResolvedValue(filteredPoint);
 
       const result = await service.addPoint("trip-uuid-1", {
         latitude: 41.2995,
         longitude: 69.2401,
-        accuracy: 200, // exceeds MIN_GPS_ACCURACY_METERS (50)
+        accuracy: 200,
       });
 
       expect(result.isFiltered).toBe(true);
       expect(result.filterReason).toBe("LOW_ACCURACY");
     });
 
-    it("should throw NotFoundException for non-existent trip", async () => {
-      tripRepository.findOne.mockResolvedValue(null);
+    it("should propagate NotFoundException from tripRouteService", async () => {
+      tripRouteSvc.addPoint.mockRejectedValue(new NotFoundException());
 
       await expect(
         service.addPoint("non-existent", { latitude: 41.0, longitude: 69.0 }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it("should throw BadRequestException for non-active trip", async () => {
-      const completedTrip = {
-        ...mockTrip,
-        status: TripStatus.COMPLETED,
-      } as unknown as Trip;
-      tripRepository.findOne.mockResolvedValue(completedTrip);
+    it("should propagate BadRequestException from tripRouteService", async () => {
+      tripRouteSvc.addPoint.mockRejectedValue(new BadRequestException());
 
       await expect(
         service.addPoint("trip-uuid-1", { latitude: 41.0, longitude: 69.0 }),
       ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should set start coordinates on first valid point", async () => {
-      const activeTrip = {
-        ...mockTrip,
-        status: TripStatus.ACTIVE,
-      } as unknown as Trip;
-      tripRepository.findOne.mockResolvedValue(activeTrip);
-      pointRepository.findOne.mockResolvedValue(null); // no previous = first point
-
-      const savedPoint = {
-        id: "point-uuid-3",
-        isFiltered: false,
-        filterReason: null,
-      };
-      pointRepository.create.mockReturnValue(
-        savedPoint as unknown as TripPoint,
-      );
-      pointRepository.save.mockResolvedValue(
-        savedPoint as unknown as TripPoint,
-      );
-
-      const updateQb = createMockUpdateQueryBuilder();
-      tripRepository.createQueryBuilder.mockReturnValue(
-        updateQb as unknown as ReturnType<
-          Repository<Trip>["createQueryBuilder"]
-        >,
-      );
-      tripRepository.update.mockResolvedValue({
-        affected: 1,
-      } as unknown as ReturnType<Repository<Trip>["update"]> extends Promise<
-        infer R
-      >
-        ? R
-        : never);
-      pointRepository.find.mockResolvedValue([]);
-
-      await service.addPoint("trip-uuid-1", {
-        latitude: 41.2995,
-        longitude: 69.2401,
-      });
-
-      expect(tripRepository.update).toHaveBeenCalledWith("trip-uuid-1", {
-        startLatitude: 41.2995,
-        startLongitude: 69.2401,
-      });
     });
   });
 

@@ -5,6 +5,8 @@ import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import { LoyaltyService } from "./loyalty.service";
+import { LoyaltyAnalyticsService } from "./services/loyalty-analytics.service";
+import { BonusEngineService } from "./services/bonus-engine.service";
 import { PointsTransaction } from "./entities/points-transaction.entity";
 import { User } from "../users/entities/user.entity";
 import {
@@ -20,6 +22,7 @@ describe("LoyaltyService", () => {
   let pointsTransactionRepo: jest.Mocked<Repository<PointsTransaction>>;
   let userRepo: jest.Mocked<Repository<User>>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let bonusEngineService: jest.Mocked<BonusEngineService>;
 
   const orgId = "org-uuid-1";
 
@@ -164,6 +167,22 @@ describe("LoyaltyService", () => {
           provide: DataSource,
           useValue: mockDataSource,
         },
+        {
+          provide: LoyaltyAnalyticsService,
+          useValue: {
+            getStats: jest.fn(),
+            getExpiringPointsReport: jest.fn(),
+            getLeaderboard: jest.fn(),
+          },
+        },
+        {
+          provide: BonusEngineService,
+          useValue: {
+            processWelcomeBonus: jest.fn(),
+            processFirstOrderBonus: jest.fn(),
+            processOrderPoints: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -171,6 +190,7 @@ describe("LoyaltyService", () => {
     pointsTransactionRepo = module.get(getRepositoryToken(PointsTransaction));
     userRepo = module.get(getRepositoryToken(User));
     eventEmitter = module.get(EventEmitter2);
+    bonusEngineService = module.get(BonusEngineService);
   });
 
   it("should be defined", () => {
@@ -782,38 +802,27 @@ describe("LoyaltyService", () => {
 
   describe("processWelcomeBonus", () => {
     it("should award welcome bonus to new user", async () => {
-      const newUser = {
-        ...mockUser,
-        welcomeBonusReceived: false,
-        pointsBalance: 0,
-        loyaltyLevel: LoyaltyLevel.BRONZE,
-      } as User;
-      // First call: processWelcomeBonus checks user
-      // Second call: earnPoints loads user again
-      userRepo.findOne
-        .mockResolvedValueOnce(newUser)
-        .mockResolvedValueOnce(newUser);
-
-      userRepo.update.mockResolvedValue(undefined as any);
-
-      pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-
-      pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
+      const expectedResult = {
+        earned: LOYALTY_BONUSES.welcome,
+        newBalance: LOYALTY_BONUSES.welcome,
+        levelUp: null,
+        streakBonus: null,
+        message: `Начислено ${LOYALTY_BONUSES.welcome} баллов`,
+      };
+      bonusEngineService.processWelcomeBonus.mockResolvedValue(expectedResult);
 
       const result = await service.processWelcomeBonus("user-uuid-1", orgId);
 
       expect(result).not.toBeNull();
-      expect(result!.earned).toBe(LOYALTY_BONUSES.welcome); // 100 points * 1 (BRONZE)
-      expect(userRepo.update).toHaveBeenCalledWith("user-uuid-1", {
-        welcomeBonusReceived: true,
-      });
+      expect(result!.earned).toBe(LOYALTY_BONUSES.welcome);
+      expect(bonusEngineService.processWelcomeBonus).toHaveBeenCalledWith(
+        "user-uuid-1",
+        orgId,
+      );
     });
 
     it("should return null if user already received welcome bonus", async () => {
-      userRepo.findOne.mockResolvedValue({
-        ...mockUser,
-        welcomeBonusReceived: true,
-      } as User);
+      bonusEngineService.processWelcomeBonus.mockResolvedValue(null);
 
       const result = await service.processWelcomeBonus("user-uuid-1", orgId);
 
@@ -821,7 +830,7 @@ describe("LoyaltyService", () => {
     });
 
     it("should return null if user not found", async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      bonusEngineService.processWelcomeBonus.mockResolvedValue(null);
 
       const result = await service.processWelcomeBonus("user-uuid-1", orgId);
 
@@ -835,21 +844,16 @@ describe("LoyaltyService", () => {
 
   describe("processFirstOrderBonus", () => {
     it("should award first-order bonus when totalOrders is 0 or 1", async () => {
-      const newOrderUser = {
-        ...mockUser,
-        totalOrders: 0,
-        pointsBalance: 100,
-        loyaltyLevel: LoyaltyLevel.BRONZE,
-      } as User;
-      userRepo.findOne
-        .mockResolvedValueOnce(newOrderUser) // processFirstOrderBonus check
-        .mockResolvedValueOnce(newOrderUser); // earnPoints user lookup
-
-      pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-
-      pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-
-      userRepo.update.mockResolvedValue(undefined as any);
+      const expectedResult = {
+        earned: LOYALTY_BONUSES.firstOrder,
+        newBalance: 150,
+        levelUp: null,
+        streakBonus: null,
+        message: `Начислено ${LOYALTY_BONUSES.firstOrder} баллов`,
+      };
+      bonusEngineService.processFirstOrderBonus.mockResolvedValue(
+        expectedResult,
+      );
 
       const result = await service.processFirstOrderBonus(
         "user-uuid-1",
@@ -858,14 +862,16 @@ describe("LoyaltyService", () => {
       );
 
       expect(result).not.toBeNull();
-      expect(result!.earned).toBe(LOYALTY_BONUSES.firstOrder); // 50 points
+      expect(result!.earned).toBe(LOYALTY_BONUSES.firstOrder);
+      expect(bonusEngineService.processFirstOrderBonus).toHaveBeenCalledWith(
+        "user-uuid-1",
+        orgId,
+        "order-uuid-1",
+      );
     });
 
     it("should return null if user has more than 1 order", async () => {
-      userRepo.findOne.mockResolvedValue({
-        ...mockUser,
-        totalOrders: 5,
-      } as User);
+      bonusEngineService.processFirstOrderBonus.mockResolvedValue(null);
 
       const result = await service.processFirstOrderBonus(
         "user-uuid-1",
@@ -877,7 +883,7 @@ describe("LoyaltyService", () => {
     });
 
     it("should return null if user not found", async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      bonusEngineService.processFirstOrderBonus.mockResolvedValue(null);
 
       const result = await service.processFirstOrderBonus(
         "user-uuid-1",
@@ -895,31 +901,15 @@ describe("LoyaltyService", () => {
 
   describe("processOrderPoints", () => {
     it("should calculate and earn points based on order amount", async () => {
-      const orderUser = {
-        ...mockUser,
-        pointsBalance: 200,
-        totalOrders: 3,
-        totalSpent: 50000,
-        loyaltyLevel: LoyaltyLevel.BRONZE,
-        lastOrderDate: null,
-        currentStreak: 0,
-        longestStreak: 0,
-      } as unknown as User;
-      // processOrderPoints -> findOne (user)
-      // updateStreak -> findOne (user)
-      // earnPoints -> findOne (user)
-      userRepo.findOne
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser);
+      const expectedResult = {
+        earned: 100,
+        newBalance: 300,
+        levelUp: null,
+        streakBonus: null,
+        message: "Начислено 100 баллов",
+      };
+      bonusEngineService.processOrderPoints.mockResolvedValue(expectedResult);
 
-      userRepo.update.mockResolvedValue(undefined as any);
-
-      pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-
-      pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-
-      // Order of 10000 UZS -> 10000/100 = 100 base points, BRONZE x1 = 100
       const result = await service.processOrderPoints(
         "user-uuid-1",
         orgId,
@@ -928,17 +918,19 @@ describe("LoyaltyService", () => {
       );
 
       expect(result).toHaveProperty("earned");
-      expect(result.earned).toBe(100); // floor(10000/100) * 1
-      expect(userRepo.update).toHaveBeenCalledWith(
+      expect(result.earned).toBe(100);
+      expect(bonusEngineService.processOrderPoints).toHaveBeenCalledWith(
         "user-uuid-1",
-        expect.objectContaining({
-          totalOrders: 4,
-        }),
+        orgId,
+        "order-uuid-1",
+        10000,
       );
     });
 
     it("should throw NotFoundException when user not found", async () => {
-      userRepo.findOne.mockResolvedValue(null);
+      bonusEngineService.processOrderPoints.mockRejectedValue(
+        new NotFoundException("User not found"),
+      );
 
       await expect(
         service.processOrderPoints(
@@ -951,26 +943,15 @@ describe("LoyaltyService", () => {
     });
 
     it("should earn zero base points for orders below minimum amount", async () => {
-      const orderUser = {
-        ...mockUser,
-        pointsBalance: 200,
-        totalOrders: 2,
-        loyaltyLevel: LoyaltyLevel.BRONZE,
-        lastOrderDate: null,
-        currentStreak: 0,
-      } as unknown as User;
-      userRepo.findOne
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser);
+      const expectedResult = {
+        earned: 0,
+        newBalance: 200,
+        levelUp: null,
+        streakBonus: null,
+        message: "Заказ ниже минимальной суммы для начисления баллов",
+      };
+      bonusEngineService.processOrderPoints.mockResolvedValue(expectedResult);
 
-      userRepo.update.mockResolvedValue(undefined as any);
-
-      pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-
-      pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-
-      // minOrderAmount = 5000, order is 3000 -> 0 points
       const result = await service.processOrderPoints(
         "user-uuid-1",
         orgId,
@@ -982,26 +963,15 @@ describe("LoyaltyService", () => {
     });
 
     it("should cap points at maxPointsPerOrder", async () => {
-      const orderUser = {
-        ...mockUser,
-        pointsBalance: 200,
-        totalOrders: 10,
-        loyaltyLevel: LoyaltyLevel.BRONZE,
-        lastOrderDate: null,
-        currentStreak: 0,
-      } as unknown as User;
-      userRepo.findOne
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser)
-        .mockResolvedValueOnce(orderUser);
+      const expectedResult = {
+        earned: POINTS_RULES.maxPointsPerOrder,
+        newBalance: 200 + POINTS_RULES.maxPointsPerOrder,
+        levelUp: null,
+        streakBonus: null,
+        message: `Начислено ${POINTS_RULES.maxPointsPerOrder} баллов`,
+      };
+      bonusEngineService.processOrderPoints.mockResolvedValue(expectedResult);
 
-      userRepo.update.mockResolvedValue(undefined as any);
-
-      pointsTransactionRepo.create.mockReturnValue(mockTransaction as any);
-
-      pointsTransactionRepo.save.mockResolvedValue(mockTransaction as any);
-
-      // Huge order: 500000 / 100 = 5000 base points, but max is 1000
       const result = await service.processOrderPoints(
         "user-uuid-1",
         orgId,
@@ -1009,7 +979,6 @@ describe("LoyaltyService", () => {
         500000,
       );
 
-      // earnPoints receives 1000 (capped), then BRONZE multiplier x1 = 1000
       expect(result.earned).toBe(POINTS_RULES.maxPointsPerOrder);
     });
   });
