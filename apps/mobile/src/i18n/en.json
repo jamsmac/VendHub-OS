@@ -353,7 +353,7 @@
     "help": "Help",
     "about": "About",
     "aboutTitle": "VendHub Mobile",
-    "aboutMessage": "Version: 1.0.0\nVending machine management system\n\n\u00a9 2024-2026 VendHub",
+    "aboutMessage": "Version: 1.0.0\nVending machine management system\n\n© 2024-2026 VendHub",
     "switchMode": "Switch mode?",
     "switchTo": "Switch to \"{{label}}\"?",
     "switchBtn": "Switch",
@@ -513,7 +513,9 @@
       "paymentMethod": "Payment Method",
       "placeOrder": "Place Order",
       "orderFailed": "Failed to place order",
-      "selectPayment": "Select a payment method"
+      "selectPayment": "Select a payment method",
+      "qty": "Qty: {{count}}",
+      "usePointsAmount": "Use {{amount}} (max {{max}})"
     },
     "orderSuccess": {
       "title": "Order Confirmed!",
@@ -698,6 +700,39 @@
         "expired": "Expired",
         "rewarded": "Rewarded"
       }
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "browseMachines": "Browse machines",
+    "subtotal": "Subtotal",
+    "bonusDiscount": "Bonus discount",
+    "total": "Total",
+    "useBonusPoints": "Use bonus points",
+    "bonusAvailable": "Available: {{points}} points",
+    "checkout": "Proceed to checkout",
+    "continueShopping": "Continue shopping",
+    "each": "each",
+    "error": "Error",
+    "removeError": "Failed to remove item",
+    "checkoutError": "Failed to complete checkout",
+    "updateError": "Failed to update quantity"
+  },
+  "a11y": {
+    "goBack": "Go back",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "removeItem": "Remove item",
+    "togglePassword": "Toggle password visibility",
+    "clearInput": "Clear input",
+    "notifications": "Notifications",
+    "emailInput": "Email address",
+    "passwordInput": "Password"
+  },
+  "checkout": {
+    "paymentMethods": {
+      "cash": "Cash"
     }
   }
 }

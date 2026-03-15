@@ -131,6 +131,7 @@ export function HomeScreen() {
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => navigation.navigate("Notifications")}
+          accessibilityLabel={t("a11y.notifications")}
         >
           <Ionicons name="notifications-outline" size={24} color="#4F46E5" />
           {(stats?.unreadNotifications || 0) > 0 && (

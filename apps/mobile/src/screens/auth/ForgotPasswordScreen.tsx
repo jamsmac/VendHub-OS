@@ -164,11 +164,13 @@ export function ForgotPasswordScreen() {
                 editable={!isLoading}
                 returnKeyType="send"
                 onSubmitEditing={handleSubmit}
+                accessibilityLabel={t("a11y.emailInput")}
               />
               {email.length > 0 && (
                 <TouchableOpacity
                   onPress={() => setEmail("")}
                   style={styles.clearButton}
+                  accessibilityLabel={t("a11y.clearInput")}
                 >
                   <Ionicons name="close-circle" size={18} color="#9CA3AF" />
                 </TouchableOpacity>

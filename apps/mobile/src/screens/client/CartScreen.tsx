@@ -153,7 +153,10 @@ export function CartScreen({ navigation }: Props) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          accessibilityLabel={t("a11y.goBack")}
+        >
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("client.cart.title")}</Text>
@@ -214,7 +217,7 @@ export function CartScreen({ navigation }: Props) {
             </View>
             {useBonusPoints && (
               <Text style={styles.bonusPointsDiscount}>
-                -{cartData.bonus_points || 0} UZS
+                -{cartData.bonus_points || 0} {t("common.currency")}
               </Text>
             )}
           </View>
@@ -223,7 +226,9 @@ export function CartScreen({ navigation }: Props) {
           <View style={styles.totalsSection}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>{t("client.cart.subtotal")}</Text>
-              <Text style={styles.totalValue}>{cartData.subtotal} UZS</Text>
+              <Text style={styles.totalValue}>
+                {cartData.subtotal} {t("common.currency")}
+              </Text>
             </View>
 
             {useBonusPoints && cartData.bonus_points && (
@@ -232,7 +237,7 @@ export function CartScreen({ navigation }: Props) {
                   {t("client.cart.bonusPoints")}
                 </Text>
                 <Text style={[styles.totalValue, styles.discountValue]}>
-                  -{cartData.bonus_points} UZS
+                  -{cartData.bonus_points} {t("common.currency")}
                 </Text>
               </View>
             )}
@@ -245,7 +250,7 @@ export function CartScreen({ navigation }: Props) {
                 {useBonusPoints
                   ? cartData.total - (cartData.bonus_points || 0)
                   : cartData.total}{" "}
-                UZS
+                {t("common.currency")}
               </Text>
             </View>
           </View>
@@ -301,6 +306,7 @@ function CartItemRow({
   onQuantityChange,
   getSwipeAnimation,
 }: CartItemRowProps) {
+  const { t } = useTranslation();
   const swipeAnim = getSwipeAnimation();
   const opacity = swipeAnim.interpolate({
     inputRange: [0, 1],
@@ -335,18 +341,21 @@ function CartItemRow({
               </Text>
             )}
             <Text style={styles.pricePerUnit}>
-              {item.price_per_unit} UZS each
+              {item.price_per_unit} {t("common.currency")} {t("cart.each")}
             </Text>
           </View>
         </View>
 
         <View style={styles.cartItemRight}>
-          <Text style={styles.itemTotal}>{item.total_price} UZS</Text>
+          <Text style={styles.itemTotal}>
+            {item.total_price} {t("common.currency")}
+          </Text>
 
           <View style={styles.quantitySelector}>
             <TouchableOpacity
               style={styles.quantityBtnSmall}
               onPress={() => onQuantityChange(item.quantity - 1)}
+              accessibilityLabel={t("a11y.decreaseQuantity")}
             >
               <Ionicons name="remove" size={16} color={COLORS.primary} />
             </TouchableOpacity>
@@ -354,6 +363,7 @@ function CartItemRow({
             <TouchableOpacity
               style={styles.quantityBtnSmall}
               onPress={() => onQuantityChange(item.quantity + 1)}
+              accessibilityLabel={t("a11y.increaseQuantity")}
             >
               <Ionicons name="add" size={16} color={COLORS.primary} />
             </TouchableOpacity>
@@ -361,7 +371,11 @@ function CartItemRow({
         </View>
       </View>
 
-      <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
+      <TouchableOpacity
+        style={styles.removeButton}
+        onPress={onRemove}
+        accessibilityLabel={t("a11y.removeItem")}
+      >
         <Ionicons name="trash" size={18} color={COLORS.card} />
       </TouchableOpacity>
     </Animated.View>

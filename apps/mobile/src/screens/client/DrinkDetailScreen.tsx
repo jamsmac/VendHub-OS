@@ -318,7 +318,9 @@ export function DrinkDetailScreen({ navigation }: Props) {
           <Text style={styles.addToCartText}>
             {t("client.drinkDetail.addToCart")}
           </Text>
-          <Text style={styles.priceText}>{calculateTotal()} UZS</Text>
+          <Text style={styles.priceText}>
+            {calculateTotal()} {t("common.currency")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

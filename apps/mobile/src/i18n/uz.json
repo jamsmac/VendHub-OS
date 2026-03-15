@@ -353,7 +353,7 @@
     "help": "Yordam",
     "about": "Ilova haqida",
     "aboutTitle": "VendHub Mobile",
-    "aboutMessage": "Versiya: 1.0.0\nVending avtomatlarni boshqarish tizimi\n\n\u00a9 2024-2026 VendHub",
+    "aboutMessage": "Versiya: 1.0.0\nVending avtomatlarni boshqarish tizimi\n\n© 2024-2026 VendHub",
     "switchMode": "Rejimni o'zgartirasizmi?",
     "switchTo": "\"{{label}}\"ga o'tasizmi?",
     "switchBtn": "O'tkazish",
@@ -513,7 +513,9 @@
       "paymentMethod": "To'lov usuli",
       "placeOrder": "Buyurtma berish",
       "orderFailed": "Buyurtma berib bo'lmadi",
-      "selectPayment": "To'lov usulini tanlang"
+      "selectPayment": "To'lov usulini tanlang",
+      "qty": "Miqdori: {{count}}",
+      "usePointsAmount": "Ishlatish {{amount}} (maks {{max}})"
     },
     "orderSuccess": {
       "title": "Buyurtma tasdiqlandi!",
@@ -698,6 +700,39 @@
         "expired": "Muddati o'tgan",
         "rewarded": "Mukofotlangan"
       }
+    }
+  },
+  "cart": {
+    "title": "Savat",
+    "empty": "Savat bo'sh",
+    "browseMachines": "Avtomatlarni ko'rish",
+    "subtotal": "Oraliq summa",
+    "bonusDiscount": "Bonus chegirma",
+    "total": "Jami",
+    "useBonusPoints": "Bonus balllarni ishlatish",
+    "bonusAvailable": "Mavjud: {{points}} ball",
+    "checkout": "Buyurtma berish",
+    "continueShopping": "Xaridni davom ettirish",
+    "each": "dona",
+    "error": "Xato",
+    "removeError": "Mahsulotni o'chirish imkoni bo'lmadi",
+    "checkoutError": "Buyurtma berib bo'lmadi",
+    "updateError": "Miqdorni yangilab bo'lmadi"
+  },
+  "a11y": {
+    "goBack": "Orqaga",
+    "decreaseQuantity": "Miqdorni kamaytirish",
+    "increaseQuantity": "Miqdorni oshirish",
+    "removeItem": "Mahsulotni olib tashlash",
+    "togglePassword": "Parolni ko'rsatish/yashirish",
+    "clearInput": "Maydonni tozalash",
+    "notifications": "Bildirishnomalar",
+    "emailInput": "Elektron pochta",
+    "passwordInput": "Parol"
+  },
+  "checkout": {
+    "paymentMethods": {
+      "cash": "Naqd pul"
     }
   }
 }

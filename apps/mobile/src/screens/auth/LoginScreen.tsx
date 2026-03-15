@@ -82,6 +82,7 @@ export function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                accessibilityLabel={t("a11y.emailInput")}
               />
             </View>
 
@@ -98,10 +99,12 @@ export function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                accessibilityLabel={t("a11y.passwordInput")}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
+                accessibilityLabel={t("a11y.togglePassword")}
               >
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}

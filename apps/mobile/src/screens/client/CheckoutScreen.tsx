@@ -52,12 +52,18 @@ const COLORS = {
   muted: "#6B7280",
 };
 
-const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: "payme", name: "Payme", icon: "card", enabled: true },
-  { id: "click", name: "Click", icon: "wallet", enabled: true },
-  { id: "uzum", name: "Uzum Bank", icon: "briefcase", enabled: true },
-  { id: "cash", name: "Cash", icon: "cash", enabled: true },
+const PAYMENT_METHODS_CONFIG: Omit<PaymentMethod, "name">[] = [
+  { id: "payme", icon: "card", enabled: true },
+  { id: "click", icon: "wallet", enabled: true },
+  { id: "uzum", icon: "briefcase", enabled: true },
+  { id: "cash", icon: "cash", enabled: true },
 ];
+
+const BRAND_NAMES: Record<string, string> = {
+  payme: "Payme",
+  click: "Click",
+  uzum: "Uzum Bank",
+};
 
 interface CheckoutScreenProps {
   route?: {
@@ -81,6 +87,11 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
 
   const machineId = route?.params?.machineId || "";
   const cartItems = route?.params?.items || [];
+
+  const paymentMethods: PaymentMethod[] = PAYMENT_METHODS_CONFIG.map((m) => ({
+    ...m,
+    name: BRAND_NAMES[m.id] ?? t(`checkout.paymentMethods.${m.id}`),
+  }));
 
   const { data: loyaltyData, refetch: refetchLoyalty } = useQuery({
     queryKey: ["loyalty-balance"],
@@ -160,7 +171,10 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          accessibilityLabel={t("a11y.goBack")}
+        >
           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("client.checkout.title")}</Text>
@@ -179,10 +193,13 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
               <View style={styles.summaryItem}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                  <Text style={styles.itemQuantity}>
+                    {t("client.checkout.qty", { count: item.quantity })}
+                  </Text>
                 </View>
                 <Text style={styles.itemPrice}>
-                  {(item.price * item.quantity).toLocaleString()} so'm
+                  {(item.price * item.quantity).toLocaleString()}{" "}
+                  {t("common.currency")}
                 </Text>
               </View>
             )}
@@ -195,7 +212,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>{t("client.cart.subtotal")}</Text>
             <Text style={styles.totalValue}>
-              {subtotal.toLocaleString()} so'm
+              {subtotal.toLocaleString()} {t("common.currency")}
             </Text>
           </View>
 
@@ -205,20 +222,22 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
                 {t("client.checkout.pointsDiscount")}
               </Text>
               <Text style={styles.discountValue}>
-                -{pointsDiscount.toLocaleString()} so'm
+                -{pointsDiscount.toLocaleString()} {t("common.currency")}
               </Text>
             </View>
           )}
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>{t("client.checkout.tax")}</Text>
-            <Text style={styles.totalValue}>{tax.toLocaleString()} so'm</Text>
+            <Text style={styles.totalValue}>
+              {tax.toLocaleString()} {t("common.currency")}
+            </Text>
           </View>
 
           <View style={[styles.totalRow, styles.grandTotal]}>
             <Text style={styles.grandTotalLabel}>{t("client.cart.total")}</Text>
             <Text style={styles.grandTotalValue}>
-              {total.toLocaleString()} so'm
+              {total.toLocaleString()} {t("common.currency")}
             </Text>
           </View>
         </View>
@@ -259,8 +278,10 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
             {usePoints && (
               <View style={styles.sliderContainer}>
                 <Text style={styles.sliderLabel}>
-                  Use {pointsAmount.toLocaleString()} (max{" "}
-                  {Math.floor(maxPointsDiscount).toLocaleString()})
+                  {t("client.checkout.usePointsAmount", {
+                    amount: pointsAmount.toLocaleString(),
+                    max: Math.floor(maxPointsDiscount).toLocaleString(),
+                  })}
                 </Text>
                 <View style={styles.sliderControls}>
                   <TouchableOpacity
@@ -368,7 +389,7 @@ export function CheckoutScreen({ route }: CheckoutScreenProps) {
           {t("client.checkout.paymentMethod")}
         </Text>
         <View style={styles.paymentOptions}>
-          {PAYMENT_METHODS.map((method) => (
+          {paymentMethods.map((method) => (
             <TouchableOpacity
               key={method.id}
               style={[

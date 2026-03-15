@@ -140,7 +140,9 @@ export function MenuScreen({ navigation }: Props) {
             {item.description}
           </Text>
         )}
-        <Text style={styles.productPrice}>{item.price} UZS</Text>
+        <Text style={styles.productPrice}>
+          {item.price} {t("common.currency")}
+        </Text>
       </View>
     </TouchableOpacity>
   );

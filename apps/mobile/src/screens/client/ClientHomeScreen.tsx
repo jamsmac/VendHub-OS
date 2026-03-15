@@ -218,7 +218,7 @@ export function ClientHomeScreen({ navigation }: Props) {
                   order.total_price ||
                   0
                 ).toLocaleString()}{" "}
-                UZS
+                {t("common.currency")}
               </Text>
             </View>
           ))

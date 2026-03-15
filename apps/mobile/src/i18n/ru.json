@@ -353,7 +353,7 @@
     "help": "Помощь",
     "about": "О приложении",
     "aboutTitle": "VendHub Mobile",
-    "aboutMessage": "Версия: 1.0.0\nСистема управления вендинговыми автоматами\n\n\u00a9 2024-2026 VendHub",
+    "aboutMessage": "Версия: 1.0.0\nСистема управления вендинговыми автоматами\n\n© 2024-2026 VendHub",
     "switchMode": "Сменить режим?",
     "switchTo": "Переключить на \"{{label}}\"?",
     "switchBtn": "Переключить",
@@ -513,7 +513,9 @@
       "paymentMethod": "Способ оплаты",
       "placeOrder": "Оформить заказ",
       "orderFailed": "Не удалось оформить заказ",
-      "selectPayment": "Выберите способ оплаты"
+      "selectPayment": "Выберите способ оплаты",
+      "qty": "Кол-во: {{count}}",
+      "usePointsAmount": "Использовать {{amount}} (макс {{max}})"
     },
     "orderSuccess": {
       "title": "Заказ подтверждён!",
@@ -698,6 +700,39 @@
         "expired": "Истёк",
         "rewarded": "Награждён"
       }
+    }
+  },
+  "cart": {
+    "title": "Корзина",
+    "empty": "Корзина пуста",
+    "browseMachines": "Найти автоматы",
+    "subtotal": "Подытог",
+    "bonusDiscount": "Скидка бонусами",
+    "total": "Итого",
+    "useBonusPoints": "Использовать бонусы",
+    "bonusAvailable": "Доступно: {{points}} баллов",
+    "checkout": "Оформить заказ",
+    "continueShopping": "Продолжить покупки",
+    "each": "шт",
+    "error": "Ошибка",
+    "removeError": "Не удалось удалить товар",
+    "checkoutError": "Не удалось оформить заказ",
+    "updateError": "Не удалось обновить количество"
+  },
+  "a11y": {
+    "goBack": "Назад",
+    "decreaseQuantity": "Уменьшить количество",
+    "increaseQuantity": "Увеличить количество",
+    "removeItem": "Удалить товар",
+    "togglePassword": "Показать/скрыть пароль",
+    "clearInput": "Очистить поле",
+    "notifications": "Уведомления",
+    "emailInput": "Электронная почта",
+    "passwordInput": "Пароль"
+  },
+  "checkout": {
+    "paymentMethods": {
+      "cash": "Наличные"
     }
   }
 }

@@ -146,7 +146,9 @@ export function ProfileScreen() {
           </Text>
           <View style={styles.modeBadge}>
             <Text style={styles.modeBadgeText}>
-              {mode === "staff" ? "Staff" : "Client"}
+              {mode === "staff"
+                ? t("profile.modeStaff")
+                : t("profile.modeClient")}
             </Text>
           </View>
         </TouchableOpacity>
