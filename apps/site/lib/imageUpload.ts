@@ -16,20 +16,19 @@ export function validateImage(file: File): ImageValidation {
   return { valid: true };
 }
 
-// TODO: Migrate to VendHub API file upload (POST /api/v1/uploads)
+// Site admin CMS uses static data — file uploads are handled by the main admin (apps/web).
+// If site CMS needs live uploads, wire to POST /api/v1/storage/upload.
 export async function uploadImage(
   _file: File,
   _folder: string,
 ): Promise<string> {
   throw new Error(
-    "Image upload is being migrated to VendHub API. " +
-      "Supabase storage has been removed.",
+    "File uploads are managed via the main admin panel (apps/web).",
   );
 }
 
 export async function deleteImage(_url: string): Promise<void> {
   throw new Error(
-    "Image deletion is being migrated to VendHub API. " +
-      "Supabase storage has been removed.",
+    "File deletions are managed via the main admin panel (apps/web).",
   );
 }

@@ -1,21 +1,21 @@
 /**
- * Admin auth for site app.
- * TODO: Migrate to VendHub API JWT auth (POST /api/v1/auth/login)
- * For now, returns null session to gracefully degrade admin features.
+ * Site admin auth — graceful no-op.
+ *
+ * The site CMS admin reads static data via the supabase adapter (lib/supabase.ts).
+ * Full admin operations (with auth) are in apps/web at the main dashboard.
+ * If site CMS needs live auth, wire to POST /api/v1/auth/login.
  */
 
 export async function getSession() {
-  // Supabase auth removed — return null until VendHub API auth is integrated
   return null;
 }
 
 export async function signIn(_email: string, _password: string) {
   throw new Error(
-    "Admin auth is being migrated to VendHub API. " +
-      "Please use the admin panel at /admin instead.",
+    "Admin authentication is available at the main dashboard (apps/web).",
   );
 }
 
 export async function signOut() {
-  // No-op — session is already null
+  // No-op
 }

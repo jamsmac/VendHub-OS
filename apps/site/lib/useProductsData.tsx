@@ -21,8 +21,8 @@ export function ProductsProvider({
 }) {
   const [products] = useState<Product[]>(initialProducts ?? fallbackProducts);
 
-  // TODO: Replace with VendHub API fetch when products endpoint is public
-  // For now, use static fallback data (Supabase dependency removed)
+  // Landing page uses static product data for SEO and performance.
+  // For live product management, use the admin dashboard (apps/web).
   return (
     <ProductsContext.Provider
       value={{
