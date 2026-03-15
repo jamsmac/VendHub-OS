@@ -5,13 +5,15 @@ import {
   Contract,
   CommissionCalculation,
 } from "./entities/counterparty.entity";
+import { CounterpartyService } from "./counterparty.service";
+import { CounterpartyController } from "./counterparty.controller";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Counterparty, Contract, CommissionCalculation]),
   ],
-  controllers: [],
-  providers: [],
-  exports: [],
+  controllers: [CounterpartyController],
+  providers: [CounterpartyService],
+  exports: [CounterpartyService],
 })
 export class CounterpartyModule {}

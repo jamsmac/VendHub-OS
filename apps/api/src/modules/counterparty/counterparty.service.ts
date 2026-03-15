@@ -12,63 +12,12 @@ import {
   CommissionCalculation,
   CounterpartyType,
   ContractStatus,
-  CommissionType,
 } from "./entities/counterparty.entity";
-
-export interface CreateCounterpartyDto {
-  name: string;
-  shortName?: string;
-  type: CounterpartyType;
-  inn: string;
-  oked?: string;
-  mfo?: string;
-  bankAccount?: string;
-  bankName?: string;
-  legalAddress?: string;
-  actualAddress?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  isVatPayer?: boolean;
-  vatRate?: number;
-  paymentTermDays?: number;
-  creditLimit?: number;
-  notes?: string;
-}
-
-export interface UpdateCounterpartyDto {
-  name?: string;
-  shortName?: string;
-  type?: CounterpartyType;
-  inn?: string;
-  oked?: string;
-  mfo?: string;
-  bankAccount?: string;
-  bankName?: string;
-  legalAddress?: string;
-  actualAddress?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  isVatPayer?: boolean;
-  vatRate?: number;
-  paymentTermDays?: number;
-  creditLimit?: number;
-  notes?: string;
-  isActive?: boolean;
-}
-
-export interface CreateContractDto {
-  contractNumber: string;
-  startDate: Date;
-  endDate?: Date;
-  counterpartyId: string;
-  commissionType: CommissionType;
-  commissionRate?: number;
-  commissionFixedAmount?: number;
-  paymentTermDays?: number;
-  notes?: string;
-}
+import {
+  CreateCounterpartyDto,
+  UpdateCounterpartyDto,
+  CreateContractDto,
+} from "./dto/counterparty.dto";
 
 @Injectable()
 export class CounterpartyService {
