@@ -304,11 +304,11 @@ export function PromotionsWizard({
             </h3>
             <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl p-6 text-white">
               <p className="text-sm font-bold uppercase tracking-wider opacity-80">
-                ☀️ УТРО
+                ☀️ MORNING
               </p>
-              <p className="mt-2 text-xl font-bold">Утренний кофе -20%</p>
+              <p className="mt-2 text-xl font-bold">Morning coffee -20%</p>
               <p className="mt-2 text-sm opacity-80">
-                Скидка 20% на все напитки до 10:00
+                20% off all drinks before 10:00
               </p>
               <div className="mt-4 inline-block rounded-lg bg-white/20 px-3 py-1 font-mono text-sm font-bold">
                 MORNING20

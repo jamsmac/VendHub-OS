@@ -94,7 +94,7 @@ export function ScheduleTab() {
                         variant={isOvertime ? "destructive" : "default"}
                         className="text-xs"
                       >
-                        {totalHours}ч
+                        {totalHours}h
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -119,10 +119,10 @@ export function ScheduleTab() {
               </p>
               <p className="text-xs text-espresso-light mt-1">
                 {shift.id === "morning"
-                  ? "6 часов"
+                  ? "6 hours"
                   : shift.id === "day"
-                    ? "8 часов"
-                    : "8 часов"}
+                    ? "8 hours"
+                    : "8 hours"}
               </p>
             </CardContent>
           </Card>

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, Plus, X, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import * as React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Check, ChevronsUpDown, Plus, X, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -19,24 +19,24 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { directoriesApi } from '@/lib/api';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { directoriesApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface DirectoryEntry {
   id: string;
   name: string;
   code: string | null;
-  origin: 'OFFICIAL' | 'LOCAL';
+  origin: "OFFICIAL" | "LOCAL";
   status: string;
   data: Record<string, unknown>;
 }
@@ -56,18 +56,18 @@ export function DirectorySelect({
   directorySlug,
   value,
   onChange,
-  placeholder = 'Выберите...',
+  placeholder = "Select...",
   disabled = false,
   allowInlineCreate = true,
   className,
   error,
 }: DirectorySelectProps) {
   const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState('');
-  const [debouncedSearch, setDebouncedSearch] = React.useState('');
+  const [search, setSearch] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
-  const [newEntryName, setNewEntryName] = React.useState('');
-  const [newEntryCode, setNewEntryCode] = React.useState('');
+  const [newEntryName, setNewEntryName] = React.useState("");
+  const [newEntryCode, setNewEntryCode] = React.useState("");
   const queryClient = useQueryClient();
 
   // Debounce search
@@ -80,7 +80,7 @@ export function DirectorySelect({
 
   // Fetch directory by slug
   const { data: directoryData } = useQuery({
-    queryKey: ['directory', directorySlug],
+    queryKey: ["directory", directorySlug],
     queryFn: () => directoriesApi.getBySlug(directorySlug),
     staleTime: 5 * 60 * 1000,
   });
@@ -90,20 +90,27 @@ export function DirectorySelect({
 
   // Search entries
   const { data: searchData, isLoading: isSearching } = useQuery({
-    queryKey: ['directory-entries-search', directoryId, debouncedSearch],
+    queryKey: ["directory-entries-search", directoryId, debouncedSearch],
     queryFn: () =>
       debouncedSearch
-        ? directoriesApi.searchEntries(directoryId!, { q: debouncedSearch, limit: 50 })
-        : directoriesApi.getEntries(directoryId!, { limit: 50, status: 'ACTIVE' }),
+        ? directoriesApi.searchEntries(directoryId!, {
+            q: debouncedSearch,
+            limit: 50,
+          })
+        : directoriesApi.getEntries(directoryId!, {
+            limit: 50,
+            status: "ACTIVE",
+          }),
     enabled: !!directoryId && open,
     staleTime: 30 * 1000,
   });
 
-  const entries: DirectoryEntry[] = searchData?.data?.data ?? searchData?.data ?? [];
+  const entries: DirectoryEntry[] =
+    searchData?.data?.data ?? searchData?.data ?? [];
 
   // Get selected entry details
   const { data: selectedEntryData } = useQuery({
-    queryKey: ['directory-entry', directoryId, value],
+    queryKey: ["directory-entry", directoryId, value],
     queryFn: () => directoriesApi.getEntry(directoryId!, value!),
     enabled: !!directoryId && !!value,
     staleTime: 5 * 60 * 1000,
@@ -117,15 +124,17 @@ export function DirectorySelect({
       directoriesApi.inlineCreateEntry(directoryId!, data),
     onSuccess: (response) => {
       const created = response.data;
-      queryClient.invalidateQueries({ queryKey: ['directory-entries-search', directoryId] });
+      queryClient.invalidateQueries({
+        queryKey: ["directory-entries-search", directoryId],
+      });
       onChange(created.id, created);
       setCreateDialogOpen(false);
-      setNewEntryName('');
-      setNewEntryCode('');
-      toast.success('Запись создана');
+      setNewEntryName("");
+      setNewEntryCode("");
+      toast.success("Entry created");
     },
     onError: () => {
-      toast.error('Не удалось создать запись');
+      toast.error("Failed to create entry");
     },
   });
 
@@ -137,7 +146,7 @@ export function DirectorySelect({
       onChange(entryId, entry);
     }
     setOpen(false);
-    setSearch('');
+    setSearch("");
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -155,11 +164,10 @@ export function DirectorySelect({
   };
 
   const canInlineCreate =
-    allowInlineCreate &&
-    directory?.settings?.allow_inline_create !== false;
+    allowInlineCreate && directory?.settings?.allow_inline_create !== false;
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -168,14 +176,14 @@ export function DirectorySelect({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              'w-full justify-between font-normal',
-              !value && 'text-muted-foreground',
-              error && 'border-destructive'
+              "w-full justify-between font-normal",
+              !value && "text-muted-foreground",
+              error && "border-destructive",
             )}
           >
             <span className="truncate">
               {selectedEntry
-                ? `${selectedEntry.name}${selectedEntry.code ? ` (${selectedEntry.code})` : ''}`
+                ? `${selectedEntry.name}${selectedEntry.code ? ` (${selectedEntry.code})` : ""}`
                 : placeholder}
             </span>
             <div className="flex items-center gap-1 ml-2 shrink-0">
@@ -189,10 +197,13 @@ export function DirectorySelect({
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <PopoverContent
+          className="w-[--radix-popover-trigger-width] p-0"
+          align="start"
+        >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Поиск..."
+              placeholder="Search..."
               value={search}
               onValueChange={setSearch}
             />
@@ -202,7 +213,7 @@ export function DirectorySelect({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
               ) : entries.length === 0 ? (
-                <CommandEmpty>Ничего не найдено</CommandEmpty>
+                <CommandEmpty>Nothing found</CommandEmpty>
               ) : (
                 <CommandGroup>
                   {entries.map((entry) => (
@@ -213,8 +224,8 @@ export function DirectorySelect({
                     >
                       <Check
                         className={cn(
-                          'mr-2 h-4 w-4',
-                          value === entry.id ? 'opacity-100' : 'opacity-0'
+                          "mr-2 h-4 w-4",
+                          value === entry.id ? "opacity-100" : "opacity-0",
                         )}
                       />
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -226,10 +237,12 @@ export function DirectorySelect({
                         )}
                       </div>
                       <Badge
-                        variant={entry.origin === 'OFFICIAL' ? 'default' : 'secondary'}
+                        variant={
+                          entry.origin === "OFFICIAL" ? "default" : "secondary"
+                        }
                         className="text-[10px] px-1 py-0 ml-1 shrink-0"
                       >
-                        {entry.origin === 'OFFICIAL' ? 'ОФ' : 'ЛОК'}
+                        {entry.origin === "OFFICIAL" ? "OFF" : "LOC"}
                       </Badge>
                     </CommandItem>
                   ))}
@@ -247,7 +260,7 @@ export function DirectorySelect({
                       }}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Создать новую запись
+                      Create new entry
                     </CommandItem>
                   </CommandGroup>
                 </>
@@ -257,33 +270,31 @@ export function DirectorySelect({
         </PopoverContent>
       </Popover>
 
-      {error && (
-        <p className="text-sm text-destructive mt-1">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive mt-1">{error}</p>}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Создать запись</DialogTitle>
+            <DialogTitle>Create entry</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="entry-name">Название *</Label>
+              <Label htmlFor="entry-name">Name *</Label>
               <Input
                 id="entry-name"
                 value={newEntryName}
                 onChange={(e) => setNewEntryName(e.target.value)}
-                placeholder="Введите название"
+                placeholder="Enter name"
                 autoFocus
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="entry-code">Код</Label>
+              <Label htmlFor="entry-code">Code</Label>
               <Input
                 id="entry-code"
                 value={newEntryCode}
                 onChange={(e) => setNewEntryCode(e.target.value)}
-                placeholder="Введите код (опционально)"
+                placeholder="Enter code (optional)"
               />
             </div>
             <DialogFooter>
@@ -292,7 +303,7 @@ export function DirectorySelect({
                 variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
               >
-                Отмена
+                Cancel
               </Button>
               <Button
                 type="submit"
@@ -301,7 +312,7 @@ export function DirectorySelect({
                 {createMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Создать
+                Create
               </Button>
             </DialogFooter>
           </form>

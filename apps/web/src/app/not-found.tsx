@@ -9,16 +9,16 @@ export default function NotFound() {
           <FileQuestion className="h-8 w-8 text-orange-600" />
         </div>
         <h1 className="text-4xl font-bold mb-2">404</h1>
-        <h2 className="text-xl font-semibold mb-2">Страница не найдена</h2>
+        <h2 className="text-xl font-semibold mb-2">Page not found</h2>
         <p className="text-gray-500 mb-6">
-          Запрашиваемая страница не существует или была перемещена.
+          The requested page does not exist or has been moved.
         </p>
         <Link
           href="/dashboard"
           className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
         >
           <Home className="h-4 w-4 mr-2" />
-          На главную
+          Go to home
         </Link>
       </div>
     </div>

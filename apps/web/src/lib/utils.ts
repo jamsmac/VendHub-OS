@@ -112,11 +112,11 @@ const TIME_AGO_LABELS: Record<
     m: "oy oldin",
   },
   ru: {
-    justNow: "только что",
-    min: "мин назад",
-    h: "ч назад",
-    d: "дн назад",
-    m: "мес назад",
+    justNow: "just now",
+    min: "min ago",
+    h: "h ago",
+    d: "d ago",
+    m: "mo ago",
   },
   en: {
     justNow: "just now",

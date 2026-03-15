@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // ═══════════════════════════════════════════════════════════
 // SlideOver — reusable right-side panel component
 // Usage:
-//   <SlideOver open={open} onClose={() => setOpen(false)} title="Заголовок">
+//   <SlideOver open={open} onClose={() => setOpen(false)} title="Title">
 //     <SlideOverBody>...content...</SlideOverBody>
 //     <SlideOverFooter>...buttons...</SlideOverFooter>
 //   </SlideOver>

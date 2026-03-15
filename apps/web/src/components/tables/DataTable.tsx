@@ -49,7 +49,7 @@ export function DataTable<T extends Record<string, unknown>>({
   keyField = "id" as keyof T,
   isLoading = false,
   searchable = true,
-  searchPlaceholder = "Поиск...",
+  searchPlaceholder = "Search...",
   pagination = true,
   pageSize: initialPageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
@@ -57,7 +57,7 @@ export function DataTable<T extends Record<string, unknown>>({
   selectedRows = [],
   onSelectionChange,
   actions,
-  emptyMessage = "Нет данных",
+  emptyMessage = "No data",
   className,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState("");
@@ -217,7 +217,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 ))}
                 {actions && (
                   <th className="w-12 px-4 py-3 text-right text-sm font-medium text-muted-foreground">
-                    Действия
+                    Actions
                   </th>
                 )}
               </tr>
@@ -311,7 +311,7 @@ export function DataTable<T extends Record<string, unknown>>({
       {pagination && totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Показано</span>
+            <span>Showing</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -326,7 +326,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 </option>
               ))}
             </select>
-            <span>из {sortedData.length}</span>
+            <span>of {sortedData.length}</span>
           </div>
 
           <div className="flex items-center gap-1">

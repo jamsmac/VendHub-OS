@@ -883,7 +883,7 @@ export const notificationsApi = {
     api.delete("/notifications/fcm/unregister", { data }),
 };
 
-// === Master Data (Directories / Справочники) ===
+// === Master Data (Directories) ===
 
 // === Phase 4: Fiscal (MultiKassa) ===
 

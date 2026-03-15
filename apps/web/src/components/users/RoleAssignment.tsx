@@ -46,9 +46,9 @@ export function RoleAssignment({ userId }: RoleAssignmentProps) {
       api.post(`/rbac/users/${userId}/roles`, { roleId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
-      toast.success("Роль назначена");
+      toast.success("Role assigned");
     },
-    onError: () => toast.error("Ошибка назначения роли"),
+    onError: () => toast.error("Failed to assign role"),
   });
 
   const removeMutation = useMutation({
@@ -56,9 +56,9 @@ export function RoleAssignment({ userId }: RoleAssignmentProps) {
       api.delete(`/rbac/users/${userId}/roles/${roleId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
-      toast.success("Роль удалена");
+      toast.success("Role removed");
     },
-    onError: () => toast.error("Ошибка удаления роли"),
+    onError: () => toast.error("Failed to remove role"),
   });
 
   const userRoleIds = (userRoles || []).map((r: Role) => r.id);
@@ -81,18 +81,16 @@ export function RoleAssignment({ userId }: RoleAssignmentProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          RBAC Роли
+          RBAC Roles
         </CardTitle>
-        <CardDescription>Управление ролями пользователя</CardDescription>
+        <CardDescription>Manage user roles</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Roles */}
         <div>
-          <p className="text-sm font-medium mb-2">Назначенные роли</p>
+          <p className="text-sm font-medium mb-2">Assigned roles</p>
           {(userRoles || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Нет назначенных ролей
-            </p>
+            <p className="text-sm text-muted-foreground">No roles assigned</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {(userRoles || []).map((role: Role) => (
@@ -117,7 +115,7 @@ export function RoleAssignment({ userId }: RoleAssignmentProps) {
         {/* Available Roles to Assign */}
         {availableRoles.length > 0 && (
           <div>
-            <p className="text-sm font-medium mb-2">Доступные роли</p>
+            <p className="text-sm font-medium mb-2">Available roles</p>
             <div className="flex flex-wrap gap-2">
               {availableRoles.map((role: Role) => (
                 <Button

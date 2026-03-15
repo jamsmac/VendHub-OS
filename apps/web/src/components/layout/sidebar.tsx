@@ -103,14 +103,14 @@ const navigation: NavItem[] = [
   // ── Dashboard ─────────────────────────────────────────────
   {
     nameKey: "dashboard",
-    fallback: "Дашборд",
+    fallback: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
     section: "dashboard",
   },
   {
     nameKey: "dashboardExtended",
-    fallback: "Расширенный обзор",
+    fallback: "Extended Overview",
     href: "/dashboard/dashboard",
     icon: LayoutDashboard,
     section: "dashboard",
@@ -119,7 +119,7 @@ const navigation: NavItem[] = [
   // ── Operations ────────────────────────────────────────────
   {
     nameKey: "machines",
-    fallback: "Автоматы",
+    fallback: "Machines",
     href: "/dashboard/machines",
     icon: Coffee,
     roles: OPERATIONS,
@@ -127,7 +127,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "products",
-    fallback: "Товары",
+    fallback: "Products",
     href: "/dashboard/products",
     icon: Package,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
@@ -135,7 +135,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "inventory",
-    fallback: "Склад",
+    fallback: "Inventory",
     href: "/dashboard/inventory",
     icon: Boxes,
     roles: STOCK,
@@ -143,7 +143,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "orders",
-    fallback: "Заказы",
+    fallback: "Orders",
     href: "/dashboard/orders",
     icon: ShoppingCart,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
@@ -151,7 +151,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "tasks",
-    fallback: "Задачи",
+    fallback: "Tasks",
     href: "/dashboard/tasks",
     icon: ClipboardList,
     roles: OPERATIONS,
@@ -159,7 +159,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "trips",
-    fallback: "Рейсы",
+    fallback: "Trips",
     href: "/dashboard/trips",
     icon: Navigation,
     roles: OPERATIONS,
@@ -167,7 +167,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "routes",
-    fallback: "Маршруты",
+    fallback: "Routes",
     href: "/dashboard/routes",
     icon: Route,
     roles: MANAGEMENT,
@@ -175,7 +175,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "maintenance",
-    fallback: "Техобслуживание",
+    fallback: "Maintenance",
     href: "/dashboard/maintenance",
     icon: Wrench,
     roles: OPERATIONS,
@@ -183,7 +183,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "equipment",
-    fallback: "Оборудование",
+    fallback: "Equipment",
     href: "/dashboard/equipment",
     icon: Cog,
     roles: OPERATIONS,
@@ -191,7 +191,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "materialRequests",
-    fallback: "Заявки",
+    fallback: "Material Requests",
     href: "/dashboard/material-requests",
     icon: PackagePlus,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
@@ -199,7 +199,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "complaints",
-    fallback: "Жалобы",
+    fallback: "Complaints",
     href: "/dashboard/complaints",
     icon: MessageSquare,
     roles: MANAGEMENT,
@@ -207,7 +207,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "incidents",
-    fallback: "Инциденты",
+    fallback: "Incidents",
     href: "/dashboard/incidents",
     icon: ShieldAlert,
     roles: OPERATIONS,
@@ -215,7 +215,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "alerts",
-    fallback: "Алерты",
+    fallback: "Alerts",
     href: "/dashboard/alerts",
     icon: AlertTriangle,
     roles: OPERATIONS,
@@ -223,7 +223,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "vehicles",
-    fallback: "Транспорт",
+    fallback: "Vehicles",
     href: "/dashboard/vehicles",
     icon: Truck,
     roles: OPERATIONS,
@@ -231,7 +231,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "operatorRatings",
-    fallback: "Рейтинги",
+    fallback: "Ratings",
     href: "/dashboard/operator-ratings",
     icon: Star,
     roles: MANAGEMENT,
@@ -241,7 +241,7 @@ const navigation: NavItem[] = [
   // ── Finance ───────────────────────────────────────────────
   {
     nameKey: "transactions",
-    fallback: "Транзакции",
+    fallback: "Transactions",
     href: "/dashboard/transactions",
     icon: CreditCard,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
@@ -249,7 +249,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "payments",
-    fallback: "Платежи",
+    fallback: "Payments",
     href: "/dashboard/payments",
     icon: Wallet,
     roles: FINANCE,
@@ -257,7 +257,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "finance",
-    fallback: "Финансы",
+    fallback: "Finance",
     href: "/dashboard/finance",
     icon: DollarSign,
     roles: FINANCE,
@@ -265,7 +265,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "fiscal",
-    fallback: "Фискализация",
+    fallback: "Fiscalization",
     href: "/dashboard/fiscal",
     icon: Receipt,
     roles: FINANCE,
@@ -273,7 +273,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "reconciliation",
-    fallback: "Сверка",
+    fallback: "Reconciliation",
     href: "/dashboard/reconciliation",
     icon: Scale,
     roles: FINANCE,
@@ -281,7 +281,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "openingBalances",
-    fallback: "Нач. остатки",
+    fallback: "Opening Balances",
     href: "/dashboard/opening-balances",
     icon: DollarSign,
     roles: FINANCE,
@@ -291,7 +291,7 @@ const navigation: NavItem[] = [
   // ── Marketing & Sales ─────────────────────────────────────
   {
     nameKey: "promotions",
-    fallback: "Акции",
+    fallback: "Promotions",
     href: "/dashboard/promotions",
     icon: Tag,
     roles: MANAGEMENT,
@@ -299,7 +299,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "investor",
-    fallback: "Инвесторы",
+    fallback: "Investors",
     href: "/dashboard/investor",
     icon: TrendingUp,
     roles: MANAGEMENT,
@@ -309,7 +309,7 @@ const navigation: NavItem[] = [
   // ── HR & Management ───────────────────────────────────────
   {
     nameKey: "employees",
-    fallback: "Сотрудники",
+    fallback: "Employees",
     href: "/dashboard/employees",
     icon: UserCog,
     roles: MANAGEMENT,
@@ -317,7 +317,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "contractors",
-    fallback: "Подрядчики",
+    fallback: "Contractors",
     href: "/dashboard/contractors",
     icon: Building2,
     roles: MANAGEMENT,
@@ -325,7 +325,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "counterparties",
-    fallback: "Контрагенты",
+    fallback: "Counterparties",
     href: "/dashboard/counterparties",
     icon: Building,
     roles: MANAGEMENT,
@@ -333,7 +333,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "team",
-    fallback: "Команда+",
+    fallback: "Team+",
     href: "/dashboard/team",
     icon: Users,
     roles: MANAGEMENT,
@@ -341,7 +341,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "workLogs",
-    fallback: "Табель",
+    fallback: "Work Logs",
     href: "/dashboard/work-logs",
     icon: Clock,
     roles: MANAGEMENT,
@@ -351,7 +351,7 @@ const navigation: NavItem[] = [
   // ── Admin & Configuration ─────────────────────────────────
   {
     nameKey: "organizations",
-    fallback: "Организации",
+    fallback: "Organizations",
     href: "/dashboard/organizations",
     icon: Building,
     roles: [UserRole.OWNER],
@@ -359,7 +359,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "users",
-    fallback: "Пользователи",
+    fallback: "Users",
     href: "/dashboard/users",
     icon: Users,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -367,7 +367,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "invites",
-    fallback: "Приглашения",
+    fallback: "Invites",
     href: "/dashboard/invites",
     icon: UserPlus,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -375,7 +375,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "warehouse",
-    fallback: "Склады",
+    fallback: "Warehouses",
     href: "/dashboard/warehouse",
     icon: Warehouse,
     roles: STOCK,
@@ -383,7 +383,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "locations",
-    fallback: "Локации",
+    fallback: "Locations",
     href: "/dashboard/locations",
     icon: MapPin,
     roles: MANAGEMENT,
@@ -391,7 +391,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "website",
-    fallback: "Сайт",
+    fallback: "Website",
     href: "/dashboard/website",
     icon: Globe,
     roles: MANAGEMENT,
@@ -399,7 +399,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "map",
-    fallback: "Карта",
+    fallback: "Map",
     href: "/dashboard/map",
     icon: Map,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
@@ -407,7 +407,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "loyalty",
-    fallback: "Бонусы",
+    fallback: "Loyalty",
     href: "/dashboard/loyalty",
     icon: Gift,
     roles: MANAGEMENT,
@@ -417,7 +417,7 @@ const navigation: NavItem[] = [
   // ── Reporting ─────────────────────────────────────────────
   {
     nameKey: "reports",
-    fallback: "Отчёты",
+    fallback: "Reports",
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
@@ -427,7 +427,7 @@ const navigation: NavItem[] = [
   // ── Support & Help ────────────────────────────────────────
   {
     nameKey: "help",
-    fallback: "Помощь",
+    fallback: "Help",
     href: "/dashboard/help",
     icon: HelpCircle,
     section: "support",
@@ -436,7 +436,7 @@ const navigation: NavItem[] = [
   // ── System ────────────────────────────────────────────────
   {
     nameKey: "directories",
-    fallback: "Мастер-данные",
+    fallback: "Master Data",
     href: "/dashboard/directories",
     icon: Database,
     roles: MANAGEMENT,
@@ -444,7 +444,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "importData",
-    fallback: "Импорт",
+    fallback: "Import",
     href: "/dashboard/import",
     icon: Upload,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -452,7 +452,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "integrations",
-    fallback: "Интеграции",
+    fallback: "Integrations",
     href: "/dashboard/integrations",
     icon: Plug,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -460,7 +460,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "webhooks",
-    fallback: "Вебхуки",
+    fallback: "Webhooks",
     href: "/dashboard/webhooks",
     icon: Webhook,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -468,7 +468,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "machineAccess",
-    fallback: "Доступ к автоматам",
+    fallback: "Machine Access",
     href: "/dashboard/machine-access",
     icon: KeyRound,
     roles: MANAGEMENT,
@@ -476,7 +476,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "references",
-    fallback: "Справочники НСИ",
+    fallback: "Reference Data",
     href: "/dashboard/references",
     icon: BookOpen,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -484,7 +484,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "apiDocs",
-    fallback: "API Документация",
+    fallback: "API Documentation",
     href: "/dashboard/api-docs",
     icon: Code2,
     roles: [UserRole.OWNER],
@@ -492,7 +492,7 @@ const navigation: NavItem[] = [
   },
   {
     nameKey: "audit",
-    fallback: "Аудит",
+    fallback: "Audit",
     href: "/dashboard/audit",
     icon: FileText,
     roles: [UserRole.OWNER, UserRole.ADMIN],
@@ -502,14 +502,14 @@ const navigation: NavItem[] = [
   // Notifications — visible to all authenticated roles
   {
     nameKey: "notifications",
-    fallback: "Уведомления",
+    fallback: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
     section: "general",
   },
   {
     nameKey: "settings",
-    fallback: "Настройки",
+    fallback: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
     roles: [UserRole.OWNER, UserRole.ADMIN],

@@ -93,7 +93,7 @@ export default function GlobalError({
                 marginBottom: "0.5rem",
               }}
             >
-              Произошла непредвиденная ошибка
+              An unexpected error occurred
             </h2>
 
             <p
@@ -104,8 +104,8 @@ export default function GlobalError({
                 lineHeight: 1.5,
               }}
             >
-              Приложение столкнулось с критической ошибкой. Попробуйте обновить
-              страницу или вернуться на главную.
+              The application encountered a critical error. Try refreshing the
+              page or returning to the home page.
             </p>
 
             {/* Error digest for support */}
@@ -118,7 +118,7 @@ export default function GlobalError({
                   fontFamily: "monospace",
                 }}
               >
-                Код ошибки: {error.digest}
+                Error code: {error.digest}
               </p>
             )}
 
@@ -141,7 +141,7 @@ export default function GlobalError({
                     fontWeight: 500,
                   }}
                 >
-                  Детали ошибки (dev)
+                  Error details (dev)
                 </summary>
                 <pre
                   style={{
@@ -184,7 +184,7 @@ export default function GlobalError({
                   cursor: "pointer",
                 }}
               >
-                На главную
+                Go to home
               </a>
               <button
                 onClick={() => reset()}
@@ -201,7 +201,7 @@ export default function GlobalError({
                   cursor: "pointer",
                 }}
               >
-                Попробовать снова
+                Try again
               </button>
             </div>
           </div>

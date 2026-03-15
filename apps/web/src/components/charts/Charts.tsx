@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Chart Components
@@ -6,8 +6,8 @@
  * For production, consider using Recharts or Chart.js
  */
 
-import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // LINE CHART
@@ -26,14 +26,15 @@ interface LineChartProps {
 export function LineChart({
   data,
   height = 200,
-  color = '#4F46E5',
+  color = "#4F46E5",
   showGrid = true,
   showLabels = true,
   formatValue = (v) => v.toLocaleString(),
   className,
 }: LineChartProps) {
   const { path, points } = useMemo(() => {
-    if (data.length === 0) return { path: '', points: [], maxValue: 0, minValue: 0 };
+    if (data.length === 0)
+      return { path: "", points: [], maxValue: 0, minValue: 0 };
 
     const values = data.map((d) => d.value);
     const max = Math.max(...values) * 1.1;
@@ -52,8 +53,8 @@ export function LineChart({
     }));
 
     const pathData = pts
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-      .join(' ');
+      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+      .join(" ");
 
     return { path: pathData, points: pts, maxValue: max, minValue: min };
   }, [data, height]);
@@ -61,16 +62,19 @@ export function LineChart({
   if (data.length === 0) {
     return (
       <div
-        className={cn('flex items-center justify-center text-muted-foreground', className)}
+        className={cn(
+          "flex items-center justify-center text-muted-foreground",
+          className,
+        )}
         style={{ height }}
       >
-        Нет данных
+        No data
       </div>
     );
   }
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <svg
         viewBox={`0 0 100 ${height}`}
         preserveAspectRatio="none"
@@ -129,13 +133,14 @@ export function LineChart({
       {/* X-axis labels */}
       {showLabels && (
         <div className="flex justify-between px-2 mt-1">
-          {data.map((d, i) => (
-            i % Math.ceil(data.length / 7) === 0 && (
-              <span key={i} className="text-xs text-muted-foreground">
-                {d.label}
-              </span>
-            )
-          ))}
+          {data.map(
+            (d, i) =>
+              i % Math.ceil(data.length / 7) === 0 && (
+                <span key={i} className="text-xs text-muted-foreground">
+                  {d.label}
+                </span>
+              ),
+          )}
         </div>
       )}
     </div>
@@ -159,7 +164,7 @@ interface BarChartProps {
 export function BarChart({
   data,
   height = 200,
-  color = '#4F46E5',
+  color = "#4F46E5",
   horizontal = false,
   showValues = true,
   formatValue = (v) => v.toLocaleString(),
@@ -170,17 +175,20 @@ export function BarChart({
   if (data.length === 0) {
     return (
       <div
-        className={cn('flex items-center justify-center text-muted-foreground', className)}
+        className={cn(
+          "flex items-center justify-center text-muted-foreground",
+          className,
+        )}
         style={{ height }}
       >
-        Нет данных
+        No data
       </div>
     );
   }
 
   if (horizontal) {
     return (
-      <div className={cn('space-y-3', className)}>
+      <div className={cn("space-y-3", className)}>
         {data.map((item, i) => (
           <div key={i} className="space-y-1">
             <div className="flex justify-between text-sm">
@@ -207,7 +215,7 @@ export function BarChart({
   }
 
   return (
-    <div className={cn('flex items-end gap-2', className)} style={{ height }}>
+    <div className={cn("flex items-end gap-2", className)} style={{ height }}>
       {data.map((item, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
           {showValues && (
@@ -295,16 +303,19 @@ export function PieChart({
   if (data.length === 0 || total === 0) {
     return (
       <div
-        className={cn('flex items-center justify-center text-muted-foreground', className)}
+        className={cn(
+          "flex items-center justify-center text-muted-foreground",
+          className,
+        )}
         style={{ height: size }}
       >
-        Нет данных
+        No data
       </div>
     );
   }
 
   return (
-    <div className={cn('flex items-center gap-6', className)}>
+    <div className={cn("flex items-center gap-6", className)}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {segments.map((segment, i) => (
           <path
@@ -367,16 +378,16 @@ export function StatCard({
   title,
   value,
   change,
-  changeLabel = 'vs прошлый период',
+  changeLabel = "vs previous period",
   icon,
-  color = '#4F46E5',
+  color = "#4F46E5",
   className,
 }: StatCardProps) {
   const isPositive = change && change > 0;
   const isNegative = change && change < 0;
 
   return (
-    <div className={cn('bg-card border rounded-xl p-4', className)}>
+    <div className={cn("bg-card border rounded-xl p-4", className)}>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
@@ -385,16 +396,18 @@ export function StatCard({
             <div className="flex items-center gap-1 mt-2">
               <span
                 className={cn(
-                  'text-sm font-medium',
-                  isPositive && 'text-green-600',
-                  isNegative && 'text-red-600',
-                  !isPositive && !isNegative && 'text-muted-foreground',
+                  "text-sm font-medium",
+                  isPositive && "text-green-600",
+                  isNegative && "text-red-600",
+                  !isPositive && !isNegative && "text-muted-foreground",
                 )}
               >
-                {isPositive && '+'}
+                {isPositive && "+"}
                 {change.toFixed(1)}%
               </span>
-              <span className="text-xs text-muted-foreground">{changeLabel}</span>
+              <span className="text-xs text-muted-foreground">
+                {changeLabel}
+              </span>
             </div>
           )}
         </div>
@@ -427,11 +440,11 @@ export function Sparkline({
   data,
   width = 100,
   height = 30,
-  color = '#4F46E5',
+  color = "#4F46E5",
   className,
 }: SparklineProps) {
   const path = useMemo(() => {
-    if (data.length < 2) return '';
+    if (data.length < 2) return "";
 
     const max = Math.max(...data);
     const min = Math.min(...data);
@@ -442,7 +455,9 @@ export function Sparkline({
       y: height - ((value - min) / range) * (height - 4) - 2,
     }));
 
-    return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    return points
+      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+      .join(" ");
   }, [data, width, height]);
 
   if (data.length < 2) return null;

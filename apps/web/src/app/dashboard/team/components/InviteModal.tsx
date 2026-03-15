@@ -77,7 +77,7 @@ export function InviteModal({ open, onClose }: InviteModalProps) {
             <label className="text-sm text-espresso-light mb-1 block">
               {t("invitePosition")}
             </label>
-            <Input placeholder="Оператор" />
+            <Input placeholder="Operator" />
           </div>
           <div className="p-3 rounded-lg bg-espresso-50/50 dark:bg-gray-800/50">
             <p className="text-xs text-espresso-light mb-1">

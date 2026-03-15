@@ -34,18 +34,18 @@ export function SalaryTab() {
   const t = useTranslations("team");
 
   const salaryRoleMap: Record<string, string> = {
-    Владелец: t("roleOwner"),
-    Администратор: t("roleAdmin"),
-    Менеджер: t("roleManager"),
-    Бухгалтер: t("roleAccountant"),
-    Оператор: t("roleOperator"),
-    Склад: t("roleWarehouse"),
+    Owner: t("roleOwner"),
+    Administrator: t("roleAdmin"),
+    Manager: t("roleManager"),
+    Accountant: t("roleAccountant"),
+    Operator: t("roleOperator"),
+    Warehouse: t("roleWarehouse"),
   };
 
   const bonusMap: Record<string, string> = {
-    Премии: t("bonusPremium"),
-    "Бонусы производительности": t("bonusPerformance"),
-    Стимулы: t("bonusIncentives"),
+    Premiums: t("bonusPremium"),
+    "Performance bonuses": t("bonusPerformance"),
+    Incentives: t("bonusIncentives"),
   };
 
   const translatedSalaryByRole = useMemo(
@@ -85,7 +85,7 @@ export function SalaryTab() {
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(totalPayroll)}
             </p>
-            <p className="text-xs text-espresso-light mt-2">UZS в месяц</p>
+            <p className="text-xs text-espresso-light mt-2">UZS / month</p>
           </CardContent>
         </Card>
         <Card className="coffee-card">
@@ -94,9 +94,7 @@ export function SalaryTab() {
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(avgSalary)}
             </p>
-            <p className="text-xs text-espresso-light mt-2">
-              UZS на сотрудника
-            </p>
+            <p className="text-xs text-espresso-light mt-2">UZS / employee</p>
           </CardContent>
         </Card>
         <Card className="coffee-card">
@@ -107,7 +105,7 @@ export function SalaryTab() {
             <p className="text-2xl font-bold text-espresso-dark">
               {fmt(totalBonuses)}
             </p>
-            <p className="text-xs text-espresso-light mt-2">UZS за месяц</p>
+            <p className="text-xs text-espresso-light mt-2">UZS / month</p>
           </CardContent>
         </Card>
         <Card className="coffee-card">
@@ -118,7 +116,7 @@ export function SalaryTab() {
             <p className="text-2xl font-bold text-red-600">
               {fmt(totalDeductions)}
             </p>
-            <p className="text-xs text-espresso-light mt-2">UZS за месяц</p>
+            <p className="text-xs text-espresso-light mt-2">UZS / month</p>
           </CardContent>
         </Card>
       </div>

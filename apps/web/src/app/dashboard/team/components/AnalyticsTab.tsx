@@ -41,35 +41,35 @@ export function AnalyticsTab() {
   const t = useTranslations("team");
 
   const roleNameMap: Record<string, string> = {
-    Владелец: t("roleOwner"),
-    Администратор: t("roleAdmin"),
-    Менеджер: t("roleManager"),
-    Оператор: t("roleOperator"),
-    Склад: t("roleWarehouse"),
-    Бухгалтер: t("roleAccountant"),
-    Наблюдатель: t("roleViewer"),
+    Owner: t("roleOwner"),
+    Administrator: t("roleAdmin"),
+    Manager: t("roleManager"),
+    Operator: t("roleOperator"),
+    Warehouse: t("roleWarehouse"),
+    Accountant: t("roleAccountant"),
+    Viewer: t("roleViewer"),
   };
 
   const monthMap: Record<string, string> = {
-    Январь: t("monthJan"),
-    Февраль: t("monthFeb"),
-    Март: t("monthMar"),
-    Апрель: t("monthApr"),
-    Май: t("monthMay"),
-    Июнь: t("monthJun"),
-    Июль: t("monthJul"),
-    Август: t("monthAug"),
-    Сентябрь: t("monthSep"),
-    Октябрь: t("monthOct"),
-    Ноябрь: t("monthNov"),
-    Декабрь: t("monthDec"),
+    January: t("monthJan"),
+    February: t("monthFeb"),
+    March: t("monthMar"),
+    April: t("monthApr"),
+    May: t("monthMay"),
+    June: t("monthJun"),
+    July: t("monthJul"),
+    August: t("monthAug"),
+    September: t("monthSep"),
+    October: t("monthOct"),
+    November: t("monthNov"),
+    December: t("monthDec"),
   };
 
   const tenureMap: Record<string, string> = {
-    "0-3 месяца": t("tenure0to3"),
-    "3-6 месяцев": t("tenure3to6"),
-    "6-12 месяцев": t("tenure6to12"),
-    "12+ месяцев": t("tenure12plus"),
+    "0-3 months": t("tenure0to3"),
+    "3-6 months": t("tenure3to6"),
+    "6-12 months": t("tenure6to12"),
+    "12+ months": t("tenure12plus"),
   };
 
   const localHeadcount = HEADCOUNT_BY_ROLE.map((d) => ({
