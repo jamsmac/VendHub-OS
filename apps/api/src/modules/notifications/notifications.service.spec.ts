@@ -111,10 +111,10 @@ describe("NotificationsService", () => {
         {
           provide: PushNotificationService,
           useValue: {
-            subscribe: jest.fn(),
-            unsubscribe: jest.fn(),
-            registerFcmToken: jest.fn(),
-            unregisterFcmToken: jest.fn(),
+            subscribePush: jest.fn(),
+            unsubscribePush: jest.fn(),
+            registerFcm: jest.fn(),
+            unregisterFcm: jest.fn(),
             sendPush: jest.fn(),
           },
         },
@@ -123,6 +123,7 @@ describe("NotificationsService", () => {
           useValue: {
             deliver: jest.fn(),
             processQueue: jest.fn(),
+            queueNotification: jest.fn(),
           },
         },
       ],
