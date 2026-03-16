@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~97%** (updated from 93%)
+**Readiness: ~99%** (updated from 97%)
 
 ### Landing Site (site app)
 
@@ -240,7 +240,7 @@ pnpm docker:logs            # View logs
 
 ### New Dashboard Pages (web app)
 
-- **8 new dashboard pages added:**
+- **17 new dashboard pages added:**
   - Investor dashboard
   - Website analytics dashboard
   - Finance dashboard
@@ -248,6 +248,15 @@ pnpm docker:logs            # View logs
   - Counterparties/Partners
   - Help & Support
   - Dashboard (extended with new sections)
+  - Collections (two-stage cash collection workflow)
+  - Analytics (KPI cards, top products/machines)
+  - Containers (hopper/bunker management with fill levels)
+  - Achievements (customer achievements management)
+  - Promo Codes (promo code management with usage tracking)
+  - Quests (customer quest management)
+  - Referrals (referral program analytics)
+  - Counterparty (counterparty/contract management)
+  - Trip Analytics (driver/route performance)
   - Team (extended with new features)
 
 ### UI Component Library
