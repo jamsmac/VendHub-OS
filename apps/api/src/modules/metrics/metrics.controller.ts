@@ -1,10 +1,16 @@
 import { Controller, Get, Res } from "@nestjs/common";
-import { ApiTags, ApiExcludeEndpoint, ApiOkResponse } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiExcludeEndpoint,
+  ApiOkResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { Response } from "express";
 import { MetricsService } from "./metrics.service";
 import { Roles } from "../../common/decorators/roles.decorator";
 
 @ApiTags("Metrics")
+@ApiBearerAuth()
 @Controller("metrics")
 @Roles("owner", "admin")
 export class MetricsController {

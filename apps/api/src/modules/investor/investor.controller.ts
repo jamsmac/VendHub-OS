@@ -9,7 +9,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentUserId,
@@ -20,6 +20,7 @@ import { CreateInvestorProfileDto } from "./dto/create-investor-profile.dto";
 import { CreateDividendDto } from "./dto/create-dividend.dto";
 
 @ApiTags("Investor")
+@ApiBearerAuth()
 @Controller("investor")
 export class InvestorController {
   constructor(private readonly investorService: InvestorService) {}

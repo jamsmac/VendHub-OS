@@ -16,7 +16,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { CollectionsService } from "./collections.service";
 import {
   CreateCollectionDto,
@@ -34,6 +34,7 @@ import {
 } from "../../common/decorators/current-user.decorator";
 
 @ApiTags("Collections")
+@ApiBearerAuth()
 @Controller("collections")
 export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}

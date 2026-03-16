@@ -27,6 +27,7 @@ export class DataParserController {
   constructor(private readonly dataParserService: DataParserService) {}
 
   @Get("formats")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "List supported file formats" })
   getFormats() {
     return this.dataParserService.getSupportedFormats();
