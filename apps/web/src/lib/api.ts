@@ -549,6 +549,22 @@ export const transactionsApi = {
     api.get("/transactions/commissions", { params }),
 };
 
+export const collectionsApi = {
+  getAll: (params?: QueryParams) => api.get("/collections", { params }),
+  getPending: () => api.get("/collections/pending"),
+  getMy: () => api.get("/collections/my"),
+  getStats: () => api.get("/collections/stats"),
+  getById: (id: string) => api.get(`/collections/${id}`),
+  getHistory: (id: string) => api.get(`/collections/${id}/history`),
+  create: (data: RequestBody) => api.post("/collections", data),
+  receive: (id: string, data: RequestBody) =>
+    api.patch(`/collections/${id}/receive`, data),
+  edit: (id: string, data: RequestBody) =>
+    api.patch(`/collections/${id}/edit`, data),
+  cancel: (id: string, data: RequestBody) =>
+    api.patch(`/collections/${id}/cancel`, data),
+};
+
 export const reconciliationApi = {
   getRuns: (params?: QueryParams) =>
     api.get("/reconciliation/runs", { params }),

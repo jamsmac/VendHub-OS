@@ -158,6 +158,14 @@ const navigation: NavItem[] = [
     section: "operations",
   },
   {
+    nameKey: "collections",
+    fallback: "Collections",
+    href: "/dashboard/collections",
+    icon: Wallet,
+    roles: [...OPERATIONS, UserRole.ACCOUNTANT],
+    section: "operations",
+  },
+  {
     nameKey: "trips",
     fallback: "Trips",
     href: "/dashboard/trips",
