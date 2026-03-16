@@ -361,7 +361,7 @@ export class AuditLog extends BaseEntity {
   userRole: string;
 
   // What was affected
-  @Column({ type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100, default: "unknown" })
   @Index()
   entityType: string;
 
