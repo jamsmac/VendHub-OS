@@ -37,6 +37,9 @@ RUN pnpm install
 
 COPY . .
 
+# Build shared package (API imports from @vendhub/shared)
+RUN pnpm --filter @vendhub/shared build
+
 EXPOSE 4000
 
 CMD ["pnpm", "--filter", "@vendhub/api", "dev"]
