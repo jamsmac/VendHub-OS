@@ -190,6 +190,14 @@ const navigation: NavItem[] = [
     section: "operations",
   },
   {
+    nameKey: "containers",
+    fallback: "Containers",
+    href: "/dashboard/containers",
+    icon: Boxes,
+    roles: OPERATIONS,
+    section: "operations",
+  },
+  {
     nameKey: "equipment",
     fallback: "Equipment",
     href: "/dashboard/equipment",
@@ -429,6 +437,14 @@ const navigation: NavItem[] = [
     href: "/dashboard/reports",
     icon: BarChart3,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+    section: "reporting",
+  },
+  {
+    nameKey: "analytics",
+    fallback: "Analytics",
+    href: "/dashboard/analytics",
+    icon: TrendingUp,
+    roles: MANAGEMENT,
     section: "reporting",
   },
 

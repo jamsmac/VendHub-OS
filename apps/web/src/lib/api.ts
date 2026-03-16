@@ -665,6 +665,19 @@ export const auditApi = {
   cleanupSnapshots: () => api.post("/audit/cleanup/snapshots"),
 };
 
+export const containersApi = {
+  getAll: (params?: QueryParams) => api.get("/containers", { params }),
+  getById: (id: string) => api.get(`/containers/${id}`),
+  getByMachine: (machineId: string) =>
+    api.get(`/containers/machine/${machineId}`),
+  create: (data: RequestBody) => api.post("/containers", data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/containers/${id}`, data),
+  refill: (id: string, data: RequestBody) =>
+    api.post(`/containers/${id}/refill`, data),
+  delete: (id: string) => api.delete(`/containers/${id}`),
+};
+
 export const analyticsApi = {
   getSnapshots: (params?: QueryParams) =>
     api.get("/analytics/snapshots", { params }),
