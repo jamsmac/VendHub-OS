@@ -14,33 +14,9 @@ import {
 } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { PaymentMethod, CommissionType } from "../../../common/enums";
+import { TransactionType, TransactionStatus } from "@vendhub/shared";
 
-export { PaymentMethod, CommissionType };
-
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-export enum TransactionType {
-  SALE = "sale",
-  REFUND = "refund",
-  COLLECTION = "collection",
-  DEPOSIT = "deposit",
-  WITHDRAWAL = "withdrawal",
-  ADJUSTMENT = "adjustment",
-  COMMISSION = "commission",
-  EXPENSE = "expense",
-}
-
-export enum TransactionStatus {
-  PENDING = "pending",
-  PROCESSING = "processing",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  REFUNDED = "refunded",
-  CANCELLED = "cancelled",
-  PARTIALLY_REFUNDED = "partially_refunded",
-}
+export { PaymentMethod, CommissionType, TransactionType, TransactionStatus };
 
 export enum ExpenseCategory {
   RENT = "rent",

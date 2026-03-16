@@ -7,7 +7,11 @@ export enum TransactionType {
   SALE = "sale",
   REFUND = "refund",
   COLLECTION = "collection",
+  DEPOSIT = "deposit",
+  WITHDRAWAL = "withdrawal",
   ADJUSTMENT = "adjustment",
+  COMMISSION = "commission",
+  EXPENSE = "expense",
 }
 
 export enum TransactionStatus {

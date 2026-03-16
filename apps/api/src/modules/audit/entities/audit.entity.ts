@@ -49,6 +49,7 @@ export enum AuditSeverity {
 }
 
 export enum AuditEventType {
+  // Authentication
   LOGIN_SUCCESS = "login_success",
   LOGIN_FAILED = "login_failed",
   LOGOUT = "logout",
@@ -60,6 +61,7 @@ export enum AuditEventType {
   TWO_FA_DISABLED = "2fa_disabled",
   TWO_FA_VERIFIED = "2fa_verified",
   TWO_FA_FAILED = "2fa_failed",
+  // Account management
   ACCOUNT_CREATED = "account_created",
   ACCOUNT_UPDATED = "account_updated",
   ACCOUNT_BLOCKED = "account_blocked",
@@ -71,12 +73,23 @@ export enum AuditEventType {
   ACCESS_REQUEST_CREATED = "access_request_created",
   ACCESS_REQUEST_APPROVED = "access_request_approved",
   ACCESS_REQUEST_REJECTED = "access_request_rejected",
+  // Security
   BRUTE_FORCE_DETECTED = "brute_force_detected",
   IP_BLOCKED = "ip_blocked",
   SUSPICIOUS_ACTIVITY = "suspicious_activity",
   SESSION_CREATED = "session_created",
   SESSION_TERMINATED = "session_terminated",
   SESSION_EXPIRED = "session_expired",
+  // Financial (audit compliance)
+  TRANSACTION_CREATED = "transaction_created",
+  TRANSACTION_DELETED = "transaction_deleted",
+  TRANSACTION_UPDATED = "transaction_updated",
+  REFUND_ISSUED = "refund_issued",
+  COLLECTION_RECORDED = "collection_recorded",
+  // Data operations
+  DATA_EXPORTED = "data_exported",
+  DATA_IMPORTED = "data_imported",
+  BULK_OPERATION = "bulk_operation",
 }
 
 export enum AuditCategory {
