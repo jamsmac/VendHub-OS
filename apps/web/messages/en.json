@@ -5334,5 +5334,58 @@
     "last30days": "30 days",
     "last90days": "90 days",
     "errorLoad": "Error loading data"
+  },
+  "sidebar": {
+    "collections": "Collections",
+    "analytics": "Analytics",
+    "containers": "Containers",
+    "achievements": "Achievements",
+    "promoCodes": "Promo Codes",
+    "quests": "Quests",
+    "referrals": "Referrals",
+    "counterparty": "Counterparties",
+    "tripAnalytics": "Trip Analytics"
+  },
+  "collections": {
+    "totalCollections": "Total Collections",
+    "totalAmount": "Total Amount",
+    "pendingReceive": "Pending Receive",
+    "todayAmount": "Today",
+    "noCollections": "No collections found",
+    "receive": "Receive",
+    "receiveCollection": "Receive Collection",
+    "machine": "Machine",
+    "collectedAt": "Collected at",
+    "amount": "Amount",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes...",
+    "confirmReceive": "Confirm Receive"
+  },
+  "analytics": {
+    "revenue": "Revenue",
+    "sales": "Sales",
+    "avgSale": "Avg Sale",
+    "activeMachines": "Active Machines",
+    "topProducts": "Top Products",
+    "topMachines": "Top Machines",
+    "noData": "No data available"
+  },
+  "containers": {
+    "total": "Total",
+    "active": "Active",
+    "empty": "Empty",
+    "maintenance": "Maintenance",
+    "noContainers": "No containers found",
+    "level": "Level"
+  },
+  "referrals": {
+    "totalReferrals": "Total Referrals",
+    "totalEarned": "Total Earned",
+    "activeReferrers": "Active Referrers",
+    "topReferrers": "Top Referrers",
+    "noData": "No referral data yet"
+  },
+  "counterparty": {
+    "noCounterparties": "No counterparties found"
   }
 }

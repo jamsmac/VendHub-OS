@@ -5334,5 +5334,58 @@
     "last30days": "30 kun",
     "last90days": "90 kun",
     "errorLoad": "Ma'lumotlarni yuklashda xatolik"
+  },
+  "sidebar": {
+    "collections": "Inkassatsiya",
+    "analytics": "Analitika",
+    "containers": "Konteynerlar",
+    "achievements": "Yutuqlar",
+    "promoCodes": "Promo kodlar",
+    "quests": "Topshiriqlar",
+    "referrals": "Referallar",
+    "counterparty": "Kontragentlar",
+    "tripAnalytics": "Sayohat analitikasi"
+  },
+  "collections": {
+    "totalCollections": "Jami inkassatsiyalar",
+    "totalAmount": "Umumiy summa",
+    "pendingReceive": "Qabul kutmoqda",
+    "todayAmount": "Bugun",
+    "noCollections": "Inkassatsiyalar topilmadi",
+    "receive": "Qabul qilish",
+    "receiveCollection": "Inkassatsiyani qabul qilish",
+    "machine": "Avtomat",
+    "collectedAt": "Yig'ilgan",
+    "amount": "Summa",
+    "notes": "Izohlar",
+    "notesPlaceholder": "Ixtiyoriy izohlar...",
+    "confirmReceive": "Qabul qilishni tasdiqlash"
+  },
+  "analytics": {
+    "revenue": "Daromad",
+    "sales": "Sotuvlar",
+    "avgSale": "O'rtacha chek",
+    "activeMachines": "Faol avtomatlar",
+    "topProducts": "Top mahsulotlar",
+    "topMachines": "Top avtomatlar",
+    "noData": "Ma'lumot yo'q"
+  },
+  "containers": {
+    "total": "Jami",
+    "active": "Faol",
+    "empty": "Bo'sh",
+    "maintenance": "Texnik xizmatda",
+    "noContainers": "Konteynerlar topilmadi",
+    "level": "Daraja"
+  },
+  "referrals": {
+    "totalReferrals": "Jami referallar",
+    "totalEarned": "Jami topilgan",
+    "activeReferrers": "Faol referalchilar",
+    "topReferrers": "Top referalchilar",
+    "noData": "Referal ma'lumotlari yo'q"
+  },
+  "counterparty": {
+    "noCounterparties": "Kontragentlar topilmadi"
   }
 }

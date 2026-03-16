@@ -5334,5 +5334,58 @@
     "last30days": "30 дней",
     "last90days": "90 дней",
     "errorLoad": "Ошибка загрузки данных"
+  },
+  "sidebar": {
+    "collections": "Инкассация",
+    "analytics": "Аналитика",
+    "containers": "Контейнеры",
+    "achievements": "Достижения",
+    "promoCodes": "Промокоды",
+    "quests": "Квесты",
+    "referrals": "Рефералы",
+    "counterparty": "Контрагенты",
+    "tripAnalytics": "Аналитика поездок"
+  },
+  "collections": {
+    "totalCollections": "Всего инкассаций",
+    "totalAmount": "Общая сумма",
+    "pendingReceive": "Ожидают приёма",
+    "todayAmount": "Сегодня",
+    "noCollections": "Инкассации не найдены",
+    "receive": "Принять",
+    "receiveCollection": "Приём инкассации",
+    "machine": "Автомат",
+    "collectedAt": "Собрано",
+    "amount": "Сумма",
+    "notes": "Заметки",
+    "notesPlaceholder": "Необязательные заметки...",
+    "confirmReceive": "Подтвердить приём"
+  },
+  "analytics": {
+    "revenue": "Выручка",
+    "sales": "Продажи",
+    "avgSale": "Средний чек",
+    "activeMachines": "Активные автоматы",
+    "topProducts": "Топ товаров",
+    "topMachines": "Топ автоматов",
+    "noData": "Нет данных"
+  },
+  "containers": {
+    "total": "Всего",
+    "active": "Активные",
+    "empty": "Пустые",
+    "maintenance": "На обслуживании",
+    "noContainers": "Контейнеры не найдены",
+    "level": "Уровень"
+  },
+  "referrals": {
+    "totalReferrals": "Всего рефералов",
+    "totalEarned": "Всего заработано",
+    "activeReferrers": "Активные рефереры",
+    "topReferrers": "Топ рефереров",
+    "noData": "Нет данных о рефералах"
+  },
+  "counterparty": {
+    "noCounterparties": "Контрагенты не найдены"
   }
 }
