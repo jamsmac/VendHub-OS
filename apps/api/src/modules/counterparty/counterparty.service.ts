@@ -165,8 +165,8 @@ export class CounterpartyService {
       throw new BadRequestException("organizationId is required");
     }
 
-    // Verify counterparty exists
-    await this.getCounterparty(organizationId, dto.counterpartyId);
+    // Verify counterparty exists (counterpartyId always set by controller from URL param)
+    await this.getCounterparty(organizationId, dto.counterpartyId!);
 
     // Check contract number uniqueness
     const existing = await this.contractRepository.findOne({

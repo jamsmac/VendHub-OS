@@ -51,12 +51,12 @@ describe("DataParserController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("GET /data-parser/formats allows viewer (no @Roles)", async () => {
+  it("GET /data-parser/formats rejects viewer (requires manager+)", async () => {
     mockService.getSupportedFormats.mockReturnValue([]);
     await request(app.getHttpServer())
       .get("/data-parser/formats")
       .set("Authorization", "Bearer viewer-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.FORBIDDEN);
   });
 
   // ── PARSE ────────────────────────────────────────────────────

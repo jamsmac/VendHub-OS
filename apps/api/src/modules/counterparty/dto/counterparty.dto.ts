@@ -200,9 +200,10 @@ export class CreateContractDto {
   @Type(() => Date)
   endDate?: Date;
 
-  @ApiProperty({ description: "Counterparty ID" })
+  @ApiPropertyOptional({ description: "Counterparty ID (set from URL param)" })
+  @IsOptional()
   @IsUUID()
-  counterpartyId: string;
+  counterpartyId?: string;
 
   @ApiProperty({ enum: CommissionType })
   @IsEnum(CommissionType)

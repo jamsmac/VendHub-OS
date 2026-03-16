@@ -161,7 +161,7 @@ describe("TasksController (e2e)", () => {
       const createDto = {
         title: "Machine maintenance at location A",
         description: "Replace motor and filters",
-        type: "maintenance",
+        type: "repair",
         priority: "high",
         organizationId: "550e8400-e29b-41d4-a716-446655440099",
         machineId: "550e8400-e29b-41d4-a716-446655440000",
@@ -214,7 +214,7 @@ describe("TasksController (e2e)", () => {
     it("should only allow ADMIN, MANAGER, OWNER roles (OPERATOR cannot create)", async () => {
       const createDto = {
         title: "Maintenance task",
-        type: "maintenance",
+        type: "repair",
         organizationId: "550e8400-e29b-41d4-a716-446655440099",
         machineId: "550e8400-e29b-41d4-a716-446655440000",
       };
@@ -291,7 +291,7 @@ describe("TasksController (e2e)", () => {
         .get("/tasks")
         .set("Authorization", DEFAULT_TOKEN)
         .query({
-          type: "maintenance",
+          type: "repair",
           priority: "high",
           machineId: "machine-123",
           assigneeId: "user-456",
@@ -301,7 +301,7 @@ describe("TasksController (e2e)", () => {
       expect(tasksService.findAll).toHaveBeenCalledWith(
         ADMIN_USER.organizationId,
         expect.objectContaining({
-          type: "maintenance",
+          type: "repair",
           priority: "high",
           machineId: "machine-123",
           assigneeId: "user-456",
@@ -1169,7 +1169,7 @@ describe("TasksController (e2e)", () => {
         .query({
           assigneeId: "user-123",
           machineId: "machine-456",
-          type: "maintenance",
+          type: "repair",
           priority: "high",
         })
         .expect(HttpStatus.OK);
@@ -1179,7 +1179,7 @@ describe("TasksController (e2e)", () => {
         expect.objectContaining({
           assigneeId: "user-123",
           machineId: "machine-456",
-          type: "maintenance",
+          type: "repair",
           priority: "high",
         }),
       );
