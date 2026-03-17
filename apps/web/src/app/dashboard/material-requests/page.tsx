@@ -159,7 +159,8 @@ export default function MaterialRequestsPage() {
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (priorityFilter !== "all") params.append("priority", priorityFilter);
       const res = await materialRequestsApi.getAll(Object.fromEntries(params));
-      return res.data;
+      const d = res.data;
+      return Array.isArray(d) ? d : d?.data || d?.items || [];
     },
   });
 
