@@ -159,7 +159,8 @@ export default function OrdersPage() {
       if (paymentFilter !== "all")
         params.append("paymentStatus", paymentFilter);
       const res = await api.get(`/orders?${params}`);
-      return res.data;
+      const d = res.data;
+      return Array.isArray(d) ? d : d?.data || d?.items || [];
     },
   });
 

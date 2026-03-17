@@ -40,14 +40,9 @@ import Link from "next/link";
 interface Task {
   id: string;
   taskNumber: string;
-  taskType:
-    | "refill"
-    | "collection"
-    | "cleaning"
-    | "repair"
-    | "install"
-    | "removal"
-    | "audit";
+  taskType?: string;
+  typeCode?: string;
+  type?: string;
   status:
     | "pending"
     | "assigned"
@@ -403,8 +398,10 @@ export default function TasksPage() {
           ) : (
             <div className="space-y-4">
               {tasks?.map((task: Task) => {
+                const taskType =
+                  task.taskType || task.typeCode || task.type || "refill";
                 const style = statusStyles[task.status] || statusStyles.pending;
-                const icon = typeIcons[task.taskType] || "\uD83D\uDCCB";
+                const icon = typeIcons[taskType] || "\uD83D\uDCCB";
                 const priorityStyle =
                   priorityStyles[task.priority] || priorityStyles.normal;
                 const isOverdue =
@@ -424,8 +421,8 @@ export default function TasksPage() {
                           <div>
                             <div className="flex items-center gap-2">
                               <h3 className="font-medium">
-                                #{task.taskNumber} - {typeIcons[task.taskType]}{" "}
-                                {t(`type_${task.taskType}`)}
+                                #{task.taskNumber} - {icon}{" "}
+                                {t(`type_${taskType}`)}
                               </h3>
                               <span
                                 className={`text-xs px-2 py-0.5 rounded-full ${style.bgColor} ${style.color}`}
