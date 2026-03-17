@@ -57,7 +57,9 @@
     "errorOccurred": "Произошла ошибка",
     "errorDescription": "Что-то пошло не так. Попробуйте обновить страницу или вернуться на главную.",
     "refreshPage": "Обновить страницу",
-    "goToDashboard": "На главную"
+    "goToDashboard": "На главную",
+    "saving": "Сохранение...",
+    "fillRequired": "Заполните обязательные поля"
   },
   "auth": {
     "login": "Войти",
@@ -2407,7 +2409,11 @@
     "condition_level_reached": "Достигнут уровень",
     "condition_first_order": "Первый заказ",
     "condition_night_order": "Ночной заказ",
-    "condition_weekend_order": "Заказ в выходные"
+    "condition_weekend_order": "Заказ в выходные",
+    "total": "Всего",
+    "active": "Активные",
+    "categories": "Категории",
+    "noAchievements": "Достижения не найдены"
   },
   "leave": {
     "statsTotal": "Всего заявок",
@@ -2525,7 +2531,10 @@
     "questType_use_promo": "Использовать промокод",
     "questType_reach_streak": "Достичь серии",
     "questType_visit_locations": "Посетить локации",
-    "questType_collect_points": "Собрать баллы"
+    "questType_collect_points": "Собрать баллы",
+    "total": "Всего квестов",
+    "active": "Активные",
+    "completions": "Выполнения"
   },
   "reviews": {
     "statsTotal": "Всего оценок",
@@ -2820,7 +2829,11 @@
     "saving": "Сохранение...",
     "saveBtn": "Сохранить",
     "redemptionsTitle": "История использований",
-    "noRedemptions": "Нет использований"
+    "noRedemptions": "Нет использований",
+    "total": "Всего",
+    "active": "Активные",
+    "totalUsed": "Использовано",
+    "noPromoCodes": "Промокоды не найдены"
   },
   "promotionsList": {
     "searchPlaceholder": "Поиск по названию, коду или описанию...",
@@ -4173,7 +4186,12 @@
     "resolvedSuccess": "Инцидент решён",
     "resolvedError": "Не удалось решить инцидент",
     "closedSuccess": "Инцидент закрыт",
-    "closedError": "Не удалось закрыть инцидент"
+    "closedError": "Не удалось закрыть инцидент",
+    "type_mechanical_failure": "Механическая поломка",
+    "type_electrical": "Электрическая",
+    "type_vandalism": "Вандализм",
+    "type_software": "Программная",
+    "type_other": "Другое"
   },
   "webhooks": {
     "title": "Вебхуки",

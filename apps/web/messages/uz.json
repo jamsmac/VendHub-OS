@@ -57,7 +57,9 @@
     "errorOccurred": "Xatolik yuz berdi",
     "errorDescription": "Nimadir noto'g'ri ketdi. Sahifani yangilang yoki bosh sahifaga qayting.",
     "refreshPage": "Sahifani yangilash",
-    "goToDashboard": "Bosh sahifaga"
+    "goToDashboard": "Bosh sahifaga",
+    "saving": "Saqlanmoqda...",
+    "fillRequired": "Majburiy maydonlarni to'ldiring"
   },
   "auth": {
     "login": "Kirish",
@@ -2407,7 +2409,11 @@
     "condition_level_reached": "Erishilgan daraja",
     "condition_first_order": "Birinchi buyurtma",
     "condition_night_order": "Tungi buyurtma",
-    "condition_weekend_order": "Dam olish kuni buyurtmasi"
+    "condition_weekend_order": "Dam olish kuni buyurtmasi",
+    "total": "Jami",
+    "active": "Faol",
+    "categories": "Kategoriyalar",
+    "noAchievements": "Yutuqlar topilmadi"
   },
   "leave": {
     "statsTotal": "Jami arizalar",
@@ -2525,7 +2531,10 @@
     "questType_use_promo": "Promokod ishlatish",
     "questType_reach_streak": "Seriyaga erishish",
     "questType_visit_locations": "Joylarga tashrif",
-    "questType_collect_points": "Ball to'plash"
+    "questType_collect_points": "Ball to'plash",
+    "total": "Jami topshiriqlar",
+    "active": "Faol",
+    "completions": "Bajarilganlar"
   },
   "reviews": {
     "statsTotal": "Jami baholar",
@@ -2820,7 +2829,11 @@
     "saving": "Saqlanmoqda...",
     "saveBtn": "Saqlash",
     "redemptionsTitle": "Ishlatish tarixi",
-    "noRedemptions": "Ishlatishlar yo'q"
+    "noRedemptions": "Ishlatishlar yo'q",
+    "total": "Jami",
+    "active": "Faol",
+    "totalUsed": "Ishlatilgan",
+    "noPromoCodes": "Promo kodlar topilmadi"
   },
   "promotionsList": {
     "searchPlaceholder": "Nomi, kodi yoki tavsifi bo'yicha qidirish...",
@@ -4005,7 +4018,12 @@
     "resolvedSuccess": "Hodisa hal qilindi",
     "resolvedError": "Hodisani hal qilib bo'lmadi",
     "closedSuccess": "Hodisa yopildi",
-    "closedError": "Hodisani yopib bo'lmadi"
+    "closedError": "Hodisani yopib bo'lmadi",
+    "type_mechanical_failure": "Mexanik nosozlik",
+    "type_electrical": "Elektr",
+    "type_vandalism": "Vandalizm",
+    "type_software": "Dasturiy",
+    "type_other": "Boshqa"
   },
   "openingBalances": {
     "title": "Boshlang'ich qoldiqlar",

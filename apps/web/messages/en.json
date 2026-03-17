@@ -57,7 +57,9 @@
     "errorOccurred": "An error occurred",
     "errorDescription": "Something went wrong. Please try refreshing the page or go back to the dashboard.",
     "refreshPage": "Refresh page",
-    "goToDashboard": "Go to dashboard"
+    "goToDashboard": "Go to dashboard",
+    "saving": "Saving...",
+    "fillRequired": "Fill required fields"
   },
   "auth": {
     "login": "Sign In",
@@ -2407,7 +2409,11 @@
     "condition_level_reached": "Level reached",
     "condition_first_order": "First order",
     "condition_night_order": "Night order",
-    "condition_weekend_order": "Weekend order"
+    "condition_weekend_order": "Weekend order",
+    "total": "Total",
+    "active": "Active",
+    "categories": "Categories",
+    "noAchievements": "No achievements found"
   },
   "leave": {
     "statsTotal": "Total requests",
@@ -2525,7 +2531,10 @@
     "questType_use_promo": "Use promo code",
     "questType_reach_streak": "Reach streak",
     "questType_visit_locations": "Visit locations",
-    "questType_collect_points": "Collect points"
+    "questType_collect_points": "Collect points",
+    "total": "Total Quests",
+    "active": "Active",
+    "completions": "Completions"
   },
   "reviews": {
     "statsTotal": "Total reviews",
@@ -2820,7 +2829,11 @@
     "saving": "Saving...",
     "saveBtn": "Save",
     "redemptionsTitle": "Redemption history",
-    "noRedemptions": "No redemptions"
+    "noRedemptions": "No redemptions",
+    "total": "Total",
+    "active": "Active",
+    "totalUsed": "Total Used",
+    "noPromoCodes": "No promo codes found"
   },
   "promotionsList": {
     "searchPlaceholder": "Search by name, code or description...",
@@ -4083,7 +4096,12 @@
     "resolvedSuccess": "Incident resolved",
     "resolvedError": "Failed to resolve incident",
     "closedSuccess": "Incident closed",
-    "closedError": "Failed to close incident"
+    "closedError": "Failed to close incident",
+    "type_mechanical_failure": "Mechanical Failure",
+    "type_electrical": "Electrical",
+    "type_vandalism": "Vandalism",
+    "type_software": "Software",
+    "type_other": "Other"
   },
   "webhooks": {
     "title": "Webhooks",
