@@ -14,6 +14,8 @@ import {
   Query,
   ParseUUIDPipe,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -219,13 +221,17 @@ export class ContainersController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({ summary: "Delete container (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Container deleted" })
   @ApiResponse({ status: 404, description: "Container not found" })
-  remove(@Param("id", ParseUUIDPipe) id: string, @CurrentUser() user: User) {
-    return this.containersService.remove(id, user.organizationId);
+  async remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    await this.containersService.remove(id, user.organizationId);
   }
 
   // ============================================================================

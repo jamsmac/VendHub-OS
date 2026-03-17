@@ -141,12 +141,12 @@ describe("ProductsController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("DELETE /products/:id returns 200 for admin", async () => {
+  it("DELETE /products/:id returns 204 for admin", async () => {
     mockService.remove.mockResolvedValue({ affected: 1 });
     await request(app.getHttpServer())
       .delete(`/products/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   // =========================================================================

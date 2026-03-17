@@ -32,6 +32,7 @@ import {
 } from "@nestjs/swagger";
 
 import { BadRequestException } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import {
   StorageService,
   UploadResult,
@@ -69,6 +70,7 @@ export class StorageController {
   // ========================================================================
 
   @Post("upload")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Roles("operator", "manager", "admin", "owner")
   @UseInterceptors(
     FileInterceptor("file", {

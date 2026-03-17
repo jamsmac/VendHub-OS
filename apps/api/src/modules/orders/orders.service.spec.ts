@@ -113,6 +113,7 @@ describe("OrdersService", () => {
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
     leftJoinAndSelect: jest.fn().mockReturnThis(),
+    leftJoin: jest.fn().mockReturnThis(),
     groupBy: jest.fn().mockReturnThis(),
     clone: jest.fn(),
     getMany: jest.fn().mockResolvedValue([mockOrder]),
@@ -145,6 +146,7 @@ describe("OrdersService", () => {
     mockQueryBuilder.select.mockReturnThis();
     mockQueryBuilder.addSelect.mockReturnThis();
     mockQueryBuilder.leftJoinAndSelect.mockReturnThis();
+    mockQueryBuilder.leftJoin.mockReturnThis();
     mockQueryBuilder.groupBy.mockReturnThis();
     mockQueryBuilder.clone.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.getManyAndCount.mockResolvedValue([[mockOrder], 1]);
@@ -700,7 +702,7 @@ describe("OrdersService", () => {
       expect(result.items).toHaveLength(1);
       expect(orderRepo.findOne).toHaveBeenCalledWith({
         where: { id: "order-uuid-1", organizationId: orgId },
-        relations: ["items", "items.product", "user", "machine"],
+        relations: ["items", "user", "machine"],
       });
     });
 
@@ -727,7 +729,7 @@ describe("OrdersService", () => {
       expect(result.orderNumber).toBe("ORD-2025-00001");
       expect(orderRepo.findOne).toHaveBeenCalledWith({
         where: { orderNumber: "ORD-2025-00001", organizationId: orgId },
-        relations: ["items", "items.product", "user", "machine"],
+        relations: ["items", "user", "machine"],
       });
     });
 

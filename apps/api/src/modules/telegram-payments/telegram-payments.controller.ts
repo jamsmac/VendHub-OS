@@ -24,6 +24,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -64,6 +65,7 @@ export class TelegramPaymentsController {
   // ============================================================================
 
   @Post("invoice")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("owner", "admin", "manager", "operator")
   @ApiBearerAuth()
@@ -84,6 +86,7 @@ export class TelegramPaymentsController {
   }
 
   @Post("invoice-link")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("owner", "admin", "manager", "operator")
   @ApiBearerAuth()

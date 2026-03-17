@@ -294,7 +294,7 @@ export class AuthController {
 
   @Post("2fa/complete")
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Complete 2FA login with TOTP or backup code" })
   @ApiResponse({ status: 200, description: "Login completed" })
@@ -361,7 +361,7 @@ export class AuthController {
 
   @Post("password/validate-reset-token")
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Validate password reset token" })
   @ApiResponse({ status: 200, description: "Token validation result" })
@@ -383,7 +383,7 @@ export class AuthController {
   }
 
   @Post("2fa/verify")
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Verify and activate 2FA" })

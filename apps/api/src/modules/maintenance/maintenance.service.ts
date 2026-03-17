@@ -43,6 +43,7 @@ import {
   ScheduleQueryDto,
   MaintenanceStatsDto,
 } from "./dto/maintenance.dto";
+import { safeOrderBy, stripProtectedFields } from "../../common/utils";
 
 @Injectable()
 export class MaintenanceService {
@@ -175,7 +176,14 @@ export class MaintenanceService {
     }
 
     // Sorting
-    qb.orderBy(`m.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "m", sortBy, sortOrder, [
+      "createdAt",
+      "updatedAt",
+      "status",
+      "priority",
+      "scheduledDate",
+      "completedDate",
+    ] as const);
 
     // Pagination
     const [data, total] = await qb
@@ -213,7 +221,10 @@ export class MaintenanceService {
       throw new BadRequestException("Can only update draft requests");
     }
 
-    Object.assign(request, dto);
+    Object.assign(
+      request,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
     const saved = await this.maintenanceRepository.save(request);
 
     this.eventEmitter.emit("maintenance.updated", { request: saved });
@@ -518,7 +529,7 @@ export class MaintenanceService {
       throw new NotFoundException(`Part ${partId} not found`);
     }
 
-    Object.assign(part, dto);
+    Object.assign(part, stripProtectedFields(dto as Record<string, unknown>));
 
     if (dto.quantityUsed !== undefined) {
       part.totalPrice = part.quantityUsed * Number(part.unitPrice);
@@ -596,7 +607,10 @@ export class MaintenanceService {
       throw new NotFoundException(`Work log ${logId} not found`);
     }
 
-    Object.assign(workLog, dto);
+    Object.assign(
+      workLog,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
 
     // Recalculate if times changed
     if (dto.startTime || dto.endTime) {
@@ -710,7 +724,10 @@ export class MaintenanceService {
       throw new NotFoundException(`Schedule ${id} not found`);
     }
 
-    Object.assign(schedule, dto);
+    Object.assign(
+      schedule,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
 
     // Recalculate next due date if frequency changed
     if (dto.frequencyType || dto.frequencyValue) {

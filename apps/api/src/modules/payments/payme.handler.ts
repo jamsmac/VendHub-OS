@@ -275,25 +275,27 @@ export class PaymeHandler {
 
     const createTime = Date.now();
 
-    if (transaction) {
-      transaction.providerTxId = paymeTransactionId;
-      transaction.status = PaymentTransactionStatus.PROCESSING;
-      transaction.rawRequest = data as unknown as Record<string, unknown>;
-      await this.transactionRepo.save(transaction);
-    } else {
-      const amountUzs = data.params.amount ? data.params.amount / 100 : 0;
-      transaction = this.transactionRepo.create({
-        organizationId: "00000000-0000-0000-0000-000000000000",
-        provider: PaymentProvider.PAYME,
-        providerTxId: paymeTransactionId,
-        amount: amountUzs,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PROCESSING,
-        orderId: orderId,
-        rawRequest: data as unknown as Record<string, unknown>,
-      });
-      await this.transactionRepo.save(transaction);
+    if (!transaction) {
+      this.logger.warn(
+        `Payme webhook received for unknown transaction: orderId=${orderId}, paymeTransactionId=${paymeTransactionId}`,
+      );
+      return {
+        error: {
+          code: -31050,
+          message: {
+            ru: "Заказ не найден",
+            uz: "Buyurtma topilmadi",
+            en: "Order not found",
+          },
+        },
+        id: data.id,
+      };
     }
+
+    transaction.providerTxId = paymeTransactionId;
+    transaction.status = PaymentTransactionStatus.PROCESSING;
+    transaction.rawRequest = data as unknown as Record<string, unknown>;
+    await this.transactionRepo.save(transaction);
 
     return {
       result: {

@@ -137,9 +137,10 @@ export class RoutesService {
   async update(
     id: string,
     dto: UpdateRouteDto,
+    organizationId: string,
     userId?: string,
   ): Promise<Route> {
-    const route = await this.findById(id);
+    const route = await this.findById(id, organizationId);
     if (!route) {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
@@ -175,8 +176,8 @@ export class RoutesService {
     return this.routeRepository.save(route);
   }
 
-  async remove(id: string): Promise<void> {
-    const route = await this.findById(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    const route = await this.findById(id, organizationId);
     if (!route) {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
@@ -194,8 +195,12 @@ export class RoutesService {
   // ROUTE LIFECYCLE
   // ============================================================================
 
-  async startRoute(id: string, userId: string): Promise<Route> {
-    const route = await this.findById(id);
+  async startRoute(
+    id: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<Route> {
+    const route = await this.findById(id, organizationId);
     if (!route) {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
@@ -216,13 +221,14 @@ export class RoutesService {
   async completeRoute(
     id: string,
     userId: string,
+    organizationId: string,
     completionData?: {
       actualDurationMinutes?: number;
       actualDistanceKm?: number;
       notes?: string;
     },
   ): Promise<Route> {
-    const route = await this.findById(id);
+    const route = await this.findById(id, organizationId);
     if (!route) {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }

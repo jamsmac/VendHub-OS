@@ -22,6 +22,7 @@ import {
   ApiConsumes,
   ApiBody,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -50,6 +51,7 @@ export class AiController {
   // ========================================================================
 
   @Post("import/image")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Roles("owner", "admin", "manager", "warehouse")
   @ApiOperation({ summary: "Parse products from image (menu, price list)" })
   @ApiResponse({ status: 200, description: "Products extracted" })
@@ -62,6 +64,7 @@ export class AiController {
   }
 
   @Post("import/image-upload")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Roles("owner", "admin", "manager", "warehouse")
   @UseInterceptors(FileInterceptor("file"))
   @ApiConsumes("multipart/form-data")
@@ -88,6 +91,7 @@ export class AiController {
   }
 
   @Post("import/text")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Roles("owner", "admin", "manager", "warehouse")
   @ApiOperation({ summary: "Parse products from text (CSV, pasted data)" })
   @ApiResponse({ status: 200, description: "Products extracted" })

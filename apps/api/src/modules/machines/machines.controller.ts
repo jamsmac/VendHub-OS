@@ -11,6 +11,8 @@ import {
   ParseUUIDPipe,
   ForbiddenException,
   NotFoundException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -46,6 +48,8 @@ import {
 } from "./dto/machine-location.dto";
 import { MachineStatus } from "./entities/machine.entity";
 import { UpdateMachineStatusDto } from "./dto/machine-operations.dto";
+import { UpdateTelemetryDto } from "./dto/update-telemetry.dto";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("machines")
 @Controller("machines")
@@ -81,10 +85,7 @@ export class MachinesController {
   @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreateMachineDto, @CurrentUser() user: User) {
     // SECURITY: Always enforce user's organization. Owner can optionally target another org.
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : user.organizationId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
 
     return this.machinesService.create({
       ...dto,
@@ -124,10 +125,7 @@ export class MachinesController {
     },
   })
   findAll(@CurrentUser() user: User, @Query() query: QueryMachinesDto) {
-    const organizationId =
-      user.role === UserRole.OWNER && query.organizationId
-        ? query.organizationId
-        : user.organizationId;
+    const organizationId = resolveOrganizationId(user, query.organizationId);
 
     return this.machinesService.findAll(organizationId, {
       status: query.status as MachineStatus,
@@ -262,15 +260,12 @@ export class MachinesController {
     @Param("qrCode") qrCode: string,
     @CurrentUser() user: User,
   ) {
-    const machine = await this.machinesService.findByQrCode(qrCode);
+    // OWNER can see any org's machine; others are filtered at DB level
+    const orgFilter =
+      user.role !== UserRole.OWNER ? user.organizationId : undefined;
+    const machine = await this.machinesService.findByQrCode(qrCode, orgFilter);
     if (!machine) {
       throw new NotFoundException(`Machine with QR code ${qrCode} not found`);
-    }
-    if (
-      machine.organizationId !== user.organizationId &&
-      user.role !== UserRole.OWNER
-    ) {
-      throw new ForbiddenException("Access denied to this machine");
     }
     return machine;
   }
@@ -365,7 +360,7 @@ export class MachinesController {
   @ApiResponse({ status: 200, description: "Telemetry updated" })
   async updateTelemetry(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() telemetry: Record<string, unknown>,
+    @Body() telemetry: UpdateTelemetryDto,
     @CurrentUser() user: User,
   ) {
     const machine = await this.machinesService.findById(id);
@@ -379,15 +374,16 @@ export class MachinesController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Delete machine (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
-  @ApiResponse({ status: 200, description: "Machine deleted" })
+  @ApiResponse({ status: 204, description: "Machine deleted" })
   @ApiResponse({ status: 404, description: "Machine not found" })
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     const machine = await this.machinesService.findById(id);
     if (machine && machine.organizationId !== user.organizationId) {
       if (user.role !== UserRole.OWNER) {
@@ -395,7 +391,7 @@ export class MachinesController {
       }
     }
 
-    return this.machinesService.remove(id);
+    await this.machinesService.remove(id);
   }
 
   // ============================================================================
@@ -616,6 +612,7 @@ export class MachinesController {
   }
 
   @Delete(":id/components/:componentId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Remove a component from a machine" })
   @ApiParam({
@@ -636,9 +633,9 @@ export class MachinesController {
     @Param("id", ParseUUIDPipe) id: string,
     @Param("componentId", ParseUUIDPipe) componentId: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     await this.verifyMachineAccess(id, user);
-    return this.machinesService.removeComponent(componentId, user.id);
+    await this.machinesService.removeComponent(componentId, user.id);
   }
 
   // ============================================================================

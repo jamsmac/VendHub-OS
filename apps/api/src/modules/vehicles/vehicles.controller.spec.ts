@@ -103,7 +103,7 @@ describe("VehiclesController", () => {
     expect(mockService.updateOdometer).toHaveBeenCalled();
   });
 
-  it("DELETE /vehicles/:id soft-deletes vehicle (200)", async () => {
+  it("DELETE /vehicles/:id soft-deletes vehicle (204)", async () => {
     mockService.findById.mockResolvedValue({
       id: TEST_UUID,
       organizationId: "550e8400-e29b-41d4-a716-446655440001",
@@ -112,7 +112,7 @@ describe("VehiclesController", () => {
     await request(app.getHttpServer())
       .delete(`/vehicles/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
     expect(mockService.remove).toHaveBeenCalled();
   });
 

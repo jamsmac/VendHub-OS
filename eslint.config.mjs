@@ -9,6 +9,7 @@ export default tseslint.config(
     ignores: [
       // Build outputs
       '**/dist/**',
+      '**/dev-dist/**',
       '**/node_modules/**',
       '**/build/**',
       '**/.next/**',

@@ -17,6 +17,7 @@ import {
   CreateWarehouseDto,
   UpdateWarehouseDto,
 } from "./dto/create-warehouse.dto";
+import { stripProtectedFields } from "../../common/utils";
 
 @Injectable()
 export class WarehouseService {
@@ -107,21 +108,25 @@ export class WarehouseService {
   async update(
     id: string,
     dto: UpdateWarehouseDto,
+    organizationId: string,
     userId?: string,
   ): Promise<Warehouse> {
-    const warehouse = await this.findById(id);
+    const warehouse = await this.findById(id, organizationId);
     if (!warehouse) {
       throw new NotFoundException(`Warehouse with ID ${id} not found`);
     }
 
-    Object.assign(warehouse, dto);
+    Object.assign(
+      warehouse,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
     warehouse.updatedById = userId ?? warehouse.updatedById;
 
     return this.warehouseRepository.save(warehouse);
   }
 
-  async remove(id: string): Promise<void> {
-    const warehouse = await this.findById(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    const warehouse = await this.findById(id, organizationId);
     if (!warehouse) {
       throw new NotFoundException(`Warehouse with ID ${id} not found`);
     }

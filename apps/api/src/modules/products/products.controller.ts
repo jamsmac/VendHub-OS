@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -177,14 +179,15 @@ export class ProductsController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete product" })
   @ApiParam({ name: "id", type: String })
-  remove(
+  async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.productsService.remove(id, user.organizationId);
+  ): Promise<void> {
+    await this.productsService.remove(id, user.organizationId);
   }
 
   // ===========================================================================
@@ -277,16 +280,17 @@ export class ProductsController {
   }
 
   @Delete(":id/recipes/:recipeId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "recipeId", description: "Recipe ID", type: String })
-  deleteRecipe(
+  async deleteRecipe(
     @Param("id", ParseUUIDPipe) _productId: string,
     @Param("recipeId", ParseUUIDPipe) recipeId: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.productsService.deleteRecipe(recipeId, user.organizationId);
+  ): Promise<void> {
+    await this.productsService.deleteRecipe(recipeId, user.organizationId);
   }
 
   // ===========================================================================
@@ -389,6 +393,7 @@ export class ProductsController {
   }
 
   @Delete(":id/recipes/:recipeId/ingredients/:ingredientId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Remove ingredient from a recipe" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
@@ -398,13 +403,13 @@ export class ProductsController {
     description: "Recipe ingredient ID",
     type: String,
   })
-  removeIngredient(
+  async removeIngredient(
     @Param("id", ParseUUIDPipe) _productId: string,
     @Param("recipeId", ParseUUIDPipe) recipeId: string,
     @Param("ingredientId", ParseUUIDPipe) ingredientId: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.productsService.removeIngredient(
+  ): Promise<void> {
+    await this.productsService.removeIngredient(
       ingredientId,
       recipeId,
       user.organizationId,
@@ -474,16 +479,17 @@ export class ProductsController {
   }
 
   @Delete(":id/batches/:batchId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Soft delete an ingredient batch" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   @ApiParam({ name: "batchId", description: "Batch ID", type: String })
-  deleteBatch(
+  async deleteBatch(
     @Param("id", ParseUUIDPipe) _productId: string,
     @Param("batchId", ParseUUIDPipe) batchId: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.productsService.deleteBatch(batchId, user.organizationId);
+  ): Promise<void> {
+    await this.productsService.deleteBatch(batchId, user.organizationId);
   }
 
   // ===========================================================================

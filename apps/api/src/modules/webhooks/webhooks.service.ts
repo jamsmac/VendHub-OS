@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import * as crypto from "crypto";
+import { isUrlSafeForServerRequest } from "../../common/utils";
 
 export enum WebhookEvent {
   MACHINE_STATUS_CHANGED = "machine.status.changed",
@@ -35,6 +36,12 @@ export class WebhooksService {
     );
 
     for (const webhook of activeWebhooks) {
+      if (!isUrlSafeForServerRequest(webhook.url)) {
+        this.logger.warn(
+          `Blocked webhook to unsafe URL: ${webhook.url} (org: ${organizationId})`,
+        );
+        continue;
+      }
       this.sendWithRetry(webhook.url, webhook.secret, event, payload);
     }
   }
@@ -103,9 +110,22 @@ export class WebhooksService {
    */
   verifySignature(payload: string, signature: string, secret: string): boolean {
     const expected = this.generateSignature(payload, secret);
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected),
-    );
+
+    // Both signatures must be hex-encoded SHA-256 digests (64 chars).
+    if (
+      !/^[0-9a-f]{64}$/i.test(signature) ||
+      !/^[0-9a-f]{64}$/i.test(expected)
+    ) {
+      return false;
+    }
+
+    const sig = Buffer.from(signature, "hex");
+    const exp = Buffer.from(expected, "hex");
+
+    if (sig.length !== exp.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(sig, exp);
   }
 }

@@ -9,6 +9,8 @@ import {
   UseGuards,
   ParseUUIDPipe,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -86,10 +88,11 @@ export class OrganizationsController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER)
   @ApiOperation({ summary: "Delete organization (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.organizationsService.remove(id);
+  async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+    await this.organizationsService.remove(id);
   }
 }

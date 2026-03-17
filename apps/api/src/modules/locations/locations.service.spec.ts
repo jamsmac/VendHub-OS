@@ -317,9 +317,13 @@ describe("LocationsService", () => {
         Promise.resolve(entity),
       );
 
-      const result = await service.update("loc-uuid-1", {
-        name: "Updated Name",
-      });
+      const result = await service.update(
+        "loc-uuid-1",
+        {
+          name: "Updated Name",
+        },
+        ORG_ID,
+      );
 
       expect(result.name).toBe("Updated Name");
       expect(locationRepo.save).toHaveBeenCalled();
@@ -329,7 +333,7 @@ describe("LocationsService", () => {
       locationRepo.findOne!.mockResolvedValue(null);
 
       await expect(
-        service.update("nonexistent", { name: "Test" }),
+        service.update("nonexistent", { name: "Test" }, ORG_ID),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -344,7 +348,7 @@ describe("LocationsService", () => {
         machineCount: 10,
         isActive: false,
       };
-      const result = await service.update("loc-uuid-1", updateData);
+      const result = await service.update("loc-uuid-1", updateData, ORG_ID);
 
       expect(result.name).toBe("New Name");
       expect(result.machineCount).toBe(10);
@@ -361,7 +365,7 @@ describe("LocationsService", () => {
       locationRepo.findOne!.mockResolvedValue(mockLocation);
       locationRepo.softDelete!.mockResolvedValue({ affected: 1 });
 
-      await service.remove("loc-uuid-1");
+      await service.remove("loc-uuid-1", ORG_ID);
 
       expect(locationRepo.softDelete).toHaveBeenCalledWith("loc-uuid-1");
     });
@@ -369,7 +373,7 @@ describe("LocationsService", () => {
     it("should throw NotFoundException when location not found", async () => {
       locationRepo.findOne!.mockResolvedValue(null);
 
-      await expect(service.remove("nonexistent")).rejects.toThrow(
+      await expect(service.remove("nonexistent", ORG_ID)).rejects.toThrow(
         NotFoundException,
       );
     });

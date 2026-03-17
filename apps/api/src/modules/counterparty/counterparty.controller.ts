@@ -7,7 +7,7 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -83,7 +83,7 @@ export class CounterpartyController {
     return this.service.getCounterparty(organizationId, id);
   }
 
-  @Put(":id")
+  @Patch(":id")
   @Roles("manager", "admin", "owner")
   @ApiOperation({ summary: "Update counterparty" })
   @ApiParam({ name: "id", type: "string" })

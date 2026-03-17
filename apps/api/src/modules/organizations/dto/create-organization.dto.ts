@@ -385,6 +385,7 @@ export class CreateOrganizationDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   description?: string;
 
   // Type and hierarchy

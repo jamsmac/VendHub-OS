@@ -11,6 +11,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In } from "typeorm";
 import { Machine, MachineSlot, MachineStatus } from "./entities/machine.entity";
+import { stripProtectedFields } from "../../common/utils";
 
 @Injectable()
 export class MachinesCoreService {
@@ -134,9 +135,14 @@ export class MachinesCoreService {
     });
   }
 
-  async findBySerialNumber(serialNumber: string): Promise<Machine | null> {
+  async findBySerialNumber(
+    serialNumber: string,
+    organizationId?: string,
+  ): Promise<Machine | null> {
+    const where: Record<string, string> = { serialNumber };
+    if (organizationId) where.organizationId = organizationId;
     return this.machineRepository.findOne({
-      where: { serialNumber },
+      where,
       relations: ["slots"],
     });
   }
@@ -146,7 +152,10 @@ export class MachinesCoreService {
     if (!machine) {
       throw new NotFoundException(`Machine with ID ${id} not found`);
     }
-    Object.assign(machine, data);
+    Object.assign(
+      machine,
+      stripProtectedFields(data as Record<string, unknown>),
+    );
     return this.machineRepository.save(machine);
   }
 
@@ -239,9 +248,14 @@ export class MachinesCoreService {
     });
   }
 
-  async findByQrCode(qrCode: string): Promise<Machine | null> {
+  async findByQrCode(
+    qrCode: string,
+    organizationId?: string,
+  ): Promise<Machine | null> {
+    const where: Record<string, string> = { qrCode };
+    if (organizationId) where.organizationId = organizationId;
     return this.machineRepository.findOne({
-      where: { qrCode },
+      where,
       relations: ["slots"],
     });
   }

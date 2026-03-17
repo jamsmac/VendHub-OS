@@ -98,7 +98,7 @@ export class LocationsService {
   async update(
     id: string,
     data: Partial<Location>,
-    organizationId?: string,
+    organizationId: string,
   ): Promise<Location> {
     const location = await this.findById(id, organizationId);
     if (!location) {
@@ -108,7 +108,7 @@ export class LocationsService {
     return this.locationRepository.save(location);
   }
 
-  async remove(id: string, organizationId?: string): Promise<void> {
+  async remove(id: string, organizationId: string): Promise<void> {
     const location = await this.findById(id, organizationId);
     if (!location) {
       throw new NotFoundException(`Location with ID ${id} not found`);

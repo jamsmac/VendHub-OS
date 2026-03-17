@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -129,13 +131,14 @@ export class LocationsController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete location" })
   @ApiOkResponse({ description: "Location deleted successfully" })
-  remove(
+  async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.locationsService.remove(id, user.organizationId);
+  ): Promise<void> {
+    await this.locationsService.remove(id, user.organizationId);
   }
 }

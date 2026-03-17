@@ -18,6 +18,7 @@ import {
   QueryTransactionsDto,
   TransactionStatistics,
 } from "./transactions.service";
+import { safeOrderBy } from "../../common/utils";
 
 @Injectable()
 export class TransactionQueryService {
@@ -130,7 +131,13 @@ export class TransactionQueryService {
     const total = await qb.getCount();
 
     qb.leftJoinAndSelect("t.items", "items");
-    qb.orderBy(`t.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "t", sortBy, sortOrder, [
+      "createdAt",
+      "amount",
+      "totalAmount",
+      "status",
+      "type",
+    ] as const);
     qb.skip((page - 1) * limit);
     qb.take(limit);
 

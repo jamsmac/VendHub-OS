@@ -11,6 +11,7 @@ import { User, UserStatus } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserRole } from "../../common/enums";
+import { stripProtectedFields } from "../../common/utils";
 
 export interface AuthLookupUser {
   id: string;
@@ -169,7 +170,10 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    Object.assign(user, updateUserDto);
+    Object.assign(
+      user,
+      stripProtectedFields(updateUserDto as Record<string, unknown>),
+    );
     return this.userRepository.save(user);
   }
 

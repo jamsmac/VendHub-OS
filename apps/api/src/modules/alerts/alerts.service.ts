@@ -30,6 +30,7 @@ import {
   ResolveAlertDto,
   DismissAlertDto,
 } from "./dto/acknowledge-alert.dto";
+import { safeOrderBy, stripProtectedFields } from "../../common/utils";
 
 @Injectable()
 export class AlertsService {
@@ -157,7 +158,7 @@ export class AlertsService {
       }
     }
 
-    Object.assign(rule, dto);
+    Object.assign(rule, stripProtectedFields(dto as Record<string, unknown>));
     const saved = await this.ruleRepository.save(rule);
 
     this.eventEmitter.emit("alerts.rule.updated", { rule: saved });
@@ -386,7 +387,12 @@ export class AlertsService {
       });
     }
 
-    qb.orderBy(`h.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "h", sortBy, sortOrder, [
+      "createdAt",
+      "severity",
+      "status",
+      "resolvedAt",
+    ] as const);
 
     const [data, total] = await qb
       .skip((page - 1) * limit)

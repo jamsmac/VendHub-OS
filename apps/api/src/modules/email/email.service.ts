@@ -142,19 +142,21 @@ export class EmailService {
     role: string,
   ): Promise<void> {
     const frontendUrl = this.getFrontendUrl();
+    const safeName = this.escapeHtml(name);
+    const safeRole = this.escapeHtml(role);
 
     const bodyContent = `
       <h2 style="color: #1e293b; margin: 0 0 16px;">
         Добро пожаловать в VendHub! / VendHub-ga xush kelibsiz!
       </h2>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 12px;">
-        Здравствуйте, <strong>${name}</strong>!
+        Здравствуйте, <strong>${safeName}</strong>!
       </p>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 12px;">
-        Ваш аккаунт в системе VendHub успешно создан. Вам назначена роль: <strong>${role}</strong>.
+        Ваш аккаунт в системе VendHub успешно создан. Вам назначена роль: <strong>${safeRole}</strong>.
       </p>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-        Sizning VendHub tizimidagi akkauntingiz muvaffaqiyatli yaratildi. Sizga tayinlangan rol: <strong>${role}</strong>.
+        Sizning VendHub tizimidagi akkauntingiz muvaffaqiyatli yaratildi. Sizga tayinlangan rol: <strong>${safeRole}</strong>.
       </p>
       <div style="text-align: center; margin: 24px 0;">
         <a href="${frontendUrl}" style="background-color: #2563EB; color: #ffffff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
@@ -186,14 +188,15 @@ export class EmailService {
     resetToken: string,
   ): Promise<void> {
     const frontendUrl = this.getFrontendUrl();
-    const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+    const safeName = this.escapeHtml(name);
+    const resetUrl = `${frontendUrl}/auth/reset-password?token=${encodeURIComponent(resetToken)}`;
 
     const bodyContent = `
       <h2 style="color: #1e293b; margin: 0 0 16px;">
         Сброс пароля / Parolni tiklash
       </h2>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 12px;">
-        Здравствуйте, <strong>${name}</strong>!
+        Здравствуйте, <strong>${safeName}</strong>!
       </p>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 12px;">
         Мы получили запрос на сброс вашего пароля. Нажмите на кнопку ниже, чтобы создать новый пароль.
@@ -232,6 +235,8 @@ export class EmailService {
     machineNumber: string,
     dueDate?: Date,
   ): Promise<void> {
+    const safeTaskType = this.escapeHtml(taskType);
+    const safeMachineNumber = this.escapeHtml(machineNumber);
     const dueDateStr = dueDate
       ? dueDate.toLocaleDateString("ru-RU", {
           day: "2-digit",
@@ -253,7 +258,7 @@ export class EmailService {
             Тип задачи / Vazifa turi
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 14px; font-weight: 600;">
-            ${taskType}
+            ${safeTaskType}
           </td>
         </tr>
         <tr>
@@ -261,7 +266,7 @@ export class EmailService {
             Автомат / Avtomat
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 14px; font-weight: 600;">
-            ${machineNumber}
+            ${safeMachineNumber}
           </td>
         </tr>
         <tr>
@@ -299,12 +304,14 @@ export class EmailService {
     machineNumber: string,
     items: { name: string; current: number; min: number }[],
   ): Promise<void> {
+    const safeMachineNumber = this.escapeHtml(machineNumber);
     const itemRows = items
-      .map(
-        (item) => `
+      .map((item) => {
+        const safeItemName = this.escapeHtml(item.name);
+        return `
         <tr>
           <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 14px;">
-            ${item.name}
+            ${safeItemName}
           </td>
           <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #dc2626; font-size: 14px; font-weight: 600; text-align: center;">
             ${item.current}
@@ -313,8 +320,8 @@ export class EmailService {
             ${item.min}
           </td>
         </tr>
-      `,
-      )
+      `;
+      })
       .join("");
 
     const bodyContent = `
@@ -322,7 +329,7 @@ export class EmailService {
         &#9888; Низкий остаток / Kam qoldiq
       </h2>
       <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-        Автомат / Avtomat: <strong>${machineNumber}</strong>
+        Автомат / Avtomat: <strong>${safeMachineNumber}</strong>
       </p>
       <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
         <thead>
@@ -399,7 +406,7 @@ export class EmailService {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title}</title>
+  <title>${this.escapeHtml(title)}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9;">
@@ -436,5 +443,14 @@ export class EmailService {
   </table>
 </body>
 </html>`;
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 }

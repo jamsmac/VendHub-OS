@@ -342,11 +342,21 @@ export class PaymentsService {
     const saved = await this.refundRepo.save(refund);
 
     // Initiate provider-specific refund (async, non-blocking)
-    this.processProviderRefund(saved, transaction).catch((err) => {
+    this.processProviderRefund(saved, transaction).catch(async (err) => {
       this.logger.error(
         `Failed to process provider refund: ${err.message}`,
         err.stack,
       );
+      // Safety net: ensure refund doesn't stay stuck in PROCESSING
+      try {
+        await this.refundRepo.update(saved.id, {
+          status: PaymentRefundStatus.FAILED,
+        });
+      } catch (updateErr) {
+        this.logger.error(
+          `Failed to mark refund ${saved.id} as FAILED: ${(updateErr as Error).message}`,
+        );
+      }
     });
 
     return saved;
@@ -430,6 +440,8 @@ export class PaymentsService {
         `Refund processing failed: ${(error as Error).message}`,
         (error as Error).stack,
       );
+      await this.refundRepo.save(refund);
+      throw error;
     }
 
     return this.refundRepo.save(refund);

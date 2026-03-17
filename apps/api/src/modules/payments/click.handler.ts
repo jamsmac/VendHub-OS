@@ -165,24 +165,14 @@ export class ClickHandler {
     });
 
     if (!existing) {
-      const transaction = this.transactionRepo.create({
-        organizationId: "00000000-0000-0000-0000-000000000000",
-        provider: PaymentProvider.CLICK,
-        providerTxId: data.click_trans_id,
-        amount: data.amount,
-        currency: "UZS",
-        status: PaymentTransactionStatus.PENDING,
-        orderId: orderId,
-        rawRequest: data as unknown as Record<string, unknown>,
-      });
-      const saved = await this.transactionRepo.save(transaction);
-
+      this.logger.warn(
+        `Click webhook received for unknown transaction: orderId=${orderId}, clickTransId=${data.click_trans_id}`,
+      );
       return {
         click_trans_id: data.click_trans_id,
         merchant_trans_id: data.merchant_trans_id,
-        merchant_prepare_id: saved.id,
-        error: 0,
-        error_note: "Success",
+        error: -5,
+        error_note: "Order not found",
       };
     }
 

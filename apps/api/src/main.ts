@@ -44,8 +44,9 @@ if (
   process.env.NODE_ENV === "production"
 ) {
   console.error(
-    "⛔ CRITICAL: AGENT_MODE cannot be enabled in production! Ignoring.",
+    "⛔ FATAL: AGENT_MODE cannot be enabled in production! Shutting down.",
   );
+  process.exit(1);
 }
 
 async function bootstrap() {

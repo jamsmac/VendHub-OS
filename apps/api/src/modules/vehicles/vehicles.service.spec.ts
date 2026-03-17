@@ -209,6 +209,7 @@ describe("VehiclesService", () => {
       const result = await service.update(
         "vehicle-uuid-1",
         { brand: "Honda" },
+        mockVehicle.organizationId,
         "user-1",
       );
 
@@ -220,7 +221,11 @@ describe("VehiclesService", () => {
       vehicleRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update("non-existent", { brand: "Honda" }),
+        service.update(
+          "non-existent",
+          { brand: "Honda" },
+          mockVehicle.organizationId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -232,9 +237,11 @@ describe("VehiclesService", () => {
       vehicleRepository.findOne.mockResolvedValue(existingVehicle);
       vehicleRepository.save.mockImplementation(async (v) => v as Vehicle);
 
-      const result = await service.update("vehicle-uuid-1", {
-        currentOdometer: 60000,
-      });
+      const result = await service.update(
+        "vehicle-uuid-1",
+        { currentOdometer: 60000 },
+        mockVehicle.organizationId,
+      );
 
       expect(result.currentOdometer).toBe(60000);
       expect(result.lastOdometerUpdate).toBeInstanceOf(Date);
@@ -254,6 +261,7 @@ describe("VehiclesService", () => {
       const result = await service.updateOdometer(
         "vehicle-uuid-1",
         75000,
+        mockVehicle.organizationId,
         "user-1",
       );
 
@@ -265,7 +273,11 @@ describe("VehiclesService", () => {
       vehicleRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateOdometer("non-existent", 75000),
+        service.updateOdometer(
+          "non-existent",
+          75000,
+          mockVehicle.organizationId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -281,7 +293,7 @@ describe("VehiclesService", () => {
         affected: 1,
       } as UpdateResult);
 
-      await service.remove("vehicle-uuid-1");
+      await service.remove("vehicle-uuid-1", mockVehicle.organizationId);
 
       expect(vehicleRepository.softDelete).toHaveBeenCalledWith(
         "vehicle-uuid-1",
@@ -291,9 +303,9 @@ describe("VehiclesService", () => {
     it("should throw NotFoundException when vehicle not found", async () => {
       vehicleRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.remove("non-existent", mockVehicle.organizationId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

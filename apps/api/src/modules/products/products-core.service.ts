@@ -20,6 +20,7 @@ import {
   CreateSupplierDto,
   UpdateSupplierDto,
 } from "./dto/create-supplier.dto";
+import { stripProtectedFields } from "../../common/utils";
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -152,7 +153,10 @@ export class ProductsCoreService {
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-    Object.assign(product, data);
+    Object.assign(
+      product,
+      stripProtectedFields(data as Record<string, unknown>),
+    );
     return this.productRepository.save(product);
   }
 

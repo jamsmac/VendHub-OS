@@ -10,6 +10,8 @@ import {
   ParseUUIDPipe,
   ForbiddenException,
   NotFoundException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -129,13 +131,14 @@ export class UsersController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete user" })
-  @ApiResponse({ status: 200, description: "User deleted successfully" })
+  @ApiResponse({ status: 204, description: "User deleted successfully" })
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: ICurrentUser,
-  ) {
+  ): Promise<void> {
     const user = await this.usersService.findById(id);
     if (!user) {
       throw new NotFoundException("User not found");
@@ -146,6 +149,6 @@ export class UsersController {
     ) {
       throw new ForbiddenException("Access denied to this user");
     }
-    return this.usersService.remove(id);
+    await this.usersService.remove(id);
   }
 }

@@ -123,12 +123,12 @@ describe("LocationsController", () => {
   // DELETE /locations/:id
   // =========================================================================
 
-  it("DELETE /locations/:id returns 200", async () => {
+  it("DELETE /locations/:id returns 204", async () => {
     mockService.remove.mockResolvedValue(undefined);
     await request(app.getHttpServer())
       .delete(`/locations/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   it("rejects operator for DELETE /locations/:id", async () => {

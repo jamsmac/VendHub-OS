@@ -64,8 +64,11 @@ export class MachinesService {
     return this.core.findById(id, organizationId);
   }
 
-  findBySerialNumber(serialNumber: string): Promise<Machine | null> {
-    return this.core.findBySerialNumber(serialNumber);
+  findBySerialNumber(
+    serialNumber: string,
+    organizationId?: string,
+  ): Promise<Machine | null> {
+    return this.core.findBySerialNumber(serialNumber, organizationId);
   }
 
   update(id: string, data: Partial<Machine>): Promise<Machine> {
@@ -108,8 +111,11 @@ export class MachinesService {
     return this.core.findByMachineNumber(machineNumber, organizationId);
   }
 
-  findByQrCode(qrCode: string): Promise<Machine | null> {
-    return this.core.findByQrCode(qrCode);
+  findByQrCode(
+    qrCode: string,
+    organizationId?: string,
+  ): Promise<Machine | null> {
+    return this.core.findByQrCode(qrCode, organizationId);
   }
 
   findAllSimple(organizationId: string) {

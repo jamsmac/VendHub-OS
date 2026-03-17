@@ -98,12 +98,12 @@ describe("RoutesController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("DELETE /routes/:id returns 200", async () => {
+  it("DELETE /routes/:id returns 204", async () => {
     mockService.remove.mockResolvedValue({});
     await request(app.getHttpServer())
       .delete(`/routes/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   // ============================================================================

@@ -431,7 +431,7 @@ describe("TasksController (e2e)", () => {
       await request(app.getHttpServer())
         .delete(`/tasks/${taskId}`)
         .set("Authorization", DEFAULT_TOKEN)
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
       expect(tasksService.remove).toHaveBeenCalledWith(
         taskId,
@@ -446,7 +446,7 @@ describe("TasksController (e2e)", () => {
       await request(app.getHttpServer())
         .delete(`/tasks/${taskId}`)
         .set("Authorization", DEFAULT_TOKEN)
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
     });
 
     it("should return 404 for nonexistent task", async () => {
@@ -494,6 +494,7 @@ describe("TasksController (e2e)", () => {
       expect(tasksService.assignTask).toHaveBeenCalledWith(
         taskId,
         assignDto.userId,
+        ADMIN_USER.organizationId,
       );
     });
 
@@ -953,7 +954,7 @@ describe("TasksController (e2e)", () => {
       await request(app.getHttpServer())
         .delete(`/tasks/${taskId}/items/${itemId}`)
         .set("Authorization", DEFAULT_TOKEN)
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
     });
   });
 

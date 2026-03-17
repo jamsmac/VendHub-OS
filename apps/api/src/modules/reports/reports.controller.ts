@@ -51,7 +51,7 @@ import {
   CurrentUser,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("Reports")
 @ApiBearerAuth()
@@ -108,10 +108,7 @@ export class ReportsController {
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.reportsService.generate(
       {
         ...dto,
@@ -177,10 +174,7 @@ export class ReportsController {
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.reportsService.createScheduledReport(
       { ...dto, organizationId, parameters: dto.parameters ?? {} },
       userId,
@@ -244,10 +238,7 @@ export class ReportsController {
     @CurrentUserId() userId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.reportsService.createDashboard(
       { ...dto, organizationId },
       userId,

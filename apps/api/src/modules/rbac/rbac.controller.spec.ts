@@ -118,12 +118,12 @@ describe("RbacController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("DELETE /rbac/roles/:id returns 200 for admin", async () => {
+  it("DELETE /rbac/roles/:id returns 204 for admin", async () => {
     mockService.deleteRole.mockResolvedValue(undefined);
     await request(app.getHttpServer())
       .delete(`/rbac/roles/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   it("PUT /rbac/roles/:id/permissions returns 200 for admin", async () => {
@@ -173,12 +173,12 @@ describe("RbacController", () => {
       .expect(HttpStatus.CREATED);
   });
 
-  it("DELETE /rbac/users/:userId/roles/:roleId returns 200 for admin", async () => {
+  it("DELETE /rbac/users/:userId/roles/:roleId returns 204 for admin", async () => {
     mockService.removeRoleFromUser.mockResolvedValue(undefined);
     await request(app.getHttpServer())
       .delete(`/rbac/users/${TEST_UUID}/roles/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   it("GET /rbac/users/:userId/roles returns 200 for admin", async () => {

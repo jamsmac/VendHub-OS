@@ -33,6 +33,7 @@ import {
   CollectionQueryDto,
 } from "./dto/collection.dto";
 import { MachinesService } from "../machines/machines.service";
+import { safeOrderBy } from "../../common/utils";
 
 /** Distance in meters above which a warning is logged */
 const DISTANCE_WARNING_THRESHOLD = 50;
@@ -513,7 +514,13 @@ export class CollectionsService {
 
     const sortBy = query.sortBy ?? "collectedAt";
     const sortOrder = query.sortOrder ?? "DESC";
-    qb.orderBy(`c.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "c", sortBy, sortOrder, [
+      "createdAt",
+      "updatedAt",
+      "status",
+      "amount",
+      "collectedAt",
+    ] as const);
 
     const [items, total] = await qb
       .skip((page - 1) * limit)

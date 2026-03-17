@@ -263,6 +263,7 @@ describe("RoutesService", () => {
       const result = await service.update(
         "route-uuid-1",
         { name: "Updated Route Name" },
+        orgId,
         "user-uuid-2",
       );
 
@@ -274,7 +275,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update("non-existent", { name: "Updated" }),
+        service.update("non-existent", { name: "Updated" }, orgId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -286,7 +287,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(completedRoute);
 
       await expect(
-        service.update("route-uuid-1", { name: "Updated" }),
+        service.update("route-uuid-1", { name: "Updated" }, orgId),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -298,7 +299,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(cancelledRoute);
 
       await expect(
-        service.update("route-uuid-1", { name: "Updated" }),
+        service.update("route-uuid-1", { name: "Updated" }, orgId),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -309,7 +310,7 @@ describe("RoutesService", () => {
 
       routeRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("route-uuid-1");
+      await service.remove("route-uuid-1", orgId);
 
       expect(routeRepository.softDelete).toHaveBeenCalledWith("route-uuid-1");
     });
@@ -317,7 +318,7 @@ describe("RoutesService", () => {
     it("should throw NotFoundException when route not found", async () => {
       routeRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove("non-existent")).rejects.toThrow(
+      await expect(service.remove("non-existent", orgId)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -329,7 +330,7 @@ describe("RoutesService", () => {
       } as unknown as Route;
       routeRepository.findOne.mockResolvedValue(inProgressRoute);
 
-      await expect(service.remove("route-uuid-1")).rejects.toThrow(
+      await expect(service.remove("route-uuid-1", orgId)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -348,7 +349,11 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(plannedRoute);
       routeRepository.save.mockImplementation(async (route) => route as Route);
 
-      const result = await service.startRoute("route-uuid-1", "user-uuid-1");
+      const result = await service.startRoute(
+        "route-uuid-1",
+        "user-uuid-1",
+        orgId,
+      );
 
       expect(result.status).toBe(RouteStatus.IN_PROGRESS);
       expect(result.startedAt).toBeInstanceOf(Date);
@@ -359,7 +364,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.startRoute("non-existent", "user-uuid-1"),
+        service.startRoute("non-existent", "user-uuid-1", orgId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -371,7 +376,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(inProgressRoute);
 
       await expect(
-        service.startRoute("route-uuid-1", "user-uuid-1"),
+        service.startRoute("route-uuid-1", "user-uuid-1", orgId),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -387,7 +392,11 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(inProgressRoute);
       routeRepository.save.mockImplementation(async (route) => route as Route);
 
-      const result = await service.completeRoute("route-uuid-1", "user-uuid-1");
+      const result = await service.completeRoute(
+        "route-uuid-1",
+        "user-uuid-1",
+        orgId,
+      );
 
       expect(result.status).toBe(RouteStatus.COMPLETED);
       expect(result.completedAt).toBeInstanceOf(Date);
@@ -406,6 +415,7 @@ describe("RoutesService", () => {
       const result = await service.completeRoute(
         "route-uuid-1",
         "user-uuid-1",
+        orgId,
         {
           actualDurationMinutes: 150,
           actualDistanceKm: 42.3,
@@ -423,7 +433,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.completeRoute("non-existent", "user-uuid-1"),
+        service.completeRoute("non-existent", "user-uuid-1", orgId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -435,7 +445,7 @@ describe("RoutesService", () => {
       routeRepository.findOne.mockResolvedValue(plannedRoute);
 
       await expect(
-        service.completeRoute("route-uuid-1", "user-uuid-1"),
+        service.completeRoute("route-uuid-1", "user-uuid-1", orgId),
       ).rejects.toThrow(BadRequestException);
     });
   });

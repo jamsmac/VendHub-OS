@@ -8,11 +8,17 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThanOrEqual, In, Between } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron, CronExpression } from '@nestjs/schedule';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import {
+  Repository,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  In,
+  Between,
+} from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 import {
   WorkLog,
@@ -23,7 +29,8 @@ import {
   ActivityType,
   TimeOffStatus,
   TimeOffType,
-} from './entities/work-log.entity';
+} from "./entities/work-log.entity";
+import { stripProtectedFields } from "../../common/utils";
 import {
   CreateWorkLogDto,
   UpdateWorkLogDto,
@@ -41,7 +48,7 @@ import {
   TimesheetQueryDto,
   WorkLogStatsDto,
   EmployeeAttendanceDto,
-} from './dto/work-log.dto';
+} from "./dto/work-log.dto";
 
 @Injectable()
 export class WorkLogsService {
@@ -76,7 +83,7 @@ export class WorkLogsService {
 
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.created', { workLog: saved });
+    this.eventEmitter.emit("worklog.created", { workLog: saved });
     return saved;
   }
 
@@ -98,35 +105,38 @@ export class WorkLogsService {
     } = query;
 
     const qb = this.workLogRepository
-      .createQueryBuilder('wl')
-      .where('wl.organizationId = :organizationId', { organizationId })
-      .andWhere('wl.deletedAt IS NULL');
+      .createQueryBuilder("wl")
+      .where("wl.organizationId = :organizationId", { organizationId })
+      .andWhere("wl.deletedAt IS NULL");
 
     if (employeeId) {
-      qb.andWhere('wl.employeeId = :employeeId', { employeeId });
+      qb.andWhere("wl.employeeId = :employeeId", { employeeId });
     }
     if (startDate && endDate) {
-      qb.andWhere('wl.workDate BETWEEN :startDate AND :endDate', { startDate, endDate });
+      qb.andWhere("wl.workDate BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
     }
     if (status) {
-      qb.andWhere('wl.status = :status', { status });
+      qb.andWhere("wl.status = :status", { status });
     }
     if (workType) {
-      qb.andWhere('wl.workType = :workType', { workType });
+      qb.andWhere("wl.workType = :workType", { workType });
     }
     if (activityType) {
-      qb.andWhere('wl.activityType = :activityType', { activityType });
+      qb.andWhere("wl.activityType = :activityType", { activityType });
     }
     if (taskId) {
-      qb.andWhere('wl.taskId = :taskId', { taskId });
+      qb.andWhere("wl.taskId = :taskId", { taskId });
     }
     if (machineId) {
-      qb.andWhere('wl.machineId = :machineId', { machineId });
+      qb.andWhere("wl.machineId = :machineId", { machineId });
     }
 
     const [data, total] = await qb
-      .orderBy('wl.workDate', 'DESC')
-      .addOrderBy('wl.clockIn', 'DESC')
+      .orderBy("wl.workDate", "DESC")
+      .addOrderBy("wl.clockIn", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -153,11 +163,19 @@ export class WorkLogsService {
   ): Promise<WorkLog> {
     const workLog = await this.findOneWorkLog(organizationId, id);
 
-    if (workLog.status !== WorkLogStatus.DRAFT && workLog.status !== WorkLogStatus.REJECTED) {
-      throw new BadRequestException('Can only update draft or rejected work logs');
+    if (
+      workLog.status !== WorkLogStatus.DRAFT &&
+      workLog.status !== WorkLogStatus.REJECTED
+    ) {
+      throw new BadRequestException(
+        "Can only update draft or rejected work logs",
+      );
     }
 
-    Object.assign(workLog, dto);
+    Object.assign(
+      workLog,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
     workLog.calculateWorkedMinutes();
     workLog.calculatePayAmount();
 
@@ -172,7 +190,7 @@ export class WorkLogsService {
     const workLog = await this.findOneWorkLog(organizationId, id);
 
     if (workLog.status !== WorkLogStatus.DRAFT) {
-      throw new BadRequestException('Can only delete draft work logs');
+      throw new BadRequestException("Can only delete draft work logs");
     }
 
     await this.workLogRepository.softDelete(id);
@@ -201,22 +219,24 @@ export class WorkLogsService {
     });
 
     if (existing && !existing.clockOut) {
-      throw new BadRequestException('Already clocked in today. Clock out first.');
+      throw new BadRequestException(
+        "Already clocked in today. Clock out first.",
+      );
     }
 
     const now = new Date();
-    const clockIn = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const clockIn = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
 
     const workLog = this.workLogRepository.create({
       organizationId,
       employeeId,
       workDate: today,
       clockIn,
-      clockOut: '', // Will be set on clock out
+      clockOut: "", // Will be set on clock out
       workedMinutes: 0,
       workType: WorkLogType.REGULAR,
       activityType: ActivityType.OTHER,
-      description: 'Auto clock-in',
+      description: "Auto clock-in",
       status: WorkLogStatus.DRAFT,
       checkInLatitude: dto.latitude,
       checkInLongitude: dto.longitude,
@@ -225,7 +245,7 @@ export class WorkLogsService {
 
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.clockedin', { workLog: saved });
+    this.eventEmitter.emit("worklog.clockedin", { workLog: saved });
     return saved;
   }
 
@@ -239,15 +259,15 @@ export class WorkLogsService {
     });
 
     if (!workLog) {
-      throw new NotFoundException('Work log not found');
+      throw new NotFoundException("Work log not found");
     }
 
     if (workLog.clockOut) {
-      throw new BadRequestException('Already clocked out');
+      throw new BadRequestException("Already clocked out");
     }
 
     const now = new Date();
-    workLog.clockOut = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    workLog.clockOut = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
     workLog.checkOutLatitude = dto.latitude;
     workLog.checkOutLongitude = dto.longitude;
 
@@ -263,7 +283,7 @@ export class WorkLogsService {
 
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.clockedout', { workLog: saved });
+    this.eventEmitter.emit("worklog.clockedout", { workLog: saved });
     return saved;
   }
 
@@ -275,17 +295,17 @@ export class WorkLogsService {
     const workLog = await this.findOneWorkLog(organizationId, id);
 
     if (workLog.status !== WorkLogStatus.DRAFT) {
-      throw new BadRequestException('Work log already submitted');
+      throw new BadRequestException("Work log already submitted");
     }
 
     if (!workLog.clockOut) {
-      throw new BadRequestException('Cannot submit without clock out');
+      throw new BadRequestException("Cannot submit without clock out");
     }
 
     workLog.status = WorkLogStatus.SUBMITTED;
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.submitted', { workLog: saved });
+    this.eventEmitter.emit("worklog.submitted", { workLog: saved });
     return saved;
   }
 
@@ -298,7 +318,7 @@ export class WorkLogsService {
     const workLog = await this.findOneWorkLog(organizationId, id);
 
     if (workLog.status !== WorkLogStatus.SUBMITTED) {
-      throw new BadRequestException('Work log not submitted');
+      throw new BadRequestException("Work log not submitted");
     }
 
     if (dto.hourlyRate !== undefined) {
@@ -312,7 +332,7 @@ export class WorkLogsService {
 
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.approved', { workLog: saved, userId });
+    this.eventEmitter.emit("worklog.approved", { workLog: saved, userId });
     return saved;
   }
 
@@ -325,7 +345,7 @@ export class WorkLogsService {
     const workLog = await this.findOneWorkLog(organizationId, id);
 
     if (workLog.status !== WorkLogStatus.SUBMITTED) {
-      throw new BadRequestException('Work log not submitted');
+      throw new BadRequestException("Work log not submitted");
     }
 
     workLog.status = WorkLogStatus.REJECTED;
@@ -333,7 +353,11 @@ export class WorkLogsService {
 
     const saved = await this.workLogRepository.save(workLog);
 
-    this.eventEmitter.emit('worklog.rejected', { workLog: saved, userId, reason: dto.reason });
+    this.eventEmitter.emit("worklog.rejected", {
+      workLog: saved,
+      userId,
+      reason: dto.reason,
+    });
     return saved;
   }
 
@@ -369,7 +393,8 @@ export class WorkLogsService {
     // Calculate total days
     const start = new Date(dto.startDate);
     const end = new Date(dto.endDate);
-    let totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    let totalDays =
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
     if (dto.halfDayStart) totalDays -= 0.5;
     if (dto.halfDayEnd) totalDays -= 0.5;
@@ -384,7 +409,7 @@ export class WorkLogsService {
 
     const saved = await this.timeOffRepository.save(request);
 
-    this.eventEmitter.emit('timeoff.created', { request: saved });
+    this.eventEmitter.emit("timeoff.created", { request: saved });
     return saved;
   }
 
@@ -392,31 +417,39 @@ export class WorkLogsService {
     organizationId: string,
     query: TimeOffQueryDto,
   ): Promise<{ data: TimeOffRequest[]; total: number }> {
-    const { employeeId, timeOffType, status, startDate, endDate, page = 1, limit = 20 } = query;
+    const {
+      employeeId,
+      timeOffType,
+      status,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20,
+    } = query;
 
     const qb = this.timeOffRepository
-      .createQueryBuilder('tor')
-      .where('tor.organizationId = :organizationId', { organizationId })
-      .andWhere('tor.deletedAt IS NULL');
+      .createQueryBuilder("tor")
+      .where("tor.organizationId = :organizationId", { organizationId })
+      .andWhere("tor.deletedAt IS NULL");
 
     if (employeeId) {
-      qb.andWhere('tor.employeeId = :employeeId', { employeeId });
+      qb.andWhere("tor.employeeId = :employeeId", { employeeId });
     }
     if (timeOffType) {
-      qb.andWhere('tor.timeOffType = :timeOffType', { timeOffType });
+      qb.andWhere("tor.timeOffType = :timeOffType", { timeOffType });
     }
     if (status) {
-      qb.andWhere('tor.status = :status', { status });
+      qb.andWhere("tor.status = :status", { status });
     }
     if (startDate) {
-      qb.andWhere('tor.startDate >= :startDate', { startDate });
+      qb.andWhere("tor.startDate >= :startDate", { startDate });
     }
     if (endDate) {
-      qb.andWhere('tor.endDate <= :endDate', { endDate });
+      qb.andWhere("tor.endDate <= :endDate", { endDate });
     }
 
     const [data, total] = await qb
-      .orderBy('tor.startDate', 'DESC')
+      .orderBy("tor.startDate", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -435,11 +468,11 @@ export class WorkLogsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Time off request not found');
+      throw new NotFoundException("Time off request not found");
     }
 
     if (request.status !== TimeOffStatus.PENDING) {
-      throw new BadRequestException('Request already processed');
+      throw new BadRequestException("Request already processed");
     }
 
     request.status = TimeOffStatus.APPROVED;
@@ -448,7 +481,7 @@ export class WorkLogsService {
 
     const saved = await this.timeOffRepository.save(request);
 
-    this.eventEmitter.emit('timeoff.approved', { request: saved, userId });
+    this.eventEmitter.emit("timeoff.approved", { request: saved, userId });
     return saved;
   }
 
@@ -463,11 +496,11 @@ export class WorkLogsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Time off request not found');
+      throw new NotFoundException("Time off request not found");
     }
 
     if (request.status !== TimeOffStatus.PENDING) {
-      throw new BadRequestException('Request already processed');
+      throw new BadRequestException("Request already processed");
     }
 
     request.status = TimeOffStatus.REJECTED;
@@ -475,21 +508,28 @@ export class WorkLogsService {
 
     const saved = await this.timeOffRepository.save(request);
 
-    this.eventEmitter.emit('timeoff.rejected', { request: saved, userId });
+    this.eventEmitter.emit("timeoff.rejected", { request: saved, userId });
     return saved;
   }
 
-  async cancelTimeOff(organizationId: string, id: string, employeeId: string): Promise<TimeOffRequest> {
+  async cancelTimeOff(
+    organizationId: string,
+    id: string,
+    employeeId: string,
+  ): Promise<TimeOffRequest> {
     const request = await this.timeOffRepository.findOne({
       where: { id, organizationId, employeeId },
     });
 
     if (!request) {
-      throw new NotFoundException('Time off request not found');
+      throw new NotFoundException("Time off request not found");
     }
 
-    if (request.status !== TimeOffStatus.PENDING && request.status !== TimeOffStatus.APPROVED) {
-      throw new BadRequestException('Cannot cancel this request');
+    if (
+      request.status !== TimeOffStatus.PENDING &&
+      request.status !== TimeOffStatus.APPROVED
+    ) {
+      throw new BadRequestException("Cannot cancel this request");
     }
 
     request.status = TimeOffStatus.CANCELLED;
@@ -507,7 +547,7 @@ export class WorkLogsService {
     const timesheet = this.timesheetRepository.create({
       organizationId,
       ...dto,
-      status: 'draft',
+      status: "draft",
     });
 
     // Calculate totals from work logs
@@ -515,7 +555,7 @@ export class WorkLogsService {
 
     const saved = await this.timesheetRepository.save(timesheet);
 
-    this.eventEmitter.emit('timesheet.created', { timesheet: saved });
+    this.eventEmitter.emit("timesheet.created", { timesheet: saved });
     return saved;
   }
 
@@ -523,28 +563,35 @@ export class WorkLogsService {
     organizationId: string,
     query: TimesheetQueryDto,
   ): Promise<{ data: Timesheet[]; total: number }> {
-    const { employeeId, status, periodStartFrom, periodStartTo, page = 1, limit = 20 } = query;
+    const {
+      employeeId,
+      status,
+      periodStartFrom,
+      periodStartTo,
+      page = 1,
+      limit = 20,
+    } = query;
 
     const qb = this.timesheetRepository
-      .createQueryBuilder('ts')
-      .where('ts.organizationId = :organizationId', { organizationId })
-      .andWhere('ts.deletedAt IS NULL');
+      .createQueryBuilder("ts")
+      .where("ts.organizationId = :organizationId", { organizationId })
+      .andWhere("ts.deletedAt IS NULL");
 
     if (employeeId) {
-      qb.andWhere('ts.employeeId = :employeeId', { employeeId });
+      qb.andWhere("ts.employeeId = :employeeId", { employeeId });
     }
     if (status) {
-      qb.andWhere('ts.status = :status', { status });
+      qb.andWhere("ts.status = :status", { status });
     }
     if (periodStartFrom) {
-      qb.andWhere('ts.periodStart >= :periodStartFrom', { periodStartFrom });
+      qb.andWhere("ts.periodStart >= :periodStartFrom", { periodStartFrom });
     }
     if (periodStartTo) {
-      qb.andWhere('ts.periodStart <= :periodStartTo', { periodStartTo });
+      qb.andWhere("ts.periodStart <= :periodStartTo", { periodStartTo });
     }
 
     const [data, total] = await qb
-      .orderBy('ts.periodStart', 'DESC')
+      .orderBy("ts.periodStart", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
@@ -552,23 +599,26 @@ export class WorkLogsService {
     return { data, total };
   }
 
-  async submitTimesheet(organizationId: string, id: string): Promise<Timesheet> {
+  async submitTimesheet(
+    organizationId: string,
+    id: string,
+  ): Promise<Timesheet> {
     const timesheet = await this.timesheetRepository.findOne({
       where: { id, organizationId },
     });
 
     if (!timesheet) {
-      throw new NotFoundException('Timesheet not found');
+      throw new NotFoundException("Timesheet not found");
     }
 
-    if (timesheet.status !== 'draft') {
-      throw new BadRequestException('Timesheet already submitted');
+    if (timesheet.status !== "draft") {
+      throw new BadRequestException("Timesheet already submitted");
     }
 
     // Recalculate totals
     await this.calculateTimesheetTotals(timesheet);
 
-    timesheet.status = 'submitted';
+    timesheet.status = "submitted";
     timesheet.submittedAt = new Date();
 
     return this.timesheetRepository.save(timesheet);
@@ -585,46 +635,52 @@ export class WorkLogsService {
     });
 
     if (!timesheet) {
-      throw new NotFoundException('Timesheet not found');
+      throw new NotFoundException("Timesheet not found");
     }
 
-    if (timesheet.status !== 'submitted') {
-      throw new BadRequestException('Timesheet not submitted');
+    if (timesheet.status !== "submitted") {
+      throw new BadRequestException("Timesheet not submitted");
     }
 
     if (dto.deductions !== undefined) {
       timesheet.deductions = dto.deductions;
-      timesheet.totalPay = Number(timesheet.regularPay) + Number(timesheet.overtimePay) - dto.deductions;
+      timesheet.totalPay =
+        Number(timesheet.regularPay) +
+        Number(timesheet.overtimePay) -
+        dto.deductions;
     }
 
     if (dto.notes) {
       timesheet.notes = dto.notes;
     }
 
-    timesheet.status = 'approved';
+    timesheet.status = "approved";
     timesheet.approvedByUserId = userId;
     timesheet.approvedAt = new Date();
 
     const saved = await this.timesheetRepository.save(timesheet);
 
-    this.eventEmitter.emit('timesheet.approved', { timesheet: saved, userId });
+    this.eventEmitter.emit("timesheet.approved", { timesheet: saved, userId });
     return saved;
   }
 
-  async markTimesheetPaid(organizationId: string, id: string): Promise<Timesheet> {
+  async markTimesheetPaid(
+    organizationId: string,
+    id: string,
+  ): Promise<Timesheet> {
     const timesheet = await this.timesheetRepository.findOne({
       where: { id, organizationId },
     });
 
     if (!timesheet) {
-      throw new NotFoundException('Timesheet not found');
+      throw new NotFoundException("Timesheet not found");
     }
 
-    if (timesheet.status !== 'approved') {
-      throw new BadRequestException('Timesheet not approved');
+    if (timesheet.status !== "approved") {
+      throw new BadRequestException("Timesheet not approved");
     }
 
-    timesheet.status = 'paid';
+    timesheet.status = "paid";
     timesheet.paidAt = new Date();
 
     // Also mark related work logs as paid
@@ -652,28 +708,38 @@ export class WorkLogsService {
     endDate?: Date,
   ): Promise<WorkLogStatsDto> {
     const qb = this.workLogRepository
-      .createQueryBuilder('wl')
-      .where('wl.organizationId = :organizationId', { organizationId })
-      .andWhere('wl.deletedAt IS NULL');
+      .createQueryBuilder("wl")
+      .where("wl.organizationId = :organizationId", { organizationId })
+      .andWhere("wl.deletedAt IS NULL");
 
     if (employeeId) {
-      qb.andWhere('wl.employeeId = :employeeId', { employeeId });
+      qb.andWhere("wl.employeeId = :employeeId", { employeeId });
     }
     if (startDate && endDate) {
-      qb.andWhere('wl.workDate BETWEEN :startDate AND :endDate', { startDate, endDate });
+      qb.andWhere("wl.workDate BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
     }
 
     const workLogs = await qb.getMany();
 
-    const totalWorkedMinutes = workLogs.reduce((sum, wl) => sum + wl.workedMinutes, 0);
-    const totalOvertimeMinutes = workLogs.reduce((sum, wl) => sum + wl.overtimeMinutes, 0);
-    const uniqueDays = new Set(workLogs.map(wl => wl.workDate.toString())).size;
+    const totalWorkedMinutes = workLogs.reduce(
+      (sum, wl) => sum + wl.workedMinutes,
+      0,
+    );
+    const totalOvertimeMinutes = workLogs.reduce(
+      (sum, wl) => sum + wl.overtimeMinutes,
+      0,
+    );
+    const uniqueDays = new Set(workLogs.map((wl) => wl.workDate.toString()))
+      .size;
 
     const byActivity = {} as Record<ActivityType, number>;
     const byStatus = {} as Record<WorkLogStatus, number>;
 
-    Object.values(ActivityType).forEach(a => byActivity[a] = 0);
-    Object.values(WorkLogStatus).forEach(s => byStatus[s] = 0);
+    Object.values(ActivityType).forEach((a) => (byActivity[a] = 0));
+    Object.values(WorkLogStatus).forEach((s) => (byStatus[s] = 0));
 
     for (const wl of workLogs) {
       byActivity[wl.activityType] += wl.workedMinutes / 60;
@@ -681,10 +747,13 @@ export class WorkLogsService {
     }
 
     return {
-      totalWorkedHours: Math.round(totalWorkedMinutes / 60 * 100) / 100,
-      totalOvertimeHours: Math.round(totalOvertimeMinutes / 60 * 100) / 100,
+      totalWorkedHours: Math.round((totalWorkedMinutes / 60) * 100) / 100,
+      totalOvertimeHours: Math.round((totalOvertimeMinutes / 60) * 100) / 100,
       totalDays: uniqueDays,
-      averageHoursPerDay: uniqueDays > 0 ? Math.round((totalWorkedMinutes / 60 / uniqueDays) * 100) / 100 : 0,
+      averageHoursPerDay:
+        uniqueDays > 0
+          ? Math.round((totalWorkedMinutes / 60 / uniqueDays) * 100) / 100
+          : 0,
       byActivity,
       byStatus,
     };
@@ -720,7 +789,7 @@ export class WorkLogsService {
       if (!employeeData.has(wl.employeeId)) {
         employeeData.set(wl.employeeId, {
           employeeId: wl.employeeId,
-          employeeName: '', // Would need to join with employees
+          employeeName: "", // Would need to join with employees
           presentDays: 0,
           absentDays: 0,
           lateDays: 0,
@@ -736,7 +805,7 @@ export class WorkLogsService {
       data.overtimeHours += wl.overtimeMinutes / 60;
 
       // Check if late (after 9:00)
-      const [hour] = wl.clockIn.split(':').map(Number);
+      const [hour] = wl.clockIn.split(":").map(Number);
       if (hour >= 9) {
         data.lateDays++;
       }
@@ -747,7 +816,7 @@ export class WorkLogsService {
       if (!employeeData.has(to.employeeId)) {
         employeeData.set(to.employeeId, {
           employeeId: to.employeeId,
-          employeeName: '',
+          employeeName: "",
           presentDays: 0,
           absentDays: 0,
           lateDays: 0,
@@ -788,64 +857,91 @@ export class WorkLogsService {
       },
     });
 
-    const uniqueDays = new Set(workLogs.map(wl => wl.workDate.toString()));
-    const totalWorkedMinutes = workLogs.reduce((sum, wl) => sum + wl.workedMinutes, 0);
-    const totalOvertimeMinutes = workLogs.reduce((sum, wl) => sum + wl.overtimeMinutes, 0);
+    const uniqueDays = new Set(workLogs.map((wl) => wl.workDate.toString()));
+    const totalWorkedMinutes = workLogs.reduce(
+      (sum, wl) => sum + wl.workedMinutes,
+      0,
+    );
+    const totalOvertimeMinutes = workLogs.reduce(
+      (sum, wl) => sum + wl.overtimeMinutes,
+      0,
+    );
     const totalSickDays = timeOffs
-      .filter(to => to.timeOffType === TimeOffType.SICK_LEAVE)
+      .filter((to) => to.timeOffType === TimeOffType.SICK_LEAVE)
       .reduce((sum, to) => sum + to.totalDays, 0);
-    const totalTimeOffDays = timeOffs.reduce((sum, to) => sum + to.totalDays, 0);
+    const totalTimeOffDays = timeOffs.reduce(
+      (sum, to) => sum + to.totalDays,
+      0,
+    );
 
     const regularPay = workLogs.reduce((sum, wl) => {
       if (wl.hourlyRate) {
-        return sum + (wl.workedMinutes / 60 * Number(wl.hourlyRate));
+        return sum + (wl.workedMinutes / 60) * Number(wl.hourlyRate);
       }
       return sum;
     }, 0);
 
     const overtimePay = workLogs.reduce((sum, wl) => {
       if (wl.hourlyRate && wl.overtimeMinutes > 0) {
-        return sum + (wl.overtimeMinutes / 60 * Number(wl.hourlyRate) * Number(wl.overtimeMultiplier));
+        return (
+          sum +
+          (wl.overtimeMinutes / 60) *
+            Number(wl.hourlyRate) *
+            Number(wl.overtimeMultiplier)
+        );
       }
       return sum;
     }, 0);
 
     timesheet.totalWorkedDays = uniqueDays.size;
-    timesheet.totalWorkedHours = Math.round(totalWorkedMinutes / 60 * 100) / 100;
-    timesheet.totalOvertimeHours = Math.round(totalOvertimeMinutes / 60 * 100) / 100;
+    timesheet.totalWorkedHours =
+      Math.round((totalWorkedMinutes / 60) * 100) / 100;
+    timesheet.totalOvertimeHours =
+      Math.round((totalOvertimeMinutes / 60) * 100) / 100;
     timesheet.totalSickDays = totalSickDays;
     timesheet.totalTimeOffDays = totalTimeOffDays;
     timesheet.regularPay = regularPay;
     timesheet.overtimePay = overtimePay;
-    timesheet.totalPay = regularPay + overtimePay - Number(timesheet.deductions || 0);
+    timesheet.totalPay =
+      regularPay + overtimePay - Number(timesheet.deductions || 0);
 
     // Build daily summary
-    const dailySummary: Timesheet['dailySummary'] = [];
+    const dailySummary: Timesheet["dailySummary"] = [];
     const start = new Date(timesheet.periodStart);
     const end = new Date(timesheet.periodEnd);
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      const dayLogs = workLogs.filter(wl => wl.workDate.toString().startsWith(dateStr));
-      const dayTimeOff = timeOffs.some(to =>
-        new Date(to.startDate) <= d && new Date(to.endDate) >= d,
+      const dateStr = d.toISOString().split("T")[0];
+      const dayLogs = workLogs.filter((wl) =>
+        wl.workDate.toString().startsWith(dateStr),
+      );
+      const dayTimeOff = timeOffs.some(
+        (to) => new Date(to.startDate) <= d && new Date(to.endDate) >= d,
       );
 
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
 
       dailySummary.push({
         date: dateStr,
-        workedHours: dayLogs.reduce((sum, wl) => sum + wl.workedMinutes / 60, 0),
-        overtimeHours: dayLogs.reduce((sum, wl) => sum + wl.overtimeMinutes / 60, 0),
+        workedHours: dayLogs.reduce(
+          (sum, wl) => sum + wl.workedMinutes / 60,
+          0,
+        ),
+        overtimeHours: dayLogs.reduce(
+          (sum, wl) => sum + wl.overtimeMinutes / 60,
+          0,
+        ),
         status: dayTimeOff
-          ? timeOffs.find(to => new Date(to.startDate) <= d && new Date(to.endDate) >= d)?.timeOffType === TimeOffType.SICK_LEAVE
-            ? 'sick'
-            : 'time_off'
+          ? timeOffs.find(
+              (to) => new Date(to.startDate) <= d && new Date(to.endDate) >= d,
+            )?.timeOffType === TimeOffType.SICK_LEAVE
+            ? "sick"
+            : "time_off"
           : isWeekend
-            ? 'weekend'
+            ? "weekend"
             : dayLogs.length > 0
-              ? 'worked'
-              : 'weekend', // Default to weekend if no logs
+              ? "worked"
+              : "weekend", // Default to weekend if no logs
       });
     }
 
@@ -858,7 +954,7 @@ export class WorkLogsService {
 
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async generateMonthlyTimesheets(): Promise<void> {
-    this.logger.log('Generating monthly timesheets...');
+    this.logger.log("Generating monthly timesheets...");
 
     // This would typically:
     // 1. Get all employees

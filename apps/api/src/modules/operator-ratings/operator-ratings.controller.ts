@@ -32,7 +32,7 @@ import {
   CurrentUser,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("Operator Ratings")
 @ApiBearerAuth()
@@ -60,10 +60,7 @@ export class OperatorRatingsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.operatorRatingsService.calculateRating(dto, organizationId);
   }
 
@@ -79,10 +76,7 @@ export class OperatorRatingsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.operatorRatingsService.recalculateRating(
       id,
       dto,
@@ -112,10 +106,7 @@ export class OperatorRatingsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && query.organizationId
-        ? query.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, query.organizationId);
     return this.operatorRatingsService.query(query, organizationId);
   }
 

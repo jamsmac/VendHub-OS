@@ -10,7 +10,14 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In, Not, IsNull, FindOptionsWhere } from "typeorm";
+import {
+  Repository,
+  In,
+  Not,
+  IsNull,
+  FindOptionsWhere,
+  DataSource,
+} from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Complaint,
@@ -29,6 +36,7 @@ import {
   CreateCommentDto,
   QueryComplaintsDto,
 } from "./complaints.types";
+import { safeOrderBy, stripProtectedFields } from "../../common/utils";
 
 const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
   [ComplaintPriority.CRITICAL]:
@@ -54,6 +62,7 @@ export class ComplaintsCoreService {
     private actionRepo: Repository<ComplaintAction>,
     @InjectRepository(ComplaintAutomationRule)
     private automationRepo: Repository<ComplaintAutomationRule>,
+    private dataSource: DataSource,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -199,7 +208,14 @@ export class ComplaintsCoreService {
     }
 
     const total = await qb.getCount();
-    qb.orderBy(`c.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "c", sortBy, sortOrder, [
+      "createdAt",
+      "updatedAt",
+      "status",
+      "priority",
+      "category",
+      "ticketNumber",
+    ] as const);
     qb.skip((page - 1) * limit);
     qb.take(limit);
     const data = await qb.getMany();
@@ -215,7 +231,10 @@ export class ComplaintsCoreService {
     const complaint = await this.findById(id);
     const oldStatus = complaint.status;
 
-    Object.assign(complaint, dto);
+    Object.assign(
+      complaint,
+      stripProtectedFields(dto as Record<string, unknown>),
+    );
 
     if (dto.status && dto.status !== oldStatus) {
       if (dto.status === ComplaintStatus.RESOLVED) {
@@ -380,10 +399,17 @@ export class ComplaintsCoreService {
       isInternal: dto.isInternal,
     });
 
-    const saved = await this.commentRepo.save(comment);
-
-    complaint.commentCount = (complaint.commentCount || 0) + 1;
-    await this.complaintRepo.save(complaint);
+    // Atomic: save comment + increment count in one transaction
+    const saved = await this.dataSource.transaction(async (manager) => {
+      const savedComment = await manager.save(comment);
+      await manager
+        .createQueryBuilder()
+        .update(Complaint)
+        .set({ commentCount: () => "COALESCE(comment_count, 0) + 1" })
+        .where("id = :id", { id: dto.complaintId })
+        .execute();
+      return savedComment;
+    });
 
     if (!dto.isInternal) {
       this.eventEmitter.emit("complaint.comment.added", {

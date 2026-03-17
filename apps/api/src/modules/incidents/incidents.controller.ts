@@ -42,7 +42,7 @@ import {
   CurrentUser,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
+import { resolveOrganizationId } from "../../common/utils";
 import { ResolveIncidentDto } from "./dto/incident-operations.dto";
 
 @ApiTags("Incidents")
@@ -66,10 +66,7 @@ export class IncidentsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.incidentsService.create(dto, userId, organizationId);
   }
 
@@ -91,10 +88,7 @@ export class IncidentsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && query.organizationId
-        ? query.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, query.organizationId);
     return this.incidentsService.query(query, organizationId);
   }
 

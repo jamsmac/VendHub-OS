@@ -41,7 +41,7 @@ import {
   CurrentUser,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("Machine Access")
 @ApiBearerAuth()
@@ -65,10 +65,7 @@ export class MachineAccessController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.machineAccessService.grantAccess(dto, userId, organizationId);
   }
 
@@ -179,10 +176,7 @@ export class MachineAccessController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.machineAccessService.createTemplate(dto, organizationId);
   }
 

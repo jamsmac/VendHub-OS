@@ -10,6 +10,8 @@ import {
   Query,
   ParseUUIDPipe,
   NotFoundException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -33,6 +35,7 @@ import {
   ReorderStopsDto,
 } from "./dto/create-route-stop.dto";
 import { RouteType, RouteStatus } from "./entities/route.entity";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("routes")
 @Controller("routes")
@@ -55,10 +58,7 @@ export class RoutesController {
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreateRouteDto, @CurrentUser() user: User) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : user.organizationId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.routesService.create({ ...dto, organizationId }, user.id);
   }
 
@@ -146,10 +146,11 @@ export class RoutesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.update(id, dto, user.id);
+    return this.routesService.update(id, dto, user.organizationId, user.id);
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete route (soft delete)" })
   @ApiParam({
@@ -167,9 +168,9 @@ export class RoutesController {
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.remove(id);
+    await this.routesService.remove(id, user.organizationId);
   }
 
   // ============================================================================
@@ -193,7 +194,7 @@ export class RoutesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.startRoute(id, user.id);
+    return this.routesService.startRoute(id, user.id, user.organizationId);
   }
 
   @Post(":id/complete")
@@ -219,7 +220,12 @@ export class RoutesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.completeRoute(id, user.id, body);
+    return this.routesService.completeRoute(
+      id,
+      user.id,
+      user.organizationId,
+      body,
+    );
   }
 
   // ============================================================================
@@ -322,6 +328,7 @@ export class RoutesController {
   }
 
   @Delete(":id/stops/:stopId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Remove a stop from a route (soft delete)" })
   @ApiParam({
@@ -342,9 +349,9 @@ export class RoutesController {
     @Param("id", ParseUUIDPipe) id: string,
     @Param("stopId", ParseUUIDPipe) stopId: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.removeStop(stopId);
+    await this.routesService.removeStop(stopId);
   }
 
   @Post(":id/stops/reorder")

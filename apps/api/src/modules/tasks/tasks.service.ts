@@ -304,8 +304,12 @@ export class TasksService {
    * Assign task to an operator
    * Transitions: PENDING -> ASSIGNED, or POSTPONED -> ASSIGNED
    */
-  async assignTask(id: string, userId: string): Promise<Task> {
-    const task = await this.findByIdOrFail(id);
+  async assignTask(
+    id: string,
+    userId: string,
+    organizationId?: string,
+  ): Promise<Task> {
+    const task = await this.findByIdOrFail(id, organizationId);
     this.validateTransition(task.status, TaskStatus.ASSIGNED);
 
     task.status = TaskStatus.ASSIGNED;

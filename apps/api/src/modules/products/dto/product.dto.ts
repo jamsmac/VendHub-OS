@@ -14,62 +14,63 @@ import {
   MaxLength,
   Min,
   Max,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Эспрессо' })
+  @ApiProperty({ example: "Эспрессо" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   name: string;
 
-  @ApiPropertyOptional({ example: 'Espresso' })
+  @ApiPropertyOptional({ example: "Espresso" })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   nameUz?: string;
 
-  @ApiProperty({ example: 'COFFEE-ESP-001' })
+  @ApiProperty({ example: "COFFEE-ESP-001" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   sku: string;
 
-  @ApiPropertyOptional({ example: '4607001234001' })
+  @ApiPropertyOptional({ example: "4607001234001" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   barcode?: string;
 
-  @ApiPropertyOptional({ example: 'Классический эспрессо' })
+  @ApiPropertyOptional({ example: "Классический эспрессо" })
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   description?: string;
 
-  @ApiPropertyOptional({ example: 'coffee' })
+  @ApiPropertyOptional({ example: "coffee" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   category?: string;
 
-  @ApiPropertyOptional({ example: 'hot' })
+  @ApiPropertyOptional({ example: "hot" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   subcategory?: string;
 
-  @ApiPropertyOptional({ example: 'VendHub Coffee' })
+  @ApiPropertyOptional({ example: "VendHub Coffee" })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   brand?: string;
 
-  @ApiPropertyOptional({ example: 'cup', default: 'pcs' })
+  @ApiPropertyOptional({ example: "cup", default: "pcs" })
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  unit?: string = 'pcs';
+  unit?: string = "pcs";
 
   @ApiProperty({ example: 8000 })
   @IsNumber()
@@ -89,13 +90,13 @@ export class CreateProductDto {
   @Max(100)
   vatRate?: number = 12;
 
-  @ApiPropertyOptional({ example: '12345678' })
+  @ApiPropertyOptional({ example: "12345678" })
   @IsOptional()
   @IsString()
   @MaxLength(50)
   ikpuCode?: string;
 
-  @ApiPropertyOptional({ example: '87654321' })
+  @ApiPropertyOptional({ example: "87654321" })
   @IsOptional()
   @IsString()
   @MaxLength(50)
@@ -321,7 +322,7 @@ export class QueryProductsDto {
 export class BulkUpdatePriceDto {
   @ApiProperty({ type: [String] })
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   productIds: string[];
 
   @ApiPropertyOptional({ example: 10 })

@@ -589,12 +589,11 @@ describe("OrganizationsController (e2e)", () => {
         deletedAt: new Date().toISOString(),
       });
 
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .delete(`/organizations/${orgId}`)
         .set("Authorization", "Bearer owner-jwt-token")
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
-      expect(response.body.deletedAt).toBeDefined();
       expect(organizationsService.remove).toHaveBeenCalledWith(orgId);
     });
 

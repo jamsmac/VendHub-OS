@@ -250,8 +250,12 @@ export class NotificationsService {
     };
   }
 
-  async markAsRead(id: string, userId?: string): Promise<Notification> {
-    const notification = await this.findById(id);
+  async markAsRead(
+    id: string,
+    userId?: string,
+    organizationId?: string,
+  ): Promise<Notification> {
+    const notification = await this.findById(id, organizationId);
     if (userId && notification.userId !== userId) {
       throw new ForbiddenException("Нет доступа к этому уведомлению");
     }

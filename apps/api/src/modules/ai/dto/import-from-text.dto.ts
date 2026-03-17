@@ -3,7 +3,13 @@
  * Used for parsing products from raw text input (CSV, JSON, plain text)
  */
 
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum TextImportFormat {
@@ -19,6 +25,7 @@ export class ImportFromTextDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(50000)
   text: string;
 
   @ApiPropertyOptional({

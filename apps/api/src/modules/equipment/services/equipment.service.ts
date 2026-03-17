@@ -28,6 +28,7 @@ import {
   MaintenanceHistoryQueryDto,
   MovementQueryDto,
 } from "../dto/create-equipment.dto";
+import { safeOrderBy } from "../../../common/utils";
 
 @Injectable()
 export class EquipmentService {
@@ -106,7 +107,13 @@ export class EquipmentService {
       });
     }
 
-    qb.orderBy(`c.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "c", sortBy, sortOrder, [
+      "createdAt",
+      "name",
+      "status",
+      "type",
+      "purchaseDate",
+    ] as const);
 
     const [data, total] = await qb
       .skip((page - 1) * limit)

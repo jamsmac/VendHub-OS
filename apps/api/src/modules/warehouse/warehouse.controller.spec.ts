@@ -143,12 +143,12 @@ describe("WarehouseController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("DELETE /warehouses/:id soft-deletes (200)", async () => {
+  it("DELETE /warehouses/:id soft-deletes (204)", async () => {
     mockService.remove.mockResolvedValue({ affected: 1 });
     await request(app.getHttpServer())
       .delete(`/warehouses/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   // ── Stock ───────────────────────────────────────────────

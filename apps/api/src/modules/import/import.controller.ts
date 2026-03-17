@@ -57,6 +57,7 @@ import {
   QueryAuditLogDto,
 } from "./dto/import-session.dto";
 import { ValidateImportDataDto } from "./dto/import-operations.dto";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -113,6 +114,7 @@ export class ImportController {
   // ========================================================================
 
   @Post("upload")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Roles("manager", "admin", "owner")
   @UseInterceptors(
     FileInterceptor("file", {
@@ -358,6 +360,7 @@ export class ImportController {
   // ========================================================================
 
   @Post("sessions")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Roles("manager", "admin", "owner")
   @UseInterceptors(
     FileInterceptor("file", {

@@ -90,22 +90,29 @@ export class MachineEventsGateway
       return { success: false, error: "Authentication required" };
     }
 
-    // Verify machine belongs to user's organization
-    const machine = await this.machineRepository.findOne({
-      where: { id: machineId, organizationId: user.organizationId },
-      select: ["id"],
-    });
+    try {
+      // Verify machine belongs to user's organization
+      const machine = await this.machineRepository.findOne({
+        where: { id: machineId, organizationId: user.organizationId },
+        select: ["id"],
+      });
 
-    if (!machine) {
-      return { success: false, error: "Machine not found" };
+      if (!machine) {
+        return { success: false, error: "Machine not found" };
+      }
+
+      this.wsService.joinRoom(client, `machine:${machineId}`);
+      this.logger.debug(
+        `Client ${client.id} subscribed to machine: ${machineId}`,
+      );
+
+      return { success: true, machineId };
+    } catch (error) {
+      this.logger.error(
+        `subscribe:machine failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { success: false, error: "Internal error" };
     }
-
-    this.wsService.joinRoom(client, `machine:${machineId}`);
-    this.logger.debug(
-      `Client ${client.id} subscribed to machine: ${machineId}`,
-    );
-
-    return { success: true, machineId };
   }
 
   @SubscribeMessage("unsubscribe:machine")
@@ -143,23 +150,30 @@ export class MachineEventsGateway
       return { success: false, error: "Authentication required" };
     }
 
-    // Batch-verify all machines belong to user's organization
-    const ownedMachines = await this.machineRepository.find({
-      where: { id: In(machineIds), organizationId: user.organizationId },
-      select: ["id"],
-    });
+    try {
+      // Batch-verify all machines belong to user's organization
+      const ownedMachines = await this.machineRepository.find({
+        where: { id: In(machineIds), organizationId: user.organizationId },
+        select: ["id"],
+      });
 
-    const ownedIds = new Set(ownedMachines.map((m) => m.id));
+      const ownedIds = new Set(ownedMachines.map((m) => m.id));
 
-    ownedIds.forEach((machineId) => {
-      this.wsService.joinRoom(client, `machine:${machineId}`);
-    });
+      ownedIds.forEach((machineId) => {
+        this.wsService.joinRoom(client, `machine:${machineId}`);
+      });
 
-    this.logger.debug(
-      `Client ${client.id} subscribed to ${ownedIds.size}/${machineIds.length} machines`,
-    );
+      this.logger.debug(
+        `Client ${client.id} subscribed to ${ownedIds.size}/${machineIds.length} machines`,
+      );
 
-    return { success: true, count: ownedIds.size };
+      return { success: true, count: ownedIds.size };
+    } catch (error) {
+      this.logger.error(
+        `subscribe:machines failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { success: false, error: "Internal error" };
+    }
   }
 
   // ============================================
@@ -193,23 +207,30 @@ export class MachineEventsGateway
       return { success: false, error: "Organization context required" };
     }
 
-    const machine = await this.machineRepository.findOne({
-      where: { id: machineId, organizationId: user.organizationId },
-      select: ["id"],
-    });
+    try {
+      const machine = await this.machineRepository.findOne({
+        where: { id: machineId, organizationId: user.organizationId },
+        select: ["id"],
+      });
 
-    if (!machine) {
-      return { success: false, error: "Machine not found" };
+      if (!machine) {
+        return { success: false, error: "Machine not found" };
+      }
+
+      // Emit heartbeat to all subscribers
+      this.server.to(`machine:${machineId}`).emit("machine:heartbeat", {
+        machineId,
+        status,
+        metrics,
+        timestamp: new Date().toISOString(),
+      });
+
+      return { success: true, received: new Date().toISOString() };
+    } catch (error) {
+      this.logger.error(
+        `machine:heartbeat failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { success: false, error: "Internal error" };
     }
-
-    // Emit heartbeat to all subscribers
-    this.server.to(`machine:${machineId}`).emit("machine:heartbeat", {
-      machineId,
-      status,
-      metrics,
-      timestamp: new Date().toISOString(),
-    });
-
-    return { success: true, received: new Date().toISOString() };
   }
 }

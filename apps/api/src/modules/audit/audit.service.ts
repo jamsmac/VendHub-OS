@@ -34,6 +34,7 @@ import {
   AuditGeoLocation,
 } from "./entities/audit.entity";
 import { AuditReportingService } from "./services/audit-reporting.service";
+import { safeOrderBy } from "../../common/utils";
 
 // ============================================================================
 // INTERNAL INTERFACES (for programmatic/service-to-service calls)
@@ -297,7 +298,12 @@ export class AuditService {
     const total = await qb.getCount();
 
     // Apply sorting and pagination
-    qb.orderBy(`audit.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "audit", sortBy, sortOrder, [
+      "createdAt",
+      "action",
+      "entityType",
+      "userId",
+    ] as const);
     qb.skip((page - 1) * limit);
     qb.take(limit);
 

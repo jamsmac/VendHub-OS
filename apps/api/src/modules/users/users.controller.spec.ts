@@ -586,12 +586,11 @@ describe("UsersController (e2e)", () => {
         deletedAt: new Date().toISOString(),
       });
 
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .delete(`/users/${userId}`)
         .set("Authorization", "Bearer admin-token")
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
-      expect(response.body.deletedAt).toBeDefined();
       expect(usersService.remove).toHaveBeenCalledWith(userId);
     });
 
@@ -650,7 +649,7 @@ describe("UsersController (e2e)", () => {
       await request(app.getHttpServer())
         .delete(`/users/${userId}`)
         .set("Authorization", "Bearer admin-token")
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
     });
 
     it("should deny deletion to viewer role", async () => {

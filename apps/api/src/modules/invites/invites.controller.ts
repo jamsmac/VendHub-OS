@@ -8,6 +8,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
@@ -88,12 +90,13 @@ export class InvitesController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({ summary: "Revoke an invite" })
   async revoke(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
-    return this.invitesService.revoke(id, user.organizationId);
+  ): Promise<void> {
+    await this.invitesService.revoke(id, user.organizationId);
   }
 }

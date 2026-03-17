@@ -103,9 +103,7 @@ describe("MachinesController (unit)", () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MachinesController],
-      providers: [
-        { provide: MachinesService, useValue: mockMachinesService },
-      ],
+      providers: [{ provide: MachinesService, useValue: mockMachinesService }],
     })
       .overrideGuard(require("../auth/guards/jwt-auth.guard").JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -145,8 +143,13 @@ describe("MachinesController (unit)", () => {
 
     it("should use dto.organizationId when user is OWNER", async () => {
       const user = makeUser({ role: UserRole.OWNER });
-      const dto = { machineNumber: "VM-002", organizationId: "other-org" } as any;
-      mockMachinesService.create.mockResolvedValue(makeMachine({ organizationId: "other-org" }));
+      const dto = {
+        machineNumber: "VM-002",
+        organizationId: "other-org",
+      } as any;
+      mockMachinesService.create.mockResolvedValue(
+        makeMachine({ organizationId: "other-org" }),
+      );
 
       await controller.create(dto, user as any);
 
@@ -190,7 +193,12 @@ describe("MachinesController (unit)", () => {
     it("should use query.organizationId for OWNER", async () => {
       const user = makeUser({ role: UserRole.OWNER });
       const query = { organizationId: "tenant-2" } as any;
-      mockMachinesService.findAll.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 });
+      mockMachinesService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      });
 
       await controller.findAll(user as any, query);
 
@@ -213,7 +221,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.getStats(user as any);
 
-      expect(mockMachinesService.getStatsByOrganization).toHaveBeenCalledWith("org-1");
+      expect(mockMachinesService.getStatsByOrganization).toHaveBeenCalledWith(
+        "org-1",
+      );
       expect(result).toEqual(stats);
     });
   });
@@ -226,7 +236,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.getMachinesForMap(user as any);
 
-      expect(mockMachinesService.getMachinesForMap).toHaveBeenCalledWith("org-1");
+      expect(mockMachinesService.getMachinesForMap).toHaveBeenCalledWith(
+        "org-1",
+      );
       expect(result).toEqual(mapData);
     });
   });
@@ -254,9 +266,15 @@ describe("MachinesController (unit)", () => {
       const offline = [makeMachine({ id: "mc-offline" })];
       mockMachinesService.getOfflineMachines.mockResolvedValue(offline);
 
-      const result = await controller.getOfflineMachines(user as any, "30" as any);
+      const result = await controller.getOfflineMachines(
+        user as any,
+        "30" as any,
+      );
 
-      expect(mockMachinesService.getOfflineMachines).toHaveBeenCalledWith("org-1", 30);
+      expect(mockMachinesService.getOfflineMachines).toHaveBeenCalledWith(
+        "org-1",
+        30,
+      );
       expect(result).toEqual(offline);
     });
 
@@ -266,7 +284,10 @@ describe("MachinesController (unit)", () => {
 
       await controller.getOfflineMachines(user as any, undefined);
 
-      expect(mockMachinesService.getOfflineMachines).toHaveBeenCalledWith("org-1", undefined);
+      expect(mockMachinesService.getOfflineMachines).toHaveBeenCalledWith(
+        "org-1",
+        undefined,
+      );
     });
   });
 
@@ -280,9 +301,15 @@ describe("MachinesController (unit)", () => {
       const machine = makeMachine();
       mockMachinesService.findByMachineNumber.mockResolvedValue(machine);
 
-      const result = await controller.findByMachineNumber("VM-001", user as any);
+      const result = await controller.findByMachineNumber(
+        "VM-001",
+        user as any,
+      );
 
-      expect(mockMachinesService.findByMachineNumber).toHaveBeenCalledWith("VM-001", "org-1");
+      expect(mockMachinesService.findByMachineNumber).toHaveBeenCalledWith(
+        "VM-001",
+        "org-1",
+      );
       expect(result).toEqual(machine);
     });
 
@@ -308,7 +335,10 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.findByQrCode("QR123", user as any);
 
-      expect(mockMachinesService.findByQrCode).toHaveBeenCalledWith("QR123");
+      expect(mockMachinesService.findByQrCode).toHaveBeenCalledWith(
+        "QR123",
+        "org-1",
+      );
       expect(result).toEqual(machine);
     });
 
@@ -321,14 +351,14 @@ describe("MachinesController (unit)", () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it("should throw ForbiddenException for cross-org machine when not OWNER", async () => {
+    it("should throw NotFoundException for cross-org machine when not OWNER", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      const machine = makeMachine({ organizationId: "org-2" });
-      mockMachinesService.findByQrCode.mockResolvedValue(machine);
+      // service is expected to filter by org at DB level and return null
+      mockMachinesService.findByQrCode.mockResolvedValue(null);
 
       await expect(
         controller.findByQrCode("QR-CROSS", user as any),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(NotFoundException);
     });
 
     it("should allow OWNER to access cross-org machine via QR", async () => {
@@ -363,9 +393,9 @@ describe("MachinesController (unit)", () => {
       const machine = makeMachine({ organizationId: "org-2" });
       mockMachinesService.findById.mockResolvedValue(machine);
 
-      await expect(
-        controller.findOne("mc-cross", user as any),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(controller.findOne("mc-cross", user as any)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it("should allow OWNER to access cross-org machine", async () => {
@@ -428,16 +458,25 @@ describe("MachinesController (unit)", () => {
       const dto = { status: MachineStatus.OFFLINE } as any;
       const result = await controller.updateStatus("mc-1", dto, user as any);
 
-      expect(mockMachinesService.updateStatus).toHaveBeenCalledWith("mc-1", MachineStatus.OFFLINE);
+      expect(mockMachinesService.updateStatus).toHaveBeenCalledWith(
+        "mc-1",
+        MachineStatus.OFFLINE,
+      );
       expect(result.status).toBe(MachineStatus.OFFLINE);
     });
 
     it("should throw ForbiddenException for cross-org access", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(makeMachine({ organizationId: "org-2" }));
+      mockMachinesService.findById.mockResolvedValue(
+        makeMachine({ organizationId: "org-2" }),
+      );
 
       await expect(
-        controller.updateStatus("mc-cross", { status: MachineStatus.OFFLINE } as any, user as any),
+        controller.updateStatus(
+          "mc-cross",
+          { status: MachineStatus.OFFLINE } as any,
+          user as any,
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -452,17 +491,29 @@ describe("MachinesController (unit)", () => {
       const machine = makeMachine();
       const telemetry = { temperature: 22, humidity: 55 };
       mockMachinesService.findById.mockResolvedValue(machine);
-      mockMachinesService.updateTelemetry.mockResolvedValue({ ...machine, telemetry });
+      mockMachinesService.updateTelemetry.mockResolvedValue({
+        ...machine,
+        telemetry,
+      });
 
-      const result = await controller.updateTelemetry("mc-1", telemetry as any, user as any);
+      const result = await controller.updateTelemetry(
+        "mc-1",
+        telemetry as any,
+        user as any,
+      );
 
-      expect(mockMachinesService.updateTelemetry).toHaveBeenCalledWith("mc-1", telemetry);
+      expect(mockMachinesService.updateTelemetry).toHaveBeenCalledWith(
+        "mc-1",
+        telemetry,
+      );
       expect(result).toMatchObject({ telemetry });
     });
 
     it("should throw ForbiddenException for cross-org access", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(makeMachine({ organizationId: "org-2" }));
+      mockMachinesService.findById.mockResolvedValue(
+        makeMachine({ organizationId: "org-2" }),
+      );
 
       await expect(
         controller.updateTelemetry("mc-cross", {} as any, user as any),
@@ -488,11 +539,13 @@ describe("MachinesController (unit)", () => {
 
     it("should throw ForbiddenException for cross-org machine", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(makeMachine({ organizationId: "org-2" }));
+      mockMachinesService.findById.mockResolvedValue(
+        makeMachine({ organizationId: "org-2" }),
+      );
 
-      await expect(
-        controller.remove("mc-cross", user as any),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(controller.remove("mc-cross", user as any)).rejects.toThrow(
+        ForbiddenException,
+      );
 
       expect(mockMachinesService.remove).not.toHaveBeenCalled();
     });
@@ -518,7 +571,9 @@ describe("MachinesController (unit)", () => {
 
     it("should throw ForbiddenException for cross-org machine", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(makeMachine({ organizationId: "org-2" }));
+      mockMachinesService.findById.mockResolvedValue(
+        makeMachine({ organizationId: "org-2" }),
+      );
 
       await expect(
         controller.getSlots("mc-cross", user as any),
@@ -536,7 +591,11 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.createSlot("mc-1", dto, user as any);
 
-      expect(mockMachinesService.createSlot).toHaveBeenCalledWith("mc-1", dto, "user-99");
+      expect(mockMachinesService.createSlot).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "user-99",
+      );
       expect(result).toEqual(slot);
     });
   });
@@ -546,11 +605,18 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { capacity: 15 } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.updateSlot.mockResolvedValue({ id: "slot-1", capacity: 15 });
+      mockMachinesService.updateSlot.mockResolvedValue({
+        id: "slot-1",
+        capacity: 15,
+      });
 
       await controller.updateSlot("mc-1", "slot-1", dto, user as any);
 
-      expect(mockMachinesService.updateSlot).toHaveBeenCalledWith("slot-1", dto, "user-1");
+      expect(mockMachinesService.updateSlot).toHaveBeenCalledWith(
+        "slot-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -559,11 +625,18 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { quantity: 5 } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.refillSlot.mockResolvedValue({ id: "slot-1", currentQuantity: 5 });
+      mockMachinesService.refillSlot.mockResolvedValue({
+        id: "slot-1",
+        currentQuantity: 5,
+      });
 
       await controller.refillSlot("mc-1", "slot-1", dto, user as any);
 
-      expect(mockMachinesService.refillSlot).toHaveBeenCalledWith("slot-1", dto, "user-1");
+      expect(mockMachinesService.refillSlot).toHaveBeenCalledWith(
+        "slot-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -580,7 +653,11 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.moveToLocation("mc-1", dto, user as any);
 
-      expect(mockMachinesService.moveToLocation).toHaveBeenCalledWith("mc-1", dto, "user-1");
+      expect(mockMachinesService.moveToLocation).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "user-1",
+      );
       expect(result).toEqual({ success: true });
     });
   });
@@ -594,7 +671,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.getLocationHistory("mc-1", user as any);
 
-      expect(mockMachinesService.getLocationHistory).toHaveBeenCalledWith("mc-1");
+      expect(mockMachinesService.getLocationHistory).toHaveBeenCalledWith(
+        "mc-1",
+      );
       expect(result).toEqual(history);
     });
   });
@@ -622,11 +701,17 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { type: "GRINDER", serialNumber: "GR-001" } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.installComponent.mockResolvedValue({ id: "comp-new" });
+      mockMachinesService.installComponent.mockResolvedValue({
+        id: "comp-new",
+      });
 
       await controller.installComponent("mc-1", dto, user as any);
 
-      expect(mockMachinesService.installComponent).toHaveBeenCalledWith("mc-1", dto, "user-1");
+      expect(mockMachinesService.installComponent).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -638,7 +723,10 @@ describe("MachinesController (unit)", () => {
 
       await controller.removeComponent("mc-1", "comp-1", user as any);
 
-      expect(mockMachinesService.removeComponent).toHaveBeenCalledWith("comp-1", "user-1");
+      expect(mockMachinesService.removeComponent).toHaveBeenCalledWith(
+        "comp-1",
+        "user-1",
+      );
     });
   });
 
@@ -669,7 +757,11 @@ describe("MachinesController (unit)", () => {
 
       await controller.logError("mc-1", dto, user as any);
 
-      expect(mockMachinesService.logError).toHaveBeenCalledWith("mc-1", dto, "user-1");
+      expect(mockMachinesService.logError).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -678,11 +770,18 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { resolution: "Cleared jam manually" } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.resolveError.mockResolvedValue({ id: "err-1", resolvedAt: new Date() });
+      mockMachinesService.resolveError.mockResolvedValue({
+        id: "err-1",
+        resolvedAt: new Date(),
+      });
 
       await controller.resolveError("mc-1", "err-1", dto, user as any);
 
-      expect(mockMachinesService.resolveError).toHaveBeenCalledWith("err-1", dto, "user-1");
+      expect(mockMachinesService.resolveError).toHaveBeenCalledWith(
+        "err-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -697,9 +796,14 @@ describe("MachinesController (unit)", () => {
       mockMachinesService.findById.mockResolvedValue(makeMachine());
       mockMachinesService.getUpcomingMaintenance.mockResolvedValue(maintenance);
 
-      const result = await controller.getUpcomingMaintenance("mc-1", user as any);
+      const result = await controller.getUpcomingMaintenance(
+        "mc-1",
+        user as any,
+      );
 
-      expect(mockMachinesService.getUpcomingMaintenance).toHaveBeenCalledWith("mc-1");
+      expect(mockMachinesService.getUpcomingMaintenance).toHaveBeenCalledWith(
+        "mc-1",
+      );
       expect(result).toEqual(maintenance);
     });
   });
@@ -709,11 +813,17 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { type: "CLEANING", scheduledAt: "2025-06-01" } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.scheduleMaintenance.mockResolvedValue({ id: "maint-new" });
+      mockMachinesService.scheduleMaintenance.mockResolvedValue({
+        id: "maint-new",
+      });
 
       await controller.scheduleMaintenance("mc-1", dto, user as any);
 
-      expect(mockMachinesService.scheduleMaintenance).toHaveBeenCalledWith("mc-1", dto, "user-1");
+      expect(mockMachinesService.scheduleMaintenance).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -722,11 +832,18 @@ describe("MachinesController (unit)", () => {
       const user = makeUser({ id: "user-1" });
       const dto = { notes: "Cleaned grinder" } as any;
       mockMachinesService.findById.mockResolvedValue(makeMachine());
-      mockMachinesService.completeMaintenance.mockResolvedValue({ id: "maint-1", completedAt: new Date() });
+      mockMachinesService.completeMaintenance.mockResolvedValue({
+        id: "maint-1",
+        completedAt: new Date(),
+      });
 
       await controller.completeMaintenance("mc-1", "maint-1", dto, user as any);
 
-      expect(mockMachinesService.completeMaintenance).toHaveBeenCalledWith("maint-1", dto, "user-1");
+      expect(mockMachinesService.completeMaintenance).toHaveBeenCalledWith(
+        "maint-1",
+        dto,
+        "user-1",
+      );
     });
   });
 
@@ -747,7 +864,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.getConnectivityStats(user as any);
 
-      expect(mockMachinesService.getConnectivityStats).toHaveBeenCalledWith("org-1");
+      expect(mockMachinesService.getConnectivityStats).toHaveBeenCalledWith(
+        "org-1",
+      );
       expect(result).toEqual(stats);
     });
   });
@@ -766,13 +885,18 @@ describe("MachinesController (unit)", () => {
       const result = await controller.generateQrCode("mc-1", user as any);
 
       // IMPORTANT: second arg is organizationId, NOT userId
-      expect(mockMachinesService.generateQrCode).toHaveBeenCalledWith("mc-1", "org-1");
+      expect(mockMachinesService.generateQrCode).toHaveBeenCalledWith(
+        "mc-1",
+        "org-1",
+      );
       expect(result).toEqual(qrData);
     });
 
     it("should throw ForbiddenException for cross-org machine", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(makeMachine({ organizationId: "org-2" }));
+      mockMachinesService.findById.mockResolvedValue(
+        makeMachine({ organizationId: "org-2" }),
+      );
 
       await expect(
         controller.generateQrCode("mc-cross", user as any),
@@ -789,7 +913,10 @@ describe("MachinesController (unit)", () => {
   describe("getDepreciation", () => {
     it("should return depreciation data for accessible machine", async () => {
       const user = makeUser();
-      const depreciation = { bookValue: 5000000, accumulatedDepreciation: 1000000 };
+      const depreciation = {
+        bookValue: 5000000,
+        accumulatedDepreciation: 1000000,
+      };
       mockMachinesService.findById.mockResolvedValue(makeMachine());
       mockMachinesService.getDepreciation.mockResolvedValue(depreciation);
 
@@ -812,7 +939,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.runDepreciationBatch(user as any);
 
-      expect(mockMachinesService.runDepreciationBatch).toHaveBeenCalledWith("org-1");
+      expect(mockMachinesService.runDepreciationBatch).toHaveBeenCalledWith(
+        "org-1",
+      );
       expect(result).toEqual(batchResult);
     });
   });
@@ -832,7 +961,9 @@ describe("MachinesController (unit)", () => {
 
       const result = await controller.pingMachine("mc-1");
 
-      expect(mockMachinesService.updateConnectivity).toHaveBeenCalledWith("mc-1");
+      expect(mockMachinesService.updateConnectivity).toHaveBeenCalledWith(
+        "mc-1",
+      );
       expect(result).toEqual(connectivity);
     });
 
@@ -842,7 +973,9 @@ describe("MachinesController (unit)", () => {
       // No user argument — pingMachine is a public endpoint
       await controller.pingMachine("mc-2");
 
-      expect(mockMachinesService.updateConnectivity).toHaveBeenCalledWith("mc-2");
+      expect(mockMachinesService.updateConnectivity).toHaveBeenCalledWith(
+        "mc-2",
+      );
     });
   });
 
@@ -852,7 +985,10 @@ describe("MachinesController (unit)", () => {
 
   describe("verifyMachineAccess — OWNER bypass", () => {
     it("should allow OWNER to access sub-resources of another org's machine", async () => {
-      const owner = makeUser({ role: UserRole.OWNER, organizationId: "org-main" });
+      const owner = makeUser({
+        role: UserRole.OWNER,
+        organizationId: "org-main",
+      });
       const crossOrgMachine = makeMachine({ organizationId: "org-tenant" });
       mockMachinesService.findById.mockResolvedValue(crossOrgMachine);
       mockMachinesService.getSlots.mockResolvedValue([]);
@@ -864,7 +1000,10 @@ describe("MachinesController (unit)", () => {
     });
 
     it("should throw ForbiddenException for non-OWNER cross-org sub-resource access", async () => {
-      const user = makeUser({ role: UserRole.MANAGER, organizationId: "org-1" });
+      const user = makeUser({
+        role: UserRole.MANAGER,
+        organizationId: "org-1",
+      });
       const crossOrgMachine = makeMachine({ organizationId: "org-2" });
       mockMachinesService.findById.mockResolvedValue(crossOrgMachine);
 

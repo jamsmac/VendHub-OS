@@ -14,6 +14,7 @@ import { Repository } from "typeorm";
 import { OperatorRating } from "./entities/operator-rating.entity";
 import { CalculateRatingDto } from "./dto/calculate-rating.dto";
 import { QueryRatingsDto, RatingSortBy } from "./dto/query-ratings.dto";
+import { safeOrderBy } from "../../common/utils";
 
 // ============================================================================
 // WEIGHT CONFIGURATION
@@ -393,7 +394,12 @@ export class OperatorRatingsService {
 
     const total = await qb.getCount();
 
-    qb.orderBy(`r.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "r", sortBy, sortOrder, [
+      "createdAt",
+      "updatedAt",
+      "rating",
+      "operatorId",
+    ] as const);
     qb.skip((page - 1) * limit);
     qb.take(limit);
 

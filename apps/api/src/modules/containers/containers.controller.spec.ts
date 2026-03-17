@@ -137,12 +137,12 @@ describe("ContainersController", () => {
   });
 
   // ── DELETE ───────────────────────────────────────────────────
-  it("DELETE /containers/:id returns 200", async () => {
+  it("DELETE /containers/:id returns 204", async () => {
     mockService.remove.mockResolvedValue({ id: TEST_UUID });
     await request(app.getHttpServer())
       .delete(`/containers/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
   });
 
   it("DELETE /containers/:id rejects operator role", async () => {

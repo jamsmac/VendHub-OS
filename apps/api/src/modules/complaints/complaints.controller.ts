@@ -61,10 +61,10 @@ import {
   CurrentOrganizationId,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
 import { StorageService } from "../storage/storage.service";
 import { FileCategory } from "../storage/dto/upload-file.dto";
 import { validateMagicBytes } from "../../common/utils/file-validation";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("Complaints")
 @ApiBearerAuth()
@@ -89,10 +89,7 @@ export class ComplaintsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user && user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.complaintsService.create({
       ...dto,
       organizationId,
@@ -253,10 +250,7 @@ export class ComplaintsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && query.organizationId
-        ? query.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, query.organizationId);
     return this.complaintsService.query({
       ...query,
       organizationId,

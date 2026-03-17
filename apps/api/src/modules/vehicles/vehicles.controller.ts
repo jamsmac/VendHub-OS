@@ -11,6 +11,8 @@ import {
   ParseUUIDPipe,
   NotFoundException,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -32,6 +34,7 @@ import {
   UpdateOdometerDto,
 } from "./dto/create-vehicle.dto";
 import { VehicleType, VehicleStatus } from "./entities/vehicle.entity";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("vehicles")
 @Controller("vehicles")
@@ -45,10 +48,7 @@ export class VehiclesController {
   @ApiOperation({ summary: "Create a new vehicle" })
   @ApiResponse({ status: 201, description: "Vehicle created" })
   create(@Body() dto: CreateVehicleDto, @CurrentUser() user: User) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : user.organizationId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.vehiclesService.create(dto, organizationId, user.id);
   }
 
@@ -109,7 +109,7 @@ export class VehiclesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyVehicleAccess(id, user);
-    return this.vehiclesService.update(id, dto, user.id);
+    return this.vehiclesService.update(id, dto, user.organizationId, user.id);
   }
 
   @Patch(":id/odometer")
@@ -122,19 +122,25 @@ export class VehiclesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyVehicleAccess(id, user);
-    return this.vehiclesService.updateOdometer(id, dto.odometer, user.id);
+    return this.vehiclesService.updateOdometer(
+      id,
+      dto.odometer,
+      user.organizationId,
+      user.id,
+    );
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete vehicle (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     await this.verifyVehicleAccess(id, user);
-    return this.vehiclesService.remove(id);
+    await this.vehiclesService.remove(id, user.organizationId);
   }
 
   private async verifyVehicleAccess(

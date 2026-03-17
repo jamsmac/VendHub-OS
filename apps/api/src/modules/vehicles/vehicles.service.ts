@@ -101,9 +101,10 @@ export class VehiclesService {
   async update(
     id: string,
     dto: UpdateVehicleDto,
+    organizationId: string,
     userId?: string,
   ): Promise<Vehicle> {
-    const vehicle = await this.findById(id);
+    const vehicle = await this.findById(id, organizationId);
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
     }
@@ -144,9 +145,10 @@ export class VehiclesService {
   async updateOdometer(
     id: string,
     odometer: number,
+    organizationId: string,
     userId?: string,
   ): Promise<Vehicle> {
-    const vehicle = await this.findById(id);
+    const vehicle = await this.findById(id, organizationId);
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
     }
@@ -158,8 +160,8 @@ export class VehiclesService {
     return this.vehicleRepository.save(vehicle);
   }
 
-  async remove(id: string): Promise<void> {
-    const vehicle = await this.findById(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    const vehicle = await this.findById(id, organizationId);
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
     }

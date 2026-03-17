@@ -315,7 +315,7 @@ export class OrdersService {
   ): Promise<OrderDto> {
     const order = await this.orderRepo.findOne({
       where: { orderNumber, organizationId },
-      relations: ["items", "items.product", "user", "machine"],
+      relations: ["items", "user", "machine"],
     });
 
     if (!order) {
@@ -347,9 +347,10 @@ export class OrdersService {
     const qb = this.orderRepo
       .createQueryBuilder("o")
       .leftJoinAndSelect("o.items", "items")
-      .leftJoinAndSelect("items.product", "product")
-      .leftJoinAndSelect("o.user", "user")
-      .leftJoinAndSelect("o.machine", "machine")
+      .leftJoin("o.user", "user")
+      .addSelect(["user.id", "user.firstName", "user.lastName"])
+      .leftJoin("o.machine", "machine")
+      .addSelect(["machine.id", "machine.name"])
       .where("o.organizationId = :organizationId", { organizationId });
 
     if (status) {
@@ -520,7 +521,7 @@ export class OrdersService {
   ): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, organizationId },
-      relations: ["items", "items.product", "user", "machine"],
+      relations: ["items", "user", "machine"],
     });
 
     if (!order) {

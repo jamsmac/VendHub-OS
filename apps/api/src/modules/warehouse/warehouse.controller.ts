@@ -10,6 +10,8 @@ import {
   Query,
   ParseUUIDPipe,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -46,6 +48,7 @@ import {
   StockMovementType,
   StockMovementStatus,
 } from "./entities/warehouse.entity";
+import { resolveOrganizationId } from "../../common/utils";
 
 @ApiTags("warehouses")
 @Controller("warehouses")
@@ -70,10 +73,7 @@ export class WarehouseController {
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreateWarehouseDto, @CurrentUser() user: User) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : user.organizationId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.warehouseService.create({ ...dto, organizationId }, user.id);
   }
 
@@ -118,13 +118,9 @@ export class WarehouseController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    const warehouse = await this.warehouseService.findById(id);
-    if (warehouse && warehouse.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this warehouse");
-      }
-    }
-    return warehouse;
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.warehouseService.findById(id, orgId);
   }
 
   @Patch(":id")
@@ -144,10 +140,11 @@ export class WarehouseController {
     @CurrentUser() user: User,
   ) {
     await this.verifyWarehouseAccess(id, user);
-    return this.warehouseService.update(id, dto, user.id);
+    return this.warehouseService.update(id, dto, user.organizationId, user.id);
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Delete warehouse (soft delete)" })
   @ApiParam({
@@ -161,9 +158,9 @@ export class WarehouseController {
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<void> {
     await this.verifyWarehouseAccess(id, user);
-    return this.warehouseService.remove(id);
+    await this.warehouseService.remove(id, user.organizationId);
   }
 
   // ============================================================================
@@ -643,11 +640,11 @@ export class WarehouseController {
     warehouseId: string,
     user: User,
   ): Promise<void> {
-    const warehouse = await this.warehouseService.findById(warehouseId);
-    if (warehouse && warehouse.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this warehouse");
-      }
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    const warehouse = await this.warehouseService.findById(warehouseId, orgId);
+    if (!warehouse) {
+      throw new ForbiddenException("Access denied to this warehouse");
     }
   }
 }

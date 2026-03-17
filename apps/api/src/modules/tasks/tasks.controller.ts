@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -246,18 +248,19 @@ export class TasksController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete task (soft delete)" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiResponse({ status: 200, description: "Task deleted successfully" })
   @ApiResponse({ status: 404, description: "Task not found" })
-  remove(
+  async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
-  ) {
+  ): Promise<void> {
     const orgId =
       user.role === UserRole.OWNER ? undefined : user.organizationId;
-    return this.tasksService.remove(id, orgId);
+    await this.tasksService.remove(id, orgId);
   }
 
   // ============================================================================
@@ -274,8 +277,11 @@ export class TasksController {
   assignTask(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() data: AssignTaskDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.tasksService.assignTask(id, data.userId);
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.tasksService.assignTask(id, data.userId, orgId);
   }
 
   @Post(":id/start")
@@ -442,17 +448,18 @@ export class TasksController {
   }
 
   @Delete(":id/items/:itemId")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Remove task item (soft delete)" })
   @ApiParam({ name: "id", description: "Task UUID" })
   @ApiParam({ name: "itemId", description: "Task item UUID" })
   @ApiResponse({ status: 200, description: "Task item removed successfully" })
   @ApiResponse({ status: 404, description: "Task item not found" })
-  removeTaskItem(
+  async removeTaskItem(
     @Param("id", ParseUUIDPipe) _id: string,
     @Param("itemId", ParseUUIDPipe) itemId: string,
-  ) {
-    return this.tasksService.removeTaskItem(itemId);
+  ): Promise<void> {
+    await this.tasksService.removeTaskItem(itemId);
   }
 
   // ============================================================================

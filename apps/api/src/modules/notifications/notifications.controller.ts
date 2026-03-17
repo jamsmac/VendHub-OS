@@ -53,7 +53,7 @@ import {
   CurrentUser,
   ICurrentUser,
 } from "../../common/decorators/current-user.decorator";
-import { UserRole } from "../../common/enums";
+import { resolveOrganizationId } from "../../common/utils";
 import { CleanupNotificationsDto } from "./dto/notification-operations.dto";
 import { UpdateNotificationSettingsDto } from "./dto/update-notification-settings.dto";
 import {
@@ -150,8 +150,9 @@ export class NotificationsController {
   async markAsRead(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.notificationsService.markAsRead(id, userId);
+    return this.notificationsService.markAsRead(id, userId, organizationId);
   }
 
   @Post("read-all")
@@ -266,10 +267,7 @@ export class NotificationsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.notificationsService.create({
       ...dto,
       organizationId,
@@ -292,10 +290,7 @@ export class NotificationsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.notificationsService.sendTemplated({
       ...dto,
       organizationId,
@@ -441,10 +436,7 @@ export class NotificationsController {
     @CurrentOrganizationId() orgId: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    const organizationId =
-      user.role === UserRole.OWNER && dto.organizationId
-        ? dto.organizationId
-        : orgId;
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.notificationsService.createCampaign({
       ...dto,
       organizationId,

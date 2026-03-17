@@ -85,7 +85,7 @@ describe("CounterpartyController", () => {
     });
   });
 
-  describe("PUT /counterparties/:id", () => {
+  describe("PATCH /counterparties/:id", () => {
     it("should update a counterparty", async () => {
       mockService.updateCounterparty.mockResolvedValue({
         id: TEST_UUID,
@@ -93,7 +93,7 @@ describe("CounterpartyController", () => {
       });
 
       const res = await request(app.getHttpServer())
-        .put(`/counterparties/${TEST_UUID}`)
+        .patch(`/counterparties/${TEST_UUID}`)
         .set("Authorization", "Bearer admin-token")
         .send({ name: "Updated" });
 

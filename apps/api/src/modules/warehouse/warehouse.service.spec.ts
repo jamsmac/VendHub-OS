@@ -369,6 +369,7 @@ describe("WarehouseService", () => {
       const result = await service.update(
         "warehouse-uuid-1",
         { name: "Updated Warehouse Name" },
+        orgId,
         "user-uuid-3",
       );
 
@@ -380,7 +381,7 @@ describe("WarehouseService", () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update("non-existent-id", { name: "New Name" }),
+        service.update("non-existent-id", { name: "New Name" }, orgId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -395,6 +396,7 @@ describe("WarehouseService", () => {
       const result = await service.update(
         "warehouse-uuid-1",
         { name: "Changed" },
+        orgId,
         "user-uuid-5",
       );
 
@@ -412,7 +414,7 @@ describe("WarehouseService", () => {
 
       warehouseRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("warehouse-uuid-1");
+      await service.remove("warehouse-uuid-1", orgId);
 
       expect(warehouseRepository.softDelete).toHaveBeenCalledWith(
         "warehouse-uuid-1",
@@ -422,7 +424,7 @@ describe("WarehouseService", () => {
     it("should throw NotFoundException when warehouse not found", async () => {
       warehouseRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove("non-existent-id")).rejects.toThrow(
+      await expect(service.remove("non-existent-id", orgId)).rejects.toThrow(
         NotFoundException,
       );
     });

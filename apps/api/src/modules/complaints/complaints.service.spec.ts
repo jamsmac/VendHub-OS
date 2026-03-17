@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -115,6 +115,33 @@ describe("ComplaintsService", () => {
         ComplaintsCoreService,
         ComplaintsRefundService,
         ComplaintsAnalyticsService,
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(
+              async (
+                fn: (manager: {
+                  save: jest.Mock;
+                  createQueryBuilder: () => unknown;
+                }) => unknown,
+              ) => {
+                const manager = {
+                  save: jest.fn(async (entity: unknown) => entity),
+                  createQueryBuilder: () => ({
+                    update: () => ({
+                      set: () => ({
+                        where: () => ({
+                          execute: jest.fn(async () => ({ affected: 1 })),
+                        }),
+                      }),
+                    }),
+                  }),
+                };
+                return fn(manager);
+              },
+            ),
+          },
+        },
         {
           provide: getRepositoryToken(Complaint),
           useValue: {

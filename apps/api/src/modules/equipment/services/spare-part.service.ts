@@ -14,6 +14,7 @@ import {
   UpdateSparePartDto,
   SparePartQueryDto,
 } from "../dto/create-spare-part.dto";
+import { safeOrderBy } from "../../../common/utils";
 
 @Injectable()
 export class SparePartService {
@@ -90,7 +91,14 @@ export class SparePartService {
       qb.andWhere("s.supplierId = :supplierId", { supplierId });
     }
 
-    qb.orderBy(`s.${sortBy}`, sortOrder);
+    safeOrderBy(qb, "s", sortBy, sortOrder, [
+      "createdAt",
+      "name",
+      "partNumber",
+      "quantity",
+      "minQuantity",
+      "status",
+    ] as const);
 
     const [data, total] = await qb
       .skip((page - 1) * limit)

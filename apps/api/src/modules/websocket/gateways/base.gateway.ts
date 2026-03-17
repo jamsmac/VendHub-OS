@@ -78,9 +78,18 @@ export abstract class BaseGateway {
       // Gateway-specific setup (room joins, init events)
       this.onAuthenticated(client, payload);
     } catch (error: unknown) {
-      this.logger.error(
-        `Connection error: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      const message = error instanceof Error ? error.message : String(error);
+      const isAuthError =
+        message.includes("jwt") ||
+        message.includes("token") ||
+        message.includes("expired") ||
+        message.includes("invalid signature");
+
+      if (isAuthError) {
+        this.logger.warn(`Auth failed for WS client ${client.id}: ${message}`);
+      } else {
+        this.logger.error(`System error during WS connection: ${message}`);
+      }
       client.disconnect();
     }
   }

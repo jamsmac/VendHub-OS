@@ -120,6 +120,7 @@ export class CreateComplaintDto {
   @ApiProperty({ example: "При попытке купить напиток автомат выдал ошибку" })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(5000)
   description: string;
 
   @ApiPropertyOptional({ type: CustomerInfoDto })
@@ -209,6 +210,7 @@ export class UpdateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   description?: string;
 
   @ApiPropertyOptional()
@@ -219,6 +221,7 @@ export class UpdateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   resolution?: string;
 
   @ApiPropertyOptional()
