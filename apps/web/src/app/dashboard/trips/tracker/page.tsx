@@ -142,7 +142,7 @@ export default function TripTrackerPage() {
                       <CardTitle className="text-base flex items-center gap-2">
                         <User className="h-4 w-4" />
                         {trip.employee
-                          ? `${trip.employee.firstName} ${trip.employee.lastName || ""}`
+                          ? `${trip.employee?.firstName} ${trip.employee?.lastName || ""}`
                           : t("noDriver")}
                       </CardTitle>
                       <span

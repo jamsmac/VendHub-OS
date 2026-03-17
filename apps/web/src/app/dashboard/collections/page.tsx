@@ -368,7 +368,7 @@ export default function CollectionsPage() {
                             "—"}{" "}
                           · {formatDate(collection.collectedAt)}
                           {collection.operator &&
-                            ` · ${collection.operator.firstName} ${collection.operator.lastName || ""}`}
+                            ` · ${collection.operator?.firstName} ${collection.operator?.lastName || ""}`}
                         </div>
                       </div>
                     </div>

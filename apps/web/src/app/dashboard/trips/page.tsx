@@ -343,7 +343,7 @@ export default function TripsPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium">
                             {trip.employee
-                              ? `${trip.employee.firstName} ${trip.employee.lastName || ""}`
+                              ? `${trip.employee?.firstName} ${trip.employee?.lastName || ""}`
                               : t("noDriver")}
                           </h3>
                           <span

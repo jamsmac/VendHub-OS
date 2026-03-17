@@ -197,7 +197,7 @@ export default function MachineAccessPage() {
 
   const getMachineDisplayName = (record: MachineAccess) => {
     if (record.machine) {
-      return record.machine.name || record.machine.machine_number;
+      return record.machine?.name || record.machine?.machine_number;
     }
     return record.machineId;
   };
@@ -355,7 +355,7 @@ export default function MachineAccessPage() {
                           </p>
                           {record.user?.email && (
                             <p className="text-xs text-muted-foreground">
-                              {record.user.email}
+                              {record.user?.email}
                             </p>
                           )}
                         </div>

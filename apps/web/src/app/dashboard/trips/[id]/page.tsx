@@ -310,7 +310,7 @@ export default function TripDetailPage({
             </div>
             <p className="text-muted-foreground">
               {trip.employee
-                ? `${trip.employee.firstName} ${trip.employee.lastName || ""}`
+                ? `${trip.employee?.firstName} ${trip.employee?.lastName || ""}`
                 : t("noDriver")}
               {trip.route ? ` — ${trip.route.name}` : ""}
             </p>
@@ -379,7 +379,7 @@ export default function TripDetailPage({
                   </span>
                   <span className="text-sm font-medium">
                     {trip.employee
-                      ? `${trip.employee.firstName} ${trip.employee.lastName || ""}`
+                      ? `${trip.employee?.firstName} ${trip.employee?.lastName || ""}`
                       : "—"}
                   </span>
                 </div>
@@ -519,7 +519,7 @@ export default function TripDetailPage({
                           </div>
                           <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                             {stop.machine?.address && (
-                              <span>{stop.machine.address}</span>
+                              <span>{stop.machine?.address}</span>
                             )}
                             {stop.arrivedAt && (
                               <span>

@@ -202,8 +202,8 @@ export default function ContainersPage() {
 
                   {container.machine && (
                     <p className="text-sm text-muted-foreground mb-2">
-                      {container.machine.machineNumber} —{" "}
-                      {container.machine.name}
+                      {container.machine?.machineNumber} —{" "}
+                      {container.machine?.name}
                     </p>
                   )}
 

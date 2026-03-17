@@ -353,13 +353,13 @@ export default function WorkLogsPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <span className="text-sm font-semibold text-primary">
-                              {log.employee.firstName[0]}
-                              {log.employee.lastName[0]}
+                              {log.employee?.firstName[0]}
+                              {log.employee?.lastName[0]}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium">
-                              {log.employee.firstName} {log.employee.lastName}
+                              {log.employee?.firstName} {log.employee?.lastName}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {log.employee.position}
@@ -506,13 +506,13 @@ export default function WorkLogsPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <span className="text-sm font-semibold text-primary">
-                              {request.employee.firstName[0]}
-                              {request.employee.lastName[0]}
+                              {request.employee?.firstName[0]}
+                              {request.employee?.lastName[0]}
                             </span>
                           </div>
                           <p className="font-medium">
-                            {request.employee.firstName}{" "}
-                            {request.employee.lastName}
+                            {request.employee?.firstName}{" "}
+                            {request.employee?.lastName}
                           </p>
                         </div>
                       </TableCell>

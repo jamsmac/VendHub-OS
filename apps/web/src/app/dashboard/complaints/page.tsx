@@ -373,7 +373,7 @@ export default function ComplaintsPage() {
                           {complaint.machine && (
                             <span className="flex items-center gap-1">
                               <Coffee className="h-3 w-3" />
-                              {complaint.machine.name}
+                              {complaint.machine?.name}
                             </span>
                           )}
                           {complaint.customerPhone && (
@@ -385,7 +385,7 @@ export default function ComplaintsPage() {
                           {complaint.assignedTo && (
                             <span className="flex items-center gap-1">
                               <User className="h-3 w-3" />
-                              {complaint.assignedTo.firstName}
+                              {complaint.assignedTo?.firstName}
                             </span>
                           )}
                           <span className="flex items-center gap-1">

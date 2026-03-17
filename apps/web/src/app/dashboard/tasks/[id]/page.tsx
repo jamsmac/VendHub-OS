@@ -63,7 +63,7 @@ export default function TaskDetailPage() {
         dueDate: data.dueDate ? data.dueDate.split("T")[0] : "",
         taskNumber: data.taskNumber || "",
         assignedTo: data.assignedTo?.firstName
-          ? `${data.assignedTo.firstName} ${data.assignedTo.lastName || ""}`
+          ? `${data.assignedTo?.firstName} ${data.assignedTo?.lastName || ""}`
           : "",
         machine: data.machine?.name || "",
       });

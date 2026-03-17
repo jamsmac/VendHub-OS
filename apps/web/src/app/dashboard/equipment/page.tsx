@@ -893,8 +893,8 @@ export default function EquipmentPage() {
                         {schedule.assignedTo ? (
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" />
-                            {schedule.assignedTo.firstName}{" "}
-                            {schedule.assignedTo.lastName}
+                            {schedule.assignedTo?.firstName}{" "}
+                            {schedule.assignedTo?.lastName}
                           </span>
                         ) : (
                           "-"

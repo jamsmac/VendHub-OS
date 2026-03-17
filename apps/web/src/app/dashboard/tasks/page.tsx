@@ -439,14 +439,14 @@ export default function TasksPage() {
                               {task.machine && (
                                 <span className="flex items-center gap-1">
                                   <Coffee className="h-3 w-3" />
-                                  {task.machine.name}
+                                  {task.machine?.name}
                                 </span>
                               )}
                               {task.assignedTo && (
                                 <span className="flex items-center gap-1">
                                   <User className="h-3 w-3" />
-                                  {task.assignedTo.firstName}{" "}
-                                  {task.assignedTo.lastName}
+                                  {task.assignedTo?.firstName}{" "}
+                                  {task.assignedTo?.lastName}
                                 </span>
                               )}
                               {task.dueDate && (
@@ -599,14 +599,14 @@ export default function TasksPage() {
                             {task.machine && (
                               <p className="text-xs text-muted-foreground mt-1 truncate">
                                 <Coffee className="h-3 w-3 inline mr-1" />
-                                {task.machine.name}
+                                {task.machine?.name}
                               </p>
                             )}
                             {task.assignedTo && (
                               <p className="text-xs text-muted-foreground mt-0.5 truncate">
                                 <User className="h-3 w-3 inline mr-1" />
-                                {task.assignedTo.firstName}{" "}
-                                {task.assignedTo.lastName}
+                                {task.assignedTo?.firstName}{" "}
+                                {task.assignedTo?.lastName}
                               </p>
                             )}
                           </CardContent>

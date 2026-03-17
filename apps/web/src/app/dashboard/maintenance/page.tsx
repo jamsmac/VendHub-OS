@@ -434,7 +434,7 @@ export default function MaintenancePage() {
                     <div className="flex items-center gap-2">
                       <Coffee className="w-4 h-4 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">{request.machine.name}</p>
+                        <p className="font-medium">{request.machine?.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {request.machine.serialNumber}
                         </p>
@@ -456,8 +456,8 @@ export default function MaintenancePage() {
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-muted-foreground" />
                         <span>
-                          {request.assignedTo.firstName}{" "}
-                          {request.assignedTo.lastName}
+                          {request.assignedTo?.firstName}{" "}
+                          {request.assignedTo?.lastName}
                         </span>
                       </div>
                     ) : (

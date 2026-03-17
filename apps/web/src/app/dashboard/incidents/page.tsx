@@ -503,11 +503,11 @@ export default function IncidentsPage() {
                     {incident.machine ? (
                       <div>
                         <p className="font-medium text-sm">
-                          {incident.machine.machine_number}
+                          {incident.machine?.machine_number}
                         </p>
-                        {incident.machine.name && (
+                        {incident.machine?.name && (
                           <p className="text-xs text-muted-foreground">
-                            {incident.machine.name}
+                            {incident.machine?.name}
                           </p>
                         )}
                       </div>

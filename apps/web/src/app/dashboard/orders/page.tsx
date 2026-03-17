@@ -369,11 +369,11 @@ export default function OrdersPage() {
                       <User className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="font-medium">
-                          {order.customer.firstName || t("guest")}
+                          {order.customer?.firstName || t("guest")}
                         </p>
-                        {order.customer.phone && (
+                        {order.customer?.phone && (
                           <p className="text-sm text-muted-foreground">
-                            {order.customer.phone}
+                            {order.customer?.phone}
                           </p>
                         )}
                       </div>
@@ -384,7 +384,7 @@ export default function OrdersPage() {
                       <Coffee className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="font-medium line-clamp-1">
-                          {order.machine.name}
+                          {order.machine?.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {order.machine.serialNumber}
@@ -491,11 +491,11 @@ export default function OrdersPage() {
                   {t("dialogCustomer")}
                 </h4>
                 <p className="font-medium">
-                  {selectedOrder.customer.firstName || t("guest")}
+                  {selectedOrder.customer?.firstName || t("guest")}
                 </p>
-                {selectedOrder.customer.phone && (
+                {selectedOrder.customer?.phone && (
                   <p className="text-sm text-muted-foreground">
-                    {selectedOrder.customer.phone}
+                    {selectedOrder.customer?.phone}
                   </p>
                 )}
               </div>
@@ -505,9 +505,9 @@ export default function OrdersPage() {
                 <h4 className="text-sm font-medium mb-2">
                   {t("dialogMachine")}
                 </h4>
-                <p className="font-medium">{selectedOrder.machine.name}</p>
+                <p className="font-medium">{selectedOrder.machine?.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedOrder.machine.address}
+                  {selectedOrder.machine?.address}
                 </p>
               </div>
 

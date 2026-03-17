@@ -519,7 +519,7 @@ export default function RouteDetailPage({
                     </div>
                     {stop.machine?.address && (
                       <p className="text-sm text-muted-foreground truncate mt-0.5">
-                        {stop.machine.address}
+                        {stop.machine?.address}
                       </p>
                     )}
                     {stop.estimatedArrivalMinutes != null && (
