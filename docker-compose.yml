@@ -224,9 +224,8 @@ services:
     depends_on:
       - api
     volumes:
-      - ./apps/web:/app/apps/web
-      - ./packages:/app/packages
-      - web_node_modules:/app/node_modules
+      - ./apps/web/src:/app/apps/web/src
+      - ./packages/shared/src:/app/packages/shared/src
     healthcheck:
       test:
         [
@@ -276,9 +275,8 @@ services:
     depends_on:
       - api
     volumes:
-      - ./apps/client:/app/apps/client
-      - ./packages:/app/packages
-      - client_node_modules:/app/node_modules
+      - ./apps/client/src:/app/apps/client/src
+      - ./packages/shared/src:/app/packages/shared/src
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 30s
@@ -591,10 +589,6 @@ volumes:
     name: vendhub-minio-data
   db_backups:
     name: vendhub-db-backups
-  web_node_modules:
-    name: vendhub-web-node-modules
-  client_node_modules:
-    name: vendhub-client-node-modules
   bot_node_modules:
     name: vendhub-bot-node-modules
   site_node_modules:
