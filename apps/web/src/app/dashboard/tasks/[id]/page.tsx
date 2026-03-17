@@ -1,61 +1,283 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
+
+const TASK_TYPES = [
+  "refill",
+  "collection",
+  "cleaning",
+  "repair",
+  "install",
+  "removal",
+  "audit",
+  "inspection",
+];
+const STATUSES = [
+  "pending",
+  "assigned",
+  "in_progress",
+  "completed",
+  "rejected",
+  "postponed",
+  "cancelled",
+];
+const PRIORITIES = ["low", "normal", "high", "urgent"];
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const t = useTranslations("tasks");
+  const tCommon = useTranslations("common");
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState<Record<string, unknown> | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["tasks", id],
+  const { isLoading } = useQuery({
+    queryKey: ["task", id],
     queryFn: async () => {
       const res = await api.get(`/tasks/${id}`);
-      return res.data?.data ?? res.data;
+      const data = res.data?.data ?? res.data;
+      setForm({
+        title: data.title || "",
+        description: data.description || "",
+        type: data.typeCode || data.type || "refill",
+        status: data.status || "pending",
+        priority: data.priority || "normal",
+        dueDate: data.dueDate ? data.dueDate.split("T")[0] : "",
+        taskNumber: data.taskNumber || "",
+        assignedTo: data.assignedTo?.firstName
+          ? `${data.assignedTo.firstName} ${data.assignedTo.lastName || ""}`
+          : "",
+        machine: data.machine?.name || "",
+      });
+      return data;
     },
   });
 
-  if (isLoading) {
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      api.patch(`/tasks/${id}`, {
+        title: form?.title,
+        description: form?.description,
+        status: form?.status,
+        priority: form?.priority,
+        dueDate: form?.dueDate || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task updated");
+    },
+    onError: () => toast.error("Failed to update"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/tasks/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Deleted");
+      router.push("/dashboard/tasks");
+    },
+    onError: () => toast.error("Failed to delete"),
+  });
+
+  if (isLoading || !form)
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
-  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/tasks">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">
-          {data?.name || data?.title || data?.firstName || "Task Details"}
-        </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/tasks">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {form.taskNumber as string}
+            </p>
+            <h1 className="text-2xl font-bold">{form.title as string}</h1>
+          </div>
+        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => {
+            if (confirm("Delete this task?")) deleteMutation.mutate();
+          }}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          {tCommon("delete") || "Delete"}
+        </Button>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {t("details") || "Details"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="text-sm bg-muted p-4 rounded-lg overflow-auto max-h-96">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </CardContent>
-      </Card>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          updateMutation.mutate();
+        }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {t("taskDetails") || "Task Details"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">
+                {t("title") || "Title"}
+              </label>
+              <Input
+                value={form.title as string}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                {t("description") || "Description"}
+              </label>
+              <Input
+                value={form.description as string}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+                className="mt-1"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">
+                  {t("type") || "Type"}
+                </label>
+                <Select
+                  value={form.type as string}
+                  onValueChange={(v) => setForm({ ...form, type: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASK_TYPES.map((tt) => (
+                      <SelectItem key={tt} value={tt}>
+                        {tt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  {t("status") || "Status"}
+                </label>
+                <Select
+                  value={form.status as string}
+                  onValueChange={(v) => setForm({ ...form, status: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  {t("priority") || "Priority"}
+                </label>
+                <Select
+                  value={form.priority as string}
+                  onValueChange={(v) => setForm({ ...form, priority: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITIES.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">
+                  {t("dueDate") || "Due Date"}
+                </label>
+                <Input
+                  type="date"
+                  value={form.dueDate as string}
+                  onChange={(e) =>
+                    setForm({ ...form, dueDate: e.target.value })
+                  }
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  {t("assignedTo") || "Assigned To"}
+                </label>
+                <Input
+                  value={form.assignedTo as string}
+                  disabled
+                  className="mt-1 bg-muted"
+                />
+              </div>
+            </div>
+            {form.machine ? (
+              <div>
+                <label className="text-sm font-medium">
+                  {t("machine") || "Machine"}
+                </label>
+                <Input
+                  value={form.machine as string}
+                  disabled
+                  className="mt-1 bg-muted"
+                />
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+        <div className="flex justify-end gap-3 mt-6">
+          <Link href="/dashboard/tasks">
+            <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+          </Link>
+          <Button type="submit" disabled={updateMutation.isPending}>
+            <Save className="h-4 w-4 mr-2" />
+            {updateMutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
