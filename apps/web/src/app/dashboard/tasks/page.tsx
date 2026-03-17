@@ -565,13 +565,24 @@ export default function TasksPage() {
                         <Card className="cursor-pointer hover:shadow-md transition-shadow">
                           <CardContent className="p-3">
                             <div className="flex items-center gap-2 mb-1">
-                              <span>{typeIcons[task.taskType]}</span>
+                              <span>
+                                {
+                                  typeIcons[
+                                    task.taskType ||
+                                      task.typeCode ||
+                                      task.type ||
+                                      "refill"
+                                  ]
+                                }
+                              </span>
                               <span className="text-xs font-medium">
                                 #{task.taskNumber}
                               </span>
                             </div>
                             <p className="text-sm font-medium line-clamp-2">
-                              {t(`type_${task.taskType}`)}
+                              {t(
+                                `type_${task.taskType || task.typeCode || task.type || "refill"}`,
+                              )}
                             </p>
                             <div className="flex items-center justify-between mt-2">
                               <span
