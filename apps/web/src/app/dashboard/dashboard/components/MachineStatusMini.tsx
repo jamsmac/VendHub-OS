@@ -77,7 +77,10 @@ export function MachineStatusMini() {
       <CardContent>
         <div className="space-y-2">
           {topMachines.map((m) => {
-            const meta = MACHINE_STATUS_META[m.status];
+            const meta = MACHINE_STATUS_META[m.status] ?? {
+              dot: "bg-gray-400",
+              label: m.status,
+            };
             return (
               <div
                 key={m.id}
