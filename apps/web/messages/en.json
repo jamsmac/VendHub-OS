@@ -207,7 +207,22 @@
     "deleteConfirm": "Delete machine?",
     "deleted": "Machine deleted",
     "deleteFailed": "Failed to delete machine",
-    "loadFailed": "Failed to load machines"
+    "loadFailed": "Failed to load machines",
+    "basicInfo": "Basic Information",
+    "name": "Name",
+    "code": "Code",
+    "type": "Type",
+    "status": "Status",
+    "manufacturer": "Manufacturer",
+    "slots": "Slots",
+    "newMachine": "New Machine",
+    "editMachine": "Edit Machine",
+    "created": "Machine created",
+    "updated": "Machine updated",
+    "createError": "Failed to create machine",
+    "updateError": "Failed to update machine",
+    "deleteError": "Failed to delete machine",
+    "confirmDelete": "Delete this machine?"
   },
   "products": {
     "title": "Products",
@@ -299,7 +314,18 @@
     "ingCatCups": "Cups",
     "ingCatOther": "Other",
     "type": "Type",
-    "temperature": "Temperature"
+    "temperature": "Temperature",
+    "basicInfo": "Basic Info",
+    "name": "Name",
+    "status": "Status",
+    "sellingPrice": "Selling Price",
+    "description": "Description",
+    "newProduct": "New Product",
+    "editProduct": "Edit Product",
+    "updated": "Product updated",
+    "updateError": "Failed to update",
+    "deleteError": "Failed to delete",
+    "confirmDelete": "Delete this product?"
   },
   "users": {
     "title": "Users",
@@ -722,7 +748,15 @@
     "formAdd": "Add",
     "updated": "Employee updated",
     "added": "Employee added",
-    "saveFailed": "Save error"
+    "saveFailed": "Save error",
+    "personalInfo": "Personal Info",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "position": "Position",
+    "status": "Status",
+    "phone": "Phone",
+    "hireDate": "Hire Date",
+    "salary": "Salary"
   },
   "trips": {
     "title": "Trips",
@@ -851,7 +885,16 @@
     "retry": "Retry",
     "notFound": "No tasks found",
     "addFirst": "Create the first task for employees",
-    "noTasks": "No tasks"
+    "noTasks": "No tasks",
+    "taskDetails": "Task Details",
+    "description": "Description",
+    "type": "Type",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "assignedTo": "Assigned To",
+    "machine": "Machine",
+    "newTask": "New Task"
   },
   "teamMembers": {
     "tasksLabel": "Tasks",
@@ -1422,7 +1465,14 @@
     "viewOnGoogleMaps": "View on Google Maps",
     "cancel": "Cancel",
     "save": "Save",
-    "add": "Add"
+    "add": "Add",
+    "locationInfo": "Location Info",
+    "name": "Name",
+    "city": "City",
+    "contactPerson": "Contact Person",
+    "phone": "Phone",
+    "machines": "Machines",
+    "newLocation": "New Location"
   },
   "contractors": {
     "title": "Contractors",

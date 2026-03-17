@@ -207,7 +207,22 @@
     "deleteConfirm": "Avtomatni o'chirishmi?",
     "deleted": "Avtomat o'chirildi",
     "deleteFailed": "Avtomatni o'chirib bo'lmadi",
-    "loadFailed": "Avtomatlarni yuklab bo'lmadi"
+    "loadFailed": "Avtomatlarni yuklab bo'lmadi",
+    "basicInfo": "Asosiy ma'lumot",
+    "name": "Nomi",
+    "code": "Kod",
+    "type": "Turi",
+    "status": "Holati",
+    "manufacturer": "Ishlab chiqaruvchi",
+    "slots": "Slotlar",
+    "newMachine": "Yangi avtomat",
+    "editMachine": "Avtomatni tahrirlash",
+    "created": "Avtomat yaratildi",
+    "updated": "Avtomat yangilandi",
+    "createError": "Yaratishda xatolik",
+    "updateError": "Yangilashda xatolik",
+    "deleteError": "O'chirishda xatolik",
+    "confirmDelete": "Bu avtomatni o'chirmoqchimisiz?"
   },
   "products": {
     "title": "Mahsulotlar",
@@ -299,7 +314,18 @@
     "ingCatCups": "Stakanlar",
     "ingCatOther": "Boshqa",
     "type": "Turi",
-    "temperature": "Harorat"
+    "temperature": "Harorat",
+    "basicInfo": "Asosiy ma'lumot",
+    "name": "Nomi",
+    "status": "Holati",
+    "sellingPrice": "Sotuv narxi",
+    "description": "Tavsif",
+    "newProduct": "Yangi mahsulot",
+    "editProduct": "Mahsulotni tahrirlash",
+    "updated": "Mahsulot yangilandi",
+    "updateError": "Yangilashda xatolik",
+    "deleteError": "O'chirishda xatolik",
+    "confirmDelete": "Bu mahsulotni o'chirmoqchimisiz?"
   },
   "users": {
     "title": "Foydalanuvchilar",
@@ -722,7 +748,15 @@
     "formAdd": "Qo'shish",
     "updated": "Xodim yangilandi",
     "added": "Xodim qo'shildi",
-    "saveFailed": "Saqlash xatosi"
+    "saveFailed": "Saqlash xatosi",
+    "personalInfo": "Shaxsiy ma'lumot",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "position": "Lavozim",
+    "status": "Holati",
+    "phone": "Telefon",
+    "hireDate": "Ish boshlagan sana",
+    "salary": "Maosh"
   },
   "trips": {
     "title": "Reyslar",
@@ -851,7 +885,16 @@
     "retry": "Qayta urinish",
     "notFound": "Vazifalar topilmadi",
     "addFirst": "Xodimlar uchun birinchi vazifani yarating",
-    "noTasks": "Vazifalar yo'q"
+    "noTasks": "Vazifalar yo'q",
+    "taskDetails": "Vazifa tafsilotlari",
+    "description": "Tavsif",
+    "type": "Turi",
+    "status": "Holati",
+    "priority": "Muhimlik",
+    "dueDate": "Muddat",
+    "assignedTo": "Tayinlangan",
+    "machine": "Avtomat",
+    "newTask": "Yangi vazifa"
   },
   "teamMembers": {
     "tasksLabel": "Topshiriqlar",
@@ -1422,7 +1465,14 @@
     "viewOnGoogleMaps": "Google Maps da ko'rish",
     "cancel": "Bekor qilish",
     "save": "Saqlash",
-    "add": "Qo'shish"
+    "add": "Qo'shish",
+    "locationInfo": "Joylashuv ma'lumoti",
+    "name": "Nomi",
+    "city": "Shahar",
+    "contactPerson": "Bog'lanish shaxsi",
+    "phone": "Telefon",
+    "machines": "Avtomatlar",
+    "newLocation": "Yangi joylashuv"
   },
   "contractors": {
     "title": "Pudratchilar",

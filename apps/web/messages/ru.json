@@ -207,7 +207,22 @@
     "deleteConfirm": "Удалить автомат?",
     "deleted": "Автомат удалён",
     "deleteFailed": "Не удалось удалить автомат",
-    "loadFailed": "Не удалось загрузить автоматы"
+    "loadFailed": "Не удалось загрузить автоматы",
+    "basicInfo": "Основная информация",
+    "name": "Название",
+    "code": "Код",
+    "type": "Тип",
+    "status": "Статус",
+    "manufacturer": "Производитель",
+    "slots": "Слоты",
+    "newMachine": "Новый автомат",
+    "editMachine": "Редактировать автомат",
+    "created": "Автомат создан",
+    "updated": "Автомат обновлён",
+    "createError": "Ошибка создания",
+    "updateError": "Ошибка обновления",
+    "deleteError": "Ошибка удаления",
+    "confirmDelete": "Удалить этот автомат?"
   },
   "products": {
     "title": "Продукты",
@@ -299,7 +314,18 @@
     "ingCatCups": "Стаканчики",
     "ingCatOther": "Другое",
     "type": "Тип",
-    "temperature": "Температура"
+    "temperature": "Температура",
+    "basicInfo": "Основная информация",
+    "name": "Название",
+    "status": "Статус",
+    "sellingPrice": "Цена продажи",
+    "description": "Описание",
+    "newProduct": "Новый товар",
+    "editProduct": "Редактировать товар",
+    "updated": "Товар обновлён",
+    "updateError": "Ошибка обновления",
+    "deleteError": "Ошибка удаления",
+    "confirmDelete": "Удалить этот товар?"
   },
   "users": {
     "title": "Пользователи",
@@ -722,7 +748,15 @@
     "formAdd": "Добавить",
     "updated": "Сотрудник обновлён",
     "added": "Сотрудник добавлен",
-    "saveFailed": "Ошибка сохранения"
+    "saveFailed": "Ошибка сохранения",
+    "personalInfo": "Личная информация",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "position": "Должность",
+    "status": "Статус",
+    "phone": "Телефон",
+    "hireDate": "Дата найма",
+    "salary": "Зарплата"
   },
   "trips": {
     "title": "Рейсы",
@@ -851,7 +885,16 @@
     "retry": "Повторить",
     "notFound": "Задачи не найдены",
     "addFirst": "Создайте первую задачу для сотрудников",
-    "noTasks": "Нет задач"
+    "noTasks": "Нет задач",
+    "taskDetails": "Детали задачи",
+    "description": "Описание",
+    "type": "Тип",
+    "status": "Статус",
+    "priority": "Приоритет",
+    "dueDate": "Срок",
+    "assignedTo": "Назначено",
+    "machine": "Автомат",
+    "newTask": "Новая задача"
   },
   "teamMembers": {
     "tasksLabel": "Задач",
@@ -1422,7 +1465,14 @@
     "viewOnGoogleMaps": "Посмотреть на Google Maps",
     "cancel": "Отмена",
     "save": "Сохранить",
-    "add": "Добавить"
+    "add": "Добавить",
+    "locationInfo": "Информация о локации",
+    "name": "Название",
+    "city": "Город",
+    "contactPerson": "Контактное лицо",
+    "phone": "Телефон",
+    "machines": "Автоматы",
+    "newLocation": "Новая локация"
   },
   "contractors": {
     "title": "Подрядчики",
