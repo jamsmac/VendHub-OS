@@ -121,7 +121,9 @@ export default function VehiclesPage() {
       if (debouncedSearch) params.search = debouncedSearch;
       if (typeFilter !== "all") params.type = typeFilter;
       if (statusFilter !== "all") params.status = statusFilter;
-      return vehiclesApi.getAll(params);
+      const res = await vehiclesApi.getAll(params);
+      const d = res.data;
+      return Array.isArray(d) ? d : d?.data || d?.items || [];
     },
   });
 

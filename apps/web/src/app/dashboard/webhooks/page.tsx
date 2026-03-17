@@ -150,12 +150,14 @@ export default function WebhooksPage() {
     isError,
   } = useQuery<Webhook[]>({
     queryKey: ["webhooks", debouncedSearch, activeFilter, eventFilter],
-    queryFn: () => {
+    queryFn: async () => {
       const params: Record<string, string> = {};
       if (debouncedSearch) params.search = debouncedSearch;
       if (activeFilter !== "all") params.is_active = activeFilter;
       if (eventFilter !== "all") params.event = eventFilter;
-      return webhooksApi.getAll(params);
+      const res = await webhooksApi.getAll(params);
+      const d = res.data;
+      return Array.isArray(d) ? d : d?.data || d?.items || [];
     },
   });
 

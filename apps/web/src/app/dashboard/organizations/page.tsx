@@ -161,7 +161,9 @@ export default function OrganizationsPage() {
       if (debouncedSearch) params.search = debouncedSearch;
       if (statusFilter !== "all") params.status = statusFilter;
       if (typeFilter !== "all") params.type = typeFilter;
-      return organizationsApi.getAll(params);
+      const res = await organizationsApi.getAll(params);
+      const d = res.data;
+      return Array.isArray(d) ? d : d?.data || d?.items || [];
     },
   });
 
