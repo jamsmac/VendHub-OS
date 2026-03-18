@@ -1,10 +1,112 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import * as client from "prom-client";
 
 @Injectable()
-export class MetricsService {
-  private httpRequestsTotal = new Map<string, number>();
-  private httpRequestDuration = new Map<string, number[]>();
-  private startTime = Date.now();
+export class MetricsService implements OnModuleInit {
+  private readonly register = new client.Registry();
+
+  // ── HTTP metrics ──
+  readonly httpRequestsTotal = new client.Counter({
+    name: "http_requests_total",
+    help: "Total number of HTTP requests",
+    labelNames: ["method", "path", "status"] as const,
+    registers: [this.register],
+  });
+
+  readonly httpRequestDuration = new client.Histogram({
+    name: "http_request_duration_seconds",
+    help: "HTTP request duration in seconds",
+    labelNames: ["method", "path", "status"] as const,
+    buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+    registers: [this.register],
+  });
+
+  readonly httpRequestErrors = new client.Counter({
+    name: "http_requests_errors_total",
+    help: "Total number of HTTP 5xx errors",
+    labelNames: ["method", "path"] as const,
+    registers: [this.register],
+  });
+
+  // ── Database metrics ──
+  readonly dbQueryDuration = new client.Histogram({
+    name: "db_query_duration_seconds",
+    help: "Database query duration in seconds",
+    labelNames: ["operation"] as const,
+    buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+    registers: [this.register],
+  });
+
+  // ── Auth metrics ──
+  readonly authLoginTotal = new client.Counter({
+    name: "auth_login_total",
+    help: "Total login attempts",
+    labelNames: ["result"] as const,
+    registers: [this.register],
+  });
+
+  // ── BullMQ metrics ──
+  readonly bullmqJobsCompleted = new client.Counter({
+    name: "bullmq_jobs_completed_total",
+    help: "Total completed BullMQ jobs",
+    labelNames: ["queue"] as const,
+    registers: [this.register],
+  });
+
+  readonly bullmqJobsFailed = new client.Counter({
+    name: "bullmq_jobs_failed_total",
+    help: "Total failed BullMQ jobs",
+    labelNames: ["queue"] as const,
+    registers: [this.register],
+  });
+
+  // ── Business metrics ──
+  readonly ordersTotal = new client.Counter({
+    name: "orders_total",
+    help: "Total number of orders",
+    labelNames: ["organization_id"] as const,
+    registers: [this.register],
+  });
+
+  readonly ordersRevenueUzs = new client.Counter({
+    name: "orders_revenue_uzs",
+    help: "Total revenue in UZS",
+    labelNames: ["organization_id"] as const,
+    registers: [this.register],
+  });
+
+  readonly paymentsTotal = new client.Counter({
+    name: "payments_total",
+    help: "Total payment attempts",
+    labelNames: ["method", "result"] as const,
+    registers: [this.register],
+  });
+
+  readonly machinesOnline = new client.Gauge({
+    name: "machines_online",
+    help: "Number of machines currently online",
+    labelNames: ["organization_id"] as const,
+    registers: [this.register],
+  });
+
+  readonly productsDispensed = new client.Counter({
+    name: "products_dispensed_total",
+    help: "Total products dispensed",
+    labelNames: ["organization_id"] as const,
+    registers: [this.register],
+  });
+
+  readonly productsLowStock = new client.Gauge({
+    name: "products_low_stock",
+    help: "Number of machines with low stock",
+    labelNames: ["organization_id"] as const,
+    registers: [this.register],
+  });
+
+  onModuleInit() {
+    // Collect default Node.js metrics (GC, event loop lag, memory, handles)
+    client.collectDefaultMetrics({ register: this.register });
+  }
 
   recordRequest(
     method: string,
@@ -12,64 +114,20 @@ export class MetricsService {
     statusCode: number,
     duration: number,
   ): void {
-    const key = `${method}_${path}_${statusCode}`;
-    this.httpRequestsTotal.set(key, (this.httpRequestsTotal.get(key) || 0) + 1);
+    const status = String(statusCode);
+    this.httpRequestsTotal.inc({ method, path, status });
+    this.httpRequestDuration.observe({ method, path, status }, duration / 1000);
 
-    const durKey = `${method}_${path}`;
-    const durations = this.httpRequestDuration.get(durKey) || [];
-    durations.push(duration);
-    if (durations.length > 1000) durations.shift();
-    this.httpRequestDuration.set(durKey, durations);
+    if (statusCode >= 500) {
+      this.httpRequestErrors.inc({ method, path });
+    }
   }
 
   async getMetrics(): Promise<string> {
-    const lines: string[] = [];
+    return this.register.metrics();
+  }
 
-    // Process uptime
-    lines.push("# HELP process_uptime_seconds Process uptime in seconds");
-    lines.push("# TYPE process_uptime_seconds gauge");
-    lines.push(
-      `process_uptime_seconds ${((Date.now() - this.startTime) / 1000).toFixed(0)}`,
-    );
-
-    // Memory
-    const mem = process.memoryUsage();
-    lines.push("# HELP process_heap_bytes Process heap size in bytes");
-    lines.push("# TYPE process_heap_bytes gauge");
-    lines.push(`process_heap_bytes{type="used"} ${mem.heapUsed}`);
-    lines.push(`process_heap_bytes{type="total"} ${mem.heapTotal}`);
-    lines.push(`process_heap_bytes{type="rss"} ${mem.rss}`);
-
-    // HTTP requests
-    lines.push("# HELP http_requests_total Total number of HTTP requests");
-    lines.push("# TYPE http_requests_total counter");
-    for (const [key, count] of this.httpRequestsTotal) {
-      const [method, path, status] = key.split("_");
-      lines.push(
-        `http_requests_total{method="${method}",path="${path}",status="${status}"} ${count}`,
-      );
-    }
-
-    // HTTP duration
-    lines.push("# HELP http_request_duration_seconds HTTP request duration");
-    lines.push("# TYPE http_request_duration_seconds summary");
-    for (const [key, durations] of this.httpRequestDuration) {
-      const [method, path] = key.split("_");
-      const sorted = [...durations].sort((a, b) => a - b);
-      const p50 = sorted[Math.floor(sorted.length * 0.5)] || 0;
-      const p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
-      const p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
-      lines.push(
-        `http_request_duration_seconds{method="${method}",path="${path}",quantile="0.5"} ${(p50 / 1000).toFixed(4)}`,
-      );
-      lines.push(
-        `http_request_duration_seconds{method="${method}",path="${path}",quantile="0.95"} ${(p95 / 1000).toFixed(4)}`,
-      );
-      lines.push(
-        `http_request_duration_seconds{method="${method}",path="${path}",quantile="0.99"} ${(p99 / 1000).toFixed(4)}`,
-      );
-    }
-
-    return lines.join("\n") + "\n";
+  getContentType(): string {
+    return this.register.contentType;
   }
 }

@@ -35,6 +35,7 @@ import { PasswordPolicyService } from "./services/password-policy.service";
 import { InvitesService } from "../invites/invites.service";
 import { RegisterWithInviteDto } from "./dto/register-with-invite.dto";
 import { v4 as uuidv4 } from "uuid";
+import { MetricsService } from "../metrics/metrics.service";
 
 interface TokenPayload {
   sub: string;
@@ -69,6 +70,7 @@ export class AuthService {
     private readonly invitesService: InvitesService,
     private readonly twoFactorService: TwoFactorService,
     private readonly authSessionService: AuthSessionService,
+    private readonly metricsService: MetricsService,
   ) {}
 
   // ==================== Challenge Token (prevents IDOR in 2FA/first-login) ====================
@@ -418,6 +420,7 @@ export class AuthService {
         user.id,
         "Invalid password",
       );
+      this.metricsService.authLoginTotal.inc({ result: "failed" });
 
       throw new UnauthorizedException("Invalid credentials");
     }
@@ -486,6 +489,7 @@ export class AuthService {
 
     // Log successful login
     await this.logLoginAttempt(email, ipAddress, userAgent, true, user.id);
+    this.metricsService.authLoginTotal.inc({ result: "success" });
 
     return {
       user: this.sanitizeUser(user),

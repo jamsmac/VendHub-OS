@@ -35,6 +35,7 @@ import { Machine } from "../machines/entities/machine.entity";
 import { PaymeHandler } from "./payme.handler";
 import { ClickHandler } from "./click.handler";
 import { UzumHandler } from "./uzum.handler";
+import { MetricsService } from "../metrics/metrics.service";
 
 // ============================================================================
 // INTERFACES (re-exported for backward compatibility)
@@ -99,6 +100,7 @@ export class PaymentsService {
     private readonly paymeHandler: PaymeHandler,
     private readonly clickHandler: ClickHandler,
     private readonly uzumHandler: UzumHandler,
+    private readonly metricsService: MetricsService,
   ) {}
 
   // ============================================

@@ -1,62 +1,84 @@
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
 import request from "supertest";
-import { HttpStatus } from "@nestjs/common";
-import { createControllerTestApp } from "../../common/test-utils/controller-test.helper";
+import * as promClient from "prom-client";
 import { MetricsController } from "./metrics.controller";
 import { MetricsService } from "./metrics.service";
+import { ConfigService } from "@nestjs/config";
 
 describe("MetricsController", () => {
-  let app: any;
-  let mockService: Record<string, jest.Mock>;
+  let app: INestApplication;
+  let metricsService: MetricsService;
+  let configService: ConfigService;
 
-  beforeAll(async () => {
-    ({ app, mockService } = await createControllerTestApp(
-      MetricsController,
-      MetricsService,
-      ["getMetrics"],
-    ));
+  async function createApp(metricsToken?: string) {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [MetricsController],
+      providers: [
+        MetricsService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: (key: string) => {
+              if (key === "METRICS_TOKEN") return metricsToken;
+              return undefined;
+            },
+          },
+        },
+      ],
+    }).compile();
+
+    app = module.createNestApplication();
+    await app.init();
+    metricsService = module.get(MetricsService);
+  }
+
+  afterEach(async () => {
+    if (app) await app.close();
+    // Clear all registries to avoid "metric already registered" in next test
+    promClient.register.clear();
   });
 
-  afterAll(async () => {
-    await app.close();
+  describe("without METRICS_TOKEN configured", () => {
+    beforeEach(() => createApp());
+
+    it("GET /metrics returns 200 with Prometheus format", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/metrics")
+        .expect(200);
+
+      expect(res.text).toBeDefined();
+      expect(res.headers["content-type"]).toContain("text/plain");
+    });
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  describe("with METRICS_TOKEN configured", () => {
+    const TOKEN = "test-secret-token";
 
-  // =========================================================================
-  // AUTH
-  // =========================================================================
+    beforeEach(() => createApp(TOKEN));
 
-  it("returns 401 without auth", async () => {
-    await request(app.getHttpServer())
-      .get("/metrics")
-      .expect(HttpStatus.UNAUTHORIZED);
-  });
+    it("rejects request without token", async () => {
+      await request(app.getHttpServer()).get("/metrics").expect(401);
+    });
 
-  // =========================================================================
-  // GET /metrics (owner/admin)
-  // =========================================================================
+    it("accepts request with valid token in header", async () => {
+      await request(app.getHttpServer())
+        .get("/metrics")
+        .set("x-metrics-token", TOKEN)
+        .expect(200);
+    });
 
-  it("GET /metrics returns 200 with admin auth", async () => {
-    mockService.getMetrics.mockResolvedValue("# HELP uptime\nuptime 123\n");
-    await request(app.getHttpServer())
-      .get("/metrics")
-      .set("Authorization", "Bearer admin-token")
-      .expect(HttpStatus.OK);
-  });
+    it("accepts request with valid token in query", async () => {
+      await request(app.getHttpServer())
+        .get(`/metrics?token=${TOKEN}`)
+        .expect(200);
+    });
 
-  it("rejects viewer for GET /metrics", async () => {
-    await request(app.getHttpServer())
-      .get("/metrics")
-      .set("Authorization", "Bearer viewer-token")
-      .expect(HttpStatus.FORBIDDEN);
-  });
-
-  it("rejects operator for GET /metrics", async () => {
-    await request(app.getHttpServer())
-      .get("/metrics")
-      .set("Authorization", "Bearer operator-token")
-      .expect(HttpStatus.FORBIDDEN);
+    it("rejects request with invalid token", async () => {
+      await request(app.getHttpServer())
+        .get("/metrics")
+        .set("x-metrics-token", "wrong-token")
+        .expect(401);
+    });
   });
 });

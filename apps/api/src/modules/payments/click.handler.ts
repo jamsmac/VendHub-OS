@@ -16,6 +16,7 @@ import {
   PaymentTransactionStatus,
 } from "./entities/payment-transaction.entity";
 import { ClickWebhookData, PaymentResult } from "./payments.service";
+import { MetricsService } from "../metrics/metrics.service";
 
 @Injectable()
 export class ClickHandler {
@@ -26,6 +27,7 @@ export class ClickHandler {
     private dataSource: DataSource,
     @InjectRepository(PaymentTransaction)
     private transactionRepo: Repository<PaymentTransaction>,
+    private readonly metricsService: MetricsService,
   ) {}
 
   /**
@@ -260,6 +262,11 @@ export class ClickHandler {
       transaction.processedAt = new Date();
       transaction.rawResponse = data as unknown as Record<string, unknown>;
       await txRepo.save(transaction);
+
+      this.metricsService.paymentsTotal.inc({
+        method: "click",
+        result: "success",
+      });
 
       return {
         click_trans_id: data.click_trans_id,

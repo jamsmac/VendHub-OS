@@ -21,6 +21,7 @@ import {
   PaymentTransactionStatus,
 } from "./entities/payment-transaction.entity";
 import { PaymeWebhookData, PaymentResult } from "./payments.service";
+import { MetricsService } from "../metrics/metrics.service";
 
 @Injectable()
 export class PaymeHandler {
@@ -31,6 +32,7 @@ export class PaymeHandler {
     private dataSource: DataSource,
     @InjectRepository(PaymentTransaction)
     private transactionRepo: Repository<PaymentTransaction>,
+    private readonly metricsService: MetricsService,
   ) {}
 
   /**
@@ -365,6 +367,11 @@ export class PaymeHandler {
       transaction.processedAt = new Date(performTime);
       transaction.rawResponse = data as unknown as Record<string, unknown>;
       await txRepo.save(transaction);
+
+      this.metricsService.paymentsTotal.inc({
+        method: "payme",
+        result: "success",
+      });
 
       return {
         result: {

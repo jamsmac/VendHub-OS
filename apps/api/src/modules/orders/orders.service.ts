@@ -32,6 +32,7 @@ import {
   OrderStatsDto,
   OrderItemDto,
 } from "./dto/order.dto";
+import { MetricsService } from "../metrics/metrics.service";
 
 // ============================================================================
 // WORKFLOW TRANSITIONS
@@ -63,6 +64,7 @@ export class OrdersService {
     private readonly eventEmitter: EventEmitter2,
     private readonly promoCodesService: PromoCodesService,
     private readonly dataSource: DataSource,
+    private readonly metricsService: MetricsService,
   ) {}
 
   // ============================================================================
@@ -181,6 +183,13 @@ export class OrdersService {
       await txOrderRepo.save(order);
 
       this.logger.log(`Order ${orderNumber} created for user ${userId}`);
+
+      // Business metrics
+      this.metricsService.ordersTotal.inc({ organization_id: organizationId });
+      this.metricsService.ordersRevenueUzs.inc(
+        { organization_id: organizationId },
+        totalAmount,
+      );
 
       this.eventEmitter.emit("order.created", {
         orderId: order.id,

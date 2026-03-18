@@ -17,6 +17,7 @@ import {
 } from "./entities/payment-transaction.entity";
 import { UzumCreateDto } from "./dto/create-payment.dto";
 import { UzumWebhookData, PaymentResult } from "./payments.service";
+import { MetricsService } from "../metrics/metrics.service";
 
 @Injectable()
 export class UzumHandler {
@@ -27,6 +28,7 @@ export class UzumHandler {
     private dataSource: DataSource,
     @InjectRepository(PaymentTransaction)
     private transactionRepo: Repository<PaymentTransaction>,
+    private readonly metricsService: MetricsService,
   ) {}
 
   /**
@@ -199,6 +201,19 @@ export class UzumHandler {
 
       transaction.rawResponse = data as Record<string, unknown>;
       await txRepo.save(transaction);
+
+      // Payment metrics
+      if (transaction.status === PaymentTransactionStatus.COMPLETED) {
+        this.metricsService.paymentsTotal.inc({
+          method: "uzum",
+          result: "success",
+        });
+      } else if (transaction.status === PaymentTransactionStatus.FAILED) {
+        this.metricsService.paymentsTotal.inc({
+          method: "uzum",
+          result: "failed",
+        });
+      }
 
       return {
         success: true,

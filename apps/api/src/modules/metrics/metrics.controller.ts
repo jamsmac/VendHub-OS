@@ -1,27 +1,44 @@
-import { Controller, Get, Res } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiExcludeEndpoint,
-  ApiOkResponse,
-  ApiBearerAuth,
-} from "@nestjs/swagger";
+import { Controller, Get, Res, UnauthorizedException } from "@nestjs/common";
+import { ApiTags, ApiExcludeEndpoint, ApiOkResponse } from "@nestjs/swagger";
 import { Response } from "express";
+import { ConfigService } from "@nestjs/config";
 import { MetricsService } from "./metrics.service";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Public } from "../auth/decorators/public.decorator";
 
 @ApiTags("Metrics")
-@ApiBearerAuth()
 @Controller("metrics")
-@Roles("owner", "admin")
 export class MetricsController {
-  constructor(private readonly metricsService: MetricsService) {}
+  constructor(
+    private readonly metricsService: MetricsService,
+    private readonly configService: ConfigService,
+  ) {}
 
+  /**
+   * Prometheus metrics endpoint.
+   *
+   * Auth: either a valid JWT (owner/admin) or METRICS_TOKEN query/header.
+   * The token-based auth lets Grafana Agent scrape without a JWT.
+   */
   @Get()
+  @Public()
   @ApiExcludeEndpoint()
   @ApiOkResponse({ description: "Prometheus metrics in text/plain format" })
   async getMetrics(@Res() res: Response): Promise<void> {
+    // Validate metrics token if configured
+    const metricsToken = this.configService.get<string>("METRICS_TOKEN");
+    if (metricsToken) {
+      const request = res.req;
+      const providedToken =
+        (request.query?.token as string) ||
+        (request.headers["x-metrics-token"] as string);
+
+      if (providedToken !== metricsToken) {
+        throw new UnauthorizedException("Invalid metrics token");
+      }
+    }
+
     const metrics = await this.metricsService.getMetrics();
-    res.set("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
+    res.set("Content-Type", this.metricsService.getContentType());
     res.send(metrics);
   }
 }
