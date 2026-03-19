@@ -163,6 +163,7 @@ export enum WidgetType {
 }
 
 export enum ChartType {
+  KPI = "kpi",
   LINE = "line",
   BAR = "bar",
   PIE = "pie",
