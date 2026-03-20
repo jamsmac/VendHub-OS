@@ -136,7 +136,7 @@ export enum AuditEntity {
 // AUDIT LOG ENTITY
 // ============================================================================
 
-@Entity("audit_logs")
+// DUPLICATE: @Entity("audit_logs")
 @Index(["eventType"])
 @Index(["userId"])
 @Index(["organizationId"])
@@ -302,7 +302,7 @@ export enum TwoFactorMethod {
 // TWO FACTOR AUTH ENTITY
 // ============================================================================
 
-@Entity("two_factor_auth")
+// DUPLICATE: @Entity("two_factor_auth")
 @Index(["userId"])
 @Unique(["userId"])
 export class TwoFactorAuth extends BaseEntity {

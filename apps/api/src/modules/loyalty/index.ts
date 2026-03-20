@@ -13,7 +13,7 @@ export * from "./loyalty.controller";
 
 // Entities
 export * from "./entities/points-transaction.entity";
-export * from "./entities/referral.entity";
+export * from "./entities/referral.model";
 
 // DTOs
 export * from "./dto/loyalty.dto";
@@ -26,8 +26,8 @@ export * from "./services/referral.service";
 export * from "./controllers/referral.controller";
 
 // Achievement
-export * from "./entities/achievement.entity";
-export * from "./entities/user-achievement.entity";
+export * from "./entities/achievement.model";
+export * from "./entities/user-achievement.model";
 export * from "./dto/achievement.dto";
 export * from "./services/achievement.service";
 export * from "./controllers/achievement.controller";
@@ -40,8 +40,8 @@ export * from "./services/promo-code.service";
 export * from "./controllers/promo-code.controller";
 
 // Quests
-export * from "./entities/quest.entity";
-export * from "./entities/user-quest.entity";
+export * from "./entities/quest.model";
+export * from "./entities/user-quest.model";
 export * from "./dto/quest.dto";
 export * from "./services/quest.service";
 export * from "./controllers/quest.controller";

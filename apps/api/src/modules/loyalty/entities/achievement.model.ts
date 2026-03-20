@@ -6,7 +6,7 @@
 import { Entity, Column, OneToMany, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { UserAchievement } from "./user-achievement.entity";
+import { UserAchievement } from "./user-achievement.model";
 
 /**
  * Категории достижений

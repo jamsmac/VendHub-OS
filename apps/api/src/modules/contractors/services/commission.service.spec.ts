@@ -11,7 +11,7 @@ import {
   CommissionType,
   CommissionCalculation,
   CommissionPaymentStatus,
-} from "../entities/contract.entity";
+} from "../entities/contract.model";
 import { Transaction } from "../../transactions/entities/transaction.entity";
 
 describe("CommissionService", () => {

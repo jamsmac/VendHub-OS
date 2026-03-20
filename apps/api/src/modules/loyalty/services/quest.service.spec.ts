@@ -9,8 +9,8 @@ import {
   QuestPeriod,
   QuestType,
   QuestDifficulty,
-} from "../entities/quest.entity";
-import { UserQuest, UserQuestStatus } from "../entities/user-quest.entity";
+} from "../entities/quest.model";
+import { UserQuest, UserQuestStatus } from "../entities/user-quest.model";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";
 

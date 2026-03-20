@@ -11,7 +11,7 @@ import { BaseEntity } from "../../../common/entities/base.entity";
 // DAILY STATS ENTITY
 // ============================================================================
 
-@Entity("daily_stats")
+// DUPLICATE: @Entity("daily_stats")
 @Unique(["statDate", "organizationId"])
 @Index(["statDate"])
 @Index(["organizationId"])
@@ -266,7 +266,7 @@ export enum SnapshotType {
 // ANALYTICS SNAPSHOT ENTITY
 // ============================================================================
 
-@Entity("analytics_snapshots")
+// DUPLICATE: @Entity("analytics_snapshots")
 @Index(["organizationId"])
 @Index(["snapshotType", "snapshotDate"])
 @Index(["machineId", "snapshotDate"])

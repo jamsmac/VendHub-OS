@@ -21,6 +21,6 @@ import { LoyaltyModule } from "../loyalty/loyalty.module";
   ],
   controllers: [QuestsController],
   providers: [QuestsService, QuestProgressService],
-  exports: [QuestsService, QuestProgressService],
+  exports: [QuestsService, QuestProgressService, TypeOrmModule],
 })
 export class QuestsModule {}

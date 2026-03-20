@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 
 import { ReferralService } from "./referral.service";
-import { Referral, ReferralStatus } from "../entities/referral.entity";
+import { Referral, ReferralStatus } from "../entities/referral.model";
 import { LoyaltyService } from "../loyalty.service";
 import { LOYALTY_BONUSES, PointsSource } from "../constants/loyalty.constants";
 

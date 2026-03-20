@@ -22,8 +22,8 @@ import {
   QuestPeriod,
   QuestType,
   QuestDifficulty,
-} from "../entities/quest.entity";
-import { UserQuestStatus } from "../entities/user-quest.entity";
+} from "../entities/quest.model";
+import { UserQuestStatus } from "../entities/user-quest.model";
 
 // ============================================================================
 // REQUEST DTOs

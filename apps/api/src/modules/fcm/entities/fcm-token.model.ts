@@ -3,7 +3,7 @@
  * Stores Firebase Cloud Messaging device tokens for mobile push notifications
  */
 
-import { Entity, Column, Index } from "typeorm";
+import { Column, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 
 export enum DeviceType {
@@ -12,7 +12,7 @@ export enum DeviceType {
   WEB = "web",
 }
 
-@Entity("fcm_tokens")
+// DUPLICATE: @Entity("fcm_tokens")
 @Index(["userId"])
 @Index(["token"], { unique: true })
 export class FcmToken extends BaseEntity {

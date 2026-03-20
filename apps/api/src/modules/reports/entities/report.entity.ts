@@ -684,7 +684,7 @@ export class Dashboard extends BaseEntity {
 /**
  * Виджет дашборда
  */
-@Entity("dashboard_widgets")
+// DUPLICATE: @Entity("dashboard_widgets")
 @Index(["organizationId", "dashboardId"])
 @Index(["organizationId", "isActive"])
 export class DashboardWidget extends BaseEntity {

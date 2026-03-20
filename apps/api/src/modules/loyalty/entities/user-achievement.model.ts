@@ -6,7 +6,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index, Unique } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { Achievement } from "./achievement.entity";
+import { Achievement } from "./achievement.model";
 import { User } from "../../users/entities/user.entity";
 
 @Entity("user_achievements")

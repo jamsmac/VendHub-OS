@@ -12,7 +12,7 @@ import {
   IsObject,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { DeviceType } from "../entities/fcm-token.entity";
+import { DeviceType } from "../entities/fcm-token.model";
 
 export class RegisterFcmTokenDto {
   @ApiProperty({

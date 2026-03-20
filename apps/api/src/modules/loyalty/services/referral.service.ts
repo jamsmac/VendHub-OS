@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, IsNull } from "typeorm";
-import { Referral, ReferralStatus } from "../entities/referral.entity";
+import { Referral, ReferralStatus } from "../entities/referral.model";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource, LOYALTY_BONUSES } from "../constants/loyalty.constants";
 import {

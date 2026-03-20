@@ -3,14 +3,7 @@
  * Contract management for contractors with commission calculation support
  */
 
-import {
-  Entity,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-  Index,
-} from "typeorm";
+import { Column, ManyToOne, OneToMany, JoinColumn, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { Contractor } from "./contractor.entity";
 import { CommissionType, ContractStatus } from "../../../common/enums";
@@ -38,7 +31,7 @@ export interface CommissionTier {
 // CONTRACT ENTITY
 // ============================================================================
 
-@Entity("contracts")
+// DUPLICATE: @Entity("contracts")
 @Index(["organizationId"])
 @Index(["contractorId"])
 @Index(["status"])
@@ -141,7 +134,7 @@ export class Contract extends BaseEntity {
 // COMMISSION CALCULATION ENTITY
 // ============================================================================
 
-@Entity("commission_calculations")
+// DUPLICATE: @Entity("commission_calculations")
 @Index(["organizationId"])
 @Index(["contractId"])
 @Index(["periodStart", "periodEnd"])

@@ -20,7 +20,7 @@ import {
   CommissionCalculation,
   CommissionPaymentStatus,
   CommissionTier,
-} from "../entities/contract.entity";
+} from "../entities/contract.model";
 import { Transaction } from "../../transactions/entities/transaction.entity";
 import { QueryCommissionsDto } from "../dto/commission.dto";
 

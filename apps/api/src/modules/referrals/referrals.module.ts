@@ -3,14 +3,14 @@
  * Реферальная программа VendHub
  */
 
-import { Module, forwardRef } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
-import { Referral } from './entities/referral.entity';
-import { User } from '../users/entities/user.entity';
-import { ReferralsService } from './referrals.service';
-import { ReferralsController } from './referrals.controller';
-import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { Module, forwardRef } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from "@nestjs/config";
+import { Referral } from "./entities/referral.entity";
+import { User } from "../users/entities/user.entity";
+import { ReferralsService } from "./referrals.service";
+import { ReferralsController } from "./referrals.controller";
+import { LoyaltyModule } from "../loyalty/loyalty.module";
 
 @Module({
   imports: [
@@ -21,6 +21,6 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
   ],
   controllers: [ReferralsController],
   providers: [ReferralsService],
-  exports: [ReferralsService],
+  exports: [ReferralsService, TypeOrmModule],
 })
 export class ReferralsModule {}

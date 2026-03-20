@@ -8,7 +8,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { FcmService } from "./fcm.service";
 import { FcmController } from "./fcm.controller";
-import { FcmToken } from "./entities/fcm-token.entity";
+import { FcmToken } from "./entities/fcm-token.model";
 
 @Module({
   imports: [TypeOrmModule.forFeature([FcmToken]), ConfigModule],

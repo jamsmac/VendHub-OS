@@ -247,7 +247,7 @@ export class InventoryBatch extends BaseEntity {
 // WAREHOUSE ZONE ENTITY (from VHM24-repo)
 // ============================================================================
 
-@Entity("warehouse_zones")
+// DUPLICATE: @Entity("warehouse_zones")
 @Index(["warehouseId"])
 @Index(["zoneType"])
 export class WarehouseZone extends BaseEntity {

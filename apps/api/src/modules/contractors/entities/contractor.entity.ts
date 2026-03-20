@@ -163,7 +163,7 @@ export class Contractor extends BaseEntity {
   invoices: ContractorInvoice[];
 
   @OneToMany("Contract", "contractor")
-  contracts: import("./contract.entity").Contract[];
+  contracts: import("./contract.model").Contract[];
 
   // Metadata
   @Column({ type: "jsonb", nullable: true })

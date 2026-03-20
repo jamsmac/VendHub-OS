@@ -15,7 +15,7 @@ import {
   Min,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { CommissionPaymentStatus } from "../entities/contract.entity";
+import { CommissionPaymentStatus } from "../entities/contract.model";
 
 // ============================================================================
 // CALCULATE COMMISSION DTO

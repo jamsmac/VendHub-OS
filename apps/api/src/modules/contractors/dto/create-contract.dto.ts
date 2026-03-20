@@ -19,7 +19,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { CommissionType } from "../entities/contract.entity";
+import { CommissionType } from "../entities/contract.model";
 
 // ============================================================================
 // COMMISSION TIER DTO

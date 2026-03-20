@@ -7,7 +7,7 @@ import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { User } from "../../users/entities/user.entity";
-import { Quest } from "./quest.entity";
+import { Quest } from "./quest.model";
 
 // ============================================================================
 // ENUM

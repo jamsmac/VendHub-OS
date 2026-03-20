@@ -16,7 +16,7 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { FcmToken } from "./entities/fcm-token.entity";
+import { FcmToken } from "./entities/fcm-token.model";
 import {
   RegisterFcmTokenDto,
   SendFcmNotificationDto,

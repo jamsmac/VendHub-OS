@@ -3,7 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, ObjectLiteral } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { FcmService } from "./fcm.service";
-import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
+import { FcmToken, DeviceType } from "./entities/fcm-token.model";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>

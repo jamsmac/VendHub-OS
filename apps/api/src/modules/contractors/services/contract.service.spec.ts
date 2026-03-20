@@ -13,7 +13,7 @@ import {
   Contract,
   ContractStatus,
   CommissionType,
-} from "../entities/contract.entity";
+} from "../entities/contract.model";
 import { Contractor } from "../entities/contractor.entity";
 
 describe("ContractService", () => {

@@ -19,6 +19,6 @@ import { LoyaltyModule } from "../loyalty/loyalty.module";
   ],
   controllers: [AchievementsController],
   providers: [AchievementsService],
-  exports: [AchievementsService],
+  exports: [AchievementsService, TypeOrmModule],
 })
 export class AchievementsModule {}

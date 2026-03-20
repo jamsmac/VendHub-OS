@@ -19,7 +19,7 @@ import {
   AchievementCategory,
   AchievementConditionType,
   AchievementRarity,
-} from "../entities/achievement.entity";
+} from "../entities/achievement.model";
 
 // ============================================================================
 // REQUEST DTOs

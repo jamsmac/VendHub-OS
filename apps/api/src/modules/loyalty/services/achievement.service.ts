@@ -12,8 +12,8 @@ import {
   AchievementCategory,
   AchievementConditionType,
   AchievementRarity,
-} from "../entities/achievement.entity";
-import { UserAchievement } from "../entities/user-achievement.entity";
+} from "../entities/achievement.model";
+import { UserAchievement } from "../entities/user-achievement.model";
 import { User } from "../../users/entities/user.entity";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";

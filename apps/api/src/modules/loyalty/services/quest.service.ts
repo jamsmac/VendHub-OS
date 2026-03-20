@@ -14,8 +14,8 @@ import { Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Cron } from "@nestjs/schedule";
 
-import { Quest, QuestPeriod, QuestType } from "../entities/quest.entity";
-import { UserQuest, UserQuestStatus } from "../entities/user-quest.entity";
+import { Quest, QuestPeriod, QuestType } from "../entities/quest.model";
+import { UserQuest, UserQuestStatus } from "../entities/user-quest.model";
 import { LoyaltyService } from "../loyalty.service";
 import { PointsSource } from "../constants/loyalty.constants";
 import {
