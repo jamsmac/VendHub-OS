@@ -30,8 +30,8 @@ import {
   ExportFormat,
   ReportDefinition,
   ScheduledReport,
-  DashboardWidget,
 } from "./entities/report.entity";
+import { DashboardWidget } from "../analytics/entities/analytics.entity";
 import {
   CreateReportDefinitionDto,
   GenerateReportBodyDto,

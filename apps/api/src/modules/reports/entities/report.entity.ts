@@ -7,7 +7,6 @@ import {
   Entity,
   Column,
   ManyToOne,
-  OneToMany,
   JoinColumn,
   Index,
   BeforeInsert,
@@ -675,120 +674,10 @@ export class Dashboard extends BaseEntity {
   @Column({ default: false })
   isSystem: boolean; // Системный дашборд
 
-  // ===== Связи =====
-
-  @OneToMany(() => DashboardWidget, (widget) => widget.dashboard)
-  widgets: DashboardWidget[];
+  // DashboardWidget managed by analytics module
 }
 
-/**
- * Виджет дашборда
- */
-// DUPLICATE: @Entity("dashboard_widgets")
-@Index(["organizationId", "dashboardId"])
-@Index(["organizationId", "isActive"])
-export class DashboardWidget extends BaseEntity {
-  @Column()
-  organizationId: string;
-
-  @ManyToOne(() => Organization, { onDelete: "SET NULL" })
-  @JoinColumn({ name: "organization_id" })
-  organization: Organization;
-
-  @Column({ type: "uuid", nullable: true })
-  dashboardId: string;
-
-  @ManyToOne(() => Dashboard, (dashboard) => dashboard.widgets, {
-    onDelete: "SET NULL",
-  })
-  @JoinColumn({ name: "dashboard_id" })
-  dashboard: Dashboard;
-
-  // ===== Информация =====
-
-  @Column({ length: 100 })
-  title: string;
-
-  @Column({ length: 100, nullable: true })
-  titleUz: string;
-
-  @Column({
-    type: "enum",
-    enum: ChartType,
-    default: ChartType.KPI,
-  })
-  chartType: ChartType;
-
-  // ===== Позиция =====
-
-  @Column({ type: "int", default: 0 })
-  positionX: number;
-
-  @Column({ type: "int", default: 0 })
-  positionY: number;
-
-  @Column({ type: "int", default: 4 })
-  width: number; // в сетке 12 колонок
-
-  @Column({ type: "int", default: 2 })
-  height: number; // в единицах высоты
-
-  // ===== Данные =====
-
-  @Column({ type: "uuid", nullable: true })
-  definitionId: string; // Связь с ReportDefinition
-
-  @Column({ type: "jsonb", nullable: true })
-  filters: ReportFilters;
-
-  @Column({
-    type: "enum",
-    enum: PeriodType,
-    default: PeriodType.THIS_MONTH,
-  })
-  periodType: PeriodType;
-
-  // ===== Конфигурация =====
-
-  @Column({ type: "jsonb", nullable: true })
-  chartConfig: ChartConfig;
-
-  @Column({ type: "jsonb", nullable: true })
-  kpiConfig: {
-    valueField: string;
-    format: "number" | "currency" | "percent";
-    comparisonPeriod?: PeriodType;
-    thresholds?: {
-      warning?: number;
-      danger?: number;
-    };
-  };
-
-  // ===== Обновление =====
-
-  @Column({ type: "int", default: 300 })
-  refreshIntervalSeconds: number;
-
-  @Column({ type: "timestamp", nullable: true })
-  lastRefreshAt: Date;
-
-  // ===== Кэш данных =====
-
-  @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cachedData: any;
-
-  @Column({ type: "timestamp", nullable: true })
-  cacheExpiresAt: Date;
-
-  // ===== Флаги =====
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @Column({ default: true })
-  isVisible: boolean;
-}
+// DashboardWidget — canonical entity in analytics/entities/analytics.entity.ts
 
 /**
  * Сохраненный фильтр отчета

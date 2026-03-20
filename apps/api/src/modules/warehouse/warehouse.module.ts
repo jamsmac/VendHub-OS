@@ -9,10 +9,10 @@ import {
   Warehouse,
   StockMovement,
   InventoryBatch,
-  WarehouseZone,
   StockTake,
   StockReservation,
 } from "./entities/warehouse.entity";
+import { WarehouseZone } from "../inventory/entities/warehouse-zone.entity";
 
 @Module({
   imports: [

@@ -42,11 +42,11 @@ import {
   ReportDefinition,
   ScheduledReport,
   GeneratedReport,
-  DashboardWidget,
   Dashboard,
   SavedReportFilter,
   ReportSubscription,
 } from "./entities/report.entity";
+import { DashboardWidget } from "../analytics/entities/analytics.entity";
 import {
   AnalyticsSnapshot,
   DailyStats,

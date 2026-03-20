@@ -9,10 +9,10 @@ import {
   ScheduledReport,
   GeneratedReport,
   Dashboard,
-  DashboardWidget,
   SavedReportFilter,
   ReportType,
 } from "./entities/report.entity";
+import { DashboardWidget } from "../analytics/entities/analytics.entity";
 import {
   ReportsGeneratorService,
   GenerateReportDto,
@@ -189,11 +189,7 @@ export class ReportsService {
     organizationId: string,
     widgetIds: string[],
   ): Promise<void> {
-    return this.dashboard.reorderWidgets(
-      dashboardId,
-      organizationId,
-      widgetIds,
-    );
+    return this.dashboard.reorderWidgets(organizationId, widgetIds);
   }
 
   // ── Saved Filters ────────────────────────────────────────

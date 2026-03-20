@@ -1,11 +1,4 @@
-import {
-  Entity,
-  Column,
-  Index,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from "typeorm";
+import { Entity, Column, Index, ManyToOne, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
 
 // ============================================================================
@@ -113,8 +106,7 @@ export class Warehouse extends BaseEntity {
   @Column({ type: "jsonb", default: {} })
   metadata: Record<string, unknown>;
 
-  @OneToMany(() => WarehouseZone, (zone) => zone.warehouse)
-  zones: WarehouseZone[];
+  // WarehouseZone managed by inventory module (inventory/entities/warehouse-zone.entity.ts)
 }
 
 // ============================================================================
@@ -243,48 +235,7 @@ export class InventoryBatch extends BaseEntity {
   metadata: Record<string, unknown>;
 }
 
-// ============================================================================
-// WAREHOUSE ZONE ENTITY (from VHM24-repo)
-// ============================================================================
-
-// DUPLICATE: @Entity("warehouse_zones")
-@Index(["warehouseId"])
-@Index(["zoneType"])
-export class WarehouseZone extends BaseEntity {
-  @Column({ type: "uuid" })
-  warehouseId: string;
-
-  @ManyToOne(() => Warehouse, (warehouse) => warehouse.zones)
-  @JoinColumn({ name: "warehouse_id" })
-  warehouse: Warehouse;
-
-  @Column({ type: "varchar", length: 100 })
-  name: string;
-
-  @Column({ type: "varchar", length: 50 })
-  code: string;
-
-  @Column({ type: "enum", enum: WarehouseZoneType })
-  zoneType: WarehouseZoneType;
-
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })
-  areaSqm: number | null;
-
-  @Column({ type: "integer", nullable: true })
-  capacity: number | null;
-
-  @Column({ type: "integer", default: 0 })
-  currentOccupancy: number;
-
-  @Column({ type: "boolean", default: true })
-  isActive: boolean;
-
-  @Column({ type: "text", nullable: true })
-  description: string | null;
-
-  @Column({ type: "jsonb", default: {} })
-  metadata: Record<string, unknown>;
-}
+// WarehouseZone — canonical entity in inventory/entities/warehouse-zone.entity.ts
 
 // ============================================================================
 // STOCK TAKE ENTITY (from VHM24-repo)

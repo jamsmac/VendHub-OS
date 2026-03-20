@@ -8,10 +8,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import {
   Dashboard,
-  DashboardWidget,
   SavedReportFilter,
   ChartType,
 } from "./entities/report.entity";
+import { DashboardWidget } from "../analytics/entities/analytics.entity";
 
 export interface CreateDashboardDto {
   organizationId: string;
@@ -20,21 +20,17 @@ export interface CreateDashboardDto {
   layout?: "grid" | "freeform";
   columns?: number;
   isPublic?: boolean;
-  widgets?: Omit<DashboardWidget, "id" | "dashboardId">[];
+  widgets?: Partial<DashboardWidget>[];
 }
 
 export interface CreateWidgetDto {
-  dashboardId: string;
   organizationId?: string;
   title: string;
   chartType?: string;
-  positionX: number;
-  positionY: number;
-  width: number;
-  height: number;
-  definitionId?: string;
-  chartConfig?: DashboardWidget["chartConfig"];
-  kpiConfig?: DashboardWidget["kpiConfig"];
+  position?: number;
+  width?: number;
+  height?: number;
+  config?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -68,20 +64,17 @@ export class ReportsDashboardService {
     const saved = await this.dashboardRepo.save(dashboard);
 
     if (dto.widgets?.length) {
-      for (const widgetDto of dto.widgets) {
+      for (let i = 0; i < dto.widgets.length; i++) {
+        const w = dto.widgets[i];
         await this.createWidget(
           {
-            dashboardId: saved.id,
             organizationId: dto.organizationId,
-            title: widgetDto.title,
-            chartType: widgetDto.chartType,
-            positionX: widgetDto.positionX,
-            positionY: widgetDto.positionY,
-            width: widgetDto.width,
-            height: widgetDto.height,
-            definitionId: widgetDto.definitionId,
-            chartConfig: widgetDto.chartConfig,
-            kpiConfig: widgetDto.kpiConfig,
+            title: w.title || `Widget ${i + 1}`,
+            chartType: w.chartType as string | undefined,
+            position: w.position ?? i,
+            width: w.width ?? 4,
+            height: w.height ?? 2,
+            config: w.config as Record<string, unknown>,
           },
           dto.organizationId,
         );
@@ -94,16 +87,13 @@ export class ReportsDashboardService {
   async getDashboards(organizationId: string): Promise<Dashboard[]> {
     return this.dashboardRepo.find({
       where: { organizationId },
-      relations: ["widgets"],
       order: { isDefault: "DESC", createdAt: "DESC" },
     });
   }
 
   async getDashboard(id: string, organizationId: string): Promise<Dashboard> {
-    const where = { id, organizationId };
     const dashboard = await this.dashboardRepo.findOne({
-      where,
-      relations: ["widgets"],
+      where: { id, organizationId },
     });
 
     if (!dashboard) {
@@ -128,8 +118,8 @@ export class ReportsDashboardService {
   }
 
   async deleteDashboard(id: string, organizationId: string): Promise<void> {
-    const dashboard = await this.getDashboard(id, organizationId);
-    await this.widgetRepo.softDelete({ dashboardId: dashboard.id });
+    await this.getDashboard(id, organizationId);
+    await this.widgetRepo.softDelete({ organizationId });
     await this.dashboardRepo.softDelete(id);
   }
 
@@ -151,30 +141,17 @@ export class ReportsDashboardService {
     dto: CreateWidgetDto,
     organizationId: string,
   ): Promise<DashboardWidget> {
-    const dashboard = await this.dashboardRepo.findOne({
-      where: { id: dto.dashboardId, organizationId },
-    });
-    if (!dashboard) {
-      throw new NotFoundException(`Dashboard ${dto.dashboardId} not found`);
-    }
-
     const widget = this.widgetRepo.create({
-      organizationId: dashboard.organizationId,
-      dashboardId: dto.dashboardId,
+      organizationId,
       title: dto.title,
       chartType: (dto.chartType || "kpi") as ChartType,
-      positionX: dto.positionX,
-      positionY: dto.positionY,
-      width: dto.width,
-      height: dto.height,
-      definitionId: dto.definitionId,
-      chartConfig: dto.chartConfig,
-      kpiConfig: dto.kpiConfig,
-      isVisible: true,
-      isActive: true,
-    });
+      position: dto.position ?? 0,
+      width: dto.width ?? 4,
+      height: dto.height ?? 2,
+      config: (dto.config || {}) as DashboardWidget["config"],
+    } as unknown as Partial<DashboardWidget>);
 
-    return this.widgetRepo.save(widget);
+    return this.widgetRepo.save(widget) as Promise<DashboardWidget>;
   }
 
   async updateWidget(
@@ -204,15 +181,13 @@ export class ReportsDashboardService {
   }
 
   async reorderWidgets(
-    dashboardId: string,
     organizationId: string,
     widgetIds: string[],
   ): Promise<void> {
-    await this.getDashboard(dashboardId, organizationId);
     for (let i = 0; i < widgetIds.length; i++) {
       await this.widgetRepo.update(
-        { id: widgetIds[i], dashboardId },
-        { positionY: i },
+        { id: widgetIds[i], organizationId },
+        { position: i },
       );
     }
   }
