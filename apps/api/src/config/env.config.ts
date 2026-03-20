@@ -63,7 +63,7 @@ export const databaseConfig = registerAs("database", () => {
   return {
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "5432", 10),
-    username: process.env.DB_USER || "postgres",
+    username: process.env.DB_USER || "vendhub",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "vendhub",
     ssl: process.env.DB_SSL === "true",
@@ -109,6 +109,6 @@ export const appConfig = registerAs("app", () => ({
     }
     return secret || "change-me-dev-only";
   })(),
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
   apiUrl: process.env.API_URL || "http://localhost:4000",
 }));

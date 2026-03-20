@@ -132,7 +132,10 @@ export class StorageService {
     private readonly fileRecordRepository: Repository<FileRecord>,
     private readonly configService: ConfigService,
   ) {
-    this.region = this.configService.get("AWS_REGION", "us-east-1");
+    this.region = this.configService.get(
+      "STORAGE_REGION",
+      this.configService.get("AWS_REGION", "us-east-1"),
+    );
     this.bucket = this.configService.get(
       "STORAGE_BUCKET",
       this.configService.get("AWS_S3_BUCKET", "vendhub-storage"),

@@ -175,28 +175,54 @@ const defaultedNumber = (value: number) =>
         REDIS_PORT: Joi.number().empty("").optional(),
         REDIS_PASSWORD: Joi.string().allow("").optional(),
 
-        // JWT (required)
+        // JWT
         JWT_SECRET: Joi.string().required(),
-        JWT_EXPIRES_IN: defaultedString("1d"),
+        JWT_EXPIRES_IN: defaultedString("15m"),
+        JWT_ACCESS_EXPIRES: defaultedString("15m"),
         JWT_REFRESH_SECRET: optionalString(),
         JWT_REFRESH_EXPIRES_IN: defaultedString("7d"),
 
-        // CORS
+        // Server
+        HOST: defaultedString("0.0.0.0"),
+        TRUST_PROXY: Joi.number().empty("").optional().default(1),
+        MAX_BODY_SIZE: defaultedString("10mb"),
+        API_URL: defaultedString("http://localhost:4000"),
+        AGENT_MODE: optionalBooleanString(),
+
+        // CORS & Cookies
         CORS_ORIGINS: optionalString(),
+        COOKIE_SECRET: optionalString(),
+
+        // Cache
+        CACHE_TTL: defaultedNumber(300),
+
+        // Rate Limiting
+        THROTTLE_LIMIT: defaultedNumber(100),
 
         // Swagger
         SWAGGER_ENABLED: optionalBooleanString(),
+        SWAGGER_TITLE: defaultedString("VendHub API"),
+        SWAGGER_VERSION: defaultedString("1.0.0"),
 
-        // Optional services
+        // Encryption (2FA TOTP secrets)
+        ENCRYPTION_KEY: optionalString(),
+
+        // Monitoring
         SENTRY_DSN: optionalUri(),
+        LOG_LEVEL: defaultedString("info"),
+
+        // Telegram
         TELEGRAM_BOT_TOKEN: optionalString(),
         TELEGRAM_CUSTOMER_BOT_TOKEN: optionalString(),
+
+        // Storage (S3/MinIO/Supabase)
         STORAGE_ENDPOINT: optionalString(),
         STORAGE_PUBLIC_URL: optionalString(),
         STORAGE_FORCE_PATH_STYLE: optionalBooleanString(),
         STORAGE_ACCESS_KEY: optionalString(),
         STORAGE_SECRET_KEY: optionalString(),
         STORAGE_BUCKET: optionalString(),
+        STORAGE_REGION: defaultedString("us-east-1"),
       }),
       validationOptions: {
         allowUnknown: true,
@@ -225,8 +251,8 @@ const defaultedNumber = (value: number) =>
           : {
               host: configService.get("DB_HOST", "localhost"),
               port: configService.get<number>("DB_PORT", 5432),
-              username: configService.get("DB_USER", "postgres"),
-              password: configService.get("DB_PASSWORD", "postgres"),
+              username: configService.get("DB_USER", "vendhub"),
+              password: configService.get("DB_PASSWORD", ""),
               database: configService.get("DB_NAME", "vendhub"),
               ssl: false,
             };
