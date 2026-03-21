@@ -18,6 +18,7 @@ export * from "./types/complaint.types";
 export * from "./types/notification.types";
 export * from "./types/report.types";
 export * from "./types/audit.types";
+export * from "./types/entity-event.types";
 
 // Constants
 export * from "./constants";

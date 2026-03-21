@@ -85,6 +85,7 @@ import { MachineAccessModule } from "./modules/machine-access/machine-access.mod
 import { IncidentsModule } from "./modules/incidents/incidents.module";
 import { OperatorRatingsModule } from "./modules/operator-ratings/operator-ratings.module";
 import { ReconciliationModule } from "./modules/reconciliation/reconciliation.module";
+import { PaymentReportsModule } from "./modules/payment-reports/payment-reports.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { OpeningBalancesModule } from "./modules/opening-balances/opening-balances.module";
 import { PurchaseHistoryModule } from "./modules/purchase-history/purchase-history.module";
@@ -112,6 +113,10 @@ import { CollectionsModule } from "./modules/collections/collections.module";
 import { InvestorModule } from "./modules/investor/investor.module";
 import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
 import { Vhm24IntegrationModule } from "./modules/vhm24-integration/vhm24-integration.module";
+import { EntityEventsModule } from "./modules/entity-events/entity-events.module";
+import { BatchMovementsModule } from "./modules/batch-movements/batch-movements.module";
+import { CalculatedStateModule } from "./modules/calculated-state/calculated-state.module";
+import { CustomFieldsModule } from "./modules/custom-fields/custom-fields.module";
 import { InvitesModule } from "./modules/invites/invites.module";
 
 // Common Guards & Interceptors
@@ -647,6 +652,8 @@ const defaultedNumber = (value: number) =>
     // Data Reconciliation (HW vs Transactions vs Payments)
     ReconciliationModule,
 
+    // Payment Report Uploads (Payme, Click, VendHub, Kassa)
+    PaymentReportsModule,
     // Invoicing & Billing Payments
     BillingModule,
 
@@ -689,6 +696,12 @@ const defaultedNumber = (value: number) =>
 
     // Container Management (Hoppers/Bunkers)
     ContainersModule,
+
+    // Lifecycle Traceability (Full Spec v2)
+    EntityEventsModule,
+    BatchMovementsModule,
+    CalculatedStateModule,
+    CustomFieldsModule,
 
     // Analytics (Daily Stats, Dashboards, Snapshots, Reports)
     AnalyticsModule,

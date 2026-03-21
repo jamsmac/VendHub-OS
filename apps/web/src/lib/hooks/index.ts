@@ -26,3 +26,7 @@ export * from "./use-finance";
 export * from "./use-investor";
 export * from "./use-promotions";
 export * from "./use-team";
+
+// Lifecycle Traceability
+export * from "./use-entity-events";
+export * from "./use-machine-state";

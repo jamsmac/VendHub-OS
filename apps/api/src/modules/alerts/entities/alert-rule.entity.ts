@@ -24,6 +24,13 @@ export enum AlertMetric {
   ERROR_COUNT = "error_count",
   MAINTENANCE_OVERDUE = "maintenance_overdue",
   COLLECTION_OVERDUE = "collection_overdue",
+  // Lifecycle Traceability (Full Spec v2 Section 4.10)
+  COMPONENT_CYCLES = "component_cycles",
+  FLUSH_DUE = "flush_due",
+  CLEANING_DUE = "cleaning_due",
+  EXPIRY_WARNING = "expiry_warning",
+  INVENTORY_MISMATCH = "inventory_mismatch",
+  CONSUMABLE_LOW = "consumable_low",
   CUSTOM = "custom",
 }
 

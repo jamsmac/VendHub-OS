@@ -200,6 +200,40 @@ export const machinesApi = {
     api.get(`/machines/${id}/location-history`),
   getComponents: (id: string) => api.get(`/machines/${id}/components`),
   getErrors: (id: string) => api.get(`/machines/${id}/errors`),
+  getState: (id: string) => api.get(`/machines/${id}/state`),
+  getPnL: (id: string, from: string, to: string) =>
+    api.get(`/machines/${id}/pnl`, { params: { from, to } }),
+};
+
+export const entityEventsApi = {
+  query: (params?: QueryParams) => api.get("/entity-events", { params }),
+  getTimeline: (entityId: string, params?: QueryParams) =>
+    api.get(`/entity-events/entity/${entityId}`, { params }),
+  getRecent: (entityId: string, count?: number) =>
+    api.get(`/entity-events/entity/${entityId}/recent`, { params: { count } }),
+  create: (data: RequestBody) => api.post("/entity-events", data),
+};
+
+export const batchMovementsApi = {
+  create: (data: RequestBody) => api.post("/batch-movements", data),
+  getBatchHistory: (batchId: string) =>
+    api.get(`/batch-movements/batch/${batchId}`),
+  getContainerMovements: (containerId: string) =>
+    api.get(`/batch-movements/container/${containerId}`),
+};
+
+export const customFieldsApi = {
+  getTabs: (params?: QueryParams) => api.get("/custom-fields/tabs", { params }),
+  createTab: (data: RequestBody) => api.post("/custom-fields/tabs", data),
+  updateTab: (id: string, data: RequestBody) =>
+    api.patch(`/custom-fields/tabs/${id}`, data),
+  deleteTab: (id: string) => api.delete(`/custom-fields/tabs/${id}`),
+  getFields: (params?: QueryParams) =>
+    api.get("/custom-fields/fields", { params }),
+  createField: (data: RequestBody) => api.post("/custom-fields/fields", data),
+  updateField: (id: string, data: RequestBody) =>
+    api.patch(`/custom-fields/fields/${id}`, data),
+  deleteField: (id: string) => api.delete(`/custom-fields/fields/${id}`),
 };
 
 export const productsApi = {

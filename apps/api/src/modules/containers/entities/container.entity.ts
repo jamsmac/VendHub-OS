@@ -103,6 +103,13 @@ export class Container extends BaseEntity {
   })
   status: ContainerStatus;
 
+  @ApiPropertyOptional({
+    description:
+      "Current batch UUID loaded in this container (for batch traceability)",
+  })
+  @Column({ type: "uuid", nullable: true })
+  currentBatchId: string | null;
+
   @ApiPropertyOptional({ description: "Additional metadata (JSON)" })
   @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, unknown> | null;
@@ -124,6 +131,11 @@ export class Container extends BaseEntity {
   @JoinColumn({ name: "nomenclature_id" })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nomenclature: any;
+
+  @ManyToOne("IngredientBatch", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "current_batch_id" })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  currentBatch: any;
 
   // ============================================================================
   // COMPUTED PROPERTIES

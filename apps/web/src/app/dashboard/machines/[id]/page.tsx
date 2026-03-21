@@ -1,281 +1,223 @@
 "use client";
 
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  ArrowLeft,
+  Banknote,
+  ClipboardList,
+  MapPin,
+  Wrench,
+  BarChart3,
+  Package,
+  FileText,
+  Clock,
+} from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 
-const MACHINE_TYPES = [
-  { value: "coffee", label: "Coffee" },
-  { value: "snack", label: "Snack" },
-  { value: "drink", label: "Drink" },
-  { value: "combo", label: "Combo" },
-  { value: "fresh", label: "Fresh" },
-  { value: "ice_cream", label: "Ice Cream" },
-  { value: "water", label: "Water" },
-];
+// Tab components
+import { PassportTab } from "./tabs/PassportTab";
+import { ContentsTab } from "./tabs/ContentsTab";
+import { AnalyticsTab } from "./tabs/AnalyticsTab";
+import { EncashmentTab } from "./tabs/EncashmentTab";
+import { MaintenanceTab } from "./tabs/MaintenanceTab";
+import { LocationsTab } from "./tabs/LocationsTab";
+import { TasksTab } from "./tabs/TasksTab";
+import { TimelineTab } from "./tabs/TimelineTab";
 
-const MACHINE_STATUSES = [
-  { value: "active", label: "Active" },
-  { value: "low_stock", label: "Low Stock" },
-  { value: "error", label: "Error" },
-  { value: "maintenance", label: "Maintenance" },
-  { value: "offline", label: "Offline" },
-  { value: "disabled", label: "Disabled" },
-];
+const STATUS_COLORS: Record<string, string> = {
+  active: "bg-green-100 text-green-800",
+  low_stock: "bg-amber-100 text-amber-800",
+  error: "bg-red-100 text-red-800",
+  maintenance: "bg-blue-100 text-blue-800",
+  offline: "bg-gray-100 text-gray-800",
+  disabled: "bg-gray-200 text-gray-600",
+};
 
 export default function MachineDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const t = useTranslations("machines");
-  const tCommon = useTranslations("common");
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const _router = useRouter();
 
-  const [form, setForm] = useState<Record<string, unknown> | null>(null);
-
-  const { isLoading } = useQuery({
+  const { data: machine, isLoading } = useQuery({
     queryKey: ["machine", id],
     queryFn: async () => {
       const res = await api.get(`/machines/${id}`);
-      const data = res.data?.data ?? res.data;
-      setForm({
-        name: data.name || "",
-        type: data.type || "combo",
-        status: data.status || "active",
-        manufacturer: data.manufacturer || "",
-        model: data.model || "",
-        slotCount: data.slotCount || 0,
-        serialNumber: data.serialNumber || "",
-        machineNumber: data.machineNumber || "",
-      });
-      return data;
+      return res.data?.data ?? res.data;
     },
+    enabled: !!id,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      await api.patch(`/machines/${id}`, form);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["machines"] });
-      queryClient.invalidateQueries({ queryKey: ["machine", id] });
-      toast.success(t("updated") || "Machine updated");
-    },
-    onError: () => {
-      toast.error(t("updateError") || "Failed to update machine");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      await api.delete(`/machines/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["machines"] });
-      toast.success(t("deleted") || "Machine deleted");
-      router.push("/dashboard/machines");
-    },
-    onError: () => {
-      toast.error(t("deleteError") || "Failed to delete machine");
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate();
-  };
-
-  if (isLoading || !form) {
+  if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Skeleton className="h-10 w-48" />
+      <div className="space-y-4">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-12 w-full" />
         <Skeleton className="h-96 w-full" />
       </div>
     );
   }
 
+  if (!machine) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        Автомат не найден
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/machines">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
+    <div className="space-y-0">
+      {/* ================================================================
+          STICKY HEADER (Spec v2 Section 4.0)
+          ================================================================ */}
+      <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 -mx-4 sm:-mx-6 sm:px-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/machines">
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold font-mono">
+                  {machine.machineNumber}
+                </h1>
+                <Badge
+                  className={
+                    STATUS_COLORS[machine.status] || "bg-gray-100 text-gray-800"
+                  }
+                >
+                  {machine.status}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {machine.name}
+                {machine.address && ` · ${machine.address}`}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div className="flex gap-2 shrink-0">
+            <Button size="sm" variant="outline">
+              <Banknote className="h-4 w-4 mr-1" />
+              Инкассация
             </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">
-            {(form.name as string) || t("editMachine") || "Edit Machine"}
-          </h1>
+            <Button size="sm" variant="outline">
+              <Package className="h-4 w-4 mr-1" />
+              Загрузить
+            </Button>
+            <Button size="sm" variant="outline">
+              <ClipboardList className="h-4 w-4 mr-1" />+ Задача
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => {
-            if (confirm(t("confirmDelete") || "Delete this machine?")) {
-              deleteMutation.mutate();
-            }
-          }}
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          {tCommon("delete") || "Delete"}
-        </Button>
+
+        {/* Operator & last activity */}
+        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+          {machine.assignedOperatorId && <span>Оператор: назначен</span>}
+          {machine.lastRefillDate && (
+            <span>
+              Последняя загрузка:{" "}
+              {new Date(machine.lastRefillDate).toLocaleDateString("ru-RU")}
+            </span>
+          )}
+          {machine.lastCollectionDate && (
+            <span>
+              Последняя инкассация:{" "}
+              {new Date(machine.lastCollectionDate).toLocaleDateString("ru-RU")}
+            </span>
+          )}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("basicInfo") || "Basic Information"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">
-                  {t("name") || "Name"}
-                </label>
-                <Input
-                  value={form.name as string}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  {t("machineNumber") || "Machine Number"}
-                </label>
-                <Input
-                  value={form.machineNumber as string}
-                  disabled
-                  className="mt-1 bg-muted"
-                />
-              </div>
-            </div>
+      {/* ================================================================
+          8 TABS (Spec v2 Sections 4.1-4.8)
+          ================================================================ */}
+      <Tabs defaultValue="contents" className="mt-4">
+        <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
+          <TabsTrigger value="passport" className="text-xs">
+            <FileText className="h-3.5 w-3.5 mr-1" />
+            Паспорт
+          </TabsTrigger>
+          <TabsTrigger value="contents" className="text-xs">
+            <Package className="h-3.5 w-3.5 mr-1" />
+            Наполнение
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs">
+            <BarChart3 className="h-3.5 w-3.5 mr-1" />
+            Аналитика
+          </TabsTrigger>
+          <TabsTrigger value="encashment" className="text-xs">
+            <Banknote className="h-3.5 w-3.5 mr-1" />
+            Инкассации
+          </TabsTrigger>
+          <TabsTrigger value="maintenance" className="text-xs">
+            <Wrench className="h-3.5 w-3.5 mr-1" />
+            Обслуживание
+          </TabsTrigger>
+          <TabsTrigger value="locations" className="text-xs">
+            <MapPin className="h-3.5 w-3.5 mr-1" />
+            Локации
+          </TabsTrigger>
+          <TabsTrigger value="tasks" className="text-xs">
+            <ClipboardList className="h-3.5 w-3.5 mr-1" />
+            Задачи
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="text-xs">
+            <Clock className="h-3.5 w-3.5 mr-1" />
+            Лента
+          </TabsTrigger>
+        </TabsList>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">
-                  {t("type") || "Type"}
-                </label>
-                <Select
-                  value={form.type as string}
-                  onValueChange={(v) => setForm({ ...form, type: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MACHINE_TYPES.map((mt) => (
-                      <SelectItem key={mt.value} value={mt.value}>
-                        {mt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  {t("status") || "Status"}
-                </label>
-                <Select
-                  value={form.status as string}
-                  onValueChange={(v) => setForm({ ...form, status: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MACHINE_STATUSES.map((ms) => (
-                      <SelectItem key={ms.value} value={ms.value}>
-                        {ms.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="mt-4">
+          {/* Tab 1: Passport */}
+          <TabsContent value="passport">
+            <PassportTab machine={machine} />
+          </TabsContent>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium">
-                  {t("manufacturer") || "Manufacturer"}
-                </label>
-                <Input
-                  value={form.manufacturer as string}
-                  onChange={(e) =>
-                    setForm({ ...form, manufacturer: e.target.value })
-                  }
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  {t("model") || "Model"}
-                </label>
-                <Input
-                  value={form.model as string}
-                  onChange={(e) => setForm({ ...form, model: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  {t("slots") || "Slots"}
-                </label>
-                <Input
-                  type="number"
-                  value={form.slotCount as number}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      slotCount: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="mt-1"
-                />
-              </div>
-            </div>
+          {/* Tab 2: Contents (Bunkers, Components, Cleaning) */}
+          <TabsContent value="contents">
+            <ContentsTab machineId={id} />
+          </TabsContent>
 
-            <div>
-              <label className="text-sm font-medium">
-                {t("serialNumber") || "Serial Number"}
-              </label>
-              <Input
-                value={form.serialNumber as string}
-                disabled
-                className="mt-1 bg-muted"
-              />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Tab 3: Analytics (P&L, Sales, State, Dynamics) */}
+          <TabsContent value="analytics">
+            <AnalyticsTab machineId={id} />
+          </TabsContent>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Link href="/dashboard/machines">
-            <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
-          </Link>
-          <Button type="submit" disabled={updateMutation.isPending}>
-            <Save className="h-4 w-4 mr-2" />
-            {updateMutation.isPending
-              ? tCommon("saving") || "Saving..."
-              : tCommon("save") || "Save"}
-          </Button>
+          {/* Tab 4: Encashment (Collections) */}
+          <TabsContent value="encashment">
+            <EncashmentTab machineId={id} />
+          </TabsContent>
+
+          {/* Tab 5: Maintenance */}
+          <TabsContent value="maintenance">
+            <MaintenanceTab machineId={id} />
+          </TabsContent>
+
+          {/* Tab 6: Locations */}
+          <TabsContent value="locations">
+            <LocationsTab machineId={id} machine={machine} />
+          </TabsContent>
+
+          {/* Tab 7: Tasks */}
+          <TabsContent value="tasks">
+            <TasksTab machineId={id} />
+          </TabsContent>
+
+          {/* Tab 8: Timeline */}
+          <TabsContent value="timeline">
+            <TimelineTab entityId={id} />
+          </TabsContent>
         </div>
-      </form>
+      </Tabs>
     </div>
   );
 }
