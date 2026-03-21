@@ -147,7 +147,8 @@
     "references": "Справочники НСИ",
     "openMenu": "Открыть меню навигации",
     "navigation": "Меню навигации",
-    "skipToContent": "Перейти к содержимому"
+    "skipToContent": "Перейти к содержимому",
+    "paymentReports": "Отчёты платёжных систем"
   },
   "dashboard": {
     "title": "Обзор",
