@@ -150,44 +150,44 @@ export class BotHandlersService {
     // Task actions
     this.bot.action(/task:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.showTaskDetails(ctx, taskId);
     });
 
     this.bot.action(/task_start:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.startTask(ctx, taskId);
     });
 
     this.bot.action(/task_complete:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.initiateTaskComplete(ctx, taskId);
     });
 
     this.bot.action(/task_postpone:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.postponeTask(ctx, taskId);
     });
 
     this.bot.action(/task_photo_before:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.requestPhotoBefore(ctx, taskId);
     });
 
     this.bot.action(/task_photo_after:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.requestPhotoAfter(ctx, taskId);
     });
 
     // Confirm actions
     this.bot.action(/confirm_complete:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const taskId = ctx.match[1];
+      const taskId = ctx.match[1]!;
       await this.taskOpsService.completeTask(ctx, taskId);
     });
 
@@ -200,32 +200,32 @@ export class BotHandlersService {
     // Machine actions
     this.bot.action(/machine:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const machineId = ctx.match[1];
+      const machineId = ctx.match[1]!;
       await this.machineOpsService.showMachineDetails(ctx, machineId);
     });
 
     this.bot.action(/machine_refill:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const machineId = ctx.match[1];
+      const machineId = ctx.match[1]!;
       await this.machineOpsService.createRefillTask(ctx, machineId);
     });
 
     this.bot.action(/machine_collection:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const machineId = ctx.match[1];
+      const machineId = ctx.match[1]!;
       await this.machineOpsService.createCollectionTask(ctx, machineId);
     });
 
     // Pagination
     this.bot.action(/page:tasks:(\d+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const page = parseInt(ctx.match[1]);
+      const page = parseInt(ctx.match[1]!);
       await this.taskOpsService.showMyTasks(ctx, page);
     });
 
     this.bot.action(/page:machines:(\d+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const page = parseInt(ctx.match[1]);
+      const page = parseInt(ctx.match[1]!);
       await this.machineOpsService.showMyMachines(ctx, page);
     });
   }
@@ -240,7 +240,7 @@ export class BotHandlersService {
       const session = this.getSession(ctx.from!.id);
       if (!session || !session.data.taskId) return;
 
-      const photo = ctx.message.photo[ctx.message.photo.length - 1]; // Largest size
+      const photo = ctx.message.photo[ctx.message.photo.length - 1]!; // Largest size
       const fileId = photo.file_id;
 
       if (session.state === SessionState.AWAITING_PHOTO_BEFORE) {

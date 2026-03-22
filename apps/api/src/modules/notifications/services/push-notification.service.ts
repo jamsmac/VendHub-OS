@@ -146,12 +146,12 @@ export class PushNotificationService {
       // Mark failed tokens as inactive
       if (response.responses) {
         for (let i = 0; i < response.responses.length; i++) {
-          const resp = response.responses[i];
+          const resp = response.responses[i]!;
           if (
             !resp.success &&
             resp.error?.code === "messaging/registration-token-not-registered"
           ) {
-            const staleToken = tokens[i];
+            const staleToken = tokens[i]!;
             staleToken.isActive = false;
             await this.fcmTokenRepo.save(staleToken);
             this.logger.warn(`Deactivated stale FCM token ${staleToken.id}`);

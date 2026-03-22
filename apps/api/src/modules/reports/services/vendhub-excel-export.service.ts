@@ -113,7 +113,7 @@ export class VendHubExcelExportService {
 
     for (let i = 0; i < sheets.length; i++) {
       sheet.getCell(`A${row}`).value = i + 1;
-      sheet.getCell(`B${row}`).value = sheets[i].name;
+      sheet.getCell(`B${row}`).value = sheets[i]!.name;
       row++;
     }
 

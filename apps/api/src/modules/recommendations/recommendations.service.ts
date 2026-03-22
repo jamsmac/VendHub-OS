@@ -324,7 +324,7 @@ export class RecommendationsService {
       product: p,
       score: 0.75,
       reason: RecommendationReason.TRENDING,
-      reasonText: timeLabels[timeCategory],
+      reasonText: timeLabels[timeCategory] ?? "",
     }));
 
     await this.cacheManager.set(
@@ -630,7 +630,7 @@ export class RecommendationsService {
       evening: { start: 17, end: 21 },
       night: { start: 22, end: 5 },
     };
-    return ranges[timeCategory] || ranges.afternoon;
+    return ranges[timeCategory] ?? ranges.afternoon!;
   }
 
   // ============================================================================

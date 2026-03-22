@@ -618,7 +618,7 @@ export class ComplaintsCoreService {
     if (lastComplaint?.ticketNumber) {
       const match = lastComplaint.ticketNumber.match(/(\d+)$/);
       if (match) {
-        sequence = parseInt(match[1], 10) + 1;
+        sequence = parseInt(match[1]!, 10) + 1;
       }
     }
 

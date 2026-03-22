@@ -568,8 +568,8 @@ export class MaintenanceService {
     await this.findOne(organizationId, requestId);
 
     // Calculate duration
-    const [startHour, startMin] = dto.startTime.split(":").map(Number);
-    const [endHour, endMin] = dto.endTime.split(":").map(Number);
+    const [startHour = 0, startMin = 0] = dto.startTime.split(":").map(Number);
+    const [endHour = 0, endMin = 0] = dto.endTime.split(":").map(Number);
     const durationMinutes = endHour * 60 + endMin - (startHour * 60 + startMin);
 
     if (durationMinutes <= 0) {
@@ -616,8 +616,8 @@ export class MaintenanceService {
     if (dto.startTime || dto.endTime) {
       const startTime = dto.startTime || workLog.startTime;
       const endTime = dto.endTime || workLog.endTime;
-      const [startHour, startMin] = startTime.split(":").map(Number);
-      const [endHour, endMin] = endTime.split(":").map(Number);
+      const [startHour = 0, startMin = 0] = startTime.split(":").map(Number);
+      const [endHour = 0, endMin = 0] = endTime.split(":").map(Number);
       workLog.durationMinutes =
         endHour * 60 + endMin - (startHour * 60 + startMin);
     }

@@ -112,13 +112,11 @@ export class CustomerCatalogService {
         [category, pageSize, offset],
       );
 
-      const [{ count: totalStr }] = await this.dataSource.query<
-        { count: string }[]
-      >(
+      const countResult = await this.dataSource.query<{ count: string }[]>(
         `SELECT COUNT(*)::text AS count FROM products WHERE category = $1 AND available = true`,
         [category],
       );
-      const total = parseInt(totalStr, 10);
+      const total = parseInt(countResult[0]?.count ?? "0", 10);
 
       const catInfo = CUSTOMER_CATEGORIES.find((c) => c.key === category);
       const catLabel = catInfo ? `${catInfo.icon} ${catInfo.label}` : category;
@@ -218,7 +216,7 @@ export class CustomerCatalogService {
         return;
       }
 
-      const product = rows[0];
+      const product = rows[0]!;
 
       let message = `📦 ${product.name}\n`;
       if (product.name_uz) {

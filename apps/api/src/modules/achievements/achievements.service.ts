@@ -166,12 +166,12 @@ export class AchievementsService {
       if (!byCategory[ach.category]) {
         byCategory[ach.category] = { total: 0, unlocked: 0 };
       }
-      byCategory[ach.category].total++;
+      byCategory[ach.category]!.total++;
 
       const isUnlocked = ua?.isUnlocked ?? false;
       if (isUnlocked) {
         totalUnlocked++;
-        byCategory[ach.category].unlocked++;
+        byCategory[ach.category]!.unlocked++;
         if (ua?.pointsClaimed) {
           totalPointsEarned += ua.pointsClaimed;
         }

@@ -263,7 +263,13 @@ export class AIParserService {
     // Block private IP ranges (10.x, 172.16-31.x, 192.168.x)
     const ipMatch = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
     if (ipMatch) {
-      const [, a, b] = ipMatch.map(Number);
+      const [, a, b] = ipMatch.map(Number) as [
+        undefined,
+        number,
+        number,
+        number,
+        number,
+      ];
       if (
         a === 10 ||
         (a === 172 && b >= 16 && b <= 31) ||
@@ -560,7 +566,7 @@ What would you like to configure first? You can also paste API documentation or 
       // Extract JSON from response
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[1]);
+        const parsed = JSON.parse(jsonMatch[1]!);
         return {
           success: parsed.success ?? true,
           confidence: parsed.confidence ?? 0.5,
@@ -602,7 +608,7 @@ What would you like to configure first? You can also paste API documentation or 
     try {
       const configMatch = response.match(/```config\s*([\s\S]*?)\s*```/);
       if (configMatch) {
-        return JSON.parse(configMatch[1]);
+        return JSON.parse(configMatch[1]!);
       }
       return null;
     } catch {

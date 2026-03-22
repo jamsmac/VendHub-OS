@@ -522,7 +522,7 @@ export class ComplaintsAnalyticsService {
     if (lastTicketNumber) {
       const match = lastTicketNumber.match(/(\d+)$/);
       if (match) {
-        sequence = parseInt(match[1], 10) + 1;
+        sequence = parseInt(match[1]!, 10) + 1;
       }
     }
 

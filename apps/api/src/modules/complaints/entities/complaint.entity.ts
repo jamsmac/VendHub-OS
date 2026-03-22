@@ -453,7 +453,7 @@ export class Complaint extends BaseEntity {
     } as Record<string, { response: number; resolution: number }>;
 
     const config =
-      slaHours[this.priority] || slaHours[ComplaintPriority.MEDIUM];
+      slaHours[this.priority] ?? slaHours[ComplaintPriority.MEDIUM]!;
 
     this.responseDeadline = new Date(
       now.getTime() + config.response * 60 * 60 * 1000,

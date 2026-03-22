@@ -54,7 +54,7 @@ function randomInt(min: number, max: number): number {
 }
 
 function randomChoice<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
 function randomDate(daysAgo: number): Date {
@@ -65,7 +65,7 @@ function randomDate(daysAgo: number): Date {
 }
 
 function formatDate(d: Date): string {
-  return d.toISOString().split("T")[0];
+  return d.toISOString().split("T")[0]!;
 }
 
 function formatTimestamp(d: Date): string {

@@ -217,8 +217,8 @@ export class ReportsSchedulerService {
   ): Date {
     const now = new Date();
     const time = config.time?.split(":") || ["09", "00"];
-    const hour = parseInt(time[0], 10);
-    const minute = parseInt(time[1], 10);
+    const hour = parseInt(time[0] ?? "09", 10);
+    const minute = parseInt(time[1] ?? "00", 10);
 
     switch (frequency) {
       case ReportFrequency.DAILY:

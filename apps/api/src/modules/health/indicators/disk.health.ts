@@ -83,11 +83,11 @@ export class DiskHealthIndicator extends HealthIndicator {
       try {
         const { stdout } = await execFileAsync("df", ["-B1", path]);
         const lines = stdout.trim().split("\n");
-        const parts = lines[lines.length - 1].split(/\s+/);
+        const parts = lines[lines.length - 1]!.split(/\s+/);
 
-        const total = parseInt(parts[1], 10);
-        const used = parseInt(parts[2], 10);
-        const available = parseInt(parts[3], 10);
+        const total = parseInt(parts[1] ?? "0", 10);
+        const used = parseInt(parts[2] ?? "0", 10);
+        const available = parseInt(parts[3] ?? "0", 10);
         const usedPercent = (used / total) * 100;
 
         return { total, used, available, usedPercent };

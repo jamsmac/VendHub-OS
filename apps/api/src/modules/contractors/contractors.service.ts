@@ -464,7 +464,8 @@ export class ContractorsService {
     // Count by service type
     for (const contractor of contractors) {
       if (contractor.isActive) {
-        stats.byServiceType[contractor.serviceType]++;
+        stats.byServiceType[contractor.serviceType] =
+          (stats.byServiceType[contractor.serviceType] ?? 0) + 1;
       }
     }
 

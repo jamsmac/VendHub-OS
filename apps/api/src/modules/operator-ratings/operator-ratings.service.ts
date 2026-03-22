@@ -578,7 +578,7 @@ export class OperatorRatingsService {
     });
 
     for (let i = 0; i < ratings.length; i++) {
-      ratings[i].rank = i + 1;
+      ratings[i]!.rank = i + 1;
     }
 
     if (ratings.length > 0) {

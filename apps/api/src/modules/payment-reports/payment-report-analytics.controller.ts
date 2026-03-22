@@ -253,7 +253,7 @@ export class PaymentReportAnalyticsController {
     }
 
     // Заголовки из первой строки rawData
-    const rawKeys = Object.keys(data[0].rawData ?? {});
+    const rawKeys = Object.keys(data[0]!.rawData ?? {});
     const headers = [
       "№",
       "Время оплаты",

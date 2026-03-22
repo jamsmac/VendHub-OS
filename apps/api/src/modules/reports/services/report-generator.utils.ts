@@ -15,7 +15,7 @@ export class ReportGeneratorUtils {
   }
 
   static getDateKey(date: Date): string {
-    return date.toISOString().split("T")[0];
+    return date.toISOString().split("T")[0]!;
   }
 
   static getMonthName(date: Date): string {
@@ -33,7 +33,7 @@ export class ReportGeneratorUtils {
       "Ноябрь",
       "Декабрь",
     ];
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    return `${months[date.getMonth()] ?? ""} ${date.getFullYear()}`;
   }
 
   static getDaysInMonth(date: Date): number {

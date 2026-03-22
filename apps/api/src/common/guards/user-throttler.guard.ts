@@ -19,6 +19,6 @@ export class UserThrottlerGuard extends ThrottlerGuard {
     }
 
     const ips = req.ips as string[] | undefined;
-    return ips?.length ? ips[0] : (req.ip as string);
+    return ips?.length ? (ips[0] ?? (req.ip as string)) : (req.ip as string);
   }
 }

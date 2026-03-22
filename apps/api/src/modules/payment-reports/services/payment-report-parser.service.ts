@@ -129,7 +129,7 @@ export class PaymentReportParserService {
   } {
     const wb = xlsx.read(buffer, { type: "buffer", cellDates: true });
     const sheetNames = wb.SheetNames;
-    const ws = wb.Sheets[sheetNames[0]];
+    const ws = wb.Sheets[sheetNames[0]!]!;
     const rows = xlsx.utils.sheet_to_json<unknown[]>(ws, {
       header: 1,
       defval: null,
@@ -196,7 +196,7 @@ export class PaymentReportParserService {
     headerIndex: number,
   ): ParsedReportRow[] {
     if (rawRows.length <= headerIndex + 1) return [];
-    const headers = this.mapHeader(rawRows[headerIndex]);
+    const headers = this.mapHeader(rawRows[headerIndex] ?? []);
     const results: ParsedReportRow[] = [];
 
     for (let i = headerIndex + 1; i < rawRows.length; i++) {
@@ -241,7 +241,7 @@ export class PaymentReportParserService {
     headerIndex: number,
   ): ParsedReportRow[] {
     if (rawRows.length <= headerIndex + 1) return [];
-    const headers = this.mapHeader(rawRows[headerIndex]);
+    const headers = this.mapHeader(rawRows[headerIndex] ?? []);
     const results: ParsedReportRow[] = [];
 
     for (let i = headerIndex + 1; i < rawRows.length; i++) {
@@ -279,7 +279,7 @@ export class PaymentReportParserService {
     headerIndex: number,
   ): ParsedReportRow[] {
     if (rawRows.length <= headerIndex + 1) return [];
-    const headers = this.mapHeader(rawRows[headerIndex]);
+    const headers = this.mapHeader(rawRows[headerIndex] ?? []);
     const results: ParsedReportRow[] = [];
 
     for (let i = headerIndex + 1; i < rawRows.length; i++) {
@@ -318,7 +318,7 @@ export class PaymentReportParserService {
     headerIndex: number,
   ): ParsedReportRow[] {
     if (rawRows.length <= headerIndex + 1) return [];
-    const headers = this.mapHeader(rawRows[headerIndex]);
+    const headers = this.mapHeader(rawRows[headerIndex] ?? []);
     const results: ParsedReportRow[] = [];
 
     for (let i = headerIndex + 1; i < rawRows.length; i++) {
@@ -360,7 +360,7 @@ export class PaymentReportParserService {
     headerIndex: number,
   ): ParsedReportRow[] {
     if (rawRows.length <= headerIndex + 1) return [];
-    const headers = this.mapHeader(rawRows[headerIndex]);
+    const headers = this.mapHeader(rawRows[headerIndex] ?? []);
     const results: ParsedReportRow[] = [];
 
     for (let i = headerIndex + 1; i < rawRows.length; i++) {

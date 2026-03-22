@@ -1,0 +1,45 @@
+%% A6. RBAC — маршрут запроса через guards
+%% Источник: auth/guards/*, auth/strategies/*, rbac/rbac.service.ts
+flowchart TD
+    REQ(["HTTP Request\nAuthorization: Bearer {jwt}"]) --> PUBLIC{"Декоратор\n@Public()?"}
+
+    PUBLIC -->|"Да"| CONTROLLER["✓ Controller\n(публичный эндпойнт)"]
+    PUBLIC -->|"Нет"| JWT_GUARD["JwtAuthGuard\n(extends AuthGuard('jwt'))"]
+
+    JWT_GUARD --> JWT_STRATEGY["JwtStrategy:\n1. Извлечение JWT из header\n2. Верификация подписи\n3. Проверка expiration\n4. Декодирование payload"]
+    JWT_STRATEGY --> BLACKLIST{"TokenBlacklistService:\njti в blacklist?"}
+
+    BLACKLIST -->|"Да (revoked)"| DENY_401["401 Unauthorized\nToken revoked"]
+    BLACKLIST -->|"Нет"| SESSION_CHECK{"UserSession\nactive + not expired?"}
+
+    SESSION_CHECK -->|"Нет"| DENY_401
+    SESSION_CHECK -->|"Да"| INJECT_USER["Инъекция в request:\nuser.id, user.email,\nuser.role, user.organizationId,\nuser.sessionId"]
+
+    INJECT_USER --> ROLES_GUARD["RolesGuard:\nПроверка @Roles() декоратора"]
+    ROLES_GUARD --> HAS_ROLES{"@Roles() указан\nна endpoint?"}
+
+    HAS_ROLES -->|"Нет"| ORG_GUARD
+    HAS_ROLES -->|"Да"| ROLE_CHECK{"user.role ∈\nallowedRoles?"}
+
+    ROLE_CHECK -->|"Нет"| DENY_403["403 Forbidden\nInsufficient role"]
+    ROLE_CHECK -->|"Да"| ORG_GUARD["OrganizationGuard:\nОпределение organizationId"]
+
+    ORG_GUARD --> ORG_SOURCE{"Источник orgId?"}
+    ORG_SOURCE -->|"params.organizationId"| ORG_VERIFY["Проверка:\nuser принадлежит org"]
+    ORG_SOURCE -->|"body.organizationId"| ORG_VERIFY
+    ORG_SOURCE -->|"Отсутствует"| ORG_INJECT["Инъекция из\nuser.organizationId"]
+
+    ORG_VERIFY --> ORG_MATCH{"orgId совпадает\nс user.organizationId?"}
+    ORG_MATCH -->|"Нет (owner может всё)"| IS_OWNER{"user.role\n== owner?"}
+    IS_OWNER -->|"Нет"| DENY_403_ORG["403 Forbidden\nOrganization mismatch"]
+    IS_OWNER -->|"Да"| THROTTLE
+    ORG_MATCH -->|"Да"| THROTTLE
+    ORG_INJECT --> THROTTLE
+
+    THROTTLE["ThrottlerGuard:\nRate limiting\n(default: 60 req/min)"]
+    THROTTLE --> THROTTLE_CHECK{"Лимит\nпревышен?"}
+    THROTTLE_CHECK -->|"Да"| DENY_429["429 Too Many Requests"]
+    THROTTLE_CHECK -->|"Нет"| CONTROLLER_AUTH["✓ Controller\n(авторизованный запрос)"]
+
+    CONTROLLER_AUTH --> INTERCEPTORS["Interceptors:\nTransform → Logging →\nTimeout (30s) → Metrics"]
+    INTERCEPTORS --> HANDLER["Route Handler\n(с @CurrentUser() декоратором)"]

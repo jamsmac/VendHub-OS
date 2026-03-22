@@ -65,7 +65,7 @@ export class ReportsDashboardService {
 
     if (dto.widgets?.length) {
       for (let i = 0; i < dto.widgets.length; i++) {
-        const w = dto.widgets[i];
+        const w = dto.widgets[i]!;
         await this.createWidget(
           {
             organizationId: dto.organizationId,

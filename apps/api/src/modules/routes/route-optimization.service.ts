@@ -79,13 +79,13 @@ export class RouteOptimizationService {
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         const d = this.haversineDistance(
-          validStops[i].latitude!,
-          validStops[i].longitude!,
-          validStops[j].latitude!,
-          validStops[j].longitude!,
+          validStops[i]!.latitude!,
+          validStops[i]!.longitude!,
+          validStops[j]!.latitude!,
+          validStops[j]!.longitude!,
         );
-        distMatrix[i][j] = d;
-        distMatrix[j][i] = d;
+        distMatrix[i]![j] = d;
+        distMatrix[j]![i] = d;
       }
     }
 
@@ -97,7 +97,7 @@ export class RouteOptimizationService {
 
     // Reorder stops and update sequence numbers
     const reorderedStops = order.map((idx, seq) => {
-      const stop = validStops[idx];
+      const stop = validStops[idx]!;
       stop.sequence = seq + 1;
       return stop;
     });
@@ -139,14 +139,14 @@ export class RouteOptimizationService {
     visited.add(0);
 
     for (let step = 1; step < n; step++) {
-      const current = order[order.length - 1];
+      const current = order[order.length - 1]!;
       let nearest = -1;
       let nearestDist = Infinity;
 
       for (let j = 0; j < n; j++) {
-        if (!visited.has(j) && distMatrix[current][j] < nearestDist) {
+        if (!visited.has(j) && distMatrix[current]![j]! < nearestDist) {
           nearest = j;
-          nearestDist = distMatrix[current][j];
+          nearestDist = distMatrix[current]![j]!;
         }
       }
 
@@ -170,13 +170,13 @@ export class RouteOptimizationService {
       improved = false;
       for (let i = 0; i < n - 1; i++) {
         for (let j = i + 2; j < n; j++) {
-          const a = order[i],
-            b = order[i + 1];
-          const c = order[j],
-            d = order[(j + 1) % n];
+          const a = order[i]!,
+            b = order[i + 1]!;
+          const c = order[j]!,
+            d = order[(j + 1) % n]!;
 
-          const currentDist = distMatrix[a][b] + distMatrix[c][d];
-          const newDist = distMatrix[a][c] + distMatrix[b][d];
+          const currentDist = distMatrix[a]![b]! + distMatrix[c]![d]!;
+          const newDist = distMatrix[a]![c]! + distMatrix[b]![d]!;
 
           if (newDist < currentDist - 0.001) {
             // Reverse the segment between i+1 and j
@@ -215,10 +215,10 @@ export class RouteOptimizationService {
     let totalDistance = 0;
     for (let i = 1; i < validStops.length; i++) {
       totalDistance += this.haversineDistance(
-        validStops[i - 1].latitude!,
-        validStops[i - 1].longitude!,
-        validStops[i].latitude!,
-        validStops[i].longitude!,
+        validStops[i - 1]!.latitude!,
+        validStops[i - 1]!.longitude!,
+        validStops[i]!.latitude!,
+        validStops[i]!.longitude!,
       );
     }
 

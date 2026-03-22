@@ -3,6 +3,53 @@
  * Payment and sales transaction management
  */
 
+// ============================================================================
+// ORDER
+// ============================================================================
+
+export enum OrderStatus {
+  PENDING = "pending",
+  CONFIRMED = "confirmed",
+  PREPARING = "preparing",
+  READY = "ready",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+  REFUNDED = "refunded",
+}
+
+export enum OrderPaymentStatus {
+  PENDING = "pending",
+  PAID = "paid",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  PARTIALLY_REFUNDED = "partially_refunded",
+}
+
+// ============================================================================
+// PAYMENT PROVIDER
+// ============================================================================
+
+export enum PaymentProvider {
+  PAYME = "payme",
+  CLICK = "click",
+  UZUM = "uzum",
+  TELEGRAM_STARS = "telegram_stars",
+  CASH = "cash",
+  WALLET = "wallet",
+}
+
+export enum RefundReason {
+  CUSTOMER_REQUEST = "customer_request",
+  MACHINE_ERROR = "machine_error",
+  PRODUCT_UNAVAILABLE = "product_unavailable",
+  DUPLICATE = "duplicate",
+  OTHER = "other",
+}
+
+// ============================================================================
+// TRANSACTION
+// ============================================================================
+
 export enum TransactionType {
   SALE = "sale",
   REFUND = "refund",

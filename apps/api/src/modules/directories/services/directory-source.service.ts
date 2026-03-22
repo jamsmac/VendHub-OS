@@ -284,7 +284,7 @@ export class DirectorySourceService {
             ? SyncStatus.PARTIAL
             : SyncStatus.FAILED;
       source.lastSyncError =
-        errors.length > 0 ? (errors[0].error as string) : null;
+        errors.length > 0 ? (errors[0]!.error as string) : null;
       source.consecutiveFailures =
         finalStatus === SyncLogStatus.FAILED
           ? source.consecutiveFailures + 1

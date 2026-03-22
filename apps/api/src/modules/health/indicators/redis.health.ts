@@ -102,7 +102,7 @@ export class RedisHealthIndicator extends HealthIndicator {
         .split("\r\n")
         .find((l) => l.startsWith("connected_clients:"));
       if (clientsLine) {
-        info.connectedClients = parseInt(clientsLine.split(":")[1], 10);
+        info.connectedClients = parseInt(clientsLine.split(":")[1] ?? "0", 10);
       }
 
       return info;

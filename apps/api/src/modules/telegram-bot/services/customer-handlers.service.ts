@@ -132,7 +132,7 @@ export class CustomerHandlersService {
     // Category with optional page: cat:category or cat:category:page
     this.bot.action(/^cat:([^:]+)(?::(\d+))?$/, async (ctx) => {
       await ctx.answerCbQuery();
-      const category = ctx.match[1];
+      const category = ctx.match[1]!;
       const page = ctx.match[2] ? parseInt(ctx.match[2], 10) : 1;
       await this.catalogService.showCategoryProducts(ctx, category, page);
     });
@@ -140,7 +140,7 @@ export class CustomerHandlersService {
     // Product details
     this.bot.action(/^product:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      await this.catalogService.showProductDetails(ctx, ctx.match[1]);
+      await this.catalogService.showProductDetails(ctx, ctx.match[1]!);
     });
 
     // Nearby machines
@@ -173,13 +173,13 @@ export class CustomerHandlersService {
 
     this.bot.action(/^orders:(\d+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      const page = parseInt(ctx.match[1], 10);
+      const page = parseInt(ctx.match[1]!, 10);
       await this.ordersService.showOrderHistory(ctx, page);
     });
 
     this.bot.action(/^order:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      await this.ordersService.showOrderDetails(ctx, ctx.match[1]);
+      await this.ordersService.showOrderDetails(ctx, ctx.match[1]!);
     });
 
     // --- Complaints ---
@@ -205,12 +205,12 @@ export class CustomerHandlersService {
 
     this.bot.action(/^complaint_type:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      await this.complaintsService.selectComplaintType(ctx, ctx.match[1]);
+      await this.complaintsService.selectComplaintType(ctx, ctx.match[1]!);
     });
 
     this.bot.action(/^complaint:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      await this.complaintsService.showComplaintDetails(ctx, ctx.match[1]);
+      await this.complaintsService.showComplaintDetails(ctx, ctx.match[1]!);
     });
 
     this.bot.action("submit_complaint", async (ctx) => {
@@ -257,7 +257,7 @@ export class CustomerHandlersService {
       if (!session || session.state !== CustomerSessionState.AWAITING_PHOTO)
         return;
 
-      const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      const photo = ctx.message.photo[ctx.message.photo.length - 1]!;
       await this.complaintsService.handlePhoto(ctx, photo.file_id);
     });
 

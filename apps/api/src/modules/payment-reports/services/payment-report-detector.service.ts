@@ -93,14 +93,14 @@ export class PaymentReportDetectorService {
 
     // Ищем строку с "ТИП ОТЧЕТА"
     for (let i = 0; i < Math.min(8, rawRows.length); i++) {
-      const rowStr = rawRows[i].map((v) => String(v ?? "")).join(" ");
+      const rowStr = rawRows[i]!.map((v) => String(v ?? "")).join(" ");
       if (rowStr.includes("ТИП ОТЧЕТА")) {
         score += 40;
         // Извлекаем период
         const periodRow = rawRows[i + 1] ?? [];
         const periodRow2 = rawRows[i + 2] ?? [];
-        meta.reportType = rawRows[i][2];
-        meta.createdAt = rawRows[i][6];
+        meta.reportType = rawRows[i]![2];
+        meta.createdAt = rawRows[i]![6];
         meta.periodFrom = periodRow[3];
         meta.periodTo = periodRow2[3];
       }
@@ -115,7 +115,7 @@ export class PaymentReportDetectorService {
 
     // Заголовок в строке 6 (нулевая индексация)
     if (rawRows.length > 6) {
-      const headerRow = rawRows[6].map((v) => String(v ?? ""));
+      const headerRow = rawRows[6]!.map((v) => String(v ?? ""));
       if (headerRow.includes("№") && headerRow.includes("НАЗВАНИЕ КАССЫ"))
         score += 20;
     }
@@ -148,7 +148,7 @@ export class PaymentReportDetectorService {
 
     // Первая строка должна содержать заголовки
     if (rawRows.length > 0) {
-      const headerStr = rawRows[0].map((v) => String(v ?? "")).join(" ");
+      const headerStr = rawRows[0]!.map((v) => String(v ?? "")).join(" ");
       if (headerStr.includes("Click ID") || headerStr.includes("Billing ID"))
         score += 40;
       if (headerStr.includes("Статус платежа") && headerStr.includes("Сумма"))
@@ -158,7 +158,7 @@ export class PaymentReportDetectorService {
 
       // Проверяем данные — должны быть даты и суммы
       if (rawRows.length > 1) {
-        const firstDataRow = rawRows[1];
+        const firstDataRow = rawRows[1]!;
         const hasDate = firstDataRow.some((v) => {
           const s = String(v ?? "");
           return /\d{4}-\d{2}-\d{2}/.test(s);
@@ -208,7 +208,7 @@ export class PaymentReportDetectorService {
 
     // Ищем заголовок
     for (let i = 0; i < Math.min(5, rawRows.length); i++) {
-      const rowStr = rawRows[i].map((v) => String(v ?? "")).join(" ");
+      const rowStr = rawRows[i]!.map((v) => String(v ?? "")).join(" ");
       if (rowStr.includes("Фискальный модуль") || rowStr.includes("Фискальный"))
         score += 40;
       if (rowStr.includes("Номер чека") && rowStr.includes("Операция"))
@@ -246,7 +246,7 @@ export class PaymentReportDetectorService {
     const meta: Record<string, unknown> = {};
 
     if (rawRows.length > 0) {
-      const headerStr = rawRows[0].map((v) => String(v ?? "")).join(" ");
+      const headerStr = rawRows[0]!.map((v) => String(v ?? "")).join(" ");
       if (headerStr.includes("Goods name") || headerStr.includes("Goods ID"))
         score += 40;
       if (
@@ -290,7 +290,7 @@ export class PaymentReportDetectorService {
     if (_lowerName.includes("order")) score += 15;
 
     if (rawRows.length > 0) {
-      const headerStr = rawRows[0].map((v) => String(v ?? "")).join(" ");
+      const headerStr = rawRows[0]!.map((v) => String(v ?? "")).join(" ");
       if (headerStr.includes("Номер заказа")) score += 40;
       if (headerStr.includes("Машинный код")) score += 30;
       if (

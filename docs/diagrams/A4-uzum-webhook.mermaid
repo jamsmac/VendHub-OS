@@ -1,0 +1,43 @@
+%% A4. Uzum Bank — обработка webhook (REST/HMAC-SHA256)
+%% Источник: payments/uzum.handler.ts
+sequenceDiagram
+    participant C as Клиент
+    participant UZ as Uzum Bank
+    participant API as VendHub API<br/>(UzumHandler)
+    participant DB as PostgreSQL<br/>(PaymentTransaction)
+    participant TX as TransactionService
+
+    Note over C,TX: === Инициация ===
+    C->>API: Выбор товара + Uzum Bank
+    API->>DB: Создание PaymentTransaction<br/>provider: uzum, status: pending
+    API->>API: Генерация signature:<br/>HMAC-SHA256(orderId+amount, secretKey)
+    API->>C: Redirect на Uzum checkout URL<br/>?orderId&amount&signature
+
+    Note over UZ,DB: === Webhook: Create ===
+    UZ->>API: POST /payments/uzum/webhook<br/>{transactionId, orderId,<br/>amount, status, signature}
+    API->>API: Верификация HMAC-SHA256:<br/>sorted payload fields → HMAC →<br/>timingSafeEqual(computed, received)
+    alt Подпись невалидна
+        API-->>UZ: {error: "Invalid signature"}
+    else Заказ не найден
+        API-->>UZ: {error: "Order not found"}
+    else Сумма не совпадает
+        API-->>UZ: {error: "Amount mismatch"}
+    else ОК
+        API->>DB: uzumTransactionId = transactionId<br/>status: processing
+        API-->>UZ: {success: true}
+    end
+
+    Note over UZ,DB: === Webhook: Confirm ===
+    UZ->>API: Webhook status: "CONFIRMED"
+    API->>API: Верификация HMAC-SHA256
+    API->>DB: status: completed<br/>completedAt: now
+    API->>TX: Transaction → COMPLETED
+    TX->>TX: Event: transaction.completed
+    API-->>UZ: {success: true}
+
+    Note over UZ,DB: === Webhook: Reverse (возврат) ===
+    UZ->>API: Webhook status: "REVERSED"
+    API->>API: Верификация HMAC-SHA256
+    API->>DB: status: refunded<br/>refundedAt: now
+    API->>TX: Transaction → REFUNDED
+    API-->>UZ: {success: true}

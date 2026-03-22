@@ -1,0 +1,56 @@
+%% A5. Аутентификация — полный цикл
+%% Источник: auth/auth.service.ts, auth/services/*
+flowchart TD
+    subgraph LOGIN ["Ветка: Логин"]
+        L_START(["Пользователь вводит\nemail + пароль"]) --> L_ATTEMPTS["Проверка LoginAttempt\n(за последние 30 мин)"]
+        L_ATTEMPTS --> L_LOCKED{"attempts ≥ 5?"}
+        L_LOCKED -->|"Да"| L_LOCKOUT["403: Account locked\n30 мин ожидания"]
+        L_LOCKED -->|"Нет"| L_FIND["Поиск User по email\n(active, not deleted)"]
+        L_FIND --> L_FOUND{"User найден?"}
+        L_FOUND -->|"Нет"| L_BAD["401: Invalid credentials\n+ запись LoginAttempt"]
+        L_FOUND -->|"Да"| L_BCRYPT["bcrypt.compare\n(password, hash)"]
+        L_BCRYPT --> L_MATCH{"Пароль верный?"}
+        L_MATCH -->|"Нет"| L_BAD
+        L_MATCH -->|"Да"| L_2FA{"2FA включена?"}
+
+        L_2FA -->|"Нет"| L_SESSION
+        L_2FA -->|"Да"| L_CHALLENGE["Выдача challengeToken\n(JWT, short-lived, 5 мин)"]
+        L_CHALLENGE --> L_TOTP(["Пользователь вводит\n6-значный TOTP"])
+        L_TOTP --> L_VERIFY_TOTP["TwoFactorService:\nverify TOTP code"]
+        L_VERIFY_TOTP --> L_TOTP_OK{"Код верный?"}
+        L_TOTP_OK -->|"Нет"| L_BAD_TOTP["401: Invalid TOTP"]
+        L_TOTP_OK -->|"Да"| L_SESSION
+
+        L_SESSION["Создание UserSession\n(sessionId, device, ip, expiresAt)\nТТЛ: 7 дней"]
+        L_SESSION --> L_JWT["Генерация JWT:\n{sub, email, role, organizationId,\nsessionId, jti: uuid}"]
+        L_JWT --> L_TOKENS["Access Token (15 мин)\n+ Refresh Token (7 дней)"]
+        L_TOKENS --> L_METRICS["MetricsService:\nlogin_success counter"]
+        L_METRICS --> L_OK(["✓ Вход выполнен"])
+    end
+
+    subgraph INVITE ["Ветка: Регистрация по инвайту"]
+        I_START(["Переход по ссылке\n/register?code=xxx"]) --> I_FIND["InvitesService:\nfindByCode(code)"]
+        I_FIND --> I_VALID{"code валидный?\nactive + not expired\n+ currentUses < maxUses"}
+        I_VALID -->|"Нет"| I_BAD["400: Invalid invite"]
+        I_VALID -->|"Да"| I_REG["Создание User:\nrole из invite,\norganizationId из invite"]
+        I_REG --> I_HASH["bcrypt.hash(password, 10)"]
+        I_HASH --> I_SAVE["Сохранение User\n+ инкремент invite.currentUses"]
+        I_SAVE --> I_OK(["✓ Регистрация завершена\n→ Переход на логин"])
+    end
+
+    subgraph RESET ["Ветка: Сброс пароля"]
+        R_START(["Запрос сброса\nпо email"]) --> R_TOKEN["Генерация PasswordResetToken\ncrypto.randomBytes(32)\nТТЛ: 1 час"]
+        R_TOKEN --> R_EMAIL["Отправка email\nс ссылкой /reset?token=xxx"]
+        R_EMAIL --> R_CLICK(["Пользователь переходит\nпо ссылке"])
+        R_CLICK --> R_VERIFY["Проверка токена:\nnot expired, not used"]
+        R_VERIFY --> R_POLICY["PasswordPolicyService:\nпроверка нового пароля\n(длина, сложность, история)"]
+        R_POLICY --> R_HASH["bcrypt.hash(newPassword, 10)"]
+        R_HASH --> R_SAVE["Обновление пароля\n+ invalidation всех sessions\n+ пометка токена used"]
+        R_SAVE --> R_OK(["✓ Пароль обновлён"])
+    end
+
+    subgraph CRON ["Cron-задачи (ежедневно)"]
+        C1["3:00 AM — cleanupExpiredResetTokens\nУдаление просроченных токенов сброса"]
+        C2["4:00 AM — cleanupExpiredSessions\nУдаление истекших UserSession"]
+        C3["5:00 AM — cleanupOldLoginAttempts\nОчистка старых попыток входа"]
+    end

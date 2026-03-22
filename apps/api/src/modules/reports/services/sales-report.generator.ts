@@ -322,7 +322,7 @@ export class SalesReportGenerator {
     for (let i = 0; i < 7; i++) {
       weekdayData.set(i, {
         dayOfWeek: i,
-        dayName: weekdayNames[i],
+        dayName: weekdayNames[i] ?? "",
         cash: { count: 0, amount: 0 },
         qr: { count: 0, amount: 0 },
         vip: { count: 0, amount: 0 },

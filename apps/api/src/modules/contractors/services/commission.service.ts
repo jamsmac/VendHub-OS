@@ -409,7 +409,7 @@ export class CommissionService {
     }[] = [];
 
     for (let i = 0; i < sortedTiers.length; i++) {
-      const tier = sortedTiers[i];
+      const tier = sortedTiers[i]!;
       const tierMax = tier.maxRevenue !== null ? tier.maxRevenue : Infinity;
       const tierRange = tierMax - tier.minRevenue;
 

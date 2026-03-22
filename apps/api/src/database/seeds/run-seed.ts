@@ -371,7 +371,7 @@ async function runSeed() {
     ];
 
     for (let i = 0; i < machines.length; i++) {
-      const machine = machines[i];
+      const machine = machines[i]!;
       const machineId = uuidv4();
       await dataSource.query(
         `

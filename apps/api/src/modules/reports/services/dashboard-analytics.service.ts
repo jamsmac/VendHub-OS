@@ -252,6 +252,6 @@ export class DashboardAnalyticsService {
    * Format a date as YYYY-MM-DD string
    */
   private toDateString(date: Date): string {
-    return date.toISOString().split("T")[0];
+    return date.toISOString().split("T")[0]!;
   }
 }

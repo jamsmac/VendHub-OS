@@ -66,7 +66,7 @@ export async function processBatch<T, R>(
   const totalBatches = batches.length;
 
   for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-    const batch = batches[batchIndex];
+    const batch = batches[batchIndex]!;
 
     // Process batch with concurrency limit
     const batchResults = await processWithConcurrency(
@@ -170,7 +170,7 @@ async function processWithConcurrency<T, R>(
       // Remove completed promises
       for (let i = executing.length - 1; i >= 0; i--) {
         // Check if promise is settled by checking then
-        const p = executing[i];
+        const p = executing[i]!;
         if (await Promise.race([p.then(() => true), Promise.resolve(false)])) {
           executing.splice(i, 1);
         }
@@ -247,7 +247,7 @@ export async function parallelLimit<T, R>(
     async () => {
       while (index < items.length) {
         const currentIndex = index++;
-        results[currentIndex] = await processor(items[currentIndex]);
+        results[currentIndex] = await processor(items[currentIndex]!);
       }
     },
   );
@@ -392,7 +392,7 @@ export function createBatchDebouncer<T, R>(
 
     try {
       const results = await processor(currentBatch.map((b) => b.item));
-      currentBatch.forEach((b, i) => b.resolve(results[i]));
+      currentBatch.forEach((b, i) => b.resolve(results[i]!));
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error(String(error));
       currentBatch.forEach((b) => b.reject(err));

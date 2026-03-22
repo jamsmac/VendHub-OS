@@ -1,0 +1,53 @@
+%% B3. Техобслуживание (Maintenance)
+%% Источник: maintenance/maintenance.service.ts — VALID_MAINTENANCE_TRANSITIONS
+stateDiagram-v2
+    [*] --> DRAFT : Создание заявки\n(machineId, workType, priority)
+
+    DRAFT --> SUBMITTED : Отправка на рассмотрение
+    DRAFT --> CANCELLED : Отмена черновика
+
+    SUBMITTED --> APPROVED : Менеджер одобрил\n(ApproveMaintenanceRequestDto)
+    SUBMITTED --> REJECTED : Менеджер отклонил\n(RejectMaintenanceRequestDto)
+
+    APPROVED --> ASSIGNED : Назначен техник\n(AssignTechnicianDto)
+
+    ASSIGNED --> IN_PROGRESS : Техник начал работу\n(StartMaintenanceDto)
+
+    IN_PROGRESS --> COMPLETED : Техник завершил\n(CompleteMaintenanceDto)
+    IN_PROGRESS --> ON_HOLD : Ожидание запчастей
+
+    ON_HOLD --> IN_PROGRESS : Запчасти получены
+
+    COMPLETED --> VERIFIED : Менеджер проверил\n(VerifyMaintenanceDto)
+    COMPLETED --> IN_PROGRESS : Возврат на доработку
+
+    VERIFIED --> [*] : ✓ ТО завершено
+    CANCELLED --> [*]
+    REJECTED --> [*]
+
+    note right of DRAFT
+        MaintenanceWorkType:
+        preventive / corrective /
+        emergency / inspection / cleaning
+    end note
+
+    note right of IN_PROGRESS
+        MaintenancePart[] — запчасти
+        MaintenanceWorkLog[] — журнал работ
+        (startTime, endTime, description)
+    end note
+
+    note left of APPROVED
+        SLA расчёт:
+        HIGH → 4ч / CRITICAL → 1ч
+        MEDIUM → 24ч / LOW → 72ч
+        Cron каждый час: проверка SLA,
+        автоэскалация при нарушении
+    end note
+
+    note right of VERIFIED
+        Cron каждую полночь:
+        Генерация плановых заявок
+        из MaintenanceSchedule
+        (frequency: daily/weekly/monthly)
+    end note

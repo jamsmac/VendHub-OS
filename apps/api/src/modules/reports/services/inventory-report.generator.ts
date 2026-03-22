@@ -48,9 +48,7 @@ export class InventoryReportGenerator {
     });
   }
 
-  buildIngredientByMonths(
-    transactions: TransactionData[],
-  ): Array<{
+  buildIngredientByMonths(transactions: TransactionData[]): Array<{
     month: string;
     ingredients: Record<string, number>;
     totalCost: number;
@@ -156,8 +154,8 @@ export class InventoryReportGenerator {
     return Array.from(dailyData.entries())
       .map(([date, ingredients]) => ({ [date]: ingredients }))
       .sort((a, b) => {
-        const aKey = Object.keys(a)[0];
-        const bKey = Object.keys(b)[0];
+        const aKey = Object.keys(a)[0] ?? "";
+        const bKey = Object.keys(b)[0] ?? "";
         return aKey.localeCompare(bKey);
       });
   }

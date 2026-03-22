@@ -256,7 +256,7 @@ export class StorageService {
       throw new BadRequestException("Invalid base64 data format");
     }
 
-    const mimeType = matches[1];
+    const mimeType = matches[1]!;
 
     // Block dangerous MIME types
     if (this.blockedMimeTypes.includes(mimeType)) {
@@ -265,7 +265,7 @@ export class StorageService {
       );
     }
 
-    const buffer = Buffer.from(matches[2], "base64");
+    const buffer = Buffer.from(matches[2]!, "base64");
 
     // Verify magic bytes match the claimed MIME type
     validateMagicBytes(buffer, mimeType);
@@ -749,7 +749,7 @@ export class StorageService {
     );
     const match = url.match(s3UrlPattern);
 
-    return match ? match[1] : null;
+    return match ? (match[1] ?? null) : null;
   }
 
   /**

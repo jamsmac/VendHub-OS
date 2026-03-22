@@ -261,9 +261,10 @@ export class ImportService {
 
     for (let i = 0; i < rows.length; i++) {
       const rowNumber = i + 1;
+      const currentRow = rows[i]!;
       const mappedData = mapping
-        ? this.validatorService.applyMapping(rows[i], mapping)
-        : rows[i];
+        ? this.validatorService.applyMapping(currentRow, mapping)
+        : currentRow;
 
       const result = await validator(mappedData, organizationId, rowNumber);
 

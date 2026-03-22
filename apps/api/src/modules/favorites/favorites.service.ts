@@ -124,7 +124,7 @@ export class FavoritesService {
     return {
       success: true,
 
-      id: Array.isArray(saved) ? (saved as Favorite[])[0].id : saved.id,
+      id: Array.isArray(saved) ? (saved as Favorite[])[0]!.id : saved.id,
       message: "Added to favorites",
       alreadyExists: false,
     };

@@ -354,7 +354,7 @@ export class DashboardStatsService {
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const dateStr = yesterday.toISOString().split("T")[0];
+    const dateStr = yesterday.toISOString().split("T")[0]!;
 
     // Get distinct organizationIds from machines
     const orgs = await this.machineRepo
@@ -491,7 +491,7 @@ export class DashboardStatsService {
     return stats.map((s) => ({
       date:
         s.statDate instanceof Date
-          ? s.statDate.toISOString().split("T")[0]
+          ? s.statDate.toISOString().split("T")[0]!
           : String(s.statDate),
       revenue: Number(s.totalRevenue),
       salesCount: s.totalSalesCount,

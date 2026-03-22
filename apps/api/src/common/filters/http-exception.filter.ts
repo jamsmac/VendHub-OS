@@ -239,7 +239,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         inn: "INN",
       };
 
-      const label = fieldLabels[fieldName] || fieldName;
+      const label =
+        (fieldName ? fieldLabels[fieldName] : undefined) ?? fieldName;
       return `A record with this ${label} already exists`;
     }
 

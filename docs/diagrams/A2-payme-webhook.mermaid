@@ -1,0 +1,62 @@
+%% A2. Payme — обработка webhook (JSON-RPC)
+%% Источник: payments/payme.handler.ts
+sequenceDiagram
+    participant C as Клиент
+    participant P as Payme Server
+    participant API as VendHub API<br/>(PaymeHandler)
+    participant DB as PostgreSQL<br/>(PaymentTransaction)
+    participant TX as TransactionService
+
+    Note over C,TX: === Шаг 1: Инициация оплаты ===
+    C->>API: Выбор товара + Payme
+    API->>DB: Создание PaymentTransaction<br/>status: pending, provider: payme
+    API->>C: Redirect на Payme checkout<br/>(orderId, amount)
+
+    Note over P,DB: === Шаг 2: CheckPerformTransaction ===
+    P->>API: JSON-RPC: CheckPerformTransaction<br/>{account: {order_id}, amount}
+    API->>API: Валидация Basic Auth<br/>(Base64 merchant_id:key)
+    API->>DB: Поиск по account.order_id
+    alt Заказ не найден
+        API-->>P: error: {code: -31099}<br/>"Order not found"
+    else Сумма не совпадает
+        API-->>P: error: {code: -31001}<br/>"Invalid amount"
+    else Уже оплачен
+        API-->>P: error: {code: -31008}<br/>"Already paid"
+    else ОК
+        API-->>P: result: {allow: true}
+    end
+
+    Note over P,DB: === Шаг 3: CreateTransaction ===
+    P->>API: JSON-RPC: CreateTransaction<br/>{id, amount, account, time}
+    API->>API: Валидация Basic Auth
+    API->>DB: Поиск PaymentTransaction
+    alt Уже создана с этим payme_id
+        API-->>P: result: {create_time, transaction, state: 1}
+    else Создание
+        API->>DB: Обновить: paymeTransactionId = id<br/>status: processing, state: 1
+        API-->>P: result: {create_time, transaction, state: 1}
+    end
+
+    Note over P,DB: === Шаг 4: PerformTransaction ===
+    P->>API: JSON-RPC: PerformTransaction<br/>{id}
+    API->>DB: Поиск по paymeTransactionId
+    alt state != 1 (не processing)
+        API-->>P: error: {code: -31008}<br/>"Unable to perform"
+    else Подтверждение
+        API->>DB: status: completed<br/>state: 2, perform_time
+        API->>TX: Обновить Transaction<br/>status: COMPLETED
+        TX->>TX: Event: transaction.completed
+        API-->>P: result: {state: 2, perform_time}
+    end
+
+    Note over P,DB: === Шаг 5: CancelTransaction (если нужно) ===
+    P->>API: JSON-RPC: CancelTransaction<br/>{id, reason}
+    API->>DB: Поиск по paymeTransactionId
+    alt state == 1 (processing, не оплачен)
+        API->>DB: status: cancelled<br/>state: -1, cancel_time
+        API-->>P: result: {state: -1, cancel_time}
+    else state == 2 (completed, возврат)
+        API->>DB: status: refunded<br/>state: -2, cancel_time
+        API->>TX: Создать RefundTransaction
+        API-->>P: result: {state: -2, cancel_time}
+    end

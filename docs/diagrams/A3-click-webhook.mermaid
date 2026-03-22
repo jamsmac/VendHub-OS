@@ -1,0 +1,47 @@
+%% A3. Click — обработка webhook (REST/MD5)
+%% Источник: payments/click.handler.ts
+sequenceDiagram
+    participant C as Клиент
+    participant CL as Click Server
+    participant API as VendHub API<br/>(ClickHandler)
+    participant DB as PostgreSQL<br/>(PaymentTransaction)
+    participant TX as TransactionService
+
+    Note over C,TX: === Инициация ===
+    C->>API: Выбор товара + Click
+    API->>DB: Создание PaymentTransaction<br/>provider: click, status: pending
+    API->>C: Redirect на Click checkout
+
+    Note over CL,DB: === Prepare (action=0) ===
+    CL->>API: POST /payments/click/webhook<br/>action: 0, click_trans_id,<br/>merchant_trans_id, amount, sign_time,<br/>sign_string
+    API->>API: Проверка подписи MD5:<br/>MD5(click_trans_id + service_id +<br/>secret_key + merchant_trans_id +<br/>amount + action + sign_time)
+    alt Подпись невалидна
+        API-->>CL: {error: -1, error_note:<br/>"SIGN_CHECK_FAILED"}
+    else Заказ не найден
+        API-->>CL: {error: -5, error_note:<br/>"ORDER_NOT_FOUND"}
+    else Уже оплачен
+        API-->>CL: {error: -4, error_note:<br/>"ALREADY_PAID"}
+    else Сумма не совпадает
+        API-->>CL: {error: -2, error_note:<br/>"INCORRECT_AMOUNT"}
+    else ОК
+        API->>DB: status: processing<br/>clickTransactionId = click_trans_id
+        API-->>CL: {error: 0, merchant_prepare_id: id}
+    end
+
+    Note over CL,DB: === Complete (action=1) ===
+    CL->>API: POST /payments/click/webhook<br/>action: 1, click_trans_id,<br/>merchant_trans_id, sign_string
+    API->>API: Проверка подписи MD5
+    alt Подпись невалидна
+        API-->>CL: {error: -1}
+    else Заказ не найден
+        API-->>CL: {error: -5}
+    else Ранее отменён (error в prepare)
+        API-->>CL: {error: -6, error_note:<br/>"TRANSACTION_CANCELLED"}
+    else Уже завершён (idempotency)
+        API-->>CL: {error: 0, merchant_confirm_id: id}
+    else ОК
+        API->>DB: status: completed<br/>completedAt: now
+        API->>TX: Transaction → COMPLETED
+        TX->>TX: Event: transaction.completed
+        API-->>CL: {error: 0, merchant_confirm_id: id}
+    end

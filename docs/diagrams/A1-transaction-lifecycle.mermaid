@@ -1,0 +1,67 @@
+%% A1. Полный жизненный цикл транзакции (Transaction Lifecycle)
+%% Источники: transaction-create.service.ts, payments.service.ts, fiscal.service.ts
+flowchart TD
+    START(["Клиент выбирает товар на автомате"]) --> CREATE["Создание Transaction\nstatus: PENDING\ntype: sale/refund/bonus"]
+    CREATE --> PAYMENT_METHOD{"Метод оплаты?"}
+
+    PAYMENT_METHOD -->|"cash"| CASH["Наличные: сумма\nпринята автоматом"]
+    PAYMENT_METHOD -->|"payme/click/uzum"| ONLINE["Перенаправление\nна платёжный шлюз"]
+    PAYMENT_METHOD -->|"telegram"| TG_PAY["Telegram Payments\npre_checkout_query"]
+    PAYMENT_METHOD -->|"card/nfc/uzcard/humo"| CARD["Карта: терминал\nсчитывает данные"]
+    PAYMENT_METHOD -->|"bonus"| BONUS["Списание бонусных\nбаллов из LoyaltyAccount"]
+    PAYMENT_METHOD -->|"qr"| QR["QR-код: сканирование\nи редирект на провайдер"]
+
+    CASH --> PAID["status: COMPLETED\npaymentMethod: cash"]
+    ONLINE --> PROCESSING["status: PROCESSING\nОжидание webhook"]
+    TG_PAY --> PROCESSING
+    CARD --> PROCESSING
+    BONUS --> PAID
+    QR --> PROCESSING
+
+    PROCESSING --> WEBHOOK{"Webhook\nот провайдера"}
+    WEBHOOK -->|"Успех"| PAID
+    WEBHOOK -->|"Ошибка"| FAILED["status: FAILED\nerrorCode, errorMessage"]
+
+    PAID --> DISPENSE["Команда на выдачу\ndispenseStatus: dispensing"]
+    DISPENSE --> DISPENSE_RESULT{"Результат выдачи?"}
+
+    DISPENSE_RESULT -->|"Все товары выданы"| DISPENSED["dispenseStatus: dispensed\nОбновление inventory"]
+    DISPENSE_RESULT -->|"Частичная выдача"| PARTIAL["dispenseStatus: partial\nОтметка невыданных items"]
+    DISPENSE_RESULT -->|"Ошибка выдачи"| DISP_FAIL["dispenseStatus: failed\ndispenseErrorMessage"]
+
+    DISPENSED --> FISCAL{"Фискализация\nнужна?"}
+    PARTIAL --> FISCAL
+    DISP_FAIL --> AUTO_REFUND["Автовозврат средств\nstatus: REFUNDED"]
+
+    FISCAL -->|"Да"| FISCAL_QUEUE["Добавление в BullMQ\nочередь fiscal-queue"]
+    FISCAL -->|"Нет (тест-режим)"| COMPLETE
+
+    FISCAL_QUEUE --> FISCAL_PROCESS["FiscalQueueProcessor:\nОткрытие смены → Чек → fiscalSign"]
+    FISCAL_PROCESS --> FISCAL_OK{"Результат?"}
+    FISCAL_OK -->|"Успех"| COMPLETE["Transaction завершена\nfiscalSign, fiscalReceiptUrl"]
+    FISCAL_OK -->|"Ошибка"| FISCAL_RETRY["Повтор через 30сек\n(max 3 попытки)"]
+    FISCAL_RETRY --> FISCAL_PROCESS
+
+    COMPLETE --> EVENTS["EventEmitter:\ntransaction.completed"]
+    EVENTS --> LOYALTY["Начисление бонусов\n(LoyaltyService)"]
+    EVENTS --> ANALYTICS["Обновление аналитики\n(AnalyticsService)"]
+    EVENTS --> NOTIFY["Уведомление оператору\n(NotificationsService)"]
+    EVENTS --> INVENTORY_UPD["Списание с\nMachineInventory"]
+
+    FAILED --> END_FAIL(["Транзакция не выполнена"])
+    AUTO_REFUND --> END_REFUND(["Средства возвращены"])
+
+    %% Отдельная ветка: ручной возврат
+    COMPLETE --> MANUAL_REFUND{"Запрос возврата?"}
+    MANUAL_REFUND -->|"Да, полный"| FULL_REFUND["status: REFUNDED\nrefundAmount = totalAmount"]
+    MANUAL_REFUND -->|"Да, частичный"| PART_REFUND["status: PARTIALLY_REFUNDED\nrefundAmount < totalAmount"]
+    MANUAL_REFUND -->|"Нет"| END_OK(["✓ Транзакция завершена"])
+
+    FULL_REFUND --> REFUND_FISCAL["Фискализация возврата\nFiscalReceiptType: REFUND"]
+    PART_REFUND --> REFUND_FISCAL
+    REFUND_FISCAL --> END_REFUND
+
+    %% Отмена
+    CREATE --> CANCEL{"Отмена до оплаты?"}
+    CANCEL -->|"Да"| CANCELLED["status: CANCELLED\ncancelReason"]
+    CANCELLED --> END_CANCEL(["Транзакция отменена"])

@@ -413,7 +413,7 @@ export class PaymentExecutorService {
     switch (auth.type) {
       case AuthType.API_KEY: {
         const config = auth.config as ApiKeyAuthConfig;
-        const key = credentials[config.keyName] || credentials["api_key"];
+        const key = credentials[config.keyName] ?? credentials["api_key"] ?? "";
         const value = config.prefix ? `${config.prefix} ${key}` : key;
 
         if (config.keyLocation === "header") {
@@ -443,7 +443,7 @@ export class PaymentExecutorService {
 
       case AuthType.HMAC: {
         const config = auth.config as HmacAuthConfig;
-        const secret = credentials[config.secretField || "secret"];
+        const secret = credentials[config.secretField || "secret"] ?? "";
         const dataToSign = this.buildSignatureData(
           config.dataToSign,
           body,

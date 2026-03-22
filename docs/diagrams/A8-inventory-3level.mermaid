@@ -1,0 +1,52 @@
+%% A8. 3-уровневая система инвентаря
+%% Источник: inventory/inventory.service.ts, inventory/services/*
+flowchart TD
+    subgraph LEVELS ["3 уровня хранения"]
+        WH["🏭 Уровень 1: Склад\n(WarehouseInventory)\nЦентральное хранение"]
+        OP["🚛 Уровень 2: Оператор\n(OperatorInventory)\nВ пути / на руках"]
+        MC["🤖 Уровень 3: Автомат\n(MachineInventory)\nЗагружен в машину"]
+    end
+
+    subgraph TRANSFERS ["Трансферы между уровнями"]
+        T1["Склад → Оператор\nВыдача на маршрут"]
+        T2["Оператор → Автомат\nЗагрузка при обслуживании"]
+        T3["Автомат → Оператор\nВыемка остатков"]
+        T4["Оператор → Склад\nВозврат после маршрута"]
+    end
+
+    WH -->|"transferWarehouseToOperator"| T1
+    T1 --> OP
+    OP -->|"transferOperatorToMachine"| T2
+    T2 --> MC
+    MC -->|"transferMachineToOperator"| T3
+    T3 --> OP
+    OP -->|"transferOperatorToWarehouse"| T4
+    T4 --> WH
+
+    subgraph TRANSFER_FLOW ["Алгоритм каждого трансфера"]
+        TF1["1. Pessimistic lock\n(SELECT FOR UPDATE)"] --> TF2["2. Проверка остатка\n(quantity ≥ requested)"]
+        TF2 --> TF3{"Достаточно?"}
+        TF3 -->|"Нет"| TF_ERR["BadRequest:\nInsufficient quantity"]
+        TF3 -->|"Да"| TF4["3. Уменьшение баланса\nисточника"]
+        TF4 --> TF5["4. Увеличение/создание\nбаланса получателя"]
+        TF5 --> TF6["5. Создание\nInventoryMovement"]
+        TF6 --> TF7["6. Event emit:\ninventory.transferred"]
+    end
+
+    subgraph RESERVATION ["Резервирование"]
+        R1(["Запрос резервирования"]) --> R2["Создание InventoryReservation\nstatus: ACTIVE\nexpiresAt: +2 часа"]
+        R2 --> R3["Уменьшение available\n(не actual) quantity"]
+        R3 --> R4{"Действие?"}
+        R4 -->|"Подтверждение"| R5["status: FULFILLED\nСписание actual quantity"]
+        R4 -->|"Отмена"| R6["status: CANCELLED\nВозврат available"]
+        R4 -->|"Истечение"| R7["Cron каждые 10мин:\nstatus: EXPIRED\nВозврат available"]
+    end
+
+    subgraph ADJUSTMENT ["Корректировки"]
+        A1(["Ручная корректировка"]) --> A2["Создание InventoryAdjustment\ntype: INCREASE/DECREASE/WRITE_OFF"]
+        A2 --> A3["reason: damaged/expired/\ncounting_error/theft/other"]
+        A3 --> A4["Обновление баланса\nсоответствующего уровня"]
+        A4 --> A5["Audit trail:\nAdjustment → userId, notes"]
+    end
+
+    MC -->|"Продажа"| SALE["Автоматическое списание\nпри продаже (TransactionService)\n→ MachineInventory -= qty"]

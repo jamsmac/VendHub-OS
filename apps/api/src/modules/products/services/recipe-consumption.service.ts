@@ -300,10 +300,10 @@ export class RecipeConsumptionService {
 
       result.push({
         nomenclatureId,
-        nomenclatureName: group[0].name,
+        nomenclatureName: group[0]!.name,
         containers: items,
         totalDeficit,
-        unit: group[0].unit,
+        unit: group[0]!.unit,
       });
     }
 

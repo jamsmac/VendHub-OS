@@ -121,8 +121,8 @@ export class FinancialReportGenerator {
     let marginTrend = 0;
 
     if (months.length >= 2) {
-      const first = months[0];
-      const last = months[months.length - 1];
+      const first = months[0]!;
+      const last = months[months.length - 1]!;
 
       revenueGrowth =
         first.revenue > 0
@@ -356,7 +356,7 @@ export class FinancialReportGenerator {
       if (!dailyData.has(dateKey)) {
         dailyData.set(dateKey, {
           date: dateKey,
-          dayOfWeek: weekdayNames[t.createdAt.getDay()],
+          dayOfWeek: weekdayNames[t.createdAt.getDay()] ?? "",
           orderCount: 0,
           successfulCount: 0,
           failedCount: 0,

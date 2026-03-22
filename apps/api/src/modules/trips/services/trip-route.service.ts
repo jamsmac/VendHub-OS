@@ -295,7 +295,7 @@ export class TripRouteService {
     if (existingStop) return; // Stop already tracked
 
     // Create new stop
-    const firstPoint = pointsInWindow[pointsInWindow.length - 1];
+    const firstPoint = pointsInWindow[pointsInWindow.length - 1]!;
     const centerLat = Number(firstPoint.latitude);
     const centerLng = Number(firstPoint.longitude);
 

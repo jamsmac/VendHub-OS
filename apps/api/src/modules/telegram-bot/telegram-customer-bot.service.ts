@@ -212,7 +212,7 @@ export class TelegramCustomerBotService
     // View complaint details
     this.bot.action(/complaint:(.+)/, async (ctx) => {
       await ctx.answerCbQuery();
-      const complaintId = ctx.match[1];
+      const complaintId = ctx.match[1]!;
       await this.showComplaintDetails(ctx, complaintId);
     });
 
@@ -264,7 +264,7 @@ export class TelegramCustomerBotService
       if (!session || session.state !== CustomerSessionState.AWAITING_PHOTO)
         return;
 
-      const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      const photo = ctx.message.photo[ctx.message.photo.length - 1]!;
       session.data.photoFileId = photo.file_id;
       this.setSession(ctx.from!.id, session);
 
@@ -766,14 +766,14 @@ export class TelegramCustomerBotService
     }
 
     if (complaint.refunds && complaint.refunds.length > 0) {
-      const latestRefund = complaint.refunds[0];
+      const latestRefund = complaint.refunds[0]!;
       const refundStatus: Record<string, string> = {
         pending: "⏳ Ожидает",
         approved: "✅ Одобрен",
         completed: "💰 Выплачен",
         rejected: "❌ Отклонён",
       };
-      message += `\n💰 Возврат: ${refundStatus[latestRefund.status] || latestRefund.status} - ${Number(latestRefund.amount).toLocaleString()} сум\n`;
+      message += `\n💰 Возврат: ${refundStatus[latestRefund.status] ?? latestRefund.status} - ${Number(latestRefund.amount).toLocaleString()} сум\n`;
     }
 
     const keyboard = Markup.inlineKeyboard([

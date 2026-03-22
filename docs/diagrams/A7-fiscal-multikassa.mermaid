@@ -1,0 +1,65 @@
+%% A7. Фискализация через Multikassa + BullMQ
+%% Источник: fiscal/services/fiscal.service.ts, multikassa.service.ts, fiscal-queue.processor.ts
+sequenceDiagram
+    participant TX as TransactionService
+    participant FS as FiscalService
+    participant Q as BullMQ Queue<br/>(fiscal-queue)
+    participant P as FiscalQueueProcessor
+    participant MK as Multikassa API<br/>(OFD/Soliq.uz)
+    participant DB as PostgreSQL
+
+    Note over TX,DB: === 1. Транзакция завершена — создание чека ===
+    TX->>FS: fiscalize(transactionId)
+    FS->>DB: Создание FiscalReceipt<br/>status: PENDING<br/>type: SALE / REFUND
+    FS->>Q: Добавление job<br/>{receiptId, priority}
+    FS-->>TX: receipt.id
+
+    Note over Q,DB: === 2. Processor обрабатывает очередь ===
+    Q->>P: Следующий job из очереди
+
+    P->>DB: Загрузка FiscalReceipt<br/>+ FiscalDevice
+    P->>P: Проверка: device.status == ACTIVE?
+
+    alt Device неактивен
+        P->>DB: receipt.status = FAILED<br/>reason: "Device inactive"
+    else Device активен
+        P->>DB: Поиск открытой FiscalShift<br/>для этого device
+
+        alt Смена не открыта
+            P->>MK: POST /shift/open<br/>{deviceId, cashierName}
+            MK-->>P: {shiftId, shiftNumber}
+            P->>DB: Создание FiscalShift<br/>status: OPEN
+        else Смена открыта > 24ч
+            P->>MK: POST /shift/close (Z-отчёт)
+            MK-->>P: {zReportNumber, totals}
+            P->>DB: Закрытие старой смены
+            P->>MK: POST /shift/open
+            MK-->>P: {shiftId}
+            P->>DB: Новая FiscalShift
+        end
+
+        Note over P,MK: === 3. Отправка чека ===
+        P->>MK: POST /receipt/create<br/>{items[], amounts, vatRates[],<br/>paymentType, shiftId}
+        alt Успех
+            MK-->>P: {fiscalSign, receiptNumber,<br/>receiptUrl, qrCodeUrl}
+            P->>DB: receipt.status = COMPLETED<br/>fiscalSign, receiptNumber,<br/>receiptUrl, qrCodeUrl
+            P->>DB: Обновление Transaction:<br/>fiscalSign, fiscalReceiptUrl
+        else Ошибка Multikassa
+            MK-->>P: {error: "..."}
+            P->>P: Retry (max 3 попытки,<br/>backoff 30s)
+            alt Все попытки исчерпаны
+                P->>DB: receipt.status = FAILED<br/>errorMessage
+                P->>P: Event: fiscal.failed<br/>→ Alert для оператора
+            end
+        end
+    end
+
+    Note over FS,DB: === 4. X-отчёт (промежуточный, без закрытия) ===
+    FS->>MK: GET /shift/x-report<br/>{shiftId}
+    MK-->>FS: {totalSales, totalRefunds,<br/>totalCash, totalCard,<br/>receiptsCount}
+    FS-->>FS: Возврат XReportResult
+
+    Note over FS,DB: === 5. Z-отчёт (закрытие смены) ===
+    FS->>MK: POST /shift/close<br/>{shiftId}
+    MK-->>FS: {zReportNumber, zReportUrl,<br/>totalSales, totalRefunds,<br/>vatSummary[]}
+    FS->>DB: FiscalShift.status = CLOSED<br/>closedAt, zReportNumber

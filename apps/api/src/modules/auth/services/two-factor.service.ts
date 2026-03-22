@@ -271,12 +271,12 @@ export class TwoFactorService {
   private decryptTotpSecret(encryptedData: string, ivHex: string): string {
     const key = this.getEncryptionKey();
     const iv = Buffer.from(ivHex, "hex");
-    const [encrypted, authTag] = encryptedData.split(":");
+    const [encrypted, authTag] = encryptedData.split(":") as [string, string];
 
     const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
     decipher.setAuthTag(Buffer.from(authTag, "hex"));
 
-    let decrypted = decipher.update(encrypted, "hex", "utf8");
+    let decrypted: string = decipher.update(encrypted, "hex", "utf8");
     decrypted += decipher.final("utf8");
 
     return decrypted;

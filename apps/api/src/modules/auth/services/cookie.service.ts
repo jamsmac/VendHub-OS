@@ -162,7 +162,7 @@ export class CookieService {
       return 15 * 60 * 1000;
     }
 
-    const value = parseInt(match[1], 10);
+    const value = parseInt(match[1]!, 10);
     switch (match[2]) {
       case "s":
         return value * 1000;

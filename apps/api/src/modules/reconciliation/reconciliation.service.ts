@@ -177,9 +177,9 @@ export class ReconciliationService {
             runId: run.id,
             organizationId: run.organizationId,
             orderNumber,
-            machineCode: sales[0].machineCode,
-            orderTime: sales[0].saleDate,
-            amount: sales[0].amount,
+            machineCode: sales[0]!.machineCode,
+            orderTime: sales[0]!.saleDate,
+            amount: sales[0]!.amount,
             mismatchType: MismatchType.DUPLICATE,
             matchScore: 100,
             sourcesData: { duplicates: sales.map((s) => s.rawData) },
@@ -189,7 +189,7 @@ export class ReconciliationService {
           // Single occurrence with order number -- considered matched
           matched++;
           // Mark HW sale as reconciled
-          const sale = sales[0];
+          const sale = sales[0]!;
           sale.isReconciled = true;
           sale.reconciliationRunId = run.id;
           await this.hwSaleRepo.save(sale);

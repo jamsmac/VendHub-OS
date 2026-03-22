@@ -805,7 +805,7 @@ export class WorkLogsService {
       data.overtimeHours += wl.overtimeMinutes / 60;
 
       // Check if late (after 9:00)
-      const [hour] = wl.clockIn.split(":").map(Number);
+      const [hour = 0] = wl.clockIn.split(":").map(Number);
       if (hour >= 9) {
         data.lateDays++;
       }
@@ -911,7 +911,7 @@ export class WorkLogsService {
     const end = new Date(timesheet.periodEnd);
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = d.toISOString().split("T")[0]!;
       const dayLogs = workLogs.filter((wl) =>
         wl.workDate.toString().startsWith(dateStr),
       );

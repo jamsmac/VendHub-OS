@@ -256,21 +256,25 @@ export class DataValidationService {
     // DD.MM.YYYY (Russian/UZ standard)
     const dotMatch = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
     if (dotMatch) {
-      const date = new Date(+dotMatch[3], +dotMatch[2] - 1, +dotMatch[1]);
+      const date = new Date(+dotMatch[3]!, +dotMatch[2]! - 1, +dotMatch[1]!);
       return isNaN(date.getTime()) ? null : date;
     }
 
     // DD/MM/YYYY
     const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (slashMatch) {
-      const date = new Date(+slashMatch[3], +slashMatch[2] - 1, +slashMatch[1]);
+      const date = new Date(
+        +slashMatch[3]!,
+        +slashMatch[2]! - 1,
+        +slashMatch[1]!,
+      );
       return isNaN(date.getTime()) ? null : date;
     }
 
     // YYYY-MM-DD (ISO)
     const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (isoMatch) {
-      const date = new Date(+isoMatch[1], +isoMatch[2] - 1, +isoMatch[3]);
+      const date = new Date(+isoMatch[1]!, +isoMatch[2]! - 1, +isoMatch[3]!);
       return isNaN(date.getTime()) ? null : date;
     }
 

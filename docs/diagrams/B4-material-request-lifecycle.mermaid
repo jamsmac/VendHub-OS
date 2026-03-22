@@ -1,0 +1,44 @@
+%% B4. Заявки на материалы (Material Requests)
+%% Источник: material-requests/material-requests.service.ts — WORKFLOW_TRANSITIONS
+stateDiagram-v2
+    [*] --> DRAFT : Создание заявки\n(items[], priority)
+
+    DRAFT --> NEW : Отправка на рассмотрение
+    DRAFT --> CANCELLED : Отмена черновика
+
+    NEW --> APPROVED : Менеджер одобрил\n(ApproveRequestDto)
+    NEW --> REJECTED : Менеджер отклонил\n(RejectRequestDto)
+    NEW --> CANCELLED : Отмена
+
+    APPROVED --> ORDERED : Заказ у поставщика\n(supplierOrderId)
+    APPROVED --> CANCELLED : Отмена после одобрения
+
+    ORDERED --> PARTIALLY_DELIVERED : Частичная доставка\n(ConfirmDeliveryDto)
+    ORDERED --> DELIVERED : Полная доставка
+
+    PARTIALLY_DELIVERED --> DELIVERED : Остаток доставлен
+
+    DELIVERED --> [*] : ✓ Завершено
+    CANCELLED --> [*]
+    REJECTED --> [*]
+
+    note right of DRAFT
+        MaterialRequestItem[]:
+        productId, quantity,
+        estimatedPrice, notes
+        RequestPriority:
+        LOW / NORMAL / HIGH / URGENT
+    end note
+
+    note right of ORDERED
+        RecordPayment:
+        paymentMethod, amount,
+        paymentDate, reference
+    end note
+
+    note right of DELIVERED
+        MaterialRequestHistory[]:
+        Каждый переход фиксируется
+        с userId и timestamp
+        Event: material-request.delivered
+    end note

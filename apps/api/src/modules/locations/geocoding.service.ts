@@ -60,9 +60,9 @@ export class GeocodingService {
       if (data.length === 0) return null;
 
       return {
-        latitude: parseFloat(data[0].lat),
-        longitude: parseFloat(data[0].lon),
-        displayName: data[0].display_name,
+        latitude: parseFloat(data[0]!.lat),
+        longitude: parseFloat(data[0]!.lon),
+        displayName: data[0]!.display_name,
       };
     } catch (error) {
       this.logger.error(

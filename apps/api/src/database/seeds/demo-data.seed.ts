@@ -306,7 +306,7 @@ export async function seedDemoData(dataSource: DataSource) {
           tier.name,
           tier.level,
           tier.minPoints,
-          tier.level === 4 ? null : tiers[tier.level]?.minPoints - 1,
+          tier.level === 4 ? null : (tiers[tier.level]?.minPoints ?? 1) - 1,
           tier.cashbackPercent,
           tier.bonusMultiplier,
           tier.color,

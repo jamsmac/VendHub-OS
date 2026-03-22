@@ -507,8 +507,8 @@ export class OrdersService {
       const amount = parseFloat(row.amount);
       stats.totalRevenue += amount;
       if (row.paymentMethod && stats.byPaymentMethod[row.paymentMethod]) {
-        stats.byPaymentMethod[row.paymentMethod].count = parseInt(row.count);
-        stats.byPaymentMethod[row.paymentMethod].amount = amount;
+        stats.byPaymentMethod[row.paymentMethod]!.count = parseInt(row.count);
+        stats.byPaymentMethod[row.paymentMethod]!.amount = amount;
       }
     }
 

@@ -214,8 +214,8 @@ export class WorkLog extends BaseEntity {
   // Calculate worked minutes before save
   calculateWorkedMinutes(): void {
     if (this.clockIn && this.clockOut) {
-      const [inHour, inMin] = this.clockIn.split(":").map(Number);
-      const [outHour, outMin] = this.clockOut.split(":").map(Number);
+      const [inHour = 0, inMin = 0] = this.clockIn.split(":").map(Number);
+      const [outHour = 0, outMin = 0] = this.clockOut.split(":").map(Number);
 
       let totalMinutes = outHour * 60 + outMin - (inHour * 60 + inMin);
       if (totalMinutes < 0) {

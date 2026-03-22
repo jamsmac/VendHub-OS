@@ -227,7 +227,7 @@ export class SalesImportService {
     const errors: Array<{ row: number; field: string; message: string }> = [];
 
     for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
+      const row = rows[i]!;
       const rowNum = i + 1;
 
       // Validate required fields

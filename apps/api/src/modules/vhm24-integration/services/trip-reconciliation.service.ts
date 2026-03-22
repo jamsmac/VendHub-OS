@@ -305,6 +305,6 @@ export class TripReconciliationService {
       if (idx > maxIdx) maxIdx = idx;
     }
 
-    return severityOrder[maxIdx];
+    return severityOrder[maxIdx]!;
   }
 }

@@ -324,7 +324,7 @@ export class VendHubReportGeneratorService {
       }
 
       // Advance cursor to last record in batch
-      const lastRecord = batch[batch.length - 1];
+      const lastRecord = batch[batch.length - 1]!;
       cursorDate = lastRecord.createdAt;
       cursorId = lastRecord.id;
 

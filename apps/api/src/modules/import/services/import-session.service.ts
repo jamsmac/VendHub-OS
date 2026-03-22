@@ -344,11 +344,11 @@ export class ImportSessionService {
       // Find the first matching header
       for (let i = 0; i < normalizedHeaders.length; i++) {
         if (
-          allNames.includes(normalizedHeaders[i]) &&
-          !matchedHeaders.has(headers[i])
+          allNames.includes(normalizedHeaders[i]!) &&
+          !matchedHeaders.has(headers[i]!)
         ) {
-          mapping[headers[i]] = fieldDef.name;
-          matchedHeaders.add(headers[i]);
+          mapping[headers[i]!] = fieldDef.name;
+          matchedHeaders.add(headers[i]!);
           break;
         }
       }
@@ -429,7 +429,7 @@ export class ImportSessionService {
 
     for (let i = 0; i < allRows.length; i++) {
       const rowNumber = i + 1;
-      const row = allRows[i];
+      const row = allRows[i]!;
 
       // Map source columns to target fields
       const mappedRow: Record<string, unknown> = {};
@@ -698,7 +698,7 @@ export class ImportSessionService {
     try {
       for (let i = 0; i < allRows.length; i++) {
         const rowNumber = i + 1;
-        const row = allRows[i];
+        const row = allRows[i]!;
 
         // Map source columns to target fields
         const mappedRow: Record<string, unknown> = {};

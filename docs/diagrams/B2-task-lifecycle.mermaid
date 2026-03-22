@@ -1,0 +1,40 @@
+%% B2. Жизненный цикл задачи (Task)
+%% Источник: tasks/tasks.service.ts — VALID_TASK_TRANSITIONS
+stateDiagram-v2
+    [*] --> CREATED : Создание задачи\n(type, priority, machineId)
+
+    CREATED --> ASSIGNED : Назначение оператору\n(assignedToId)
+    CREATED --> CANCELLED : Отмена
+
+    ASSIGNED --> IN_PROGRESS : Оператор начал работу\n(startedAt = now)
+    ASSIGNED --> CANCELLED : Отмена до начала
+
+    IN_PROGRESS --> COMPLETED : Оператор завершил\n(completedAt = now)
+    IN_PROGRESS --> ON_HOLD : Ожидание (запчасти/др.)
+    IN_PROGRESS --> CANCELLED : Отмена в процессе
+
+    ON_HOLD --> IN_PROGRESS : Возобновление работы
+
+    COMPLETED --> VERIFIED : Менеджер проверил\n(verifiedAt = now)
+    COMPLETED --> IN_PROGRESS : Возврат на доработку\n(reopened)
+
+    VERIFIED --> [*] : ✓ Задача закрыта
+    CANCELLED --> [*] : ✗ Отменена
+
+    note right of CREATED
+        TaskItem[] — чеклист работ
+        TaskComponent[] — запчасти
+        TaskPhoto[] — фото до/после
+    end note
+
+    note right of IN_PROGRESS
+        Cron каждый час:
+        Проверка просроченных задач
+        Auto-notification если dueDate passed
+    end note
+
+    note right of COMPLETED
+        TaskComment — комментарии
+        TaskAnalyticsService:
+        completion_time, SLA compliance
+    end note

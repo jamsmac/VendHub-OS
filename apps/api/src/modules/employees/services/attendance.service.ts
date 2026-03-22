@@ -44,7 +44,7 @@ export class AttendanceService {
     await this.findEmployee(dto.employeeId, organizationId);
 
     const today = new Date();
-    const dateStr = today.toISOString().split("T")[0];
+    const dateStr = today.toISOString().split("T")[0]!;
 
     // Check if already checked in today
     const existing = await this.attendanceRepo.findOne({
@@ -95,7 +95,7 @@ export class AttendanceService {
     await this.findEmployee(dto.employeeId, organizationId);
 
     const today = new Date();
-    const dateStr = today.toISOString().split("T")[0];
+    const dateStr = today.toISOString().split("T")[0]!;
 
     const attendance = await this.attendanceRepo.findOne({
       where: {
@@ -200,7 +200,7 @@ export class AttendanceService {
     organizationId: string,
     dateStr?: string,
   ): Promise<DailyAttendanceReportDto> {
-    const date = dateStr || new Date().toISOString().split("T")[0];
+    const date = dateStr ?? new Date().toISOString().split("T")[0]!;
 
     const records = await this.attendanceRepo.find({
       where: { organizationId, date: new Date(date) as unknown as Date }, // TypeORM FindOptionsWhere doesn't resolve Date column type correctly
