@@ -345,6 +345,46 @@ pnpm docker:logs            # View logs
 - **Site admin stubs** documented (static data by design, full admin in apps/web)
 - **DTO bug fix**: task DTO had divergent enum values from entity/DB
 
+### Security & Quality Remediation (2026-03-22)
+
+Comprehensive audit (2 independent reviews + 3 verification agents) with 40+ fixes:
+
+**Security (P0):**
+
+- **IDOR fixes**: 4 services (opening-balances, sales-import, users, rbac) — `findById()` now requires `organizationId`
+- **OrganizationGuard hardened**: injects `user.organizationId` when no orgId in request
+- **CSP**: `unsafe-eval` removed from production (dev-only conditional)
+- **Next.js CVE**: 16.1.6 → 16.1.7
+- **BaseEntity**: PaymentReportUpload/Row now extend BaseEntity + migration added
+- **user.entity.ts**: `organizationId` column typed as `uuid`
+- **Promo code race**: per-user limit re-checked inside pessimistic lock transaction
+
+**Quality:**
+
+- **React Hook Form + Zod**: products/new, CheckoutPage, ComplaintPage validated
+- **CI matrix**: extended to all 6 apps (bot, site, mobile added)
+- **ESLint**: `no-explicit-any` changed from `warn` to `error`
+- **Coverage thresholds**: raised from 37-45% to 45-55%
+- **3 test suites added**: batch-movements (13 cases), calculated-state (18 cases), custom-fields (24 cases)
+- **Breadcrumbs**: dynamic dashboard breadcrumb component added
+
+**Consolidation:**
+
+- **Complaint enums**: ComplaintStatus/Category/Priority/Source → re-exported from `@vendhub/shared`
+- **Dead code**: `packages/shared/src/menuData.ts` (838 lines) deleted
+- **Dep vulnerabilities**: 20 → 6 (2 remaining are xlsx with no patch)
+- **Terraform**: S3 remote state backend enabled
+- **Prometheus**: non-existent web metrics scrape job disabled
+
+**Bug fixes:**
+
+- payment-report-detector `lowerName` typo
+- payment-report-parser AdmZip import
+- analytics-tab `Object.values(ReportType)` on type alias
+- release.yml health check path `/health` → `/api/v1/health`
+- payment-reports hardcoded port 3001 → 4000
+- AGENTS.md `.Codex` → `.claude` path
+
 ## Skills (AI Agent Tools)
 
 21 specialized skills in `.claude/commands/` directory for domain-specific code generation:

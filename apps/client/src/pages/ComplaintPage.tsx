@@ -8,6 +8,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { z } from "zod";
 import { AxiosError } from "axios";
 import { api } from "../lib/api";
 
@@ -90,11 +91,27 @@ export function ComplaintPage() {
     enabled: !!resolvedMachineId,
   });
 
+  const complaintSchema = z.object({
+    category: z.string().min(1, "Select a problem type"),
+    description: z
+      .string()
+      .min(10, "Description must be at least 10 characters")
+      .max(2000),
+    phone: z.string().regex(/^\+998\d{9}$/, "Phone format: +998XXXXXXXXX"),
+    email: z.string().email().optional().or(z.literal("")),
+  });
+
   // Submit complaint
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedComplaint) {
-        throw new Error(t("selectProblemType"));
+      const result = complaintSchema.safeParse({
+        category: selectedComplaint?.category,
+        description,
+        phone,
+        email,
+      });
+      if (!result.success) {
+        throw new Error(result.error.errors[0]?.message || "Validation error");
       }
 
       const formData = new FormData();
@@ -105,11 +122,12 @@ export function ComplaintPage() {
       } else {
         throw new Error("Complaint target is missing");
       }
-      formData.append("category", selectedComplaint.category);
-      formData.append("subject", t(selectedComplaint.labelKey));
-      formData.append("description", description);
-      formData.append("customerPhone", phone);
-      if (email) formData.append("customerEmail", email);
+      formData.append("category", result.data.category);
+      formData.append("subject", t(selectedComplaint!.labelKey));
+      formData.append("description", result.data.description);
+      formData.append("customerPhone", result.data.phone);
+      if (result.data.email)
+        formData.append("customerEmail", result.data.email);
       if (photo) formData.append("photo", photo);
 
       return api.post("/complaints/public", formData, {

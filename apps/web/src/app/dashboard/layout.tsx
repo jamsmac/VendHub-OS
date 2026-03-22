@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { DashboardBreadcrumb } from "@/components/layout/dashboard-breadcrumb";
 
 export default function DashboardLayout({
   children,
@@ -78,6 +79,7 @@ export default function DashboardLayout({
           id="main-content"
           className="flex-1 overflow-y-auto bg-muted/30 p-4 lg:p-6"
         >
+          <DashboardBreadcrumb />
           {children}
         </main>
       </div>
