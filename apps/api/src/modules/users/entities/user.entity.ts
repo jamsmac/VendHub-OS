@@ -121,7 +121,7 @@ export class User extends BaseEntity {
   ipWhitelist: string[];
 
   // Multi-tenant support
-  @Column({ nullable: true })
+  @Column({ type: "uuid", nullable: true })
   organizationId: string;
 
   @ManyToOne(() => Organization, { nullable: true, onDelete: "SET NULL" })

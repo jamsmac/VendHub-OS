@@ -167,8 +167,13 @@ export class OpeningBalancesService {
   /**
    * Find a single opening balance by ID
    */
-  async findById(id: string): Promise<StockOpeningBalance> {
-    const balance = await this.repository.findOne({ where: { id } });
+  async findById(
+    id: string,
+    organizationId: string,
+  ): Promise<StockOpeningBalance> {
+    const balance = await this.repository.findOne({
+      where: { id, organizationId },
+    });
 
     if (!balance) {
       throw new NotFoundException(`Opening balance with ID ${id} not found`);
@@ -183,8 +188,9 @@ export class OpeningBalancesService {
   async update(
     id: string,
     dto: UpdateOpeningBalanceDto,
+    organizationId?: string,
   ): Promise<StockOpeningBalance> {
-    const balance = await this.findById(id);
+    const balance = await this.findById(id, organizationId!);
 
     if (balance.isApplied) {
       throw new BadRequestException(
@@ -208,8 +214,12 @@ export class OpeningBalancesService {
   /**
    * Apply a single opening balance
    */
-  async apply(id: string, userId: string): Promise<StockOpeningBalance> {
-    const balance = await this.findById(id);
+  async apply(
+    id: string,
+    userId: string,
+    organizationId?: string,
+  ): Promise<StockOpeningBalance> {
+    const balance = await this.findById(id, organizationId!);
 
     if (balance.isApplied) {
       throw new BadRequestException("Opening balance is already applied");
@@ -291,8 +301,8 @@ export class OpeningBalancesService {
   /**
    * Soft delete an opening balance (only unapplied records)
    */
-  async remove(id: string): Promise<void> {
-    const balance = await this.findById(id);
+  async remove(id: string, organizationId?: string): Promise<void> {
+    const balance = await this.findById(id, organizationId!);
 
     if (balance.isApplied) {
       throw new BadRequestException(

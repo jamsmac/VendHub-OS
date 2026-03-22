@@ -126,9 +126,9 @@ export class PaymentReportsService {
       upload.reportType = parsed.detection.type;
       upload.detectionConfidence = parsed.detection.confidence;
       upload.reportMeta = parsed.meta;
-      upload.periodFrom = parsed.periodFrom;
-      upload.periodTo = parsed.periodTo;
-      upload.totalAmount = parsed.totalAmount;
+      upload.periodFrom = parsed.periodFrom ?? (null as unknown as Date);
+      upload.periodTo = parsed.periodTo ?? (null as unknown as Date);
+      upload.totalAmount = parsed.totalAmount ?? (null as unknown as number);
       upload.totalRows = parsed.rows.length;
       upload.processedRows = parsed.rows.length;
 
@@ -158,20 +158,20 @@ export class PaymentReportsService {
             uploadId: upload.id,
             reportType: parsed.detection.type,
             rowIndex: r.rowIndex,
-            externalId: r.externalId || null,
-            orderNumber: r.orderNumber || null,
-            paymentTime: r.paymentTime || null,
-            amount: r.amount ?? null,
-            paymentStatus: r.paymentStatus || null,
-            paymentMethod: r.paymentMethod || null,
-            cardNumber: r.cardNumber || null,
-            clientPhone: r.clientPhone || null,
-            goodsName: r.goodsName || null,
-            machineCode: r.machineCode || null,
-            location: r.location || null,
+            externalId: r.externalId || undefined,
+            orderNumber: r.orderNumber || undefined,
+            paymentTime: r.paymentTime || undefined,
+            amount: r.amount ?? undefined,
+            paymentStatus: r.paymentStatus || undefined,
+            paymentMethod: r.paymentMethod || undefined,
+            cardNumber: r.cardNumber || undefined,
+            clientPhone: r.clientPhone || undefined,
+            goodsName: r.goodsName || undefined,
+            machineCode: r.machineCode || undefined,
+            location: r.location || undefined,
             rawData: r.rawData,
             isDuplicate: isDup,
-          });
+          } as Record<string, unknown>);
         });
         await this.rowRepo.save(batch, { chunk: BATCH });
       }

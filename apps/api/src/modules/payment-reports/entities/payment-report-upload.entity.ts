@@ -1,12 +1,5 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-  Index,
-} from "typeorm";
+import { Entity, Column, OneToMany, Index } from "typeorm";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 export enum ReportType {
   PAYME = "PAYME",
@@ -28,10 +21,7 @@ export enum UploadStatus {
 @Entity("payment_report_uploads")
 @Index(["reportType", "createdAt"])
 @Index(["status"])
-export class PaymentReportUpload {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
+export class PaymentReportUpload extends BaseEntity {
   /** Оригинальное имя файла */
   @Column({ name: "file_name", length: 500 })
   fileName: string;
@@ -131,10 +121,4 @@ export class PaymentReportUpload {
   @OneToMany("PaymentReportRow", "upload", { cascade: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: any[];
-
-  @CreateDateColumn({ name: "created_at" })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt: Date;
 }

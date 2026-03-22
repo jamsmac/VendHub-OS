@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import * as xlsx from "xlsx";
 import * as crypto from "crypto";
-import * as AdmZip from "adm-zip";
+
+const AdmZip = require("adm-zip");
 import { ReportType } from "../entities/payment-report-upload.entity";
 import {
   PaymentReportDetectorService,
@@ -150,14 +151,14 @@ export class PaymentReportParserService {
       const entry = zip
         .getEntries()
         .find(
-          (e) =>
+          (e: { name: string }) =>
             e.name.toLowerCase().endsWith(".xlsx") ||
             e.name.toLowerCase().endsWith(".xls"),
         );
       if (entry) {
         return { buffer: entry.getData(), fileName: entry.name };
       }
-    } catch (e) {
+    } catch (e: unknown) {
       this.logger.warn("Failed to read ZIP", e);
     }
     return null;

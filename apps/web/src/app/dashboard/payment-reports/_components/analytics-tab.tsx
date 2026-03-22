@@ -32,7 +32,8 @@ import { TrendingUp, BarChart3, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAmount, REPORT_TYPE_CONFIG, ReportType } from "./report-types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
 
 async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
@@ -232,9 +233,17 @@ export function AnalyticsTab() {
     .slice(0, 8);
 
   // Ключи провайдеров для динейного графика
-  const _providerKeys = Object.values(ReportType).filter((t) =>
+  const REPORT_TYPE_VALUES: ReportType[] = [
+    "PAYME",
+    "CLICK",
+    "VENDHUB_ORDERS",
+    "VENDHUB_CSV",
+    "KASSA_FISCAL",
+    "UNKNOWN",
+  ];
+  const _providerKeys = REPORT_TYPE_VALUES.filter((t) =>
     (dynamics ?? []).some((d) => d[t] !== undefined),
-  ) as string[];
+  );
 
   const chartProviders: ReportType[] = [
     "PAYME",

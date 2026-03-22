@@ -446,10 +446,11 @@ export class Complaint extends BaseEntity {
 
     const slaHours = {
       [ComplaintPriority.CRITICAL]: { response: 1, resolution: 4 },
+      [ComplaintPriority.URGENT]: { response: 0.5, resolution: 2 },
       [ComplaintPriority.HIGH]: { response: 2, resolution: 8 },
       [ComplaintPriority.MEDIUM]: { response: 4, resolution: 24 },
       [ComplaintPriority.LOW]: { response: 8, resolution: 72 },
-    };
+    } as Record<string, { response: number; resolution: number }>;
 
     const config =
       slaHours[this.priority] || slaHours[ComplaintPriority.MEDIUM];

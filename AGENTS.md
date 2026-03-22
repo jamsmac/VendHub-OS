@@ -393,7 +393,7 @@ See [MIGRATION_PLAN_v4.md](MIGRATION_PLAN_v4.md) and [MASTER_PROMPT.md](MASTER_P
 ### Before ANY Code Change
 
 1. **Read AGENTS.md rules** — verify you're following all 8 mandatory code rules
-2. **Check hookify rules** — `.Codex/hookify.local.md` has 10 blocking/warning rules
+2. **Check hookify rules** — `.claude/hookify.local.md` has 10 blocking/warning rules
 3. **Use Serena** for symbol-level code navigation — `find_symbol`, `get_symbols_overview`, `find_referencing_symbols` before editing
 
 ### Task → Tool Routing Table

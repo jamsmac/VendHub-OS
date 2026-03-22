@@ -177,8 +177,12 @@ export class SalesImportService {
   /**
    * Find a single import by ID with full error details
    */
-  async findById(id: string): Promise<SalesImport> {
-    const importRecord = await this.repository.findOne({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<SalesImport> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    const importRecord = await this.repository.findOne({ where });
 
     if (!importRecord) {
       throw new NotFoundException(`Sales import with ID ${id} not found`);
@@ -190,8 +194,8 @@ export class SalesImportService {
   /**
    * Soft delete an import record
    */
-  async remove(id: string): Promise<void> {
-    const importRecord = await this.findById(id);
+  async remove(id: string, organizationId?: string): Promise<void> {
+    const importRecord = await this.findById(id, organizationId!);
 
     await this.repository.softDelete(importRecord.id);
 

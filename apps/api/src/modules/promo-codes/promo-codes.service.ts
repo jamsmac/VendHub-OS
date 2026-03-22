@@ -338,6 +338,21 @@ export class PromoCodesService {
         );
       }
 
+      // Re-check per-user limit under lock to prevent race condition
+      if (dto.clientUserId) {
+        const userRedemptions = await txRedemptionRepo.count({
+          where: {
+            promoCodeId: promoCode.id,
+            clientUserId: dto.clientUserId,
+          },
+        });
+        if (userRedemptions >= promoCode.maxUsesPerUser) {
+          throw new BadRequestException(
+            "You have already used this promo code the maximum number of times",
+          );
+        }
+      }
+
       const discountApplied = validation.discountAmount || 0;
       const loyaltyPointsAwarded =
         promoCode.type === PromoCodeType.LOYALTY_BONUS

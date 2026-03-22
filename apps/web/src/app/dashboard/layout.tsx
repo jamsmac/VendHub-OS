@@ -63,10 +63,7 @@ export default function DashboardLayout({
           aria-live="polite"
         >
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            {/* Hardcoded fallback — translations unavailable before auth */}
-            Loading...
-          </p>
+          <p className="text-sm text-muted-foreground">Загрузка...</p>
         </div>
       </div>
     );

@@ -97,8 +97,11 @@ export class SalesImportController {
     description: "Sales import record with full details",
   })
   @ApiResponse({ status: 404, description: "Sales import not found" })
-  findById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.salesImportService.findById(id);
+  findById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.salesImportService.findById(id, user.organizationId);
   }
 
   @Delete(":id")
@@ -111,7 +114,10 @@ export class SalesImportController {
     description: "Sales import deleted successfully",
   })
   @ApiResponse({ status: 404, description: "Sales import not found" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.salesImportService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.salesImportService.remove(id, user.organizationId);
   }
 }

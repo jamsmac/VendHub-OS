@@ -192,8 +192,8 @@ export class PaymentReportDetectorService {
 
     if (
       _lowerName.includes("kassa") ||
-      lowerName.includes("касс") ||
-      lowerName.includes("cash")
+      _lowerName.includes("касс") ||
+      _lowerName.includes("cash")
     )
       score += 20;
 

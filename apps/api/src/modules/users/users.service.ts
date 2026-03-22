@@ -87,9 +87,13 @@ export class UsersService {
     };
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string, organizationId?: string): Promise<User | null> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     return this.userRepository.findOne({
-      where: { id },
+      where,
       relations: ["organization"],
     });
   }
@@ -101,9 +105,12 @@ export class UsersService {
     });
   }
 
-  async findAuthUserById(id: string): Promise<AuthLookupUser | null> {
+  async findAuthUserById(
+    id: string,
+    organizationId?: string,
+  ): Promise<AuthLookupUser | null> {
     try {
-      const user = await this.findById(id);
+      const user = await this.findById(id, organizationId);
       if (user) {
         return {
           id: user.id,
@@ -133,9 +140,10 @@ export class UsersService {
         FROM users
         WHERE id = $1
           AND deleted_at IS NULL
+          AND ($2::uuid IS NULL OR organization_id = $2)
         LIMIT 1
       `,
-      [id],
+      [id, organizationId ?? null],
     )) as Array<
       AuthLookupUser & { status?: string; isActive?: boolean | string }
     >;
@@ -161,11 +169,15 @@ export class UsersService {
     };
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    organizationId?: string,
+  ): Promise<User> {
     if (updateUserDto.role === UserRole.OWNER) {
       throw new ForbiddenException("Cannot assign owner role through API");
     }
-    const user = await this.findById(id);
+    const user = await this.findById(id, organizationId);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -177,8 +189,8 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async remove(id: string): Promise<void> {
-    const user = await this.findById(id);
+  async remove(id: string, organizationId?: string): Promise<void> {
+    const user = await this.findById(id, organizationId);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }

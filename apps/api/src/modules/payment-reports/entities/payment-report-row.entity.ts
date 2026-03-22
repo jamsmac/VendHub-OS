@@ -1,25 +1,15 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  Index,
-} from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import {
   PaymentReportUpload,
   ReportType,
 } from "./payment-report-upload.entity";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 @Entity("payment_report_rows")
 @Index(["uploadId", "rowIndex"])
 @Index(["reportType", "externalId"])
 @Index(["reportType", "paymentTime"])
-export class PaymentReportRow {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
+export class PaymentReportRow extends BaseEntity {
   @Column({ name: "upload_id" })
   @Index()
   uploadId: string;
@@ -112,7 +102,4 @@ export class PaymentReportRow {
   /** ID дублирующей строки */
   @Column({ name: "duplicate_of", nullable: true })
   duplicateOf: string;
-
-  @CreateDateColumn({ name: "created_at" })
-  createdAt: Date;
 }

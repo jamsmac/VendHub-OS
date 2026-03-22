@@ -55,8 +55,16 @@ export class RbacService {
     return this.findRoleById(saved.id);
   }
 
-  async updateRole(id: string, dto: UpdateRoleDto): Promise<Role> {
-    const role = await this.roleRepository.findOne({ where: { id } });
+  async updateRole(
+    id: string,
+    dto: UpdateRoleDto,
+    organizationId?: string,
+  ): Promise<Role> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    const role = await this.roleRepository.findOne({ where });
     if (!role) {
       throw new NotFoundException("Role not found");
     }
@@ -67,11 +75,15 @@ export class RbacService {
     Object.assign(role, dto);
     await this.roleRepository.save(role);
 
-    return this.findRoleById(id);
+    return this.findRoleById(id, organizationId);
   }
 
-  async deleteRole(id: string): Promise<void> {
-    const role = await this.roleRepository.findOne({ where: { id } });
+  async deleteRole(id: string, organizationId?: string): Promise<void> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    const role = await this.roleRepository.findOne({ where });
     if (!role) {
       throw new NotFoundException("Role not found");
     }
@@ -120,9 +132,13 @@ export class RbacService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findRoleById(id: string): Promise<Role> {
+  async findRoleById(id: string, organizationId?: string): Promise<Role> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     const role = await this.roleRepository.findOne({
-      where: { id },
+      where,
       relations: ["permissions"],
     });
     if (!role) {
@@ -162,8 +178,9 @@ export class RbacService {
   async addPermissionsToRole(
     roleId: string,
     permissionIds: string[],
+    organizationId?: string,
   ): Promise<Role> {
-    const role = await this.findRoleById(roleId);
+    const role = await this.findRoleById(roleId, organizationId);
 
     const permissions = await this.permissionRepository.findBy({
       id: In(permissionIds),

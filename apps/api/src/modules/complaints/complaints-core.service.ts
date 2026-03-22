@@ -38,15 +38,17 @@ import {
 } from "./complaints.types";
 import { safeOrderBy, stripProtectedFields } from "../../common/utils";
 
-const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
+const DEFAULT_SLA_HOURS: Partial<Record<ComplaintPriority, number>> = {
   [ComplaintPriority.CRITICAL]:
-    DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL].resolutionTimeHours,
+    DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL]?.resolutionTimeHours ?? 4,
+  [ComplaintPriority.URGENT]:
+    DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL]?.resolutionTimeHours ?? 2,
   [ComplaintPriority.HIGH]:
-    DEFAULT_SLA_CONFIG[ComplaintPriority.HIGH].resolutionTimeHours,
+    DEFAULT_SLA_CONFIG[ComplaintPriority.HIGH]?.resolutionTimeHours ?? 8,
   [ComplaintPriority.MEDIUM]:
-    DEFAULT_SLA_CONFIG[ComplaintPriority.MEDIUM].resolutionTimeHours,
+    DEFAULT_SLA_CONFIG[ComplaintPriority.MEDIUM]?.resolutionTimeHours ?? 24,
   [ComplaintPriority.LOW]:
-    DEFAULT_SLA_CONFIG[ComplaintPriority.LOW].resolutionTimeHours,
+    DEFAULT_SLA_CONFIG[ComplaintPriority.LOW]?.resolutionTimeHours ?? 72,
 };
 
 @Injectable()
@@ -73,7 +75,7 @@ export class ComplaintsCoreService {
   async create(dto: CreateComplaintDto): Promise<Complaint> {
     const ticketNumber = await this.generateComplaintNumber(dto.organizationId);
     const priority = dto.priority || ComplaintPriority.MEDIUM;
-    const slaHours = DEFAULT_SLA_HOURS[priority];
+    const slaHours = DEFAULT_SLA_HOURS[priority] ?? 24;
     const slaDeadline = new Date(Date.now() + slaHours * 60 * 60 * 1000);
     const automationResult = await this.applyAutomationRules(dto);
 

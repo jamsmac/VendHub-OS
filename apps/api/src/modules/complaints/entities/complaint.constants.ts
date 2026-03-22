@@ -28,6 +28,11 @@ export const DEFAULT_SLA_CONFIG: Record<ComplaintPriority, SlaConfig> = {
     resolutionTimeHours: 4,
     escalationTimeHours: 2,
   },
+  [ComplaintPriority.URGENT]: {
+    responseTimeHours: 0.5,
+    resolutionTimeHours: 2,
+    escalationTimeHours: 1,
+  },
   [ComplaintPriority.HIGH]: {
     responseTimeHours: 2,
     resolutionTimeHours: 8,
@@ -234,6 +239,12 @@ export const COMPLAINT_PRIORITY_LABELS: Record<
     color: "#EF4444",
     icon: "🔥",
   },
+  [ComplaintPriority.URGENT]: {
+    ru: "Срочный",
+    uz: "Shoshilinch",
+    color: "#DC2626",
+    icon: "🚨",
+  },
 };
 
 /**
@@ -260,6 +271,8 @@ export const COMPLAINT_SOURCE_LABELS: Record<
     icon: "🤖",
   },
   [ComplaintSource.PHONE_CALL]: { ru: "Звонок", uz: "Qo'ng'iroq", icon: "📞" },
+  [ComplaintSource.PHONE]: { ru: "Телефон", uz: "Telefon", icon: "📞" },
+  [ComplaintSource.WEB_FORM]: { ru: "Веб-форма", uz: "Veb-forma", icon: "📝" },
   [ComplaintSource.EMAIL]: { ru: "Email", uz: "Email", icon: "📧" },
   [ComplaintSource.SOCIAL_MEDIA]: {
     ru: "Социальные сети",

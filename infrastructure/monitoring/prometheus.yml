@@ -44,11 +44,12 @@ scrape_configs:
         replacement: "vendhub-api"
 
   # VendHub Web (Next.js)
-  - job_name: "vendhub-web"
-    static_configs:
-      - targets: ["web:3000"]
-    metrics_path: /api/metrics
-    scrape_interval: 30s
+  # TODO: Implement /api/metrics endpoint in Next.js before enabling
+  # - job_name: "vendhub-web"
+  #   static_configs:
+  #     - targets: ["web:3000"]
+  #   metrics_path: /api/metrics
+  #   scrape_interval: 30s
 
   # PostgreSQL Exporter
   - job_name: "postgres"

@@ -83,8 +83,13 @@ jobs:
       - name: Build shared package
         run: pnpm --filter "@vendhub/shared" build
 
-      - name: Run unit tests
+      - name: Run API unit tests
         run: pnpm --filter api test:unit --forceExit --passWithNoTests
+        env:
+          CI: true
+
+      - name: Run Bot unit tests
+        run: pnpm --filter bot test --forceExit --passWithNoTests
         env:
           CI: true
 
@@ -95,6 +100,17 @@ jobs:
 
       - name: Run client unit tests
         run: pnpm --filter client test
+        env:
+          CI: true
+
+      - name: Run site unit tests
+        run: pnpm --filter site test --passWithNoTests
+        env:
+          CI: true
+
+      - name: Run mobile unit tests
+        run: pnpm --filter mobile test --passWithNoTests
+        continue-on-error: true
         env:
           CI: true
 

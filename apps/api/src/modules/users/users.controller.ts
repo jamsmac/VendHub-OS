@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
-  ForbiddenException,
   NotFoundException,
   HttpCode,
   HttpStatus,
@@ -95,15 +94,13 @@ export class UsersController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: ICurrentUser,
   ) {
-    const user = await this.usersService.findById(id);
+    const orgFilter =
+      currentUser.role === UserRole.OWNER
+        ? undefined
+        : currentUser.organizationId;
+    const user = await this.usersService.findById(id, orgFilter);
     if (!user) {
       throw new NotFoundException("User not found");
-    }
-    if (
-      currentUser.role !== UserRole.OWNER &&
-      user.organizationId !== currentUser.organizationId
-    ) {
-      throw new ForbiddenException("Access denied to this user");
     }
     return user;
   }
@@ -117,17 +114,11 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: ICurrentUser,
   ) {
-    const user = await this.usersService.findById(id);
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-    if (
-      currentUser.role !== UserRole.OWNER &&
-      user.organizationId !== currentUser.organizationId
-    ) {
-      throw new ForbiddenException("Access denied to this user");
-    }
-    return this.usersService.update(id, updateUserDto);
+    const orgFilter =
+      currentUser.role === UserRole.OWNER
+        ? undefined
+        : currentUser.organizationId;
+    return this.usersService.update(id, updateUserDto, orgFilter);
   }
 
   @Delete(":id")
@@ -139,16 +130,10 @@ export class UsersController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: ICurrentUser,
   ): Promise<void> {
-    const user = await this.usersService.findById(id);
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-    if (
-      currentUser.role !== UserRole.OWNER &&
-      user.organizationId !== currentUser.organizationId
-    ) {
-      throw new ForbiddenException("Access denied to this user");
-    }
-    await this.usersService.remove(id);
+    const orgFilter =
+      currentUser.role === UserRole.OWNER
+        ? undefined
+        : currentUser.organizationId;
+    await this.usersService.remove(id, orgFilter);
   }
 }

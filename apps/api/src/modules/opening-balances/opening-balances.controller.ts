@@ -137,8 +137,11 @@ export class OpeningBalancesController {
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Opening balance record" })
   @ApiResponse({ status: 404, description: "Opening balance not found" })
-  findById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.openingBalancesService.findById(id);
+  findById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.openingBalancesService.findById(id, user.organizationId);
   }
 
   @Patch(":id")
@@ -162,8 +165,9 @@ export class OpeningBalancesController {
   update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateOpeningBalanceDto,
+    @CurrentUser() user: ICurrentUser,
   ) {
-    return this.openingBalancesService.update(id, dto);
+    return this.openingBalancesService.update(id, dto, user.organizationId);
   }
 
   @Post(":id/apply")
@@ -181,7 +185,7 @@ export class OpeningBalancesController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: ICurrentUser,
   ) {
-    return this.openingBalancesService.apply(id, user.id);
+    return this.openingBalancesService.apply(id, user.id, user.organizationId);
   }
 
   @Post("apply-all")
@@ -215,7 +219,10 @@ export class OpeningBalancesController {
   })
   @ApiResponse({ status: 400, description: "Cannot delete applied balance" })
   @ApiResponse({ status: 404, description: "Opening balance not found" })
-  remove(@Param("id", ParseUUIDPipe) id: string) {
-    return this.openingBalancesService.remove(id);
+  remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.openingBalancesService.remove(id, user.organizationId);
   }
 }

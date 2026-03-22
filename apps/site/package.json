@@ -14,7 +14,7 @@
     "@vendhub/shared": "workspace:*",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.263.1",
-    "next": "^16.1.5",
+    "next": "^16.1.7",
     "next-intl": "^4.8.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

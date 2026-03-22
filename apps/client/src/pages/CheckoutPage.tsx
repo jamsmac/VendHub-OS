@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
 import {
   ArrowLeft,
   CreditCard,
@@ -123,14 +124,42 @@ export function CheckoutPage() {
     },
   });
 
-  const handleCheckout = () => {
-    if (!agreeToTerms) {
-      toast.error(t("acceptTerms"));
-      return;
-    }
+  const checkoutSchema = z.object({
+    machineId: z.string().uuid("Invalid machine"),
+    items: z
+      .array(
+        z.object({
+          productId: z.string().uuid(),
+          quantity: z.number().int().min(1),
+        }),
+      )
+      .min(1, "Cart is empty"),
+    paymentMethod: z.enum(["payme", "click", "uzum", "telegram_stars", "cash"]),
+    agreeToTerms: z.literal(true, {
+      errorMap: () => ({ message: "Must accept terms" }),
+    }),
+  });
 
-    if (!machine) {
-      toast.error(t("machineNotSelected"));
+  const handleCheckout = () => {
+    const result = checkoutSchema.safeParse({
+      machineId: machine?.id,
+      items: items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+      paymentMethod: selectedPayment,
+      agreeToTerms: agreeToTerms,
+    });
+
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      if (firstError?.path.includes("agreeToTerms")) {
+        toast.error(t("acceptTerms"));
+      } else if (firstError?.path.includes("machineId")) {
+        toast.error(t("machineNotSelected"));
+      } else {
+        toast.error(firstError?.message || t("validationError"));
+      }
       return;
     }
 

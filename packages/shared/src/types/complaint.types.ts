@@ -27,6 +27,7 @@ export enum ComplaintPriority {
   LOW = "low",
   MEDIUM = "medium",
   HIGH = "high",
+  CRITICAL = "critical",
   URGENT = "urgent",
 }
 
@@ -65,11 +66,15 @@ export enum ComplaintCategory {
 
 export enum ComplaintSource {
   QR_CODE = "qr_code",
+  MOBILE_APP = "mobile_app",
+  WEB_PORTAL = "web_portal",
+  WEB_FORM = "web_form",
   TELEGRAM_BOT = "telegram_bot",
   PHONE = "phone",
+  PHONE_CALL = "phone_call",
   EMAIL = "email",
-  WEB_FORM = "web_form",
-  MOBILE_APP = "mobile_app",
+  SOCIAL_MEDIA = "social_media",
+  LOCATION_CONTACT = "location_contact",
   INTERNAL = "internal",
 }
 
@@ -287,6 +292,7 @@ export const COMPLAINT_PRIORITY_LABELS: Record<
   [ComplaintPriority.LOW]: { ru: "Низкий", uz: "Past" },
   [ComplaintPriority.MEDIUM]: { ru: "Средний", uz: "O'rtacha" },
   [ComplaintPriority.HIGH]: { ru: "Высокий", uz: "Yuqori" },
+  [ComplaintPriority.CRITICAL]: { ru: "Критический", uz: "Muhim" },
   [ComplaintPriority.URGENT]: { ru: "Срочный", uz: "Shoshilinch" },
 };
 
@@ -378,13 +384,20 @@ export const COMPLAINT_SOURCE_LABELS: Record<
   { ru: string; uz: string }
 > = {
   [ComplaintSource.QR_CODE]: { ru: "QR-код", uz: "QR-kod" },
-  [ComplaintSource.TELEGRAM_BOT]: { ru: "Telegram бот", uz: "Telegram bot" },
-  [ComplaintSource.PHONE]: { ru: "Телефон", uz: "Telefon" },
-  [ComplaintSource.EMAIL]: { ru: "Email", uz: "Email" },
-  [ComplaintSource.WEB_FORM]: { ru: "Веб-форма", uz: "Veb-forma" },
   [ComplaintSource.MOBILE_APP]: {
     ru: "Мобильное приложение",
     uz: "Mobil ilova",
+  },
+  [ComplaintSource.WEB_PORTAL]: { ru: "Веб-портал", uz: "Veb-portal" },
+  [ComplaintSource.WEB_FORM]: { ru: "Веб-форма", uz: "Veb-forma" },
+  [ComplaintSource.TELEGRAM_BOT]: { ru: "Telegram бот", uz: "Telegram bot" },
+  [ComplaintSource.PHONE]: { ru: "Телефон", uz: "Telefon" },
+  [ComplaintSource.PHONE_CALL]: { ru: "Звонок", uz: "Qo'ng'iroq" },
+  [ComplaintSource.EMAIL]: { ru: "Email", uz: "Email" },
+  [ComplaintSource.SOCIAL_MEDIA]: { ru: "Соцсети", uz: "Ijtimoiy tarmoqlar" },
+  [ComplaintSource.LOCATION_CONTACT]: {
+    ru: "Контакт от локации",
+    uz: "Lokatsiya aloqasi",
   },
   [ComplaintSource.INTERNAL]: { ru: "Внутренняя", uz: "Ichki" },
 };
@@ -422,6 +435,7 @@ export const DEFAULT_SLA_HOURS: Record<ComplaintPriority, number> = {
   [ComplaintPriority.LOW]: 72, // 3 days
   [ComplaintPriority.MEDIUM]: 24, // 1 day
   [ComplaintPriority.HIGH]: 8, // 8 hours
+  [ComplaintPriority.CRITICAL]: 4, // 4 hours
   [ComplaintPriority.URGENT]: 2, // 2 hours
 };
 
@@ -449,6 +463,7 @@ export const COMPLAINT_PRIORITY_ICONS: Record<ComplaintPriority, string> = {
   [ComplaintPriority.LOW]: "🟢",
   [ComplaintPriority.MEDIUM]: "🟡",
   [ComplaintPriority.HIGH]: "🟠",
+  [ComplaintPriority.CRITICAL]: "🔴",
   [ComplaintPriority.URGENT]: "🔴",
 };
 

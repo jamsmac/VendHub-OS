@@ -67,8 +67,10 @@ export class OrganizationGuard implements CanActivate {
 
     const requestedOrgId = orgIdFromParam || orgIdFromQuery || orgIdFromBody;
 
-    // If no org ID in request, allow (will use user's org in service)
+    // If no org ID in request, inject user's own organizationId
+    // so downstream services always have tenant context
     if (!requestedOrgId) {
+      request.organizationId = user.organizationId;
       return true;
     }
 
