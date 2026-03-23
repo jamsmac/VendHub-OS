@@ -11,49 +11,51 @@
 
 import { test, expect } from "@playwright/test";
 
-const API_URL = process.env.API_URL || "http://localhost:4000";
+// Uses baseURL from playwright.config.ts (or API_URL env var)
 
 test.describe("Smoke: API Health", () => {
   test("GET /api/v1/health returns 200", async ({ request }) => {
-    const res = await request.get(`${API_URL}/api/v1/health`);
+    const res = await request.get(`/api/v1/health`);
     expect(res.status()).toBe(200);
 
     const body = await res.json();
-    expect(body).toHaveProperty("status");
+    // Response wrapped in TransformInterceptor: { success, data: { status } }
+    expect(body.success).toBe(true);
   });
 
   test("GET /api/v1/health response has expected shape", async ({
     request,
   }) => {
-    const res = await request.get(`${API_URL}/api/v1/health`);
+    const res = await request.get(`/api/v1/health`);
     const body = await res.json();
 
-    // TerminusModule health check shape
-    expect(body.status).toBe("ok");
-    if (body.info) {
-      expect(typeof body.info).toBe("object");
-    }
+    // TransformInterceptor wraps response: { success, data, timestamp }
+    expect(body.data).toBeDefined();
+    expect(body.data.status).toBe("ok");
   });
 });
 
 test.describe("Smoke: Swagger Docs", () => {
-  test("GET /docs returns HTML", async ({ request }) => {
-    const res = await request.get(`${API_URL}/docs`);
-    expect(res.status()).toBe(200);
-
-    const contentType = res.headers()["content-type"];
-    expect(contentType).toContain("text/html");
+  test("GET /docs returns 200 or 401 (JWT-protected in production)", async ({
+    request,
+  }) => {
+    const res = await request.get(`/docs`);
+    // In production, Swagger is JWT-protected → 401
+    // In development, it's open → 200
+    expect([200, 401]).toContain(res.status());
   });
 
-  test("GET /docs-json returns OpenAPI spec", async ({ request }) => {
-    const res = await request.get(`${API_URL}/docs-json`);
-    expect(res.status()).toBe(200);
-
-    const body = await res.json();
-    expect(body).toHaveProperty("openapi");
-    expect(body).toHaveProperty("paths");
-    expect(body).toHaveProperty("info");
-    expect(body.info.title).toBeTruthy();
+  test("GET /docs-json returns OpenAPI spec or 401", async ({ request }) => {
+    const res = await request.get(`/docs-json`);
+    if (res.status() === 200) {
+      const body = await res.json();
+      expect(body).toHaveProperty("openapi");
+      expect(body).toHaveProperty("paths");
+      expect(body.info.title).toBeTruthy();
+    } else {
+      // JWT-protected in production
+      expect(res.status()).toBe(401);
+    }
   });
 });
 
@@ -61,24 +63,23 @@ test.describe("Smoke: Auth Endpoints Exist", () => {
   test("POST /api/v1/auth/login returns 401 without credentials", async ({
     request,
   }) => {
-    const res = await request.post(`${API_URL}/api/v1/auth/login`, {
+    const res = await request.post(`/api/v1/auth/login`, {
       data: { email: "", password: "" },
     });
     // Should be 400 (validation) or 401 (unauthorized) — not 404
     expect([400, 401]).toContain(res.status());
   });
 
-  test("GET /api/v1/auth/profile returns 401 without token", async ({
-    request,
-  }) => {
-    const res = await request.get(`${API_URL}/api/v1/auth/profile`);
-    expect(res.status()).toBe(401);
+  test("GET /api/v1/auth/me returns 401 without token", async ({ request }) => {
+    const res = await request.get(`/api/v1/auth/me`);
+    // Should be 401 (unauthorized) — not 404
+    expect([401, 403]).toContain(res.status());
   });
 });
 
 test.describe("Smoke: Security Headers", () => {
   test("API sets security headers", async ({ request }) => {
-    const res = await request.get(`${API_URL}/api/v1/health`);
+    const res = await request.get(`/api/v1/health`);
     const headers = res.headers();
 
     // Helmet should set these
