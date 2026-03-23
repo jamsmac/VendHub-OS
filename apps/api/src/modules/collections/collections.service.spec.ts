@@ -605,10 +605,13 @@ describe("CollectionsService", () => {
     it("should return count of collections for a machine", async () => {
       mockCollectionRepo.count.mockResolvedValue(42);
 
-      const result = await service.countByMachine("machine-uuid-1");
+      const result = await service.countByMachine(
+        "machine-uuid-1",
+        "org-uuid-1",
+      );
 
       expect(mockCollectionRepo.count).toHaveBeenCalledWith({
-        where: { machineId: "machine-uuid-1" },
+        where: { machineId: "machine-uuid-1", organizationId: "org-uuid-1" },
       });
       expect(result).toBe(42);
     });

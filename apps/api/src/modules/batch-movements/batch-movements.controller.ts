@@ -16,7 +16,7 @@ import { CreateBatchMovementDto } from "./dto/create-batch-movement.dto";
 @ApiTags("Batch Movements")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller("api/v1/batch-movements")
+@Controller("batch-movements")
 export class BatchMovementsController {
   constructor(private readonly batchMovementsService: BatchMovementsService) {}
 

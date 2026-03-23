@@ -144,12 +144,15 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            set -e
             cd /opt/vendhub
             git pull origin ${{ github.ref_name }}
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker compose -f docker-compose.prod.yml exec -T api node dist/cli migrate 2>/dev/null || true
-            echo "✅ VendHub deployed successfully"
+            echo "⏳ Waiting for API container to be ready..."
+            sleep 10
+            docker compose -f docker-compose.prod.yml exec -T api node dist/cli migrate
+            echo "✅ VendHub deployed and migrations applied successfully"
 
   # ─── Post-Deploy Health Check ───
   health-check:
@@ -161,9 +164,31 @@ jobs:
         run: sleep 30
 
       - name: Check API health
+        env:
+          HEALTH_URL: ${{ github.ref == 'refs/heads/main' && 'https://vendhubapi-production.up.railway.app' || 'https://api-staging.vendhub.uz' }}
         run: |
-          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://vendhubapi-production.up.railway.app' || 'https://api-staging.vendhub.uz' }}/api/v1/health || echo "⚠️ API health check failed (may not be configured yet)"
+          for i in 1 2 3 4 5; do
+            if curl -sf "${HEALTH_URL}/api/v1/health"; then
+              echo "✅ API health check passed"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/5 failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ API health check failed after 5 attempts"
+          exit 1
 
       - name: Check Admin Panel
+        env:
+          PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://vendhubweb-production.up.railway.app' || 'https://staging.vendhub.uz' }}
         run: |
-          curl -sf ${{ github.ref == 'refs/heads/main' && 'https://vendhubweb-production.up.railway.app' || 'https://staging.vendhub.uz' }} || echo "⚠️ Admin panel check failed (may not be configured yet)"
+          for i in 1 2 3 4 5; do
+            if curl -sf "${PANEL_URL}"; then
+              echo "✅ Admin panel health check passed"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/5 failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Admin panel health check failed after 5 attempts"
+          exit 1

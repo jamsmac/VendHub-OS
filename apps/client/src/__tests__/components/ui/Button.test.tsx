@@ -41,8 +41,9 @@ describe("Button", () => {
   // ── Loading state ──────────────────────────────────────────────────────────
   it("shows loading spinner when loading=true", () => {
     render(<Button loading>Save</Button>);
-    // The button should show "Loading..." text
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    // The button renders an SVG spinner, not "Loading..." text
+    const button = screen.getByRole("button");
+    expect(button.querySelector("svg")).toBeInTheDocument();
   });
 
   it("is disabled when loading=true", () => {

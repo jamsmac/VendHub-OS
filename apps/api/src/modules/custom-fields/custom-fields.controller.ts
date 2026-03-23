@@ -24,7 +24,7 @@ import {
 @ApiTags("Custom Fields")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller("api/v1/custom-fields")
+@Controller("custom-fields")
 export class CustomFieldsController {
   constructor(private readonly service: CustomFieldsService) {}
 

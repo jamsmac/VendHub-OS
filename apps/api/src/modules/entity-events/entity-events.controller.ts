@@ -18,7 +18,7 @@ import { QueryEntityEventsDto } from "./dto/query-entity-events.dto";
 @ApiTags("Entity Events")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller("api/v1/entity-events")
+@Controller("entity-events")
 export class EntityEventsController {
   constructor(private readonly entityEventsService: EntityEventsService) {}
 

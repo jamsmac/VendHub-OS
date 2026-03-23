@@ -17,7 +17,6 @@ import {
   ScheduledReport,
   GeneratedReport,
   Dashboard,
-  DashboardWidget,
   SavedReportFilter,
   ReportSubscription,
   ReportType,
@@ -25,6 +24,8 @@ import {
   ReportStatus,
   ReportFrequency,
 } from "./entities/report.entity";
+import { DashboardWidget } from "../analytics/entities/analytics.entity";
+import { CreateWidgetDto } from "./reports-dashboard.service";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { Machine } from "../machines/entities/machine.entity";
 import { Product } from "../products/entities/product.entity";
@@ -550,7 +551,6 @@ describe("ReportsService", () => {
 
       expect(dashboardRepo.find).toHaveBeenCalledWith({
         where: { organizationId: "org-1" },
-        relations: ["widgets"],
         order: { isDefault: "DESC", createdAt: "DESC" },
       });
       expect(result).toEqual(dashboards);
@@ -568,7 +568,6 @@ describe("ReportsService", () => {
       expect(result).toEqual(dashboard);
       expect(dashboardRepo.findOne).toHaveBeenCalledWith({
         where: { id: "d1", organizationId: "org-1" },
-        relations: ["widgets"],
       });
       expect(dashboardRepo.increment).toHaveBeenCalledWith(
         { id: "d1" },
@@ -606,9 +605,10 @@ describe("ReportsService", () => {
 
       expect(dashboardRepo.findOne).toHaveBeenCalledWith({
         where: { id: "d1", organizationId: "org-1" },
-        relations: ["widgets"],
       });
-      expect(widgetRepo.softDelete).toHaveBeenCalledWith({ dashboardId: "d1" });
+      expect(widgetRepo.softDelete).toHaveBeenCalledWith({
+        organizationId: "org-1",
+      });
       expect(dashboardRepo.softDelete).toHaveBeenCalledWith("d1");
     });
 
@@ -649,25 +649,21 @@ describe("ReportsService", () => {
   // ==========================================================================
 
   describe("createWidget", () => {
-    it("should create a widget verifying dashboard ownership", async () => {
-      const dashboard = { id: "d1", organizationId: "org-1" };
-      dashboardRepo.findOne!.mockResolvedValue(dashboard);
-
-      const widgetData = {
-        dashboardId: "d1",
+    it("should create a widget scoped to organization", async () => {
+      const widgetData: CreateWidgetDto = {
         title: "Revenue",
-        positionX: 0,
-        positionY: 0,
         width: 6,
         height: 3,
       };
 
       const created = {
         id: "w1",
-        ...widgetData,
+        title: "Revenue",
         organizationId: "org-1",
-        isVisible: true,
-        isActive: true,
+        chartType: "kpi",
+        position: 0,
+        width: 6,
+        height: 3,
       };
       widgetRepo.create!.mockReturnValue(created);
       widgetRepo.save!.mockResolvedValue(created);
@@ -675,53 +671,28 @@ describe("ReportsService", () => {
       const result = await service.createWidget(widgetData, "org-1");
 
       expect(result.id).toBe("w1");
-      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "d1", organizationId: "org-1" },
-      });
       expect(widgetRepo.create).toHaveBeenCalled();
+      expect(widgetRepo.save).toHaveBeenCalledWith(created);
     });
 
     it("should always scope widget creation to organization", async () => {
-      const dashboard = { id: "d1", organizationId: "org-1" };
-      dashboardRepo.findOne!.mockResolvedValue(dashboard);
-
-      const widgetData = {
-        dashboardId: "d1",
+      const widgetData: CreateWidgetDto = {
         title: "Revenue",
-        positionX: 0,
-        positionY: 0,
         width: 6,
         height: 3,
       };
 
-      const created = { id: "w1", ...widgetData, organizationId: "org-1" };
+      const created = { id: "w1", title: "Revenue", organizationId: "org-1" };
       widgetRepo.create!.mockReturnValue(created);
       widgetRepo.save!.mockResolvedValue(created);
 
       const result = await service.createWidget(widgetData, "org-1");
 
       expect(result.id).toBe("w1");
-      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "d1", organizationId: "org-1" },
-      });
-    });
-
-    it("should throw NotFoundException when dashboard not found", async () => {
-      dashboardRepo.findOne!.mockResolvedValue(null);
-
-      await expect(
-        service.createWidget(
-          {
-            dashboardId: "invalid",
-            title: "Test",
-            positionX: 0,
-            positionY: 0,
-            width: 4,
-            height: 2,
-          },
-          "org-1",
-        ),
-      ).rejects.toThrow(NotFoundException);
+      // Verify widget is created with organizationId from the caller, not from dto
+      expect(widgetRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ organizationId: "org-1" }),
+      );
     });
   });
 
@@ -762,30 +733,35 @@ describe("ReportsService", () => {
 
       await service.reorderWidgets("d1", "org-1", ["w3", "w1", "w2"]);
 
-      expect(dashboardRepo.findOne).toHaveBeenCalledWith({
-        where: { id: "d1", organizationId: "org-1" },
-        relations: ["widgets"],
-      });
+      // reorderWidgets delegates to dashboard service which updates by org scope
       expect(widgetRepo.update).toHaveBeenCalledWith(
-        { id: "w3", dashboardId: "d1" },
-        { positionY: 0 },
+        { id: "w3", organizationId: "org-1" },
+        { position: 0 },
       );
       expect(widgetRepo.update).toHaveBeenCalledWith(
-        { id: "w1", dashboardId: "d1" },
-        { positionY: 1 },
+        { id: "w1", organizationId: "org-1" },
+        { position: 1 },
       );
       expect(widgetRepo.update).toHaveBeenCalledWith(
-        { id: "w2", dashboardId: "d1" },
-        { positionY: 2 },
+        { id: "w2", organizationId: "org-1" },
+        { position: 2 },
       );
     });
 
-    it("should throw NotFoundException when dashboard not owned by org", async () => {
-      dashboardRepo.findOne!.mockResolvedValue(null);
+    it("should reorder even without dashboard validation (org scoped via widget update)", async () => {
+      widgetRepo.update!.mockResolvedValue({
+        affected: 1,
+        raw: {},
+        generatedMaps: [],
+      });
 
-      await expect(
-        service.reorderWidgets("d1", "wrong-org", ["w1"]),
-      ).rejects.toThrow(NotFoundException);
+      // reorderWidgets doesn't validate dashboard — it updates widgets by org scope
+      await service.reorderWidgets("d1", "org-1", ["w1"]);
+
+      expect(widgetRepo.update).toHaveBeenCalledWith(
+        { id: "w1", organizationId: "org-1" },
+        { position: 0 },
+      );
     });
   });
 

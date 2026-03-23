@@ -8,23 +8,26 @@
 // ============================================================================
 
 export enum NotificationChannel {
-  IN_APP = "in_app",
   PUSH = "push",
   EMAIL = "email",
   SMS = "sms",
   TELEGRAM = "telegram",
   WHATSAPP = "whatsapp",
+  IN_APP = "in_app",
   WEBHOOK = "webhook",
+  SLACK = "slack",
 }
 
 export enum NotificationStatus {
   PENDING = "pending",
   QUEUED = "queued",
+  SENDING = "sending",
   SENT = "sent",
   DELIVERED = "delivered",
   READ = "read",
   FAILED = "failed",
   CANCELLED = "cancelled",
+  EXPIRED = "expired",
 }
 
 export enum NotificationPriority {
@@ -330,6 +333,7 @@ export const NOTIFICATION_CHANNEL_LABELS: Record<
   [NotificationChannel.TELEGRAM]: { ru: "Telegram", uz: "Telegram" },
   [NotificationChannel.WHATSAPP]: { ru: "WhatsApp", uz: "WhatsApp" },
   [NotificationChannel.WEBHOOK]: { ru: "Webhook", uz: "Webhook" },
+  [NotificationChannel.SLACK]: { ru: "Slack", uz: "Slack" },
 };
 
 export const NOTIFICATION_STATUS_LABELS: Record<
@@ -343,6 +347,8 @@ export const NOTIFICATION_STATUS_LABELS: Record<
   [NotificationStatus.READ]: { ru: "Прочитано", uz: "O'qildi" },
   [NotificationStatus.FAILED]: { ru: "Ошибка", uz: "Xato" },
   [NotificationStatus.CANCELLED]: { ru: "Отменено", uz: "Bekor qilindi" },
+  [NotificationStatus.SENDING]: { ru: "Отправляется", uz: "Yuborilmoqda" },
+  [NotificationStatus.EXPIRED]: { ru: "Истекло", uz: "Muddati o'tdi" },
 };
 
 export const NOTIFICATION_PRIORITY_LABELS: Record<
@@ -481,6 +487,7 @@ export const NOTIFICATION_CHANNEL_ICONS: Record<NotificationChannel, string> = {
   [NotificationChannel.TELEGRAM]: "✈️",
   [NotificationChannel.WHATSAPP]: "💬",
   [NotificationChannel.WEBHOOK]: "🔗",
+  [NotificationChannel.SLACK]: "💼",
 };
 
 export const NOTIFICATION_TYPE_ICONS: Partial<

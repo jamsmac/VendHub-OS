@@ -269,7 +269,7 @@ describe("OpeningBalancesService", () => {
       const balance = { id: "ob-1", productId: "p-1" };
       repository.findOne!.mockResolvedValue(balance);
 
-      const result = await service.findById("ob-1");
+      const result = await service.findById("ob-1", "org-uuid-1");
 
       expect(result).toEqual(balance);
     });
@@ -277,9 +277,9 @@ describe("OpeningBalancesService", () => {
     it("should throw NotFoundException when not found", async () => {
       repository.findOne!.mockResolvedValue(null);
 
-      await expect(service.findById("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findById("non-existent", "org-uuid-1"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

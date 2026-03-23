@@ -127,12 +127,26 @@ export class PaymentReportFolderWatcherService
             ".zip": "application/zip",
           };
 
+          const defaultOrgId =
+            this.config.get<string>("PAYMENT_REPORTS_DEFAULT_ORG_ID") ?? "";
+          if (!defaultOrgId) {
+            this.logger.warn(
+              "PAYMENT_REPORTS_DEFAULT_ORG_ID not set — skipping auto-import",
+            );
+            return {
+              scanned: files.length,
+              processed: 0,
+              failed: files.length,
+            };
+          }
+
           await this.reportsService.upload({
             buffer,
             fileName,
             mimeType: mimeMap[ext] ?? "application/octet-stream",
             fileSize: stats.size,
             uploadedBy: "folder-watcher",
+            organizationId: defaultOrgId,
           });
 
           // Успешно — перемещаем в __processed с временной меткой

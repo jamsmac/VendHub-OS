@@ -81,15 +81,14 @@ export class NotificationGateway
   }
 
   /**
-   * Validate that a topic is in the allowlist and scoped to user's org
+   * Validate that a topic category is in the allowlist.
+   * All topics are org-scoped when joined — the room name becomes
+   * org:{orgId}:topic:{category} to prevent cross-tenant leaks.
    */
-  private isTopicAllowed(topic: string, organizationId: string): boolean {
-    // Topics must be scoped: org:{orgId}:{category} or just a generic category
-    const isOrgScoped = topic.startsWith(`org:${organizationId}:`);
-    const isGenericAllowed = ALLOWED_TOPIC_PREFIXES.some(
+  private isTopicAllowed(topic: string): boolean {
+    return ALLOWED_TOPIC_PREFIXES.some(
       (prefix) => topic === prefix || topic.startsWith(`${prefix}:`),
     );
-    return isOrgScoped || isGenericAllowed;
   }
 
   // ============================================
@@ -103,15 +102,16 @@ export class NotificationGateway
   ) {
     const user = this.wsService.getClient(client.id);
 
-    if (!user?.userId) {
+    if (!user?.userId || !user?.organizationId) {
       return { success: false, error: "Authentication required" };
     }
 
     const { notificationId } = payload;
 
     // In real implementation, mark notification as read in DB
+    // and verify the notification belongs to user's organization
     this.logger.debug(
-      `Notification ${notificationId} marked as read by user ${user.userId}`,
+      `Notification ${notificationId} marked as read by user ${user.userId} (org: ${user.organizationId})`,
     );
 
     return { success: true, notificationId };
@@ -150,13 +150,14 @@ export class NotificationGateway
       return { success: false, error: "Topics array is required" };
     }
 
-    // Only subscribe to allowed topics scoped to user's org
-    const allowedTopics = topics.filter((topic) =>
-      this.isTopicAllowed(topic, user.organizationId!),
-    );
+    // Only subscribe to allowed topic categories — rooms are org-scoped
+    const allowedTopics = topics.filter((topic) => this.isTopicAllowed(topic));
 
     allowedTopics.forEach((topic) => {
-      this.wsService.joinRoom(client, `topic:${topic}`);
+      this.wsService.joinRoom(
+        client,
+        `org:${user.organizationId}:topic:${topic}`,
+      );
     });
 
     const rejected = topics.length - allowedTopics.length;
@@ -174,6 +175,12 @@ export class NotificationGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { topics: string[] },
   ) {
+    const user = this.wsService.getClient(client.id);
+
+    if (!user?.userId || !user?.organizationId) {
+      return { success: false, error: "Authentication required" };
+    }
+
     const { topics } = payload;
 
     if (!topics || !Array.isArray(topics)) {
@@ -181,7 +188,10 @@ export class NotificationGateway
     }
 
     topics.forEach((topic) => {
-      this.wsService.leaveRoom(client, `topic:${topic}`);
+      this.wsService.leaveRoom(
+        client,
+        `org:${user.organizationId}:topic:${topic}`,
+      );
     });
 
     return { success: true, topics };
@@ -196,9 +206,9 @@ export class NotificationGateway
     const user = this.wsService.getClient(client.id);
 
     if (user?.userId && user?.organizationId) {
-      // Notify organization about user presence
+      // Notify organization about user presence (use notifications room)
       this.server
-        .to(`org:${user.organizationId}`)
+        .to(`org:${user.organizationId}:notifications`)
         .emit("presence:user-online", {
           userId: user.userId,
           timestamp: new Date().toISOString(),

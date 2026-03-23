@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 
 import { AuthService } from "./auth.service";
+import { MetricsService } from "../metrics/metrics.service";
 import {
   User,
   UserSession,
@@ -234,6 +235,15 @@ describe("AuthService", () => {
               os: "Linux",
               device: "desktop",
             }),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            authLoginTotal: { inc: jest.fn() },
+            incrementCounter: jest.fn(),
+            recordHistogram: jest.fn(),
+            recordGauge: jest.fn(),
           },
         },
       ],

@@ -64,8 +64,11 @@ export class CollectionsController {
   @ApiOperation({ summary: "Get collections created by the current operator" })
   @Get("my")
   @Roles("owner", "admin", "manager", "operator")
-  findMy(@CurrentUserId() operatorId: string) {
-    return this.collectionsService.findByOperator(operatorId);
+  findMy(
+    @CurrentUserId() operatorId: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.collectionsService.findByOperator(operatorId, organizationId);
   }
 
   // ── STATS ─────────────────────────────────────────────

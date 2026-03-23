@@ -23,6 +23,8 @@ export default tseslint.config(
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
+      // Target: 'error'. Currently 'warn' due to ~1,100 existing violations.
+      // Reduce incrementally via --max-warnings cap in CI.
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',

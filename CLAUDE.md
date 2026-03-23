@@ -36,7 +36,7 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 ```text
 ./
 ├── apps/
-│   ├── api/              # NestJS backend (57 modules)
+│   ├── api/              # NestJS backend (84 modules)
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
 │   ├── bot/              # Telegram bot (Telegraf)
@@ -385,6 +385,35 @@ Comprehensive audit (2 independent reviews + 3 verification agents) with 40+ fix
 - payment-reports hardcoded port 3001 → 4000
 - AGENTS.md `.Codex` → `.claude` path
 
+### Production Readiness Remediation (2026-03-23)
+
+Full audit (10 findings) → 3-sprint fix cycle. Key changes:
+
+**Security (P0):**
+
+- **payment-reports tenant isolation**: `organizationId` added to both entities + DB migration, all 16 endpoints secured with JwtAuthGuard + RolesGuard + @Roles(), all service queries filtered by org
+- **payment-reports hard delete → soft delete**: `.softDelete()` + restore endpoint
+- **xlsx CVE eliminated**: payment-reports migrated from vulnerable `xlsx` to `exceljs`, `xlsx` removed from package.json
+- **Zip bomb protection**: AdmZip extraction capped at 100MB decompressed size
+- **deploy.yml fail-fast**: migrations now fail pipeline (`set -e`, no `|| true`), health checks retry 5x then `exit 1`
+
+**Tenant Isolation:**
+
+- **collections**: 3 service methods + controller endpoint now pass `organizationId` (`findByOperator`, `checkDuplicate`, `countByMachine`)
+- **sales-import**: internal processing chain (`startProcessing`, `updateProgress`, `complete`, `processImport`) now passes `organizationId` through call stack
+- **agent-bridge**: `organizationId` column added to entity + migration, stats OR→AND bug fixed
+
+**Architecture:**
+
+- **Route prefix conflicts**: 4 controllers (`batch-movements`, `entity-events`, `calculated-state`, `custom-fields`) removed hardcoded `api/v1/` that doubled with global prefix
+- **WebSocket hardening**: topic rooms now org-scoped (`org:{id}:topic:{name}`), generic topic fallback removed, `notifications:read` checks `organizationId`
+- **calculated-state formula**: `getAvgSalesPerDay()` returns real value (was returning constant `1`), N+1 query → batch query with `IN (:...ids) GROUP BY`
+
+**Testing:**
+
+- **Client Vitest**: 99/99 green (fixed localStorage/spinner expectations)
+- **Mobile Jest**: 13/13 green (added `setOnSessionExpired` mock)
+
 ## Skills (AI Agent Tools)
 
 21 specialized skills in `.claude/commands/` directory for domain-specific code generation:
@@ -428,7 +457,7 @@ Comprehensive audit (2 independent reviews + 3 verification agents) with 40+ fix
 
 ## Migration Context
 
-Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (37 modules).
+Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (84 modules, 122 entities, 15 migrations).
 
 Strategies per module:
 

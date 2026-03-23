@@ -66,6 +66,7 @@ export class CollectionsService {
     if (!dto.skipDuplicateCheck) {
       const duplicate = await this.checkDuplicate(
         dto.machineId,
+        organizationId,
         new Date(dto.collectedAt),
       );
       if (duplicate) {
@@ -546,7 +547,11 @@ export class CollectionsService {
     });
   }
 
-  async findByOperator(operatorId: string, date?: Date): Promise<Collection[]> {
+  async findByOperator(
+    operatorId: string,
+    organizationId: string,
+    date?: Date,
+  ): Promise<Collection[]> {
     const today = date ?? new Date();
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
@@ -555,6 +560,7 @@ export class CollectionsService {
 
     return this.collectionRepo.find({
       where: {
+        organizationId,
         operatorId,
         collectedAt: Between(startOfDay, endOfDay),
       },
@@ -591,6 +597,7 @@ export class CollectionsService {
 
   async checkDuplicate(
     machineId: string,
+    organizationId: string,
     collectedAt: Date,
   ): Promise<Collection | null> {
     const windowMs = DUPLICATE_WINDOW_MINUTES * 60 * 1000;
@@ -599,6 +606,7 @@ export class CollectionsService {
 
     return this.collectionRepo.findOne({
       where: {
+        organizationId,
         machineId,
         collectedAt: Between(from, to),
         status: In([CollectionStatus.COLLECTED, CollectionStatus.RECEIVED]),
@@ -607,8 +615,13 @@ export class CollectionsService {
     });
   }
 
-  async countByMachine(machineId: string): Promise<number> {
-    return this.collectionRepo.count({ where: { machineId } });
+  async countByMachine(
+    machineId: string,
+    organizationId: string,
+  ): Promise<number> {
+    return this.collectionRepo.count({
+      where: { machineId, organizationId },
+    });
   }
 
   /**

@@ -19,9 +19,14 @@ export enum UploadStatus {
 }
 
 @Entity("payment_report_uploads")
+@Index(["organizationId"])
+@Index(["organizationId", "createdAt"])
 @Index(["reportType", "createdAt"])
 @Index(["status"])
 export class PaymentReportUpload extends BaseEntity {
+  @Column({ type: "uuid" })
+  organizationId: string;
+
   /** Оригинальное имя файла */
   @Column({ name: "file_name", length: 500 })
   fileName: string;

@@ -17,7 +17,8 @@ import { CreateBatchMovementDto } from "./dto/create-batch-movement.dto";
 describe("BatchMovementsService", () => {
   let service: BatchMovementsService;
   let movementRepo: jest.Mocked<Repository<BatchMovement>>;
-  let mockManager: jest.Mocked<Partial<EntityManager>>;
+
+  let mockManager: Record<string, jest.Mock>;
   let entityEventsService: jest.Mocked<Partial<EntityEventsService>>;
 
   const orgId = "org-uuid-1";
@@ -154,10 +155,10 @@ describe("BatchMovementsService", () => {
         quantity: 100,
       });
 
-      mockManager.findOne!.mockResolvedValue(batch);
-      mockManager.create!.mockReturnValue(savedMovement);
-      mockManager
-        .save!.mockResolvedValueOnce(batch) // save batch
+      mockManager.findOne.mockResolvedValue(batch);
+      mockManager.create.mockReturnValue(savedMovement);
+      mockManager.save
+        .mockResolvedValueOnce(batch) // save batch
         .mockResolvedValueOnce(savedMovement); // save movement
 
       const result = await service.createMovement(dto, userId, orgId);
@@ -184,7 +185,7 @@ describe("BatchMovementsService", () => {
 
     it("should throw BadRequestException when batch is not found", async () => {
       const dto = createDto();
-      mockManager.findOne!.mockResolvedValue(null);
+      mockManager.findOne.mockResolvedValue(null);
 
       await expect(service.createMovement(dto, userId, orgId)).rejects.toThrow(
         BadRequestException,
@@ -202,7 +203,7 @@ describe("BatchMovementsService", () => {
         quantity: 100,
       });
 
-      mockManager.findOne!.mockResolvedValue(batch);
+      mockManager.findOne.mockResolvedValue(batch);
 
       await expect(service.createMovement(dto, userId, orgId)).rejects.toThrow(
         BadRequestException,
@@ -227,10 +228,10 @@ describe("BatchMovementsService", () => {
         quantity: 200,
       });
 
-      mockManager.findOne!.mockResolvedValue(batch);
-      mockManager.create!.mockReturnValue(savedMovement);
-      mockManager
-        .save!.mockResolvedValueOnce(batch)
+      mockManager.findOne.mockResolvedValue(batch);
+      mockManager.create.mockReturnValue(savedMovement);
+      mockManager.save
+        .mockResolvedValueOnce(batch)
         .mockResolvedValueOnce(savedMovement);
 
       const result = await service.createMovement(dto, userId, orgId);
@@ -262,10 +263,10 @@ describe("BatchMovementsService", () => {
         quantity: 100,
       });
 
-      mockManager.findOne!.mockResolvedValue(batch);
-      mockManager.create!.mockReturnValue(savedMovement);
-      mockManager
-        .save!.mockResolvedValueOnce(batch)
+      mockManager.findOne.mockResolvedValue(batch);
+      mockManager.create.mockReturnValue(savedMovement);
+      mockManager.save
+        .mockResolvedValueOnce(batch)
         .mockResolvedValueOnce(savedMovement);
 
       await service.createMovement(dto, userId, orgId);
@@ -288,10 +289,10 @@ describe("BatchMovementsService", () => {
         quantity: 200,
       });
 
-      mockManager.findOne!.mockResolvedValue(batch);
-      mockManager.create!.mockReturnValue(savedMovement);
-      mockManager
-        .save!.mockResolvedValueOnce(batch)
+      mockManager.findOne.mockResolvedValue(batch);
+      mockManager.create.mockReturnValue(savedMovement);
+      mockManager.save
+        .mockResolvedValueOnce(batch)
         .mockResolvedValueOnce(savedMovement);
 
       await service.createMovement(dto, userId, orgId);
@@ -304,7 +305,7 @@ describe("BatchMovementsService", () => {
       const dto = createDto();
       const differentOrgId = "other-org-uuid";
 
-      mockManager.findOne!.mockResolvedValue(null);
+      mockManager.findOne.mockResolvedValue(null);
 
       await expect(
         service.createMovement(dto, userId, differentOrgId),
@@ -327,7 +328,7 @@ describe("BatchMovementsService", () => {
         const batch = createMockBatch({ remainingQuantity: 10 });
         const dto = createDto({ movementType, quantity: 50 });
 
-        mockManager.findOne!.mockResolvedValue(batch);
+        mockManager.findOne.mockResolvedValue(batch);
 
         await expect(
           service.createMovement(dto, userId, orgId),
@@ -346,10 +347,10 @@ describe("BatchMovementsService", () => {
       });
       const savedMovement = createMockMovement();
 
-      mockManager.findOne!.mockResolvedValue(batch);
-      mockManager.create!.mockReturnValue(savedMovement);
-      mockManager
-        .save!.mockResolvedValueOnce(batch)
+      mockManager.findOne.mockResolvedValue(batch);
+      mockManager.create.mockReturnValue(savedMovement);
+      mockManager.save
+        .mockResolvedValueOnce(batch)
         .mockResolvedValueOnce(savedMovement);
 
       await service.createMovement(dto, userId, orgId);
@@ -397,10 +398,10 @@ describe("BatchMovementsService", () => {
         });
         const savedMovement = createMockMovement();
 
-        mockManager.findOne!.mockResolvedValue(batch);
-        mockManager.create!.mockReturnValue(savedMovement);
-        mockManager
-          .save!.mockResolvedValueOnce(batch)
+        mockManager.findOne.mockResolvedValue(batch);
+        mockManager.create.mockReturnValue(savedMovement);
+        mockManager.save
+          .mockResolvedValueOnce(batch)
           .mockResolvedValueOnce(savedMovement);
 
         (entityEventsService.createEvent as jest.Mock).mockClear();

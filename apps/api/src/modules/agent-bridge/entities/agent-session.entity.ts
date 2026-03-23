@@ -21,7 +21,11 @@ export enum AgentSessionStatus {
 @Entity("agent_sessions")
 @Index(["sessionId"], { unique: true })
 @Index(["status"])
+@Index(["organizationId"])
 export class AgentSession extends BaseEntity {
+  @Column({ type: "uuid", nullable: true })
+  organizationId: string | null;
+
   @Column({ type: "varchar", length: 100, unique: true })
   sessionId: string;
 

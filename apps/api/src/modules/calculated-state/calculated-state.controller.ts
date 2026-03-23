@@ -19,7 +19,7 @@ import { CalculatedStateService } from "./calculated-state.service";
 @ApiTags("Calculated State")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller("api/v1/machines")
+@Controller("machines")
 export class CalculatedStateController {
   constructor(private readonly stateService: CalculatedStateService) {}
 

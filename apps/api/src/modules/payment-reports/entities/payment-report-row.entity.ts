@@ -6,10 +6,14 @@ import {
 import { BaseEntity } from "../../../common/entities/base.entity";
 
 @Entity("payment_report_rows")
+@Index(["organizationId"])
 @Index(["uploadId", "rowIndex"])
 @Index(["reportType", "externalId"])
 @Index(["reportType", "paymentTime"])
 export class PaymentReportRow extends BaseEntity {
+  @Column({ type: "uuid" })
+  organizationId: string;
+
   @Column({ name: "upload_id" })
   @Index()
   uploadId: string;

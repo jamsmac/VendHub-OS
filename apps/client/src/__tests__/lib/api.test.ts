@@ -44,21 +44,22 @@ describe("api token management", () => {
     expect(getAccessToken()).toBeNull();
   });
 
-  it("persists token to localStorage", () => {
+  it("stores token in memory only (no localStorage)", () => {
     const setSpy = vi.spyOn(Storage.prototype, "setItem");
-    setTokens("persisted-token");
-    expect(setSpy).toHaveBeenCalledWith(
-      "vendhub_access_token",
-      "persisted-token",
-    );
+    setTokens("memory-only-token");
+    // Token management was migrated to memory-only (no localStorage)
+    expect(setSpy).not.toHaveBeenCalled();
+    expect(getAccessToken()).toBe("memory-only-token");
     setSpy.mockRestore();
   });
 
-  it("clears token from localStorage on clearTokens", () => {
+  it("clearTokens does not touch localStorage", () => {
     setTokens("token-to-clear");
     const removeSpy = vi.spyOn(Storage.prototype, "removeItem");
     clearTokens();
-    expect(removeSpy).toHaveBeenCalledWith("vendhub_access_token");
+    // Token management is memory-only
+    expect(removeSpy).not.toHaveBeenCalled();
+    expect(getAccessToken()).toBeNull();
     removeSpy.mockRestore();
   });
 });

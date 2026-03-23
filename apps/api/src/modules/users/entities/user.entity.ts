@@ -27,14 +27,9 @@ export enum LoyaltyLevel {
   PLATINUM = "platinum",
 }
 
-export enum UserStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  SUSPENDED = "suspended",
-  PENDING = "pending",
-  REJECTED = "rejected",
-  PASSWORD_CHANGE_REQUIRED = "password_change_required",
-}
+// Re-exported from @vendhub/shared — single source of truth
+import { UserStatus } from "@vendhub/shared";
+export { UserStatus };
 
 @Entity("users")
 @Index(["email"], { unique: true })

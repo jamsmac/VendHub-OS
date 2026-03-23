@@ -46,8 +46,11 @@ export class SalesImportService {
   /**
    * Set import status to PROCESSING and record start time
    */
-  async startProcessing(id: string): Promise<SalesImport> {
-    const importRecord = await this.findById(id);
+  async startProcessing(
+    id: string,
+    organizationId?: string,
+  ): Promise<SalesImport> {
+    const importRecord = await this.findById(id, organizationId);
 
     importRecord.status = ImportStatus.PROCESSING;
     importRecord.startedAt = new Date();
@@ -70,8 +73,9 @@ export class SalesImportService {
       failedRows?: number;
       errors?: Array<{ row: number; field: string; message: string }>;
     },
+    organizationId?: string,
   ): Promise<SalesImport> {
-    const importRecord = await this.findById(id);
+    const importRecord = await this.findById(id, organizationId);
 
     if (data.totalRows !== undefined) {
       importRecord.totalRows = data.totalRows;
@@ -102,8 +106,9 @@ export class SalesImportService {
       transactionsCreated?: number;
       machinesProcessed?: number;
     },
+    organizationId?: string,
   ): Promise<SalesImport> {
-    const importRecord = await this.findById(id);
+    const importRecord = await this.findById(id, organizationId);
 
     importRecord.completedAt = new Date();
     importRecord.summary = summary;
@@ -216,8 +221,9 @@ export class SalesImportService {
       productName?: string;
       quantity?: number;
     }>,
+    organizationId?: string,
   ): Promise<SalesImport> {
-    await this.startProcessing(importId);
+    await this.startProcessing(importId, organizationId);
 
     const totalRows = rows.length;
     let successRows = 0;
@@ -268,28 +274,40 @@ export class SalesImportService {
 
       // Update progress every 100 rows
       if (rowNum % 100 === 0) {
-        await this.updateProgress(importId, {
-          totalRows,
-          successRows,
-          failedRows,
-          errors: errors.slice(-10),
-        });
+        await this.updateProgress(
+          importId,
+          {
+            totalRows,
+            successRows,
+            failedRows,
+            errors: errors.slice(-10),
+          },
+          organizationId,
+        );
       }
     }
 
     // Final progress update
-    await this.updateProgress(importId, {
-      totalRows,
-      successRows,
-      failedRows,
-      errors,
-    });
+    await this.updateProgress(
+      importId,
+      {
+        totalRows,
+        successRows,
+        failedRows,
+        errors,
+      },
+      organizationId,
+    );
 
-    return this.complete(importId, {
-      totalAmount,
-      transactionsCreated: successRows,
-      machinesProcessed: machinesSet.size,
-    });
+    return this.complete(
+      importId,
+      {
+        totalAmount,
+        transactionsCreated: successRows,
+        machinesProcessed: machinesSet.size,
+      },
+      organizationId,
+    );
   }
 
   /**

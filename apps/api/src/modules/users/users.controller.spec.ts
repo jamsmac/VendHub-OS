@@ -20,6 +20,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   ForbiddenException,
+  NotFoundException,
   ExecutionContext,
 } from "@nestjs/common";
 import request from "supertest";
@@ -373,7 +374,10 @@ describe("UsersController (e2e)", () => {
         .expect(HttpStatus.OK);
 
       expect(response.body).toEqual(expectedResponse);
-      expect(usersService.findById).toHaveBeenCalledWith(userId);
+      expect(usersService.findById).toHaveBeenCalledWith(
+        userId,
+        expect.any(String),
+      );
     });
 
     it("should reject user retrieval with invalid UUID format", async () => {
@@ -464,7 +468,11 @@ describe("UsersController (e2e)", () => {
         .expect(HttpStatus.OK);
 
       expect(response.body).toEqual(expectedResponse);
-      expect(usersService.update).toHaveBeenCalledWith(userId, updateUserDto);
+      expect(usersService.update).toHaveBeenCalledWith(
+        userId,
+        updateUserDto,
+        expect.any(String),
+      );
     });
 
     it("should update user role to different role", async () => {
@@ -519,8 +527,10 @@ describe("UsersController (e2e)", () => {
     it("should return 404 when updating nonexistent user", async () => {
       const missingId = "550e8400-e29b-41d4-a716-446655440999";
 
-      // Controller does: const user = await findById(id); if (!user) throw NotFoundException
-      (usersService.findById as jest.Mock).mockResolvedValue(null);
+      // Controller calls update(id, dto, orgFilter) — service throws NotFoundException internally
+      (usersService.update as jest.Mock).mockRejectedValue(
+        new NotFoundException(`User ${missingId} not found`),
+      );
 
       await request(app.getHttpServer())
         .patch(`/users/${missingId}`)
@@ -591,7 +601,10 @@ describe("UsersController (e2e)", () => {
         .set("Authorization", "Bearer admin-token")
         .expect(HttpStatus.NO_CONTENT);
 
-      expect(usersService.remove).toHaveBeenCalledWith(userId);
+      expect(usersService.remove).toHaveBeenCalledWith(
+        userId,
+        expect.any(String),
+      );
     });
 
     it("should reject deletion with invalid UUID", async () => {
@@ -604,8 +617,10 @@ describe("UsersController (e2e)", () => {
     it("should return 404 when deleting nonexistent user", async () => {
       const missingId = "550e8400-e29b-41d4-a716-446655440999";
 
-      // Controller checks: if (!user) throw NotFoundException
-      (usersService.findById as jest.Mock).mockResolvedValue(null);
+      // Controller calls remove(id, orgFilter) — service throws NotFoundException internally
+      (usersService.remove as jest.Mock).mockRejectedValue(
+        new NotFoundException(`User ${missingId} not found`),
+      );
 
       await request(app.getHttpServer())
         .delete(`/users/${missingId}`)
@@ -780,19 +795,16 @@ describe("UsersController (e2e)", () => {
     it("should prevent user from accessing users in other organizations", async () => {
       const userId = "550e8400-e29b-41d4-a716-446655440000";
 
-      // User exists but in a different org
-      (usersService.findById as jest.Mock).mockResolvedValue({
-        id: userId,
-        email: "user@other-org.com",
-        organizationId: "550e8400-e29b-41d4-a716-446655440999", // different org
-        role: "manager",
-      });
+      // Service filters by orgId — user not found when org doesn't match
+      (usersService.findById as jest.Mock).mockRejectedValue(
+        new NotFoundException(`User ${userId} not found`),
+      );
 
-      // Admin is not OWNER, so cross-org access is denied (403)
+      // Admin is not OWNER, so findById(id, orgFilter) returns not found
       await request(app.getHttpServer())
         .get(`/users/${userId}`)
         .set("Authorization", "Bearer admin-token")
-        .expect(HttpStatus.FORBIDDEN);
+        .expect(HttpStatus.NOT_FOUND);
     });
 
     it("should allow OWNER to access users in any organization", async () => {

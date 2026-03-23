@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -9,6 +10,7 @@ import {
 } from "../entities/payment-report-upload.entity";
 
 export interface AnalyticsQueryDto {
+  organizationId: string;
   dateFrom?: Date;
   dateTo?: Date;
   reportTypes?: ReportType[];
@@ -43,7 +45,10 @@ export class PaymentReportAnalyticsService {
       .addSelect("r.report_type", "reportType")
       .addSelect("SUM(r.amount)", "totalAmount")
       .addSelect("COUNT(*)", "count")
-      .where("r.payment_time IS NOT NULL")
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere("r.payment_time IS NOT NULL")
       .andWhere("r.is_duplicate = 0")
       .andWhere("u.status = :status", { status: UploadStatus.COMPLETED });
 
@@ -65,7 +70,6 @@ export class PaymentReportAnalyticsService {
     // Pivot — превращаем в формат [{period, PAYME, CLICK, VENDHUB_ORDERS, ...}]
     const periodMap = new Map<string, Record<string, number>>();
     for (const r of rows) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!periodMap.has(r.period))
         periodMap.set(r.period, { period: r.period as any });
       periodMap.get(r.period)![r.reportType] = Number(r.totalAmount) || 0;
@@ -91,7 +95,10 @@ export class PaymentReportAnalyticsService {
       .addSelect("SUM(r.amount)", "totalAmount")
       .addSelect("COUNT(*)", "count")
       .addSelect("AVG(r.amount)", "avgAmount")
-      .where('r.machine_code IS NOT NULL AND r.machine_code != ""')
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere('r.machine_code IS NOT NULL AND r.machine_code != ""')
       .andWhere("r.is_duplicate = 0")
       .andWhere("u.status = :status", { status: UploadStatus.COMPLETED });
 
@@ -127,7 +134,10 @@ export class PaymentReportAnalyticsService {
       .addSelect("r.report_type", "reportType")
       .addSelect("SUM(r.amount)", "totalAmount")
       .addSelect("COUNT(*)", "count")
-      .where('r.payment_method IS NOT NULL AND r.payment_method != ""')
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere('r.payment_method IS NOT NULL AND r.payment_method != ""')
       .andWhere("r.is_duplicate = 0")
       .andWhere("u.status = :status", { status: UploadStatus.COMPLETED });
 
@@ -160,7 +170,10 @@ export class PaymentReportAnalyticsService {
       .addSelect("AVG(r.amount)", "avgAmount")
       .addSelect("MIN(r.amount)", "minAmount")
       .addSelect("MAX(r.amount)", "maxAmount")
-      .where("r.amount IS NOT NULL")
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere("r.amount IS NOT NULL")
       .andWhere("r.is_duplicate = 0")
       .andWhere("u.status = :status", { status: UploadStatus.COMPLETED });
 
@@ -185,7 +198,10 @@ export class PaymentReportAnalyticsService {
       .addSelect("HOUR(r.payment_time)", "hour")
       .addSelect("COUNT(*)", "count")
       .addSelect("SUM(r.amount)", "totalAmount")
-      .where("r.payment_time IS NOT NULL")
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere("r.payment_time IS NOT NULL")
       .andWhere("r.is_duplicate = 0")
       .andWhere("u.status = :status", { status: UploadStatus.COMPLETED });
 

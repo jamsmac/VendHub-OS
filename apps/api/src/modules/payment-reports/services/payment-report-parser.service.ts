@@ -1,8 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
-import * as xlsx from "xlsx";
+import * as ExcelJS from "exceljs";
 import * as crypto from "crypto";
 
 const AdmZip = require("adm-zip");
+
+/** Max decompressed size from ZIP to prevent zip bombs */
+const MAX_DECOMPRESSED_SIZE = 100 * 1024 * 1024; // 100 MB
 import { ReportType } from "../entities/payment-report-upload.entity";
 import {
   PaymentReportDetectorService,
@@ -69,7 +72,7 @@ export class PaymentReportParserService {
     if (isCsv) {
       rawRows = this.parseCsvRows(workBuffer);
     } else {
-      const result = this.parseXlsxRows(workBuffer);
+      const result = await this.parseXlsxRows(workBuffer);
       rawRows = result.rows;
       sheetNames = result.sheetNames;
     }
@@ -123,17 +126,26 @@ export class PaymentReportParserService {
   // ─────────────────────────────────────────────
   // XLSX helpers
   // ─────────────────────────────────────────────
-  private parseXlsxRows(buffer: Buffer): {
+  private async parseXlsxRows(buffer: Buffer): Promise<{
     rows: unknown[][];
     sheetNames: string[];
-  } {
-    const wb = xlsx.read(buffer, { type: "buffer", cellDates: true });
-    const sheetNames = wb.SheetNames;
-    const ws = wb.Sheets[sheetNames[0]!]!;
-    const rows = xlsx.utils.sheet_to_json<unknown[]>(ws, {
-      header: 1,
-      defval: null,
-    }) as unknown[][];
+  }> {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer as unknown as ArrayBuffer);
+
+    const sheetNames = wb.worksheets.map((ws) => ws.name);
+    const ws = wb.worksheets[0];
+    if (!ws) return { rows: [], sheetNames };
+
+    const rows: unknown[][] = [];
+    ws.eachRow({ includeEmpty: true }, (row) => {
+      rows.push(
+        row.values
+          ? (row.values as unknown[]).slice(1) // ExcelJS row.values is 1-indexed
+          : [],
+      );
+    });
+
     return { rows, sheetNames };
   }
 
@@ -151,13 +163,30 @@ export class PaymentReportParserService {
       const entry = zip
         .getEntries()
         .find(
-          (e: { name: string }) =>
-            e.name.toLowerCase().endsWith(".xlsx") ||
-            e.name.toLowerCase().endsWith(".xls"),
+          (e: { name: string; header: { size: number } }) =>
+            (e.name.toLowerCase().endsWith(".xlsx") ||
+              e.name.toLowerCase().endsWith(".xls")) &&
+            e.header.size <= MAX_DECOMPRESSED_SIZE,
         );
-      if (entry) {
-        return { buffer: entry.getData(), fileName: entry.name };
+      if (!entry) return null;
+
+      // Zip bomb protection: reject entries exceeding max decompressed size
+      if (entry.header.size > MAX_DECOMPRESSED_SIZE) {
+        this.logger.warn(
+          `ZIP entry ${entry.name} exceeds max decompressed size (${entry.header.size} > ${MAX_DECOMPRESSED_SIZE})`,
+        );
+        return null;
       }
+
+      const data = entry.getData();
+      if (data.length > MAX_DECOMPRESSED_SIZE) {
+        this.logger.warn(
+          `ZIP entry ${entry.name} actual size exceeds limit (${data.length} > ${MAX_DECOMPRESSED_SIZE})`,
+        );
+        return null;
+      }
+
+      return { buffer: data, fileName: entry.name };
     } catch (e: unknown) {
       this.logger.warn("Failed to read ZIP", e);
     }

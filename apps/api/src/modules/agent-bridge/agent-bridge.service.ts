@@ -213,15 +213,13 @@ export class AgentBridgeService {
     const [activeSessions, totalSessions, todaySessions, totalProgress] =
       await Promise.all([
         this.sessionRepo.count({
-          where: [
-            {
-              status: In([
-                AgentSessionStatus.RUNNING,
-                AgentSessionStatus.WAITING,
-              ]),
-            },
-            { lastActivityAt: MoreThan(fiveMinutesAgo) },
-          ],
+          where: {
+            status: In([
+              AgentSessionStatus.RUNNING,
+              AgentSessionStatus.WAITING,
+            ]),
+            lastActivityAt: MoreThan(fiveMinutesAgo),
+          },
         }),
         this.sessionRepo.count(),
         this.sessionRepo.count({

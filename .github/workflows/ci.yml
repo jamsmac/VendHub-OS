@@ -110,7 +110,6 @@ jobs:
 
       - name: Run mobile unit tests
         run: pnpm --filter mobile test --passWithNoTests
-        continue-on-error: true
         env:
           CI: true
 

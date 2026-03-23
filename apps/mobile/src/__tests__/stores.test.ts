@@ -17,6 +17,7 @@ jest.mock("../services/api", () => ({
     post: jest.fn(),
     defaults: { headers: { common: {} } },
   },
+  setOnSessionExpired: jest.fn(),
 }));
 
 import { useAuthStore } from "../store/authStore";

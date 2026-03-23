@@ -107,18 +107,29 @@ export class CalculatedStateService {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+    // Batch query: get consumption for ALL containers in one DB call (fixes N+1)
+    const containerIds = containers.map((c) => c.id);
+    const consumptionMap = new Map<string, number>();
+
+    if (containerIds.length > 0) {
+      const consumptionRows = await this.saleIngredientRepo
+        .createQueryBuilder("si")
+        .select("si.container_id", "containerId")
+        .addSelect("COALESCE(SUM(si.quantity_used), 0)", "totalUsed")
+        .where("si.container_id IN (:...ids)", { ids: containerIds })
+        .andWhere("si.created_at >= :since", { since: sevenDaysAgo })
+        .groupBy("si.container_id")
+        .getRawMany<{ containerId: string; totalUsed: string }>();
+
+      for (const row of consumptionRows) {
+        consumptionMap.set(row.containerId, Number(row.totalUsed));
+      }
+    }
+
     const results: BunkerState[] = [];
 
     for (const container of containers) {
-      // Count sales from this container in last 7 days
-      const recentConsumption = await this.saleIngredientRepo
-        .createQueryBuilder("si")
-        .select("COALESCE(SUM(si.quantity_used), 0)", "totalUsed")
-        .where("si.container_id = :containerId", { containerId: container.id })
-        .andWhere("si.created_at >= :since", { since: sevenDaysAgo })
-        .getRawOne();
-
-      const totalUsed7d = Number(recentConsumption?.totalUsed || 0);
+      const totalUsed7d = consumptionMap.get(container.id) ?? 0;
       const avgDailyUsage = totalUsed7d / 7;
       const remaining = Number(container.currentQuantity);
       const capacity = Number(container.capacity);
@@ -154,9 +165,12 @@ export class CalculatedStateService {
   }
 
   private getAvgSalesPerDay(totalUsed7d: number): number {
-    // Rough estimate: if 700g used in 7 days with ~28g per cup = ~25 cups/7 = ~3.5/day
-    // This is a simplification; real implementation would query recipe amounts
-    return totalUsed7d > 0 ? 1 : 1;
+    // Estimate average cups/sales per day from total grams consumed.
+    // ~28g per cup is the standard for hot drinks (configurable per recipe in future).
+    const AVG_GRAMS_PER_CUP = 28;
+    if (totalUsed7d <= 0) return 0;
+    const cupsIn7Days = totalUsed7d / AVG_GRAMS_PER_CUP;
+    return cupsIn7Days / 7;
   }
 
   /**

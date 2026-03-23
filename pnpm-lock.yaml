@@ -256,9 +256,6 @@ importers:
       winston:
         specifier: ^3.14.0
         version: 3.19.0
-      xlsx:
-        specifier: ^0.18.5
-        version: 0.18.5
     devDependencies:
       "@nestjs/cli":
         specifier: ^11.0.0
@@ -8591,13 +8588,6 @@ packages:
     engines: { node: ">=0.4.0" }
     hasBin: true
 
-  adler-32@1.3.1:
-    resolution:
-      {
-        integrity: sha512-ynZ4w/nUUv5rrsR8UUGoe1VC9hZj6V5hU9Qw1HlMDJGEJw5S7TfTErWTjMys6M7vr0YWcPqs3qAr4ss0nDfP+A==,
-      }
-    engines: { node: ">=0.8" }
-
   adm-zip@0.5.16:
     resolution:
       {
@@ -9644,13 +9634,6 @@ packages:
         integrity: sha512-yxQbJkAVrFXWNbTUjPqjF7G+g6pDotOUHGbkZq2NELZUMDpiJ85rIEazVb8GTaAptNW2miJAXbs1BtioA251Pw==,
       }
 
-  cfb@1.2.2:
-    resolution:
-      {
-        integrity: sha512-KfdUZsSOw19/ObEWasvBP/Ac4reZvAGauZhs6S/gqNhXhI7cKwvlH7ulj+dOEYnca4bm4SGo8C1bTAQvnTjgQA==,
-      }
-    engines: { node: ">=0.8" }
-
   chai@4.5.0:
     resolution:
       {
@@ -9956,13 +9939,6 @@ packages:
         integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==,
       }
     engines: { iojs: ">= 1.0.0", node: ">= 0.12.0" }
-
-  codepage@1.15.0:
-    resolution:
-      {
-        integrity: sha512-3g6NUTPd/YtuuGrhMnOMRjFc+LJw/bnMp3+0r/Wcz3IXUuCosKRJvMphm5+Q+bvTVGcJJuRvVLuYba+WojaFaA==,
-      }
-    engines: { node: ">=0.8" }
 
   collect-v8-coverage@1.0.3:
     resolution:
@@ -12013,13 +11989,6 @@ packages:
         integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==,
       }
     engines: { node: ">= 0.6" }
-
-  frac@1.1.2:
-    resolution:
-      {
-        integrity: sha512-w/XBfkibaTl3YDqASwfDUqkna4Z2p9cFSr1aHDt0WoMTECnRfBOv2WArlZILlqgWlmdIlALXGpM2AOhEk5W3IA==,
-      }
-    engines: { node: ">=0.8" }
 
   fraction.js@5.3.4:
     resolution:
@@ -17314,13 +17283,6 @@ packages:
       }
     engines: { node: ">=14" }
 
-  ssf@0.11.2:
-    resolution:
-      {
-        integrity: sha512-+idbmIXoYET47hH+d7dfm2epdOMUDjqcB4648sTZ+t2JwoyBFL/insLfB/racrDmsKB3diwsDA696pZMieAC5g==,
-      }
-    engines: { node: ">=0.8" }
-
   ssri@10.0.6:
     resolution:
       {
@@ -19151,13 +19113,6 @@ packages:
       }
     engines: { node: ">= 12.0.0" }
 
-  wmf@1.0.2:
-    resolution:
-      {
-        integrity: sha512-/p9K7bEh0Dj6WbXg4JG0xvLQmIadrner1bi45VMJTfnbVHsc7yIajZyoSoK60/dtVBs12Fm6WkUI5/3WAVsNMw==,
-      }
-    engines: { node: ">=0.8" }
-
   wonka@6.3.5:
     resolution:
       {
@@ -19170,13 +19125,6 @@ packages:
         integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==,
       }
     engines: { node: ">=0.10.0" }
-
-  word@0.3.0:
-    resolution:
-      {
-        integrity: sha512-OELeY0Q61OXpdUfTp+oweA/vtLVg5VDOXh+3he3PNzLGG/y0oylSOC1xRVj0+l4vQ3tj/bB1HVHv1ocXkQceFA==,
-      }
-    engines: { node: ">=0.8" }
 
   wordwrap@1.0.0:
     resolution:
@@ -19364,14 +19312,6 @@ packages:
         integrity: sha512-kCz5k7J7XbJtjABOvkc5lJmkiDh8VhjVCGNiqdKCscmVpdVUpEAyXv1xmCLkQJ5dsHqx3IPO4XW+NTDhU/fatA==,
       }
     engines: { node: ">=10.0.0" }
-
-  xlsx@0.18.5:
-    resolution:
-      {
-        integrity: sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ==,
-      }
-    engines: { node: ">=0.8" }
-    hasBin: true
 
   xml-name-validator@4.0.0:
     resolution:
@@ -26091,8 +26031,6 @@ snapshots:
 
   acorn@8.16.0: {}
 
-  adler-32@1.3.1: {}
-
   adm-zip@0.5.16: {}
 
   agent-base@6.0.2:
@@ -26883,11 +26821,6 @@ snapshots:
 
   canvas-confetti@1.9.4: {}
 
-  cfb@1.2.2:
-    dependencies:
-      adler-32: 1.3.1
-      crc-32: 1.2.2
-
   chai@4.5.0:
     dependencies:
       assertion-error: 1.1.0
@@ -27074,8 +27007,6 @@ snapshots:
       - "@types/react-dom"
 
   co@4.6.0: {}
-
-  codepage@1.15.0: {}
 
   collect-v8-coverage@1.0.3: {}
 
@@ -28548,8 +28479,6 @@ snapshots:
   forwarded-parse@2.1.2: {}
 
   forwarded@0.2.0: {}
-
-  frac@1.1.2: {}
 
   fraction.js@5.3.4: {}
 
@@ -32132,10 +32061,6 @@ snapshots:
 
   sql-highlight@6.1.0: {}
 
-  ssf@0.11.2:
-    dependencies:
-      frac: 1.1.2
-
   ssri@10.0.6:
     dependencies:
       minipass: 7.1.2
@@ -33505,13 +33430,9 @@ snapshots:
       triple-beam: 1.4.1
       winston-transport: 4.9.0
 
-  wmf@1.0.2: {}
-
   wonka@6.3.5: {}
 
   word-wrap@1.2.5: {}
-
-  word@0.3.0: {}
 
   wordwrap@1.0.0: {}
 
@@ -33673,16 +33594,6 @@ snapshots:
     dependencies:
       simple-plist: 1.3.1
       uuid: 7.0.3
-
-  xlsx@0.18.5:
-    dependencies:
-      adler-32: 1.3.1
-      cfb: 1.2.2
-      codepage: 1.15.0
-      crc-32: 1.2.2
-      ssf: 0.11.2
-      wmf: 1.0.2
-      word: 0.3.0
 
   xml-name-validator@4.0.0: {}
 

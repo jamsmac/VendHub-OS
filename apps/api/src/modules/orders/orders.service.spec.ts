@@ -5,6 +5,7 @@ import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
 import { OrdersService } from "./orders.service";
+import { MetricsService } from "../metrics/metrics.service";
 import {
   Order,
   OrderItem,
@@ -219,6 +220,17 @@ describe("OrdersService", () => {
                 }),
               }),
             ),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            ordersTotal: { inc: jest.fn() },
+            ordersRevenueUzs: { inc: jest.fn() },
+            authLoginTotal: { inc: jest.fn() },
+            incrementCounter: jest.fn(),
+            recordHistogram: jest.fn(),
+            recordGauge: jest.fn(),
           },
         },
       ],

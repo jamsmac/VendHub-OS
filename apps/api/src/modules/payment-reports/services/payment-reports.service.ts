@@ -20,9 +20,11 @@ export interface UploadReportDto {
   mimeType: string;
   fileSize: number;
   uploadedBy?: string;
+  organizationId: string;
 }
 
 export interface QueryReportsDto {
+  organizationId: string;
   page?: number;
   limit?: number;
   reportType?: ReportType;
@@ -32,6 +34,7 @@ export interface QueryReportsDto {
 }
 
 export interface QueryRowsDto {
+  organizationId: string;
   uploadId: string;
   page?: number;
   limit?: number;
@@ -43,6 +46,7 @@ export interface QueryRowsDto {
 }
 
 export interface ReconcileDto {
+  organizationId: string;
   uploadIdA: string;
   uploadIdB: string;
 }
@@ -88,6 +92,7 @@ export class PaymentReportsService {
 
     // Создаём запись в статусе PENDING
     const upload = this.uploadRepo.create({
+      organizationId: dto.organizationId,
       fileName: dto.fileName,
       fileSize: dto.fileSize,
       mimeType: dto.mimeType,
@@ -106,9 +111,12 @@ export class PaymentReportsService {
         dto.mimeType,
       );
 
-      // Проверяем дубликат по хешу файла
+      // Проверяем дубликат по хешу файла (в рамках организации)
       const existing = await this.uploadRepo.findOne({
-        where: { fileHash: parsed.fileHash },
+        where: {
+          fileHash: parsed.fileHash,
+          organizationId: dto.organizationId,
+        },
       });
       if (existing) {
         upload.status = UploadStatus.DUPLICATE;
@@ -155,6 +163,7 @@ export class PaymentReportsService {
           if (isDup) dupCount++;
           else newCount++;
           return this.rowRepo.create({
+            organizationId: dto.organizationId,
             uploadId: upload.id,
             reportType: parsed.detection.type,
             rowIndex: r.rowIndex,
@@ -199,9 +208,18 @@ export class PaymentReportsService {
   // ─────────────────────────────────────────────
 
   async findUploads(dto: QueryReportsDto) {
-    const { page = 1, limit = 20, reportType, status, dateFrom, dateTo } = dto;
+    const {
+      organizationId,
+      page = 1,
+      limit = 20,
+      reportType,
+      status,
+      dateFrom,
+      dateTo,
+    } = dto;
     const qb = this.uploadRepo.createQueryBuilder("u");
 
+    qb.where("u.organizationId = :organizationId", { organizationId });
     if (reportType) qb.andWhere("u.reportType = :reportType", { reportType });
     if (status) qb.andWhere("u.status = :status", { status });
     if (dateFrom) qb.andWhere("u.createdAt >= :dateFrom", { dateFrom });
@@ -215,14 +233,21 @@ export class PaymentReportsService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findUploadById(id: string): Promise<PaymentReportUpload> {
-    const upload = await this.uploadRepo.findOne({ where: { id } });
+  async findUploadById(
+    id: string,
+    organizationId: string,
+  ): Promise<PaymentReportUpload> {
+    const upload = await this.uploadRepo.findOne({
+      where: { id, organizationId },
+    });
     if (!upload) throw new BadRequestException(`Upload ${id} not found`);
     return upload;
   }
 
-  async deleteUpload(id: string): Promise<void> {
-    await this.uploadRepo.delete(id);
+  async deleteUpload(id: string, organizationId: string): Promise<void> {
+    const upload = await this.findUploadById(id, organizationId);
+    await this.rowRepo.softDelete({ uploadId: upload.id });
+    await this.uploadRepo.softDelete(upload.id);
   }
 
   // ─────────────────────────────────────────────
@@ -254,7 +279,10 @@ export class PaymentReportsService {
 
     const qb = this.rowRepo
       .createQueryBuilder("r")
-      .where("r.upload_id = :uploadId", { uploadId });
+      .where("r.organization_id = :organizationId", {
+        organizationId: dto.organizationId,
+      })
+      .andWhere("r.upload_id = :uploadId", { uploadId });
 
     if (search) {
       qb.andWhere(
@@ -277,21 +305,23 @@ export class PaymentReportsService {
   }
 
   /** Доступные фильтры для конкретной загрузки */
-  async getRowFilters(uploadId: string) {
+  async getRowFilters(uploadId: string, organizationId: string) {
     const methods = await this.rowRepo
       .createQueryBuilder("r")
       .select("DISTINCT r.paymentMethod", "value")
-      .where("r.upload_id = :uploadId AND r.paymentMethod IS NOT NULL", {
-        uploadId,
-      })
+      .where(
+        "r.upload_id = :uploadId AND r.organization_id = :organizationId AND r.paymentMethod IS NOT NULL",
+        { uploadId, organizationId },
+      )
       .getRawMany<{ value: string }>();
 
     const statuses = await this.rowRepo
       .createQueryBuilder("r")
       .select("DISTINCT r.paymentStatus", "value")
-      .where("r.upload_id = :uploadId AND r.paymentStatus IS NOT NULL", {
-        uploadId,
-      })
+      .where(
+        "r.upload_id = :uploadId AND r.organization_id = :organizationId AND r.paymentStatus IS NOT NULL",
+        { uploadId, organizationId },
+      )
       .getRawMany<{ value: string }>();
 
     return {
@@ -306,14 +336,18 @@ export class PaymentReportsService {
 
   async reconcile(dto: ReconcileDto) {
     const [uploadA, uploadB] = await Promise.all([
-      this.findUploadById(dto.uploadIdA),
-      this.findUploadById(dto.uploadIdB),
+      this.findUploadById(dto.uploadIdA, dto.organizationId),
+      this.findUploadById(dto.uploadIdB, dto.organizationId),
     ]);
 
-    // Загружаем строки обоих отчётов
+    // Загружаем строки обоих отчётов (отфильтрованные по организации)
     const [rowsA, rowsB] = await Promise.all([
-      this.rowRepo.find({ where: { uploadId: dto.uploadIdA } }),
-      this.rowRepo.find({ where: { uploadId: dto.uploadIdB } }),
+      this.rowRepo.find({
+        where: { uploadId: dto.uploadIdA, organizationId: dto.organizationId },
+      }),
+      this.rowRepo.find({
+        where: { uploadId: dto.uploadIdB, organizationId: dto.organizationId },
+      }),
     ]);
 
     // Строим индексы по orderNumber
@@ -394,14 +428,15 @@ export class PaymentReportsService {
   // СТАТИСТИКА
   // ─────────────────────────────────────────────
 
-  async getStats() {
+  async getStats(organizationId: string) {
     const byType = await this.uploadRepo
       .createQueryBuilder("u")
       .select("u.reportType", "type")
       .addSelect("COUNT(*)", "count")
       .addSelect("SUM(u.totalRows)", "totalRows")
       .addSelect("SUM(u.totalAmount)", "totalAmount")
-      .where("u.status = :s", { s: UploadStatus.COMPLETED })
+      .where("u.organizationId = :organizationId", { organizationId })
+      .andWhere("u.status = :s", { s: UploadStatus.COMPLETED })
       .groupBy("u.reportType")
       .getRawMany<{
         type: string;

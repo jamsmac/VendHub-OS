@@ -31,10 +31,13 @@ describe("CalculatedStateService", () => {
 
   const mockSaleIngredientQB = {
     select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
     innerJoin: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
     getRawOne: jest.fn().mockResolvedValue({ totalUsed: "0" }),
+    getRawMany: jest.fn().mockResolvedValue([]),
   };
 
   const mockTransactionQB = {
