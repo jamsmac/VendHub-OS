@@ -1,10 +1,12 @@
 # Railway configuration for VendHub API service
-# Place this file at: apps/api/railway.toml
-# In Railway Dashboard → API service → Settings → Root Directory: apps/api
+#
+# IMPORTANT: In Railway Dashboard → API service → Settings:
+#   Root Directory: /  (repo root, NOT apps/api)
+#   The Dockerfile needs monorepo context (pnpm-workspace.yaml, packages/, etc.)
 
 [build]
-# Railway auto-detects the Dockerfile in apps/api/
-dockerfilePath = "Dockerfile"
+dockerfilePath = "apps/api/Dockerfile"
+watchPatterns = ["apps/api/**", "packages/shared/**", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"]
 
 [deploy]
 # Release command runs AFTER build, BEFORE start — perfect for migrations
