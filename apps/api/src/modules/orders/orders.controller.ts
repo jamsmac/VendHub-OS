@@ -13,6 +13,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -31,7 +32,7 @@ import {
   OrderListDto,
   OrderStatsDto,
 } from "./dto/order.dto";
-import { CurrentUser, Roles } from "../../common/decorators";
+import { CurrentUser, Roles, Public } from "../../common/decorators";
 import { OrderStatus } from "./entities/order.entity";
 import { CancelOrderDto } from "./dto/order-operations.dto";
 
@@ -265,5 +266,35 @@ export class OrdersController {
       status: OrderStatus.CANCELLED,
       reason: dto.reason,
     });
+  }
+
+  // ============================================================================
+  // PUBLIC ENDPOINTS (QR payment flow — no auth required)
+  // ============================================================================
+
+  @Get(":id/payment-info")
+  @Public()
+  @ApiOperation({
+    summary: "Get order payment info (public, for QR payment page)",
+  })
+  @ApiParam({ name: "id", description: "Order ID from QR code" })
+  @ApiResponse({ status: 200, description: "Order payment info" })
+  async getPaymentInfo(@Param("id", ParseUUIDPipe) id: string) {
+    const order = await this.service.findByIdPublic(id);
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    // Return minimal info needed for payment page — no sensitive data
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      productName: order.items?.[0]?.productName || "Товар",
+      amount: order.totalAmount,
+      currency: "сум",
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      machineCode: null,
+    };
   }
 }

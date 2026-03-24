@@ -112,17 +112,21 @@ export class CalculatedStateService {
     const consumptionMap = new Map<string, number>();
 
     if (containerIds.length > 0) {
-      const consumptionRows = await this.saleIngredientRepo
-        .createQueryBuilder("si")
-        .select("si.container_id", "containerId")
-        .addSelect("COALESCE(SUM(si.quantity_used), 0)", "totalUsed")
-        .where("si.container_id IN (:...ids)", { ids: containerIds })
-        .andWhere("si.created_at >= :since", { since: sevenDaysAgo })
-        .groupBy("si.container_id")
-        .getRawMany<{ containerId: string; totalUsed: string }>();
+      try {
+        const consumptionRows = await this.saleIngredientRepo
+          .createQueryBuilder("si")
+          .select("si.container_id", "containerId")
+          .addSelect("COALESCE(SUM(si.quantity_used), 0)", "totalUsed")
+          .where("si.container_id IN (:...ids)", { ids: containerIds })
+          .andWhere("si.created_at >= :since", { since: sevenDaysAgo })
+          .groupBy("si.container_id")
+          .getRawMany<{ containerId: string; totalUsed: string }>();
 
-      for (const row of consumptionRows) {
-        consumptionMap.set(row.containerId, Number(row.totalUsed));
+        for (const row of consumptionRows) {
+          consumptionMap.set(row.containerId, Number(row.totalUsed));
+        }
+      } catch {
+        // sale_ingredients table may not exist yet — gracefully degrade
       }
     }
 

@@ -540,6 +540,25 @@ export class OrdersService {
     return order;
   }
 
+  /**
+   * Public order lookup for QR payment page — no org filter.
+   * Returns order with items only (no user/machine relations for privacy).
+   */
+  async findByIdPublic(orderId: string) {
+    return this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ["items"],
+      select: {
+        id: true,
+        orderNumber: true,
+        totalAmount: true,
+        status: true,
+        paymentStatus: true,
+        items: { id: true, productName: true, quantity: true, unitPrice: true },
+      },
+    });
+  }
+
   private generateOrderNumber(_organizationId: string): string {
     const now = new Date();
     const year = now.getFullYear();

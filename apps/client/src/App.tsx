@@ -67,6 +67,7 @@ const AchievementsPage = lazy(() =>
 const PromoCodePage = lazy(() =>
   import("./pages/PromoCodePage").then((m) => ({ default: m.PromoCodePage })),
 );
+const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const OrderSuccessPage = lazy(() =>
   import("./pages/OrderSuccessPage").then((m) => ({
     default: m.OrderSuccessPage,
@@ -133,6 +134,7 @@ function App() {
             <Route path="menu/:machineId" element={<MenuPage />} />
             <Route path="complaint/:machineId" element={<ComplaintPage />} />
             <Route path="complaint/code/:code" element={<ComplaintPage />} />
+            <Route path="payment/:orderId" element={<PaymentPage />} />
 
             {/* Protected routes */}
             <Route
