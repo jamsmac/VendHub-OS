@@ -148,7 +148,9 @@
     "openMenu": "Open navigation menu",
     "navigation": "Navigation menu",
     "skipToContent": "Skip to content",
-    "paymentReports": "Payment Reports"
+    "paymentReports": "Payment Reports",
+    "new": "New",
+    "counterparty": "Counterparties"
   },
   "dashboard": {
     "title": "Dashboard",

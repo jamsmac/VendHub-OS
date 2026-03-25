@@ -148,7 +148,9 @@
     "openMenu": "Открыть меню навигации",
     "navigation": "Меню навигации",
     "skipToContent": "Перейти к содержимому",
-    "paymentReports": "Отчёты платёжных систем"
+    "paymentReports": "Отчёты платёжных систем",
+    "new": "Новое",
+    "counterparty": "Контрагенты"
   },
   "dashboard": {
     "title": "Обзор",

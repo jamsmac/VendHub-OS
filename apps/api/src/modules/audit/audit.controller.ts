@@ -170,11 +170,18 @@ export class AuditController {
   @ApiOperation({ summary: "Get audit statistics for dashboard" })
   @ApiResponse({ status: 200, description: "Audit statistics" })
   @Roles("owner", "admin", "manager")
-  async getStatistics(@Query() query: QueryStatisticsDto) {
+  async getStatistics(
+    @Query() query: QueryStatisticsDto,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const dateFrom = query.dateFrom
+      ? new Date(query.dateFrom)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const dateTo = query.dateTo ? new Date(query.dateTo) : new Date();
     return this.auditService.getStatistics(
-      query.organization_id,
-      new Date(query.date_from),
-      new Date(query.date_to),
+      user.organizationId,
+      dateFrom,
+      dateTo,
     );
   }
 

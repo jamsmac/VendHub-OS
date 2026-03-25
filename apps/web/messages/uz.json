@@ -148,7 +148,9 @@
     "openMenu": "Navigatsiya menyusini ochish",
     "navigation": "Navigatsiya menyusi",
     "skipToContent": "Kontentga o'tish",
-    "paymentReports": "To'lov tizimlari hisobotlari"
+    "paymentReports": "To'lov tizimlari hisobotlari",
+    "new": "Yangi",
+    "counterparty": "Kontragentlar"
   },
   "dashboard": {
     "title": "Umumiy ko'rinish",

@@ -387,7 +387,7 @@ export default function OrdersPage() {
                           {order.machine?.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {order.machine.serialNumber}
+                          {order.machine?.serialNumber ?? "—"}
                         </p>
                       </div>
                     </div>

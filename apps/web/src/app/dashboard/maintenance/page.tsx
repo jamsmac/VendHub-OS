@@ -436,7 +436,7 @@ export default function MaintenancePage() {
                       <div>
                         <p className="font-medium">{request.machine?.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {request.machine.serialNumber}
+                          {request.machine?.serialNumber ?? "—"}
                         </p>
                       </div>
                     </div>
