@@ -102,7 +102,10 @@ export function useDailyRevenue(days = 30) {
       const response = await api.get("/analytics/daily", {
         params: { from, to },
       });
-      return response.data;
+      const raw = response.data?.data ?? response.data ?? [];
+      return Array.isArray(raw)
+        ? raw.filter((item: Record<string, unknown>) => item?.date != null)
+        : [];
     },
   });
 }

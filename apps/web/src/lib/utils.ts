@@ -131,7 +131,9 @@ const TIME_AGO_LABELS: Record<
  * Format time difference from now (locale-aware)
  */
 export function timeAgo(date: Date | string): string {
+  if (!date) return "—";
   const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "—";
   const now = new Date();
   const seconds = Math.floor((now.getTime() - d.getTime()) / 1000);
 

@@ -73,7 +73,11 @@ export function useSalesChart(days = 7) {
       const response = await api.get("/analytics/daily", {
         params: { from, to },
       });
-      return response.data;
+      const raw = response.data?.data ?? response.data ?? [];
+      // Filter out entries with invalid/missing dates to prevent chart crashes
+      return Array.isArray(raw)
+        ? raw.filter((item: Record<string, unknown>) => item?.date != null)
+        : [];
     },
   });
 }
