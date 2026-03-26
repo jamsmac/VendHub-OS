@@ -90,7 +90,8 @@ export function useDashboardAlerts() {
     queryKey: ["dashboard-alerts"],
     queryFn: async () => {
       const response = await api.get("/alerts");
-      return response.data;
+      const raw = response.data?.data ?? response.data ?? [];
+      return Array.isArray(raw) ? raw : [];
     },
     refetchInterval: 2 * 60_000,
   });
@@ -142,7 +143,8 @@ export function useTopProducts(days = 30) {
       const response = await api.get("/analytics/top-products", {
         params: { from, to },
       });
-      return response.data as Array<{
+      const raw = response.data?.data ?? response.data ?? [];
+      return (Array.isArray(raw) ? raw : []) as Array<{
         nomenclatureId: string;
         name: string;
         quantity: number;

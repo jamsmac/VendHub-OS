@@ -209,7 +209,7 @@ export const notificationsApi = {
 };
 
 export const reportsApi = {
-  getDashboard: () => api.get("/reports/dashboard"),
+  getDashboard: () => api.get("/analytics/dashboard"),
   getMyStats: () => api.get("/reports/my-stats"),
 };
 
