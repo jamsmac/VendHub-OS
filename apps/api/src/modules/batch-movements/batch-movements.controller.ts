@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -13,6 +12,10 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { BatchMovementsService } from "./batch-movements.service";
 import { CreateBatchMovementDto } from "./dto/create-batch-movement.dto";
 
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string; role: string };
+}
+
 @ApiTags("Batch Movements")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -22,7 +25,10 @@ export class BatchMovementsController {
 
   @Post()
   @ApiOperation({ summary: "Record a batch movement" })
-  async create(@Body() dto: CreateBatchMovementDto, @Request() req: any) {
+  async create(
+    @Body() dto: CreateBatchMovementDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.batchMovementsService.createMovement(
       dto,
       req.user.id,
@@ -34,7 +40,7 @@ export class BatchMovementsController {
   @ApiOperation({ summary: "Get movement history for a batch" })
   async getBatchHistory(
     @Param("batchId") batchId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.batchMovementsService.getBatchHistory(
       batchId,
@@ -46,7 +52,7 @@ export class BatchMovementsController {
   @ApiOperation({ summary: "Get movements for a container/bunker" })
   async getContainerMovements(
     @Param("containerId") containerId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.batchMovementsService.getContainerMovements(
       containerId,

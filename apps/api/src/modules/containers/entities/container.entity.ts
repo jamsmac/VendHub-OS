@@ -6,6 +6,9 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import type { Machine } from "../../machines/entities/machine.entity";
+import type { Product } from "../../products/entities/product.entity";
+import type { IngredientBatch } from "../../products/entities/product.entity";
 
 // ============================================================================
 // ENUMS
@@ -124,18 +127,15 @@ export class Container extends BaseEntity {
 
   @ManyToOne("Machine", { onDelete: "CASCADE" })
   @JoinColumn({ name: "machine_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine: any;
+  machine: Machine;
 
   @ManyToOne("Product", { onDelete: "SET NULL" })
   @JoinColumn({ name: "nomenclature_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nomenclature: any;
+  nomenclature: Product;
 
   @ManyToOne("IngredientBatch", { onDelete: "SET NULL" })
   @JoinColumn({ name: "current_batch_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  currentBatch: any;
+  currentBatch: IngredientBatch;
 
   // ============================================================================
   // COMPUTED PROPERTIES

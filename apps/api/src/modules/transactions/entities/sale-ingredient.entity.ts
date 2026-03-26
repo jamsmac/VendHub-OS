@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import type { Transaction } from "./transaction.entity";
+import type { Product } from "../../products/entities/product.entity";
+import type { IngredientBatch } from "../../products/entities/product.entity";
+import type { Container } from "../../containers/entities/container.entity";
 
 /**
  * SaleIngredient — links each sale to the specific batches consumed.
@@ -46,17 +49,17 @@ export class SaleIngredient extends BaseEntity {
   // Relations
   @ManyToOne("Transaction", { onDelete: "CASCADE" })
   @JoinColumn({ name: "transaction_id" })
-  transaction: any;
+  transaction: Transaction;
 
   @ManyToOne("Product", { onDelete: "RESTRICT" })
   @JoinColumn({ name: "ingredient_id" })
-  ingredient: any;
+  ingredient: Product;
 
   @ManyToOne("IngredientBatch", { onDelete: "RESTRICT" })
   @JoinColumn({ name: "batch_id" })
-  batch: any;
+  batch: IngredientBatch;
 
   @ManyToOne("Container", { onDelete: "SET NULL" })
   @JoinColumn({ name: "container_id" })
-  container: any;
+  container: Container;
 }

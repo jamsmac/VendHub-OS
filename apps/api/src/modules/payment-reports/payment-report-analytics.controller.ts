@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -11,7 +10,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Response } from "express";
+import { Request as ExpressRequest, Response } from "express";
 import * as ExcelJS from "exceljs";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -20,6 +19,20 @@ import { PaymentReportAnalyticsService } from "./services/payment-report-analyti
 import { PaymentReportsService } from "./services/payment-reports.service";
 import { PaymentReportFolderWatcherService } from "./services/payment-report-folder-watcher.service";
 import { ReportType } from "./entities/payment-report-upload.entity";
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    organizationId: string;
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+    sessionId?: string;
+    jti?: string;
+  };
+}
 
 @ApiTags("payment-reports-analytics")
 @ApiBearerAuth()
@@ -32,7 +45,7 @@ export class PaymentReportAnalyticsController {
     private readonly folderWatcher: PaymentReportFolderWatcherService,
   ) {}
 
-  private getOrgId(req: any): string {
+  private getOrgId(req: AuthenticatedRequest): string {
     return req.user.organizationId;
   }
 
@@ -42,7 +55,7 @@ export class PaymentReportAnalyticsController {
     summary: "Динамика оборота по типам отчётов (для линейного графика)",
   })
   async revenueDynamics(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("dateFrom") dateFrom?: string,
     @Query("dateTo") dateTo?: string,
     @Query("groupBy") groupBy?: "day" | "week" | "month",
@@ -61,7 +74,7 @@ export class PaymentReportAnalyticsController {
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "ТОП машин по обороту (для барного графика)" })
   async topMachines(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("dateFrom") dateFrom?: string,
     @Query("dateTo") dateTo?: string,
     @Query("limit") limit?: string,
@@ -80,7 +93,7 @@ export class PaymentReportAnalyticsController {
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "Разбивка по методам оплаты (для pie chart)" })
   async paymentMethods(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("dateFrom") dateFrom?: string,
     @Query("dateTo") dateTo?: string,
     @Query("types") types?: string,
@@ -99,7 +112,7 @@ export class PaymentReportAnalyticsController {
     summary: "Сравнение провайдеров (Payme / Click / VendHub / Касса)",
   })
   async providerComparison(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("dateFrom") dateFrom?: string,
     @Query("dateTo") dateTo?: string,
   ) {
@@ -114,7 +127,7 @@ export class PaymentReportAnalyticsController {
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "Тепловая карта активности: день × час" })
   async heatmap(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("dateFrom") dateFrom?: string,
     @Query("dateTo") dateTo?: string,
     @Query("types") types?: string,
@@ -147,7 +160,7 @@ export class PaymentReportAnalyticsController {
   @ApiOperation({ summary: "Сверка двух отчётов — экспорт в Excel" })
   async exportReconcile(
     @Body() dto: { uploadIdA: string; uploadIdB: string },
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
     const organizationId = this.getOrgId(req);
@@ -257,7 +270,7 @@ export class PaymentReportAnalyticsController {
   @ApiOperation({ summary: "Экспорт строк отчёта в Excel" })
   async exportRows(
     @Query("uploadId") uploadId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
     const organizationId = this.getOrgId(req);

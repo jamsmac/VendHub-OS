@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -21,6 +20,10 @@ import {
   UpdateCustomFieldDto,
 } from "./dto/custom-field.dto";
 
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string; role: string };
+}
+
 @ApiTags("Custom Fields")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -36,13 +39,19 @@ export class CustomFieldsController {
   @ApiOperation({
     summary: "Get custom tabs (optionally filtered by entityType)",
   })
-  async getTabs(@Query("entityType") entityType: string, @Request() req: any) {
+  async getTabs(
+    @Query("entityType") entityType: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.getTabs(req.user.organizationId, entityType);
   }
 
   @Post("tabs")
   @ApiOperation({ summary: "Create a custom tab" })
-  async createTab(@Body() dto: CreateCustomTabDto, @Request() req: any) {
+  async createTab(
+    @Body() dto: CreateCustomTabDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.createTab(req.user.organizationId, dto);
   }
 
@@ -51,14 +60,17 @@ export class CustomFieldsController {
   async updateTab(
     @Param("id") id: string,
     @Body() dto: UpdateCustomTabDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.service.updateTab(id, req.user.organizationId, dto);
   }
 
   @Delete("tabs/:id")
   @ApiOperation({ summary: "Delete a custom tab (soft)" })
-  async deleteTab(@Param("id") id: string, @Request() req: any) {
+  async deleteTab(
+    @Param("id") id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.deleteTab(id, req.user.organizationId);
   }
 
@@ -71,14 +83,17 @@ export class CustomFieldsController {
   async getFields(
     @Query("entityType") entityType: string,
     @Query("tabName") tabName: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.service.getFields(req.user.organizationId, entityType, tabName);
   }
 
   @Post("fields")
   @ApiOperation({ summary: "Create a custom field" })
-  async createField(@Body() dto: CreateCustomFieldDto, @Request() req: any) {
+  async createField(
+    @Body() dto: CreateCustomFieldDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.createField(req.user.organizationId, dto);
   }
 
@@ -87,14 +102,17 @@ export class CustomFieldsController {
   async updateField(
     @Param("id") id: string,
     @Body() dto: UpdateCustomFieldDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.service.updateField(id, req.user.organizationId, dto);
   }
 
   @Delete("fields/:id")
   @ApiOperation({ summary: "Delete a custom field (soft)" })
-  async deleteField(@Param("id") id: string, @Request() req: any) {
+  async deleteField(
+    @Param("id") id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.deleteField(id, req.user.organizationId);
   }
 }
