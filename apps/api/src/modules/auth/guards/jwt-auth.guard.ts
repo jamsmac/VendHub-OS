@@ -50,7 +50,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     return super.canActivate(context);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- NestJS framework override signature
   handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
       const authMessage =

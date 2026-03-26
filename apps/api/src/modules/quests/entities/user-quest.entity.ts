@@ -87,8 +87,7 @@ export class UserQuest extends BaseEntity {
       value: number;
       source: string;
     }>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   // ===== Period =====
@@ -128,8 +127,7 @@ export class UserQuest extends BaseEntity {
     nullable: true,
   })
   @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rewardsClaimed: any[];
+  rewardsClaimed: unknown[];
 
   // ===== Timestamps =====
 

@@ -366,8 +366,7 @@ export class QuestProgressEventDto {
     amount?: number;
     hour?: number;
     referredUserId?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

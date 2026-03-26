@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Request as ExpressRequest, Response } from "express";
+import { Response } from "express";
 import * as ExcelJS from "exceljs";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -20,18 +20,8 @@ import { PaymentReportsService } from "./services/payment-reports.service";
 import { PaymentReportFolderWatcherService } from "./services/payment-report-folder-watcher.service";
 import { ReportType } from "./entities/payment-report-upload.entity";
 
-interface AuthenticatedRequest extends ExpressRequest {
-  user: {
-    id: string;
-    email: string;
-    role: string;
-    organizationId: string;
-    firstName?: string;
-    lastName?: string;
-    name?: string;
-    sessionId?: string;
-    jti?: string;
-  };
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string };
 }
 
 @ApiTags("payment-reports-analytics")

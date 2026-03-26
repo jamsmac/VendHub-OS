@@ -833,7 +833,7 @@ export class ComplaintAutomationRule extends BaseEntity {
   conditions: {
     field: string; // "category", "priority", "status", "source"
     operator: "equals" | "not_equals" | "contains" | "in" | "not_in";
-    value: string | number | boolean | string[];
+    value: unknown;
   }[];
 
   // Действия

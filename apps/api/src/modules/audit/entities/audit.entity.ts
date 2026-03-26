@@ -111,10 +111,8 @@ export enum AuditCategory {
 
 export interface AuditChanges {
   field: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  oldValue: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  newValue: any;
+  oldValue: Record<string, unknown> | null;
+  newValue: Record<string, unknown> | null;
   fieldType?: string;
 }
 

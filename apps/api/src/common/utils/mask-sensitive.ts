@@ -35,8 +35,7 @@ const MAX_DEPTH = 5;
  * @returns A new object with sensitive fields replaced by '***MASKED***'
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function maskSensitiveData(data: any, depth = 0): any {
+export function maskSensitiveData(data: unknown, depth = 0): unknown {
   if (depth > MAX_DEPTH || data === null || data === undefined) {
     return data;
   }
@@ -51,7 +50,7 @@ export function maskSensitiveData(data: any, depth = 0): any {
 
   if (typeof data === "object") {
     const masked: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       const keyLower = key.toLowerCase();
       if (SENSITIVE_KEYS.some((sk) => keyLower.includes(sk))) {
         masked[key] = "***MASKED***";

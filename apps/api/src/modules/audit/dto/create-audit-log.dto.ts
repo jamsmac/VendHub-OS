@@ -158,8 +158,7 @@ export class CreateAuditLogDto {
   })
   @IsOptional()
   @IsArray()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  changes?: any[];
+  changes?: Record<string, unknown>[];
 
   @ApiPropertyOptional({
     description: "List of field names that were affected",

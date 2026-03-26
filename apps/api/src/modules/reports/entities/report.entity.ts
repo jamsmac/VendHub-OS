@@ -252,8 +252,7 @@ interface ReportSchedule {
  */
 interface ReportResult {
   // Данные
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any[];
+  data: unknown[];
 
   summary?: Record<string, unknown>;
 
@@ -359,8 +358,7 @@ export class ReportDefinition extends BaseEntity {
     name: string;
     type: "string" | "number" | "date" | "array";
     required: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    defaultValue?: any;
+    defaultValue?: unknown;
   }[];
 
   // ===== Права доступа =====
