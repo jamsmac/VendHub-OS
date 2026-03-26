@@ -101,4 +101,4 @@ EXPOSE 4000
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main.js"]
+CMD ["node", "--max-old-space-size=384", "dist/main.js"]

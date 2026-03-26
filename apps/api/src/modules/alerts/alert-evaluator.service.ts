@@ -36,7 +36,7 @@ export class AlertEvaluatorService {
    * Run every 15 minutes. Evaluate all active alert rules
    * against calculated machine state.
    */
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async evaluateAllRules(): Promise<void> {
     this.logger.log("Starting alert rule evaluation...");
 
