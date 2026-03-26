@@ -112,20 +112,34 @@ export class OperatorRatingsController {
 
   @Get("leaderboard")
   @ApiOperation({ summary: "Get top-N operators leaderboard for a period" })
-  @ApiQuery({ name: "periodStart", required: true, type: String })
-  @ApiQuery({ name: "periodEnd", required: true, type: String })
+  @ApiQuery({
+    name: "periodStart",
+    required: false,
+    type: String,
+    description: "ISO date, defaults to 30 days ago",
+  })
+  @ApiQuery({
+    name: "periodEnd",
+    required: false,
+    type: String,
+    description: "ISO date, defaults to now",
+  })
   @ApiQuery({ name: "top", required: false, type: Number })
   @Roles("owner", "admin", "manager")
   async getLeaderboard(
     @CurrentOrganizationId() orgId: string,
-    @Query("periodStart") periodStart: string,
-    @Query("periodEnd") periodEnd: string,
+    @Query("periodStart") periodStart?: string,
+    @Query("periodEnd") periodEnd?: string,
     @Query("top") top?: number,
   ) {
+    const end = periodEnd || new Date().toISOString();
+    const start =
+      periodStart ||
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     return this.operatorRatingsService.getLeaderboard(
       orgId,
-      periodStart,
-      periodEnd,
+      start,
+      end,
       top || 10,
     );
   }
@@ -134,18 +148,32 @@ export class OperatorRatingsController {
   @ApiOperation({
     summary: "Get organization-wide rating summary for a period",
   })
-  @ApiQuery({ name: "periodStart", required: true, type: String })
-  @ApiQuery({ name: "periodEnd", required: true, type: String })
+  @ApiQuery({
+    name: "periodStart",
+    required: false,
+    type: String,
+    description: "ISO date, defaults to 30 days ago",
+  })
+  @ApiQuery({
+    name: "periodEnd",
+    required: false,
+    type: String,
+    description: "ISO date, defaults to now",
+  })
   @Roles("owner", "admin", "manager")
   async getOrganizationSummary(
     @CurrentOrganizationId() orgId: string,
-    @Query("periodStart") periodStart: string,
-    @Query("periodEnd") periodEnd: string,
+    @Query("periodStart") periodStart?: string,
+    @Query("periodEnd") periodEnd?: string,
   ) {
+    const end = periodEnd || new Date().toISOString();
+    const start =
+      periodStart ||
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     return this.operatorRatingsService.getOrganizationSummary(
       orgId,
-      periodStart,
-      periodEnd,
+      start,
+      end,
     );
   }
 
