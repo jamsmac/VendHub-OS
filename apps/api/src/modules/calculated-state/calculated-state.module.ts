@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Container } from "../containers/entities/container.entity";
 import { EquipmentComponent } from "../equipment/entities/equipment-component.entity";
@@ -11,6 +12,7 @@ import { CalculatedStateController } from "./calculated-state.controller";
 
 @Module({
   imports: [
+    CacheModule.register({ ttl: 300 }),
     TypeOrmModule.forFeature([
       Container,
       EquipmentComponent,
