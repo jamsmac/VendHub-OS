@@ -714,14 +714,15 @@ export const containersApi = {
 
 export const analyticsApi = {
   getSnapshots: (params?: QueryParams) =>
-    api.get("/analytics/snapshots", { params }),
-  getSnapshotById: (id: string) => api.get(`/analytics/snapshots/${id}`),
+    api.get("/reports/analytics/snapshots", { params }),
+  getSnapshotById: (id: string) =>
+    api.get(`/reports/analytics/snapshots/${id}`),
   rebuildSnapshot: (data: RequestBody) =>
-    api.post("/analytics/snapshots/rebuild", data),
+    api.post("/reports/analytics/snapshots/rebuild", data),
   getDailyStats: (params?: QueryParams) =>
-    api.get("/analytics/daily-stats", { params }),
+    api.get("/reports/analytics/daily-stats", { params }),
   rebuildDailyStats: (data: RequestBody) =>
-    api.post("/analytics/daily-stats/rebuild", data),
+    api.post("/reports/analytics/daily-stats/rebuild", data),
   getDashboard: () => api.get("/analytics/dashboard"),
 };
 

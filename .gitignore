@@ -1,3 +1,10 @@
+# iCloud sync duplicates (macOS creates "file 2.ext" on conflicts)
+*\ 2.ts
+*\ 2.tsx
+*\ 2.json
+*\ 2.js
+*\ 2.mjs
+
 # Dependencies
 node_modules/
 .pnpm-store/
