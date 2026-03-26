@@ -161,7 +161,7 @@ export class AlertEngineService {
    * Cron job: collect machine metrics and evaluate against alert rules.
    * Runs every 5 minutes, collecting stock levels, cash levels, and online status.
    */
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron("0 */15 * * * *") // Every 15 minutes (was 5 — reduced for memory)
   async scheduledCheck(): Promise<void> {
     this.logger.debug("Scheduled alert check running...");
 
