@@ -649,12 +649,13 @@ export class ComplaintsCoreService {
             break;
           case "in":
             matches =
-              Array.isArray(condition.value) && condition.value.includes(value);
+              Array.isArray(condition.value) &&
+              condition.value.includes(String(value));
             break;
           case "not_in":
             matches =
               Array.isArray(condition.value) &&
-              !condition.value.includes(value);
+              !condition.value.includes(String(value));
             break;
           default:
             matches = true;
