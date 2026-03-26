@@ -124,18 +124,15 @@ export class Container extends BaseEntity {
 
   @ManyToOne("Machine", { onDelete: "CASCADE" })
   @JoinColumn({ name: "machine_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  machine: any;
+  machine: unknown;
 
   @ManyToOne("Product", { onDelete: "SET NULL" })
   @JoinColumn({ name: "nomenclature_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nomenclature: any;
+  nomenclature: unknown;
 
   @ManyToOne("IngredientBatch", { onDelete: "SET NULL" })
   @JoinColumn({ name: "current_batch_id" })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  currentBatch: any;
+  currentBatch: unknown;
 
   // ============================================================================
   // COMPUTED PROPERTIES

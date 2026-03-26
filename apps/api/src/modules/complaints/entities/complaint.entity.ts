@@ -559,10 +559,8 @@ export class ComplaintAction extends BaseEntity {
   @Column({ type: "jsonb", nullable: true })
   changes: {
     field: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    oldValue: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
   }[];
 
   // Метаданные
@@ -835,8 +833,7 @@ export class ComplaintAutomationRule extends BaseEntity {
   conditions: {
     field: string; // "category", "priority", "status", "source"
     operator: "equals" | "not_equals" | "contains" | "in" | "not_in";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: any;
+    value: unknown;
   }[];
 
   // Действия

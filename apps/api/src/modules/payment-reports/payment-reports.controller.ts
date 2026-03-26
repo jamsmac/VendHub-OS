@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Post,
@@ -36,6 +35,10 @@ import {
   UploadStatus,
 } from "./entities/payment-report-upload.entity";
 
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string; name?: string };
+}
+
 @ApiTags("payment-reports")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,7 +70,7 @@ export class PaymentReportsController {
       limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
     }),
   )
-  async upload(@UploadedFile() file: Express.Multer.File, @Request() req: any) {
+  async upload(@UploadedFile() file: Express.Multer.File, @Request() req: AuthenticatedRequest) {
     if (!file) {
       return { error: "Файл не передан" };
     }
@@ -90,7 +93,7 @@ export class PaymentReportsController {
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "Список загруженных отчётов с пагинацией" })
   async findAll(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
     @Query("reportType") reportType?: ReportType,
@@ -112,14 +115,14 @@ export class PaymentReportsController {
   @Get("stats")
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "Статистика по загруженным отчётам" })
-  async getStats(@Request() req: any) {
+  async getStats(@Request() req: AuthenticatedRequest) {
     return this.service.getStats(req.user.organizationId);
   }
 
   @Get(":id")
   @Roles("owner", "admin", "accountant", "manager")
   @ApiOperation({ summary: "Получить метаданные конкретной загрузки" })
-  async findOne(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+  async findOne(@Param("id", ParseUUIDPipe) id: string, @Request() req: AuthenticatedRequest) {
     return this.service.findUploadById(id, req.user.organizationId);
   }
 
@@ -127,14 +130,14 @@ export class PaymentReportsController {
   @Roles("owner", "admin", "accountant")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Мягкое удаление загрузки и всех её строк" })
-  async remove(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+  async remove(@Param("id", ParseUUIDPipe) id: string, @Request() req: AuthenticatedRequest) {
     await this.service.deleteUpload(id, req.user.organizationId);
   }
 
   @Patch(":id/restore")
   @Roles("owner", "admin")
   @ApiOperation({ summary: "Восстановить мягко-удалённую загрузку" })
-  async restore(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+  async restore(@Param("id", ParseUUIDPipe) id: string, @Request() req: AuthenticatedRequest) {
     // Verify ownership before restoring
     await this.service.findUploadById(id, req.user.organizationId);
     // Restore needs withDeleted query — handled via repository
@@ -152,7 +155,7 @@ export class PaymentReportsController {
   })
   async getRows(
     @Param("id", ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
     @Query("search") search?: string,
@@ -179,7 +182,7 @@ export class PaymentReportsController {
   @ApiOperation({ summary: "Доступные значения фильтров для отчёта" })
   async getFilters(
     @Param("id", ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.service.getRowFilters(id, req.user.organizationId);
   }
@@ -191,7 +194,7 @@ export class PaymentReportsController {
   @Post("reconcile")
   @Roles("owner", "admin", "accountant")
   @ApiOperation({ summary: "Сверка двух отчётов — найти расхождения" })
-  async reconcile(@Body() dto: ReconcileDto, @Request() req: any) {
+  async reconcile(@Body() dto: ReconcileDto, @Request() req: AuthenticatedRequest) {
     return this.service.reconcile({
       ...dto,
       organizationId: req.user.organizationId,

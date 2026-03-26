@@ -23,7 +23,7 @@ import {
 export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular dep prevents proper typing
     @Optional() @Inject("RbacService") private readonly rbacService?: any,
   ) {}
 

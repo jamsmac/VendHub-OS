@@ -48,8 +48,7 @@ export interface FieldDefinition {
     enum_values?: string[];
   };
   /** Default value if not provided */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default_value?: any;
+  default_value?: unknown;
   /** Field description */
   description?: string;
 }

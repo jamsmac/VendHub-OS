@@ -34,7 +34,7 @@ export class CustomFieldsService {
     organizationId: string,
     entityType?: string,
   ): Promise<EntityCustomTab[]> {
-    const where: any = { organizationId, isActive: true };
+    const where: Record<string, unknown> = { organizationId, isActive: true };
     if (entityType) where.entityType = entityType;
     return this.tabRepo.find({ where, order: { sortOrder: "ASC" } });
   }
@@ -87,7 +87,7 @@ export class CustomFieldsService {
     entityType: string,
     tabName?: string,
   ): Promise<EntityCustomField[]> {
-    const where: any = { organizationId, entityType, isActive: true };
+    const where: Record<string, unknown> = { organizationId, entityType, isActive: true };
     if (tabName) where.tabName = tabName;
     return this.fieldRepo.find({ where, order: { sortOrder: "ASC" } });
   }

@@ -91,9 +91,8 @@ export class DiskHealthIndicator extends HealthIndicator {
         const usedPercent = (used / total) * 100;
 
         return { total, used, available, usedPercent };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (dfError: any) {
-        throw new Error(`Cannot determine disk usage: ${dfError.message}`);
+        } catch (dfError: unknown) {
+        throw new Error(`Cannot determine disk usage: ${dfError instanceof Error ? dfError.message : String(dfError)}`);
       }
     }
   }

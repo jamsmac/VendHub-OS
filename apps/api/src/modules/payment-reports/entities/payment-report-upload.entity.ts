@@ -124,6 +124,5 @@ export class PaymentReportUpload extends BaseEntity {
   uploadedBy: string;
 
   @OneToMany("PaymentReportRow", "upload", { cascade: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rows: any[];
+  rows: unknown[];
 }

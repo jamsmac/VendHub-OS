@@ -145,8 +145,7 @@ export class ImportJob extends BaseEntity {
     row: number;
     field?: string;
     message: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value?: any;
+    value?: unknown;
   }[];
 
   // Validation results
@@ -266,8 +265,7 @@ export class ImportTemplate extends BaseEntity {
       | "date_format"
       | "number_format"
       | "lookup";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config?: any;
+    config?: unknown;
   }[];
 
   // Validation rules
@@ -284,8 +282,7 @@ export class ImportTemplate extends BaseEntity {
       | "in_list"
       | "date"
       | "number";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config?: any;
+    config?: unknown;
   }[];
 
   // Options

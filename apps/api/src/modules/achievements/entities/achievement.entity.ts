@@ -92,8 +92,7 @@ export class Achievement extends BaseEntity {
     weekend_orders?: number;
     // Для UNIQUE_PRODUCTS - конкретная категория
     category_id?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
 
   // ===== Reward =====

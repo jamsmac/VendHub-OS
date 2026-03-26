@@ -51,13 +51,13 @@ export class BatchMovement extends BaseEntity {
   // Relations
   @ManyToOne("IngredientBatch", { onDelete: "RESTRICT" })
   @JoinColumn({ name: "batch_id" })
-  batch: any;
+  batch: unknown;
 
   @ManyToOne("EntityEvent", { onDelete: "SET NULL" })
   @JoinColumn({ name: "event_id" })
-  event: any;
+  event: unknown;
 
   @ManyToOne("Container", { onDelete: "SET NULL" })
   @JoinColumn({ name: "container_id" })
-  container: any;
+  container: unknown;
 }

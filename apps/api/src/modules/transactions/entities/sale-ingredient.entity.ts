@@ -46,17 +46,17 @@ export class SaleIngredient extends BaseEntity {
   // Relations
   @ManyToOne("Transaction", { onDelete: "CASCADE" })
   @JoinColumn({ name: "transaction_id" })
-  transaction: any;
+  transaction: unknown;
 
   @ManyToOne("Product", { onDelete: "RESTRICT" })
   @JoinColumn({ name: "ingredient_id" })
-  ingredient: any;
+  ingredient: unknown;
 
   @ManyToOne("IngredientBatch", { onDelete: "RESTRICT" })
   @JoinColumn({ name: "batch_id" })
-  batch: any;
+  batch: unknown;
 
   @ManyToOne("Container", { onDelete: "SET NULL" })
   @JoinColumn({ name: "container_id" })
-  container: any;
+  container: unknown;
 }

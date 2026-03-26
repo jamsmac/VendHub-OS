@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -15,6 +14,10 @@ import { EntityEventsService } from "./entity-events.service";
 import { CreateEntityEventDto } from "./dto/create-entity-event.dto";
 import { QueryEntityEventsDto } from "./dto/query-entity-events.dto";
 
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string };
+}
+
 @ApiTags("Entity Events")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -24,7 +27,7 @@ export class EntityEventsController {
 
   @Post()
   @ApiOperation({ summary: "Create a business event" })
-  async create(@Body() dto: CreateEntityEventDto, @Request() req: any) {
+  async create(@Body() dto: CreateEntityEventDto, @Request() req: AuthenticatedRequest) {
     return this.entityEventsService.createEvent(
       dto,
       req.user.id,
@@ -34,7 +37,7 @@ export class EntityEventsController {
 
   @Get()
   @ApiOperation({ summary: "Query events with filters" })
-  async query(@Query() dto: QueryEntityEventsDto, @Request() req: any) {
+  async query(@Query() dto: QueryEntityEventsDto, @Request() req: AuthenticatedRequest) {
     return this.entityEventsService.queryEvents(dto, req.user.organizationId);
   }
 
@@ -44,7 +47,7 @@ export class EntityEventsController {
     @Param("entityId") entityId: string,
     @Query("page") page?: number,
     @Query("limit") limit?: number,
-    @Request() req?: any,
+    @Request() req?: AuthenticatedRequest,
   ) {
     return this.entityEventsService.getEntityTimeline(
       entityId,
@@ -59,7 +62,7 @@ export class EntityEventsController {
   async getRecentEvents(
     @Param("entityId") entityId: string,
     @Query("count") count?: number,
-    @Request() req?: any,
+    @Request() req?: AuthenticatedRequest,
   ) {
     return this.entityEventsService.getRecentEvents(
       entityId,

@@ -11,8 +11,7 @@ import { PipeTransform, Injectable, ArgumentMetadata } from "@nestjs/common";
 
 @Injectable()
 export class SanitizePipe implements PipeTransform {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transform(value: any, metadata: ArgumentMetadata): any {
+  transform(value: unknown, metadata: ArgumentMetadata): unknown {
     // Only sanitize body payloads (not query params or route params)
     if (
       metadata.type !== "body" ||
@@ -25,8 +24,7 @@ export class SanitizePipe implements PipeTransform {
     return this.sanitizeObject(value);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private sanitizeObject(obj: any): any {
+  private sanitizeObject(obj: unknown): unknown {
     if (typeof obj === "string") {
       return this.sanitizeString(obj);
     }

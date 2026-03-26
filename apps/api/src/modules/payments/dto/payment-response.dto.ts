@@ -79,8 +79,7 @@ export class PaymentTransactionResponseDto extends BaseResponseDto {
   rawResponse?: Record<string, unknown>; // Raw API response - may contain sensitive data
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  refunds?: any[]; // Related refunds excluded in base response
+  refunds?: unknown[]; // Related refunds excluded in base response
 }
 
 /**
@@ -135,8 +134,7 @@ export class PaymentRefundResponseDto extends BaseResponseDto {
   rawResponse?: Record<string, unknown>; // Raw API response
 
   @Exclude()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  paymentTransaction?: any; // Related transaction
+  paymentTransaction?: unknown; // Related transaction
 }
 
 /**
