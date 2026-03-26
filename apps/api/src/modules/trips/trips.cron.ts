@@ -1,13 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull } from 'typeorm';
-import { Trip, TripStatus } from './entities/trip.entity';
-import { TripStop } from './entities/trip-stop.entity';
-import { TripTaskLink, TripTaskLinkStatus } from './entities/trip-task-link.entity';
-import { TripsService } from './trips.service';
-import { TRIP_SETTINGS } from './constants/trip-settings';
-import { AnomalyType, AnomalySeverity } from './entities/trip-anomaly.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan, IsNull } from "typeorm";
+import { Trip, TripStatus } from "./entities/trip.entity";
+import { TripStop } from "./entities/trip-stop.entity";
+import {
+  TripTaskLink,
+  TripTaskLinkStatus,
+} from "./entities/trip-task-link.entity";
+import { TripsService } from "./trips.service";
+import { TRIP_SETTINGS } from "./constants/trip-settings";
+import { AnomalyType, AnomalySeverity } from "./entities/trip-anomaly.entity";
 
 @Injectable()
 export class TripsCronService {
@@ -29,9 +32,9 @@ export class TripsCronService {
   /**
    * Every 15 minutes: auto-close trips without GPS updates
    */
-  @Cron('*/15 * * * *')
+  @Cron("*/15 * * * *")
   async handleStaleTrips(): Promise<void> {
-    this.logger.log('Checking for stale trips...');
+    this.logger.debug("Checking for stale trips...");
 
     const threshold = new Date(
       Date.now() - TRIP_SETTINGS.AUTO_CLOSE_AFTER_HOURS * 60 * 60 * 1000,
@@ -53,7 +56,8 @@ export class TripsCronService {
       trip.status = TripStatus.AUTO_CLOSED;
       trip.endedAt = new Date();
       trip.liveLocationActive = false;
-      trip.notes = `${trip.notes || ''}\n[Auto-closed: no GPS updates for ${TRIP_SETTINGS.AUTO_CLOSE_AFTER_HOURS}h]`.trim();
+      trip.notes =
+        `${trip.notes || ""}\n[Auto-closed: no GPS updates for ${TRIP_SETTINGS.AUTO_CLOSE_AFTER_HOURS}h]`.trim();
 
       await this.tripRepository.save(trip);
 
@@ -76,11 +80,14 @@ export class TripsCronService {
         .update(TripTaskLink)
         .set({
           status: TripTaskLinkStatus.SKIPPED,
-          notes: 'Auto-skipped: trip was auto-closed',
+          notes: "Auto-skipped: trip was auto-closed",
         })
         .where('"trip_id" = :tripId', { tripId: trip.id })
         .andWhere('"status" IN (:...statuses)', {
-          statuses: [TripTaskLinkStatus.PENDING, TripTaskLinkStatus.IN_PROGRESS],
+          statuses: [
+            TripTaskLinkStatus.PENDING,
+            TripTaskLinkStatus.IN_PROGRESS,
+          ],
         })
         .execute();
     }
@@ -95,14 +102,14 @@ export class TripsCronService {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async checkLongStops(): Promise<void> {
-    this.logger.log('Checking for long stops...');
+    this.logger.log("Checking for long stops...");
 
     const openStops = await this.stopRepository.find({
       where: {
         endedAt: IsNull(),
         notificationSent: false,
       },
-      relations: ['trip'],
+      relations: ["trip"],
     });
 
     let anomalyCount = 0;
@@ -130,7 +137,8 @@ export class TripsCronService {
             longitude: Number(stop.longitude),
             details: {
               durationMinutes: Math.round(durationSeconds / 60),
-              expectedMaxMinutes: TRIP_SETTINGS.LONG_STOP_THRESHOLD_SECONDS / 60,
+              expectedMaxMinutes:
+                TRIP_SETTINGS.LONG_STOP_THRESHOLD_SECONDS / 60,
             },
           },
         );
@@ -152,7 +160,7 @@ export class TripsCronService {
    * Every 15 minutes: check for active trips without live location
    * (trips started but never received GPS points)
    */
-  @Cron('*/15 * * * *')
+  @Cron("*/15 * * * *")
   async checkTripsWithoutGps(): Promise<void> {
     const threshold = new Date(Date.now() - 15 * 60 * 1000); // 15 minutes ago
 
@@ -165,9 +173,7 @@ export class TripsCronService {
     });
 
     for (const trip of tripsWithoutGps) {
-      this.logger.warn(
-        `Trip ${trip.id} has no GPS data after 15 minutes`,
-      );
+      this.logger.warn(`Trip ${trip.id} has no GPS data after 15 minutes`);
     }
   }
 }

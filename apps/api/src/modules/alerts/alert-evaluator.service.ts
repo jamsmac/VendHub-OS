@@ -38,7 +38,7 @@ export class AlertEvaluatorService {
    */
   @Cron(CronExpression.EVERY_30_MINUTES)
   async evaluateAllRules(): Promise<void> {
-    this.logger.log("Starting alert rule evaluation...");
+    this.logger.debug("Starting alert rule evaluation...");
 
     const rules = await this.ruleRepo.find({ where: { isActive: true } });
     if (rules.length === 0) return;

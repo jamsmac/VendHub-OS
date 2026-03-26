@@ -1170,8 +1170,11 @@ export class AuthService {
   }
 
   /**
-   * Cleanup old login attempts older than 30 days (runs daily at 5 AM)
-   * Login attempts are only used for recent lockout checks; old records are dead weight.
+   * Cleanup old login attempts older than 30 days (runs daily at 5 AM).
+   * Login attempts are ephemeral security data, not business entities.
+   * EXCEPTION: Uses hard delete (not softDelete) by design — these records
+   * serve no audit/recovery purpose after 30 days, and GDPR requires
+   * limiting retention of authentication-related PII.
    */
   @Cron("0 5 * * *")
   async cleanupOldLoginAttempts(): Promise<number> {

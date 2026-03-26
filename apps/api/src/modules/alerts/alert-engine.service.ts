@@ -83,7 +83,7 @@ export class AlertEngineService {
       value: number;
     }[],
   ): Promise<void> {
-    this.logger.log(
+    this.logger.debug(
       `Evaluating ${metricsData.length} metric data points against alert rules...`,
     );
 
