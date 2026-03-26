@@ -42,7 +42,7 @@ export function Header({ user }: HeaderProps) {
   const notificationCount = 3;
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-border/50 bg-card/40 backdrop-blur-2xl px-4 lg:px-6 sticky top-0 z-40">
       <div className="flex items-center gap-3">
         {/* Mobile hamburger (Issue #1) */}
         <MobileSidebar />

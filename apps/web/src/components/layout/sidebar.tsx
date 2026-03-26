@@ -733,7 +733,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 /** Desktop sidebar — hidden on mobile (Issue #1) */
 export function Sidebar() {
   return (
-    <div className="hidden lg:flex h-full w-64 flex-col bg-card border-r">
+    <div className="hidden lg:flex h-full w-64 flex-col bg-card/40 backdrop-blur-2xl border-r border-border/50">
       <SidebarContent />
     </div>
   );

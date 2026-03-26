@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "rounded-xl border bg-card/60 backdrop-blur-xl text-card-foreground shadow-sm transition-colors",
       className,
     )}
     {...props}
@@ -89,7 +89,7 @@ const InteractiveCard = React.forwardRef<
     role={onClick ? "button" : undefined}
     tabIndex={onClick ? 0 : undefined}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "rounded-xl border bg-card/60 backdrop-blur-xl text-card-foreground shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-card/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className,
     )}
     onClick={onClick}
