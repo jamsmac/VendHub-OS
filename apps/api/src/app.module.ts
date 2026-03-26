@@ -128,6 +128,7 @@ import { UserThrottlerGuard } from "./common/guards/user-throttler.guard";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
+import { TenantAuditInterceptor } from "./common/interceptors/tenant-audit.interceptor";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
 const optionalString = () => Joi.string().empty("").optional();
@@ -787,6 +788,11 @@ const defaultedNumber = (value: number) =>
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
+    },
+    // Tenant isolation audit (dev mode: warns on cross-org data leaks)
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantAuditInterceptor,
     },
 
     // ============================================
