@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, IsNull } from "typeorm";
@@ -127,10 +128,18 @@ export class OrganizationsService {
     return this.organizationRepository.save(organization);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, requestingOrgId?: string): Promise<void> {
     const organization = await this.findById(id);
     if (!organization) {
       throw new NotFoundException(`Organization with ID ${id} not found`);
+    }
+    // Owner can only delete child orgs, not other top-level orgs
+    if (
+      requestingOrgId &&
+      organization.parentId !== requestingOrgId &&
+      organization.id !== requestingOrgId
+    ) {
+      throw new ForbiddenException("Access denied to this organization");
     }
 
     // Prevent deletion if has children

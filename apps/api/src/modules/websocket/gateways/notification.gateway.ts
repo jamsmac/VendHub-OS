@@ -29,7 +29,9 @@ const ALLOWED_TOPIC_PREFIXES = [
   cors: {
     origin: process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(",").map((s: string) => s.trim())
-      : [],
+      : process.env.NODE_ENV === "production"
+        ? false
+        : true,
     credentials: true,
   },
   transports: ["websocket", "polling"],

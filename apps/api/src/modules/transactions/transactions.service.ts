@@ -243,8 +243,8 @@ export class TransactionsService {
     return this.createService.update(id, data);
   }
 
-  async remove(id: string): Promise<void> {
-    return this.createService.remove(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    return this.createService.remove(id, organizationId);
   }
 
   async findByCustomerPhone(

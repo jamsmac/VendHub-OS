@@ -175,8 +175,10 @@ export class MachinesCoreService {
     return this.machineRepository.save(machine);
   }
 
-  async remove(id: string): Promise<void> {
-    const machine = await this.findById(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    const machine = await this.machineRepository.findOne({
+      where: { id, organizationId },
+    });
     if (!machine) {
       throw new NotFoundException(`Machine with ID ${id} not found`);
     }

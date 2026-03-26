@@ -420,8 +420,13 @@ export class TransactionCreateService {
   /**
    * Soft delete transaction (for cancelled/test transactions only)
    */
-  async remove(id: string): Promise<void> {
-    const transaction = await this.queryService.findById(id);
+  async remove(id: string, organizationId: string): Promise<void> {
+    const transaction = await this.transactionRepo.findOne({
+      where: { id, organizationId },
+    });
+    if (!transaction) {
+      throw new NotFoundException(`Transaction with ID ${id} not found`);
+    }
 
     if (
       ![TransactionStatus.CANCELLED, TransactionStatus.FAILED].includes(

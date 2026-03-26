@@ -92,7 +92,10 @@ export class OrganizationsController {
   @Roles(UserRole.OWNER)
   @ApiOperation({ summary: "Delete organization (soft delete)" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
-  async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
-    await this.organizationsService.remove(id);
+  async remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<void> {
+    await this.organizationsService.remove(id, user.organizationId);
   }
 }

@@ -86,8 +86,8 @@ export class MachinesService {
     return this.core.updateTelemetry(id, telemetry);
   }
 
-  remove(id: string): Promise<void> {
-    return this.core.remove(id);
+  remove(id: string, organizationId: string): Promise<void> {
+    return this.core.remove(id, organizationId);
   }
 
   countByOrganization(organizationId: string): Promise<number> {

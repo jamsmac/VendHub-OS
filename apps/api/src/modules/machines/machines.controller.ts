@@ -384,14 +384,7 @@ export class MachinesController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ): Promise<void> {
-    const machine = await this.machinesService.findById(id);
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
-    }
-
-    await this.machinesService.remove(id);
+    await this.machinesService.remove(id, user.organizationId);
   }
 
   // ============================================================================

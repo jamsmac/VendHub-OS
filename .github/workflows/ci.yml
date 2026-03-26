@@ -173,7 +173,6 @@ jobs:
 
       - name: Build Mobile (type-check only, no native build in CI)
         run: pnpm --filter mobile type-check
-        continue-on-error: true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -640,15 +639,12 @@ jobs:
         run: railway up --service "@vendhub/api" --environment production --detach
 
       - name: Deploy Web (admin panel)
-        continue-on-error: true
         run: railway up --service "@vendhub/web" --environment production --detach
 
       - name: Deploy Client PWA
-        continue-on-error: true
         run: railway up --service "@vendhub/client" --environment production --detach
 
       - name: Deploy Bot
-        continue-on-error: true
         run: railway up --service "@vendhub/bot" --environment production --detach
 
       - name: Run database migrations
