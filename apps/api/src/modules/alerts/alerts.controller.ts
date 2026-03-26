@@ -57,6 +57,18 @@ export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
   // ========================================================================
+  // DASHBOARD — GET /alerts returns active alerts (used by dashboard widget)
+  // ========================================================================
+
+  @Get()
+  @Roles("manager", "admin", "owner")
+  @ApiOperation({ summary: "Get active alerts for dashboard" })
+  @ApiResponse({ status: 200, description: "Active alerts list" })
+  async getDashboardAlerts(@CurrentOrganizationId() organizationId: string) {
+    return this.alertsService.getActiveAlerts(organizationId);
+  }
+
+  // ========================================================================
   // ALERT RULES
   // ========================================================================
 
