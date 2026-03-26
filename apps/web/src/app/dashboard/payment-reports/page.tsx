@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import {
   Upload,
   FileSpreadsheet,
@@ -68,44 +69,33 @@ import {
 import { AnalyticsTab } from "./_components/analytics-tab";
 
 // ─────────────────────────────────────────────────────────
-// API helpers
+// API helpers (uses shared api client with auth + baseURL)
 // ─────────────────────────────────────────────────────────
-const API_BASE =
-  (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") + "/api/v1";
 
 async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json() as Promise<T>;
+  const res = await api.get(path);
+  return res.data as T;
 }
 
 async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json() as Promise<T>;
+  const res = await api.post(path, body);
+  return res.data as T;
 }
 
 async function apiDelete(path: string): Promise<void> {
-  const res = await fetch(`${API_BASE}${path}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(await res.text());
+  await api.delete(path);
 }
 
 async function uploadFile(file: File): Promise<ReportUpload> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${API_BASE}/payment-reports/upload`, {
-    method: "POST",
-    body: form,
+  const res = await api.post("/payment-reports/upload", form, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message ?? "Ошибка загрузки");
+  if (res.status >= 400) {
+    throw new Error(res.data?.message ?? "Ошибка загрузки");
   }
-  return res.json() as Promise<ReportUpload>;
+  return res.data as ReportUpload;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -985,22 +975,19 @@ export default function PaymentReportsPage() {
                       variant="outline"
                       size="sm"
                       onClick={async () => {
-                        const res = await fetch(
-                          `${API_BASE}/payment-reports/analytics/export-reconcile`,
+                        const res = await api.post(
+                          "/payment-reports/analytics/export-reconcile",
                           {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              uploadIdA: selectedForReconcile[0],
-                              uploadIdB: selectedForReconcile[1],
-                            }),
+                            uploadIdA: selectedForReconcile[0],
+                            uploadIdB: selectedForReconcile[1],
                           },
+                          { responseType: "blob" },
                         );
-                        if (!res.ok) {
+                        if (res.status >= 400) {
                           toast.error("Ошибка экспорта");
                           return;
                         }
-                        const blob = await res.blob();
+                        const blob = res.data as Blob;
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement("a");
                         a.href = url;
@@ -1157,7 +1144,7 @@ export default function PaymentReportsPage() {
                       size="sm"
                       onClick={() => {
                         window.open(
-                          `${API_BASE}/payment-reports/analytics/export-rows?uploadId=${viewUpload.id}`,
+                          `${api.defaults.baseURL}/payment-reports/analytics/export-rows?uploadId=${viewUpload.id}`,
                           "_blank",
                         );
                       }}
