@@ -67,7 +67,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-interface NavItem {
+export interface NavItem {
   nameKey: string;
   fallback: string;
   href: string;
@@ -100,7 +100,7 @@ const STOCK: UserRole[] = [
   UserRole.WAREHOUSE,
 ];
 
-const navigation: NavItem[] = [
+export const navigation: NavItem[] = [
   // ── Dashboard ─────────────────────────────────────────────
   {
     nameKey: "dashboard",
