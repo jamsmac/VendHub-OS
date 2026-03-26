@@ -50,9 +50,9 @@ const CATEGORIES = [
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
-  sku: z.string().max(100).optional().or(z.literal("")),
+  sku: z.string().min(1, "SKU is required").max(100),
   category: z.enum(CATEGORIES),
-  sellingPrice: z.coerce.number().min(0, "Price must be >= 0"),
+  basePrice: z.coerce.number().min(0, "Price must be >= 0"),
   costPrice: z.coerce.number().min(0, "Cost must be >= 0"),
   unit: z.string().default("pcs"),
 });
@@ -70,7 +70,7 @@ export default function NewProductPage() {
       name: "",
       sku: "",
       category: "hot_drinks",
-      sellingPrice: 0,
+      basePrice: 0,
       costPrice: 0,
       unit: "pcs",
     },
@@ -164,7 +164,7 @@ export default function NewProductPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="sellingPrice"
+                  name="basePrice"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
