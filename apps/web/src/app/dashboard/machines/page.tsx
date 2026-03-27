@@ -137,7 +137,7 @@ export default function MachinesPage() {
   }, [search]);
 
   const {
-    data: machines,
+    data: machinesResponse,
     isLoading,
     isError,
   } = useQuery({
@@ -145,8 +145,11 @@ export default function MachinesPage() {
     queryFn: () =>
       machinesApi
         .getAll({ search: debouncedSearch, status: statusFilter })
-        .then((res) => res.data.data),
+        .then((res) => res.data),
   });
+
+  const machines = machinesResponse?.data;
+  const paginationTotal = machinesResponse?.total;
 
   const { data: stats } = useQuery({
     queryKey: ["machines-stats"],
@@ -222,7 +225,9 @@ export default function MachinesPage() {
                 <p className="text-sm text-muted-foreground">
                   {t("statsTotal")}
                 </p>
-                <p className="text-2xl font-bold">{stats?.total || 0}</p>
+                <p className="text-2xl font-bold">
+                  {paginationTotal ?? stats?.total ?? 0}
+                </p>
               </div>
               <Coffee className="h-8 w-8 text-muted-foreground" />
             </div>

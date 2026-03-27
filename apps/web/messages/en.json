@@ -150,7 +150,8 @@
     "skipToContent": "Skip to content",
     "paymentReports": "Payment Reports",
     "new": "New",
-    "counterparty": "Counterparties"
+    "counterparty": "Counterparties",
+    "builder": "Builder"
   },
   "dashboard": {
     "title": "Dashboard",

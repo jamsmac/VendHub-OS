@@ -39,6 +39,15 @@ interface BuilderStop {
   sequenceNumber: number;
 }
 
+function pluralizeStops(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "остановка";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20))
+    return "остановки";
+  return "остановок";
+}
+
 function MachineCardSkeleton() {
   return (
     <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -260,11 +269,9 @@ export default function RouteBuilderPage() {
                     >
                       <div className="min-w-0">
                         <p className="font-medium truncate">{machine.name}</p>
-                        {machine.address && (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {machine.address}
-                          </p>
-                        )}
+                        <p className="text-sm text-muted-foreground truncate">
+                          {machine.address || "Адрес не указан"}
+                        </p>
                       </div>
                       <Button
                         size="sm"
@@ -362,8 +369,8 @@ export default function RouteBuilderPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {t("stopsInRoute", { count: stops.length })}
+            <div className="text-sm text-muted-foreground whitespace-nowrap">
+              {stops.length} {pluralizeStops(stops.length)} в маршруте
             </div>
             <div className="flex gap-2">
               <Button

@@ -19,36 +19,39 @@ import { formatPrice } from "@/lib/utils";
 export default function DashboardPage() {
   const t = useTranslations("dashboardRoot");
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: dashData, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: () => api.get("/analytics/dashboard").then((res) => res.data),
   });
 
+  // Map from API response { latestStats } to dashboard display
+  const stats = dashData?.latestStats || dashData;
+
   const statCards = [
     {
       title: t("totalMachines"),
-      value: stats?.totalMachines || 0,
+      value: stats?.activeMachinesCount ?? stats?.totalMachines ?? 0,
       icon: Coffee,
       color: "text-blue-600",
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
       title: t("activeMachines"),
-      value: stats?.activeMachines || 0,
+      value: stats?.onlineMachinesCount ?? stats?.activeMachines ?? 0,
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-100 dark:bg-green-900/30",
     },
     {
       title: t("todaySales"),
-      value: stats?.todaySales || 0,
+      value: stats?.totalSalesCount ?? stats?.todaySales ?? 0,
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900/30",
     },
     {
       title: t("todayRevenue"),
-      value: formatPrice(stats?.todayRevenue || 0),
+      value: formatPrice(stats?.totalRevenue ?? stats?.todayRevenue ?? 0),
       icon: Package,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
@@ -121,9 +124,17 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
-              <p className="text-muted-foreground text-sm">{t("mapLoading")}</p>
-            </div>
+            <a
+              href="/dashboard/map"
+              className="flex h-48 items-center justify-center rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+            >
+              <div className="text-center">
+                <MapPin className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
+                <p className="text-muted-foreground text-sm">
+                  {t("openMap", { fallback: "Open machine map" })}
+                </p>
+              </div>
+            </a>
           </CardContent>
         </Card>
       </div>

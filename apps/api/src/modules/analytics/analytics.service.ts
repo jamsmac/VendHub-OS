@@ -7,12 +7,12 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between } from "typeorm";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { DashboardWidget } from "./entities/analytics.entity";
 import {
   DailyStats,
-  DashboardWidget,
   AnalyticsSnapshot,
   SnapshotType,
-} from "./entities/analytics.entity";
+} from "../reports/entities/analytics-snapshot.entity";
 import { CreateWidgetDto, UpdateWidgetDto } from "./dto/analytics.dto";
 import {
   Transaction,
@@ -122,7 +122,7 @@ export class DashboardStatsService {
     const productMap = new Map<
       string,
       {
-        nomenclatureId: string;
+        productId: string;
         name: string;
         quantity: number;
         revenue: number;
@@ -131,7 +131,7 @@ export class DashboardStatsService {
     for (const t of transactions) {
       const items = (t as unknown as Record<string, unknown>).items as
         | Array<{
-            nomenclatureId?: string;
+            productId?: string;
             productName?: string;
             quantity?: number;
             totalPrice?: number;
@@ -139,9 +139,9 @@ export class DashboardStatsService {
         | undefined;
       if (!items) continue;
       for (const item of items) {
-        const key = item.nomenclatureId || "unknown";
+        const key = item.productId || "unknown";
         const existing = productMap.get(key) || {
-          nomenclatureId: key,
+          productId: key,
           name: item.productName || key,
           quantity: 0,
           revenue: 0,
@@ -160,7 +160,7 @@ export class DashboardStatsService {
       string,
       {
         machineId: string;
-        machineNumber: string;
+        name: string;
         salesCount: number;
         revenue: number;
       }
@@ -172,7 +172,7 @@ export class DashboardStatsService {
       if (!mId) continue;
       const existing = machineRevenueMap.get(mId) || {
         machineId: mId,
-        machineNumber: "",
+        name: "",
         salesCount: 0,
         revenue: 0,
       };
@@ -184,8 +184,8 @@ export class DashboardStatsService {
     for (const m of machines) {
       const entry = machineRevenueMap.get(m.id);
       if (entry) {
-        entry.machineNumber =
-          ((m as unknown as Record<string, unknown>).machineNumber as string) ||
+        entry.name =
+          ((m as unknown as Record<string, unknown>).name as string) ||
           m.id.slice(0, 8);
       }
     }
@@ -215,7 +215,7 @@ export class DashboardStatsService {
     if (stats) {
       Object.assign(stats, data);
     } else {
-      stats = this.dailyStatsRepo.create(data);
+      stats = this.dailyStatsRepo.create(data as Partial<DailyStats>);
     }
 
     const saved = await this.dailyStatsRepo.save(stats);
@@ -392,7 +392,7 @@ export class DashboardStatsService {
   ): Promise<
     Array<{
       machineId: string;
-      machineNumber: string;
+      name: string;
       salesCount: number;
       revenue: number;
     }>
@@ -403,7 +403,7 @@ export class DashboardStatsService {
       string,
       {
         machineId: string;
-        machineNumber: string;
+        name: string;
         salesCount: number;
         revenue: number;
       }
@@ -414,7 +414,7 @@ export class DashboardStatsService {
       for (const m of day.topMachines) {
         const existing = machineMap.get(m.machineId) || {
           machineId: m.machineId,
-          machineNumber: m.machineNumber,
+          name: m.name,
           salesCount: 0,
           revenue: 0,
         };
@@ -436,7 +436,7 @@ export class DashboardStatsService {
     limit = 10,
   ): Promise<
     Array<{
-      nomenclatureId: string;
+      productId: string;
       name: string;
       quantity: number;
       revenue: number;
@@ -447,7 +447,7 @@ export class DashboardStatsService {
     const productMap = new Map<
       string,
       {
-        nomenclatureId: string;
+        productId: string;
         name: string;
         quantity: number;
         revenue: number;
@@ -457,15 +457,15 @@ export class DashboardStatsService {
     for (const day of stats) {
       if (!day.topProducts) continue;
       for (const p of day.topProducts) {
-        const existing = productMap.get(p.nomenclatureId) || {
-          nomenclatureId: p.nomenclatureId,
+        const existing = productMap.get(p.productId) || {
+          productId: p.productId,
           name: p.name,
           quantity: 0,
           revenue: 0,
         };
         existing.quantity += p.quantity;
         existing.revenue += p.revenue;
-        productMap.set(p.nomenclatureId, existing);
+        productMap.set(p.productId, existing);
       }
     }
 

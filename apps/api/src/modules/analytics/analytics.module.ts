@@ -5,12 +5,11 @@
 
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { DashboardWidget, CustomReport } from "./entities/analytics.entity";
 import {
   DailyStats,
-  DashboardWidget,
   AnalyticsSnapshot,
-  CustomReport,
-} from "./entities/analytics.entity";
+} from "../reports/entities/analytics-snapshot.entity";
 import { DashboardStatsService } from "./analytics.service";
 import { AnalyticsController } from "./analytics.controller";
 import { Transaction } from "../transactions/entities/transaction.entity";

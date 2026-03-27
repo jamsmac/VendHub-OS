@@ -150,7 +150,8 @@
     "skipToContent": "Перейти к содержимому",
     "paymentReports": "Отчёты платёжных систем",
     "new": "Новое",
-    "counterparty": "Контрагенты"
+    "counterparty": "Контрагенты",
+    "builder": "Конструктор"
   },
   "dashboard": {
     "title": "Обзор",
