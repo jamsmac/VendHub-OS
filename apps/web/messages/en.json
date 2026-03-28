@@ -3064,7 +3064,8 @@
     "recentTasks": "Recent tasks",
     "noActiveTasks": "No active tasks",
     "machineMap": "Machine map",
-    "mapLoading": "Map is loading..."
+    "mapLoading": "Map is loading...",
+    "openMap": "Open machine map"
   },
   "userDetail": {
     "back": "Back",

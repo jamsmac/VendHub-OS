@@ -3063,7 +3063,8 @@
     "recentTasks": "So'nggi vazifalar",
     "noActiveTasks": "Faol vazifalar yo'q",
     "machineMap": "Avtomatlar xaritasi",
-    "mapLoading": "Xarita yuklanmoqda..."
+    "mapLoading": "Xarita yuklanmoqda...",
+    "openMap": "Avtomatlar xaritasini ochish"
   },
   "userDetail": {
     "back": "Orqaga",
