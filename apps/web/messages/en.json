@@ -151,7 +151,9 @@
     "paymentReports": "Payment Reports",
     "new": "New",
     "counterparty": "Counterparties",
-    "builder": "Builder"
+    "builder": "Builder",
+    "searchPages": "Search pages...",
+    "noResults": "No results found."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -261,7 +263,7 @@
     "createSuccess": "Product created",
     "createError": "Failed to create product",
     "updateSuccess": "Product updated",
-    "updateError": "Failed to update product",
+    "updateError": "Failed to update",
     "loadFailed": "Failed to load products",
     "product": "Product",
     "openProduct": "Open product",
@@ -333,7 +335,6 @@
     "newProduct": "New Product",
     "editProduct": "Edit Product",
     "updated": "Product updated",
-    "updateError": "Failed to update",
     "deleteError": "Failed to delete",
     "confirmDelete": "Delete this product?"
   },

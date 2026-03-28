@@ -150,7 +150,9 @@
     "skipToContent": "Kontentga o'tish",
     "paymentReports": "To'lov tizimlari hisobotlari",
     "new": "Yangi",
-    "counterparty": "Kontragentlar"
+    "counterparty": "Kontragentlar",
+    "searchPages": "Sahifalarni qidirish...",
+    "noResults": "Natija topilmadi."
   },
   "dashboard": {
     "title": "Umumiy ko'rinish",
@@ -260,7 +262,7 @@
     "createSuccess": "Mahsulot yaratildi",
     "createError": "Mahsulotni yaratib bo'lmadi",
     "updateSuccess": "Mahsulot yangilandi",
-    "updateError": "Mahsulotni yangilab bo'lmadi",
+    "updateError": "Yangilashda xatolik",
     "loadFailed": "Mahsulotlarni yuklab bo'lmadi",
     "product": "Mahsulot",
     "openProduct": "Mahsulotni ochish",
@@ -332,7 +334,6 @@
     "newProduct": "Yangi mahsulot",
     "editProduct": "Mahsulotni tahrirlash",
     "updated": "Mahsulot yangilandi",
-    "updateError": "Yangilashda xatolik",
     "deleteError": "O'chirishda xatolik",
     "confirmDelete": "Bu mahsulotni o'chirmoqchimisiz?"
   },

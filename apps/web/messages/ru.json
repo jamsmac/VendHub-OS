@@ -151,7 +151,9 @@
     "paymentReports": "Отчёты платёжных систем",
     "new": "Новое",
     "counterparty": "Контрагенты",
-    "builder": "Конструктор"
+    "builder": "Конструктор",
+    "searchPages": "Поиск страниц...",
+    "noResults": "Ничего не найдено."
   },
   "dashboard": {
     "title": "Обзор",
@@ -261,9 +263,9 @@
     "createSuccess": "Продукт создан",
     "createError": "Ошибка создания продукта",
     "updateSuccess": "Продукт обновлён",
-    "updateError": "Ошибка обновления продукта",
+    "updateError": "Ошибка обновления",
     "deleteSuccess": "Продукт удалён",
-    "deleteError": "Ошибка удаления продукта",
+    "deleteError": "Ошибка удаления",
     "loadFailed": "Не удалось загрузить продукты",
     "product": "Продукт",
     "openProduct": "Открыть продукт",
@@ -335,8 +337,6 @@
     "newProduct": "Новый товар",
     "editProduct": "Редактировать товар",
     "updated": "Товар обновлён",
-    "updateError": "Ошибка обновления",
-    "deleteError": "Ошибка удаления",
     "confirmDelete": "Удалить этот товар?"
   },
   "users": {
