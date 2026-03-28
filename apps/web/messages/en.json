@@ -153,7 +153,19 @@
     "counterparty": "Counterparties",
     "builder": "Builder",
     "searchPages": "Search pages...",
-    "noResults": "No results found."
+    "noResults": "No results found.",
+    "collections": "Collections",
+    "containers": "Containers",
+    "finance": "Finance",
+    "promotions": "Promotions",
+    "investor": "Investor",
+    "team": "Team",
+    "invites": "Invites",
+    "website": "Website",
+    "analytics": "Analytics",
+    "tripAnalytics": "Trip Analytics",
+    "help": "Help",
+    "apiDocs": "API Docs"
   },
   "dashboard": {
     "title": "Dashboard",

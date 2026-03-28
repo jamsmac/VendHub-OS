@@ -153,7 +153,19 @@
     "counterparty": "Контрагенты",
     "builder": "Конструктор",
     "searchPages": "Поиск страниц...",
-    "noResults": "Ничего не найдено."
+    "noResults": "Ничего не найдено.",
+    "collections": "Инкассация",
+    "containers": "Контейнеры",
+    "finance": "Финансы",
+    "promotions": "Акции",
+    "investor": "Инвестор",
+    "team": "Команда",
+    "invites": "Приглашения",
+    "website": "Сайт",
+    "analytics": "Аналитика",
+    "tripAnalytics": "Аналитика поездок",
+    "help": "Помощь",
+    "apiDocs": "API документация"
   },
   "dashboard": {
     "title": "Обзор",

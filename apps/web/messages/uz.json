@@ -152,7 +152,19 @@
     "new": "Yangi",
     "counterparty": "Kontragentlar",
     "searchPages": "Sahifalarni qidirish...",
-    "noResults": "Natija topilmadi."
+    "noResults": "Natija topilmadi.",
+    "collections": "Inkassatsiya",
+    "containers": "Konteynerlar",
+    "finance": "Moliya",
+    "promotions": "Aksiyalar",
+    "investor": "Investor",
+    "team": "Jamoa",
+    "invites": "Taklifnomalar",
+    "website": "Veb-sayt",
+    "analytics": "Tahlil",
+    "tripAnalytics": "Sayohat tahlili",
+    "help": "Yordam",
+    "apiDocs": "API hujjatlar"
   },
   "dashboard": {
     "title": "Umumiy ko'rinish",
