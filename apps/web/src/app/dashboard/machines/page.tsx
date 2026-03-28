@@ -144,7 +144,10 @@ export default function MachinesPage() {
     queryKey: ["machines", debouncedSearch, statusFilter],
     queryFn: () =>
       machinesApi
-        .getAll({ search: debouncedSearch, status: statusFilter })
+        .getAll({
+          search: debouncedSearch || undefined,
+          status: statusFilter === "all" ? undefined : statusFilter,
+        })
         .then((res) => res.data),
   });
 
