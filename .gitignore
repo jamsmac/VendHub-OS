@@ -61,6 +61,7 @@ uploads/
 # Mobile (Firebase credentials - never commit real files)
 apps/mobile/google-services.json
 apps/mobile/ios/GoogleService-Info.plist
+apps/mobile/.expo/
 
 # Misc
 *.pem
@@ -112,3 +113,9 @@ VENDHUB_MODULES_MAP.html
 VendHub_OS_Audit_Corrections.md
 VendHub_OS_Full_Audit_2026.md
 PRODUCTION_READINESS_PLAN*
+COMPREHENSIVE_AUDIT*.html
+VENDHUB_MASTER_VERIFICATION_PLAN.md
+VendHub_CRUD_Scenarios.html
+VendHub_FULL_AUDIT_REPORT.md
+VendHub_Phase2_Audit_Report.md
+machines-architecture.html
