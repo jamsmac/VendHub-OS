@@ -173,6 +173,43 @@ export function useCreatePayoutRequest() {
   });
 }
 
+export function useReviewPayoutRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      action,
+      comment,
+    }: {
+      id: string;
+      action: "approve" | "reject";
+      comment?: string;
+    }) => {
+      const response = await api.patch(`/payout-requests/${id}/review`, {
+        action,
+        comment,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout-requests"] });
+    },
+  });
+}
+
+export function useCancelPayoutRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.patch(`/payout-requests/${id}/cancel`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout-requests"] });
+    },
+  });
+}
+
 /**
  * Create deposit via POST /finance/deposits
  */
