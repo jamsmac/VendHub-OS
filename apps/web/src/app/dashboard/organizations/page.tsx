@@ -544,23 +544,26 @@ function OrganizationForm({
 }) {
   const t = useTranslations("organizations");
 
+  // Backend may return snake_case or camelCase depending on serialization
+  const org = organization as Organization &
+    Record<string, string | undefined>;
   const [formData, setFormData] = useState<OrganizationFormData>({
-    name: organization?.name ?? "",
-    nameUz: organization?.nameUz ?? "",
-    slug: organization?.slug ?? "",
-    description: organization?.description ?? "",
-    type: organization?.type ?? "BRANCH",
-    status: organization?.status ?? "PENDING",
-    email: organization?.email ?? "",
-    phone: organization?.phone ?? "",
-    address: organization?.address ?? "",
-    city: organization?.city ?? "",
-    region: organization?.region ?? "",
-    inn: organization?.inn ?? "",
-    mfo: organization?.mfo ?? "",
-    bankAccount: organization?.bankAccount ?? "",
-    bankName: organization?.bankName ?? "",
-    directorName: organization?.directorName ?? "",
+    name: org?.name ?? "",
+    nameUz: org?.nameUz ?? org?.["name_uz"] ?? "",
+    slug: org?.slug ?? "",
+    description: org?.description ?? "",
+    type: org?.type ?? "BRANCH",
+    status: org?.status ?? "PENDING",
+    email: org?.email ?? "",
+    phone: org?.phone ?? "",
+    address: org?.address ?? "",
+    city: org?.city ?? "",
+    region: org?.region ?? "",
+    inn: org?.inn ?? "",
+    mfo: org?.mfo ?? "",
+    bankAccount: org?.bankAccount ?? org?.["bank_account"] ?? "",
+    bankName: org?.bankName ?? org?.["bank_name"] ?? "",
+    directorName: org?.directorName ?? org?.["director_name"] ?? "",
   });
 
   const set = <K extends keyof OrganizationFormData>(
@@ -570,10 +573,29 @@ function OrganizationForm({
 
   const mutation = useMutation({
     mutationFn: async (data: OrganizationFormData) => {
+      // Map camelCase frontend fields to snake_case backend DTO fields
+      const payload = {
+        name: data.name,
+        name_uz: data.nameUz || undefined,
+        slug: data.slug || undefined,
+        description: data.description || undefined,
+        type: data.type,
+        status: data.status,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        address: data.address || undefined,
+        city: data.city || undefined,
+        region: data.region || undefined,
+        inn: data.inn || undefined,
+        mfo: data.mfo || undefined,
+        bank_account: data.bankAccount || undefined,
+        bank_name: data.bankName || undefined,
+        director_name: data.directorName || undefined,
+      };
       if (organization) {
-        return organizationsApi.update(organization.id, data);
+        return organizationsApi.update(organization.id, payload);
       }
-      return organizationsApi.create(data);
+      return organizationsApi.create(payload);
     },
     onSuccess: () => {
       toast.success(organization ? t("updated") : t("created"));

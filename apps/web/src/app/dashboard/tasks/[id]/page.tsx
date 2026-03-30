@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 
+/**
+ * Must match TaskType enum in @vendhub/shared
+ * @see packages/shared/src/types/task.types.ts
+ */
 const TASK_TYPES = [
   "refill",
   "collection",
@@ -29,7 +33,27 @@ const TASK_TYPES = [
   "removal",
   "audit",
   "inspection",
-];
+  "replace_hopper",
+  "replace_grinder",
+  "replace_brew_unit",
+  "replace_mixer",
+] as const;
+
+const TASK_TYPE_LABELS: Record<string, string> = {
+  refill: "Пополнение",
+  collection: "Инкассация",
+  cleaning: "Мойка",
+  repair: "Ремонт",
+  install: "Установка",
+  removal: "Демонтаж",
+  audit: "Аудит",
+  inspection: "Инспекция",
+  replace_hopper: "Замена бункера",
+  replace_grinder: "Замена кофемолки",
+  replace_brew_unit: "Замена заварочного блока",
+  replace_mixer: "Замена миксера",
+};
+
 const STATUSES = [
   "pending",
   "assigned",
@@ -38,8 +62,26 @@ const STATUSES = [
   "rejected",
   "postponed",
   "cancelled",
-];
-const PRIORITIES = ["low", "normal", "high", "urgent"];
+] as const;
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Ожидает",
+  assigned: "Назначена",
+  in_progress: "В работе",
+  completed: "Завершена",
+  rejected: "Отклонена",
+  postponed: "Отложена",
+  cancelled: "Отменена",
+};
+
+const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+
+const PRIORITY_LABELS: Record<string, string> = {
+  low: "Низкий",
+  normal: "Обычный",
+  high: "Высокий",
+  urgent: "Срочный",
+};
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -72,14 +114,18 @@ export default function TaskDetailPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: () =>
-      api.patch(`/tasks/${id}`, {
+    mutationFn: () => {
+      const dueDate = form?.dueDate
+        ? new Date(form.dueDate as string).toISOString()
+        : undefined;
+      return api.patch(`/tasks/${id}`, {
         title: form?.title,
-        description: form?.description,
+        description: (form?.description as string) || undefined,
         status: form?.status,
         priority: form?.priority,
-        dueDate: form?.dueDate || undefined,
-      }),
+        dueDate,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Task updated");
@@ -182,7 +228,7 @@ export default function TaskDetailPage() {
                   <SelectContent>
                     {TASK_TYPES.map((tt) => (
                       <SelectItem key={tt} value={tt}>
-                        {tt}
+                        {TASK_TYPE_LABELS[tt] ?? tt}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -202,7 +248,7 @@ export default function TaskDetailPage() {
                   <SelectContent>
                     {STATUSES.map((s) => (
                       <SelectItem key={s} value={s}>
-                        {s}
+                        {STATUS_LABELS[s] ?? s}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -222,7 +268,7 @@ export default function TaskDetailPage() {
                   <SelectContent>
                     {PRIORITIES.map((p) => (
                       <SelectItem key={p} value={p}>
-                        {p}
+                        {PRIORITY_LABELS[p] ?? p}
                       </SelectItem>
                     ))}
                   </SelectContent>

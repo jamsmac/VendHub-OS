@@ -20,14 +20,42 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 
-const POSITIONS = [
+/**
+ * Must match EmployeeRole enum in backend entity
+ * @see apps/api/src/modules/employees/entities/employee.entity.ts
+ */
+const EMPLOYEE_ROLES = [
   "operator",
   "technician",
+  "warehouse",
+  "driver",
   "manager",
   "accountant",
-  "warehouse",
-];
-const STATUSES = ["active", "inactive", "on_leave", "dismissed"];
+  "supervisor",
+] as const;
+
+const ROLE_LABELS: Record<string, string> = {
+  operator: "Оператор",
+  technician: "Техник",
+  warehouse: "Склад",
+  driver: "Водитель",
+  manager: "Менеджер",
+  accountant: "Бухгалтер",
+  supervisor: "Супервайзер",
+};
+
+/**
+ * Must match EmployeeStatus enum in backend entity
+ */
+const STATUSES = ["active", "inactive", "on_leave", "suspended", "terminated"] as const;
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Активный",
+  inactive: "Неактивный",
+  on_leave: "В отпуске",
+  suspended: "Приостановлен",
+  terminated: "Уволен",
+};
 
 export default function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,7 +73,7 @@ export default function EmployeeDetailPage() {
       setForm({
         firstName: data.firstName || "",
         lastName: data.lastName || "",
-        position: data.position || "operator",
+        employeeRole: data.employeeRole || "operator",
         status: data.status || "active",
         phone: data.phone || "",
         email: data.email || "",
@@ -63,10 +91,10 @@ export default function EmployeeDetailPage() {
       api.patch(`/employees/${id}`, {
         firstName: form?.firstName,
         lastName: form?.lastName,
-        position: form?.position,
+        employeeRole: form?.employeeRole,
         status: form?.status,
-        phone: form?.phone,
-        email: form?.email,
+        phone: (form?.phone as string) || undefined,
+        email: (form?.email as string) || undefined,
         salary: form?.salary,
       }),
     onSuccess: () => {
@@ -165,19 +193,19 @@ export default function EmployeeDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">
-                  {t("position") || "Position"}
+                  {t("position") || "Должность"}
                 </label>
                 <Select
-                  value={form.position as string}
-                  onValueChange={(v) => setForm({ ...form, position: v })}
+                  value={form.employeeRole as string}
+                  onValueChange={(v) => setForm({ ...form, employeeRole: v })}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {POSITIONS.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {p}
+                    {EMPLOYEE_ROLES.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {ROLE_LABELS[role] ?? role}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -197,7 +225,7 @@ export default function EmployeeDetailPage() {
                   <SelectContent>
                     {STATUSES.map((s) => (
                       <SelectItem key={s} value={s}>
-                        {s}
+                        {STATUS_LABELS[s] ?? s}
                       </SelectItem>
                     ))}
                   </SelectContent>

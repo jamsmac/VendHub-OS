@@ -26,14 +26,28 @@ export default function LocationDetailPage() {
     queryFn: async () => {
       const res = await api.get(`/locations/${id}`);
       const data = res.data?.data ?? res.data;
+      // Extract street/building from AddressDto if present
+      const addr = data.address;
+      const street =
+        typeof addr === "object" && addr
+          ? addr.street || ""
+          : typeof addr === "string"
+            ? addr
+            : "";
+      const building =
+        typeof addr === "object" && addr ? addr.building || "" : "";
       setForm({
         name: data.name || "",
-        address: data.address || "",
+        street,
+        building,
         city: data.city || "",
+        region: data.region || "",
         latitude: data.latitude ?? 0,
         longitude: data.longitude ?? 0,
-        contactPerson: data.contactPerson || "",
-        contactPhone: data.contactPhone || data.phone || "",
+        primary_contact_name:
+          data.primary_contact_name || data.contactPerson || "",
+        primary_contact_phone:
+          data.primary_contact_phone || data.contactPhone || data.phone || "",
         status: data.status || "active",
         machinesCount: data.machinesCount ?? data.machines?.length ?? 0,
       });
@@ -42,16 +56,28 @@ export default function LocationDetailPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: () =>
-      api.patch(`/locations/${id}`, {
+    mutationFn: () => {
+      const city = (form?.city as string) || "Tashkent";
+      const region = (form?.region as string) || "";
+      return api.patch(`/locations/${id}`, {
         name: form?.name,
-        address: form?.address,
-        city: form?.city,
+        city,
+        region: region || undefined,
         latitude: form?.latitude,
         longitude: form?.longitude,
-        contactPerson: form?.contactPerson,
-        contactPhone: form?.contactPhone,
-      }),
+        primary_contact_name:
+          (form?.primary_contact_name as string) || undefined,
+        primary_contact_phone:
+          (form?.primary_contact_phone as string) || undefined,
+        address: {
+          country: "Uzbekistan",
+          region: region || "Toshkent viloyati",
+          city,
+          street: (form?.street as string) || "",
+          building: (form?.building as string) || "1",
+        },
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
       toast.success("Location updated");
@@ -134,38 +160,66 @@ export default function LocationDetailPage() {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">
+                  {t("address") || "Улица"} *
+                </label>
+                <Input
+                  value={form.street as string}
+                  onChange={(e) =>
+                    setForm({ ...form, street: e.target.value })
+                  }
+                  placeholder="Amir Temur ko'chasi"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Здание</label>
+                <Input
+                  value={form.building as string}
+                  onChange={(e) =>
+                    setForm({ ...form, building: e.target.value })
+                  }
+                  placeholder="15A"
+                  className="mt-1"
+                />
+              </div>
+            </div>
             <div>
-              <label className="text-sm font-medium">
-                {t("address") || "Address"}
-              </label>
+              <label className="text-sm font-medium">Регион</label>
               <Input
-                value={form.address as string}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                value={form.region as string}
+                onChange={(e) =>
+                  setForm({ ...form, region: e.target.value })
+                }
+                placeholder="Toshkent viloyati"
                 className="mt-1"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">
-                  {t("contactPerson") || "Contact"}
+                  {t("contactPerson") || "Контактное лицо"}
                 </label>
                 <Input
-                  value={form.contactPerson as string}
+                  value={form.primary_contact_name as string}
                   onChange={(e) =>
-                    setForm({ ...form, contactPerson: e.target.value })
+                    setForm({ ...form, primary_contact_name: e.target.value })
                   }
                   className="mt-1"
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  {t("phone") || "Phone"}
+                  {t("phone") || "Телефон"}
                 </label>
                 <Input
-                  value={form.contactPhone as string}
+                  value={form.primary_contact_phone as string}
                   onChange={(e) =>
-                    setForm({ ...form, contactPhone: e.target.value })
+                    setForm({ ...form, primary_contact_phone: e.target.value })
                   }
+                  placeholder="+998901234567"
                   className="mt-1"
                 />
               </div>
