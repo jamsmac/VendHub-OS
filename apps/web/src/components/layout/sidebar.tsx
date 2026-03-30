@@ -30,7 +30,6 @@ import {
   Database,
   Navigation,
   Route,
-  Gift,
   Map,
   Wallet,
   Cog,
@@ -54,6 +53,12 @@ import {
   Code2,
   UserPlus,
   Menu,
+  Banknote,
+  Trophy,
+  Ticket,
+  Swords,
+  Share2,
+  History,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMemo, useState, useCallback } from "react";
@@ -276,7 +281,7 @@ export const navigation: NavItem[] = [
   {
     nameKey: "counterparty",
     fallback: "Counterparties",
-    href: "/dashboard/counterparty",
+    href: "/dashboard/counterparties",
     icon: Building2,
     roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
     section: "finance",
@@ -313,6 +318,22 @@ export const navigation: NavItem[] = [
     roles: FINANCE,
     section: "finance",
   },
+  {
+    nameKey: "payoutRequests",
+    fallback: "Payout Requests",
+    href: "/dashboard/payout-requests",
+    icon: Banknote,
+    roles: [...FINANCE, UserRole.MANAGER, UserRole.OPERATOR],
+    section: "finance",
+  },
+  {
+    nameKey: "purchaseHistory",
+    fallback: "Purchase History",
+    href: "/dashboard/purchase-history",
+    icon: History,
+    roles: [...MANAGEMENT, UserRole.ACCOUNTANT],
+    section: "finance",
+  },
 
   // ── Marketing & Sales ─────────────────────────────────────
   {
@@ -336,6 +357,38 @@ export const navigation: NavItem[] = [
     fallback: "Loyalty & Promo",
     href: "/dashboard/loyalty",
     icon: Star,
+    roles: MANAGEMENT,
+    section: "marketing",
+  },
+  {
+    nameKey: "achievements",
+    fallback: "Achievements",
+    href: "/dashboard/achievements",
+    icon: Trophy,
+    roles: MANAGEMENT,
+    section: "marketing",
+  },
+  {
+    nameKey: "promoCodes",
+    fallback: "Promo Codes",
+    href: "/dashboard/promo-codes",
+    icon: Ticket,
+    roles: MANAGEMENT,
+    section: "marketing",
+  },
+  {
+    nameKey: "quests",
+    fallback: "Quests",
+    href: "/dashboard/quests",
+    icon: Swords,
+    roles: MANAGEMENT,
+    section: "marketing",
+  },
+  {
+    nameKey: "referrals",
+    fallback: "Referrals",
+    href: "/dashboard/referrals",
+    icon: Share2,
     roles: MANAGEMENT,
     section: "marketing",
   },
@@ -429,14 +482,6 @@ export const navigation: NavItem[] = [
     href: "/dashboard/map",
     icon: Map,
     roles: [...OPERATIONS, UserRole.WAREHOUSE],
-    section: "admin",
-  },
-  {
-    nameKey: "loyalty",
-    fallback: "Loyalty",
-    href: "/dashboard/loyalty",
-    icon: Gift,
-    roles: MANAGEMENT,
     section: "admin",
   },
 
