@@ -281,6 +281,29 @@ describe("PayoutRequestsService", () => {
         }),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it("should throw BadRequestException when reviewer is the requester (self-approval)", async () => {
+      const pending = makePayout({
+        status: PayoutRequestStatus.PENDING,
+        requestedById: userId,
+      });
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue({ ...pending }),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
+
+      await expect(
+        service.review("payout-uuid-1", orgId, userId, {
+          action: ReviewAction.APPROVE,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   // ==========================================================================
@@ -334,31 +357,58 @@ describe("PayoutRequestsService", () => {
   describe("remove", () => {
     it("should soft-delete a PENDING request", async () => {
       const pending = makePayout({ status: PayoutRequestStatus.PENDING });
-      mockRepo.findOne.mockResolvedValue(pending);
-      mockRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue({ ...pending }),
+        softDelete: jest.fn().mockResolvedValue({ affected: 1 }),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
 
       await service.remove("payout-uuid-1", orgId);
 
-      expect(mockRepo.softDelete).toHaveBeenCalledWith("payout-uuid-1");
+      expect(mockTxRepo.softDelete).toHaveBeenCalledWith("payout-uuid-1");
     });
 
     it("should soft-delete a CANCELLED request", async () => {
       const cancelled = makePayout({
         status: PayoutRequestStatus.CANCELLED,
       });
-      mockRepo.findOne.mockResolvedValue(cancelled);
-      mockRepo.softDelete.mockResolvedValue({ affected: 1 } as any);
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue({ ...cancelled }),
+        softDelete: jest.fn().mockResolvedValue({ affected: 1 }),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
 
       await service.remove("payout-uuid-1", orgId);
 
-      expect(mockRepo.softDelete).toHaveBeenCalledWith("payout-uuid-1");
+      expect(mockTxRepo.softDelete).toHaveBeenCalledWith("payout-uuid-1");
     });
 
     it("should throw BadRequestException for COMPLETED request", async () => {
       const completed = makePayout({
         status: PayoutRequestStatus.COMPLETED,
       });
-      mockRepo.findOne.mockResolvedValue(completed);
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue({ ...completed }),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
 
       await expect(service.remove("payout-uuid-1", orgId)).rejects.toThrow(
         BadRequestException,
@@ -369,10 +419,36 @@ describe("PayoutRequestsService", () => {
       const approved = makePayout({
         status: PayoutRequestStatus.APPROVED,
       });
-      mockRepo.findOne.mockResolvedValue(approved);
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue({ ...approved }),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
 
       await expect(service.remove("payout-uuid-1", orgId)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it("should throw NotFoundException when payout does not exist", async () => {
+      const mockTxRepo = {
+        findOne: jest.fn().mockResolvedValue(null),
+      };
+
+      mockDataSource.transaction.mockImplementation(async (callback) => {
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue(mockTxRepo),
+        };
+        return callback(mockManager as any);
+      });
+
+      await expect(service.remove("nonexistent", orgId)).rejects.toThrow(
+        NotFoundException,
       );
     });
   });

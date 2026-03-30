@@ -121,6 +121,16 @@ export class PayoutRequestsService {
         throw new NotFoundException(`Payout request ${id} not found`);
       }
 
+      // SECURITY: Prevent self-approval of payout requests
+      if (request.requestedById === reviewerId) {
+        this.logger.warn(
+          `[SECURITY] Self-review attempt: user ${reviewerId} tried to ${dto.action} own payout ${id}`,
+        );
+        throw new BadRequestException(
+          "Cannot review a payout request that you created. A different reviewer is required.",
+        );
+      }
+
       if (request.status !== PayoutRequestStatus.PENDING) {
         throw new BadRequestException(
           `Cannot review payout request in status "${request.status}". Only PENDING requests can be reviewed.`,
@@ -206,7 +216,11 @@ export class PayoutRequestsService {
       }
 
       request.status = PayoutRequestStatus.PROCESSING;
-      return repo.save(request);
+      const saved = await repo.save(request);
+      this.logger.log(
+        `Payout request ${id} moved to PROCESSING (amount: ${request.amount} UZS)`,
+      );
+      return saved;
     });
   }
 
@@ -241,27 +255,45 @@ export class PayoutRequestsService {
       request.status = PayoutRequestStatus.COMPLETED;
       request.completedAt = new Date();
       request.transactionReference = transactionReference;
-      return repo.save(request);
+      const saved = await repo.save(request);
+      this.logger.log(
+        `Payout request ${id} COMPLETED (amount: ${request.amount} UZS, txRef: ${transactionReference})`,
+      );
+      return saved;
     });
   }
 
   /**
    * Soft-delete a payout request.
    * Only PENDING or CANCELLED requests can be deleted.
+   * Uses pessimistic lock to prevent race conditions.
    */
   async remove(id: string, organizationId: string) {
-    const request = await this.findById(id, organizationId);
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(PayoutRequest);
+      const request = await repo.findOne({
+        where: { id, organizationId },
+        lock: { mode: "pessimistic_write" },
+      });
 
-    if (
-      request.status !== PayoutRequestStatus.PENDING &&
-      request.status !== PayoutRequestStatus.CANCELLED
-    ) {
-      throw new BadRequestException(
-        `Cannot delete payout request in status "${request.status}". Only PENDING or CANCELLED requests can be deleted.`,
+      if (!request) {
+        throw new NotFoundException(`Payout request ${id} not found`);
+      }
+
+      if (
+        request.status !== PayoutRequestStatus.PENDING &&
+        request.status !== PayoutRequestStatus.CANCELLED
+      ) {
+        throw new BadRequestException(
+          `Cannot delete payout request in status "${request.status}". Only PENDING or CANCELLED requests can be deleted.`,
+        );
+      }
+
+      await repo.softDelete(id);
+      this.logger.log(
+        `Payout request ${id} soft-deleted (was ${request.status})`,
       );
-    }
-
-    await this.repo.softDelete(id);
+    });
   }
 
   /**
@@ -278,10 +310,14 @@ export class PayoutRequestsService {
       .groupBy("pr.status")
       .getRawMany();
 
-    return result.map((row) => ({
-      status: row.status,
-      count: parseInt(row.count, 10),
-      totalAmount: parseFloat(row.totalAmount),
-    }));
+    return result.map((row) => {
+      const count = parseInt(row.count, 10);
+      const totalAmount = parseFloat(row.totalAmount);
+      return {
+        status: row.status,
+        count: isNaN(count) ? 0 : count,
+        totalAmount: isNaN(totalAmount) ? 0 : totalAmount,
+      };
+    });
   }
 }

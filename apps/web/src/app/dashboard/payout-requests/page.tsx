@@ -148,6 +148,20 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === "object") {
+    const axiosErr = error as {
+      response?: { data?: { message?: string | string[] } };
+      message?: string;
+    };
+    const msg = axiosErr.response?.data?.message;
+    if (Array.isArray(msg)) return msg.join("; ");
+    if (typeof msg === "string") return msg;
+    if (typeof axiosErr.message === "string") return axiosErr.message;
+  }
+  return fallback;
+}
+
 // ─── Main Page ──────────────────────────────────────────────────────────────
 
 export default function PayoutRequestsPage() {
@@ -178,7 +192,8 @@ export default function PayoutRequestsPage() {
           toast.success("Запрос одобрен");
           setReviewTarget(null);
         },
-        onError: () => toast.error("Ошибка при одобрении"),
+        onError: (err) =>
+          toast.error(extractErrorMessage(err, "Ошибка при одобрении")),
       },
     );
   };
@@ -186,7 +201,8 @@ export default function PayoutRequestsPage() {
   const handleCancel = (item: PayoutRequestItem) => {
     cancelMutation.mutate(item.id, {
       onSuccess: () => toast.success("Запрос отменён"),
-      onError: () => toast.error("Ошибка при отмене"),
+      onError: (err) =>
+        toast.error(extractErrorMessage(err, "Ошибка при отмене")),
     });
   };
 
@@ -444,7 +460,8 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
   const handleSave = form.handleSubmit((values) => {
     createMutation.mutate(values, {
       onSuccess,
-      onError: () => toast.error("Ошибка при создании запроса"),
+      onError: (err) =>
+        toast.error(extractErrorMessage(err, "Ошибка при создании запроса")),
     });
   });
 
@@ -528,7 +545,8 @@ function RejectForm({
       { id: item.id, action: "reject", comment: values.comment },
       {
         onSuccess,
-        onError: () => toast.error("Ошибка при отклонении"),
+        onError: (err) =>
+          toast.error(extractErrorMessage(err, "Ошибка при отклонении")),
       },
     );
   });
