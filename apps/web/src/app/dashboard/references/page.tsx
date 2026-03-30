@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Plus,
   Search,
@@ -87,6 +90,51 @@ interface PaymentProvider {
   isActive: boolean;
   commissionPercent?: number;
 }
+
+// ─── Form Schemas ───────────────────────────────────────────────────────────
+
+const mxikFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  name: z.string().min(1, "Name is required").max(255),
+  group: z.string().max(100).optional().default(""),
+  parentCode: z.string().max(50).optional().default(""),
+  isActive: z.boolean().default(true),
+});
+type MxikFormValues = z.infer<typeof mxikFormSchema>;
+
+const ikpuFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  name: z.string().min(1, "Name is required").max(255),
+  description: z.string().max(1000).optional().default(""),
+  isActive: z.boolean().default(true),
+});
+type IkpuFormValues = z.infer<typeof ikpuFormSchema>;
+
+const vatFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  name: z.string().min(1, "Name is required").max(255),
+  rate: z.coerce.number().min(0).max(100),
+  sortOrder: z.coerce.number().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+type VatFormValues = z.infer<typeof vatFormSchema>;
+
+const packageFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  name: z.string().min(1, "Name is required").max(255),
+  description: z.string().max(1000).optional().default(""),
+  isActive: z.boolean().default(true),
+});
+type PackageFormValues = z.infer<typeof packageFormSchema>;
+
+const providerFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  name: z.string().min(1, "Name is required").max(255),
+  type: z.string().min(1, "Type is required").max(100),
+  commissionPercent: z.coerce.number().min(0).max(100).default(0),
+  isActive: z.boolean().default(true),
+});
+type ProviderFormValues = z.infer<typeof providerFormSchema>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -375,16 +423,19 @@ function MxikForm({
   onSuccess: () => void;
 }) {
   const t = useTranslations("references");
-  const [form, setForm] = useState({
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    group: item?.group ?? "",
-    parentCode: item?.parentCode ?? "",
-    isActive: item?.isActive ?? true,
+  const form = useForm<MxikFormValues>({
+    resolver: zodResolver(mxikFormSchema),
+    defaultValues: {
+      code: item?.code ?? "",
+      name: item?.name ?? "",
+      group: item?.group ?? "",
+      parentCode: item?.parentCode ?? "",
+      isActive: item?.isActive ?? true,
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
+    mutationFn: (data: MxikFormValues) =>
       item
         ? referencesApi.updateGoodsClassifier(item.id, data)
         : referencesApi.createGoodsClassifier(data),
@@ -395,52 +446,48 @@ function MxikForm({
     onError: () => toast.error(t("messages.error")),
   });
 
+  const handleSave = form.handleSubmit((values) => mutation.mutate(values));
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate(form);
-      }}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>{t("fields.code")}</Label>
-          <Input
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value })}
-            required
-          />
+          <Input {...form.register("code")} />
+          {form.formState.errors.code && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.code.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t("fields.group")}</Label>
-          <Input
-            value={form.group}
-            onChange={(e) => setForm({ ...form, group: e.target.value })}
-          />
+          <Input {...form.register("group")} />
         </div>
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.name")}</Label>
-        <Input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <Input {...form.register("name")} />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.parentCode")}</Label>
         <Input
-          value={form.parentCode}
-          onChange={(e) => setForm({ ...form, parentCode: e.target.value })}
+          {...form.register("parentCode")}
           placeholder={t("fields.parentCodePlaceholder")}
         />
       </div>
       <div className="flex items-center gap-3">
         <Switch
           id="mxik-active"
-          checked={form.isActive}
-          onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+          checked={form.watch("isActive")}
+          onCheckedChange={(v) =>
+            form.setValue("isActive", v, { shouldDirty: true })
+          }
         />
         <Label htmlFor="mxik-active">{t("fields.isActive")}</Label>
       </div>
@@ -575,15 +622,18 @@ function IkpuForm({
   onSuccess: () => void;
 }) {
   const t = useTranslations("references");
-  const [form, setForm] = useState({
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    description: item?.description ?? "",
-    isActive: item?.isActive ?? true,
+  const form = useForm<IkpuFormValues>({
+    resolver: zodResolver(ikpuFormSchema),
+    defaultValues: {
+      code: item?.code ?? "",
+      name: item?.name ?? "",
+      description: item?.description ?? "",
+      isActive: item?.isActive ?? true,
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
+    mutationFn: (data: IkpuFormValues) =>
       item
         ? referencesApi.updateIkpuCode(item.id, data)
         : referencesApi.createIkpuCode(data),
@@ -594,43 +644,42 @@ function IkpuForm({
     onError: () => toast.error(t("messages.error")),
   });
 
+  const handleSave = form.handleSubmit((values) => mutation.mutate(values));
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate(form);
-      }}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSave} className="space-y-4">
       <div className="space-y-1.5">
         <Label>{t("fields.code")}</Label>
-        <Input
-          value={form.code}
-          onChange={(e) => setForm({ ...form, code: e.target.value })}
-          required
-        />
+        <Input {...form.register("code")} />
+        {form.formState.errors.code && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.code.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.name")}</Label>
-        <Input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <Input {...form.register("name")} />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.description")}</Label>
         <Textarea
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          {...form.register("description")}
           className="h-20 resize-none"
         />
       </div>
       <div className="flex items-center gap-3">
         <Switch
           id="ikpu-active"
-          checked={form.isActive}
-          onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+          checked={form.watch("isActive")}
+          onCheckedChange={(v) =>
+            form.setValue("isActive", v, { shouldDirty: true })
+          }
         />
         <Label htmlFor="ikpu-active">{t("fields.isActive")}</Label>
       </div>
@@ -769,16 +818,19 @@ function VatForm({
   onSuccess: () => void;
 }) {
   const t = useTranslations("references");
-  const [form, setForm] = useState({
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    rate: item?.rate ?? 0,
-    sortOrder: item?.sortOrder ?? 0,
-    isActive: item?.isActive ?? true,
+  const form = useForm<VatFormValues>({
+    resolver: zodResolver(vatFormSchema),
+    defaultValues: {
+      code: item?.code ?? "",
+      name: item?.name ?? "",
+      rate: item?.rate ?? 0,
+      sortOrder: item?.sortOrder ?? 0,
+      isActive: item?.isActive ?? true,
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
+    mutationFn: (data: VatFormValues) =>
       item
         ? referencesApi.updateVatRate(item.id, data)
         : referencesApi.createVatRate(data),
@@ -789,22 +841,19 @@ function VatForm({
     onError: () => toast.error(t("messages.error")),
   });
 
+  const handleSave = form.handleSubmit((values) => mutation.mutate(values));
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate(form);
-      }}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>{t("fields.code")}</Label>
-          <Input
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value })}
-            required
-          />
+          <Input {...form.register("code")} />
+          {form.formState.errors.code && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.code.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t("fields.rate")}</Label>
@@ -813,38 +862,35 @@ function VatForm({
             min={0}
             max={100}
             step={0.01}
-            value={form.rate}
-            onChange={(e) =>
-              setForm({ ...form, rate: parseFloat(e.target.value) || 0 })
-            }
-            required
+            {...form.register("rate")}
           />
+          {form.formState.errors.rate && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.rate.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.name")}</Label>
-        <Input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <Input {...form.register("name")} />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.sortOrder")}</Label>
-        <Input
-          type="number"
-          min={0}
-          value={form.sortOrder}
-          onChange={(e) =>
-            setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })
-          }
-        />
+        <Input type="number" min={0} {...form.register("sortOrder")} />
       </div>
       <div className="flex items-center gap-3">
         <Switch
           id="vat-active"
-          checked={form.isActive}
-          onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+          checked={form.watch("isActive")}
+          onCheckedChange={(v) =>
+            form.setValue("isActive", v, { shouldDirty: true })
+          }
         />
         <Label htmlFor="vat-active">{t("fields.isActive")}</Label>
       </div>
@@ -979,15 +1025,18 @@ function PackageForm({
   onSuccess: () => void;
 }) {
   const t = useTranslations("references");
-  const [form, setForm] = useState({
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    description: item?.description ?? "",
-    isActive: item?.isActive ?? true,
+  const form = useForm<PackageFormValues>({
+    resolver: zodResolver(packageFormSchema),
+    defaultValues: {
+      code: item?.code ?? "",
+      name: item?.name ?? "",
+      description: item?.description ?? "",
+      isActive: item?.isActive ?? true,
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
+    mutationFn: (data: PackageFormValues) =>
       item
         ? referencesApi.updatePackageType(item.id, data)
         : referencesApi.createPackageType(data),
@@ -998,43 +1047,42 @@ function PackageForm({
     onError: () => toast.error(t("messages.error")),
   });
 
+  const handleSave = form.handleSubmit((values) => mutation.mutate(values));
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate(form);
-      }}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSave} className="space-y-4">
       <div className="space-y-1.5">
         <Label>{t("fields.code")}</Label>
-        <Input
-          value={form.code}
-          onChange={(e) => setForm({ ...form, code: e.target.value })}
-          required
-        />
+        <Input {...form.register("code")} />
+        {form.formState.errors.code && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.code.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.name")}</Label>
-        <Input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <Input {...form.register("name")} />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.description")}</Label>
         <Textarea
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          {...form.register("description")}
           className="h-20 resize-none"
         />
       </div>
       <div className="flex items-center gap-3">
         <Switch
           id="pkg-active"
-          checked={form.isActive}
-          onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+          checked={form.watch("isActive")}
+          onCheckedChange={(v) =>
+            form.setValue("isActive", v, { shouldDirty: true })
+          }
         />
         <Label htmlFor="pkg-active">{t("fields.isActive")}</Label>
       </div>
@@ -1182,16 +1230,19 @@ function ProviderForm({
   onSuccess: () => void;
 }) {
   const t = useTranslations("references");
-  const [form, setForm] = useState({
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    type: item?.type ?? "",
-    commissionPercent: item?.commissionPercent ?? 0,
-    isActive: item?.isActive ?? true,
+  const form = useForm<ProviderFormValues>({
+    resolver: zodResolver(providerFormSchema),
+    defaultValues: {
+      code: item?.code ?? "",
+      name: item?.name ?? "",
+      type: item?.type ?? "",
+      commissionPercent: item?.commissionPercent ?? 0,
+      isActive: item?.isActive ?? true,
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
+    mutationFn: (data: ProviderFormValues) =>
       item
         ? referencesApi.updatePaymentProvider(item.id, data)
         : referencesApi.createPaymentProvider(data),
@@ -1202,40 +1253,41 @@ function ProviderForm({
     onError: () => toast.error(t("messages.error")),
   });
 
+  const handleSave = form.handleSubmit((values) => mutation.mutate(values));
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate(form);
-      }}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>{t("fields.code")}</Label>
-          <Input
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value })}
-            required
-          />
+          <Input {...form.register("code")} />
+          {form.formState.errors.code && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.code.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t("fields.type")}</Label>
           <Input
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            {...form.register("type")}
             placeholder={t("fields.typePlaceholder")}
-            required
           />
+          {form.formState.errors.type && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.type.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.name")}</Label>
-        <Input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <Input {...form.register("name")} />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label>{t("fields.commission")}</Label>
@@ -1244,20 +1296,16 @@ function ProviderForm({
           min={0}
           max={100}
           step={0.01}
-          value={form.commissionPercent}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              commissionPercent: parseFloat(e.target.value) || 0,
-            })
-          }
+          {...form.register("commissionPercent")}
         />
       </div>
       <div className="flex items-center gap-3">
         <Switch
           id="provider-active"
-          checked={form.isActive}
-          onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+          checked={form.watch("isActive")}
+          onCheckedChange={(v) =>
+            form.setValue("isActive", v, { shouldDirty: true })
+          }
         />
         <Label htmlFor="provider-active">{t("fields.isActive")}</Label>
       </div>

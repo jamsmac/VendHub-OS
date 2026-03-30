@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~99.8%** (updated from 99.7%)
+**Readiness: ~99.9%** (updated from 99.8%)
 
 ### Landing Site (site app)
 
@@ -629,8 +629,13 @@ Full audit of 40+ dashboard form pages. 18 forms had field mapping bugs, all fix
 | `loyalty/quests/page.tsx`       | 12     | Dialog create/edit with 3 enum Controllers (period, type, difficulty) |
 | `organizations/page.tsx`        | 16     | Sub-component `OrganizationForm`, camelCase→snake_case DTO mapping    |
 
-**Remaining useState forms (lowest priority — complex multi-tab reference pages):**
-references (1253 lines, 5+ sub-forms across tabs)
+**Batch 3 — References page (2026-03-31, commit TBD):**
+
+| Page                  | Forms | Notes                                                                     |
+| --------------------- | ----- | ------------------------------------------------------------------------- |
+| `references/page.tsx` | 5     | MxikForm, IkpuForm, VatForm, PackageForm, ProviderForm — all dialog-based |
+
+All dashboard forms are now migrated to RHF+Zod. No remaining useState forms.
 
 ### Complaints Settings CRUD Endpoint (2026-03-31)
 
