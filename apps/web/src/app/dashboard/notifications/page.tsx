@@ -278,13 +278,38 @@ export default function NotificationsPage() {
 
   const createTemplateMutation = useMutation({
     mutationFn: async (data: Partial<NotificationTemplate>) => {
+      // Map frontend fields → backend CreateNotificationTemplateDto
+      const payload: Record<string, unknown> = {
+        name: data.name,
+        type: data.type,
+        titleRu: data.subject || data.name || "",
+        bodyRu: data.body || "",
+        defaultChannels: data.channels,
+        isActive: data.is_active,
+        ...(data.variables && data.variables.length > 0
+          ? {
+              availableVariables: data.variables.map((v) => ({
+                name: v,
+                description: v,
+                required: false,
+              })),
+            }
+          : {}),
+      };
+      // code is required for create, generate from name
+      if (!editingTemplate) {
+        payload.code = (data.name || "TEMPLATE")
+          .toUpperCase()
+          .replace(/[^A-Z0-9]+/g, "_")
+          .slice(0, 50);
+      }
       if (editingTemplate) {
         return api.patch(
           `/notifications/templates/${editingTemplate.id}`,
-          data,
+          payload,
         );
       }
-      return api.post("/notifications/templates", data);
+      return api.post("/notifications/templates", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-templates"] });
@@ -342,7 +367,7 @@ export default function NotificationsPage() {
       id: string;
       is_active: boolean;
     }) => {
-      await api.patch(`/notifications/rules/${id}`, { is_active });
+      await api.patch(`/notifications/rules/${id}`, { isActive: is_active });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
@@ -367,14 +392,29 @@ export default function NotificationsPage() {
   });
 
   const createCampaignMutation = useMutation({
-    mutationFn: async (data: Partial<NotificationCampaign>) => {
+    mutationFn: async (data: Record<string, unknown>) => {
+      // Map frontend fields → backend CreateCampaignDto
+      const audienceFilter = (data.audience_filter as string) || "all";
+      const payload: Record<string, unknown> = {
+        name: data.name,
+        title: data.name, // use campaign name as title
+        body: data.message || "",
+        channels: data.channels,
+        targetType: audienceFilter === "all" ? "all" : "role",
+        ...(audienceFilter !== "all"
+          ? { targetRoles: [audienceFilter] }
+          : {}),
+        ...(data.scheduled_at
+          ? { scheduledFor: new Date(data.scheduled_at as string).toISOString() }
+          : {}),
+      };
       if (editingCampaign) {
         return api.patch(
           `/notifications/campaigns/${editingCampaign.id}`,
-          data,
+          payload,
         );
       }
-      return api.post("/notifications/campaigns", data);
+      return api.post("/notifications/campaigns", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-campaigns"] });
@@ -409,7 +449,16 @@ export default function NotificationsPage() {
       channels: ChannelSettings;
       preferences: TypeChannelPreferences;
     }) => {
-      await api.post("/notifications/settings", data);
+      // Map frontend settings → backend UpdateNotificationSettingsDto
+      const payload = {
+        pushEnabled: data.channels.push,
+        emailEnabled: data.channels.email,
+        smsEnabled: data.channels.sms,
+        telegramEnabled: data.channels.telegram,
+        inAppEnabled: data.channels.in_app,
+        typeSettings: data.preferences,
+      };
+      await api.post("/notifications/settings", payload);
     },
     onSuccess: () => {
       toast.success(t("toast_settings_saved"));

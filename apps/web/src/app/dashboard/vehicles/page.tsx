@@ -729,7 +729,7 @@ function OdometerForm({
 
   const mutation = useMutation({
     mutationFn: (value: number) =>
-      vehiclesApi.updateOdometer(vehicle.id, { currentOdometer: value }),
+      vehiclesApi.updateOdometer(vehicle.id, { odometer: value }),
     onSuccess: () => {
       toast.success(t("messages.odometerUpdated"));
       onSuccess();
