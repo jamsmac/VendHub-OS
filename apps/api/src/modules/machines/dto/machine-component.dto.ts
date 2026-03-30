@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNumber,
   IsDate,
+  IsObject,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -58,4 +59,12 @@ export class InstallComponentDto {
   @IsNumber()
   @Min(0)
   expectedLifeHours?: number;
+
+  @ApiPropertyOptional({
+    description: 'Additional metadata (e.g. SIM provider, phone number, tariff)',
+    example: { provider: 'Ucell', phoneNumber: '+998901234567', tariffPlan: 'Business 5GB' },
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
 }

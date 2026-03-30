@@ -1,0 +1,51 @@
+%% E2. Реферальная программа (Referrals)
+%% Источник: referrals/referrals.service.ts, referrals/entities/referral.entity.ts
+stateDiagram-v2
+    [*] --> PENDING : Реферал зарегистрировался\nпо коду приглашающего
+
+    PENDING --> ACTIVATED : Реферал сделал\nпервый заказ\n(@OnEvent order.completed)
+    PENDING --> CANCELLED : Аккаунт удалён\nили мошенничество
+
+    ACTIVATED --> REWARDED : Бонусы начислены\nобоим участникам
+
+    REWARDED --> [*] : ✓ Завершено
+    CANCELLED --> [*]
+
+---
+
+flowchart TD
+    subgraph GET_CODE ["1. Получение реф-кода"]
+        GC1(["Пользователь запрашивает\nсвой реферальный код"]) --> GC2{"Код уже есть?"}
+        GC2 -->|"Да"| GC3["Возврат существующего\nreferralCode"]
+        GC2 -->|"Нет"| GC4["generateUniqueCode():\n6 символов (A-Z, 0-9)\nПроверка уникальности"]
+        GC4 --> GC5["Сохранение в User\n→ Возврат кода + shareUrl:\nhttps://vendhub.uz/ref/{code}"]
+    end
+
+    subgraph APPLY ["2. Применение кода"]
+        AP1(["Новый пользователь\nвводит реферальный код"]) --> AP2["Поиск User по referralCode"]
+        AP2 --> AP3{"Код найден?"}
+        AP3 -->|"Нет"| AP_ERR1["404: Referral code not found"]
+        AP3 -->|"Да"| AP4{"Self-referral?\n(referrerId == userId)"}
+        AP4 -->|"Да"| AP_ERR2["400: Cannot refer yourself"]
+        AP4 -->|"Нет"| AP5{"Уже есть Referral\nдля этого userId?"}
+        AP5 -->|"Да"| AP_ERR3["409: Already referred"]
+        AP5 -->|"Нет"| AP6["Создание Referral:\nreferrerId, referredUserId,\nstatus: PENDING"]
+    end
+
+    subgraph ACTIVATE ["3. Активация (event-driven)"]
+        AC1(["@OnEvent: order.completed\nreferredUserId сделал заказ"]) --> AC2["Поиск Referral\nstatus: PENDING"]
+        AC2 --> AC3{"Найден?"}
+        AC3 -->|"Нет"| AC_SKIP["Пропуск (не реферал)"]
+        AC3 -->|"Да"| AC4["activateReferral():\nstatus: ACTIVATED"]
+        AC4 --> AC5["Начисление бонусов\nчерез LoyaltyService:"]
+        AC5 --> AC6["Referrer получает:\nLOYALTY_BONUSES.referral\n(source: REFERRAL)"]
+        AC5 --> AC7["Referred получает:\nLOYALTY_BONUSES.referred_welcome\n(source: REFERRAL)"]
+        AC6 --> AC8["status: REWARDED\nrewardedAt: now"]
+        AC7 --> AC8
+    end
+
+    subgraph STATS ["4. Статистика"]
+        ST1["getReferralSummary(userId):\ntotalReferred, totalActivated,\ntotalRewarded, totalPointsEarned"]
+        ST2["getStats(organizationId):\nconversionRate, avgTimeToActivation,\ntopReferrers[]"]
+        ST3["getUserReferrals(userId):\nсписок приглашённых\nс их статусами"]
+    end

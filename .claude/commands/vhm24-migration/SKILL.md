@@ -16,10 +16,10 @@ description: "VendHub Module Migration - перенос модулей из VHM2
 
 | Что                   | Путь                                                                                     |
 | --------------------- | ---------------------------------------------------------------------------------------- |
-| Источник (VHM24-repo) | `/Users/js/Мой диск/3.VendHub/VHM24/VHM24-repo/backend/src/modules/`                     |
-| Цель (VendHub OS)     | `vendhub-unified/apps/api/src/modules/`                                                  |
-| План миграции         | `MIGRATION_PLAN_v4.md`                                                                   |
-| Мастер-данные         | `/Users/js/Мой диск/3.VendHub/VHM24/Master Data/VHM24_Master_Data_Specification_v1.0.md` |
+| Источник (VHM24-repo) | VHM24-repo (если доступен, путь указать вручную)  |
+| Цель (VendHub OS)     | `apps/api/src/modules/` (относительно корня монорепо) |
+| План миграции         | `MIGRATION_PLAN_v4.md` (в корне VendHub OS)          |
+| Мастер-данные         | `docs/specs/` (в корне VendHub OS)                   |
 
 ## Стратегии миграции
 

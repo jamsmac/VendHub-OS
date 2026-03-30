@@ -1,0 +1,43 @@
+%% B13. B2C клиентский поток
+%% Источник: client/client.service.ts, recommendations/recommendations.service.ts
+flowchart TD
+    START(["Клиент открывает\nPWA / Telegram Bot"]) --> REG{"Зарегистрирован?"}
+
+    REG -->|"Нет"| REGISTER["Регистрация ClientUser:\ntelegramId / phone / email"]
+    REG -->|"Да"| LOGIN["Авторизация:\nTelegram Auth / JWT"]
+
+    REGISTER --> CREATE_WALLET["Автосоздание:\n• ClientWallet (balance: 0)\n• ClientLoyaltyAccount\n  (level: BRONZE, points: 0)"]
+    CREATE_WALLET --> MAIN_MENU
+
+    LOGIN --> MAIN_MENU(["Главное меню"])
+
+    MAIN_MENU --> TOPUP["Пополнение кошелька\n(TopUpWalletDto)"]
+    MAIN_MENU --> CATALOG["Каталог автоматов\n+ Рекомендации"]
+    MAIN_MENU --> HISTORY["История покупок"]
+    MAIN_MENU --> LOYALTY_VIEW["Мои бонусы / уровень"]
+
+    TOPUP --> TOPUP_METHOD{"Метод?"}
+    TOPUP_METHOD -->|"Payme"| TOPUP_PAYME["Payme checkout\n→ webhook → пополнение"]
+    TOPUP_METHOD -->|"Click"| TOPUP_CLICK["Click checkout"]
+    TOPUP_METHOD -->|"Uzum"| TOPUP_UZUM["Uzum checkout"]
+    TOPUP_PAYME --> WALLET_UPDATE["ClientWalletLedger:\ntype: TOPUP, amount\n→ wallet.balance += amount"]
+    TOPUP_CLICK --> WALLET_UPDATE
+    TOPUP_UZUM --> WALLET_UPDATE
+
+    CATALOG --> RECS["RecommendationsService:\nFREQUENTLY_BOUGHT,\nPOPULAR_NOW,\nSAME_CATEGORY,\nPERSONALIZED"]
+    RECS --> SELECT["Выбор товара\nна конкретном автомате"]
+
+    SELECT --> ORDER["Создание ClientOrder:\nstatus: PENDING\nitems[], machineId"]
+    ORDER --> PAY{"Оплата?"}
+
+    PAY -->|"Кошелёк"| PAY_WALLET["Списание с ClientWallet\nClientWalletLedger: PURCHASE"]
+    PAY -->|"Бонусы"| PAY_BONUS["Списание LoyaltyPoints\nClientLoyaltyLedger: REDEMPTION"]
+    PAY -->|"Онлайн"| PAY_ONLINE["Redirect на\nплатёжный шлюз"]
+
+    PAY_WALLET --> ORDER_PAID["ClientPayment:\nstatus: COMPLETED"]
+    PAY_BONUS --> ORDER_PAID
+    PAY_ONLINE --> ORDER_PAID
+
+    ORDER_PAID --> DISPENSE["Команда на выдачу\nавтомату"]
+    DISPENSE --> EARN["Начисление бонусов:\nLoyaltyLedger: PURCHASE_REWARD\npoints = amount × multiplier"]
+    EARN --> COMPLETE(["✓ Заказ выполнен\nClientOrder: COMPLETED"])

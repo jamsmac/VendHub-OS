@@ -431,14 +431,14 @@ describe("InventoryController (unit)", () => {
   // ==========================================================================
 
   describe("confirmReservation", () => {
-    it("should call confirmReservation with id and adjustedQuantity", async () => {
+    it("should call confirmReservation with id, adjustedQuantity, and organizationId", async () => {
       const dto = { adjustedQuantity: 3 } as any;
       const mockRes = { id: "res-1" };
       mockInventoryService.confirmReservation.mockResolvedValue(mockRes);
 
-      const result = await controller.confirmReservation("res-1", dto);
+      const result = await controller.confirmReservation("res-1", dto, "org-1");
 
-      expect(mockInventoryService.confirmReservation).toHaveBeenCalledWith("res-1", 3);
+      expect(mockInventoryService.confirmReservation).toHaveBeenCalledWith("res-1", 3, "org-1");
       expect(result).toEqual(mockRes);
     });
 
@@ -446,9 +446,9 @@ describe("InventoryController (unit)", () => {
       const dto = {} as any;
       mockInventoryService.confirmReservation.mockResolvedValue({ id: "res-1" });
 
-      await controller.confirmReservation("res-1", dto);
+      await controller.confirmReservation("res-1", dto, "org-1");
 
-      expect(mockInventoryService.confirmReservation).toHaveBeenCalledWith("res-1", undefined);
+      expect(mockInventoryService.confirmReservation).toHaveBeenCalledWith("res-1", undefined, "org-1");
     });
   });
 
@@ -457,15 +457,15 @@ describe("InventoryController (unit)", () => {
   // ==========================================================================
 
   describe("fulfillReservation", () => {
-    it("should call fulfillReservation with id, quantity, userId", async () => {
+    it("should call fulfillReservation with id, quantity, userId, and organizationId", async () => {
       const user = makeUser();
       const dto = { fulfilledQuantity: 5 } as any;
       const mockRes = { id: "res-1" };
       mockInventoryService.fulfillReservation.mockResolvedValue(mockRes);
 
-      const result = await controller.fulfillReservation("res-1", dto, user as any);
+      const result = await controller.fulfillReservation("res-1", dto, user as any, "org-1");
 
-      expect(mockInventoryService.fulfillReservation).toHaveBeenCalledWith("res-1", 5, "user-1");
+      expect(mockInventoryService.fulfillReservation).toHaveBeenCalledWith("res-1", 5, "user-1", "org-1");
       expect(result).toEqual(mockRes);
     });
   });
@@ -475,18 +475,19 @@ describe("InventoryController (unit)", () => {
   // ==========================================================================
 
   describe("cancelReservation", () => {
-    it("should call cancelReservation with id, reason, userId", async () => {
+    it("should call cancelReservation with id, reason, userId, and organizationId", async () => {
       const user = makeUser();
       const dto = { reason: "Task cancelled" } as any;
       const mockRes = { id: "res-1" };
       mockInventoryService.cancelReservation.mockResolvedValue(mockRes);
 
-      const result = await controller.cancelReservation("res-1", dto, user as any);
+      const result = await controller.cancelReservation("res-1", dto, user as any, "org-1");
 
       expect(mockInventoryService.cancelReservation).toHaveBeenCalledWith(
         "res-1",
         "Task cancelled",
         "user-1",
+        "org-1",
       );
       expect(result).toEqual(mockRes);
     });
@@ -496,12 +497,13 @@ describe("InventoryController (unit)", () => {
       const dto = {} as any;
       mockInventoryService.cancelReservation.mockResolvedValue({ id: "res-1" });
 
-      await controller.cancelReservation("res-1", dto, user as any);
+      await controller.cancelReservation("res-1", dto, user as any, "org-1");
 
       expect(mockInventoryService.cancelReservation).toHaveBeenCalledWith(
         "res-1",
         undefined,
         "user-1",
+        "org-1",
       );
     });
   });

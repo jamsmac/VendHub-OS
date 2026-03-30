@@ -1,0 +1,42 @@
+%% D1. Рекомендации товаров
+%% Источник: recommendations/recommendations.service.ts
+flowchart TD
+    REQ(["Запрос рекомендаций:\nRecommendationContext"]) --> CACHE{"Cache hit?\n(TTL: 5 мин)"}
+
+    CACHE -->|"Да"| CACHED["Возврат из cache"]
+    CACHE -->|"Нет"| CONTEXT["Парсинг контекста:\nuserId?, machineId?,\ncategoryId?, timeOfDay?,\nlimit = 10"]
+
+    CONTEXT --> PARALLEL["Параллельный запуск стратегий:"]
+
+    PARALLEL --> S1["FREQUENTLY_BOUGHT:\nТоп товары этого пользователя\n(по истории Order)"]
+    PARALLEL --> S2["BASED_ON_HISTORY:\nПохожие товары на\nпоследние покупки"]
+    PARALLEL --> S3["POPULAR_NOW:\nТренды за последние 24ч\n(по всем пользователям)"]
+    PARALLEL --> S4["SIMILAR_USERS:\nКоллаборативная фильтрация\n(похожие покупатели)"]
+    PARALLEL --> S5["SAME_CATEGORY:\nТовары той же категории\nчто последняя покупка"]
+    PARALLEL --> S6["COMPLEMENTARY:\nДополняющие товары\n(часто покупают вместе)"]
+    PARALLEL --> S7["NEW_ARRIVAL:\nНовые товары\n(createdAt < 30 дней)"]
+    PARALLEL --> S8["ON_SALE:\nТовары со скидками\n(activePromotion)"]
+    PARALLEL --> S9["TRENDING:\nРастущие продажи\n(vs прошлая неделя)"]
+    PARALLEL --> S10["PERSONALIZED:\nНа основе timeOfDay\n(утро → кофе, вечер → снеки)"]
+
+    S1 --> MERGE["Merge + Score:\nкаждый товар получает score\nна основе стратегии + weight"]
+    S2 --> MERGE
+    S3 --> MERGE
+    S4 --> MERGE
+    S5 --> MERGE
+    S6 --> MERGE
+    S7 --> MERGE
+    S8 --> MERGE
+    S9 --> MERGE
+    S10 --> MERGE
+
+    MERGE --> DEDUP["Дедупликация:\nесли товар из нескольких\nстратегий → суммирование score"]
+    DEDUP --> SORT["Сортировка по score DESC"]
+    SORT --> LIMIT["Ограничение: limit items"]
+    LIMIT --> SAVE_CACHE["Сохранение в cache\n(TTL: 5 мин)"]
+    SAVE_CACHE --> RESULT(["RecommendedProduct[]:\nproduct, score,\nreason, reasonText"])
+
+    subgraph CRON_POPULAR ["Cron: каждый час"]
+        CP1["Пересчёт POPULAR_NOW\nдля каждого machineId"]
+        CP2["Обновление cache\nprefix: recommendations:popular:"]
+    end

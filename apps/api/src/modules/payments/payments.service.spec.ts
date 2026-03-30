@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 
 import { PaymentsService, PaymeWebhookData } from "./payments.service";
+import { MetricsService } from "../metrics/metrics.service";
 import { PaymeHandler } from "./payme.handler";
 import { ClickHandler } from "./click.handler";
 import { UzumHandler } from "./uzum.handler";
@@ -143,6 +144,14 @@ describe("PaymentsService", () => {
                 }),
               }),
             ),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            incrementCounter: jest.fn(),
+            recordHistogram: jest.fn(),
+            recordGauge: jest.fn(),
           },
         },
       ],

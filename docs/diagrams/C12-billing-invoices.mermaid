@@ -1,0 +1,44 @@
+%% C12. Биллинг: инвойсы
+%% Источник: billing/billing.service.ts
+stateDiagram-v2
+    [*] --> DRAFT : Создание инвойса\n(auto-номер, items, client)
+
+    DRAFT --> SENT : Отправка клиенту\n(sentAt = now)
+    DRAFT --> CANCELLED : Отмена черновика
+
+    SENT --> PARTIALLY_PAID : Частичная оплата\n(BillingPayment, amount < total)
+    SENT --> PAID : Полная оплата\n(paidAmount >= totalAmount)
+    SENT --> OVERDUE : Cron: dueDate < now\nи paidAmount < totalAmount
+    SENT --> CANCELLED : Аннулирование
+
+    PARTIALLY_PAID --> PAID : Остаток оплачен
+    PARTIALLY_PAID --> OVERDUE : Cron: просрочка
+
+    OVERDUE --> PARTIALLY_PAID : Частичная оплата
+    OVERDUE --> PAID : Полная оплата
+
+    PAID --> [*] : ✓ Оплачен
+    CANCELLED --> [*] : ✗ Отменён
+
+    note right of DRAFT
+        Автогенерация номера:
+        INV-2026-00001
+        Items[]: description,
+        quantity, unitPrice, vatRate
+        Расчёт: subtotal, vatAmount,
+        totalAmount
+    end note
+
+    note right of PAID
+        BillingPayment[]:
+        paymentMethod, amount,
+        paymentDate, reference
+        BillingPaymentStatus:
+        PENDING → COMPLETED / FAILED
+    end note
+
+    note left of OVERDUE
+        Cron: проверка каждый день
+        Уведомление клиенту
+        о просрочке
+    end note

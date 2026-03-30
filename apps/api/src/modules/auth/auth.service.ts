@@ -13,7 +13,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { LessThan, Repository, MoreThan } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 
@@ -1114,7 +1114,7 @@ export class AuthService {
   /**
    * Cleanup expired/used password reset tokens (runs daily at 3 AM)
    */
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Cron("0 3 * * *", { timeZone: "Asia/Tashkent" })
   async cleanupExpiredResetTokens(): Promise<number> {
     try {
       const result = await this.passwordResetRepository.softDelete({
@@ -1143,7 +1143,7 @@ export class AuthService {
    * Cleanup expired/revoked sessions (runs daily at 4 AM)
    * Keeps sessions table manageable by removing rows that can never be used again.
    */
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron("0 4 * * *", { timeZone: "Asia/Tashkent" })
   async cleanupExpiredSessions(): Promise<number> {
     try {
       const result = await this.sessionRepository.softDelete([
@@ -1176,7 +1176,7 @@ export class AuthService {
    * serve no audit/recovery purpose after 30 days, and GDPR requires
    * limiting retention of authentication-related PII.
    */
-  @Cron("0 5 * * *")
+  @Cron("0 5 * * *", { timeZone: "Asia/Tashkent" })
   async cleanupOldLoginAttempts(): Promise<number> {
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

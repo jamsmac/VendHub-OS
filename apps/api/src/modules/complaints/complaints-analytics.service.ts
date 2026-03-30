@@ -10,7 +10,14 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, In, Between, LessThan, IsNull } from "typeorm";
+import {
+  Repository,
+  In,
+  Between,
+  LessThan,
+  IsNull,
+  FindOptionsWhere,
+} from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Complaint,
@@ -32,7 +39,7 @@ const DEFAULT_SLA_HOURS: Partial<Record<ComplaintPriority, number>> = {
   [ComplaintPriority.CRITICAL]:
     DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL]?.resolutionTimeHours ?? 4,
   [ComplaintPriority.URGENT]:
-    DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL]?.resolutionTimeHours ?? 2,
+    DEFAULT_SLA_CONFIG[ComplaintPriority.URGENT]?.resolutionTimeHours ?? 2,
   [ComplaintPriority.HIGH]:
     DEFAULT_SLA_CONFIG[ComplaintPriority.HIGH]?.resolutionTimeHours ?? 8,
   [ComplaintPriority.MEDIUM]:
@@ -178,9 +185,15 @@ export class ComplaintsAnalyticsService {
     return machine;
   }
 
-  async getQrCodesForMachine(machineId: string): Promise<ComplaintQrCode[]> {
+  async getQrCodesForMachine(
+    machineId: string,
+    organizationId?: string,
+  ): Promise<ComplaintQrCode[]> {
+    const where: FindOptionsWhere<ComplaintQrCode> = { machineId };
+    if (organizationId) where.organizationId = organizationId;
+
     return this.qrCodeRepo.find({
-      where: { machineId },
+      where,
       order: { createdAt: "DESC" },
     });
   }

@@ -192,8 +192,9 @@ export class NotificationsController {
   async delete(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    await this.notificationsService.delete(id, userId);
+    await this.notificationsService.delete(id, userId, organizationId);
   }
 
   // ============================================================================
@@ -454,8 +455,11 @@ export class NotificationsController {
   @ApiResponse({ status: 404, description: "Campaign not found" })
   @Roles("owner", "admin")
   @HttpCode(HttpStatus.OK)
-  async startCampaign(@Param("id", ParseUUIDPipe) id: string) {
-    return this.notificationsService.startCampaign(id);
+  async startCampaign(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.notificationsService.startCampaign(id, organizationId);
   }
 
   // ============================================================================

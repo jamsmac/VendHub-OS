@@ -303,20 +303,26 @@ export class ComplaintsController {
     return this.complaintsService.getTemplates(orgId);
   }
 
-  @Get(":id")
-  @ApiOperation({ summary: "Get complaint by ID" })
-  @ApiParam({ name: "id", type: String })
-  @Roles("owner", "admin", "manager", "operator")
-  async findById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.complaintsService.findById(id);
-  }
-
   @Get("number/:number")
   @ApiOperation({ summary: "Get complaint by number" })
   @ApiParam({ name: "number", type: String })
   @Roles("owner", "admin", "manager", "operator")
-  async findByNumber(@Param("number") number: string) {
-    return this.complaintsService.findByNumber(number);
+  async findByNumber(
+    @Param("number") number: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.complaintsService.findByNumber(number, orgId);
+  }
+
+  @Get(":id")
+  @ApiOperation({ summary: "Get complaint by ID" })
+  @ApiParam({ name: "id", type: String })
+  @Roles("owner", "admin", "manager", "operator")
+  async findById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.complaintsService.findById(id, orgId);
   }
 
   @Patch(":id")
@@ -327,8 +333,9 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateComplaintDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.update(id, dto, userId);
+    return this.complaintsService.update(id, dto, userId, orgId);
   }
 
   // ============================================================================
@@ -343,8 +350,9 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body("assignedToId", ParseUUIDPipe) assignedToId: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.assign(id, assignedToId, userId);
+    return this.complaintsService.assign(id, assignedToId, userId, orgId);
   }
 
   @Post(":id/resolve")
@@ -355,8 +363,9 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ResolveComplaintDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.resolve(id, dto.resolution, userId);
+    return this.complaintsService.resolve(id, dto.resolution, userId, orgId);
   }
 
   @Post(":id/escalate")
@@ -367,8 +376,9 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: EscalateComplaintDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.escalate(id, dto.reason, userId);
+    return this.complaintsService.escalate(id, dto.reason, userId, orgId);
   }
 
   @Post(":id/reject")
@@ -379,8 +389,9 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: RejectComplaintDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.reject(id, dto.reason, userId);
+    return this.complaintsService.reject(id, dto.reason, userId, orgId);
   }
 
   @Post(":id/feedback")
@@ -425,14 +436,18 @@ export class ComplaintsController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: AddCommentDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.addComment({
-      complaintId: id,
-      userId,
-      isInternal: dto.isInternal || false,
-      content: dto.content,
-      attachments: dto.attachments,
-    });
+    return this.complaintsService.addComment(
+      {
+        complaintId: id,
+        userId,
+        isInternal: dto.isInternal || false,
+        content: dto.content,
+        attachments: dto.attachments,
+      },
+      orgId,
+    );
   }
 
   // ============================================================================
@@ -462,8 +477,9 @@ export class ComplaintsController {
   async approveRefund(
     @Param("refundId", ParseUUIDPipe) refundId: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.approveRefund(refundId, userId);
+    return this.complaintsService.approveRefund(refundId, userId, orgId);
   }
 
   @Post("refunds/:refundId/process")
@@ -474,11 +490,13 @@ export class ComplaintsController {
     @Param("refundId", ParseUUIDPipe) refundId: string,
     @Body() dto: ProcessRefundReferenceDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
     return this.complaintsService.processRefund(
       refundId,
       userId,
       dto.referenceNumber,
+      orgId,
     );
   }
 
@@ -490,8 +508,9 @@ export class ComplaintsController {
     @Param("refundId", ParseUUIDPipe) refundId: string,
     @Body() dto: RejectRefundReasonDto,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.rejectRefund(refundId, userId, dto.reason);
+    return this.complaintsService.rejectRefund(refundId, userId, dto.reason, orgId);
   }
 
   // ============================================================================
@@ -514,8 +533,9 @@ export class ComplaintsController {
   @Roles("owner", "admin", "manager")
   async getQrCodesForMachine(
     @Param("machineId", ParseUUIDPipe) machineId: string,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.getQrCodesForMachine(machineId);
+    return this.complaintsService.getQrCodesForMachine(machineId, orgId);
   }
 
   @Get("qr-codes/:code")

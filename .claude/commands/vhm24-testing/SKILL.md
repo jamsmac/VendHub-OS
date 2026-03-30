@@ -31,7 +31,7 @@ description: |
 | Инструмент             | Версия | Назначение                               |
 |------------------------|--------|------------------------------------------|
 | Jest                   | 29     | Тест-раннер, юнит и интеграционные тесты |
-| @nestjs/testing        | 10     | Утилиты для тестирования NestJS модулей  |
+| @nestjs/testing        | 11     | Утилиты для тестирования NestJS модулей  |
 | supertest              | 6      | HTTP-тесты эндпоинтов                    |
 | Playwright             | 1.48   | E2E тестирование веб-админки             |
 | @testing-library/react | 14     | Тесты React компонентов                  |
@@ -842,7 +842,7 @@ export default defineConfig({
 
   // Глобальные настройки
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:4000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     locale: 'ru-RU',
@@ -863,7 +863,7 @@ export default defineConfig({
   // Автоматический запуск dev-сервера
   webServer: {
     command: 'npm run start:dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:4000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

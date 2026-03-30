@@ -1,0 +1,45 @@
+%% D3. Генерация отчётов
+%% Источник: reports/reports-generator.service.ts, reports/reports-scheduler.service.ts, reports/services/*
+flowchart TD
+    subgraph REQUEST ["Запрос отчёта"]
+        R1(["Ручной запрос\nили Scheduler"]) --> R2["Параметры:\nReportType, dateRange,\norganizationId, machineIds[],\nformat: xlsx/pdf"]
+    end
+
+    R2 --> CREATE["Создание Report:\nstatus: GENERATING\nrequestedBy, type"]
+
+    CREATE --> STRATEGY{"ReportType?"}
+
+    STRATEGY -->|"SALES"| GEN_SALES["Сбор данных:\nTransaction[] за период\n+ группировка по\nmachine/product/day"]
+    STRATEGY -->|"INVENTORY"| GEN_INV["Сбор данных:\nWarehouse/Operator/Machine\nInventory + movements"]
+    STRATEGY -->|"FINANCIAL"| GEN_FIN["DashboardAnalyticsService:\nrevenue, costs, profit,\ncash_flow, commissions"]
+    STRATEGY -->|"MAINTENANCE"| GEN_MAINT["MaintenanceRequest[]\nstatus, duration, parts cost,\nSLA compliance"]
+    STRATEGY -->|"TRIP"| GEN_TRIP["Trip[]: distance, fuel,\nstops, anomalies,\nefficiency metrics"]
+    STRATEGY -->|"EMPLOYEE"| GEN_EMP["Attendance, payroll,\nperformance, leave\nsummary"]
+
+    GEN_SALES --> FORMAT
+    GEN_INV --> FORMAT
+    GEN_FIN --> FORMAT
+    GEN_MAINT --> FORMAT
+    GEN_TRIP --> FORMAT
+    GEN_EMP --> FORMAT
+
+    FORMAT{"Формат?"}
+    FORMAT -->|"XLSX"| EXCEL["VendHubExcelExportService:\nформирование рабочей книги\n• Сводная страница\n• Детальные данные\n• Графики\n• Фильтры"]
+    FORMAT -->|"PDF"| PDF["Генерация PDF\n(через puppeteer/pdfkit)"]
+
+    EXCEL --> STORAGE["StorageService:\nсохранение файла\n(MinIO / S3)"]
+    PDF --> STORAGE
+
+    STORAGE --> COMPLETE["Report:\nstatus: COMPLETED\nfileUrl, fileSize,\ngeneratedAt"]
+
+    COMPLETE --> NOTIFY["Уведомление:\n'Ваш отчёт готов'\n+ ссылка на скачивание"]
+    COMPLETE --> SNAPSHOT["AnalyticsSnapshot:\nсохранение ключевых\nметрик для сравнения"]
+
+    NOTIFY --> DONE(["✓ Отчёт готов"])
+
+    subgraph SCHEDULER ["ReportsScheduler"]
+        SC1["Конфигурация:\nreportType, frequency\n(daily/weekly/monthly),\nrecipients[], parameters"]
+        SC2["Cron: запуск по расписанию\n→ вызов ReportsGenerator"]
+        SC3["Автоотправка на email\nполучателям"]
+        SC1 --> SC2 --> SC3
+    end

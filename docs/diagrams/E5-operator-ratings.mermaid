@@ -1,0 +1,44 @@
+%% E5. Рейтинги операторов (Operator Ratings)
+%% Источник: operator-ratings/operator-ratings.service.ts
+flowchart TD
+    subgraph CALCULATE ["Расчёт рейтинга оператора"]
+        C1(["calculateRating(operatorId, period)"]) --> C2["Сбор метрик за период:"]
+
+        C2 --> M1["📋 Задачи:\ncompletedTasks, totalTasks,\ntaskCompletionRate,\navgCompletionTime,\nonTimeRate (% в срок)"]
+
+        C2 --> M2["💰 Сборы наличных:\ncollectionsCount,\ntotalCollected,\ndiscrepancyRate\n(расхождения сумм)"]
+
+        C2 --> M3["🔧 Обслуживание:\nmaintenanceCompleted,\navgRepairTime,\nfirstTimeFixRate\n(% без повторных ремонтов)"]
+
+        C2 --> M4["⭐ Отзывы:\ncustomerRatings (1-5),\ncomplaintsCount,\ncomplaintResolutionRate"]
+
+        C2 --> M5["🚛 Маршруты:\nroutesCompleted,\nrouteEfficiency (%),\nanomalyCount (нарушения)"]
+
+        M1 --> WEIGHTS["Взвешенный расчёт:\ntaskScore × 0.30 +\ncollectionScore × 0.20 +\nmaintenanceScore × 0.25 +\ncustomerScore × 0.15 +\nrouteScore × 0.10"]
+        M2 --> WEIGHTS
+        M3 --> WEIGHTS
+        M4 --> WEIGHTS
+        M5 --> WEIGHTS
+
+        WEIGHTS --> RATING["Создание/обновление\nOperatorRating:\noverallScore: 0-100,\nindividualScores{},\nperiodStart, periodEnd"]
+    end
+
+    subgraph RANKING ["Ранжирование"]
+        RK1["recalculateRanks():\nСортировка операторов\nпо overallScore DESC"] --> RK2["rank: 1, 2, 3...\n(в рамках организации)"]
+        RK2 --> RK3["Обновление OperatorRating\nдля каждого оператора"]
+    end
+
+    subgraph LEADERBOARD ["Таблица лидеров"]
+        LB1["getLeaderboard(organizationId):\nТоп-N операторов\nс overallScore, rank,\nchangeFromPrevious (+/-),\nindividualScores"]
+    end
+
+    subgraph HISTORY ["История оператора"]
+        HI1["getOperatorHistory(operatorId):\nВсе рейтинги по периодам\n→ тренд улучшения/ухудшения"]
+    end
+
+    subgraph SUMMARY ["Сводка по организации"]
+        SM1["getOrganizationSummary():\navgScore, topPerformers[],\nlowPerformers[],\nscoreDistribution,\ntrendVsPrevious"]
+    end
+
+    RATING --> RANKING
+    RANKING --> LEADERBOARD

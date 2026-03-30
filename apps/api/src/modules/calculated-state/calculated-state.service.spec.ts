@@ -6,7 +6,7 @@ import { Repository } from "typeorm";
 import { CalculatedStateService } from "./calculated-state.service";
 import { Container } from "../containers/entities/container.entity";
 import { EquipmentComponent } from "../equipment/entities/equipment-component.entity";
-import { Machine } from "../machines/entities/machine.entity";
+import { Machine, MachineSlot } from "../machines/entities/machine.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { SaleIngredient } from "../transactions/entities/sale-ingredient.entity";
 import { EntityEvent } from "../entity-events/entities/entity-event.entity";
@@ -74,6 +74,12 @@ describe("CalculatedStateService", () => {
           },
         },
         {
+          provide: getRepositoryToken(MachineSlot),
+          useValue: {
+            find: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
           provide: getRepositoryToken(Machine),
           useValue: {
             findOne: jest.fn(),
@@ -128,6 +134,7 @@ describe("CalculatedStateService", () => {
         machineCode: "VM-001",
         calculatedAt: new Date("2026-03-20T12:00:00Z"),
         bunkers: [],
+        slots: [],
         components: [],
         cleaning: {
           cupsSinceFlush: 10,
@@ -142,6 +149,7 @@ describe("CalculatedStateService", () => {
         summary: {
           totalPortionsLeft: 0,
           lowStockBunkers: 0,
+          lowStockSlots: 0,
           componentsNeedingMaintenance: 0,
           overdueTasks: 0,
         },
@@ -187,6 +195,7 @@ describe("CalculatedStateService", () => {
       expect(result.summary).toEqual({
         totalPortionsLeft: 0,
         lowStockBunkers: 0,
+        lowStockSlots: 0,
         componentsNeedingMaintenance: 0,
         overdueTasks: 0,
       });

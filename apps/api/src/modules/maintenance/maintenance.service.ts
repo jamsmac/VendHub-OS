@@ -877,7 +877,7 @@ export class MaintenanceService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron("0 0 * * *", { timeZone: "Asia/Tashkent" })
   async checkSlaBreaches(): Promise<void> {
     this.logger.log("Checking SLA breaches...");
 

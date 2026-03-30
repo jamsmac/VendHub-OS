@@ -152,8 +152,11 @@ export class TasksController {
   @ApiOperation({ summary: "Create a new task" })
   @ApiResponse({ status: 201, description: "Task created successfully" })
   create(@Body() data: CreateTaskDto, @CurrentUser() user: ICurrentUser) {
+    // Map DTO field 'type' to entity field 'typeCode'
+    const { type, ...rest } = data;
     return this.tasksService.create({
-      ...data,
+      ...rest,
+      typeCode: type,
       createdByUserId: user.id,
       organizationId: user.organizationId,
     });

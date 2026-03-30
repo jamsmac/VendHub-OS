@@ -737,8 +737,13 @@ export class FiscalService {
     });
   }
 
-  async processQueueItem(queueItemId: string): Promise<void> {
-    const item = await this.queueRepo.findOne({ where: { id: queueItemId } });
+  async processQueueItem(
+    queueItemId: string,
+    organizationId?: string,
+  ): Promise<void> {
+    const where: Record<string, unknown> = { id: queueItemId };
+    if (organizationId) where.organizationId = organizationId;
+    const item = await this.queueRepo.findOne({ where });
     if (!item || item.status === FiscalQueueStatus.SUCCESS) return;
 
     item.status = FiscalQueueStatus.PROCESSING;

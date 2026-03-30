@@ -1,0 +1,52 @@
+%% B10. Система лояльности — полный цикл
+%% Источник: loyalty/loyalty.service.ts, loyalty/services/*, quests/services/quest-progress.service.ts
+flowchart TD
+    subgraph EARN ["Начисление баллов"]
+        E1(["Событие:\nпокупка/реферал/квест/промо"]) --> E2["BonusEngineService:\nопределение множителя\n(по уровню, по акции)"]
+        E2 --> E3["Расчёт баллов:\nbasePoints × multiplier"]
+        E3 --> E4["Создание PointsTransaction:\ntype: EARN\nsource: PURCHASE/REFERRAL/\nQUEST/PROMO/MANUAL"]
+        E4 --> E5["expiryDate =\ncalculateExpiryDate()\n(обычно +365 дней)"]
+        E5 --> E6["Обновление User:\ntotalPoints += earned"]
+        E6 --> E7["Проверка уровня:\ngetLoyaltyLevelByPoints()"]
+        E7 --> E8{"Новый уровень?"}
+        E8 -->|"Да"| E9["Event: loyalty.level_up\n→ Уведомление клиенту\n→ Бонус за уровень"]
+        E8 -->|"Нет"| E10["Event: loyalty.points_earned"]
+    end
+
+    subgraph SPEND ["Списание баллов"]
+        S1(["Клиент использует баллы"]) --> S2["Проверка баланса:\navailablePoints ≥ required"]
+        S2 --> S3{"Достаточно?"}
+        S3 -->|"Нет"| S4["400: Insufficient points"]
+        S3 -->|"Да"| S5["FIFO списание:\nсамые старые баллы\nсписываются первыми"]
+        S5 --> S6["PointsTransaction:\ntype: SPEND"]
+        S6 --> S7["Обновление User:\ntotalPoints -= spent"]
+    end
+
+    subgraph LEVELS ["Уровни лояльности"]
+        LV1["BRONZE: 0+ баллов"]
+        LV2["SILVER: 500+ баллов\n(5% бонус)"]
+        LV3["GOLD: 2000+ баллов\n(10% бонус)"]
+        LV4["PLATINUM: 5000+ баллов\n(15% бонус)"]
+        LV5["DIAMOND: 10000+ баллов\n(20% бонус)"]
+        LV1 --> LV2 --> LV3 --> LV4 --> LV5
+    end
+
+    subgraph QUESTS ["Квесты (Quest + UserQuest)"]
+        Q1["Quest: QuestType\n(purchase_count / spend_amount /\nvisit_days / referral_count)"] --> Q2["QuestPeriod:\nDAILY / WEEKLY / MONTHLY"]
+        Q2 --> Q3["UserQuest создаётся\nпри первом событии"]
+        Q3 --> Q4["@OnEvent: progress tracking\nincrement currentProgress"]
+        Q4 --> Q5{"currentProgress\n≥ targetValue?"}
+        Q5 -->|"Нет"| Q6["Продолжение"]
+        Q5 -->|"Да"| Q7["status: COMPLETED\n→ Клиент может claim"]
+        Q7 --> Q8["Claim reward:\nначисление rewardPoints\nчерез LoyaltyService"]
+        Q8 --> Q9["status: CLAIMED"]
+    end
+
+    subgraph CRONS ["Cron-задачи"]
+        CR1["01:00 — Expire old points\n(where expiryDate < now)"]
+        CR2["00:30 — Recalculate levels\n(bulk update Users)"]
+        CR3["00:00 daily — Reset daily quests"]
+        CR4["00:00 Monday — Reset weekly quests"]
+        CR5["00:00 1st — Reset monthly quests"]
+        CR6["02:00 — Expire completed quests\n(claimDeadline passed)"]
+    end

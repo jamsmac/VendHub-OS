@@ -1,26 +1,36 @@
-%% B4. Заявки на материалы (Material Requests)
-%% Источник: material-requests/material-requests.service.ts — WORKFLOW_TRANSITIONS
+%% B4. Заявки на материалы (Material Requests) — ИСПРАВЛЕНО по WORKFLOW_TRANSITIONS
+%% Источник: material-requests/material-requests.service.ts (lines 41-76)
 stateDiagram-v2
     [*] --> DRAFT : Создание заявки\n(items[], priority)
 
     DRAFT --> NEW : Отправка на рассмотрение
     DRAFT --> CANCELLED : Отмена черновика
 
-    NEW --> APPROVED : Менеджер одобрил\n(ApproveRequestDto)
-    NEW --> REJECTED : Менеджер отклонил\n(RejectRequestDto)
+    NEW --> APPROVED : Менеджер одобрил
+    NEW --> REJECTED : Менеджер отклонил
     NEW --> CANCELLED : Отмена
 
-    APPROVED --> ORDERED : Заказ у поставщика\n(supplierOrderId)
-    APPROVED --> CANCELLED : Отмена после одобрения
+    REJECTED --> DRAFT : Возврат на доработку
 
-    ORDERED --> PARTIALLY_DELIVERED : Частичная доставка\n(ConfirmDeliveryDto)
-    ORDERED --> DELIVERED : Полная доставка
+    APPROVED --> SENT : Отправлено поставщику
+    APPROVED --> CANCELLED : Отмена
 
-    PARTIALLY_DELIVERED --> DELIVERED : Остаток доставлен
+    SENT --> PENDING_PAYMENT : Счёт от поставщика получен
+    SENT --> CANCELLED : Отмена
 
-    DELIVERED --> [*] : ✓ Завершено
+    PENDING_PAYMENT --> PAID : Полная оплата
+    PENDING_PAYMENT --> PARTIALLY_PAID : Частичная оплата
+    PENDING_PAYMENT --> CANCELLED : Отмена
+
+    PARTIALLY_PAID --> PAID : Остаток оплачен
+    PARTIALLY_PAID --> CANCELLED : Отмена
+
+    PAID --> DELIVERED : Товар доставлен
+
+    DELIVERED --> COMPLETED : Всё принято ✓
+
+    COMPLETED --> [*] : ✓ Завершено
     CANCELLED --> [*]
-    REJECTED --> [*]
 
     note right of DRAFT
         MaterialRequestItem[]:
@@ -28,17 +38,19 @@ stateDiagram-v2
         estimatedPrice, notes
         RequestPriority:
         LOW / NORMAL / HIGH / URGENT
+        requestNumber: MR-2025-00001
     end note
 
-    note right of ORDERED
-        RecordPayment:
-        paymentMethod, amount,
-        paymentDate, reference
+    note right of SENT
+        Новые статусы vs предыдущей версии:
+        SENT → PENDING_PAYMENT — явный этап
+        ожидания оплаты поставщику.
+        PARTIALLY_PAID — частичная оплата
+        (не было ранее в диаграмме)
     end note
 
     note right of DELIVERED
-        MaterialRequestHistory[]:
-        Каждый переход фиксируется
-        с userId и timestamp
-        Event: material-request.delivered
+        ConfirmDelivery:
+        actualQuantity, condition,
+        deliveryDate, notes
     end note

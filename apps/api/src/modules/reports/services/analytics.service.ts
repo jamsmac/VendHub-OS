@@ -713,7 +713,7 @@ export class AnalyticsService {
    * Nightly job: rebuild yesterday's daily stats and create daily snapshots
    * Runs at 01:00 AM (Asia/Tashkent) every day
    */
-  @Cron("0 1 * * *")
+  @Cron("0 1 * * *", { timeZone: "Asia/Tashkent" })
   async nightlyAggregation(): Promise<void> {
     this.logger.log("Starting nightly analytics aggregation...");
 
@@ -755,7 +755,7 @@ export class AnalyticsService {
    * Weekly job: create weekly snapshots for all organizations
    * Runs at 02:00 AM (Asia/Tashkent) every Monday
    */
-  @Cron("0 2 * * 1")
+  @Cron("0 2 * * 1", { timeZone: "Asia/Tashkent" })
   async weeklyAggregation(): Promise<void> {
     this.logger.log("Starting weekly analytics aggregation...");
 
@@ -790,7 +790,7 @@ export class AnalyticsService {
    * Monthly job: create monthly snapshots for all organizations
    * Runs at 03:00 AM (Asia/Tashkent) on the 1st of every month
    */
-  @Cron("0 3 1 * *")
+  @Cron("0 3 1 * *", { timeZone: "Asia/Tashkent" })
   async monthlyAggregation(): Promise<void> {
     this.logger.log("Starting monthly analytics aggregation...");
 

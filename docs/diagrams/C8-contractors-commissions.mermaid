@@ -1,0 +1,22 @@
+%% C8. Подрядчики и комиссии
+%% Источник: contractors/contractors.service.ts, contractors/services/commission.service.ts, contractors/services/contract.service.ts
+flowchart TD
+    subgraph CONTRACT_SETUP ["Настройка контракта"]
+        CS1(["Создание Contractor:\nname, inn, contactInfo"]) --> CS2["Создание Contract:\ncontractNumber, startDate, endDate\ncommissionType: percent / fixed\ncommissionRate: 15%"]
+        CS2 --> CS3["Привязка к автоматам:\nmachineIds[] или\nlocationIds[]"]
+    end
+
+    subgraph COMMISSION_CALC ["Расчёт комиссии"]
+        CC1(["Транзакция на\nпривязанном автомате"]) --> CC2["CommissionService:\nопределение контракта\nпо machineId"]
+        CC2 --> CC3{"Контракт\nнайден и активен?"}
+        CC3 -->|"Нет"| CC_SKIP["Пропуск (нет комиссии)"]
+        CC3 -->|"Да"| CC4["Расчёт:\npercent → amount × rate/100\nfixed → фиксированная сумма"]
+        CC4 --> CC5["Создание записи комиссии:\ncontractorId, transactionId,\ncommissionAmount, calculatedAt"]
+    end
+
+    subgraph PAYOUT ["Выплата"]
+        PO1(["Период закрыт\n(месяц/неделя)"]) --> PO2["Агрегация комиссий\nпо contractorId за период"]
+        PO2 --> PO3["Формирование акта:\ntotalCommission, periodFrom,\nperiodTo, transactionCount"]
+        PO3 --> PO4["Утверждение менеджером"]
+        PO4 --> PO5["Выплата:\nstatus: PAID\npaymentDate, paymentMethod"]
+    end

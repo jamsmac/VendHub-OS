@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~99%** (updated from 97%)
+**Readiness: ~99.5%** (updated from 99%)
 
 ### Landing Site (site app)
 
@@ -413,6 +413,127 @@ Full audit (10 findings) → 3-sprint fix cycle. Key changes:
 
 - **Client Vitest**: 99/99 green (fixed localStorage/spinner expectations)
 - **Mobile Jest**: 13/13 green (added `setOnSessionExpired` mock)
+
+### Machines Section Bug Fixes (2026-03-30)
+
+4 bugs found and fixed during machines section verification. All compile clean (`tsc --noEmit` zero errors on API + Web).
+
+**BUG #1 — `code` → `machineNumber` mapping lost (machines.controller.ts):**
+
+- CreateMachineDto uses field `code`, but Machine entity uses `machineNumber`
+- Spreading `{...dto}` silently ignored `code`, and `@BeforeInsert()` generated random `M-XXXXX`
+- **Fix**: Destructure `code` from DTO, explicitly set `machineNumber: code` in controller
+
+**BUG #2 — `contentModel` missing from CreateMachineDto:**
+
+- Entity default is `SLOTS`, which is wrong for coffee/water machines (need `CONTAINERS`)
+- **Fix**: Added optional `@IsEnum(ContentModel) contentModel` field to DTO + controller pass-through
+
+**BUG #3 — `machine_slots` invisible in `/state` endpoint (6-file fix):**
+
+- `CalculatedStateService` only queried containers and equipment_components, completely ignoring machine_slots
+- For snack/drink machines (content_model=slots), the Contents tab showed nothing
+- **Fix across 6 files**:
+  - Backend: `SlotState` interface in DTO, `calculateSlotStates()` method in service, `MachineSlot` in module's TypeOrmModule.forFeature
+  - Frontend: `SlotState` type in `use-machine-state.ts`, slots grid UI in `ContentsTab.tsx`
+
+**BUG #4 — Frontend `toApiPayload` didn't send `contentModel` (machines/new/page.tsx):**
+
+- Even after backend BUG #2 fix, manually-created machines still defaulted to `slots`
+- **Fix**: Added `TYPE_TO_CONTENT_MODEL` mapping: `coffee`/`water` → `containers`, `combo` → `mixed`, rest → `slots`
+
+**Seed Migration:**
+
+- `1775300000000-SeedTestMachinesData.ts` — test data for 3 machines (coffee, snack, drink) with containers, equipment_components, and machine_slots
+- Fixed column names: `component_status` (not `status`), `current_location_type` added, `filter` type (not `other`)
+- 42 machine_slots seeded with deterministic fill levels (no `Math.random()`)
+
+**Known DTO→Entity Field Mappings (CRITICAL for future development):**
+
+| DTO field    | Entity field    | Notes                                          |
+| ------------ | --------------- | ---------------------------------------------- |
+| `code`       | `machineNumber` | Must be explicitly mapped in controller         |
+| `contentModel` | `contentModel` | Optional, derived from type in frontend         |
+| `basePrice`  | `sellingPrice`  | Products: mapped in controller create/update    |
+| `costPrice`  | `purchasePrice` | Products: mapped in controller create/update    |
+| `type`       | `typeCode`      | Tasks: mapped in controller create              |
+| `parent_id`  | `parentId`      | Organizations: snake→camelCase in controller    |
+
+### Security & Tenant Isolation Remediation (2026-03-30)
+
+Full audit (6-phase verification) → 48 real bugs found → 2-sprint fix cycle. All fixes compile clean (`tsc --noEmit` zero errors).
+
+**Sprint 1 — Security Critical (13 files modified):**
+
+- **Users password hashing**: `create()` was storing plaintext, now uses `bcrypt.hash(password, 12)`
+- **Users tenant isolation**: `findByEmail()`, `findByTelegramId()`, `findByUsername()` accept optional `organizationId`
+- **Complaints tenant isolation**: `findById()`, `findByNumber()` + all 7 internal callers (update, assign, resolve, escalate, reject, addComment, remove, bulkUpdate) + facade service + controller — full `organizationId` threading
+- **Complaints route fix**: `@Get("number/:number")` moved before `@Get(":id")` to prevent shadowing
+- **RBAC controller**: All 7 endpoints now extract `@CurrentOrganizationId()` and pass to service
+- **RBAC service**: `syncRolePermissions()` now accepts optional `organizationId` for org-scoped role lookup
+- **Collections**: `getHistory()` now verifies collection belongs to caller's org before returning history
+- **Fiscal**: `processQueueItem()` now filters queue item lookup by `organizationId`
+- **Trips**: `getTripById()` and `verifyTripAccess()` use DB-level tenant isolation instead of post-fetch checks
+- **Products**: `create()` and `update()` now map `basePrice`→`sellingPrice`, `costPrice`→`purchasePrice`
+- **Tasks**: `create()` now maps `type`→`typeCode`
+- **Organizations**: `create()` and `update()` now map `parent_id`→`parentId`
+
+**Sprint 2 — Infrastructure (9 files modified):**
+
+- **12 time-sensitive cron jobs** fixed: added `{ timeZone: "Asia/Tashkent" }` to all daily/weekly/monthly crons
+- Files: `reports/analytics.service.ts` (3), `analytics.service.ts` (1), `work-logs.service.ts` (1), `billing.service.ts` (1), `washing-schedule.service.ts` (1), `maintenance.service.ts` (1), `auth.service.ts` (3), `web-push.service.ts` (1)
+- **13 interval crons** verified: every-N-minutes/hours crons don't need timezone (timezone-agnostic)
+- **7 crons** already had `Asia/Tashkent` (loyalty, quests, contractors)
+- **Route ordering audit**: NestJS multi-segment paths (e.g. `analytics/employee`) are NOT shadowed by single-segment `:id` — 5 audit findings reclassified as false positives
+
+**Sprint 3 — Remaining Tenant Isolation (7 files modified):**
+
+- **Complaints findByAssignee()**: now accepts optional `organizationId` for org-scoped query
+- **Complaints findByMachine()**: now accepts optional `organizationId` for org-scoped query
+- **Complaints Refund** (CRITICAL): `approveRefund()`, `processRefund()`, `rejectRefund()` — all 3 now filter by `organizationId` to prevent cross-org financial operations
+- **Complaints QR codes**: `getQrCodesForMachine()` now filters by `organizationId`
+- All changes threaded through facade service → controller with `@CurrentOrganizationId()`
+
+**Sprint 4 — Final Sweep (8 files modified, 2026-03-30):**
+
+Fresh audit found 4 additional bugs missed in Sprints 1-3:
+
+- **SLA copy-paste bug** (complaints-analytics.service.ts): `URGENT` priority was referencing `CRITICAL`'s SLA config instead of its own — fixed `DEFAULT_SLA_CONFIG[ComplaintPriority.CRITICAL]` → `DEFAULT_SLA_CONFIG[ComplaintPriority.URGENT]`
+- **Notifications tenant isolation** (controller + service):
+  - `delete()` controller now extracts `@CurrentOrganizationId()` and passes to service
+  - `startCampaign()` controller now extracts and passes `organizationId` — service filters campaign lookup by org
+  - Service methods `update()`, `cancel()`, `resend()` now accept and forward `organizationId` to `findById()` (defense-in-depth)
+- **Machines tenant isolation** (controller + core service + facade):
+  - `update()` and `updateStatus()` — controller removed post-fetch org check pattern, now passes `organizationId` directly to service via owner-bypass pattern (`user.role === OWNER ? undefined : user.organizationId`)
+  - Core service `update()` and `updateStatus()` now accept optional `organizationId` for DB-level filtering
+  - Eliminates redundant `findById` + manual check + `update` triple call
+- **Notifications bulk operations** (defense-in-depth):
+  - `bulkDelete()` and `bulkMarkAsRead()` now accept optional `organizationId` and add to WHERE clause
+  - Not currently exposed via controller endpoints, but protected for future-proofing
+
+**Sprint 5 — Full Module Audit (7 files modified, 2026-03-30):**
+
+Comprehensive audit of 11 remaining unaudited modules found 5 real vulnerabilities:
+
+- **Inventory reservation tenant isolation** (controller + facade + reservation service):
+  - `confirmReservation()`, `fulfillReservation()`, `cancelReservation()` — all 3 now accept optional `organizationId`
+  - Reservation service adds `organizationId` to pessimistic-write lock WHERE clause (atomic tenant check + lock)
+  - Controller extracts `@CurrentOrganizationId()` and passes through chain
+- **Warehouse stock movement tenant isolation** (controller + stock-take service):
+  - `completeMovement()` and `cancelMovement()` — both now accept optional `organizationId`
+  - Controller extracts `@CurrentOrganizationId()` and passes to service
+- **8 modules verified secure**: locations, equipment (4 controllers), billing, work-logs, maintenance, loyalty (5 controllers), promo-codes, favorites (user-scoped by design)
+- **Agent-bridge**: intentionally global/admin-scoped (system-level AI agent bridge, not multi-tenant by design)
+
+**Audit False Positives Identified:**
+
+- 8 "missing UseGuards" bugs → guards are GLOBAL in `app.module.ts`
+- 5 route ordering bugs → NestJS segment-count matching prevents shadowing
+- Payment Reports `deleteUpload` → already uses `findUploadById(id, orgId)` before delete
+- Users approve/reject/block/unblock/deactivate/activate — NOT exposed via controller endpoints (service-only methods, no REST vulnerability)
+- Notifications update/cancel/resend — NOT exposed via controller endpoints (service-only, fixed as defense-in-depth)
+- Favorites uses userId (not organizationId) — correct, favorites are per-user not per-org
+- Agent-bridge has no org filtering — intentional, system-level admin-only module
 
 ## Skills (AI Agent Tools)
 

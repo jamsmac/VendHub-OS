@@ -1,0 +1,65 @@
+%% F3. Cron-задачи — общая карта
+%% Все 15+ cron jobs с расписанием
+flowchart TD
+    subgraph EVERY_5MIN ["Каждые 5 минут"]
+        C5_1["AlertEngineService:\nevaluateAllRules()\n→ Проверка метрик\nпо всем AlertRule"]
+    end
+
+    subgraph EVERY_10MIN ["Каждые 10 минут"]
+        C10_1["AlertEvaluatorService:\nevaluateComplex()\n→ Комплексные алерты"]
+        C10_2["InventoryReservationService:\ncleanupExpired()\n→ Очистка просроченных\nрезерваций"]
+    end
+
+    subgraph EVERY_HOUR ["Каждый час"]
+        CH_1["TasksService:\ncheckOverdueTasks()\n→ Уведомления о\nпросроченных задачах"]
+        CH_2["PromoCodesService:\ndeactivateExpired()\n→ Деактивация\nпросроченных промокодов"]
+        CH_3["MaintenanceService:\ncheckSlaViolations()\n→ Эскалация при\nнарушении SLA"]
+        CH_4["RecommendationsService:\nrefreshPopularCache()\n→ Пересчёт popular\nproducts cache"]
+    end
+
+    subgraph DAILY ["Ежедневно"]
+        subgraph MIDNIGHT ["00:00 (Asia/Tashkent)"]
+            CD_1["QuestsService:\nresetDailyQuests()\n→ Сброс ежедневных квестов"]
+            CD_2["MaintenanceService:\ngenerateScheduledMaintenance()\n→ Создание плановых заявок\nиз MaintenanceSchedule"]
+        end
+
+        subgraph HALF_PAST ["00:30"]
+            CD_3["LoyaltyService:\nrecalculateLevels()\n→ Пересчёт уровней\nвсех пользователей"]
+        end
+
+        subgraph ONE_AM ["01:00"]
+            CD_4["LoyaltyService:\nexpireOldPoints()\n→ Списание просроченных\nбонусных баллов"]
+        end
+
+        subgraph TWO_AM ["02:00"]
+            CD_5["QuestService:\nexpireCompletedQuests()\n→ Удаление старых\nнеистребованных наград"]
+        end
+
+        subgraph THREE_AM ["03:00"]
+            CD_6["AuthService:\ncleanupExpiredResetTokens()\n→ Удаление просроченных\nтокенов сброса пароля"]
+            CD_7["WebPushService:\ncleanupExpiredSubscriptions()\n→ Удаление невалидных\npush-подписок"]
+        end
+
+        subgraph FOUR_AM ["04:00"]
+            CD_8["AuthService:\ncleanupExpiredSessions()\n→ Удаление истекших\nUserSession"]
+        end
+
+        subgraph FIVE_AM ["05:00"]
+            CD_9["AuthService:\ncleanupOldLoginAttempts()\n→ Очистка старых\nзаписей попыток входа"]
+        end
+    end
+
+    subgraph WEEKLY ["Еженедельно"]
+        CW_1["QuestsService (Пн 00:00):\nresetWeeklyQuests()\n→ Сброс еженедельных квестов"]
+    end
+
+    subgraph MONTHLY ["Ежемесячно"]
+        CM_1["QuestsService (1-е число 00:00):\nresetMonthlyQuests()\n→ Сброс ежемесячных квестов"]
+        CM_2["WorkLogsService (1-е число 00:00):\nautoGenerateTimesheets()\n→ Создание табелей\nза прошлый месяц"]
+    end
+
+    subgraph SCHEDULE_NOTE ["Важно для DevOps"]
+        NOTE1["Timezone: Asia/Tashkent (UTC+5)\nвезде где указано"]
+        NOTE2["AlertEngine (5мин) — самый\nчастый и нагруженный cron"]
+        NOTE3["Ночное окно 00:00-05:00 —\nосновная масса задач очистки.\nНе добавлять тяжёлые задачи\nв этот интервал!"]
+    end

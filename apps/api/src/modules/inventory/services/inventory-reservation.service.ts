@@ -148,10 +148,13 @@ export class InventoryReservationService {
     reservationId: string,
     fulfilledQuantity: number,
     _userId?: string,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.dataSource.transaction(async (manager) => {
+      const where: Record<string, string> = { id: reservationId };
+      if (organizationId) where.organizationId = organizationId;
       const reservation = await manager.findOne(InventoryReservation, {
-        where: { id: reservationId },
+        where,
         lock: { mode: "pessimistic_write" },
       });
 
@@ -236,10 +239,13 @@ export class InventoryReservationService {
     reservationId: string,
     reason?: string,
     userId?: string,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.dataSource.transaction(async (manager) => {
+      const where: Record<string, string> = { id: reservationId };
+      if (organizationId) where.organizationId = organizationId;
       const reservation = await manager.findOne(InventoryReservation, {
-        where: { id: reservationId },
+        where,
         lock: { mode: "pessimistic_write" },
       });
 
@@ -333,10 +339,13 @@ export class InventoryReservationService {
   async confirmReservation(
     reservationId: string,
     adjustedQuantity?: number,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.dataSource.transaction(async (manager) => {
+      const where: Record<string, string> = { id: reservationId };
+      if (organizationId) where.organizationId = organizationId;
       const reservation = await manager.findOne(InventoryReservation, {
-        where: { id: reservationId },
+        where,
         lock: { mode: "pessimistic_write" },
       });
 

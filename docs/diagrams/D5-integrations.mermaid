@@ -1,0 +1,42 @@
+%% D5. Интеграции с внешними системами
+%% Источник: integrations/services/integration.service.ts, integration-tester.service.ts, payment-executor.service.ts
+flowchart TD
+    subgraph SETUP ["Настройка интеграции"]
+        S1(["Выбор шаблона\nIntegrationTemplate"]) --> S2["Или создание\nкастомной интеграции"]
+        S1 --> S3
+        S2 --> S3["Конфигурация Integration:\nname, category, baseUrl,\nauthType, credentials"]
+
+        S3 --> AUTH{"AuthType?"}
+        AUTH -->|"API_KEY"| A1["apiKey в header\nили query param"]
+        AUTH -->|"BASIC"| A2["username:password\nBase64 encoded"]
+        AUTH -->|"OAUTH2"| A3["clientId + clientSecret\n→ token endpoint"]
+        AUTH -->|"HMAC"| A4["secret key для\nподписи запросов"]
+    end
+
+    subgraph TESTING ["Тестирование (IntegrationTesterService)"]
+        T1(["Запуск теста"]) --> T2["Отправка тестового\nзапроса на baseUrl/health"]
+        T2 --> T3{"Ответ 200?"}
+        T3 -->|"Да"| T4["✓ Интеграция работает\nstatus: ACTIVE"]
+        T3 -->|"Нет"| T5["✗ Ошибка подключения\nstatus: ERROR\nerrorMessage"]
+    end
+
+    subgraph CATEGORIES ["Категории интеграций"]
+        C1["PAYMENT:\nPayme, Click, Uzum Bank"]
+        C2["SMS:\nEskiz, PlayMobile"]
+        C3["STORAGE:\nMinIO, S3"]
+        C4["FISCAL:\nMultikassa (OFD)"]
+        C5["MAPS:\nGoogle Maps, Yandex"]
+        C6["ANALYTICS:\nPrometheus, custom"]
+        C7["CRM:\nвнешние CRM-системы"]
+        C8["TELEMETRY:\nIoT протоколы автоматов"]
+    end
+
+    subgraph EXECUTION ["Выполнение запросов"]
+        E1(["Событие в системе"]) --> E2["PaymentExecutorService:\nвыбор активной интеграции\nпо category"]
+        E2 --> E3["Формирование запроса:\nmethod, url, headers,\nbody, signature"]
+        E3 --> E4["Отправка HTTP запроса"]
+        E4 --> E5["IntegrationLog:\nrequest, response,\nstatusCode, duration"]
+        E5 --> E6{"Успех?"}
+        E6 -->|"Да"| E7["Обработка ответа"]
+        E6 -->|"Нет"| E8["Retry (max 3)\nили alert"]
+    end

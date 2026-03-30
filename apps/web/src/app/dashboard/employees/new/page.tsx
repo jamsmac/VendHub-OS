@@ -29,24 +29,45 @@ import {
 } from "@/components/ui/form";
 import { api } from "@/lib/api";
 
-const POSITIONS = [
+/**
+ * Must match EmployeeRole enum in backend entity
+ * @see apps/api/src/modules/employees/entities/employee.entity.ts
+ */
+const EMPLOYEE_ROLES = [
   "operator",
   "technician",
+  "warehouse",
+  "driver",
   "manager",
   "accountant",
-  "warehouse",
+  "supervisor",
 ] as const;
 
+const ROLE_LABELS: Record<string, string> = {
+  operator: "Оператор",
+  technician: "Техник",
+  warehouse: "Склад",
+  driver: "Водитель",
+  manager: "Менеджер",
+  accountant: "Бухгалтер",
+  supervisor: "Супервайзер",
+};
+
+/**
+ * Zod schema aligned with CreateEmployeeDto
+ * Required: firstName, lastName, employeeRole, hireDate
+ * Optional: phone, email, inn (mapped to notes or skipped)
+ */
 const employeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
-  position: z.enum(POSITIONS),
+  firstName: z.string().min(1, "Имя обязательно").max(100),
+  lastName: z.string().min(1, "Фамилия обязательна").max(100),
+  employeeRole: z.enum(EMPLOYEE_ROLES),
+  hireDate: z.string().min(1, "Дата приёма обязательна"),
   phone: z
     .string()
-    .regex(/^\+998\d{9}$/, "Phone must match +998XXXXXXXXX")
+    .regex(/^\+998\d{9}$/, "Формат: +998XXXXXXXXX")
     .or(z.literal("")),
-  email: z.string().email("Invalid email address").or(z.literal("")),
-  inn: z.string().max(20).optional().or(z.literal("")),
+  email: z.string().email("Неверный формат email").or(z.literal("")),
 });
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
@@ -61,20 +82,27 @@ export default function NewEmployeePage() {
     defaultValues: {
       firstName: "",
       lastName: "",
-      position: "operator",
+      employeeRole: "operator",
+      hireDate: new Date().toISOString().split("T")[0],
       phone: "",
       email: "",
-      inn: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: EmployeeFormValues) => api.post("/employees", data),
+    mutationFn: (data: EmployeeFormValues) => {
+      const payload = {
+        ...data,
+        phone: data.phone || undefined,
+        email: data.email || undefined,
+      };
+      return api.post("/employees", payload);
+    },
     onSuccess: () => {
-      toast.success("Employee created");
+      toast.success("Сотрудник создан");
       router.push("/dashboard/employees");
     },
-    onError: () => toast.error("Failed to create employee"),
+    onError: () => toast.error("Ошибка создания сотрудника"),
   });
 
   return (
@@ -86,7 +114,7 @@ export default function NewEmployeePage() {
           </Button>
         </Link>
         <h1 className="text-2xl font-bold">
-          {t("newEmployee") || "New Employee"}
+          {t("newEmployee") || "Новый сотрудник"}
         </h1>
       </div>
       <Form {...form}>
@@ -94,7 +122,7 @@ export default function NewEmployeePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                {t("personalInfo") || "Personal Info"}
+                {t("personalInfo") || "Личная информация"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -104,7 +132,7 @@ export default function NewEmployeePage() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("firstName") || "First Name"} *</FormLabel>
+                      <FormLabel>{t("firstName") || "Имя"} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -117,7 +145,7 @@ export default function NewEmployeePage() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("lastName") || "Last Name"} *</FormLabel>
+                      <FormLabel>{t("lastName") || "Фамилия"} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -129,10 +157,10 @@ export default function NewEmployeePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="position"
+                  name="employeeRole"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("position") || "Position"}</FormLabel>
+                      <FormLabel>{t("position") || "Должность"} *</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -143,9 +171,9 @@ export default function NewEmployeePage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {POSITIONS.map((p) => (
-                            <SelectItem key={p} value={p}>
-                              {p}
+                          {EMPLOYEE_ROLES.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {ROLE_LABELS[role] ?? role}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -156,12 +184,12 @@ export default function NewEmployeePage() {
                 />
                 <FormField
                   control={form.control}
-                  name="inn"
+                  name="hireDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>INN</FormLabel>
+                      <FormLabel>Дата приёма *</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -174,9 +202,9 @@ export default function NewEmployeePage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("phone") || "Phone"}</FormLabel>
+                      <FormLabel>{t("phone") || "Телефон"}</FormLabel>
                       <FormControl>
-                        <Input placeholder="+998..." {...field} />
+                        <Input placeholder="+998901234567" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -200,11 +228,11 @@ export default function NewEmployeePage() {
           </Card>
           <div className="flex justify-end gap-3 mt-6">
             <Link href="/dashboard/employees">
-              <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+              <Button variant="outline">{tCommon("cancel") || "Отмена"}</Button>
             </Link>
             <Button type="submit" disabled={mutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {mutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+              {mutation.isPending ? "Сохранение..." : tCommon("save") || "Сохранить"}
             </Button>
           </div>
         </form>

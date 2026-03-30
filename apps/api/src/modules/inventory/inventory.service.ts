@@ -359,11 +359,13 @@ export class InventoryService {
     reservationId: string,
     fulfilledQuantity: number,
     _userId?: string,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.reservationService.fulfillReservation(
       reservationId,
       fulfilledQuantity,
       _userId,
+      organizationId,
     );
   }
 
@@ -374,11 +376,13 @@ export class InventoryService {
     reservationId: string,
     reason?: string,
     userId?: string,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.reservationService.cancelReservation(
       reservationId,
       reason,
       userId,
+      organizationId,
     );
   }
 
@@ -410,10 +414,12 @@ export class InventoryService {
   async confirmReservation(
     reservationId: string,
     adjustedQuantity?: number,
+    organizationId?: string,
   ): Promise<InventoryReservation> {
     return this.reservationService.confirmReservation(
       reservationId,
       adjustedQuantity,
+      organizationId,
     );
   }
 

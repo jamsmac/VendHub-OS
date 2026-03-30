@@ -1,0 +1,35 @@
+%% B14. Промокоды с race condition защитой
+%% Источник: promo-codes/promo-codes.service.ts
+flowchart TD
+    subgraph CREATE_PROMO ["Создание промокода (Admin)"]
+        C1(["Admin создаёт промокод"]) --> C2["Параметры:\ncode, discountType (percent/fixed),\ndiscountValue, maxUses,\nperUserLimit, validFrom, validTo,\nminOrderAmount, applicableProducts[]"]
+        C2 --> C3["Сохранение PromoCode\nstatus: ACTIVE\nusedCount: 0"]
+    end
+
+    subgraph APPLY_PROMO ["Применение промокода (Клиент)"]
+        A1(["Клиент вводит код"]) --> A2["Поиск PromoCode\nпо code"]
+        A2 --> A3{"Найден?"}
+        A3 -->|"Нет"| A_ERR1["404: Promo code not found"]
+        A3 -->|"Да"| A4{"status == ACTIVE?"}
+        A4 -->|"Нет"| A_ERR2["400: Promo code inactive"]
+        A4 -->|"Да"| A5{"validFrom ≤ now\n≤ validTo?"}
+        A5 -->|"Нет"| A_ERR3["400: Promo code expired\nor not yet active"]
+        A5 -->|"Да"| A6{"usedCount\n< maxUses?"}
+        A6 -->|"Нет"| A_ERR4["400: Promo code\nfully redeemed"]
+        A6 -->|"Да"| A7{"minOrderAmount\nсоблюдён?"}
+        A7 -->|"Нет"| A_ERR5["400: Minimum order\namount not met"]
+        A7 -->|"Да"| A8["⚡ PESSIMISTIC LOCK\n(Transaction isolation)"]
+
+        A8 --> A9["Повторная проверка\nperUserLimit внутри lock:\nCOUNT(PromoCodeRedemption)\nWHERE userId = current"]
+        A9 --> A10{"Лимит на\nпользователя?"}
+        A10 -->|"Превышен"| A_ERR6["400: Per-user\nlimit exceeded"]
+        A10 -->|"ОК"| A11["Расчёт скидки:\npercent → amount × (value/100)\nfixed → amount - value"]
+        A11 --> A12["Создание\nPromoCodeRedemption:\npromoCodeId, userId,\norderId, discountAmount"]
+        A12 --> A13["Инкремент:\npromoCode.usedCount++"]
+        A13 --> A14["COMMIT transaction"]
+        A14 --> A_OK(["✓ Скидка применена"])
+    end
+
+    subgraph CRON_EXPIRE ["Cron: каждый час"]
+        CR1["Поиск PromoCode:\nstatus: ACTIVE\nAND validTo < now"] --> CR2["status: EXPIRED"]
+    end

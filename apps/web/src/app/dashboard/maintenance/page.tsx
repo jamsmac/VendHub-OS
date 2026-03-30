@@ -173,7 +173,10 @@ export default function MaintenancePage() {
       if (typeFilter !== "all") params.append("type", typeFilter);
       if (priorityFilter !== "all") params.append("priority", priorityFilter);
       const res = await maintenanceApi.getAll(Object.fromEntries(params));
-      return res.data;
+      // API returns paginated { data: [...], total, page, limit }
+      // after axios interceptor unwraps the { success, data } envelope
+      const payload = res.data;
+      return Array.isArray(payload) ? payload : payload?.data ?? [];
     },
   });
 

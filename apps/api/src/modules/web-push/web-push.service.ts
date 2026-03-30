@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, LessThan } from "typeorm";
 import { ConfigService } from "@nestjs/config";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import { PushSubscription } from "../notifications/entities/push-subscription.entity";
 
 // Dynamic require — web-push is optional at runtime
@@ -181,7 +181,7 @@ export class WebPushService {
     return { sent, failed };
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Cron("0 3 * * *", { timeZone: "Asia/Tashkent" })
   async cleanupInactive(): Promise<void> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

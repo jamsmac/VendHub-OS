@@ -18,7 +18,7 @@ import {
   Between,
 } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 
 import {
   WorkLog,
@@ -952,7 +952,7 @@ export class WorkLogsService {
   // CRON JOBS
   // ========================================================================
 
-  @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
+  @Cron("0 0 1 * *", { timeZone: "Asia/Tashkent" })
   async generateMonthlyTimesheets(): Promise<void> {
     this.logger.log("Generating monthly timesheets...");
 

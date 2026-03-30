@@ -79,7 +79,7 @@ function makeUser(
 }
 
 function makeMachine(
-  overrides: Partial<{ id: string; organizationId: string }> = {},
+  overrides: Partial<{ id: string; organizationId: string; status: MachineStatus }> = {},
 ) {
   return {
     id: "mc-1",
@@ -424,20 +424,42 @@ describe("MachinesController (unit)", () => {
       const dto = { machineNumber: "VM-999" } as any;
       const result = await controller.update("mc-1", dto, user as any);
 
-      expect(mockMachinesService.update).toHaveBeenCalledWith("mc-1", dto);
+      // Controller uses owner-bypass pattern: non-OWNER passes organizationId
+      expect(mockMachinesService.update).toHaveBeenCalledWith(
+        "mc-1",
+        dto,
+        "org-1",
+      );
       expect(result).toEqual(updated);
     });
 
-    it("should throw ForbiddenException for cross-org machine", async () => {
-      const user = makeUser({ organizationId: "org-1" });
-      const machine = makeMachine({ organizationId: "org-2" });
+    it("should pass undefined organizationId for OWNER", async () => {
+      const user = makeUser({ role: UserRole.OWNER });
+      const machine = makeMachine();
+      const updated = { ...machine, machineNumber: "VM-999" };
       mockMachinesService.findById.mockResolvedValue(machine);
+      mockMachinesService.update.mockResolvedValue(updated);
 
-      await expect(
-        controller.update("mc-cross", {} as any, user as any),
-      ).rejects.toThrow(ForbiddenException);
+      const dto = { machineNumber: "VM-999" } as any;
+      await controller.update("mc-1", dto, user as any);
 
-      expect(mockMachinesService.update).not.toHaveBeenCalled();
+      // OWNER passes undefined organizationId (no org filtering)
+      expect(mockMachinesService.update).toHaveBeenCalledWith("mc-1", dto, undefined);
+    });
+
+    it("should pass organizationId to service for cross-org filtering (non-OWNER)", async () => {
+      const user = makeUser({ organizationId: "org-1" });
+      mockMachinesService.update.mockResolvedValue(makeMachine());
+
+      const dto = { machineNumber: "VM-999" } as any;
+      await controller.update("mc-cross", dto, user as any);
+
+      // Controller now delegates org check to service via organizationId
+      expect(mockMachinesService.update).toHaveBeenCalledWith(
+        "mc-cross",
+        dto,
+        "org-1",
+      );
     });
   });
 
@@ -446,7 +468,7 @@ describe("MachinesController (unit)", () => {
   // ==========================================================================
 
   describe("updateStatus", () => {
-    it("should call service.updateStatus with id and status", async () => {
+    it("should call service.updateStatus with id, status, and organizationId for non-OWNER", async () => {
       const user = makeUser();
       const machine = makeMachine();
       mockMachinesService.findById.mockResolvedValue(machine);
@@ -458,26 +480,50 @@ describe("MachinesController (unit)", () => {
       const dto = { status: MachineStatus.OFFLINE } as any;
       const result = await controller.updateStatus("mc-1", dto, user as any);
 
+      // Controller uses owner-bypass pattern: non-OWNER passes organizationId
       expect(mockMachinesService.updateStatus).toHaveBeenCalledWith(
         "mc-1",
         MachineStatus.OFFLINE,
+        "org-1",
       );
       expect(result.status).toBe(MachineStatus.OFFLINE);
     });
 
-    it("should throw ForbiddenException for cross-org access", async () => {
+    it("should call service.updateStatus with undefined organizationId for OWNER", async () => {
+      const user = makeUser({ role: UserRole.OWNER });
+      const machine = makeMachine();
+      mockMachinesService.findById.mockResolvedValue(machine);
+      mockMachinesService.updateStatus.mockResolvedValue({
+        ...machine,
+        status: MachineStatus.OFFLINE,
+      });
+
+      const dto = { status: MachineStatus.OFFLINE } as any;
+      await controller.updateStatus("mc-1", dto, user as any);
+
+      // OWNER passes undefined organizationId (no org filtering)
+      expect(mockMachinesService.updateStatus).toHaveBeenCalledWith(
+        "mc-1",
+        MachineStatus.OFFLINE,
+        undefined,
+      );
+    });
+
+    it("should pass organizationId to service for cross-org filtering (non-OWNER)", async () => {
       const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(
-        makeMachine({ organizationId: "org-2" }),
+      mockMachinesService.updateStatus.mockResolvedValue(
+        makeMachine({ status: MachineStatus.OFFLINE }),
       );
 
-      await expect(
-        controller.updateStatus(
-          "mc-cross",
-          { status: MachineStatus.OFFLINE } as any,
-          user as any,
-        ),
-      ).rejects.toThrow(ForbiddenException);
+      const dto = { status: MachineStatus.OFFLINE } as any;
+      await controller.updateStatus("mc-cross", dto, user as any);
+
+      // Controller now delegates org check to service via organizationId
+      expect(mockMachinesService.updateStatus).toHaveBeenCalledWith(
+        "mc-cross",
+        MachineStatus.OFFLINE,
+        "org-1",
+      );
     });
   });
 
@@ -526,28 +572,17 @@ describe("MachinesController (unit)", () => {
   // ==========================================================================
 
   describe("remove", () => {
-    it("should call service.remove for same-org machine", async () => {
+    it("should call service.remove with id and organizationId", async () => {
       const user = makeUser();
-      const machine = makeMachine();
-      mockMachinesService.findById.mockResolvedValue(machine);
       mockMachinesService.remove.mockResolvedValue(undefined);
 
       await controller.remove("mc-1", user as any);
 
-      expect(mockMachinesService.remove).toHaveBeenCalledWith("mc-1");
-    });
-
-    it("should throw ForbiddenException for cross-org machine", async () => {
-      const user = makeUser({ organizationId: "org-1" });
-      mockMachinesService.findById.mockResolvedValue(
-        makeMachine({ organizationId: "org-2" }),
+      // Controller always passes user.organizationId (no owner-bypass for delete)
+      expect(mockMachinesService.remove).toHaveBeenCalledWith(
+        "mc-1",
+        "org-1",
       );
-
-      await expect(controller.remove("mc-cross", user as any)).rejects.toThrow(
-        ForbiddenException,
-      );
-
-      expect(mockMachinesService.remove).not.toHaveBeenCalled();
     });
   });
 

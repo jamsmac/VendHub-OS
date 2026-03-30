@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import {
   Invoice,
   BillingPayment,
@@ -440,7 +440,7 @@ export class BillingService {
   /**
    * Ежедневная проверка и пометка просроченных инвойсов
    */
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron("0 1 * * *", { timeZone: "Asia/Tashkent" })
   async markOverdueInvoices(): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

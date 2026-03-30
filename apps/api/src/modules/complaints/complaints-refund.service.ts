@@ -9,7 +9,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, FindOptionsWhere } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Complaint,
@@ -68,8 +68,11 @@ export class ComplaintsRefundService {
   async approveRefund(
     refundId: string,
     approvedById: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    const refund = await this.refundRepo.findOne({ where: { id: refundId } });
+    const where: FindOptionsWhere<ComplaintRefund> = { id: refundId };
+    if (organizationId) where.organizationId = organizationId;
+    const refund = await this.refundRepo.findOne({ where });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
@@ -90,8 +93,11 @@ export class ComplaintsRefundService {
     refundId: string,
     processedById: string,
     referenceNumber?: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    const refund = await this.refundRepo.findOne({ where: { id: refundId } });
+    const where: FindOptionsWhere<ComplaintRefund> = { id: refundId };
+    if (organizationId) where.organizationId = organizationId;
+    const refund = await this.refundRepo.findOne({ where });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }
@@ -124,8 +130,11 @@ export class ComplaintsRefundService {
     refundId: string,
     _rejectedById: string,
     reason: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    const refund = await this.refundRepo.findOne({ where: { id: refundId } });
+    const where: FindOptionsWhere<ComplaintRefund> = { id: refundId };
+    if (organizationId) where.organizationId = organizationId;
+    const refund = await this.refundRepo.findOne({ where });
     if (!refund) {
       throw new NotFoundException(`Возврат ${refundId} не найден`);
     }

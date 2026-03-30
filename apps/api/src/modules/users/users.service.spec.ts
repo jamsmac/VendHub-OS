@@ -91,7 +91,7 @@ describe("UsersService", () => {
   // ============================================================================
 
   describe("create", () => {
-    it("should create a new user", async () => {
+    it("should create a new user with hashed password", async () => {
       userRepository.create.mockReturnValue(mockUser);
       userRepository.save.mockResolvedValue(mockUser);
 
@@ -104,11 +104,18 @@ describe("UsersService", () => {
       const result = await service.create(dto as CreateUserDto);
 
       expect(result).toEqual(mockUser);
-      expect(userRepository.create).toHaveBeenCalledWith(dto);
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: dto.email,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          password: "hashed-password",
+        }),
+      );
       expect(userRepository.save).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should pass dto fields through to create", async () => {
+    it("should hash password using bcrypt.hash", async () => {
       const dto = {
         email: "new@vendhub.uz",
         password: "secret",
@@ -120,7 +127,11 @@ describe("UsersService", () => {
 
       await service.create(dto as CreateUserDto);
 
-      expect(userRepository.create).toHaveBeenCalledWith(dto);
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          password: "hashed-password",
+        }),
+      );
     });
   });
 

@@ -15,15 +15,25 @@ import {
   MachineSlot,
   MachineLocationHistory,
   MachineComponent,
+  SimUsageLog,
+  MachineConnectivity,
+  MachineExpense,
   MachineErrorLog,
   MachineMaintenanceSchedule,
   MachineStatus,
   ComponentStatus,
+  ConnectivityStatus,
   MaintenanceStatus,
   MaintenanceType,
   MoveReason,
   ErrorSeverity,
 } from "./entities/machine.entity";
+import { CreateSimUsageDto } from "./dto/sim-usage.dto";
+import {
+  CreateConnectivityDto,
+  UpdateConnectivityDto,
+} from "./dto/connectivity.dto";
+import { CreateExpenseDto, UpdateExpenseDto } from "./dto/expense.dto";
 import {
   CreateMachineSlotDto,
   UpdateMachineSlotDto,
@@ -54,6 +64,12 @@ export class MachinesMaintenanceService {
     private readonly errorLogRepository: Repository<MachineErrorLog>,
     @InjectRepository(MachineMaintenanceSchedule)
     private readonly maintenanceRepository: Repository<MachineMaintenanceSchedule>,
+    @InjectRepository(SimUsageLog)
+    private readonly simUsageRepository: Repository<SimUsageLog>,
+    @InjectRepository(MachineConnectivity)
+    private readonly connectivityRepository: Repository<MachineConnectivity>,
+    @InjectRepository(MachineExpense)
+    private readonly expenseRepository: Repository<MachineExpense>,
     private readonly coreService: MachinesCoreService,
   ) {}
 
@@ -238,6 +254,7 @@ export class MachinesMaintenanceService {
       purchasePrice: dto.purchasePrice,
       warrantyUntil: dto.warrantyUntil,
       expectedLifeHours: dto.expectedLifeHours,
+      metadata: dto.metadata ?? {},
       status: ComponentStatus.INSTALLED,
       installedAt: new Date(),
       installedByUserId: userId,
@@ -459,5 +476,264 @@ export class MachinesMaintenanceService {
     }
 
     return savedSchedule;
+  }
+
+  // ── SIM Usage ──────────────────────────────────────────
+
+  async getSimUsage(machineId: string): Promise<SimUsageLog[]> {
+    await this.coreService.ensureMachineExists(machineId);
+
+    return this.simUsageRepository.find({
+      where: { machineId },
+      order: { periodStart: "DESC" },
+    });
+  }
+
+  async addSimUsage(
+    machineId: string,
+    dto: CreateSimUsageDto,
+    user: { id: string; organizationId: string },
+  ): Promise<SimUsageLog> {
+    await this.coreService.ensureMachineExists(machineId);
+
+    // Verify component exists and belongs to this machine
+    const component = await this.componentRepository.findOne({
+      where: { id: dto.componentId, machineId },
+    });
+    if (!component) {
+      throw new NotFoundException(
+        `SIM component ${dto.componentId} not found on machine ${machineId}`,
+      );
+    }
+
+    const log = this.simUsageRepository.create({
+      componentId: dto.componentId,
+      machineId,
+      organizationId: user.organizationId,
+      periodStart: dto.periodStart,
+      periodEnd: dto.periodEnd,
+      dataUsedMb: dto.dataUsedMb,
+      dataLimitMb: dto.dataLimitMb,
+      cost: dto.cost,
+      currency: "UZS",
+      notes: dto.notes,
+      createdById: user.id,
+    });
+
+    return this.simUsageRepository.save(log);
+  }
+
+  // ── Connectivity (Связь) ───────────────────────────────────
+
+  async getConnectivity(
+    machineId: string,
+    organizationId: string,
+  ): Promise<MachineConnectivity[]> {
+    await this.coreService.ensureMachineExists(machineId);
+    return this.connectivityRepository.find({
+      where: { machineId, organizationId },
+      order: { startDate: "DESC" },
+    });
+  }
+
+  async addConnectivity(
+    machineId: string,
+    dto: CreateConnectivityDto,
+    user: { id: string; organizationId: string },
+  ): Promise<MachineConnectivity> {
+    await this.coreService.ensureMachineExists(machineId);
+
+    const conn = this.connectivityRepository.create({
+      machineId,
+      organizationId: user.organizationId,
+      connectivityType: dto.connectivityType,
+      providerName: dto.providerName,
+      accountNumber: dto.accountNumber,
+      tariffName: dto.tariffName,
+      componentId: dto.componentId,
+      monthlyCost: dto.monthlyCost,
+      startDate: dto.startDate,
+      endDate: dto.endDate,
+      notes: dto.notes,
+      createdById: user.id,
+    });
+
+    return this.connectivityRepository.save(conn);
+  }
+
+  async updateConnectivityService(
+    connectivityId: string,
+    dto: UpdateConnectivityDto,
+    user: { id: string; organizationId: string },
+  ): Promise<MachineConnectivity> {
+    const conn = await this.connectivityRepository.findOne({
+      where: { id: connectivityId, organizationId: user.organizationId },
+    });
+    if (!conn) {
+      throw new NotFoundException(`Connectivity ${connectivityId} not found`);
+    }
+
+    Object.assign(conn, dto, { updatedById: user.id });
+    return this.connectivityRepository.save(conn);
+  }
+
+  async removeConnectivity(
+    connectivityId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const conn = await this.connectivityRepository.findOne({
+      where: { id: connectivityId, organizationId },
+    });
+    if (!conn) {
+      throw new NotFoundException(`Connectivity ${connectivityId} not found`);
+    }
+    await this.connectivityRepository.softDelete(connectivityId);
+  }
+
+  // ── Expenses (Расходы) ──────────────────────────────────────
+
+  async getExpenses(
+    machineId: string,
+    organizationId: string,
+  ): Promise<MachineExpense[]> {
+    await this.coreService.ensureMachineExists(machineId);
+    return this.expenseRepository.find({
+      where: { machineId, organizationId },
+      order: { expenseDate: "DESC" },
+    });
+  }
+
+  async addExpense(
+    machineId: string,
+    dto: CreateExpenseDto,
+    user: { id: string; organizationId: string },
+  ): Promise<MachineExpense> {
+    await this.coreService.ensureMachineExists(machineId);
+
+    const expense = this.expenseRepository.create({
+      machineId,
+      organizationId: user.organizationId,
+      locationId: dto.locationId,
+      category: dto.category,
+      expenseType: dto.expenseType,
+      description: dto.description,
+      amount: dto.amount,
+      expenseDate: dto.expenseDate,
+      counterpartyId: dto.counterpartyId,
+      performedByUserId: user.id,
+      receiptUrl: dto.receiptUrl,
+      invoiceNumber: dto.invoiceNumber,
+      notes: dto.notes,
+      createdById: user.id,
+    });
+
+    return this.expenseRepository.save(expense);
+  }
+
+  async updateExpense(
+    expenseId: string,
+    dto: UpdateExpenseDto,
+    user: { id: string; organizationId: string },
+  ): Promise<MachineExpense> {
+    const expense = await this.expenseRepository.findOne({
+      where: { id: expenseId, organizationId: user.organizationId },
+    });
+    if (!expense) {
+      throw new NotFoundException(`Expense ${expenseId} not found`);
+    }
+
+    Object.assign(expense, dto, { updatedById: user.id });
+    return this.expenseRepository.save(expense);
+  }
+
+  async removeExpense(
+    expenseId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const expense = await this.expenseRepository.findOne({
+      where: { id: expenseId, organizationId },
+    });
+    if (!expense) {
+      throw new NotFoundException(`Expense ${expenseId} not found`);
+    }
+    await this.expenseRepository.softDelete(expenseId);
+  }
+
+  // ── TCO (Total Cost of Ownership) ──────────────────────────
+
+  async getTco(
+    machineId: string,
+    organizationId: string,
+  ): Promise<{
+    machineId: string;
+    purchasePrice: number;
+    depreciation: number;
+    connectivity: { total: number; monthly: number; items: MachineConnectivity[] };
+    expenses: {
+      capex: number;
+      opex: number;
+      byCategory: Record<string, number>;
+      items: MachineExpense[];
+    };
+    simUsage: { total: number };
+    totalCost: number;
+  }> {
+    const machine = await this.coreService.ensureMachineExists(machineId);
+
+    const [connectivityItems, expenseItems, simUsageLogs] = await Promise.all([
+      this.connectivityRepository.find({
+        where: { machineId, organizationId },
+      }),
+      this.expenseRepository.find({ where: { machineId, organizationId } }),
+      this.simUsageRepository.find({ where: { machineId, organizationId } }),
+    ]);
+
+    // Connectivity totals
+    const connectivityMonthly = connectivityItems
+      .filter((c) => c.status === ConnectivityStatus.ACTIVE)
+      .reduce((sum, c) => sum + Number(c.monthlyCost || 0), 0);
+
+    const connectivityTotal = connectivityItems.reduce(
+      (sum, c) => sum + Number(c.monthlyCost || 0),
+      0,
+    );
+
+    // Expense totals
+    const capex = expenseItems
+      .filter((e) => e.expenseType === "capex")
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    const opex = expenseItems
+      .filter((e) => e.expenseType === "opex")
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    const byCategory: Record<string, number> = {};
+    for (const e of expenseItems) {
+      byCategory[e.category] =
+        (byCategory[e.category] || 0) + Number(e.amount || 0);
+    }
+
+    // SIM usage total cost
+    const simTotal = simUsageLogs.reduce(
+      (sum, s) => sum + Number(s.cost || 0),
+      0,
+    );
+
+    const purchasePrice = Number(machine.purchasePrice || 0);
+    const depreciation = Number(machine.accumulatedDepreciation || 0);
+
+    return {
+      machineId,
+      purchasePrice,
+      depreciation,
+      connectivity: {
+        total: connectivityTotal,
+        monthly: connectivityMonthly,
+        items: connectivityItems,
+      },
+      expenses: { capex, opex, byCategory, items: expenseItems },
+      simUsage: { total: simTotal },
+      totalCost: purchasePrice + capex + opex + simTotal,
+    };
   }
 }

@@ -1,0 +1,42 @@
+%% C6. Партии ингредиентов (Batch tracking)
+%% Источник: products/products-batch.service.ts, batch-movements/batch-movements.service.ts
+flowchart TD
+    subgraph LIFECYCLE ["Жизненный цикл партии"]
+        CREATE(["Приход партии"]) --> BATCH["CreateBatch:\nbatchNumber, quantity,\nexpiryDate, supplierId,\npurchasePrice, unitOfMeasure,\nstorageLocation"]
+        BATCH --> STATUS_IN["status: IN_STOCK\nremainingQuantity = quantity\ntotalCost = price × qty"]
+    end
+
+    STATUS_IN --> MOVEMENTS{"Движения\n(BatchMovement)"}
+
+    MOVEMENTS -->|"RECEIVE"| MV_RECEIVE["Приход:\nremainingQty += quantity\n(дозакупка)"]
+    MOVEMENTS -->|"ISSUE"| MV_ISSUE["Выдача оператору:\nremainingQty -= quantity"]
+    MOVEMENTS -->|"LOAD"| MV_LOAD["Загрузка в автомат:\nremainingQty -= quantity"]
+    MOVEMENTS -->|"CONSUME"| MV_CONSUME["Расход при продаже:\nremainingQty -= quantity\n(через RecipeConsumption)"]
+    MOVEMENTS -->|"WRITE_OFF"| MV_WRITEOFF["Списание:\nremainingQty -= quantity\nreason: damaged/expired/other"]
+    MOVEMENTS -->|"RETURN"| MV_RETURN["Возврат:\nremainingQty += quantity"]
+    MOVEMENTS -->|"ADJUST"| MV_ADJUST["Корректировка:\nremainingQty = newValue\n(по результатам инвентаризации)"]
+
+    subgraph MOVEMENT_TX ["Каждое движение — в транзакции"]
+        MT1["1. BEGIN TRANSACTION"] --> MT2["2. Загрузка batch\n(SELECT FOR UPDATE)"]
+        MT2 --> MT3{"Outgoing?\n(ISSUE/LOAD/CONSUME/WRITE_OFF)"}
+        MT3 -->|"Да"| MT4{"remaining\n≥ requested?"}
+        MT4 -->|"Нет"| MT5["BadRequest:\nInsufficient quantity"]
+        MT4 -->|"Да"| MT6["remaining -= qty"]
+        MT3 -->|"Нет (incoming)"| MT7["remaining += qty"]
+        MT6 --> MT8["Создание BatchMovement:\nmovementType, quantity,\nperformedBy, referenceId"]
+        MT7 --> MT8
+        MT8 --> MT9["EntityEventsService:\nзапись EntityEvent\n(TrackedEntityType.BATCH)"]
+        MT9 --> MT10["3. COMMIT TRANSACTION"]
+    end
+
+    MV_RECEIVE --> CHECK
+    MV_ISSUE --> CHECK
+    MV_LOAD --> CHECK
+    MV_CONSUME --> CHECK
+    MV_WRITEOFF --> CHECK
+    MV_RETURN --> CHECK
+    MV_ADJUST --> CHECK
+
+    CHECK{"remainingQty\n== 0?"}
+    CHECK -->|"Да"| DEPLETED["status: DEPLETED"]
+    CHECK -->|"Нет"| STILL_IN["status: IN_STOCK"]

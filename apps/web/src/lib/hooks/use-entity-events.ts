@@ -13,7 +13,11 @@ export function useEntityTimeline(entityId: string, page = 1, limit = 50) {
     queryKey: ["entity-events", "timeline", entityId, page, limit],
     queryFn: async () => {
       const res = await entityEventsApi.getTimeline(entityId, { page, limit });
-      return res.data as { data: any[]; total: number };
+      const raw = res.data;
+      return {
+        data: Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [],
+        total: typeof raw?.total === "number" ? raw.total : 0,
+      };
     },
     enabled: !!entityId,
   });

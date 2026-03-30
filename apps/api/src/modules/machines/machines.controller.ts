@@ -39,6 +39,12 @@ import {
   RefillSlotDto,
 } from "./dto/machine-slot.dto";
 import { InstallComponentDto } from "./dto/machine-component.dto";
+import { CreateSimUsageDto } from "./dto/sim-usage.dto";
+import {
+  CreateConnectivityDto,
+  UpdateConnectivityDto,
+} from "./dto/connectivity.dto";
+import { CreateExpenseDto, UpdateExpenseDto } from "./dto/expense.dto";
 import {
   MoveMachineDto,
   LogErrorDto,
@@ -87,9 +93,16 @@ export class MachinesController {
     // SECURITY: Always enforce user's organization. Owner can optionally target another org.
     const organizationId = resolveOrganizationId(user, dto.organizationId);
 
+    // Map DTO fields to entity fields:
+    //   dto.code → entity.machineNumber  (DTO uses legacy "code" name)
+    //   dto.contentModel → entity.contentModel (optional)
+    const { code, contentModel, ...rest } = dto;
     return this.machinesService.create({
-      ...dto,
+      ...rest,
+      machineNumber: code,
+      ...(contentModel ? { contentModel } : {}),
       organizationId,
+      createdById: user.id,
     });
   }
 
@@ -323,14 +336,9 @@ export class MachinesController {
     @Body() dto: UpdateMachineDto,
     @CurrentUser() user: User,
   ) {
-    const machine = await this.machinesService.findById(id);
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
-    }
-
-    return this.machinesService.update(id, dto);
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.machinesService.update(id, dto, orgId);
   }
 
   @Patch(":id/status")
@@ -343,14 +351,9 @@ export class MachinesController {
     @Body() dto: UpdateMachineStatusDto,
     @CurrentUser() user: User,
   ) {
-    const machine = await this.machinesService.findById(id);
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
-    }
-
-    return this.machinesService.updateStatus(id, dto.status);
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.machinesService.updateStatus(id, dto.status, orgId);
   }
 
   @Patch(":id/telemetry")
@@ -711,6 +714,44 @@ export class MachinesController {
   }
 
   // ============================================================================
+  // SIM USAGE LOGS
+  // ============================================================================
+
+  @Get(":id/sim-usage")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Get SIM usage history for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiResponse({ status: 200, description: "SIM usage log list" })
+  async getSimUsage(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.getSimUsage(id);
+  }
+
+  @Post(":id/sim-usage")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Record SIM usage for a period" })
+  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiResponse({ status: 201, description: "SIM usage logged" })
+  async addSimUsage(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateSimUsageDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.addSimUsage(id, dto, user);
+  }
+
+  // ============================================================================
   // MAINTENANCE SCHEDULE
   // ============================================================================
 
@@ -847,6 +888,160 @@ export class MachinesController {
   @ApiResponse({ status: 200, description: "Machine updated" })
   async pingMachine(@Param("id", ParseUUIDPipe) id: string) {
     return this.machinesService.updateConnectivity(id);
+  }
+
+  // ============================================================================
+  // CONNECTIVITY (Связь)
+  // ============================================================================
+
+  @Get(":id/connectivity")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
+  @ApiOperation({ summary: "Get all connectivity services for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "List of connectivity services" })
+  async getConnectivity(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.getConnectivity(id, user.organizationId);
+  }
+
+  @Post(":id/connectivity")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Add connectivity service to a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 201, description: "Connectivity service created" })
+  async addConnectivity(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateConnectivityDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.addConnectivity(id, dto, user);
+  }
+
+  @Patch(":id/connectivity/:connectivityId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: "Update connectivity service" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiParam({ name: "connectivityId", description: "Connectivity UUID" })
+  @ApiResponse({ status: 200, description: "Connectivity service updated" })
+  async updateConnectivityService(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("connectivityId", ParseUUIDPipe) connectivityId: string,
+    @Body() dto: UpdateConnectivityDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.updateConnectivityService(
+      connectivityId,
+      dto,
+      user,
+    );
+  }
+
+  @Delete(":id/connectivity/:connectivityId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: "Soft-delete connectivity service" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiParam({ name: "connectivityId", description: "Connectivity UUID" })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeConnectivity(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("connectivityId", ParseUUIDPipe) connectivityId: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.removeConnectivity(
+      connectivityId,
+      user.organizationId,
+    );
+  }
+
+  // ============================================================================
+  // EXPENSES (Расходы)
+  // ============================================================================
+
+  @Get(":id/expenses")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.ACCOUNTANT,
+  )
+  @ApiOperation({ summary: "Get all expenses for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "List of expenses" })
+  async getExpenses(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.getExpenses(id, user.organizationId);
+  }
+
+  @Post(":id/expenses")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
+  @ApiOperation({ summary: "Add expense to a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 201, description: "Expense created" })
+  async addExpense(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateExpenseDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.addExpense(id, dto, user);
+  }
+
+  @Patch(":id/expenses/:expenseId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
+  @ApiOperation({ summary: "Update expense" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiParam({ name: "expenseId", description: "Expense UUID" })
+  @ApiResponse({ status: 200, description: "Expense updated" })
+  async updateExpense(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("expenseId", ParseUUIDPipe) expenseId: string,
+    @Body() dto: UpdateExpenseDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.updateExpense(expenseId, dto, user);
+  }
+
+  @Delete(":id/expenses/:expenseId")
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: "Soft-delete expense" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiParam({ name: "expenseId", description: "Expense UUID" })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeExpense(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("expenseId", ParseUUIDPipe) expenseId: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.removeExpense(expenseId, user.organizationId);
+  }
+
+  @Get(":id/tco")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.ACCOUNTANT,
+  )
+  @ApiOperation({ summary: "Get total cost of ownership for a machine" })
+  @ApiParam({ name: "id", description: "Machine UUID" })
+  @ApiResponse({ status: 200, description: "TCO breakdown" })
+  async getTco(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyMachineAccess(id, user);
+    return this.machinesService.getTco(id, user.organizationId);
   }
 
   // ============================================================================

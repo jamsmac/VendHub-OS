@@ -34,7 +34,11 @@ export class UsersService {
     if (createUserDto.role === UserRole.OWNER) {
       throw new ForbiddenException("Cannot assign owner role through API");
     }
-    const user = this.userRepository.create(createUserDto);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
+    const user = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
     return this.userRepository.save(user);
   }
 
@@ -98,9 +102,16 @@ export class UsersService {
     });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(
+    email: string,
+    organizationId?: string,
+  ): Promise<User | null> {
+    const where: FindOptionsWhere<User> = { email };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     return this.userRepository.findOne({
-      where: { email },
+      where,
       relations: ["organization"],
     });
   }
@@ -261,12 +272,22 @@ export class UsersService {
   // LOOKUP HELPERS (ported from VHM24-repo)
   // ========================================================================
 
-  async findByTelegramId(telegramId: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { telegramId } });
+  async findByTelegramId(
+    telegramId: string,
+    organizationId?: string,
+  ): Promise<User | null> {
+    const where: FindOptionsWhere<User> = { telegramId };
+    if (organizationId) where.organizationId = organizationId;
+    return this.userRepository.findOne({ where });
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { username } });
+  async findByUsername(
+    username: string,
+    organizationId?: string,
+  ): Promise<User | null> {
+    const where: FindOptionsWhere<User> = { username };
+    if (organizationId) where.organizationId = organizationId;
+    return this.userRepository.findOne({ where });
   }
 
   async findByIds(ids: string[]): Promise<User[]> {

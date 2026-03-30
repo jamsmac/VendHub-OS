@@ -41,13 +41,13 @@ export class AddCustomFieldsTables1774300200000 implements MigrationInterface {
     `);
 
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_tabs_org" ON "entity_custom_tabs" ("organization_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_tabs_org" ON "entity_custom_tabs" ("organization_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_tabs_org_type" ON "entity_custom_tabs" ("organization_id", "entity_type")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_tabs_org_type" ON "entity_custom_tabs" ("organization_id", "entity_type")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_tabs_org_type_sort" ON "entity_custom_tabs" ("organization_id", "entity_type", "sort_order")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_tabs_org_type_sort" ON "entity_custom_tabs" ("organization_id", "entity_type", "sort_order")`,
     );
 
     // entity_custom_fields
@@ -82,16 +82,16 @@ export class AddCustomFieldsTables1774300200000 implements MigrationInterface {
     `);
 
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_fields_org" ON "entity_custom_fields" ("organization_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_fields_org" ON "entity_custom_fields" ("organization_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_fields_org_type" ON "entity_custom_fields" ("organization_id", "entity_type")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_fields_org_type" ON "entity_custom_fields" ("organization_id", "entity_type")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_fields_org_type_tab" ON "entity_custom_fields" ("organization_id", "entity_type", "tab_name")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_fields_org_type_tab" ON "entity_custom_fields" ("organization_id", "entity_type", "tab_name")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_custom_fields_org_type_sort" ON "entity_custom_fields" ("organization_id", "entity_type", "sort_order")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_custom_fields_org_type_sort" ON "entity_custom_fields" ("organization_id", "entity_type", "sort_order")`,
     );
   }
 

@@ -1,0 +1,48 @@
+%% C3. Telegram Bot для персонала
+%% Источник: telegram-bot/services/bot-*.service.ts, access-requests/access-requests.service.ts
+flowchart TD
+    START(["Сотрудник: /start\nв Telegram"]) --> ACCESS{"Есть доступ\nв системе?"}
+
+    ACCESS -->|"Нет"| REQ_ACCESS["Создание AccessRequest:\ntelegramId, username\nstatus: NEW"]
+    REQ_ACCESS --> WAIT["Ожидание одобрения\nадминистратором"]
+    WAIT --> ADMIN_DECISION{"Admin решение?"}
+    ADMIN_DECISION -->|"Approve"| LINK_USER["Привязка telegramId\nк существующему User\n(или создание нового)"]
+    ADMIN_DECISION -->|"Reject"| DENIED(["❌ Доступ отклонён"])
+    LINK_USER --> MAIN_MENU
+
+    ACCESS -->|"Да"| MAIN_MENU(["Главное меню\n(BotMenuService)"])
+
+    MAIN_MENU --> CMD_STATUS["📊 Статус автомата"]
+    MAIN_MENU --> CMD_TASKS["📋 Мои задачи"]
+    MAIN_MENU --> CMD_COLLECT["💰 Сбор наличных"]
+    MAIN_MENU --> CMD_REPORT["📈 Отчёт"]
+    MAIN_MENU --> CMD_NOTIFY["🔔 Уведомления"]
+
+    subgraph MACHINE_OPS ["bot-machine-ops.service.ts"]
+        CMD_STATUS --> M1["Ввод номера автомата\nили выбор из списка"]
+        M1 --> M2["Получение:\nstatus, lastSale, fillLevel,\nerrors, temperature"]
+        M2 --> M3["Отображение\nинлайн-карточки"]
+    end
+
+    subgraph TASK_OPS ["bot-task-ops.service.ts"]
+        CMD_TASKS --> T1["Список назначенных задач\n(assigned to me, IN_PROGRESS)"]
+        T1 --> T2{"Действие?"}
+        T2 -->|"Начать"| T3["Task → IN_PROGRESS\nstartedAt: now"]
+        T2 -->|"Завершить"| T4["Загрузка фото\n→ Task → COMPLETED"]
+        T2 -->|"Комментарий"| T5["Добавление\nTaskComment"]
+    end
+
+    subgraph COLLECTION_OPS ["Сбор наличных"]
+        CMD_COLLECT --> CO1["Выбор автомата"]
+        CO1 --> CO2["GPS фиксация\n(Telegram location)"]
+        CO2 --> CO3["Ввод суммы"]
+        CO3 --> CO4["CollectionsService:\ncreate (Stage 1)"]
+    end
+
+    subgraph ADMIN_OPS ["bot-admin.service.ts"]
+        CMD_REPORT --> A1["Сводка за день:\nпродажи, выручка,\nсборы, ошибки"]
+    end
+
+    subgraph NOTIFICATIONS ["bot-notifications.service.ts"]
+        CMD_NOTIFY --> N1["Настройки уведомлений:\n✅ Алерты\n✅ Задачи\n❌ Продажи"]
+    end

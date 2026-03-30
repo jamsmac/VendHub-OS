@@ -22,14 +22,23 @@ import {
 } from "@/components/ui/form";
 import { api } from "@/lib/api";
 
+/**
+ * Zod schema aligned with CreateLocationDto
+ * Required: name, address (AddressDto), city, latitude, longitude
+ * Optional: primary_contact_name, primary_contact_phone
+ * Note: Backend address field is a complex AddressDto object (country, region, city, street, building)
+ *       We use a flat 'street' field in the form and build the AddressDto in the mutation
+ */
 const locationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255),
-  address: z.string().min(1, "Address is required").max(500),
-  city: z.string().max(100).optional().or(z.literal("")),
-  latitude: z.coerce.number({ invalid_type_error: "Must be a number" }),
-  longitude: z.coerce.number({ invalid_type_error: "Must be a number" }),
-  contactPerson: z.string().max(255).optional().or(z.literal("")),
-  contactPhone: z.string().max(50).optional().or(z.literal("")),
+  name: z.string().min(1, "Название обязательно").max(255),
+  street: z.string().min(1, "Адрес обязателен").max(255),
+  building: z.string().max(50).optional().or(z.literal("")),
+  city: z.string().min(1, "Город обязателен").max(100),
+  region: z.string().max(100).optional().or(z.literal("")),
+  latitude: z.coerce.number({ invalid_type_error: "Должно быть числом" }),
+  longitude: z.coerce.number({ invalid_type_error: "Должно быть числом" }),
+  primary_contact_name: z.string().max(255).optional().or(z.literal("")),
+  primary_contact_phone: z.string().max(50).optional().or(z.literal("")),
 });
 
 type LocationFormValues = z.infer<typeof locationSchema>;
@@ -43,17 +52,38 @@ export default function NewLocationPage() {
     resolver: zodResolver(locationSchema),
     defaultValues: {
       name: "",
-      address: "",
+      street: "",
+      building: "",
       city: "Tashkent",
+      region: "Toshkent viloyati",
       latitude: 0,
       longitude: 0,
-      contactPerson: "",
-      contactPhone: "",
+      primary_contact_name: "",
+      primary_contact_phone: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: LocationFormValues) => api.post("/locations", data),
+    mutationFn: (data: LocationFormValues) => {
+      // Build AddressDto object from flat form fields
+      const payload = {
+        name: data.name,
+        city: data.city,
+        region: data.region || undefined,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        primary_contact_name: data.primary_contact_name || undefined,
+        primary_contact_phone: data.primary_contact_phone || undefined,
+        address: {
+          country: "Uzbekistan",
+          region: data.region || "Toshkent viloyati",
+          city: data.city,
+          street: data.street,
+          building: data.building || "1",
+        },
+      };
+      return api.post("/locations", payload);
+    },
     onSuccess: () => {
       toast.success("Location created");
       router.push("/dashboard/locations");
@@ -110,14 +140,42 @@ export default function NewLocationPage() {
                   )}
                 />
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="street"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("address") || "Улица"} *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Amir Temur ko'chasi" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="building"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Здание</FormLabel>
+                      <FormControl>
+                        <Input placeholder="15A" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="address"
+                name="region"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("address") || "Address"} *</FormLabel>
+                    <FormLabel>Регион</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Toshkent viloyati" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,10 +184,10 @@ export default function NewLocationPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="contactPerson"
+                  name="primary_contact_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("contactPerson") || "Contact"}</FormLabel>
+                      <FormLabel>{t("contactPerson") || "Контактное лицо"}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -139,12 +197,12 @@ export default function NewLocationPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="contactPhone"
+                  name="primary_contact_phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("phone") || "Phone"}</FormLabel>
+                      <FormLabel>{t("phone") || "Телефон"}</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input placeholder="+998901234567" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -22,7 +22,13 @@ export function EncashmentTab({ machineId }: EncashmentTabProps) {
     queryKey: ["collections", "machine", machineId],
     queryFn: async () => {
       const res = await collectionsApi.getAll({ machineId });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      // API may return { items: [...] } or [...] or paginated object
+      return Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.items)
+          ? raw.items
+          : [];
     },
   });
 
@@ -34,7 +40,9 @@ export function EncashmentTab({ machineId }: EncashmentTabProps) {
     );
   }
 
-  const collections = data || [];
+  // Belt-and-suspenders: React Query may cache a stale non-array value from before the queryFn fix.
+  // Always validate shape here — a non-empty object is truthy but NOT iterable.
+  const collections: any[] = Array.isArray(data) ? data : [];
 
   // Summary
   const totalAmount = collections.reduce(

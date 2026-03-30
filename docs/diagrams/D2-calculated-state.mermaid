@@ -1,0 +1,35 @@
+%% D2. Calculated State (агрегированное состояние автомата)
+%% Источник: calculated-state/calculated-state.service.ts
+flowchart TD
+    REQ(["Запрос: getMachineState\n(machineId, organizationId)"]) --> CACHE{"Cache hit?\nkey: machine-state:{id}\nTTL: 5 мин"}
+
+    CACHE -->|"Да"| RETURN["Возврат\nMachineCalculatedState"]
+    CACHE -->|"Нет"| VERIFY["Проверка Machine:\nexists + belongs to org"]
+
+    VERIFY --> PARALLEL["Параллельный сбор данных:"]
+
+    PARALLEL --> BUNKERS["🫙 BunkerState[]:\nДля каждого Container:\n• slotNumber\n• productName\n• currentLevel (из fillLevel)\n• maxCapacity\n• fillPercentage\n• lastRefillAt\n• estimatedDaysUntilEmpty"]
+
+    PARALLEL --> COMPONENTS["⚙️ ComponentState[]:\nДля каждого EquipmentComponent:\n• componentType\n• status\n• installDate\n• warrantyEnd\n• hoursUsed\n• nextMaintenanceAt"]
+
+    PARALLEL --> CLEANING["🧹 CleaningState:\n• lastCleanedAt\n• cleanedByUserId\n• nextCleaningDue\n• daysUntilCleaning\n• cleaningOverdue: boolean"]
+
+    PARALLEL --> PNL["💰 MachinePnL:\nЗа последние 30 дней:\n• totalRevenue (из Transaction)\n• totalCost (из SaleIngredient costs)\n• grossProfit\n• profitMargin %\n• transactionCount\n• avgTransactionValue"]
+
+    PARALLEL --> ERRORS["❌ Последние ошибки:\nMachineErrorLog[]\n(active, unresolved)"]
+
+    PARALLEL --> EVENTS["📊 Последние события:\nEntityEvent[]\n(последние 20 по machineId)"]
+
+    BUNKERS --> AGGREGATE
+    COMPONENTS --> AGGREGATE
+    CLEANING --> AGGREGATE
+    PNL --> AGGREGATE
+    ERRORS --> AGGREGATE
+    EVENTS --> AGGREGATE
+
+    AGGREGATE["MachineCalculatedState:\n{\n  machine: basic info,\n  bunkers: BunkerState[],\n  components: ComponentState[],\n  cleaning: CleaningState,\n  pnl: MachinePnL,\n  activeErrors: ErrorLog[],\n  recentEvents: EntityEvent[],\n  healthScore: 0-100\n}"]
+
+    AGGREGATE --> HEALTH["Расчёт healthScore:\n100 - (errors × 10)\n- (overdue maintenance × 5)\n- (low fill × 3)\n- (offline penalty)"]
+
+    HEALTH --> SAVE_CACHE["Сохранение в cache\n(TTL: 300 сек)"]
+    SAVE_CACHE --> RETURN

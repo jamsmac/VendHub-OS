@@ -40,7 +40,12 @@ export class OrganizationsController {
   @Roles(UserRole.OWNER)
   @ApiOperation({ summary: "Create organization" })
   create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(createOrganizationDto);
+    // Map snake_case DTO fields to camelCase entity fields
+    const { parent_id, ...rest } = createOrganizationDto;
+    const mapped = { ...rest, ...(parent_id ? { parentId: parent_id } : {}) };
+    return this.organizationsService.create(
+      mapped as unknown as CreateOrganizationDto,
+    );
   }
 
   @Get()
@@ -84,7 +89,14 @@ export class OrganizationsController {
     if (user.role !== UserRole.OWNER && user.organizationId !== id) {
       throw new ForbiddenException("Access denied to this organization");
     }
-    return this.organizationsService.update(id, updateOrganizationDto);
+    // Map snake_case DTO fields to camelCase entity fields
+    const { parent_id, ...rest } = updateOrganizationDto as CreateOrganizationDto &
+      typeof updateOrganizationDto;
+    const mapped = { ...rest, ...(parent_id ? { parentId: parent_id } : {}) };
+    return this.organizationsService.update(
+      id,
+      mapped as unknown as UpdateOrganizationDto,
+    );
   }
 
   @Delete(":id")

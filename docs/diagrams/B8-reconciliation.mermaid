@@ -1,0 +1,42 @@
+%% B8. Сверка / Reconciliation
+%% Источник: reconciliation/reconciliation.service.ts, transactions/transaction-reconcile.service.ts
+flowchart TD
+    START(["Запуск сверки\n(dateFrom, dateTo,\nsources[], machineIds[])"]) --> CREATE["Создание ReconciliationRun\nstatus: PENDING"]
+
+    CREATE --> IMPORT["Импорт HW-данных\n(ImportHwSalesDto)\nФайлы от автоматов:\nDEX/EVA/CSV"]
+    IMPORT --> PARSE["Парсинг строк →\nHwImportedSale\n(machineId, timestamp,\nproductCode, amount, paymentType)"]
+
+    PARSE --> STATUS_PROC["status: IN_PROGRESS"]
+
+    STATUS_PROC --> MATCH_TX["Сопоставление с Transaction:\nпо machineId + timestamp\n(±5 мин окно)"]
+
+    MATCH_TX --> MATCH_PAY["Сопоставление с\nPaymentTransaction:\nпо providerTransactionId"]
+
+    MATCH_PAY --> ANALYZE["Анализ расхождений"]
+
+    ANALYZE --> MISMATCH_TYPES{"Типы расхождений"}
+
+    MISMATCH_TYPES --> M1["MISSING_IN_HW\nЕсть в DB, нет в HW\n(возможно: сбой DEX)"]
+    MISMATCH_TYPES --> M2["MISSING_IN_DB\nЕсть в HW, нет в DB\n(возможно: офлайн продажа)"]
+    MISMATCH_TYPES --> M3["AMOUNT_MISMATCH\nСумма не совпадает\n(разница > порог)"]
+    MISMATCH_TYPES --> M4["TIME_MISMATCH\nВремя не совпадает\n(разница > 5 мин)"]
+    MISMATCH_TYPES --> M5["PAYMENT_MISMATCH\nМетод оплаты\nне совпадает"]
+
+    M1 --> CREATE_MISMATCH["Создание\nReconciliationMismatch\ndля каждого расхождения"]
+    M2 --> CREATE_MISMATCH
+    M3 --> CREATE_MISMATCH
+    M4 --> CREATE_MISMATCH
+    M5 --> CREATE_MISMATCH
+
+    CREATE_MISMATCH --> RESOLVE{"Разрешение?"}
+
+    RESOLVE -->|"Автоматическое"| AUTO_RESOLVE["Мелкие расхождения:\nautomatically resolved\n(< порог суммы)"]
+    RESOLVE -->|"Ручное"| MANUAL_RESOLVE["ResolveMismatchDto:\nresolution, resolvedById,\nnotes"]
+
+    AUTO_RESOLVE --> SUMMARY
+    MANUAL_RESOLVE --> SUMMARY
+
+    SUMMARY["Итоговая статистика:\ntotalHwSales, totalDbTransactions,\nmatchedCount, mismatchCount,\ntotalDiscrepancy"]
+
+    SUMMARY --> COMPLETE["status: COMPLETED\ncompletedAt: now"]
+    COMPLETE --> END(["✓ Сверка завершена\nОтчёт доступен"])

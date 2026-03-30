@@ -4,1494 +4,2376 @@ export class SyncDrift1773962776323 implements MigrationInterface {
   name = "SyncDrift1773962776323";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP CONSTRAINT "FK_64385b800e675d22928d1e1cecf"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" DROP CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "FK_b83b57c12df8839bf64cd13e726"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP CONSTRAINT "FK_689674ce1054698475d2150c947"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT "FK_73843addc463ef238567f6f1109"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT "FK_320cc93480d7bb25a4a984599ba"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_e73d92cf352ad7b17b08c615cd"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_1e59fa4cd002abcf4ea11e9fea"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_9f1cfab59f911e75a484420078"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_8e5e23ee6fccba37f99df331d1"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_3197969cb5ed9b2a00252a3c9e"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_d4bbd861731298b2b1488683d4"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_ea9ba3dfb39050f831ee3be40d"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_cee5459245f652b75eb2759b4c"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_966cbc720d258257e0b2e25461"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_a6171a9597c533488dc7e29298"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_99fca4a3a4a93c26a756c5aca5"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_2f68e345c05e8166ff9deea1ab"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_7421efc125d95e413657efa3c6"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_71fef71b47bf988fa899406acb"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_64385b800e675d22928d1e1cec"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_3b6c5373c29f8eb0e1b41056e5"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_73843addc463ef238567f6f110"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_784e5994d6c60de63f900e9c0e"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_60c250875614c743993278049d"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_899c2496e42b9342f8b9ab86b1"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_6d79d79646c5b036eccd98c51f"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_ef494681de3ea6734825e88042"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_e4dc0b6ac9b5cdf5034bb3395a"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_867b91108d721aded509360512"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_4c61f9ea6b50033a3e63ebf5c4"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_aa827a703f547f650ae603ef50"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_20365ed7562812826af747998a"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_70bf0cfdc68926b55cbac67138"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_005371020edbeff27e9f10925d"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_789d1669e6dcec609a539d8a1c"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_d3bd929b40dbef1d393e90cfcc"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_e3653640e4f62aa511fe43b6f8"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_4b8f0ccb5926cfeabea7c18b8e"`,
-    );
-    await queryRunner.query(`DROP INDEX "public"."UQ_daily_stats_org_date"`);
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_5dc2dc878464db2eef604e4a02"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_f3c2cca670ae9ad1eac71f5175"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."UQ_analytics_snapshot_composite"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_f0e3007d5d0f3d4234444bdb2f"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_aa5f218fc445c6f98519e37b60"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_e74aaed2d9b76fb9b2ea8f4641"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_4a270959307c2d584b4f5b1421"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_40dd3757b510c58f0597a8eba5"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_25f0b25327a0bc759c21bbcdce"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "UQ_ef494681de3ea6734825e880429"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "UQ_a103993b75768d942744e4b3b40"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "UQ_user_achievement"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "organization_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "aisle"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "total_capacity"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "min_temperature"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "max_temperature"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "current_temperature"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "temperature_updated_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "allowed_categories"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "excluded_categories"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "status"`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."warehouse_zones_status_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."warehouse_zones_status_enum" AS ENUM('active', 'inactive', 'maintenance', 'full')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "storage_condition"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."warehouse_zones_storage_condition_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."warehouse_zones_storage_condition_enum" AS ENUM('ambient', 'cool', 'refrigerated', 'frozen', 'dry', 'climate_controlled')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "floor"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "used_capacity"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "capacity_unit"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "is_pickable"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "pick_priority"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "fifo_enabled"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "method"`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."two_factor_auth_method_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."two_factor_auth_method_enum" AS ENUM('totp', 'sms', 'email', 'backup_codes')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "is_enabled"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "is_verified"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "secret"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "phone_number"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "email"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes_used"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "enabled_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "totp_secret"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "totp_secret_iv"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "sms_phone"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "email_address"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "used_backup_codes"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "user_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "widget_type"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."dashboard_widgets_widget_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."dashboard_widgets_widget_type_enum" AS ENUM('sales_chart', 'revenue_chart', 'top_machines', 'top_products', 'machine_status', 'stock_levels', 'tasks_summary', 'incidents_map', 'kpi_metric', 'custom_chart')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "time_range"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."dashboard_widgets_time_range_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."dashboard_widgets_time_range_enum" AS ENUM('today', 'yesterday', 'last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'custom')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "config"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "metadata"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a"`,
-    );
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "code"`);
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "completed_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_rewarded"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_rewarded"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP COLUMN "started_at"`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "name"`);
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "name_uz"`);
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_metadata"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "bonus_points"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "image_url"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "display_order"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "total_unlocked"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "current_value"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "target_value"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "is_unlocked"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "claimed_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "points_claimed"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "progress_details"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referral_code"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activation_order_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activation_order_amount"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activated_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "utm_campaign"`,
-    );
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "metadata"`);
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_reward_points"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_reward_points"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_reward_paid"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_reward_paid"`,
-    );
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "source"`);
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "warehouse_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "area_sqm"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "capacity"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "current_occupancy"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "is_active"`,
-    );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "device_id"`);
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "dashboard_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title_uz"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "definition_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "filters"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "chart_config"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "kpi_config"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "last_refresh_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "cached_data"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "cache_expires_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position_x"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position_y"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "period_type"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."dashboard_widgets_period_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."dashboard_widgets_period_type_enum" AS ENUM('today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_quarter', 'last_quarter', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'custom')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "refresh_interval_seconds"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "is_active"`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "title"`);
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "title_uz"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "conditions"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "points_reward"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "sort_order"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "organization_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "points_awarded"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "warehouse_id" uuid NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "area_sqm" numeric(10,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "capacity" integer`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "current_occupancy" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "is_active" boolean NOT NULL DEFAULT true`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "totp_secret" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "totp_secret_iv" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "sms_phone" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "email_address" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "used_backup_codes" text`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "method" "public"."two_factor_auth_method_enum" NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "is_enabled" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "is_verified" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "secret" character varying(500)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "phone_number" character varying(50)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "email" character varying(200)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "backup_codes_used" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "enabled_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "dashboard_id" uuid`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "title_uz" character varying(100)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "position_x" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "position_y" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "definition_id" uuid`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "filters" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "period_type" "public"."dashboard_widgets_period_type_enum" NOT NULL DEFAULT 'this_month'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "chart_config" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "kpi_config" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "refresh_interval_seconds" integer NOT NULL DEFAULT '300'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "last_refresh_at" TIMESTAMP`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "cached_data" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "cache_expires_at" TIMESTAMP`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "is_active" boolean NOT NULL DEFAULT true`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referral_code" character varying(20) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referrer_reward_points" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referred_reward_points" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referrer_reward_paid" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referred_reward_paid" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "activation_order_id" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "activation_order_amount" numeric(15,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "activated_at" TIMESTAMP`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "source" character varying(20) NOT NULL DEFAULT 'code'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "utm_campaign" character varying`,
-    );
-    await queryRunner.query(`ALTER TABLE "referrals" ADD "metadata" jsonb`);
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "device_id" character varying(200)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD "started_at" TIMESTAMP NOT NULL DEFAULT now()`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "title" character varying(255) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "title_uz" character varying(255)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "conditions" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "points_reward" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "sort_order" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "organization_id" uuid NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "points_awarded" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "code" character varying(8) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a" UNIQUE ("code")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referrer_rewarded" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "referred_rewarded" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD "completed_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "organization_id" uuid NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "status" "public"."warehouse_zones_status_enum" NOT NULL DEFAULT 'active'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "storage_condition" "public"."warehouse_zones_storage_condition_enum" NOT NULL DEFAULT 'ambient'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "floor" integer NOT NULL DEFAULT '1'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "aisle" character varying(20)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "total_capacity" numeric(10,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "used_capacity" numeric(10,2) NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "capacity_unit" character varying(20) NOT NULL DEFAULT 'units'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "min_temperature" numeric(5,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "max_temperature" numeric(5,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "current_temperature" numeric(5,2)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "temperature_updated_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "allowed_categories" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "excluded_categories" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "is_pickable" boolean NOT NULL DEFAULT true`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "pick_priority" integer NOT NULL DEFAULT '100'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "fifo_enabled" boolean NOT NULL DEFAULT true`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "user_id" uuid NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "widget_type" "public"."dashboard_widgets_widget_type_enum" NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "time_range" "public"."dashboard_widgets_time_range_enum" NOT NULL DEFAULT 'last_7_days'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "position" integer NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "config" jsonb NOT NULL DEFAULT '{}'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "metadata" jsonb NOT NULL DEFAULT '{}'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "name" character varying(100) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "name_uz" character varying(100)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "condition_metadata" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "bonus_points" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "image_url" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "display_order" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "total_unlocked" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "current_value" integer NOT NULL DEFAULT '0'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "target_value" integer NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "is_unlocked" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "claimed_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "points_claimed" integer`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD "progress_details" jsonb`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "work_logs" ALTER COLUMN "overtime_multiplier" SET DEFAULT '1.5'`,
-    );
-    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN "code"`);
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "code" character varying(50) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."warehouse_zones_zone_type_enum" RENAME TO "warehouse_zones_zone_type_enum_old"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."warehouse_zones_zone_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."warehouse_zones_zone_type_enum" AS ENUM('receiving', 'storage', 'picking', 'packing', 'shipping', 'quarantine', 'returns')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ALTER COLUMN "zone_type" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ALTER COLUMN "zone_type" TYPE "public"."warehouse_zones_zone_type_enum" USING "zone_type"::"text"::"public"."warehouse_zones_zone_type_enum"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."warehouse_zones_zone_type_enum_old"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ALTER COLUMN "user_id" DROP NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP CONSTRAINT "UQ_64385b800e675d22928d1e1cecf"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "backup_codes" text`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "locked_until"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "last_used_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ALTER COLUMN "metadata" DROP NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ALTER COLUMN "metadata" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "backup_codes" jsonb NOT NULL DEFAULT '[]'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "last_used_at"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "locked_until"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "title" character varying(100) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" SET NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ALTER COLUMN "width" SET DEFAULT '4'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ALTER COLUMN "height" SET DEFAULT '2'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" DROP CONSTRAINT "FK_507a2818bf5524662b068c2e81c"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ALTER COLUMN "referred_id" SET NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD CONSTRAINT "UQ_507a2818bf5524662b068c2e81c" UNIQUE ("referred_id")`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_639c0f1d38d97d778122d4f299"`,
-    );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "token"`);
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "token" text NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998" UNIQUE ("token")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_type"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "device_type" "public"."fcm_tokens_device_type_enum" NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_name"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(200)`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_285706a79624c3a49e7fc066c8"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_cbf20fadedfa0fe481b91b2d11"`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."quests_period_enum" RENAME TO "quests_period_enum_old"`,
-    );
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_period_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."quest_period_enum" AS ENUM('daily', 'weekly', 'monthly', 'one_time', 'special')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ALTER COLUMN "period" TYPE "public"."quest_period_enum" USING "period"::"text"::"public"."quest_period_enum"`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."quests_period_enum_old"`);
-    await queryRunner.query(
-      `ALTER TYPE "public"."quests_type_enum" RENAME TO "quests_type_enum_old"`,
-    );
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_type_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."quest_type_enum" AS ENUM('order_count', 'order_amount', 'order_single', 'order_category', 'order_product', 'order_time', 'order_machine', 'referral', 'review', 'share', 'visit', 'login_streak', 'profile_complete', 'first_order', 'payment_type', 'spend_points', 'loyal_customer', 'collector')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ALTER COLUMN "type" TYPE "public"."quest_type_enum" USING "type"::"text"::"public"."quest_type_enum"`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."quests_type_enum_old"`);
-    await queryRunner.query(
-      `ALTER TYPE "public"."quests_difficulty_enum" RENAME TO "quests_difficulty_enum_old"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."quest_difficulty_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."quest_difficulty_enum" AS ENUM('easy', 'medium', 'hard', 'legendary')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ALTER COLUMN "difficulty" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ALTER COLUMN "difficulty" TYPE "public"."quest_difficulty_enum" USING "difficulty"::"text"::"public"."quest_difficulty_enum"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ALTER COLUMN "difficulty" SET DEFAULT 'medium'`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."quests_difficulty_enum_old"`);
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_121d7826393316d089f4cad4d6"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_9d053a241fd87121aeb284fa35"`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."user_quests_status_enum" RENAME TO "user_quests_status_enum_old"`,
-    );
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_status_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."quest_status_enum" AS ENUM('available', 'in_progress', 'completed', 'claimed', 'expired')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ALTER COLUMN "status" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ALTER COLUMN "status" TYPE "public"."quest_status_enum" USING "status"::"text"::"public"."quest_status_enum"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ALTER COLUMN "status" SET DEFAULT 'in_progress'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ALTER COLUMN "organization_id" SET NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "description" text NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description_uz"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "description_uz" text`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "icon"`);
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "icon" character varying(100) NOT NULL DEFAULT 'trophy'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "category"`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."achievements_category_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."achievements_category_enum" AS ENUM('beginner', 'explorer', 'loyal', 'social', 'collector', 'special')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "category" character varying(50) NOT NULL DEFAULT 'beginner'`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "rarity"`);
-    await queryRunner.query(`DROP TYPE "public"."achievements_rarity_enum"`);
-    await queryRunner.query(
-      `CREATE TYPE "public"."achievements_rarity_enum" AS ENUM('common', 'uncommon', 'rare', 'epic', 'legendary')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "rarity" character varying(50) NOT NULL DEFAULT 'common'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_type"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."achievements_condition_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."achievements_condition_type_enum" AS ENUM('total_orders', 'total_spent', 'total_points_earned', 'streak_days', 'unique_machines', 'unique_products', 'referrals_count', 'reviews_count', 'quests_completed', 'level_reached', 'first_order', 'night_order', 'weekend_order')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "condition_type" character varying(50) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ALTER COLUMN "unlocked_at" SET NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ALTER COLUMN "unlocked_at" SET DEFAULT NOW()`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."referrals_status_enum" RENAME TO "referrals_status_enum_old"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."referrals_status_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."referrals_status_enum" AS ENUM('pending', 'completed', 'expired', 'cancelled')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ALTER COLUMN "status" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ALTER COLUMN "status" TYPE "public"."referrals_status_enum" USING "status"::"text"::"public"."referrals_status_enum"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ALTER COLUMN "status" SET DEFAULT 'pending'`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."referrals_status_enum_old"`);
-    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN "code"`);
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD "code" character varying(20) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" DROP NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998"`,
-    );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "token"`);
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "token" character varying(500) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_type"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "device_type" character varying(50)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_name"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(100)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ALTER COLUMN "contract_id" SET NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP COLUMN "commission_type"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."commission_calculations_commission_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."commission_calculations_commission_type_enum" AS ENUM('percentage', 'fixed', 'tiered', 'hybrid')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ADD "commission_type" character varying(20) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."contracts_status_enum" RENAME TO "contracts_status_enum_old"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."contracts_status_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."contracts_status_enum" AS ENUM('draft', 'pending_approval', 'active', 'suspended', 'expiring_soon', 'expired', 'terminated', 'renewed')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ALTER COLUMN "transaction_count" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP COLUMN "commission_type"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ADD "commission_type" "public"."commission_calculations_commission_type_enum" NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD "title" character varying(255) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."dashboard_widgets_chart_type_enum" RENAME TO "dashboard_widgets_chart_type_enum_old"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."dashboard_widgets_chart_type_enum"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."dashboard_widgets_chart_type_enum" AS ENUM('kpi', 'line', 'bar', 'pie', 'area', 'donut', 'heatmap', 'scatter')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" TYPE "public"."dashboard_widgets_chart_type_enum" USING "chart_type"::"text"::"public"."dashboard_widgets_chart_type_enum"`,
-    );
-    await queryRunner.query(
-      `DROP TYPE "public"."dashboard_widgets_chart_type_enum_old"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "description" character varying(500) NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description_uz"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "description_uz" character varying(500)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_type"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "condition_type" "public"."achievements_condition_type_enum" NOT NULL`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "icon"`);
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "icon" character varying(10) NOT NULL DEFAULT '🏆'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "category"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "category" "public"."achievements_category_enum" NOT NULL DEFAULT 'beginner'`,
-    );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "rarity"`);
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD "rarity" "public"."achievements_rarity_enum" NOT NULL DEFAULT 'common'`,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_789d1669e6dcec609a539d8a1c" ON "warehouse_zones" ("zone_type") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_d3bd929b40dbef1d393e90cfcc" ON "warehouse_zones" ("warehouse_id") `,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_64385b800e675d22928d1e1cec" ON "two_factor_auth" ("user_id") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_5dc2dc878464db2eef604e4a02" ON "dashboard_widgets" ("organization_id", "is_active") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_f3c2cca670ae9ad1eac71f5175" ON "dashboard_widgets" ("organization_id", "dashboard_id") `,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "UQ_analytics_snapshot_composite" ON "analytics_snapshots" ("organization_id", "snapshot_type", "snapshot_date", "machine_id", "location_id", "product_id") WHERE "deleted_at" IS NULL`,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "UQ_daily_stats_org_date" ON "daily_stats" ("organization_id", "stat_date") WHERE "deleted_at" IS NULL`,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_70bf0cfdc68926b55cbac67138" ON "referrals" ("organization_id", "created_at") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_005371020edbeff27e9f10925d" ON "referrals" ("referrer_id", "status") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_285706a79624c3a49e7fc066c8" ON "quests" ("period", "starts_at", "ends_at") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_cbf20fadedfa0fe481b91b2d11" ON "quests" ("organization_id", "period", "is_active") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_e4dc0b6ac9b5cdf5034bb3395a" ON "user_quests" ("completed_at") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_121d7826393316d089f4cad4d6" ON "user_quests" ("quest_id", "status") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_9d053a241fd87121aeb284fa35" ON "user_quests" ("user_id", "status") `,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_639c0f1d38d97d778122d4f299" ON "fcm_tokens" ("token") `,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_ef494681de3ea6734825e88042" ON "user_quests" ("user_id", "quest_id", "period_start") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_aa5f218fc445c6f98519e37b60" ON "achievements" ("sort_order") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_e74aaed2d9b76fb9b2ea8f4641" ON "achievements" ("is_active") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_4a270959307c2d584b4f5b1421" ON "achievements" ("category") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_40dd3757b510c58f0597a8eba5" ON "user_achievements" ("unlocked_at") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_25f0b25327a0bc759c21bbcdce" ON "user_achievements" ("organization_id") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_6d79d79646c5b036eccd98c51f" ON "referrals" ("organization_id", "status") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_e73d92cf352ad7b17b08c615cd" ON "warehouse_zones" ("organization_id", "status") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_1e59fa4cd002abcf4ea11e9fea" ON "warehouse_zones" ("organization_id", "zone_type") `,
-    );
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_9f1cfab59f911e75a484420078" ON "warehouse_zones" ("organization_id", "code") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_3b6c5373c29f8eb0e1b41056e5" ON "dashboard_widgets" ("user_id") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_73843addc463ef238567f6f110" ON "dashboard_widgets" ("organization_id") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_867b91108d721aded509360512" ON "achievements" ("condition_type") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_4c61f9ea6b50033a3e63ebf5c4" ON "achievements" ("category", "rarity") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_aa827a703f547f650ae603ef50" ON "achievements" ("organization_id", "is_active") `,
-    );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_20365ed7562812826af747998a" ON "user_achievements" ("user_id", "unlocked_at") `,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "UQ_ef494681de3ea6734825e880429" UNIQUE ("user_id", "quest_id", "period_start")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_user_achievement" UNIQUE ("user_id", "achievement_id")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_a103993b75768d942744e4b3b40" UNIQUE ("user_id", "achievement_id")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD CONSTRAINT "FK_64385b800e675d22928d1e1cecf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_73843addc463ef238567f6f1109" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_320cc93480d7bb25a4a984599ba" FOREIGN KEY ("dashboard_id") REFERENCES "dashboards"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "referrals" ADD CONSTRAINT "FK_507a2818bf5524662b068c2e81c" FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "quests" ADD CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "FK_b83b57c12df8839bf64cd13e726" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2" FOREIGN KEY ("quest_id") REFERENCES "quests"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8" FOREIGN KEY ("achievement_id") REFERENCES "achievements"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ADD CONSTRAINT "FK_689674ce1054698475d2150c947" FOREIGN KEY ("contract_id") REFERENCES "contracts"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "achievements" ADD CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP CONSTRAINT IF EXISTS "FK_2cc09ed3ffb74b669e0b843b2c2"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP CONSTRAINT IF EXISTS "FK_64385b800e675d22928d1e1cecf"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" DROP CONSTRAINT IF EXISTS "FK_0a0d83baed7a608f036a16dcfec"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "FK_b83b57c12df8839bf64cd13e726"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "FK_9300d9ae06520676d0f616e1cd2"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP CONSTRAINT IF EXISTS "FK_5ec76b6935875f4c6ced106bb39"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP CONSTRAINT IF EXISTS "FK_d3bd929b40dbef1d393e90cfcc9"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" DROP CONSTRAINT IF EXISTS "FK_689674ce1054698475d2150c947"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT IF EXISTS "FK_73843addc463ef238567f6f1109"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT IF EXISTS "FK_320cc93480d7bb25a4a984599ba"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "FK_c755e3741cd46fc5ae3ef06592c"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "FK_36b4a912357ad1342b735d4d4c8"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_e73d92cf352ad7b17b08c615cd"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_1e59fa4cd002abcf4ea11e9fea"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_9f1cfab59f911e75a484420078"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_8e5e23ee6fccba37f99df331d1"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_3197969cb5ed9b2a00252a3c9e"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_d4bbd861731298b2b1488683d4"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_ea9ba3dfb39050f831ee3be40d"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_cee5459245f652b75eb2759b4c"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_966cbc720d258257e0b2e25461"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_a6171a9597c533488dc7e29298"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_99fca4a3a4a93c26a756c5aca5"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_2f68e345c05e8166ff9deea1ab"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_7421efc125d95e413657efa3c6"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_71fef71b47bf988fa899406acb"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_64385b800e675d22928d1e1cec"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_3b6c5373c29f8eb0e1b41056e5"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_73843addc463ef238567f6f110"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_784e5994d6c60de63f900e9c0e"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_60c250875614c743993278049d"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_899c2496e42b9342f8b9ab86b1"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_6d79d79646c5b036eccd98c51f"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_ef494681de3ea6734825e88042"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_e4dc0b6ac9b5cdf5034bb3395a"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_867b91108d721aded509360512"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_4c61f9ea6b50033a3e63ebf5c4"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_aa827a703f547f650ae603ef50"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_20365ed7562812826af747998a"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_70bf0cfdc68926b55cbac67138"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_005371020edbeff27e9f10925d"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_789d1669e6dcec609a539d8a1c"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_d3bd929b40dbef1d393e90cfcc"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_e3653640e4f62aa511fe43b6f8"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_4b8f0ccb5926cfeabea7c18b8e"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP INDEX IF EXISTS "public"."UQ_daily_stats_org_date"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_5dc2dc878464db2eef604e4a02"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_f3c2cca670ae9ad1eac71f5175"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."UQ_analytics_snapshot_composite"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_f0e3007d5d0f3d4234444bdb2f"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_aa5f218fc445c6f98519e37b60"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_e74aaed2d9b76fb9b2ea8f4641"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_4a270959307c2d584b4f5b1421"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_40dd3757b510c58f0597a8eba5"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_25f0b25327a0bc759c21bbcdce"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "UQ_ef494681de3ea6734825e880429"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "UQ_a103993b75768d942744e4b3b40"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "UQ_user_achievement"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "organization_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "aisle"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "total_capacity"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "min_temperature"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "max_temperature"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "current_temperature"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "temperature_updated_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "allowed_categories"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "excluded_categories"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "status"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."warehouse_zones_status_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."warehouse_zones_status_enum" AS ENUM('active', 'inactive', 'maintenance', 'full')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "storage_condition"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."warehouse_zones_storage_condition_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."warehouse_zones_storage_condition_enum" AS ENUM('ambient', 'cool', 'refrigerated', 'frozen', 'dry', 'climate_controlled')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "floor"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "used_capacity"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "capacity_unit"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "is_pickable"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "pick_priority"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "fifo_enabled"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "method"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."two_factor_auth_method_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."two_factor_auth_method_enum" AS ENUM('totp', 'sms', 'email', 'backup_codes')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "is_enabled"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "is_verified"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "secret"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "phone_number"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "email"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes_used"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "enabled_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "totp_secret"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "totp_secret_iv"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "sms_phone"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "email_address"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "used_backup_codes"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "user_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "widget_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."dashboard_widgets_widget_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."dashboard_widgets_widget_type_enum" AS ENUM('sales_chart', 'revenue_chart', 'top_machines', 'top_products', 'machine_status', 'stock_levels', 'tasks_summary', 'incidents_map', 'kpi_metric', 'custom_chart')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "time_range"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."dashboard_widgets_time_range_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."dashboard_widgets_time_range_enum" AS ENUM('today', 'yesterday', 'last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'custom')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "config"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "metadata"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP CONSTRAINT IF EXISTS "UQ_a53a83849f95cbcf3fbcf32fd0a"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "code"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "completed_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_rewarded"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_rewarded"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" DROP COLUMN IF EXISTS "started_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "name"`);
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "name_uz"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_metadata"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "bonus_points"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "image_url"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "display_order"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "total_unlocked"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "current_value"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "target_value"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "is_unlocked"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "claimed_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "points_claimed"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "progress_details"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referral_code"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activation_order_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activation_order_amount"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activated_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "utm_campaign"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "metadata"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_reward_points"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_reward_points"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_reward_paid"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_reward_paid"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "source"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "warehouse_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "area_sqm"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "capacity"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "current_occupancy"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "is_active"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_id"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "dashboard_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title_uz"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "definition_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "filters"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "chart_config"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "kpi_config"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "last_refresh_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "cached_data"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "cache_expires_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position_x"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position_y"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "period_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."dashboard_widgets_period_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."dashboard_widgets_period_type_enum" AS ENUM('today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_quarter', 'last_quarter', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'custom')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "refresh_interval_seconds"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "is_active"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "title"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "title_uz"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "conditions"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "points_reward"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "sort_order"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "organization_id"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "points_awarded"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "warehouse_id" uuid NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "area_sqm" numeric(10,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "capacity" integer`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "current_occupancy" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "is_active" boolean NOT NULL DEFAULT true`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "totp_secret" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "totp_secret_iv" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "sms_phone" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "email_address" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "used_backup_codes" text`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "method" "public"."two_factor_auth_method_enum" NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "is_enabled" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "is_verified" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "secret" character varying(500)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "phone_number" character varying(50)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "email" character varying(200)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "backup_codes_used" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "enabled_at" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "dashboard_id" uuid`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "title_uz" character varying(100)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "position_x" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "position_y" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "definition_id" uuid`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "filters" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "period_type" "public"."dashboard_widgets_period_type_enum" NOT NULL DEFAULT 'this_month'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "chart_config" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "kpi_config" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "refresh_interval_seconds" integer NOT NULL DEFAULT '300'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "last_refresh_at" TIMESTAMP`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "cached_data" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "cache_expires_at" TIMESTAMP`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "is_active" boolean NOT NULL DEFAULT true`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referral_code" character varying(20) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referrer_reward_points" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referred_reward_points" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referrer_reward_paid" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referred_reward_paid" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "activation_order_id" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "activation_order_amount" numeric(15,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "activated_at" TIMESTAMP`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "source" character varying(20) NOT NULL DEFAULT 'code'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "utm_campaign" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "referrals" ADD "metadata" jsonb`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "device_id" character varying(200)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" ADD "started_at" TIMESTAMP NOT NULL DEFAULT now()`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "title" character varying(255) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "title_uz" character varying(255)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "conditions" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "points_reward" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "sort_order" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "organization_id" uuid NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "points_awarded" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "code" character varying(8) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "referrals" ADD CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a" UNIQUE ("code"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referrer_rewarded" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "referred_rewarded" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ADD "completed_at" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "organization_id" uuid NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "status" "public"."warehouse_zones_status_enum" NOT NULL DEFAULT 'active'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "storage_condition" "public"."warehouse_zones_storage_condition_enum" NOT NULL DEFAULT 'ambient'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "floor" integer NOT NULL DEFAULT '1'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "aisle" character varying(20)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "total_capacity" numeric(10,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "used_capacity" numeric(10,2) NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "capacity_unit" character varying(20) NOT NULL DEFAULT 'units'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "min_temperature" numeric(5,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "max_temperature" numeric(5,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "current_temperature" numeric(5,2)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "temperature_updated_at" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "allowed_categories" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "excluded_categories" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "is_pickable" boolean NOT NULL DEFAULT true`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "pick_priority" integer NOT NULL DEFAULT '100'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "fifo_enabled" boolean NOT NULL DEFAULT true`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "user_id" uuid NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "widget_type" "public"."dashboard_widgets_widget_type_enum" NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "time_range" "public"."dashboard_widgets_time_range_enum" NOT NULL DEFAULT 'last_7_days'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "position" integer NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "config" jsonb NOT NULL DEFAULT '{}'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "metadata" jsonb NOT NULL DEFAULT '{}'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "name" character varying(100) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "name_uz" character varying(100)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "condition_metadata" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "bonus_points" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "image_url" character varying`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "display_order" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "total_unlocked" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "current_value" integer NOT NULL DEFAULT '0'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "target_value" integer NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "is_unlocked" boolean NOT NULL DEFAULT false`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "claimed_at" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "points_claimed" integer`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ADD "progress_details" jsonb`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "work_logs" ALTER COLUMN "overtime_multiplier" SET DEFAULT '1.5'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "code"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "code" character varying(50) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."warehouse_zones_zone_type_enum" RENAME TO "warehouse_zones_zone_type_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."warehouse_zones_zone_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."warehouse_zones_zone_type_enum" AS ENUM('receiving', 'storage', 'picking', 'packing', 'shipping', 'quarantine', 'returns')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ALTER COLUMN "zone_type" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ALTER COLUMN "zone_type" TYPE "public"."warehouse_zones_zone_type_enum" USING "zone_type"::"text"::"public"."warehouse_zones_zone_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."warehouse_zones_zone_type_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ALTER COLUMN "user_id" DROP NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP CONSTRAINT IF EXISTS "UQ_64385b800e675d22928d1e1cecf"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "backup_codes" text`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "locked_until"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "last_used_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ALTER COLUMN "metadata" DROP NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ALTER COLUMN "metadata" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "backup_codes" jsonb NOT NULL DEFAULT '[]'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "last_used_at"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "locked_until"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP WITH TIME ZONE`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "title" character varying(100) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" SET NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ALTER COLUMN "width" SET DEFAULT '4'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ALTER COLUMN "height" SET DEFAULT '2'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" DROP CONSTRAINT IF EXISTS "FK_507a2818bf5524662b068c2e81c"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ALTER COLUMN "referred_id" SET NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "referrals" ADD CONSTRAINT "UQ_507a2818bf5524662b068c2e81c" UNIQUE ("referred_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_639c0f1d38d97d778122d4f299"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "token"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "token" text NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "fcm_tokens" ADD CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998" UNIQUE ("token"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "device_type" "public"."fcm_tokens_device_type_enum" NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_name"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(200)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_285706a79624c3a49e7fc066c8"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_cbf20fadedfa0fe481b91b2d11"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."quests_period_enum" RENAME TO "quests_period_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_period_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."quest_period_enum" AS ENUM('daily', 'weekly', 'monthly', 'one_time', 'special')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" ALTER COLUMN "period" TYPE "public"."quest_period_enum" USING "period"::"text"::"public"."quest_period_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quests_period_enum_old"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."quests_type_enum" RENAME TO "quests_type_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_type_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."quest_type_enum" AS ENUM('order_count', 'order_amount', 'order_single', 'order_category', 'order_product', 'order_time', 'order_machine', 'referral', 'review', 'share', 'visit', 'login_streak', 'profile_complete', 'first_order', 'payment_type', 'spend_points', 'loyal_customer', 'collector')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" ALTER COLUMN "type" TYPE "public"."quest_type_enum" USING "type"::"text"::"public"."quest_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quests_type_enum_old"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."quests_difficulty_enum" RENAME TO "quests_difficulty_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."quest_difficulty_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."quest_difficulty_enum" AS ENUM('easy', 'medium', 'hard', 'legendary')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" ALTER COLUMN "difficulty" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" ALTER COLUMN "difficulty" TYPE "public"."quest_difficulty_enum" USING "difficulty"::"text"::"public"."quest_difficulty_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "quests" ALTER COLUMN "difficulty" SET DEFAULT 'medium'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quests_difficulty_enum_old"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_121d7826393316d089f4cad4d6"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP INDEX IF EXISTS "public"."IDX_9d053a241fd87121aeb284fa35"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."user_quests_status_enum" RENAME TO "user_quests_status_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_status_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."quest_status_enum" AS ENUM('available', 'in_progress', 'completed', 'claimed', 'expired')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" ALTER COLUMN "status" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" ALTER COLUMN "status" TYPE "public"."quest_status_enum" USING "status"::"text"::"public"."quest_status_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_quests" ALTER COLUMN "status" SET DEFAULT 'in_progress'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ALTER COLUMN "organization_id" SET NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "description" text NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description_uz"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "description_uz" text`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "icon"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "icon" character varying(100) NOT NULL DEFAULT 'trophy'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "category"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."achievements_category_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."achievements_category_enum" AS ENUM('beginner', 'explorer', 'loyal', 'social', 'collector', 'special')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "category" character varying(50) NOT NULL DEFAULT 'beginner'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "rarity"`);
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."achievements_rarity_enum"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."achievements_rarity_enum" AS ENUM('common', 'uncommon', 'rare', 'epic', 'legendary')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "rarity" character varying(50) NOT NULL DEFAULT 'common'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."achievements_condition_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."achievements_condition_type_enum" AS ENUM('total_orders', 'total_spent', 'total_points_earned', 'streak_days', 'unique_machines', 'unique_products', 'referrals_count', 'reviews_count', 'quests_completed', 'level_reached', 'first_order', 'night_order', 'weekend_order')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "condition_type" character varying(50) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ALTER COLUMN "unlocked_at" SET NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "user_achievements" ALTER COLUMN "unlocked_at" SET DEFAULT NOW()`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."referrals_status_enum" RENAME TO "referrals_status_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."referrals_status_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."referrals_status_enum" AS ENUM('pending', 'completed', 'expired', 'cancelled')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ALTER COLUMN "status" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ALTER COLUMN "status" TYPE "public"."referrals_status_enum" USING "status"::"text"::"public"."referrals_status_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "referrals" ALTER COLUMN "status" SET DEFAULT 'pending'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`DROP TYPE IF EXISTS "public"."referrals_status_enum_old"`);
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "code"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ADD "code" character varying(20) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" DROP NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" DROP CONSTRAINT IF EXISTS "UQ_639c0f1d38d97d778122d4f2998"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "token"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "token" character varying(500) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "device_type" character varying(50)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_name"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(100)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" ALTER COLUMN "contract_id" SET NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" DROP COLUMN IF EXISTS "commission_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."commission_calculations_commission_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."commission_calculations_commission_type_enum" AS ENUM('percentage', 'fixed', 'tiered', 'hybrid')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" ADD "commission_type" character varying(20) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."contracts_status_enum" RENAME TO "contracts_status_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."contracts_status_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."contracts_status_enum" AS ENUM('draft', 'pending_approval', 'active', 'suspended', 'expiring_soon', 'expired', 'terminated', 'renewed')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" ALTER COLUMN "transaction_count" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" DROP COLUMN IF EXISTS "commission_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "commission_calculations" ADD "commission_type" "public"."commission_calculations_commission_type_enum" NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ADD "title" character varying(255) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TYPE "public"."dashboard_widgets_chart_type_enum" RENAME TO "dashboard_widgets_chart_type_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."dashboard_widgets_chart_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."dashboard_widgets_chart_type_enum" AS ENUM('kpi', 'line', 'bar', 'pie', 'area', 'donut', 'heatmap', 'scatter')`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" DROP DEFAULT`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" TYPE "public"."dashboard_widgets_chart_type_enum" USING "chart_type"::"text"::"public"."dashboard_widgets_chart_type_enum"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DROP TYPE IF EXISTS "public"."dashboard_widgets_chart_type_enum_old"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "description" character varying(500) NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description_uz"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "description_uz" character varying(500)`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_type"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "condition_type" "public"."achievements_condition_type_enum" NOT NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "icon"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "icon" character varying(10) NOT NULL DEFAULT '🏆'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "category"`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "category" "public"."achievements_category_enum" NOT NULL DEFAULT 'beginner'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "rarity"`);
+    } catch {}
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "achievements" ADD "rarity" "public"."achievements_rarity_enum" NOT NULL DEFAULT 'common'`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_789d1669e6dcec609a539d8a1c" ON "warehouse_zones" ("zone_type") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_d3bd929b40dbef1d393e90cfcc" ON "warehouse_zones" ("warehouse_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_64385b800e675d22928d1e1cec" ON "two_factor_auth" ("user_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_5dc2dc878464db2eef604e4a02" ON "dashboard_widgets" ("organization_id", "is_active") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_f3c2cca670ae9ad1eac71f5175" ON "dashboard_widgets" ("organization_id", "dashboard_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_analytics_snapshot_composite" ON "analytics_snapshots" ("organization_id", "snapshot_type", "snapshot_date", "machine_id", "location_id", "product_id") WHERE "deleted_at" IS NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_daily_stats_org_date" ON "daily_stats" ("organization_id", "stat_date") WHERE "deleted_at" IS NULL`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_70bf0cfdc68926b55cbac67138" ON "referrals" ("organization_id", "created_at") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_005371020edbeff27e9f10925d" ON "referrals" ("referrer_id", "status") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_285706a79624c3a49e7fc066c8" ON "quests" ("period", "starts_at", "ends_at") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_cbf20fadedfa0fe481b91b2d11" ON "quests" ("organization_id", "period", "is_active") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_e4dc0b6ac9b5cdf5034bb3395a" ON "user_quests" ("completed_at") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_121d7826393316d089f4cad4d6" ON "user_quests" ("quest_id", "status") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_9d053a241fd87121aeb284fa35" ON "user_quests" ("user_id", "status") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_639c0f1d38d97d778122d4f299" ON "fcm_tokens" ("token") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_ef494681de3ea6734825e88042" ON "user_quests" ("user_id", "quest_id", "period_start") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_aa5f218fc445c6f98519e37b60" ON "achievements" ("sort_order") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_e74aaed2d9b76fb9b2ea8f4641" ON "achievements" ("is_active") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_4a270959307c2d584b4f5b1421" ON "achievements" ("category") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_40dd3757b510c58f0597a8eba5" ON "user_achievements" ("unlocked_at") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_25f0b25327a0bc759c21bbcdce" ON "user_achievements" ("organization_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_6d79d79646c5b036eccd98c51f" ON "referrals" ("organization_id", "status") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_e73d92cf352ad7b17b08c615cd" ON "warehouse_zones" ("organization_id", "status") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_1e59fa4cd002abcf4ea11e9fea" ON "warehouse_zones" ("organization_id", "zone_type") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_9f1cfab59f911e75a484420078" ON "warehouse_zones" ("organization_id", "code") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_3b6c5373c29f8eb0e1b41056e5" ON "dashboard_widgets" ("user_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_73843addc463ef238567f6f110" ON "dashboard_widgets" ("organization_id") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_867b91108d721aded509360512" ON "achievements" ("condition_type") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_4c61f9ea6b50033a3e63ebf5c4" ON "achievements" ("category", "rarity") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_aa827a703f547f650ae603ef50" ON "achievements" ("organization_id", "is_active") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_20365ed7562812826af747998a" ON "user_achievements" ("user_id", "unlocked_at") `,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "UQ_ef494681de3ea6734825e880429" UNIQUE ("user_id", "quest_id", "period_start"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_user_achievement" UNIQUE ("user_id", "achievement_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_a103993b75768d942744e4b3b40" UNIQUE ("user_id", "achievement_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "two_factor_auth" ADD CONSTRAINT "FK_64385b800e675d22928d1e1cecf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_73843addc463ef238567f6f1109" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_320cc93480d7bb25a4a984599ba" FOREIGN KEY ("dashboard_id") REFERENCES "dashboards"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "referrals" ADD CONSTRAINT "FK_507a2818bf5524662b068c2e81c" FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "quests" ADD CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "FK_b83b57c12df8839bf64cd13e726" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2" FOREIGN KEY ("quest_id") REFERENCES "quests"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8" FOREIGN KEY ("achievement_id") REFERENCES "achievements"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "commission_calculations" ADD CONSTRAINT "FK_689674ce1054698475d2150c947" FOREIGN KEY ("contract_id") REFERENCES "contracts"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
+    try {
+      await queryRunner.query(
+        `DO $$ BEGIN ALTER TABLE "achievements" ADD CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
+      );
+    } catch {}
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39"`,
+      `ALTER TABLE "achievements" DROP CONSTRAINT IF EXISTS "FK_5ec76b6935875f4c6ced106bb39"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP CONSTRAINT "FK_689674ce1054698475d2150c947"`,
+      `ALTER TABLE "commission_calculations" DROP CONSTRAINT IF EXISTS "FK_689674ce1054698475d2150c947"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2"`,
+      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT IF EXISTS "FK_2cc09ed3ffb74b669e0b843b2c2"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8"`,
+      `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "FK_36b4a912357ad1342b735d4d4c8"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c"`,
+      `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "FK_c755e3741cd46fc5ae3ef06592c"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2"`,
+      `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "FK_9300d9ae06520676d0f616e1cd2"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "FK_b83b57c12df8839bf64cd13e726"`,
+      `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "FK_b83b57c12df8839bf64cd13e726"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "quests" DROP CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec"`,
+      `ALTER TABLE "quests" DROP CONSTRAINT IF EXISTS "FK_0a0d83baed7a608f036a16dcfec"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP CONSTRAINT "FK_507a2818bf5524662b068c2e81c"`,
+      `ALTER TABLE "referrals" DROP CONSTRAINT IF EXISTS "FK_507a2818bf5524662b068c2e81c"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT "FK_320cc93480d7bb25a4a984599ba"`,
+      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT IF EXISTS "FK_320cc93480d7bb25a4a984599ba"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT "FK_73843addc463ef238567f6f1109"`,
+      `ALTER TABLE "dashboard_widgets" DROP CONSTRAINT IF EXISTS "FK_73843addc463ef238567f6f1109"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP CONSTRAINT "FK_64385b800e675d22928d1e1cecf"`,
+      `ALTER TABLE "two_factor_auth" DROP CONSTRAINT IF EXISTS "FK_64385b800e675d22928d1e1cecf"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9"`,
+      `ALTER TABLE "warehouse_zones" DROP CONSTRAINT IF EXISTS "FK_d3bd929b40dbef1d393e90cfcc9"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "UQ_a103993b75768d942744e4b3b40"`,
+      `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "UQ_a103993b75768d942744e4b3b40"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP CONSTRAINT "UQ_user_achievement"`,
+      `ALTER TABLE "user_achievements" DROP CONSTRAINT IF EXISTS "UQ_user_achievement"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP CONSTRAINT "UQ_ef494681de3ea6734825e880429"`,
+      `ALTER TABLE "user_quests" DROP CONSTRAINT IF EXISTS "UQ_ef494681de3ea6734825e880429"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_20365ed7562812826af747998a"`,
+      `DROP INDEX IF EXISTS "public"."IDX_20365ed7562812826af747998a"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_aa827a703f547f650ae603ef50"`,
+      `DROP INDEX IF EXISTS "public"."IDX_aa827a703f547f650ae603ef50"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_4c61f9ea6b50033a3e63ebf5c4"`,
+      `DROP INDEX IF EXISTS "public"."IDX_4c61f9ea6b50033a3e63ebf5c4"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_867b91108d721aded509360512"`,
+      `DROP INDEX IF EXISTS "public"."IDX_867b91108d721aded509360512"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_60c250875614c743993278049d"`,
+      `DROP INDEX IF EXISTS "public"."IDX_60c250875614c743993278049d"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_784e5994d6c60de63f900e9c0e"`,
+      `DROP INDEX IF EXISTS "public"."IDX_784e5994d6c60de63f900e9c0e"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_73843addc463ef238567f6f110"`,
+      `DROP INDEX IF EXISTS "public"."IDX_73843addc463ef238567f6f110"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_3b6c5373c29f8eb0e1b41056e5"`,
+      `DROP INDEX IF EXISTS "public"."IDX_3b6c5373c29f8eb0e1b41056e5"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_899c2496e42b9342f8b9ab86b1"`,
+      `DROP INDEX IF EXISTS "public"."IDX_899c2496e42b9342f8b9ab86b1"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_e3653640e4f62aa511fe43b6f8"`,
+      `DROP INDEX IF EXISTS "public"."IDX_e3653640e4f62aa511fe43b6f8"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_4b8f0ccb5926cfeabea7c18b8e"`,
+      `DROP INDEX IF EXISTS "public"."IDX_4b8f0ccb5926cfeabea7c18b8e"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_9f1cfab59f911e75a484420078"`,
+      `DROP INDEX IF EXISTS "public"."IDX_9f1cfab59f911e75a484420078"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_1e59fa4cd002abcf4ea11e9fea"`,
+      `DROP INDEX IF EXISTS "public"."IDX_1e59fa4cd002abcf4ea11e9fea"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_e73d92cf352ad7b17b08c615cd"`,
+      `DROP INDEX IF EXISTS "public"."IDX_e73d92cf352ad7b17b08c615cd"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_6d79d79646c5b036eccd98c51f"`,
+      `DROP INDEX IF EXISTS "public"."IDX_6d79d79646c5b036eccd98c51f"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_25f0b25327a0bc759c21bbcdce"`,
+      `DROP INDEX IF EXISTS "public"."IDX_25f0b25327a0bc759c21bbcdce"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_40dd3757b510c58f0597a8eba5"`,
+      `DROP INDEX IF EXISTS "public"."IDX_40dd3757b510c58f0597a8eba5"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_4a270959307c2d584b4f5b1421"`,
+      `DROP INDEX IF EXISTS "public"."IDX_4a270959307c2d584b4f5b1421"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_e74aaed2d9b76fb9b2ea8f4641"`,
+      `DROP INDEX IF EXISTS "public"."IDX_e74aaed2d9b76fb9b2ea8f4641"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_aa5f218fc445c6f98519e37b60"`,
+      `DROP INDEX IF EXISTS "public"."IDX_aa5f218fc445c6f98519e37b60"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_ef494681de3ea6734825e88042"`,
+      `DROP INDEX IF EXISTS "public"."IDX_ef494681de3ea6734825e88042"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_639c0f1d38d97d778122d4f299"`,
+      `DROP INDEX IF EXISTS "public"."IDX_639c0f1d38d97d778122d4f299"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_9d053a241fd87121aeb284fa35"`,
+      `DROP INDEX IF EXISTS "public"."IDX_9d053a241fd87121aeb284fa35"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_121d7826393316d089f4cad4d6"`,
+      `DROP INDEX IF EXISTS "public"."IDX_121d7826393316d089f4cad4d6"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_e4dc0b6ac9b5cdf5034bb3395a"`,
+      `DROP INDEX IF EXISTS "public"."IDX_e4dc0b6ac9b5cdf5034bb3395a"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_cbf20fadedfa0fe481b91b2d11"`,
+      `DROP INDEX IF EXISTS "public"."IDX_cbf20fadedfa0fe481b91b2d11"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_285706a79624c3a49e7fc066c8"`,
+      `DROP INDEX IF EXISTS "public"."IDX_285706a79624c3a49e7fc066c8"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_005371020edbeff27e9f10925d"`,
+      `DROP INDEX IF EXISTS "public"."IDX_005371020edbeff27e9f10925d"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_70bf0cfdc68926b55cbac67138"`,
+      `DROP INDEX IF EXISTS "public"."IDX_70bf0cfdc68926b55cbac67138"`,
     );
-    await queryRunner.query(`DROP INDEX "public"."UQ_daily_stats_org_date"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "public"."UQ_daily_stats_org_date"`);
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_f0e3007d5d0f3d4234444bdb2f"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."UQ_analytics_snapshot_composite"`,
+      `DROP INDEX IF EXISTS "public"."IDX_f0e3007d5d0f3d4234444bdb2f"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_f3c2cca670ae9ad1eac71f5175"`,
+      `DROP INDEX IF EXISTS "public"."UQ_analytics_snapshot_composite"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_5dc2dc878464db2eef604e4a02"`,
+      `DROP INDEX IF EXISTS "public"."IDX_f3c2cca670ae9ad1eac71f5175"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_d4bbd861731298b2b1488683d4"`,
+      `DROP INDEX IF EXISTS "public"."IDX_5dc2dc878464db2eef604e4a02"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_3197969cb5ed9b2a00252a3c9e"`,
+      `DROP INDEX IF EXISTS "public"."IDX_d4bbd861731298b2b1488683d4"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_8e5e23ee6fccba37f99df331d1"`,
+      `DROP INDEX IF EXISTS "public"."IDX_3197969cb5ed9b2a00252a3c9e"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_71fef71b47bf988fa899406acb"`,
+      `DROP INDEX IF EXISTS "public"."IDX_8e5e23ee6fccba37f99df331d1"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_7421efc125d95e413657efa3c6"`,
+      `DROP INDEX IF EXISTS "public"."IDX_71fef71b47bf988fa899406acb"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_2f68e345c05e8166ff9deea1ab"`,
+      `DROP INDEX IF EXISTS "public"."IDX_7421efc125d95e413657efa3c6"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_99fca4a3a4a93c26a756c5aca5"`,
+      `DROP INDEX IF EXISTS "public"."IDX_2f68e345c05e8166ff9deea1ab"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_a6171a9597c533488dc7e29298"`,
+      `DROP INDEX IF EXISTS "public"."IDX_99fca4a3a4a93c26a756c5aca5"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_966cbc720d258257e0b2e25461"`,
+      `DROP INDEX IF EXISTS "public"."IDX_a6171a9597c533488dc7e29298"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_cee5459245f652b75eb2759b4c"`,
+      `DROP INDEX IF EXISTS "public"."IDX_966cbc720d258257e0b2e25461"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_ea9ba3dfb39050f831ee3be40d"`,
+      `DROP INDEX IF EXISTS "public"."IDX_cee5459245f652b75eb2759b4c"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_64385b800e675d22928d1e1cec"`,
+      `DROP INDEX IF EXISTS "public"."IDX_ea9ba3dfb39050f831ee3be40d"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_d3bd929b40dbef1d393e90cfcc"`,
+      `DROP INDEX IF EXISTS "public"."IDX_64385b800e675d22928d1e1cec"`,
     );
     await queryRunner.query(
-      `DROP INDEX "public"."IDX_789d1669e6dcec609a539d8a1c"`,
+      `DROP INDEX IF EXISTS "public"."IDX_d3bd929b40dbef1d393e90cfcc"`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "rarity"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "public"."IDX_789d1669e6dcec609a539d8a1c"`,
+    );
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "rarity"`);
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "rarity" character varying(50) NOT NULL DEFAULT 'common'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "category"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "category"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "category" character varying(50) NOT NULL DEFAULT 'beginner'`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "icon"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "icon"`);
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "icon" character varying(100) NOT NULL DEFAULT 'trophy'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_type"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_type"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "condition_type" character varying(50) NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description_uz"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description_uz"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "description_uz" text`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "description" text NOT NULL`,
@@ -1509,19 +2391,19 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" SET DEFAULT 'kpi'`,
     );
     await queryRunner.query(
-      `DROP TYPE "public"."dashboard_widgets_chart_type_enum"`,
+      `DROP TYPE IF EXISTS "public"."dashboard_widgets_chart_type_enum"`,
     );
     await queryRunner.query(
       `ALTER TYPE "public"."dashboard_widgets_chart_type_enum_old" RENAME TO "dashboard_widgets_chart_type_enum"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title"`,
     );
     await queryRunner.query(
       `ALTER TABLE "dashboard_widgets" ADD "title" character varying(100) NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP COLUMN "commission_type"`,
+      `ALTER TABLE "commission_calculations" DROP COLUMN IF EXISTS "commission_type"`,
     );
     await queryRunner.query(
       `ALTER TABLE "commission_calculations" ADD "commission_type" character varying(20) NOT NULL`,
@@ -1545,7 +2427,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TYPE "public"."contracts_status_enum_old" RENAME TO "contracts_status_enum"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "commission_calculations" DROP COLUMN "commission_type"`,
+      `ALTER TABLE "commission_calculations" DROP COLUMN IF EXISTS "commission_type"`,
     );
     await queryRunner.query(
       `DROP TYPE IF EXISTS "public"."commission_calculations_commission_type_enum"`,
@@ -1560,13 +2442,13 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "commission_calculations" ALTER COLUMN "contract_id" DROP NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_name"`,
+      `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_name"`,
     );
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(200)`,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_type"`,
+      `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_type"`,
     );
     await queryRunner.query(
       `CREATE TYPE "pg_catalog"."varchar" AS ENUM('ios', 'android', 'web')`,
@@ -1574,12 +2456,12 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "device_type" "public"."fcm_tokens_device_type_enum" NOT NULL`,
     );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "token"`);
+    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "token"`);
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "token" text NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" ADD CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998" UNIQUE ("token")`,
+      `DO $$ BEGIN ALTER TABLE "fcm_tokens" ADD CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998" UNIQUE ("token"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
       `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" SET DEFAULT '{}'`,
@@ -1587,7 +2469,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "warehouse_zones" ALTER COLUMN "metadata" SET NOT NULL`,
     );
-    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN "code"`);
+    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "code"`);
     await queryRunner.query(
       `ALTER TABLE "warehouse_zones" ADD "code" character varying(50) NOT NULL`,
     );
@@ -1606,7 +2488,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "referrals" ALTER COLUMN "status" SET DEFAULT 'pending'`,
     );
-    await queryRunner.query(`DROP TYPE "public"."referrals_status_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."referrals_status_enum"`);
     await queryRunner.query(
       `ALTER TYPE "public"."referrals_status_enum_old" RENAME TO "referrals_status_enum"`,
     );
@@ -1617,7 +2499,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "user_achievements" ALTER COLUMN "unlocked_at" DROP NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_type"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_type"`,
     );
     await queryRunner.query(
       `DROP TYPE IF EXISTS "public"."achievements_condition_type_enum"`,
@@ -1628,7 +2510,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "condition_type" "public"."achievements_condition_type_enum" NOT NULL`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "rarity"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "rarity"`);
     await queryRunner.query(
       `DROP TYPE IF EXISTS "public"."achievements_rarity_enum"`,
     );
@@ -1639,7 +2521,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "achievements" ADD "rarity" "public"."achievements_rarity_enum" NOT NULL DEFAULT 'common'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "category"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "category"`,
     );
     await queryRunner.query(
       `DROP TYPE IF EXISTS "public"."achievements_category_enum"`,
@@ -1650,18 +2532,18 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "category" "public"."achievements_category_enum" NOT NULL DEFAULT 'beginner'`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "icon"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "icon"`);
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "icon" character varying(10) NOT NULL DEFAULT '🏆'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description_uz"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description_uz"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "description_uz" character varying(500)`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "description"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "description"`,
     );
     await queryRunner.query(
       `ALTER TABLE "achievements" ADD "description" character varying(500) NOT NULL`,
@@ -1684,15 +2566,15 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "user_quests" ALTER COLUMN "status" SET DEFAULT 'in_progress'`,
     );
-    await queryRunner.query(`DROP TYPE "public"."quest_status_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_status_enum"`);
     await queryRunner.query(
       `ALTER TYPE "public"."user_quests_status_enum_old" RENAME TO "user_quests_status_enum"`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_9d053a241fd87121aeb284fa35" ON "user_quests" ("status", "user_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_9d053a241fd87121aeb284fa35" ON "user_quests" ("status", "user_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_121d7826393316d089f4cad4d6" ON "user_quests" ("quest_id", "status") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_121d7826393316d089f4cad4d6" ON "user_quests" ("quest_id", "status") `,
     );
     await queryRunner.query(
       `DROP TYPE IF EXISTS "public"."quests_difficulty_enum_old"`,
@@ -1709,7 +2591,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "quests" ALTER COLUMN "difficulty" SET DEFAULT 'medium'`,
     );
-    await queryRunner.query(`DROP TYPE "public"."quest_difficulty_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_difficulty_enum"`);
     await queryRunner.query(
       `ALTER TYPE "public"."quests_difficulty_enum_old" RENAME TO "quests_difficulty_enum"`,
     );
@@ -1722,7 +2604,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "quests" ALTER COLUMN "type" TYPE "public"."quests_type_enum_old" USING "type"::"text"::"public"."quests_type_enum_old"`,
     );
-    await queryRunner.query(`DROP TYPE "public"."quest_type_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_type_enum"`);
     await queryRunner.query(
       `ALTER TYPE "public"."quests_type_enum_old" RENAME TO "quests_type_enum"`,
     );
@@ -1735,46 +2617,46 @@ export class SyncDrift1773962776323 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "quests" ALTER COLUMN "period" TYPE "public"."quests_period_enum_old" USING "period"::"text"::"public"."quests_period_enum_old"`,
     );
-    await queryRunner.query(`DROP TYPE "public"."quest_period_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."quest_period_enum"`);
     await queryRunner.query(
       `ALTER TYPE "public"."quests_period_enum_old" RENAME TO "quests_period_enum"`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_cbf20fadedfa0fe481b91b2d11" ON "quests" ("is_active", "organization_id", "period") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_cbf20fadedfa0fe481b91b2d11" ON "quests" ("is_active", "organization_id", "period") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_285706a79624c3a49e7fc066c8" ON "quests" ("ends_at", "period", "starts_at") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_285706a79624c3a49e7fc066c8" ON "quests" ("ends_at", "period", "starts_at") `,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_name"`,
+      `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_name"`,
     );
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "device_name" character varying(100)`,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP COLUMN "device_type"`,
+      `ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_type"`,
     );
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "device_type" character varying(50)`,
     );
     await queryRunner.query(
-      `ALTER TABLE "fcm_tokens" DROP CONSTRAINT "UQ_639c0f1d38d97d778122d4f2998"`,
+      `ALTER TABLE "fcm_tokens" DROP CONSTRAINT IF EXISTS "UQ_639c0f1d38d97d778122d4f2998"`,
     );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "token"`);
+    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "token"`);
     await queryRunner.query(
       `ALTER TABLE "fcm_tokens" ADD "token" character varying(500) NOT NULL`,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_639c0f1d38d97d778122d4f299" ON "fcm_tokens" ("token") `,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_639c0f1d38d97d778122d4f299" ON "fcm_tokens" ("token") `,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP CONSTRAINT "UQ_507a2818bf5524662b068c2e81c"`,
+      `ALTER TABLE "referrals" DROP CONSTRAINT IF EXISTS "UQ_507a2818bf5524662b068c2e81c"`,
     );
     await queryRunner.query(
       `ALTER TABLE "referrals" ALTER COLUMN "referred_id" DROP NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" ADD CONSTRAINT "FK_507a2818bf5524662b068c2e81c" FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "referrals" ADD CONSTRAINT "FK_507a2818bf5524662b068c2e81c" FOREIGN KEY ("referred_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
       `ALTER TABLE "dashboard_widgets" ALTER COLUMN "height" SET DEFAULT '4'`,
@@ -1786,25 +2668,25 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "dashboard_widgets" ALTER COLUMN "chart_type" DROP NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title"`,
     );
     await queryRunner.query(
       `ALTER TABLE "dashboard_widgets" ADD "title" character varying(255) NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "locked_until"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "locked_until"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "last_used_at"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "last_used_at"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "backup_codes" text`,
@@ -1816,25 +2698,25 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "two_factor_auth" ALTER COLUMN "metadata" SET NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "last_used_at"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "last_used_at"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "last_used_at" TIMESTAMP WITH TIME ZONE`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "locked_until"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "locked_until"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "locked_until" TIMESTAMP WITH TIME ZONE`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes"`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ADD "backup_codes" jsonb NOT NULL DEFAULT '[]'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD CONSTRAINT "UQ_64385b800e675d22928d1e1cecf" UNIQUE ("user_id")`,
+      `DO $$ BEGIN ALTER TABLE "two_factor_auth" ADD CONSTRAINT "UQ_64385b800e675d22928d1e1cecf" UNIQUE ("user_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
       `ALTER TABLE "two_factor_auth" ALTER COLUMN "user_id" SET NOT NULL`,
@@ -1852,12 +2734,12 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "warehouse_zones" ALTER COLUMN "zone_type" SET DEFAULT 'storage'`,
     );
     await queryRunner.query(
-      `DROP TYPE "public"."warehouse_zones_zone_type_enum"`,
+      `DROP TYPE IF EXISTS "public"."warehouse_zones_zone_type_enum"`,
     );
     await queryRunner.query(
       `ALTER TYPE "public"."warehouse_zones_zone_type_enum_old" RENAME TO "warehouse_zones_zone_type_enum"`,
     );
-    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN "code"`);
+    await queryRunner.query(`ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "code"`);
     await queryRunner.query(
       `ALTER TABLE "warehouse_zones" ADD "code" character varying(20) NOT NULL`,
     );
@@ -1865,269 +2747,269 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "work_logs" ALTER COLUMN "overtime_multiplier" SET DEFAULT 1.5`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "progress_details"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "progress_details"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "points_claimed"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "points_claimed"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "claimed_at"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "claimed_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "is_unlocked"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "is_unlocked"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "target_value"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "target_value"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "current_value"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "current_value"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "total_unlocked"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "total_unlocked"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "display_order"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "display_order"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "image_url"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "image_url"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "bonus_points"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "bonus_points"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "condition_metadata"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "condition_metadata"`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "name_uz"`);
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "name"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "name_uz"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "name"`);
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "metadata"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "metadata"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "config"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "config"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "time_range"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "time_range"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "widget_type"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "widget_type"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "user_id"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "user_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "fifo_enabled"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "fifo_enabled"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "pick_priority"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "pick_priority"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "is_pickable"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "is_pickable"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "excluded_categories"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "excluded_categories"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "allowed_categories"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "allowed_categories"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "temperature_updated_at"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "temperature_updated_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "current_temperature"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "current_temperature"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "max_temperature"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "max_temperature"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "min_temperature"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "min_temperature"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "capacity_unit"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "capacity_unit"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "used_capacity"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "used_capacity"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "total_capacity"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "total_capacity"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "aisle"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "aisle"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "floor"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "floor"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "storage_condition"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "storage_condition"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "status"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "status"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "organization_id"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "organization_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "completed_at"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "completed_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_rewarded"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_rewarded"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_rewarded"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_rewarded"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a"`,
+      `ALTER TABLE "referrals" DROP CONSTRAINT IF EXISTS "UQ_a53a83849f95cbcf3fbcf32fd0a"`,
     );
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "code"`);
+    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "code"`);
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "points_awarded"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "points_awarded"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" DROP COLUMN "organization_id"`,
+      `ALTER TABLE "user_achievements" DROP COLUMN IF EXISTS "organization_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "sort_order"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "sort_order"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "points_reward"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "points_reward"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "conditions"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "conditions"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" DROP COLUMN "title_uz"`,
+      `ALTER TABLE "achievements" DROP COLUMN IF EXISTS "title_uz"`,
     );
-    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN "title"`);
+    await queryRunner.query(`ALTER TABLE "achievements" DROP COLUMN IF EXISTS "title"`);
     await queryRunner.query(
-      `ALTER TABLE "user_quests" DROP COLUMN "started_at"`,
+      `ALTER TABLE "user_quests" DROP COLUMN IF EXISTS "started_at"`,
     );
-    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN "device_id"`);
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "metadata"`);
+    await queryRunner.query(`ALTER TABLE "fcm_tokens" DROP COLUMN IF EXISTS "device_id"`);
+    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "metadata"`);
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "utm_campaign"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "utm_campaign"`,
     );
-    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN "source"`);
+    await queryRunner.query(`ALTER TABLE "referrals" DROP COLUMN IF EXISTS "source"`);
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activated_at"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activated_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activation_order_amount"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activation_order_amount"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "activation_order_id"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "activation_order_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_reward_paid"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_reward_paid"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_reward_paid"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_reward_paid"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referred_reward_points"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referred_reward_points"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referrer_reward_points"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referrer_reward_points"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" DROP COLUMN "referral_code"`,
+      `ALTER TABLE "referrals" DROP COLUMN IF EXISTS "referral_code"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "is_active"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "is_active"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "cache_expires_at"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "cache_expires_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "cached_data"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "cached_data"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "last_refresh_at"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "last_refresh_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "refresh_interval_seconds"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "refresh_interval_seconds"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "kpi_config"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "kpi_config"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "chart_config"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "chart_config"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "period_type"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "period_type"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "filters"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "filters"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "definition_id"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "definition_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position_y"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position_y"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "position_x"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "position_x"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "title_uz"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "title_uz"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" DROP COLUMN "dashboard_id"`,
+      `ALTER TABLE "dashboard_widgets" DROP COLUMN IF EXISTS "dashboard_id"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "enabled_at"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "enabled_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "backup_codes_used"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "backup_codes_used"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "email"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "email"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "phone_number"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "phone_number"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "secret"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "secret"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "is_verified"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "is_verified"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "is_enabled"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "is_enabled"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "method"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "method"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "used_backup_codes"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "used_backup_codes"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "email_address"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "email_address"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "sms_phone"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "sms_phone"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "totp_secret_iv"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "totp_secret_iv"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" DROP COLUMN "totp_secret"`,
+      `ALTER TABLE "two_factor_auth" DROP COLUMN IF EXISTS "totp_secret"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "is_active"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "is_active"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "current_occupancy"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "current_occupancy"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "capacity"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "capacity"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "area_sqm"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "area_sqm"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" DROP COLUMN "warehouse_id"`,
+      `ALTER TABLE "warehouse_zones" DROP COLUMN IF EXISTS "warehouse_id"`,
     );
     await queryRunner.query(
       `ALTER TABLE "user_achievements" ADD "points_awarded" integer NOT NULL DEFAULT '0'`,
@@ -2302,7 +3184,7 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "referrals" ADD "code" character varying(8) NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "referrals" ADD CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a" UNIQUE ("code")`,
+      `DO $$ BEGIN ALTER TABLE "referrals" ADD CONSTRAINT "UQ_a53a83849f95cbcf3fbcf32fd0a" UNIQUE ("code"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
       `ALTER TABLE "dashboard_widgets" ADD "metadata" jsonb NOT NULL DEFAULT '{}'`,
@@ -2455,127 +3337,127 @@ export class SyncDrift1773962776323 implements MigrationInterface {
       `ALTER TABLE "warehouse_zones" ADD "organization_id" uuid NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_user_achievement" UNIQUE ("user_id", "achievement_id")`,
+      `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_user_achievement" UNIQUE ("user_id", "achievement_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_a103993b75768d942744e4b3b40" UNIQUE ("user_id", "achievement_id")`,
+      `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "UQ_a103993b75768d942744e4b3b40" UNIQUE ("user_id", "achievement_id"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "UQ_ef494681de3ea6734825e880429" UNIQUE ("user_id", "quest_id", "period_start")`,
+      `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "UQ_ef494681de3ea6734825e880429" UNIQUE ("user_id", "quest_id", "period_start"); EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_25f0b25327a0bc759c21bbcdce" ON "user_achievements" ("organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_25f0b25327a0bc759c21bbcdce" ON "user_achievements" ("organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_40dd3757b510c58f0597a8eba5" ON "user_achievements" ("unlocked_at") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_40dd3757b510c58f0597a8eba5" ON "user_achievements" ("unlocked_at") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_4a270959307c2d584b4f5b1421" ON "achievements" ("category") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_4a270959307c2d584b4f5b1421" ON "achievements" ("category") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_e74aaed2d9b76fb9b2ea8f4641" ON "achievements" ("is_active") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_e74aaed2d9b76fb9b2ea8f4641" ON "achievements" ("is_active") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_aa5f218fc445c6f98519e37b60" ON "achievements" ("sort_order") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_aa5f218fc445c6f98519e37b60" ON "achievements" ("sort_order") `,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "UQ_analytics_snapshot_composite" ON "analytics_snapshots" ("location_id", "machine_id", "organization_id", "product_id", "snapshot_date", "snapshot_type") WHERE (deleted_at IS NULL)`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_analytics_snapshot_composite" ON "analytics_snapshots" ("location_id", "machine_id", "organization_id", "product_id", "snapshot_date", "snapshot_type") WHERE (deleted_at IS NULL)`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_f3c2cca670ae9ad1eac71f5175" ON "dashboard_widgets" ("dashboard_id", "organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_f3c2cca670ae9ad1eac71f5175" ON "dashboard_widgets" ("dashboard_id", "organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_5dc2dc878464db2eef604e4a02" ON "dashboard_widgets" ("is_active", "organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_5dc2dc878464db2eef604e4a02" ON "dashboard_widgets" ("is_active", "organization_id") `,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "UQ_daily_stats_org_date" ON "daily_stats" ("organization_id", "stat_date") WHERE (deleted_at IS NULL)`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_daily_stats_org_date" ON "daily_stats" ("organization_id", "stat_date") WHERE (deleted_at IS NULL)`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_d3bd929b40dbef1d393e90cfcc" ON "warehouse_zones" ("warehouse_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_d3bd929b40dbef1d393e90cfcc" ON "warehouse_zones" ("warehouse_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_789d1669e6dcec609a539d8a1c" ON "warehouse_zones" ("zone_type") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_789d1669e6dcec609a539d8a1c" ON "warehouse_zones" ("zone_type") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_005371020edbeff27e9f10925d" ON "referrals" ("referrer_id", "status") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_005371020edbeff27e9f10925d" ON "referrals" ("referrer_id", "status") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_70bf0cfdc68926b55cbac67138" ON "referrals" ("created_at", "organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_70bf0cfdc68926b55cbac67138" ON "referrals" ("created_at", "organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_20365ed7562812826af747998a" ON "user_achievements" ("unlocked_at", "user_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_20365ed7562812826af747998a" ON "user_achievements" ("unlocked_at", "user_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_aa827a703f547f650ae603ef50" ON "achievements" ("is_active", "organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_aa827a703f547f650ae603ef50" ON "achievements" ("is_active", "organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_4c61f9ea6b50033a3e63ebf5c4" ON "achievements" ("category", "rarity") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_4c61f9ea6b50033a3e63ebf5c4" ON "achievements" ("category", "rarity") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_867b91108d721aded509360512" ON "achievements" ("condition_type") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_867b91108d721aded509360512" ON "achievements" ("condition_type") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_e4dc0b6ac9b5cdf5034bb3395a" ON "user_quests" ("completed_at") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_e4dc0b6ac9b5cdf5034bb3395a" ON "user_quests" ("completed_at") `,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_ef494681de3ea6734825e88042" ON "user_quests" ("period_start", "quest_id", "user_id") `,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_ef494681de3ea6734825e88042" ON "user_quests" ("period_start", "quest_id", "user_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_6d79d79646c5b036eccd98c51f" ON "referrals" ("organization_id", "status") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_6d79d79646c5b036eccd98c51f" ON "referrals" ("organization_id", "status") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_73843addc463ef238567f6f110" ON "dashboard_widgets" ("organization_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_73843addc463ef238567f6f110" ON "dashboard_widgets" ("organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_3b6c5373c29f8eb0e1b41056e5" ON "dashboard_widgets" ("user_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_3b6c5373c29f8eb0e1b41056e5" ON "dashboard_widgets" ("user_id") `,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_64385b800e675d22928d1e1cec" ON "two_factor_auth" ("user_id") `,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_64385b800e675d22928d1e1cec" ON "two_factor_auth" ("user_id") `,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_9f1cfab59f911e75a484420078" ON "warehouse_zones" ("code", "organization_id") `,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_9f1cfab59f911e75a484420078" ON "warehouse_zones" ("code", "organization_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_1e59fa4cd002abcf4ea11e9fea" ON "warehouse_zones" ("organization_id", "zone_type") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_1e59fa4cd002abcf4ea11e9fea" ON "warehouse_zones" ("organization_id", "zone_type") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_e73d92cf352ad7b17b08c615cd" ON "warehouse_zones" ("organization_id", "status") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_e73d92cf352ad7b17b08c615cd" ON "warehouse_zones" ("organization_id", "status") `,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8" FOREIGN KEY ("achievement_id") REFERENCES "achievements"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_36b4a912357ad1342b735d4d4c8" FOREIGN KEY ("achievement_id") REFERENCES "achievements"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "user_achievements" ADD CONSTRAINT "FK_c755e3741cd46fc5ae3ef06592c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_320cc93480d7bb25a4a984599ba" FOREIGN KEY ("dashboard_id") REFERENCES "dashboards"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_320cc93480d7bb25a4a984599ba" FOREIGN KEY ("dashboard_id") REFERENCES "dashboards"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_73843addc463ef238567f6f1109" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "dashboard_widgets" ADD CONSTRAINT "FK_73843addc463ef238567f6f1109" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "commission_calculations" ADD CONSTRAINT "FK_689674ce1054698475d2150c947" FOREIGN KEY ("contract_id") REFERENCES "contracts"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "commission_calculations" ADD CONSTRAINT "FK_689674ce1054698475d2150c947" FOREIGN KEY ("contract_id") REFERENCES "contracts"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_d3bd929b40dbef1d393e90cfcc9" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "achievements" ADD CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "achievements" ADD CONSTRAINT "FK_5ec76b6935875f4c6ced106bb39" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2" FOREIGN KEY ("quest_id") REFERENCES "quests"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "FK_9300d9ae06520676d0f616e1cd2" FOREIGN KEY ("quest_id") REFERENCES "quests"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_quests" ADD CONSTRAINT "FK_b83b57c12df8839bf64cd13e726" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "user_quests" ADD CONSTRAINT "FK_b83b57c12df8839bf64cd13e726" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "quests" ADD CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "quests" ADD CONSTRAINT "FK_0a0d83baed7a608f036a16dcfec" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "two_factor_auth" ADD CONSTRAINT "FK_64385b800e675d22928d1e1cecf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "two_factor_auth" ADD CONSTRAINT "FK_64385b800e675d22928d1e1cecf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
     await queryRunner.query(
-      `ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "warehouse_zones" ADD CONSTRAINT "FK_2cc09ed3ffb74b669e0b843b2c2" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL; WHEN others THEN NULL; END $$`,
     );
   }
 }

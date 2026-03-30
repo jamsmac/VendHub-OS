@@ -42,47 +42,54 @@ description: |
 ## Структура проекта VendHub
 
 ```
-src/
-├── entities/                # TypeORM entity
-│   ├── base.entity.ts       # Базовая entity (BaseEntity)
-│   ├── user.entity.ts       # Пользователи
-│   ├── machine.entity.ts    # Вендинговые автоматы
-│   ├── product.entity.ts    # Товары/напитки
-│   ├── order.entity.ts      # Заказы
-│   └── ...
-├── migrations/              # Миграции TypeORM
-│   ├── 1700000000000-CreateUsers.ts
-│   └── ...
-├── seeds/                   # Сиды начальных данных
-│   ├── seed-runner.ts
-│   └── ...
-├── subscribers/             # TypeORM subscribers
-│   └── ...
-├── config/
-│   └── data-source.ts       # Конфигурация DataSource
-└── server/
-    └── api/
-        └── routers/         # Роутеры API
+apps/api/src/
+├── common/
+│   └── entities/
+│       └── base.entity.ts          # Базовая entity (BaseEntity)
+├── modules/
+│   ├── machines/
+│   │   ├── entities/
+│   │   │   └── machine.entity.ts   # Автоматы + MachineSlot
+│   │   ├── dto/
+│   │   ├── machines.controller.ts
+│   │   ├── machines.service.ts
+│   │   └── machines.module.ts
+│   ├── users/
+│   │   └── entities/
+│   │       └── user.entity.ts
+│   ├── products/
+│   │   └── entities/
+│   │       └── product.entity.ts
+│   └── ...                         # 84 modules total
+├── database/
+│   ├── migrations/                 # TypeORM migrations
+│   │   ├── 1700000000000-Init.ts
+│   │   └── ...
+│   ├── seeds/
+│   │   └── run-seed.ts
+│   └── typeorm.config.ts           # DataSource config
+└── app.module.ts
 ```
+
+**ВАЖНО**: Entity находятся внутри модулей (`src/modules/**/entities/`), НЕ в `src/entities/`.
 
 ## Конфигурация DataSource
 
 ```typescript
-// src/config/data-source.ts
+// apps/api/src/database/typeorm.config.ts
 import { DataSource } from "typeorm";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST || "localhost",
   port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USERNAME || "vendhub",
+  username: process.env.DB_USER || "vendhub",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "vendhub",
   synchronize: false, // НИКОГДА true в production
   logging: process.env.NODE_ENV === "development",
-  entities: ["src/entities/**/*.entity.ts"],
-  migrations: ["src/migrations/**/*.ts"],
-  subscribers: ["src/subscribers/**/*.ts"],
+  entities: ["src/modules/**/entities/*.entity.ts"],
+  migrations: ["src/database/migrations/*.ts"],
   // Настройки пула соединений
   extra: {
     max: 20,
@@ -99,7 +106,7 @@ export const AppDataSource = new DataSource({
 Все entity в VendHub наследуют от базовой entity. Это обеспечивает единообразные поля аудита и soft delete.
 
 ```typescript
-// src/entities/base.entity.ts
+// apps/api/src/common/entities/base.entity.ts
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -150,7 +157,7 @@ export abstract class BaseEntity extends TypeORMBaseEntity {
 ### Базовый шаблон entity
 
 ```typescript
-// src/entities/machine.entity.ts
+// apps/api/src/modules/machines/entities/machine.entity.ts
 import {
   Entity,
   Column,
@@ -159,9 +166,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { BaseEntity } from "./base.entity";
-import { User } from "./user.entity";
-import { Order } from "./order.entity";
+import { BaseEntity } from "../../../common/entities/base.entity";
 
 @Entity("machines") // Имя таблицы — snake_case, множественное число
 @Index("idx_machines_serial_number", ["serialNumber"], { unique: true })

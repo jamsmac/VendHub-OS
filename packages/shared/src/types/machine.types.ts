@@ -17,6 +17,18 @@ export enum MachineType {
   WATER = "water",
 }
 
+/**
+ * ContentModel defines HOW a machine stores products:
+ * - containers: бункеры/ёмкости (кофе, вода) — capacity in g/ml
+ * - slots: ячейки (снеки, напитки) — capacity in pieces
+ * - mixed: оба (комбо-автоматы)
+ */
+export enum ContentModel {
+  CONTAINERS = "containers",
+  SLOTS = "slots",
+  MIXED = "mixed",
+}
+
 export enum MachineStatus {
   ACTIVE = "active",
   LOW_STOCK = "low_stock",
@@ -67,6 +79,8 @@ export enum ComponentType {
   COMPRESSOR = "compressor",
   BOARD = "board",
   MOTOR = "motor",
+  SIM_CARD = "sim_card",
+  CAMERA = "camera",
   OTHER = "other",
 }
 
@@ -99,6 +113,133 @@ export enum MaintenanceStatus {
   COMPLETED = "completed",
   SKIPPED = "skipped",
   OVERDUE = "overdue",
+}
+
+// ============================================================================
+// CONNECTIVITY & EXPENSE ENUMS
+// ============================================================================
+
+export enum ConnectivityType {
+  SIM = "sim",
+  WIFI = "wifi",
+  FIBER = "fiber",
+  LAN = "lan",
+}
+
+export enum ConnectivityStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  SUSPENDED = "suspended",
+}
+
+export enum ExpenseCategory {
+  TRANSPORT = "transport", // Перевозка автомата
+  ELECTRICAL = "electrical", // Электропроводка
+  SOCKET = "socket", // Установка розетки
+  MOUNTING = "mounting", // Монтаж/крепление
+  WIRING = "wiring", // Кабельная разводка
+  DECORATION = "decoration", // Оформление точки
+  SIGNAGE = "signage", // Вывеска/указатели
+  CONNECTIVITY = "connectivity", // Подключение связи
+  RENT_DEPOSIT = "rent_deposit", // Залог за аренду
+  REPAIR = "repair", // Ремонт на точке
+  OTHER = "other",
+}
+
+export enum ExpenseType {
+  CAPEX = "capex", // Разовые/капитальные
+  OPEX = "opex", // Периодические/операционные
+}
+
+// ============================================================================
+// CONNECTIVITY & EXPENSE LABELS (Russian)
+// ============================================================================
+
+export const CONNECTIVITY_TYPE_LABELS: Record<ConnectivityType, string> = {
+  [ConnectivityType.SIM]: "SIM-карта",
+  [ConnectivityType.WIFI]: "WiFi",
+  [ConnectivityType.FIBER]: "Оптика",
+  [ConnectivityType.LAN]: "LAN-кабель",
+};
+
+export const CONNECTIVITY_STATUS_LABELS: Record<ConnectivityStatus, string> = {
+  [ConnectivityStatus.ACTIVE]: "Активна",
+  [ConnectivityStatus.INACTIVE]: "Отключена",
+  [ConnectivityStatus.SUSPENDED]: "Приостановлена",
+};
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  [ExpenseCategory.TRANSPORT]: "Перевозка",
+  [ExpenseCategory.ELECTRICAL]: "Электропроводка",
+  [ExpenseCategory.SOCKET]: "Розетка",
+  [ExpenseCategory.MOUNTING]: "Монтаж",
+  [ExpenseCategory.WIRING]: "Кабельная разводка",
+  [ExpenseCategory.DECORATION]: "Оформление",
+  [ExpenseCategory.SIGNAGE]: "Вывеска",
+  [ExpenseCategory.CONNECTIVITY]: "Подключение связи",
+  [ExpenseCategory.RENT_DEPOSIT]: "Залог аренды",
+  [ExpenseCategory.REPAIR]: "Ремонт",
+  [ExpenseCategory.OTHER]: "Другое",
+};
+
+export const EXPENSE_TYPE_LABELS: Record<ExpenseType, string> = {
+  [ExpenseType.CAPEX]: "Капитальные",
+  [ExpenseType.OPEX]: "Операционные",
+};
+
+export const CONTENT_MODEL_LABELS: Record<ContentModel, string> = {
+  [ContentModel.CONTAINERS]: "Бункеры / ёмкости",
+  [ContentModel.SLOTS]: "Ячейки / слоты",
+  [ContentModel.MIXED]: "Смешанный (бункеры + слоты)",
+};
+
+// ── Machine Template sub-types (JSONB payloads) ──
+
+/** One container/bunker definition inside a template */
+export interface IContainerTemplate {
+  slotNumber: number;
+  name: string;
+  capacity: number;
+  unit: string; // "g", "ml", "pcs"
+  minLevel?: number;
+}
+
+/** One product slot definition inside a template */
+export interface ISlotTemplate {
+  slotNumber: string; // "A1", "B2"
+  capacity: number; // in pieces
+}
+
+/** One default component inside a template */
+export interface IComponentTemplate {
+  componentType: string; // ComponentType enum value
+  name: string;
+}
+
+/** Full machine template interface */
+export interface IMachineTemplate {
+  id: string;
+  organizationId: string;
+  name: string;
+  type: MachineType;
+  contentModel: ContentModel;
+  manufacturer?: string;
+  model?: string;
+  description?: string;
+  imageUrl?: string;
+  maxProductSlots: number;
+  defaultContainers: IContainerTemplate[];
+  defaultSlots: ISlotTemplate[];
+  defaultComponents: IComponentTemplate[];
+  acceptsCash: boolean;
+  acceptsCard: boolean;
+  acceptsQr: boolean;
+  acceptsNfc: boolean;
+  isSystem: boolean;
+  isActive: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ============================================================================
@@ -356,6 +497,66 @@ export interface IMachineMaintenanceSchedule {
   isOverdue?: boolean;
 }
 
+export interface IMachineConnectivity {
+  id: string;
+  machineId: string;
+  organizationId: string;
+  connectivityType: ConnectivityType;
+  status: ConnectivityStatus;
+
+  // Provider info
+  providerName: string; // Beeline, Ucell, Mobiuz, имя арендатора
+  accountNumber?: string; // Номер телефона / аккаунт
+  tariffName?: string;
+
+  // Link to physical component (SIM card in equipment)
+  componentId?: string;
+
+  // Cost
+  monthlyCost: number;
+  currency: string;
+
+  // Period
+  startDate: Date;
+  endDate?: Date;
+
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export interface IMachineExpense {
+  id: string;
+  machineId: string;
+  organizationId: string;
+  locationId?: string;
+
+  category: ExpenseCategory;
+  expenseType: ExpenseType;
+
+  description: string;
+  amount: number;
+  currency: string;
+
+  expenseDate: Date;
+
+  // Vendor
+  counterpartyId?: string;
+  performedByUserId?: string;
+
+  // Documents
+  receiptUrl?: string;
+  invoiceNumber?: string;
+
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
 // ============================================================================
 // CREATE/UPDATE DTOs
 // ============================================================================
@@ -581,6 +782,8 @@ export const COMPONENT_TYPE_LABELS: Record<ComponentType, string> = {
   [ComponentType.COMPRESSOR]: "Компрессор",
   [ComponentType.BOARD]: "Плата",
   [ComponentType.MOTOR]: "Мотор",
+  [ComponentType.SIM_CARD]: "SIM-карта",
+  [ComponentType.CAMERA]: "Камера",
   [ComponentType.OTHER]: "Другое",
 };
 

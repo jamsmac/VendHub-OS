@@ -1,0 +1,39 @@
+%% C5. Рецепты и расход ингредиентов (FIFO)
+%% Источник: products/products-recipe.service.ts, products/services/recipe-consumption.service.ts, products/products-batch.service.ts
+flowchart TD
+    SALE(["Транзакция: продажа\nproductId, machineId"]) --> FIND_RECIPE["Поиск Recipe\nпо productId"]
+    FIND_RECIPE --> HAS_RECIPE{"Рецепт найден?"}
+
+    HAS_RECIPE -->|"Нет (простой товар)"| SIMPLE["Списание 1 шт\nиз MachineInventory"]
+    HAS_RECIPE -->|"Да (составной)"| INGREDIENTS["Загрузка RecipeIngredient[]\n(ingredientId, quantity, unit)"]
+
+    INGREDIENTS --> FOREACH["Для каждого ингредиента:"]
+    FOREACH --> CALC["Расчёт requiredQuantity:\nrecipeQuantity × orderQuantity"]
+
+    CALC --> FIFO["FIFO Depletion:\nProductsBatchService\n.depleteFromBatch()"]
+
+    subgraph FIFO_ALGO ["Алгоритм FIFO списания"]
+        F1["Загрузка IngredientBatch[]\nWHERE productId = ingredientId\nAND status = IN_STOCK\nAND remainingQuantity > 0\nORDER BY expiryDate ASC"] --> F2["Итерация по партиям\n(ближайший срок первым)"]
+        F2 --> F3{"remaining ≥\nrequired?"}
+        F3 -->|"Да"| F4["Списание из этой партии\nremainingQuantity -= required"]
+        F3 -->|"Нет"| F5["Списание всей партии\nremainingQuantity = 0\nstatus = DEPLETED"]
+        F5 --> F6["required -= depleted\nПереход к следующей партии"]
+        F6 --> F2
+        F4 --> F7["Запись BatchMovement:\ntype: CONSUME\nreferenceId: transactionId"]
+    end
+
+    FIFO --> SALE_ING["Создание SaleIngredient:\ntransactionId, ingredientId,\nquantity, batchId"]
+
+    SALE_ING --> CHECK_LOW{"Остаток партии\n< low_stock_threshold?"}
+    CHECK_LOW -->|"Да"| ALERT["Alert: LOW_STOCK\ningredientId, machineId\n→ уведомление оператору"]
+    CHECK_LOW -->|"Нет"| DONE
+
+    ALERT --> DONE(["✓ Ингредиенты списаны"])
+
+    subgraph EXPIRY_CHECK ["Контроль сроков годности"]
+        EX1["Проверка при загрузке:\nexpiryDate < today + 7 дней?"]
+        EX1 -->|"Да"| EX2["Warning: EXPIRING_SOON\n→ приоритет на FIFO"]
+        EX1 -->|"Просрочен"| EX3["status: EXPIRED\n→ WRITE_OFF movement"]
+    end
+
+    SIMPLE --> DONE

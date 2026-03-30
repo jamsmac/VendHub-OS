@@ -38,6 +38,7 @@ import {
   UserRole,
   CurrentUser,
   ICurrentUser,
+  CurrentOrganizationId,
 } from "../../common/decorators";
 import {
   CreateReservationRequestDto,
@@ -346,8 +347,13 @@ export class InventoryController {
   async confirmReservation(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ConfirmReservationDto,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.inventoryService.confirmReservation(id, dto.adjustedQuantity);
+    return this.inventoryService.confirmReservation(
+      id,
+      dto.adjustedQuantity,
+      organizationId,
+    );
   }
 
   @Post("reservations/:id/fulfill")
@@ -365,11 +371,13 @@ export class InventoryController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: FulfillReservationDto,
     @CurrentUser() user: ICurrentUser,
+    @CurrentOrganizationId() organizationId: string,
   ) {
     return this.inventoryService.fulfillReservation(
       id,
       dto.fulfilledQuantity,
       user.id,
+      organizationId,
     );
   }
 
@@ -388,7 +396,13 @@ export class InventoryController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CancelReservationDto,
     @CurrentUser() user: ICurrentUser,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.inventoryService.cancelReservation(id, dto.reason, user.id);
+    return this.inventoryService.cancelReservation(
+      id,
+      dto.reason,
+      user.id,
+      organizationId,
+    );
   }
 }

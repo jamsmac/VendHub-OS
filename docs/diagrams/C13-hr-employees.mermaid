@@ -1,0 +1,51 @@
+%% C13. HR: сотрудники — полный цикл
+%% Источник: employees/employees.service.ts, employees/services/*
+flowchart TD
+    subgraph HIRE ["Приём на работу"]
+        H1(["Создание сотрудника"]) --> H2["Employee:\nfirstName, lastName,\nposition, departmentId,\nhireDate, salary"]
+        H2 --> H3["status: ACTIVE\nrole: operator/manager/etc."]
+    end
+
+    subgraph DEPT ["Структура"]
+        D1["Department:\nname, managerId,\nparentDepartmentId"]
+        D2["Position:\ntitle, level,\nsalaryRange"]
+    end
+
+    subgraph ATTENDANCE ["Табель (AttendanceService)"]
+        A1(["Начало рабочего дня"]) --> A2["CheckIn:\nemployeeId, checkInTime,\nlocation (GPS)"]
+        A2 --> A3(["Конец рабочего дня"])
+        A3 --> A4["CheckOut:\ncheckOutTime, totalHours"]
+        A4 --> A5["Расчёт:\nregularHours, overtimeHours,\nlateMinutes"]
+    end
+
+    subgraph LEAVE ["Отпуска (LeaveService)"]
+        L1(["Заявка на отпуск"]) --> L2["LeaveRequest:\ntype (annual/sick/personal),\nstartDate, endDate, reason"]
+        L2 --> L3{"Одобрение\nменеджером?"}
+        L3 -->|"Approve"| L4["status: APPROVED\n→ Обновление баланса\nleaveBalance -= days"]
+        L3 -->|"Reject"| L5["status: REJECTED\nrejectReason"]
+    end
+
+    subgraph PAYROLL ["Расчёт зарплаты (PayrollService)"]
+        P1(["Конец периода"]) --> P2["CalculatePayroll:\nemployeeId, periodStart, periodEnd"]
+        P2 --> P3["Расчёт:\nbaseSalary\n+ overtimeHours × rate\n- leaveDays × dailyRate\n- deductions\n+ bonuses"]
+        P3 --> P4["Payroll record:\ngrossAmount, deductions,\nnetAmount, status: CALCULATED"]
+        P4 --> P5{"Утверждение?"}
+        P5 -->|"Да"| P6["status: APPROVED → PAID\npaidAt: now"]
+        P5 -->|"Нет"| P7["status: REJECTED\n→ пересчёт"]
+    end
+
+    subgraph REVIEW ["Performance Review"]
+        R1(["Оценка сотрудника"]) --> R2["PerformanceReview:\nreviewerId, period,\nrating (1-5), goals[],\nstrengths, improvements"]
+        R2 --> R3["status: COMPLETED\n→ влияет на бонусы"]
+    end
+
+    subgraph TERMINATE ["Увольнение"]
+        T1(["Увольнение"]) --> T2["TerminateEmployee:\nterminationDate, reason,\nfinalPaymentAmount"]
+        T2 --> T3["status: TERMINATED\n→ деактивация User\n→ отзыв доступов"]
+    end
+
+    H3 --> ATTENDANCE
+    H3 --> LEAVE
+    H3 --> PAYROLL
+    H3 --> REVIEW
+    H3 --> TERMINATE

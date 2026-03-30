@@ -1,0 +1,59 @@
+%% C2. Telegram Bot для клиентов
+%% Источник: telegram-bot/services/customer-*.service.ts, telegram-payments/
+sequenceDiagram
+    participant U as Клиент
+    participant TG as Telegram
+    participant BOT as Customer Bot<br/>(Telegraf)
+    participant API as VendHub API
+    participant DB as PostgreSQL
+
+    Note over U,DB: === Регистрация ===
+    U->>TG: /start
+    TG->>BOT: Message: /start
+    BOT->>API: ClientService: findOrCreate<br/>(telegramId, firstName, lastName)
+    API->>DB: ClientUser + ClientWallet +<br/>ClientLoyaltyAccount
+    BOT->>TG: Главное меню<br/>(InlineKeyboard)
+    TG->>U: Добро пожаловать!
+
+    Note over U,DB: === Каталог ===
+    U->>TG: Кнопка "Каталог"
+    TG->>BOT: callback: catalog
+    BOT->>API: CustomerCatalogService:<br/>getMachines(nearLocation?)
+    API-->>BOT: Machine[] + Product[]
+    BOT->>TG: Список автоматов<br/>→ Товары с ценами
+    TG->>U: Выберите товар
+
+    Note over U,DB: === Заказ ===
+    U->>TG: Выбор товара
+    TG->>BOT: callback: order_{productId}_{machineId}
+    BOT->>API: CustomerOrdersService:<br/>createOrder(items, machineId)
+    API->>DB: ClientOrder: PENDING
+    BOT->>TG: Подтверждение заказа<br/>+ Кнопка "Оплатить"
+
+    Note over U,DB: === Оплата через Telegram Payments ===
+    U->>TG: Кнопка "Оплатить"
+    TG->>BOT: pre_checkout_query
+    BOT->>API: TelegramPaymentsService:<br/>validatePreCheckout(orderId)
+    API-->>BOT: OK / Error
+    BOT->>TG: answerPreCheckoutQuery(true)
+    TG->>U: Платёжная форма
+    U->>TG: Подтверждение оплаты
+    TG->>BOT: successful_payment
+    BOT->>API: TelegramPaymentsService:<br/>processPayment(telegramPaymentId)
+    API->>DB: TelegramPayment: COMPLETED<br/>ClientOrder: CONFIRMED
+    API->>API: Команда на выдачу
+    BOT->>TG: ✓ Оплата принята!<br/>Заберите товар
+
+    Note over U,DB: === Бонусы ===
+    U->>TG: Кнопка "Мои бонусы"
+    TG->>BOT: callback: loyalty
+    BOT->>API: CustomerLoyaltyService:<br/>getBalance(clientUserId)
+    API-->>BOT: {points, level, nextLevel}
+    BOT->>TG: 🏆 Ваш уровень: GOLD<br/>💰 Баллы: 2,450
+
+    Note over U,DB: === Жалоба ===
+    U->>TG: Кнопка "Жалоба"
+    TG->>BOT: callback: complaint
+    BOT->>API: CustomerComplaintsService:<br/>create(category, description)
+    API->>DB: Complaint: NEW
+    BOT->>TG: Жалоба #12345 принята

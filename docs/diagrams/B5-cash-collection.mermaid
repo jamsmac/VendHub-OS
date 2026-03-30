@@ -1,0 +1,44 @@
+%% B5. Сбор наличных — двухэтапный (Collections)
+%% Источник: collections/collections.service.ts
+flowchart TD
+    subgraph STAGE1 ["Stage 1: COLLECTED (Оператор в поле)"]
+        S1_START(["Оператор подходит\nк автомату"]) --> S1_GPS["GPS фиксация\nтекущих координат"]
+        S1_GPS --> S1_DISTANCE["Haversine расчёт\nрасстояния до автомата"]
+        S1_DISTANCE --> S1_DIST_CHECK{"> 50 метров?"}
+        S1_DIST_CHECK -->|"Да"| S1_WARN["⚠ Warning logged:\nDISTANCE_WARNING_THRESHOLD\n(анти-фрод)"]
+        S1_DIST_CHECK -->|"Нет"| S1_DUP
+        S1_WARN --> S1_DUP
+
+        S1_DUP["Проверка дубликатов:\nтот же автомат за\nпоследние 30 мин"]
+        S1_DUP --> S1_DUP_CHECK{"Дубликат?"}
+        S1_DUP_CHECK -->|"Да"| S1_CONFLICT["409 Conflict:\nDuplicate collection"]
+        S1_DUP_CHECK -->|"Нет"| S1_CREATE
+
+        S1_CREATE["Создание Collection:\nstatus: COLLECTED\nmachineId, operatorId\ncollectedAmount (заявленная)\ngpsLatitude, gpsLongitude\ncollectedAt: now"]
+        S1_CREATE --> S1_HISTORY["CollectionHistory:\naction: CREATED\nperformedBy: operator"]
+        S1_HISTORY --> S1_DONE(["✓ Stage 1 завершён\nОжидание Stage 2"])
+    end
+
+    subgraph STAGE2 ["Stage 2: RECEIVED (Менеджер в офисе)"]
+        S2_START(["Менеджер принимает\nналичные"]) --> S2_RECEIVE["ReceiveCollectionDto:\nreceivedAmount (фактическая)\nreceivedById: manager"]
+        S2_RECEIVE --> S2_COMPARE["Сравнение:\ncollectedAmount vs receivedAmount"]
+        S2_COMPARE --> S2_MATCH{"Суммы\nсовпадают?"}
+        S2_MATCH -->|"Да"| S2_OK["status: RECEIVED\ndiscrepancy: 0"]
+        S2_MATCH -->|"Нет"| S2_DISCREPANCY["status: RECEIVED\ndiscrepancy: collected - received\n⚠ Флаг для reconciliation"]
+        S2_OK --> S2_HISTORY["CollectionHistory:\naction: RECEIVED"]
+        S2_DISCREPANCY --> S2_HISTORY
+        S2_HISTORY --> S2_DONE(["✓ Сбор завершён"])
+    end
+
+    subgraph BULK ["Массовые операции"]
+        B1["BulkCreateCollectionDto:\nсоздание нескольких\nсборов одним запросом"]
+        B2["BulkCancelCollectionDto:\nотмена нескольких\nсборов одним запросом"]
+    end
+
+    subgraph CANCEL_FLOW ["Отмена"]
+        C1(["Запрос отмены"]) --> C2["CancelCollectionDto:\nreason (обязательно)"]
+        C2 --> C3["status: CANCELLED\ncancelledAt, cancelReason"]
+        C3 --> C4["CollectionHistory:\naction: CANCELLED"]
+    end
+
+    S1_DONE --> S2_START

@@ -60,8 +60,12 @@ export class ProductsController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Create a new product" })
   create(@Body() data: CreateProductDto, @CurrentUser() user: ICurrentUser) {
+    // Map DTO field names to entity field names
+    const { basePrice, costPrice, ...rest } = data;
     return this.productsService.create({
-      ...data,
+      ...rest,
+      sellingPrice: basePrice,
+      purchasePrice: costPrice,
       organizationId: user.organizationId,
     } as Parameters<typeof this.productsService.create>[0]);
   }
@@ -171,10 +175,15 @@ export class ProductsController {
     @Body() data: UpdateProductDto,
     @CurrentUser() user: ICurrentUser,
   ) {
+    // Map DTO field names to entity field names
+    const { basePrice, costPrice, ...rest } = data;
+    const mapped: Record<string, unknown> = { ...rest };
+    if (basePrice !== undefined) mapped.sellingPrice = basePrice;
+    if (costPrice !== undefined) mapped.purchasePrice = costPrice;
     return this.productsService.update(
       id,
       user.organizationId,
-      data as Parameters<typeof this.productsService.update>[2],
+      mapped as Parameters<typeof this.productsService.update>[2],
     );
   }
 

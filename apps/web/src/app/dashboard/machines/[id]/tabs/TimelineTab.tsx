@@ -61,7 +61,7 @@ export function TimelineTab({ entityId }: TimelineTabProps) {
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : !data || data.data.length === 0 ? (
+        ) : !data || !Array.isArray(data.data) || data.data.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             Нет событий
           </p>

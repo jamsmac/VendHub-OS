@@ -62,9 +62,12 @@ export class StockTakeService {
   async completeMovement(
     movementId: string,
     userId: string,
+    organizationId?: string,
   ): Promise<StockMovement> {
+    const where: Record<string, string> = { id: movementId };
+    if (organizationId) where.organizationId = organizationId;
     const movement = await this.stockMovementRepository.findOne({
-      where: { id: movementId },
+      where,
     });
     if (!movement) {
       throw new NotFoundException(
@@ -91,9 +94,12 @@ export class StockTakeService {
   async cancelMovement(
     movementId: string,
     userId: string,
+    organizationId?: string,
   ): Promise<StockMovement> {
+    const where: Record<string, string> = { id: movementId };
+    if (organizationId) where.organizationId = organizationId;
     const movement = await this.stockMovementRepository.findOne({
-      where: { id: movementId },
+      where,
     });
     if (!movement) {
       throw new NotFoundException(

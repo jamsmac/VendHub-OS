@@ -29,6 +29,10 @@ import {
 } from "@/components/ui/form";
 import { api } from "@/lib/api";
 
+/**
+ * Must match TaskType enum in @vendhub/shared
+ * @see packages/shared/src/types/task.types.ts
+ */
 const TASK_TYPES = [
   "refill",
   "collection",
@@ -38,12 +42,44 @@ const TASK_TYPES = [
   "removal",
   "audit",
   "inspection",
+  "replace_hopper",
+  "replace_grinder",
+  "replace_brew_unit",
+  "replace_mixer",
 ] as const;
+
+const TASK_TYPE_LABELS: Record<string, string> = {
+  refill: "Пополнение",
+  collection: "Инкассация",
+  cleaning: "Мойка",
+  repair: "Ремонт",
+  install: "Установка",
+  removal: "Демонтаж",
+  audit: "Аудит",
+  inspection: "Инспекция",
+  replace_hopper: "Замена бункера",
+  replace_grinder: "Замена кофемолки",
+  replace_brew_unit: "Замена заварочного блока",
+  replace_mixer: "Замена миксера",
+};
 
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
+const PRIORITY_LABELS: Record<string, string> = {
+  low: "Низкий",
+  normal: "Обычный",
+  high: "Высокий",
+  urgent: "Срочный",
+};
+
+/**
+ * Zod schema aligned with CreateTaskDto
+ * Required: title, type
+ * Optional: description, priority (default: normal), dueDate
+ * Note: organizationId is injected by backend from JWT token
+ */
 const taskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255),
+  title: z.string().min(1, "Название обязательно").max(255),
   description: z.string().max(1000).optional().or(z.literal("")),
   type: z.enum(TASK_TYPES),
   priority: z.enum(PRIORITIES),
@@ -69,12 +105,19 @@ export default function NewTaskPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: TaskFormValues) => api.post("/tasks", data),
+    mutationFn: (data: TaskFormValues) => {
+      const payload = {
+        ...data,
+        description: data.description || undefined,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+      };
+      return api.post("/tasks", payload);
+    },
     onSuccess: () => {
-      toast.success("Task created");
+      toast.success("Задача создана");
       router.push("/dashboard/tasks");
     },
-    onError: () => toast.error("Failed to create task"),
+    onError: () => toast.error("Ошибка создания задачи"),
   });
 
   return (
@@ -141,7 +184,7 @@ export default function NewTaskPage() {
                         <SelectContent>
                           {TASK_TYPES.map((tt) => (
                             <SelectItem key={tt} value={tt}>
-                              {tt}
+                              {TASK_TYPE_LABELS[tt] ?? tt}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -168,7 +211,7 @@ export default function NewTaskPage() {
                         <SelectContent>
                           {PRIORITIES.map((p) => (
                             <SelectItem key={p} value={p}>
-                              {p}
+                              {PRIORITY_LABELS[p] ?? p}
                             </SelectItem>
                           ))}
                         </SelectContent>

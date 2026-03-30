@@ -1,0 +1,29 @@
+%% C11. Audit trail
+%% Источник: audit/subscribers/audit.subscriber.ts, audit/audit.service.ts, audit/services/audit-reporting.service.ts
+flowchart TD
+    subgraph CAPTURE ["Автоматический перехват (TypeORM Subscriber)"]
+        EVENT(["Любая операция с entity:\nINSERT / UPDATE / SOFT_DELETE"]) --> SUBSCRIBER["AuditSubscriber:\nafterInsert / afterUpdate /\nafterSoftRemove"]
+
+        SUBSCRIBER --> EXTRACT["Извлечение данных:\n• entityName (таблица)\n• entityId (UUID)\n• action (CREATE/UPDATE/DELETE)\n• oldValues (для UPDATE)\n• newValues (текущие)\n• userId (из request context)\n• ipAddress\n• userAgent"]
+
+        EXTRACT --> FILTER{"Фильтрация:\nIgnore entities?\n(AuditLog, LoginAttempt,\nMetrics — чтобы не\nсоздавать рекурсию)"}
+
+        FILTER -->|"Игнорировать"| SKIP["Пропуск"]
+        FILTER -->|"Записать"| SAVE["Сохранение AuditLog:\n{\n  entity, entityId,\n  action, oldValues,\n  newValues, changedFields[],\n  userId, ipAddress,\n  timestamp\n}"]
+    end
+
+    subgraph QUERY ["Запросы аудита (AuditService)"]
+        Q1["findByEntity(entityName, entityId)\n→ История изменений объекта"]
+        Q2["findByUser(userId, dateRange)\n→ Все действия пользователя"]
+        Q3["findByAction(action, dateRange)\n→ Все операции типа"]
+        Q4["search(fullTextQuery)\n→ Поиск по содержимому"]
+    end
+
+    subgraph REPORTING ["Отчётность (AuditReportingService)"]
+        R1["Агрегация по периоду:\n• Кол-во изменений по entity\n• Кол-во действий по user\n• Топ-измемнённые сущности"]
+        R2["Детектирование аномалий:\n• Массовые удаления\n• Изменения вне рабочих часов\n• Необычная активность"]
+        R3["Экспорт в Excel:\nдля внешнего аудита"]
+    end
+
+    SAVE --> QUERY
+    QUERY --> REPORTING

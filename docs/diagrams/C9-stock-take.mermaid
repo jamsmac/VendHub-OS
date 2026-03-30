@@ -1,0 +1,31 @@
+%% C9. Складской учёт и инвентаризация (Stock-take)
+%% Источник: warehouse/warehouse.service.ts, warehouse/stock-take.service.ts, warehouse/services/inventory-batch.service.ts
+flowchart TD
+    START(["Запуск инвентаризации"]) --> CREATE["Создание StockTake:\nwarehouseId, scheduledDate,\nassignedTo: userId,\nstatus: PLANNED"]
+
+    CREATE --> COUNTING["status: IN_PROGRESS\nФизический подсчёт товаров"]
+
+    COUNTING --> FOREACH["Для каждого продукта:"]
+    FOREACH --> INPUT["Ввод фактических данных:\nproductId, actualQuantity,\nbatchNumber (опционально),\nnotes"]
+
+    INPUT --> COMPARE["Сверка с системными данными:\nsystemQuantity = SUM(WarehouseInventory\nWHERE productId AND warehouseId)"]
+
+    COMPARE --> DIFF{"discrepancy =\nactual - system"}
+    DIFF -->|"= 0"| MATCH["✓ Совпадение\nstatus: MATCHED"]
+    DIFF -->|"> 0 (излишек)"| SURPLUS["⬆ Излишек: +N\nstatus: SURPLUS"]
+    DIFF -->|"< 0 (недостача)"| SHORTAGE["⬇ Недостача: -N\nstatus: SHORTAGE"]
+
+    MATCH --> SUMMARY
+    SURPLUS --> ADJ_UP["Создание InventoryAdjustment:\ntype: INCREASE\nreason: counting_surplus\nquantity: discrepancy"]
+    SHORTAGE --> ADJ_DOWN["Создание InventoryAdjustment:\ntype: DECREASE\nreason: counting_error / theft /\ndamage / expiry"]
+
+    ADJ_UP --> APPROVE{"Утверждение\nменеджером?"}
+    ADJ_DOWN --> APPROVE
+
+    APPROVE -->|"Да"| APPLY["Применение корректировок:\nWarehouseInventory += / -=\nInventoryMovement record"]
+    APPROVE -->|"Нет"| REJECT["Отклонение:\nкорректировка не применена\n→ повторный подсчёт"]
+
+    APPLY --> SUMMARY["Итоговый отчёт:\ntotalProducts, matched,\nsurplus, shortage,\ntotalDiscrepancyValue"]
+
+    SUMMARY --> CLOSE["status: COMPLETED\ncompletedAt: now"]
+    CLOSE --> DONE(["✓ Инвентаризация завершена"])

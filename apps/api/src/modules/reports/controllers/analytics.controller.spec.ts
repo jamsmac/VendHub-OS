@@ -41,7 +41,7 @@ describe("AnalyticsController", () => {
 
   it("returns 401 without auth", async () => {
     await request(app.getHttpServer())
-      .get("/analytics/snapshots")
+      .get("/reports/analytics/snapshots")
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
@@ -49,34 +49,34 @@ describe("AnalyticsController", () => {
   // SNAPSHOTS
   // ============================================================================
 
-  it("GET /analytics/snapshots returns 200", async () => {
+  it("GET /reports/analytics/snapshots returns 200", async () => {
     mockService.getSnapshots.mockResolvedValue({ data: [], total: 0 });
     await request(app.getHttpServer())
-      .get("/analytics/snapshots")
+      .get("/reports/analytics/snapshots")
       .set("Authorization", "Bearer admin-token")
       .expect(HttpStatus.OK);
   });
 
-  it("GET /analytics/snapshots/:id returns 200", async () => {
+  it("GET /reports/analytics/snapshots/:id returns 200", async () => {
     mockService.getSnapshot.mockResolvedValue({ id: TEST_UUID });
     await request(app.getHttpServer())
-      .get(`/analytics/snapshots/${TEST_UUID}`)
+      .get(`/reports/analytics/snapshots/${TEST_UUID}`)
       .set("Authorization", "Bearer admin-token")
       .expect(HttpStatus.OK);
   });
 
-  it("POST /analytics/snapshots/rebuild returns 200 for admin", async () => {
+  it("POST /reports/analytics/snapshots/rebuild returns 200 for admin", async () => {
     mockService.createDailySnapshot.mockResolvedValue({});
     await request(app.getHttpServer())
-      .post("/analytics/snapshots/rebuild")
+      .post("/reports/analytics/snapshots/rebuild")
       .set("Authorization", "Bearer admin-token")
       .send({ date: "2025-01-01", snapshotType: "daily" })
       .expect(HttpStatus.OK);
   });
 
-  it("POST /analytics/snapshots/rebuild rejects viewer", async () => {
+  it("POST /reports/analytics/snapshots/rebuild rejects viewer", async () => {
     await request(app.getHttpServer())
-      .post("/analytics/snapshots/rebuild")
+      .post("/reports/analytics/snapshots/rebuild")
       .set("Authorization", "Bearer viewer-token")
       .send({ date: "2025-01-01", snapshotType: "daily" })
       .expect(HttpStatus.FORBIDDEN);
@@ -86,18 +86,18 @@ describe("AnalyticsController", () => {
   // DAILY STATS
   // ============================================================================
 
-  it("GET /analytics/daily-stats returns 200", async () => {
+  it("GET /reports/analytics/daily-stats returns 200", async () => {
     mockService.getDailyStats.mockResolvedValue([]);
     await request(app.getHttpServer())
-      .get("/analytics/daily-stats?dateFrom=2025-01-01&dateTo=2025-01-31")
+      .get("/reports/analytics/daily-stats?dateFrom=2025-01-01&dateTo=2025-01-31")
       .set("Authorization", "Bearer admin-token")
       .expect(HttpStatus.OK);
   });
 
-  it("POST /analytics/daily-stats/rebuild returns 200 for admin", async () => {
+  it("POST /reports/analytics/daily-stats/rebuild returns 200 for admin", async () => {
     mockService.updateDailyStats.mockResolvedValue({});
     await request(app.getHttpServer())
-      .post("/analytics/daily-stats/rebuild")
+      .post("/reports/analytics/daily-stats/rebuild")
       .set("Authorization", "Bearer admin-token")
       .send({ date: "2025-01-01" })
       .expect(HttpStatus.OK);
@@ -107,17 +107,17 @@ describe("AnalyticsController", () => {
   // DASHBOARD
   // ============================================================================
 
-  it("GET /analytics/dashboard returns 200", async () => {
+  it("GET /reports/analytics/dashboard returns 200", async () => {
     mockService.getDashboardData.mockResolvedValue({ today: {}, trends: {} });
     await request(app.getHttpServer())
-      .get("/analytics/dashboard")
+      .get("/reports/analytics/dashboard")
       .set("Authorization", "Bearer admin-token")
       .expect(HttpStatus.OK);
   });
 
-  it("POST /analytics/snapshots/rebuild rejects operator", async () => {
+  it("POST /reports/analytics/snapshots/rebuild rejects operator", async () => {
     await request(app.getHttpServer())
-      .post("/analytics/snapshots/rebuild")
+      .post("/reports/analytics/snapshots/rebuild")
       .set("Authorization", "Bearer operator-token")
       .send({ date: "2025-01-01", snapshotType: "daily" })
       .expect(HttpStatus.FORBIDDEN);

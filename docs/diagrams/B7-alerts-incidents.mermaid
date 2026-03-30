@@ -1,0 +1,49 @@
+%% B7. Алерты → Инциденты → Уведомления
+%% Источник: alerts/alert-engine.service.ts, alert-evaluator.service.ts, incidents/incidents.service.ts
+flowchart TD
+    subgraph CRON_5MIN ["Cron: каждые 5 минут — AlertEngine"]
+        CE1["Загрузка всех AlertRule\nwhere: enabled = true"] --> CE2["Для каждого правила:"]
+        CE2 --> CE3["Сбор метрики по machineId\n(temperature, fill_level,\nerror_count, revenue, etc.)"]
+        CE3 --> CE4["evaluateMetric(value, condition, threshold)"]
+        CE4 --> CE5{"Условие\nвыполнено?"}
+
+        CE5 -->|"Нет"| CE_SKIP["Пропуск"]
+        CE5 -->|"Да"| CE6{"Cooldown\nпрошёл?"}
+
+        CE6 -->|"Нет (недавно срабатывал)"| CE_SKIP
+        CE6 -->|"Да"| CE7["Создание AlertHistory:\nstatus: TRIGGERED\nmetricValue, threshold"]
+
+        CE7 --> CE8{"autoCreateIncident\n= true?"}
+        CE8 -->|"Да"| CE9["Создание Incident:\ntype по AlertRule\npriority по severity\nmachineId, description"]
+        CE8 -->|"Нет"| CE10["Только Alert\n(без инцидента)"]
+
+        CE9 --> CE11["Event emit:\nalert.triggered"]
+        CE10 --> CE11
+        CE11 --> CE12["NotificationService:\nотправка по каналам\n(push/email/telegram/websocket)"]
+    end
+
+    subgraph EVALUATE_CONDITIONS ["evaluateMetric — условия"]
+        EC1["GREATER_THAN: value > threshold"]
+        EC2["LESS_THAN: value < threshold"]
+        EC3["EQUALS: value == threshold"]
+        EC4["NOT_EQUALS: value != threshold"]
+        EC5["BETWEEN: threshold ≤ value ≤ thresholdMax"]
+        EC6["OUTSIDE: value < threshold OR value > thresholdMax"]
+    end
+
+    subgraph CRON_30MIN ["Cron: каждые 30 минут — Auto-resolve"]
+        AR1["Поиск AlertHistory\nstatus: TRIGGERED\nolderthan: autoResolveMinutes"] --> AR2["status: AUTO_RESOLVED\nresolvedAt: now"]
+    end
+
+    subgraph CRON_10MIN ["Cron: каждые 10 минут — AlertEvaluator"]
+        AE1["Дополнительная оценка:\nкомплексные метрики\n(комбинации условий)"] --> AE2["Обновление AlertHistory\nили создание нового"]
+    end
+
+    subgraph INCIDENT_FLOW ["Жизненный цикл инцидента"]
+        I1["NEW"] -->|"Назначение"| I2["ASSIGNED"]
+        I2 -->|"Начало работы"| I3["IN_PROGRESS"]
+        I3 -->|"Решено"| I4["RESOLVED"]
+        I4 -->|"Подтверждение"| I5["CLOSED"]
+        I3 -->|"Эскалация"| I6["ESCALATED"]
+        I6 --> I3
+    end

@@ -18,6 +18,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MachineType, MachineStatus } from "../entities/machine.entity";
+import { ContentModel } from "@vendhub/shared";
 
 export class CreateMachineDto {
   @ApiProperty({ example: "Кофе-автомат Mega #1" })
@@ -74,10 +75,18 @@ export class CreateMachineDto {
   @Max(1000)
   slotCount?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ enum: ContentModel, example: ContentModel.CONTAINERS })
+  @IsOptional()
+  @IsEnum(ContentModel)
+  contentModel?: ContentModel;
+
+  @ApiPropertyOptional({
+    description:
+      "Injected by controller from JWT. Owners may optionally target another org.",
+  })
+  @IsOptional()
   @IsUUID()
-  @IsNotEmpty()
-  organizationId: string;
+  organizationId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

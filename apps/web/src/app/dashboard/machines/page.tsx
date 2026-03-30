@@ -151,13 +151,34 @@ export default function MachinesPage() {
         .then((res) => res.data),
   });
 
-  const machines = machinesResponse?.data;
-  const paginationTotal = machinesResponse?.total;
+  // Safe extraction — API returns { data: Machine[], total } after TransformInterceptor unwrap,
+  // but we guard against unexpected shapes (plain array, nested, or error responses).
+  const machines: Machine[] = useMemo(() => {
+    const raw = machinesResponse;
+    if (Array.isArray(raw?.data)) return raw.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.items)) return raw.items;
+    return [];
+  }, [machinesResponse]);
+  const paginationTotal: number =
+    machinesResponse?.total ?? machinesResponse?.meta?.total ?? 0;
 
-  const { data: stats } = useQuery({
+  const { data: rawStats } = useQuery({
     queryKey: ["machines-stats"],
     queryFn: () => machinesApi.getStats().then((res) => res.data),
   });
+
+  // Backend returns { [status]: count } — compute derived totals for the UI cards.
+  const stats = useMemo(() => {
+    const raw = (rawStats?.data ?? rawStats ?? {}) as Record<string, number>;
+    const total = Object.values(raw).reduce((sum, n) => sum + (n || 0), 0);
+    return {
+      total,
+      active: raw.active || 0,
+      needsAttention: (raw.low_stock || 0) + (raw.maintenance || 0),
+      errors: raw.error || 0,
+    };
+  }, [rawStats]);
 
   const { data: mapData } = useQuery({
     queryKey: ["machines", "map"],
@@ -176,9 +197,12 @@ export default function MachinesPage() {
     },
   });
 
-  const filteredMachines = machines?.filter((machine: Machine) => {
-    if (search && !machine.name.toLowerCase().includes(search.toLowerCase())) {
-      return false;
+  const filteredMachines = machines.filter((machine: Machine) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const matchesName = machine.name?.toLowerCase().includes(q);
+      const matchesNumber = machine.machineNumber?.toLowerCase().includes(q);
+      if (!matchesName && !matchesNumber) return false;
     }
     if (statusFilter && machine.status !== statusFilter) {
       return false;
@@ -229,7 +253,7 @@ export default function MachinesPage() {
                   {t("statsTotal")}
                 </p>
                 <p className="text-2xl font-bold">
-                  {paginationTotal ?? stats?.total ?? 0}
+                  {paginationTotal || stats.total}
                 </p>
               </div>
               <Coffee className="h-8 w-8 text-muted-foreground" />
@@ -244,7 +268,7 @@ export default function MachinesPage() {
                   {t("statsActive")}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
-                  {stats?.active || 0}
+                  {stats.active}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
@@ -259,7 +283,7 @@ export default function MachinesPage() {
                   {t("statsNeedsAttention")}
                 </p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {stats?.needsAttention || 0}
+                  {stats.needsAttention}
                 </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-yellow-600" />
@@ -274,7 +298,7 @@ export default function MachinesPage() {
                   {t("statsErrors")}
                 </p>
                 <p className="text-2xl font-bold text-red-600">
-                  {stats?.errors || 0}
+                  {stats.errors}
                 </p>
               </div>
               <XCircle className="h-8 w-8 text-red-600" />
@@ -363,7 +387,7 @@ export default function MachinesPage() {
                 </Card>
               ))}
             </div>
-          ) : filteredMachines?.length === 0 ? (
+          ) : filteredMachines.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Coffee className="h-12 w-12 text-muted-foreground mb-4" />
@@ -383,7 +407,7 @@ export default function MachinesPage() {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredMachines?.map((machine: Machine) => {
+              {filteredMachines.map((machine: Machine) => {
                 const status =
                   statusConfig[machine.status] || statusConfig.offline;
                 return (
@@ -401,7 +425,7 @@ export default function MachinesPage() {
                           </div>
                           <div>
                             <CardTitle className="text-lg">
-                              {machine.name}
+                              {machine.name || machine.machineNumber}
                             </CardTitle>
                             <p className="text-sm text-muted-foreground">
                               #{machine.machineNumber}
@@ -502,7 +526,7 @@ export default function MachinesPage() {
           )}
         </>
       ) : (
-        <MachineMap machines={mapData || []} />
+        <MachineMap machines={Array.isArray(mapData?.data) ? mapData.data : Array.isArray(mapData) ? mapData : []} />
       )}
       <ConfirmDialog
         open={!!confirmState}

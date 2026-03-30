@@ -54,12 +54,12 @@ export class ComplaintsService {
     return this.core.create(dto);
   }
 
-  findById(id: string): Promise<Complaint> {
-    return this.core.findById(id);
+  findById(id: string, organizationId?: string): Promise<Complaint> {
+    return this.core.findById(id, organizationId);
   }
 
-  findByNumber(ticketNumber: string): Promise<Complaint> {
-    return this.core.findByNumber(ticketNumber);
+  findByNumber(ticketNumber: string, organizationId?: string): Promise<Complaint> {
+    return this.core.findByNumber(ticketNumber, organizationId);
   }
 
   query(query: QueryComplaintsDto) {
@@ -70,40 +70,45 @@ export class ComplaintsService {
     id: string,
     dto: UpdateComplaintDto,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.update(id, dto, performedById);
+    return this.core.update(id, dto, performedById, organizationId);
   }
 
   assign(
     id: string,
     assignedToId: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.assign(id, assignedToId, performedById);
+    return this.core.assign(id, assignedToId, performedById, organizationId);
   }
 
   resolve(
     id: string,
     resolution: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.resolve(id, resolution, performedById);
+    return this.core.resolve(id, resolution, performedById, organizationId);
   }
 
   escalate(
     id: string,
     reason: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.escalate(id, reason, performedById);
+    return this.core.escalate(id, reason, performedById, organizationId);
   }
 
   reject(
     id: string,
     reason: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.reject(id, reason, performedById);
+    return this.core.reject(id, reason, performedById, organizationId);
   }
 
   getNewComplaints(organizationId: string): Promise<Complaint[]> {
@@ -114,8 +119,8 @@ export class ComplaintsService {
     return this.core.findAll(organizationId, options);
   }
 
-  remove(id: string, userId: string): Promise<void> {
-    return this.core.remove(id, userId);
+  remove(id: string, userId: string, organizationId?: string): Promise<void> {
+    return this.core.remove(id, userId, organizationId);
   }
 
   bulkUpdate(
@@ -126,25 +131,31 @@ export class ComplaintsService {
       priority?: ComplaintPriority;
     },
     userId: string,
+    organizationId?: string,
   ): Promise<number> {
-    return this.core.bulkUpdate(ids, data, userId);
+    return this.core.bulkUpdate(ids, data, userId, organizationId);
   }
 
   findByAssignee(
     userId: string,
     includeResolved?: boolean,
+    organizationId?: string,
   ): Promise<Complaint[]> {
-    return this.core.findByAssignee(userId, includeResolved);
+    return this.core.findByAssignee(userId, includeResolved, organizationId);
   }
 
-  findByMachine(machineId: string, limit?: number): Promise<Complaint[]> {
-    return this.core.findByMachine(machineId, limit);
+  findByMachine(
+    machineId: string,
+    limit?: number,
+    organizationId?: string,
+  ): Promise<Complaint[]> {
+    return this.core.findByMachine(machineId, limit, organizationId);
   }
 
   // ── Comments & Feedback ────────────────────────────────
 
-  addComment(dto: CreateCommentDto): Promise<ComplaintComment> {
-    return this.core.addComment(dto);
+  addComment(dto: CreateCommentDto, organizationId?: string): Promise<ComplaintComment> {
+    return this.core.addComment(dto, organizationId);
   }
 
   getComments(
@@ -158,8 +169,9 @@ export class ComplaintsService {
     complaintId: string,
     rating: number,
     comment?: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.submitFeedback(complaintId, rating, comment);
+    return this.core.submitFeedback(complaintId, rating, comment, organizationId);
   }
 
   // ── Refunds ────────────────────────────────────────────
@@ -171,24 +183,32 @@ export class ComplaintsService {
   approveRefund(
     refundId: string,
     approvedById: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    return this.refund.approveRefund(refundId, approvedById);
+    return this.refund.approveRefund(refundId, approvedById, organizationId);
   }
 
   processRefund(
     refundId: string,
     processedById: string,
     referenceNumber?: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    return this.refund.processRefund(refundId, processedById, referenceNumber);
+    return this.refund.processRefund(
+      refundId,
+      processedById,
+      referenceNumber,
+      organizationId,
+    );
   }
 
   rejectRefund(
     refundId: string,
     rejectedById: string,
     reason: string,
+    organizationId?: string,
   ): Promise<ComplaintRefund> {
-    return this.refund.rejectRefund(refundId, rejectedById, reason);
+    return this.refund.rejectRefund(refundId, rejectedById, reason, organizationId);
   }
 
   // ── QR Codes ───────────────────────────────────────────
@@ -208,8 +228,11 @@ export class ComplaintsService {
     return this.analytics.getMachineContext(machineId);
   }
 
-  getQrCodesForMachine(machineId: string): Promise<ComplaintQrCode[]> {
-    return this.analytics.getQrCodesForMachine(machineId);
+  getQrCodesForMachine(
+    machineId: string,
+    organizationId?: string,
+  ): Promise<ComplaintQrCode[]> {
+    return this.analytics.getQrCodesForMachine(machineId, organizationId);
   }
 
   // ── Templates ──────────────────────────────────────────

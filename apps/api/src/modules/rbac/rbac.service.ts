@@ -260,9 +260,12 @@ export class RbacService {
   async syncRolePermissions(
     roleId: string,
     permissionIds: string[],
+    organizationId?: string,
   ): Promise<Role> {
+    const where: Record<string, unknown> = { id: roleId };
+    if (organizationId) where.organizationId = organizationId;
     const role = await this.roleRepository.findOne({
-      where: { id: roleId },
+      where,
       relations: ["permissions"],
     });
     if (!role) {

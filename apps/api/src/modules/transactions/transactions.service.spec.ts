@@ -533,7 +533,7 @@ describe("TransactionsService", () => {
 
       transactionRepo.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("txn-uuid-1");
+      await service.remove("txn-uuid-1", "org-uuid-1");
 
       expect(transactionRepo.softDelete).toHaveBeenCalledWith("txn-uuid-1");
     });
@@ -544,7 +544,7 @@ describe("TransactionsService", () => {
         status: TransactionStatus.COMPLETED,
       } as any);
 
-      await expect(service.remove("txn-uuid-1")).rejects.toThrow(
+      await expect(service.remove("txn-uuid-1", "org-uuid-1")).rejects.toThrow(
         BadRequestException,
       );
     });

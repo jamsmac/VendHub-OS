@@ -1,40 +1,49 @@
-%% B2. Жизненный цикл задачи (Task)
-%% Источник: tasks/tasks.service.ts — VALID_TASK_TRANSITIONS
+%% B2. Жизненный цикл задачи (Task) — ИСПРАВЛЕНО по VALID_TASK_TRANSITIONS
+%% Источник: packages/shared/src/types/task.types.ts (lines 62-78)
 stateDiagram-v2
-    [*] --> CREATED : Создание задачи\n(type, priority, machineId)
+    [*] --> PENDING : Создание задачи\n(type, priority, machineId)
 
-    CREATED --> ASSIGNED : Назначение оператору\n(assignedToId)
-    CREATED --> CANCELLED : Отмена
+    PENDING --> ASSIGNED : Назначение оператору
+    PENDING --> CANCELLED : Отмена
 
-    ASSIGNED --> IN_PROGRESS : Оператор начал работу\n(startedAt = now)
-    ASSIGNED --> CANCELLED : Отмена до начала
+    ASSIGNED --> IN_PROGRESS : Оператор начал работу
+    ASSIGNED --> POSTPONED : Оператор отложил
+    ASSIGNED --> CANCELLED : Отмена
 
-    IN_PROGRESS --> COMPLETED : Оператор завершил\n(completedAt = now)
-    IN_PROGRESS --> ON_HOLD : Ожидание (запчасти/др.)
+    IN_PROGRESS --> COMPLETED : Работа завершена
+    IN_PROGRESS --> POSTPONED : Отложена (нужны запчасти и т.д.)
     IN_PROGRESS --> CANCELLED : Отмена в процессе
 
-    ON_HOLD --> IN_PROGRESS : Возобновление работы
+    POSTPONED --> ASSIGNED : Возобновление (переназначение)
+    POSTPONED --> CANCELLED : Отмена
 
-    COMPLETED --> VERIFIED : Менеджер проверил\n(verifiedAt = now)
-    COMPLETED --> IN_PROGRESS : Возврат на доработку\n(reopened)
+    COMPLETED --> REJECTED : Менеджер отклонил\n(качество не устроило)
 
-    VERIFIED --> [*] : ✓ Задача закрыта
-    CANCELLED --> [*] : ✗ Отменена
+    CANCELLED --> [*] : Конец
+    REJECTED --> [*] : Конец (rollback done)
+    COMPLETED --> [*] : ✓ Задача выполнена
 
-    note right of CREATED
-        TaskItem[] — чеклист работ
+    note right of PENDING
+        TaskPriority:
+        LOW / NORMAL / HIGH / URGENT
+        TaskItem[] — чеклист
         TaskComponent[] — запчасти
-        TaskPhoto[] — фото до/после
+        (ComponentRole: OLD/NEW/TARGET)
+        TaskPhoto[] — фото
+        (BEFORE/AFTER/DURING/OTHER)
     end note
 
-    note right of IN_PROGRESS
+    note right of POSTPONED
+        Отложена оператором:
+        нужны запчасти, нет доступа,
+        другие препятствия.
+        Возвращается в ASSIGNED
+        (а не IN_PROGRESS!)
+    end note
+
+    note left of COMPLETED
         Cron каждый час:
-        Проверка просроченных задач
-        Auto-notification если dueDate passed
-    end note
-
-    note right of COMPLETED
-        TaskComment — комментарии
-        TaskAnalyticsService:
-        completion_time, SLA compliance
+        проверка просроченных задач
+        auto-notification если
+        dueDate passed
     end note

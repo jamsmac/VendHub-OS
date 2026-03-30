@@ -1,0 +1,37 @@
+%% E4. Контроль доступа к автоматам (Machine Access)
+%% Источник: machine-access/machine-access.service.ts
+flowchart TD
+    subgraph GRANT ["Выдача доступа"]
+        G1(["Admin выдаёт доступ"]) --> G2["grantAccess():\nmachineId, userId,\naccessLevel (view/operate/manage),\ngrantedByUserId"]
+        G2 --> G3{"Уже есть активный\nдоступ для этого\nuser+machine?"}
+        G3 -->|"Да"| G4["409 Conflict:\nAccess already exists"]
+        G3 -->|"Нет"| G5["Создание MachineAccess:\nisActive: true\ngrantedAt: now\nexpiresAt (опционально)"]
+    end
+
+    subgraph REVOKE ["Отзыв доступа"]
+        R1(["Admin отзывает доступ"]) --> R2["revokeAccess():\nmachineId, userId,\nreason"]
+        R2 --> R3["isActive: false\nrevokedAt: now\nrevokeReason"]
+    end
+
+    subgraph CHECK ["Проверка доступа (runtime)"]
+        CH1(["Запрос на действие\nс автоматом"]) --> CH2["hasAccess(userId, machineId):\nSELECT WHERE\nisActive = true\nAND (expiresAt IS NULL\n  OR expiresAt > now)"]
+        CH2 --> CH3{"Доступ есть?"}
+        CH3 -->|"Да"| CH4["getAccessRole():\nвозврат accessLevel"]
+        CH3 -->|"Нет"| CH5["403 Forbidden"]
+        CH4 --> CH6{"accessLevel\nдостаточен?"}
+        CH6 -->|"Да"| CH7["✓ Действие разрешено"]
+        CH6 -->|"Нет"| CH5
+    end
+
+    subgraph TEMPLATES ["Шаблоны доступа (AccessTemplate)"]
+        T1(["Создание шаблона"]) --> T2["AccessTemplate:\nname, description"]
+        T2 --> T3["AccessTemplateRow[]:\nmachineId, accessLevel\n(набор машин + уровни)"]
+        T3 --> T4(["Применение шаблона\nк пользователю"])
+        T4 --> T5["applyTemplate():\nДля каждой строки шаблона\n→ grantAccess()\nмассовая выдача доступов"]
+    end
+
+    subgraph QUERIES ["Запросы"]
+        Q1["getAccessByMachine(machineId):\nкто имеет доступ к автомату"]
+        Q2["getAccessByUser(userId):\nк каким автоматам есть доступ"]
+        Q3["findAll(filters):\nполный список с пагинацией"]
+    end

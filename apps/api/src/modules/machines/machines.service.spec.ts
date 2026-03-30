@@ -14,6 +14,9 @@ import {
   MachineComponent,
   MachineErrorLog,
   MachineMaintenanceSchedule,
+  SimUsageLog,
+  MachineConnectivity,
+  MachineExpense,
   MachineStatus,
   MaintenanceStatus,
 } from "./entities/machine.entity";
@@ -149,6 +152,33 @@ describe("MachinesService", () => {
           },
         },
         {
+          provide: getRepositoryToken(SimUsageLog),
+          useValue: {
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(MachineConnectivity),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(MachineExpense),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            findAndCount: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
           provide: "BullQueue_machine-writeoff",
           useValue: {
             add: jest.fn(),
@@ -257,7 +287,7 @@ describe("MachinesService", () => {
   });
 
   describe("update", () => {
-    it("should update machine when found", async () => {
+    it("should update machine when found (non-OWNER with organizationId)", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
 
       machineRepository.save.mockResolvedValue({
@@ -265,22 +295,58 @@ describe("MachinesService", () => {
         name: "VM-002",
       } as any);
 
-      const result = await service.update("machine-uuid-1", { name: "VM-002" });
+      const result = await service.update(
+        "machine-uuid-1",
+        { name: "VM-002" },
+        "org-uuid-1",
+      );
 
       expect(result.name).toBe("VM-002");
+      // Verify findOne was called with organizationId filter
+      expect(machineRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: "machine-uuid-1",
+          organizationId: "org-uuid-1",
+        },
+        relations: ["slots"],
+      });
+    });
+
+    it("should update machine when found (OWNER with undefined organizationId)", async () => {
+      machineRepository.findOne.mockResolvedValue(mockMachine);
+
+      machineRepository.save.mockResolvedValue({
+        ...mockMachine,
+        name: "VM-002",
+      } as any);
+
+      const result = await service.update(
+        "machine-uuid-1",
+        { name: "VM-002" },
+        undefined,
+      );
+
+      expect(result.name).toBe("VM-002");
+      // Verify findOne was called without organizationId filter (OWNER bypass)
+      expect(machineRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: "machine-uuid-1",
+        },
+        relations: ["slots"],
+      });
     });
 
     it("should throw NotFoundException when machine not found", async () => {
       machineRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update("non-existent", { name: "VM-002" }),
+        service.update("non-existent", { name: "VM-002" }, "org-uuid-1"),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("updateStatus", () => {
-    it("should update machine status", async () => {
+    it("should update machine status (non-OWNER with organizationId)", async () => {
       machineRepository.findOne.mockResolvedValue(mockMachine);
       machineRepository.save.mockResolvedValue({
         ...mockMachine,
@@ -290,9 +356,41 @@ describe("MachinesService", () => {
       const result = await service.updateStatus(
         "machine-uuid-1",
         MachineStatus.MAINTENANCE,
+        "org-uuid-1",
       );
 
       expect(result.status).toBe(MachineStatus.MAINTENANCE);
+      // Verify findOne was called with organizationId filter
+      expect(machineRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: "machine-uuid-1",
+          organizationId: "org-uuid-1",
+        },
+        relations: ["slots"],
+      });
+    });
+
+    it("should update machine status (OWNER with undefined organizationId)", async () => {
+      machineRepository.findOne.mockResolvedValue(mockMachine);
+      machineRepository.save.mockResolvedValue({
+        ...mockMachine,
+        status: MachineStatus.MAINTENANCE,
+      } as any);
+
+      const result = await service.updateStatus(
+        "machine-uuid-1",
+        MachineStatus.MAINTENANCE,
+        undefined,
+      );
+
+      expect(result.status).toBe(MachineStatus.MAINTENANCE);
+      // Verify findOne was called without organizationId filter (OWNER bypass)
+      expect(machineRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: "machine-uuid-1",
+        },
+        relations: ["slots"],
+      });
     });
   });
 
@@ -302,7 +400,7 @@ describe("MachinesService", () => {
 
       machineRepository.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("machine-uuid-1");
+      await service.remove("machine-uuid-1", "org-uuid-1");
 
       expect(machineRepository.softDelete).toHaveBeenCalledWith(
         "machine-uuid-1",
@@ -312,7 +410,7 @@ describe("MachinesService", () => {
     it("should throw NotFoundException when machine not found", async () => {
       machineRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.remove("non-existent")).rejects.toThrow(
+      await expect(service.remove("non-existent", "org-uuid-1")).rejects.toThrow(
         NotFoundException,
       );
     });

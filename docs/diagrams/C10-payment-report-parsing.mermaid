@@ -1,0 +1,42 @@
+%% C10. Парсинг платёжных отчётов
+%% Источник: payment-reports/services/*
+flowchart TD
+    subgraph UPLOAD ["Загрузка"]
+        U1(["Загрузка файла от банка\n(Excel/CSV)"]) --> U2["PaymentReportUpload:\nfilename, fileType,\nuploadedBy, status: PENDING"]
+    end
+
+    subgraph WATCH ["Автообнаружение (опционально)"]
+        W1["FolderWatcherService:\nмониторинг директории\nна новые файлы"] --> W2["Автозагрузка при\nпоявлении файла"]
+        W2 --> U2
+    end
+
+    U2 --> DETECT["PaymentReportDetectorService:\nОпределение провайдера"]
+
+    DETECT --> DETECT_LOGIC{"Формат файла?"}
+    DETECT_LOGIC -->|"Payme headers"| DET_PAYME["provider: PAYME"]
+    DETECT_LOGIC -->|"Click headers"| DET_CLICK["provider: CLICK"]
+    DETECT_LOGIC -->|"Uzum headers"| DET_UZUM["provider: UZUM"]
+    DETECT_LOGIC -->|"Не распознан"| DET_UNKNOWN["provider: UNKNOWN\n→ ручная классификация"]
+
+    DET_PAYME --> PARSE
+    DET_CLICK --> PARSE
+    DET_UZUM --> PARSE
+
+    PARSE["PaymentReportParserService:\nПарсинг строк файла"]
+    PARSE --> ROWS["Для каждой строки →\nPaymentReportRow:\ntransactionId, amount,\ndate, status, merchantId,\ncommission, netAmount"]
+
+    ROWS --> MATCH["Сопоставление с\nPaymentTransaction:\nпо providerTransactionId"]
+
+    MATCH --> MATCH_RESULT{"Результат\nсопоставления"}
+    MATCH_RESULT -->|"Совпал"| MATCHED["status: MATCHED\ntransactionId linked"]
+    MATCH_RESULT -->|"Не найден в DB"| UNMATCHED["status: UNMATCHED\n→ ручная проверка"]
+    MATCH_RESULT -->|"Сумма разная"| MISMATCH["status: AMOUNT_MISMATCH\ndiscrepancy = report - db"]
+
+    MATCHED --> ANALYTICS
+    UNMATCHED --> ANALYTICS
+    MISMATCH --> ANALYTICS
+
+    ANALYTICS["PaymentReportAnalyticsService:\n• totalTransactions\n• totalAmount\n• totalCommission\n• matchRate %\n• discrepancyTotal"]
+
+    ANALYTICS --> COMPLETE["PaymentReportUpload:\nstatus: COMPLETED\nprocessedRows, matchedRows,\nunmatchedRows"]
+    COMPLETE --> DONE(["✓ Отчёт обработан"])

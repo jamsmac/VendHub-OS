@@ -39,19 +39,19 @@ export class AddInventoryCheckConstraints1715400000000 implements MigrationInter
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE warehouse_inventory DROP CONSTRAINT IF EXISTS chk_warehouse_current_qty`,
+      `ALTER TABLE warehouse_inventory DROP CONSTRAINT IF EXISTS IF EXISTS chk_warehouse_current_qty`,
     );
     await queryRunner.query(
-      `ALTER TABLE warehouse_inventory DROP CONSTRAINT IF EXISTS chk_warehouse_reserved_qty`,
+      `ALTER TABLE warehouse_inventory DROP CONSTRAINT IF EXISTS IF EXISTS chk_warehouse_reserved_qty`,
     );
     await queryRunner.query(
-      `ALTER TABLE operator_inventory DROP CONSTRAINT IF EXISTS chk_operator_current_qty`,
+      `ALTER TABLE operator_inventory DROP CONSTRAINT IF EXISTS IF EXISTS chk_operator_current_qty`,
     );
     await queryRunner.query(
-      `ALTER TABLE operator_inventory DROP CONSTRAINT IF EXISTS chk_operator_reserved_qty`,
+      `ALTER TABLE operator_inventory DROP CONSTRAINT IF EXISTS IF EXISTS chk_operator_reserved_qty`,
     );
     await queryRunner.query(
-      `ALTER TABLE machine_inventory DROP CONSTRAINT IF EXISTS chk_machine_current_qty`,
+      `ALTER TABLE machine_inventory DROP CONSTRAINT IF EXISTS IF EXISTS chk_machine_current_qty`,
     );
   }
 }

@@ -139,9 +139,12 @@ export class ComplaintsCoreService {
     return saved;
   }
 
-  async findById(id: string): Promise<Complaint> {
+  async findById(id: string, organizationId?: string): Promise<Complaint> {
+    const where: FindOptionsWhere<Complaint> = { id };
+    if (organizationId) where.organizationId = organizationId;
+
     const complaint = await this.complaintRepo.findOne({
-      where: { id },
+      where,
       relations: ["comments", "actions", "refunds"],
     });
 
@@ -152,9 +155,15 @@ export class ComplaintsCoreService {
     return complaint;
   }
 
-  async findByNumber(ticketNumber: string): Promise<Complaint> {
+  async findByNumber(
+    ticketNumber: string,
+    organizationId?: string,
+  ): Promise<Complaint> {
+    const where: FindOptionsWhere<Complaint> = { ticketNumber };
+    if (organizationId) where.organizationId = organizationId;
+
     const complaint = await this.complaintRepo.findOne({
-      where: { ticketNumber },
+      where,
       relations: ["comments", "actions", "refunds"],
     });
 
@@ -229,8 +238,9 @@ export class ComplaintsCoreService {
     id: string,
     dto: UpdateComplaintDto,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(id);
+    const complaint = await this.findById(id, organizationId);
     const oldStatus = complaint.status;
 
     Object.assign(
@@ -269,8 +279,9 @@ export class ComplaintsCoreService {
     id: string,
     assignedToId: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(id);
+    const complaint = await this.findById(id, organizationId);
     const oldAssignee = complaint.assignedToId;
 
     complaint.assignedToId = assignedToId;
@@ -304,11 +315,13 @@ export class ComplaintsCoreService {
     id: string,
     resolution: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
     return this.update(
       id,
       { status: ComplaintStatus.RESOLVED, resolution },
       performedById,
+      organizationId,
     );
   }
 
@@ -316,8 +329,9 @@ export class ComplaintsCoreService {
     id: string,
     reason: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(id);
+    const complaint = await this.findById(id, organizationId);
 
     complaint.status = ComplaintStatus.ESCALATED;
     complaint.priority = ComplaintPriority.CRITICAL;
@@ -344,8 +358,9 @@ export class ComplaintsCoreService {
     id: string,
     reason: string,
     performedById: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(id);
+    const complaint = await this.findById(id, organizationId);
     const oldStatus = complaint.status;
 
     complaint.status = ComplaintStatus.REJECTED;
@@ -377,8 +392,11 @@ export class ComplaintsCoreService {
   // COMMENTS
   // ============================================================================
 
-  async addComment(dto: CreateCommentDto): Promise<ComplaintComment> {
-    const complaint = await this.findById(dto.complaintId);
+  async addComment(
+    dto: CreateCommentDto,
+    organizationId?: string,
+  ): Promise<ComplaintComment> {
+    const complaint = await this.findById(dto.complaintId, organizationId);
 
     const comment = this.commentRepo.create({
       complaintId: dto.complaintId,
@@ -443,8 +461,9 @@ export class ComplaintsCoreService {
     complaintId: string,
     rating: number,
     comment?: string,
+    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(complaintId);
+    const complaint = await this.findById(complaintId, organizationId);
 
     if (
       ![ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED].includes(
@@ -482,8 +501,8 @@ export class ComplaintsCoreService {
     });
   }
 
-  async remove(id: string, userId: string): Promise<void> {
-    const complaint = await this.findById(id);
+  async remove(id: string, userId: string, organizationId?: string): Promise<void> {
+    const complaint = await this.findById(id, organizationId);
 
     if (
       ![
@@ -517,12 +536,13 @@ export class ComplaintsCoreService {
       priority?: ComplaintPriority;
     },
     userId: string,
+    organizationId?: string,
   ): Promise<number> {
     let updated = 0;
 
     for (const id of ids) {
       try {
-        await this.update(id, data, userId);
+        await this.update(id, data, userId, organizationId);
         updated++;
       } catch (error: unknown) {
         this.logger.warn(
@@ -537,6 +557,7 @@ export class ComplaintsCoreService {
   async findByAssignee(
     userId: string,
     includeResolved = false,
+    organizationId?: string,
   ): Promise<Complaint[]> {
     const statuses = includeResolved
       ? Object.values(ComplaintStatus)
@@ -547,16 +568,29 @@ export class ComplaintsCoreService {
           ComplaintStatus.AWAITING_PARTS,
         ];
 
+    const where: FindOptionsWhere<Complaint> = {
+      assignedToId: userId,
+      status: In(statuses),
+    };
+    if (organizationId) where.organizationId = organizationId;
+
     return this.complaintRepo.find({
-      where: { assignedToId: userId, status: In(statuses) },
+      where,
       relations: ["comments", "actions"],
       order: { priority: "DESC", createdAt: "ASC" },
     });
   }
 
-  async findByMachine(machineId: string, limit = 20): Promise<Complaint[]> {
+  async findByMachine(
+    machineId: string,
+    limit = 20,
+    organizationId?: string,
+  ): Promise<Complaint[]> {
+    const where: FindOptionsWhere<Complaint> = { machineId };
+    if (organizationId) where.organizationId = organizationId;
+
     return this.complaintRepo.find({
-      where: { machineId },
+      where,
       order: { createdAt: "DESC" },
       take: limit,
     });

@@ -94,8 +94,11 @@ export class CollectionsController {
   @ApiOperation({ summary: "Get audit history for a specific collection" })
   @Get(":id/history")
   @Roles("owner", "admin", "manager")
-  getHistory(@Param("id", ParseUUIDPipe) id: string) {
-    return this.collectionsService.getHistory(id);
+  getHistory(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.collectionsService.getHistory(id, orgId);
   }
 
   // ── CREATE (Stage 1) ──────────────────────────────────

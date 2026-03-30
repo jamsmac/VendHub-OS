@@ -1,0 +1,36 @@
+%% D4. Инвестор: расчёт дивидендов
+%% Источник: investor/investor.service.ts, investor/entities/*
+flowchart TD
+    subgraph SETUP ["Настройка инвестора"]
+        S1(["Создание InvestorProfile"]) --> S2["Данные:\nuserId, investmentAmount,\nownershipPercentage,\ncontractStartDate, contractEndDate"]
+        S2 --> S3["Привязка к автоматам:\nmachineIds[] или\nlocationIds[]"]
+    end
+
+    subgraph CALC ["Расчёт дивидендов (за период)"]
+        C1(["Конец расчётного периода\n(месяц/квартал)"]) --> C2["Сбор транзакций:\nTransaction[] WHERE machineId\nIN investor.machineIds\nAND period = current"]
+
+        C2 --> C3["Расчёт выручки:\ntotalRevenue = SUM(amount)\nпо привязанным автоматам"]
+
+        C3 --> C4["Вычет расходов:\n- ингредиенты (SaleIngredient cost)\n- обслуживание (MaintenancePart)\n- аренда (LocationContract)\n- комиссия подрядчика"]
+
+        C4 --> C5["Чистая прибыль:\nnetProfit = totalRevenue - totalExpenses"]
+
+        C5 --> C6["Доля инвестора:\ndividendAmount =\nnetProfit × ownershipPercentage / 100"]
+    end
+
+    C6 --> PAYMENT["Создание DividendPayment:\ninvestorId, periodFrom, periodTo,\ngrossRevenue, expenses,\nnetProfit, dividendAmount,\nstatus: PENDING"]
+
+    PAYMENT --> APPROVE{"Утверждение\nадминистратором?"}
+    APPROVE -->|"Да"| PAY["status: APPROVED\n→ Выплата инвестору"]
+    APPROVE -->|"Нет"| RECALC["Пересчёт / корректировка"]
+
+    PAY --> PAID["status: PAID\npaidAt, paymentMethod,\npaymentReference"]
+    PAID --> DONE(["✓ Дивиденды выплачены"])
+
+    subgraph DASHBOARD ["Инвестор-дашборд"]
+        D1["Общая сумма инвестиций"]
+        D2["ROI за период"]
+        D3["История выплат"]
+        D4["Выручка по автоматам"]
+        D5["Прогноз на следующий месяц"]
+    end

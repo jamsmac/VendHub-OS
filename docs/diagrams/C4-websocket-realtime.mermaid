@@ -1,0 +1,53 @@
+%% C4. WebSocket — real-time обновления
+%% Источник: websocket/gateways/base.gateway.ts, machine-events.gateway.ts, order-events.gateway.ts, notification.gateway.ts
+sequenceDiagram
+    participant Client as Web/Mobile Client
+    participant SIO as Socket.IO Server
+    participant GW as BaseGateway
+    participant JWT as JwtService
+    participant BL as TokenBlacklistService
+    participant MGW as MachineEventsGateway
+    participant OGW as OrderEventsGateway
+    participant NGW as NotificationGateway
+
+    Note over Client,NGW: === Подключение и авторизация ===
+    Client->>SIO: connect(url, {auth: {token: jwt}})
+    SIO->>GW: handleConnection(socket)
+    GW->>JWT: verify(token)
+    alt Token невалидный
+        GW-->>Client: disconnect("Unauthorized")
+    else Token валидный
+        GW->>BL: isBlacklisted(jti)?
+        alt В blacklist
+            GW-->>Client: disconnect("Token revoked")
+        else OK
+            GW->>GW: socket.data = {userId, role, orgId}
+            GW->>SIO: socket.join(`org:${orgId}`)
+            GW-->>Client: connected ✓
+        end
+    end
+
+    Note over Client,NGW: === Подписка на автоматы ===
+    Client->>MGW: emit("subscribe:machine",<br/>{machineId})
+    MGW->>MGW: Проверка доступа:<br/>user.orgId == machine.orgId?
+    MGW->>SIO: socket.join(`machine:${machineId}`)
+    MGW-->>Client: ack("subscribed")
+
+    Note over Client,NGW: === Real-time события автоматов ===
+    Note right of MGW: Сервер отправляет при изменениях:
+    MGW->>Client: emit("machine:status",<br/>{machineId, status, timestamp})
+    MGW->>Client: emit("machine:telemetry",<br/>{temperature, fillLevels, errors})
+    MGW->>Client: emit("machine:error",<br/>{errorCode, message, severity})
+    MGW->>Client: emit("machine:sale",<br/>{productId, amount, paymentMethod})
+
+    Note over Client,NGW: === Real-time события заказов ===
+    OGW->>Client: emit("order:created",<br/>{orderId, machineId, items})
+    OGW->>Client: emit("order:status_changed",<br/>{orderId, oldStatus, newStatus})
+
+    Note over Client,NGW: === Уведомления ===
+    NGW->>Client: emit("notification",<br/>{id, title, body, type, createdAt})
+    Client->>NGW: emit("notification:read",<br/>{notificationId})
+
+    Note over Client,NGW: === Переподключение ===
+    Client->>SIO: reconnect (auto, exponential backoff)
+    SIO->>GW: handleConnection (повторная авторизация)

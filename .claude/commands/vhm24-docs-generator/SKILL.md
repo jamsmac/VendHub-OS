@@ -86,9 +86,9 @@ SwaggerModule.setup('api/docs', app, document);
 
 | Документация | URL |
 |--------------|-----|
-| Swagger UI | http://localhost:3000/api/docs |
-| OpenAPI JSON | http://localhost:3000/api/docs-json |
-| OpenAPI YAML | http://localhost:3000/api/docs-yaml |
+| Swagger UI | http://localhost:4000/api/docs |
+| OpenAPI JSON | http://localhost:4000/api/docs-json |
+| OpenAPI YAML | http://localhost:4000/api/docs-yaml |
 
 ## Стандарты документации VendHub
 

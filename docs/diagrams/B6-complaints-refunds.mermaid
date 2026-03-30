@@ -1,0 +1,74 @@
+%% B6. Жалобы и возвраты — ИСПРАВЛЕНО по ComplaintStatus enum
+%% Источник: packages/shared/src/types/complaint.types.ts
+stateDiagram-v2
+    [*] --> NEW : Создание жалобы\n(ticketNumber auto-gen)
+
+    NEW --> PENDING : Взята в обработку
+    NEW --> ASSIGNED : Назначен ответственный
+    NEW --> DUPLICATE : Дубликат существующей
+
+    PENDING --> ASSIGNED : Назначен ответственный
+    PENDING --> IN_PROGRESS : Начало обработки
+
+    ASSIGNED --> IN_PROGRESS : Начало работы
+    ASSIGNED --> ESCALATED : Эскалация
+
+    IN_PROGRESS --> INVESTIGATING : Расследование причин
+    IN_PROGRESS --> AWAITING_CUSTOMER : Запрошена информация
+    IN_PROGRESS --> AWAITING_PARTS : Нужны запчасти для решения
+    IN_PROGRESS --> RESOLVED : Проблема решена
+    IN_PROGRESS --> ESCALATED : Эскалация руководству
+
+    INVESTIGATING --> IN_PROGRESS : Причина установлена
+    INVESTIGATING --> ESCALATED : Сложный случай
+
+    AWAITING_CUSTOMER --> IN_PROGRESS : Клиент ответил
+    AWAITING_PARTS --> IN_PROGRESS : Запчасти получены
+
+    ESCALATED --> IN_PROGRESS : Взят в работу
+
+    RESOLVED --> CLOSED : Подтверждено закрытие ✓
+    RESOLVED --> REOPENED : Клиент не согласен
+
+    REOPENED --> IN_PROGRESS : Повторная обработка
+
+    REJECTED --> [*] : Отклонена
+    CLOSED --> [*] : ✓ Закрыта
+    DUPLICATE --> [*] : Объединена с основной
+
+    note right of NEW
+        ComplaintCategory:
+        product_quality / machine_issue /
+        payment_error / delivery / other
+        ComplaintPriority:
+        LOW / MEDIUM / HIGH / CRITICAL
+        ComplaintQrCode: QR на автомате
+    end note
+
+    note right of RESOLVED
+        Если нужен возврат →
+        ComplaintRefund
+        ComplaintTemplate: шаблоны ответов
+    end note
+
+---
+
+%% Ветка возврата по жалобе
+flowchart TD
+    R_START(["Жалоба одобрена\nна возврат"]) --> R_CREATE["Создание ComplaintRefund:\ncomplaintId, amount,\nrefundMethod"]
+    R_CREATE --> R_METHOD{"Метод возврата?"}
+
+    R_METHOD -->|"bank_transfer"| R_BANK["Возврат на карту/счёт\nчерез PaymentService"]
+    R_METHOD -->|"wallet"| R_WALLET["Возврат на ClientWallet"]
+    R_METHOD -->|"bonus"| R_BONUS["Возврат бонусами\nна LoyaltyAccount"]
+    R_METHOD -->|"cash"| R_CASH["Наличные при\nследующем визите"]
+
+    R_BANK --> R_PROCESS["Обработка возврата\nstatus: PROCESSING"]
+    R_WALLET --> R_PROCESS
+    R_BONUS --> R_PROCESS
+    R_CASH --> R_PROCESS
+
+    R_PROCESS --> R_RESULT{"Результат?"}
+    R_RESULT -->|"Успех"| R_OK["status: COMPLETED"]
+    R_RESULT -->|"Ошибка"| R_FAIL["status: FAILED\n→ retry или ручная обработка"]
+    R_OK --> R_DONE(["✓ Возврат завершён"])

@@ -19,7 +19,8 @@ export function MaintenanceTab({ machineId }: MaintenanceTabProps) {
     queryKey: ["maintenance", "machine", machineId],
     queryFn: async () => {
       const res = await maintenanceApi.getAll({ machineId });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     },
   });
 
@@ -27,12 +28,13 @@ export function MaintenanceTab({ machineId }: MaintenanceTabProps) {
     queryKey: ["equipment", "machine", machineId],
     queryFn: async () => {
       const res = await equipmentApi.getAll({ machineId });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     },
   });
 
   const isLoading = loadingMaint || loadingComp;
-  const records = maintenanceData || [];
+  const records: any[] = Array.isArray(maintenanceData) ? maintenanceData : [];
 
   // Categorize maintenance records
   const cleanings = records.filter((r: any) =>
@@ -83,7 +85,7 @@ export function MaintenanceTab({ machineId }: MaintenanceTabProps) {
             <CardTitle className="text-base">Замены компонентов</CardTitle>
           </CardHeader>
           <CardContent>
-            {!components || components.length === 0 ? (
+            {!Array.isArray(components) || components.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Нет компонентов
               </p>

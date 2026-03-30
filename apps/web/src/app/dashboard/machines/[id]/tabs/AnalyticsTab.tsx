@@ -203,7 +203,8 @@ function SalesCharts({
       const res = await api.get("/transactions/daily-summaries", {
         params: { machineId, dateFrom: from, dateTo: to },
       });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     },
   });
 
@@ -215,7 +216,7 @@ function SalesCharts({
     );
   }
 
-  const data = summaries || [];
+  const data: any[] = Array.isArray(summaries) ? summaries : [];
 
   // Payment method pie data
   const totalCash = data.reduce(
@@ -395,7 +396,8 @@ function DynamicsCharts({
       const res = await api.get("/transactions/daily-summaries", {
         params: { machineId, dateFrom: from, dateTo: to },
       });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     },
   });
 
@@ -407,7 +409,7 @@ function DynamicsCharts({
     );
   }
 
-  const data = summaries || [];
+  const data: any[] = Array.isArray(summaries) ? summaries : [];
 
   // Sales count + amount dual axis
   const dailyData = data.map((d: any) => ({

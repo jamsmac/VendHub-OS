@@ -21,6 +21,7 @@ import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
+import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 import { FiscalService } from "./services/fiscal.service";
 import {
   CreateFiscalDeviceDto,
@@ -366,7 +367,10 @@ export class FiscalController {
   })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Queue item not found" })
-  async retryQueueItem(@Param("id", ParseUUIDPipe) id: string) {
-    return this.fiscalService.processQueueItem(id);
+  async retryQueueItem(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.fiscalService.processQueueItem(id, orgId);
   }
 }

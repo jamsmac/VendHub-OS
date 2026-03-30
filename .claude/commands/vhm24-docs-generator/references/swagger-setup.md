@@ -38,7 +38,7 @@ export const swaggerConfig = new DocumentBuilder()
   .setVersion('1.0.0')
   .setContact('VendHub Team', 'https://vendhub.uz', 'support@vendhub.uz')
   .setLicense('Proprietary', '')
-  .addServer('http://localhost:3000', 'Development')
+  .addServer('http://localhost:4000', 'Development')
   .addServer('https://api-staging.vendhub.uz', 'Staging')
   .addServer('https://api.vendhub.uz', 'Production')
   .addBearerAuth(
@@ -91,7 +91,7 @@ async function bootstrap() {
     fs.writeFileSync('./docs/api/openapi.json', JSON.stringify(document, null, 2));
   }
 
-  await app.listen(3000);
+  await app.listen(4000);
 }
 ```
 
@@ -273,10 +273,10 @@ export class TaskEntity {
 
 ```bash
 # Получить JSON
-curl http://localhost:3000/api/docs-json > openapi.json
+curl http://localhost:4000/api/docs-json > openapi.json
 
 # Получить YAML
-curl http://localhost:3000/api/docs-yaml > openapi.yaml
+curl http://localhost:4000/api/docs-yaml > openapi.yaml
 
 # Генерация клиента
 npx openapi-generator-cli generate \

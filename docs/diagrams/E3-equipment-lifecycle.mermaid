@@ -1,0 +1,82 @@
+%% E3. Оборудование (Equipment) — жизненный цикл компонентов
+%% Источник: equipment/services/equipment.service.ts, hopper-type.service.ts, spare-part.service.ts, washing-schedule.service.ts
+stateDiagram-v2
+    [*] --> NEW : Создание компонента\n(type, serialNumber, purchaseDate)
+
+    NEW --> INSTALLED : install в автомат\n(ComponentMovementType.INSTALL)
+    NEW --> DECOMMISSIONED : Брак при приёмке
+
+    INSTALLED --> IN_USE : Автомат запущен
+
+    IN_USE --> NEEDS_MAINTENANCE : Износ / ошибка /\nплановый срок ТО
+    IN_USE --> IN_REPAIR : Поломка
+
+    NEEDS_MAINTENANCE --> IN_REPAIR : Начало ремонта
+    NEEDS_MAINTENANCE --> IN_USE : Мелкое ТО на месте
+
+    IN_REPAIR --> REPAIRED : Ремонт завершён
+    IN_REPAIR --> DECOMMISSIONED : Ремонт невозможен
+
+    REPAIRED --> INSTALLED : Повторная установка
+    REPAIRED --> DECOMMISSIONED : Снято с эксплуатации
+
+    DECOMMISSIONED --> DISPOSED : Утилизация
+
+    DISPOSED --> [*]
+
+    note right of IN_USE
+        EquipmentComponentType:
+        hopper / grinder / brew_unit /
+        mixer / pump / heater /
+        dispenser / compressor / board /
+        motor / valve / sensor /
+        filter / tank / conveyor /
+        display / card_reader / other
+    end note
+
+    note left of IN_REPAIR
+        ComponentMaintenanceType:
+        cleaning / lubrication /
+        calibration / repair /
+        replacement / inspection /
+        software_update / preventive
+    end note
+
+---
+
+flowchart TD
+    subgraph MOVEMENTS ["Перемещения компонентов (ComponentMovementType)"]
+        MV1["INSTALL: склад → автомат"]
+        MV2["REMOVE: автомат → склад"]
+        MV3["SEND_TO_WASH: → мойка"]
+        MV4["RETURN_FROM_WASH: мойка →"]
+        MV5["SEND_TO_DRYING: → сушка"]
+        MV6["RETURN_FROM_DRYING: сушка →"]
+        MV7["MOVE_TO_WAREHOUSE: → склад"]
+        MV8["MOVE_TO_MACHINE: → автомат"]
+        MV9["SEND_TO_REPAIR: → ремонт"]
+        MV10["RETURN_FROM_REPAIR: ремонт →"]
+    end
+
+    subgraph LOCATION ["Текущее местоположение (ComponentLocationType)"]
+        L1["MACHINE: установлен в автомате"]
+        L2["WAREHOUSE: на складе"]
+        L3["WASHING: на мойке"]
+        L4["DRYING: на сушке"]
+        L5["REPAIR: в ремонте"]
+    end
+
+    subgraph HOPPER ["Типы бункеров (HopperType)"]
+        HT1["HopperTypeService:\nname, capacity, compatibleProducts[],\ncleaningIntervalDays"]
+    end
+
+    subgraph SPARE ["Запчасти (SparePart)"]
+        SP1["SparePartService:\nname, sku, currentQuantity,\nminQuantity, unitPrice,\nadjustQuantity() для прихода/расхода"]
+    end
+
+    subgraph WASHING ["Расписание мойки (WashingSchedule)"]
+        WS1["WashingScheduleService:\nmachineId, componentId,\nfrequencyDays, lastWashedAt,\nnextWashDue"]
+        WS2["completeWash():\nобновление lastWashedAt,\nрасчёт nextWashDue"]
+        WS3["checkOverdueWashes():\nпоиск просроченных → Alert"]
+        WS1 --> WS2 --> WS3
+    end

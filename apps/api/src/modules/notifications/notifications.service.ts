@@ -282,9 +282,13 @@ export class NotificationsService {
     });
   }
 
-  async delete(id: string, userId?: string): Promise<void> {
+  async delete(
+    id: string,
+    userId?: string,
+    organizationId?: string,
+  ): Promise<void> {
     if (userId) {
-      const notification = await this.findById(id);
+      const notification = await this.findById(id, organizationId);
       if (notification.userId !== userId) {
         throw new ForbiddenException("Нет доступа к этому уведомлению");
       }
@@ -357,8 +361,9 @@ export class NotificationsService {
       scheduledFor: Date;
       expiresAt: Date;
     }>,
+    organizationId?: string,
   ): Promise<Notification> {
-    const notification = await this.findById(id);
+    const notification = await this.findById(id, organizationId);
 
     if (data.title || data.body) {
       notification.content = {
@@ -380,8 +385,8 @@ export class NotificationsService {
   /**
    * Отменить запланированное уведомление
    */
-  async cancel(id: string): Promise<Notification> {
-    const notification = await this.findById(id);
+  async cancel(id: string, organizationId?: string): Promise<Notification> {
+    const notification = await this.findById(id, organizationId);
 
     if (
       notification.status !== NotificationStatus.PENDING &&
@@ -404,8 +409,8 @@ export class NotificationsService {
   /**
    * Повторно отправить уведомление
    */
-  async resend(id: string): Promise<Notification> {
-    const notification = await this.findById(id);
+  async resend(id: string, organizationId?: string): Promise<Notification> {
+    const notification = await this.findById(id, organizationId);
 
     // Создать новое уведомление на основе существующего
     return this.create({
@@ -490,19 +495,26 @@ export class NotificationsService {
   /**
    * Массовое удаление уведомлений
    */
-  async bulkDelete(ids: string[]): Promise<number> {
-    const result = await this.notificationRepo.softDelete({ id: In(ids) });
+  async bulkDelete(ids: string[], organizationId?: string): Promise<number> {
+    const where: Record<string, unknown> = { id: In(ids) };
+    if (organizationId) where.organizationId = organizationId;
+    const result = await this.notificationRepo.softDelete(where);
     return result.affected || 0;
   }
 
   /**
    * Массовая пометка как прочитанные
    */
-  async bulkMarkAsRead(ids: string[]): Promise<number> {
-    const result = await this.notificationRepo.update(
-      { id: In(ids), readAt: IsNull() },
-      { readAt: new Date(), status: NotificationStatus.READ },
-    );
+  async bulkMarkAsRead(
+    ids: string[],
+    organizationId?: string,
+  ): Promise<number> {
+    const where: Record<string, unknown> = { id: In(ids), readAt: IsNull() };
+    if (organizationId) where.organizationId = organizationId;
+    const result = await this.notificationRepo.update(where, {
+      readAt: new Date(),
+      status: NotificationStatus.READ,
+    });
     return result.affected || 0;
   }
 
@@ -720,8 +732,13 @@ export class NotificationsService {
     return this.campaignRepo.save(campaign);
   }
 
-  async startCampaign(id: string): Promise<NotificationCampaign> {
-    const campaign = await this.campaignRepo.findOne({ where: { id } });
+  async startCampaign(
+    id: string,
+    organizationId?: string,
+  ): Promise<NotificationCampaign> {
+    const where: Record<string, string> = { id };
+    if (organizationId) where.organizationId = organizationId;
+    const campaign = await this.campaignRepo.findOne({ where });
     if (!campaign) {
       throw new NotFoundException(`Кампания ${id} не найдена`);
     }

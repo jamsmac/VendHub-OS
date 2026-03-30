@@ -8,7 +8,6 @@ import {
   UseGuards,
   Query,
   ParseUUIDPipe,
-  ForbiddenException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -137,14 +136,11 @@ export class TripsController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    const trip = await this.tripsService.getTripById(id);
-    if (
-      trip.organizationId !== user.organizationId &&
-      user.role !== UserRole.OWNER
-    ) {
-      throw new ForbiddenException();
-    }
-    return trip;
+    // Pass organizationId to service for DB-level tenant isolation
+    // Owner role can access any org's trips
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    return this.tripsService.getTripById(id, orgId);
   }
 
   @Get(":id/route")
@@ -283,7 +279,7 @@ export class TripsController {
   }
 
   // ============================================================================
-  // ANOMALIES
+  // ANOMALIES (must be before :id to avoid route shadowing)
   // ============================================================================
 
   @Get("anomalies/unresolved")
@@ -317,7 +313,7 @@ export class TripsController {
   }
 
   // ============================================================================
-  // RECONCILIATION
+  // RECONCILIATION (must be before :id to avoid route shadowing)
   // ============================================================================
 
   @Post("reconciliation")
@@ -355,7 +351,7 @@ export class TripsController {
   }
 
   // ============================================================================
-  // ANALYTICS
+  // ANALYTICS (must be before :id to avoid route shadowing)
   // ============================================================================
 
   @Get("analytics/employee")
@@ -407,12 +403,9 @@ export class TripsController {
   // ============================================================================
 
   private async verifyTripAccess(tripId: string, user: User): Promise<void> {
-    const trip = await this.tripsService.getTripById(tripId);
-    if (
-      trip.organizationId !== user.organizationId &&
-      user.role !== UserRole.OWNER
-    ) {
-      throw new ForbiddenException("Access denied to this trip");
-    }
+    // DB-level tenant isolation — NotFoundException if not in user's org
+    const orgId =
+      user.role === UserRole.OWNER ? undefined : user.organizationId;
+    await this.tripsService.getTripById(tripId, orgId);
   }
 }

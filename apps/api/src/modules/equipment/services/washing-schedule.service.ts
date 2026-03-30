@@ -7,7 +7,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, LessThan } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 
 import { WashingSchedule } from "../entities/equipment-component.entity";
 import {
@@ -153,7 +153,7 @@ export class WashingScheduleService {
   /**
    * Cron job: check for overdue washes and emit events
    */
-  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  @Cron("0 6 * * *", { timeZone: "Asia/Tashkent" })
   async checkOverdueWashes(): Promise<void> {
     this.logger.log("Checking for overdue washing schedules...");
 

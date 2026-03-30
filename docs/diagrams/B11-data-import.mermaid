@@ -1,0 +1,48 @@
+%% B11. Импорт данных (универсальный)
+%% Источник: import/import.service.ts, import/services/*, data-parser/data-parser.service.ts
+flowchart TD
+    START(["Загрузка файла\n(CSV/Excel/JSON)"]) --> SESSION["Создание ImportSession\nstatus: PENDING\nDomainType: sales/inventory/\ncounterparties/products"]
+
+    SESSION --> DETECT["DataParserService:\nАвтодетект формата\n(по расширению + magic bytes)"]
+    DETECT --> PARSE["UniversalParser:\nпарсинг строк\n→ ParsedRow[]"]
+    PARSE --> VALIDATE["DataValidationService:\nваличация по DomainType"]
+
+    VALIDATE --> VAL_TYPE{"Тип данных?"}
+    VAL_TYPE -->|"Sales"| VAL_SALES["validateSalesRows:\nmachineId?, amount > 0,\ndate valid, paymentMethod?"]
+    VAL_TYPE -->|"Inventory"| VAL_INV["validateInventoryRows:\nproductId, quantity > 0,\nwarehouseId?"]
+    VAL_TYPE -->|"Counterparties"| VAL_CP["validateCounterpartyRows:\nname required, inn format,\ncontact info"]
+
+    VAL_SALES --> RESULT
+    VAL_INV --> RESULT
+    VAL_CP --> RESULT
+
+    RESULT["ValidationResult:\nvalidRows[], errors[],\nwarnings[]"]
+
+    RESULT --> CLASSIFY["ImportSessionService:\nклассификация\n(авто или ручная)"]
+    CLASSIFY --> PREVIEW["Preview:\nпоказ валидных строк\n+ ошибки + предупреждения"]
+    PREVIEW --> DECISION{"Решение?"}
+
+    DECISION -->|"Approve"| APPROVE["ApproveSessionDto:\napprovedById, notes"]
+    DECISION -->|"Reject"| REJECT["RejectSessionDto:\nreason"]
+
+    APPROVE --> APPLY["Применение к БД:\nсоздание/обновление records\n(skipDuplicates option)"]
+    APPLY --> APPLY_RESULT{"Результат"}
+    APPLY_RESULT -->|"Успех"| SUCCESS["status: COMPLETED\nimportedCount, skippedCount"]
+    APPLY_RESULT -->|"Частичный"| PARTIAL["status: PARTIALLY_COMPLETED\nerrorRows[]"]
+    APPLY_RESULT -->|"Ошибка"| FAILED["status: FAILED\nerrorMessage"]
+
+    SUCCESS --> AUDIT["ImportAuditLog:\nrecord каждого действия\n(userId, action, details)"]
+    PARTIAL --> AUDIT
+    REJECT --> AUDIT_REJ["ImportAuditLog:\naction: REJECTED"]
+
+    AUDIT --> END(["✓ Импорт завершён"])
+
+    subgraph OPTIONS ["Опции импорта"]
+        O1["skipDuplicates: boolean"]
+        O2["updateExisting: boolean"]
+        O3["dryRun: boolean (только валидация)"]
+        O4["mapping: Record (переименование колонок)"]
+        O5["dateFormat: string"]
+        O6["encoding: string (utf-8/cp1251)"]
+        O7["delimiter: string (для CSV)"]
+    end

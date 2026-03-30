@@ -1,0 +1,75 @@
+%% C1. Управление автоматами — ИСПРАВЛЕНО по MachineStatus enum
+%% Источник: packages/shared/src/types/machine.types.ts, machines/machines-core.service.ts
+stateDiagram-v2
+    [*] --> ACTIVE : Создание автомата\n(machineNumber, model, locationId)
+
+    ACTIVE --> LOW_STOCK : fillLevel < threshold\n(автоматически)
+    ACTIVE --> ERROR : Критическая ошибка\n(MachineErrorLog)
+    ACTIVE --> MAINTENANCE : Плановое ТО
+    ACTIVE --> OFFLINE : Потеря связи
+    ACTIVE --> DISABLED : Вручную отключён
+
+    LOW_STOCK --> ACTIVE : Пополнение запасов
+    LOW_STOCK --> ERROR : Ошибка при low stock
+    LOW_STOCK --> MAINTENANCE : ТО при low stock
+
+    ERROR --> ACTIVE : Ошибка устранена\n(resolveError)
+    ERROR --> MAINTENANCE : Назначен ремонт
+
+    MAINTENANCE --> ACTIVE : ТО завершено
+    MAINTENANCE --> ERROR : Ремонт не помог
+    MAINTENANCE --> DISABLED : Выведен из эксплуатации
+
+    OFFLINE --> ACTIVE : Связь восстановлена
+    OFFLINE --> ERROR : Offline + ошибка
+
+    DISABLED --> ACTIVE : Повторная активация
+    DISABLED --> [*] : Списание\n(writeoff processor)
+
+    note right of ACTIVE
+        MachineConnectionStatus:
+        ONLINE / OFFLINE / UNSTABLE / UNKNOWN
+        MachineSlot[]: планограмма
+        MachineComponent[]: компоненты
+    end note
+
+    note left of ERROR
+        MachineErrorLog:
+        errorCode, message,
+        severity, resolvedAt
+    end note
+
+    note right of DISABLED
+        BullMQ: machine-writeoff
+        DisposalReason:
+        worn_out / damaged /
+        obsolete / sold / other
+        → bookValue расчёт
+        → soft-delete
+    end note
+
+---
+
+flowchart TD
+    subgraph SLOT_OPS ["Операции со слотами (планограмма)"]
+        SO1["RefillSlot: пополнение\nproductId, quantity"]
+        SO2["UpdateSlot: смена товара\nновый productId, price"]
+        SO3["ClearSlot: очистка\n(списание остатка)"]
+    end
+
+    subgraph COMPONENT_OPS ["Компоненты оборудования"]
+        CO1["InstallComponent:\ncomponentType, serialNumber"]
+        CO2["ReplaceComponent: замена"]
+        CO3["MachineErrorLog:\nlogError → resolveError"]
+    end
+
+    subgraph LOCATION_OPS ["Перемещения"]
+        LO1["MoveMachine:\noldLocationId → newLocationId"]
+        LO2["MachineLocationHistory:\nкаждое перемещение записывается"]
+    end
+
+    subgraph MAINTENANCE_SCHEDULE ["Расписание ТО"]
+        MS1["MachineMaintenanceSchedule:\nfrequency (daily/weekly/monthly)"]
+        MS2["lastPerformedAt → nextDueAt"]
+        MS3["Cron: автогенерация\nMaintenanceRequest"]
+    end

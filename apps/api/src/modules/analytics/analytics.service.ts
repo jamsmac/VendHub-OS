@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between } from "typeorm";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import { DashboardWidget } from "./entities/analytics.entity";
 import {
   DailyStats,
@@ -348,7 +348,7 @@ export class DashboardStatsService {
   // CRON: NIGHTLY REBUILD
   // ========================================================================
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron("0 1 * * *", { timeZone: "Asia/Tashkent" })
   async nightlyRebuild(): Promise<void> {
     this.logger.log("Starting nightly stats rebuild...");
 

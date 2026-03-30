@@ -36,7 +36,7 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 ```text
 ./
 ├── apps/
-│   ├── api/              # NestJS backend (57 modules)
+│   ├── api/              # NestJS backend (84 modules)
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
 │   ├── bot/              # Telegram bot (Telegraf)
@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~93%** (updated from 88%)
+**Readiness: ~99%** (updated from 97%)
 
 ### Landing Site (site app)
 
@@ -240,7 +240,7 @@ pnpm docker:logs            # View logs
 
 ### New Dashboard Pages (web app)
 
-- **8 new dashboard pages added:**
+- **17 new dashboard pages added:**
   - Investor dashboard
   - Website analytics dashboard
   - Finance dashboard
@@ -248,6 +248,15 @@ pnpm docker:logs            # View logs
   - Counterparties/Partners
   - Help & Support
   - Dashboard (extended with new sections)
+  - Collections (two-stage cash collection workflow)
+  - Analytics (KPI cards, top products/machines)
+  - Containers (hopper/bunker management with fill levels)
+  - Achievements (customer achievements management)
+  - Promo Codes (promo code management with usage tracking)
+  - Quests (customer quest management)
+  - Referrals (referral program analytics)
+  - Counterparty (counterparty/contract management)
+  - Trip Analytics (driver/route performance)
   - Team (extended with new features)
 
 ### UI Component Library
@@ -323,9 +332,132 @@ pnpm docker:logs            # View logs
   - Integration guides
   - Deployment procedures
 
+### Architecture Improvements (2026-03-16)
+
+- **29 duplicate enums** consolidated to `@vendhub/shared` (single source of truth)
+- **6 ambiguous enum names** disambiguated (PaymentStatus×3, RefundStatus×2, MaintenanceType×2)
+- **5 shared enums** synced with API (ComplaintStatus, ComplaintCategory, NotificationType, TransactionStatus, UserStatus)
+- **18 bot TypeScript errors** fixed (property mismatches, session typing)
+- **Bot session** properly typed with `SessionPayload` interface
+- **AnalyticsService** renamed to `DashboardStatsService` (clarity)
+- **Counterparty module** completed: REST controller (11 endpoints), DTOs, tests
+- **Client Dockerfile** added (Vite → nginx multi-stage)
+- **Site admin stubs** documented (static data by design, full admin in apps/web)
+- **DTO bug fix**: task DTO had divergent enum values from entity/DB
+
+### Security & Quality Remediation (2026-03-22)
+
+Comprehensive audit (2 independent reviews + 3 verification agents) with 40+ fixes:
+
+**Security (P0):**
+
+- **IDOR fixes**: 4 services (opening-balances, sales-import, users, rbac) — `findById()` now requires `organizationId`
+- **OrganizationGuard hardened**: injects `user.organizationId` when no orgId in request
+- **CSP**: `unsafe-eval` removed from production (dev-only conditional)
+- **Next.js CVE**: 16.1.6 → 16.1.7
+- **BaseEntity**: PaymentReportUpload/Row now extend BaseEntity + migration added
+- **user.entity.ts**: `organizationId` column typed as `uuid`
+- **Promo code race**: per-user limit re-checked inside pessimistic lock transaction
+
+**Quality:**
+
+- **React Hook Form + Zod**: products/new, CheckoutPage, ComplaintPage validated
+- **CI matrix**: extended to all 6 apps (bot, site, mobile added)
+- **ESLint**: `no-explicit-any` changed from `warn` to `error`
+- **Coverage thresholds**: raised from 37-45% to 45-55%
+- **3 test suites added**: batch-movements (13 cases), calculated-state (18 cases), custom-fields (24 cases)
+- **Breadcrumbs**: dynamic dashboard breadcrumb component added
+
+**Consolidation:**
+
+- **Complaint enums**: ComplaintStatus/Category/Priority/Source → re-exported from `@vendhub/shared`
+- **Dead code**: `packages/shared/src/menuData.ts` (838 lines) deleted
+- **Dep vulnerabilities**: 20 → 6 (2 remaining are xlsx with no patch)
+- **Terraform**: S3 remote state backend enabled
+- **Prometheus**: non-existent web metrics scrape job disabled
+
+**Bug fixes:**
+
+- payment-report-detector `lowerName` typo
+- payment-report-parser AdmZip import
+- analytics-tab `Object.values(ReportType)` on type alias
+- release.yml health check path `/health` → `/api/v1/health`
+- payment-reports hardcoded port 3001 → 4000
+- AGENTS.md `.Codex` → `.claude` path
+
+### Production Readiness Remediation (2026-03-23)
+
+Full audit (10 findings) → 3-sprint fix cycle. Key changes:
+
+**Security (P0):**
+
+- **payment-reports tenant isolation**: `organizationId` added to both entities + DB migration, all 16 endpoints secured with JwtAuthGuard + RolesGuard + @Roles(), all service queries filtered by org
+- **payment-reports hard delete → soft delete**: `.softDelete()` + restore endpoint
+- **xlsx CVE eliminated**: payment-reports migrated from vulnerable `xlsx` to `exceljs`, `xlsx` removed from package.json
+- **Zip bomb protection**: AdmZip extraction capped at 100MB decompressed size
+- **deploy.yml fail-fast**: migrations now fail pipeline (`set -e`, no `|| true`), health checks retry 5x then `exit 1`
+
+**Tenant Isolation:**
+
+- **collections**: 3 service methods + controller endpoint now pass `organizationId` (`findByOperator`, `checkDuplicate`, `countByMachine`)
+- **sales-import**: internal processing chain (`startProcessing`, `updateProgress`, `complete`, `processImport`) now passes `organizationId` through call stack
+- **agent-bridge**: `organizationId` column added to entity + migration, stats OR→AND bug fixed
+
+**Architecture:**
+
+- **Route prefix conflicts**: 4 controllers (`batch-movements`, `entity-events`, `calculated-state`, `custom-fields`) removed hardcoded `api/v1/` that doubled with global prefix
+- **WebSocket hardening**: topic rooms now org-scoped (`org:{id}:topic:{name}`), generic topic fallback removed, `notifications:read` checks `organizationId`
+- **calculated-state formula**: `getAvgSalesPerDay()` returns real value (was returning constant `1`), N+1 query → batch query with `IN (:...ids) GROUP BY`
+
+**Testing:**
+
+- **Client Vitest**: 99/99 green (fixed localStorage/spinner expectations)
+- **Mobile Jest**: 13/13 green (added `setOnSessionExpired` mock)
+
+### Machines Section Bug Fixes (2026-03-30)
+
+4 bugs found and fixed during machines section verification. All compile clean (`tsc --noEmit` zero errors on API + Web).
+
+**BUG #1 — `code` → `machineNumber` mapping lost (machines.controller.ts):**
+
+- CreateMachineDto uses field `code`, but Machine entity uses `machineNumber`
+- Spreading `{...dto}` silently ignored `code`, and `@BeforeInsert()` generated random `M-XXXXX`
+- **Fix**: Destructure `code` from DTO, explicitly set `machineNumber: code` in controller
+
+**BUG #2 — `contentModel` missing from CreateMachineDto:**
+
+- Entity default is `SLOTS`, which is wrong for coffee/water machines (need `CONTAINERS`)
+- **Fix**: Added optional `@IsEnum(ContentModel) contentModel` field to DTO + controller pass-through
+
+**BUG #3 — `machine_slots` invisible in `/state` endpoint (6-file fix):**
+
+- `CalculatedStateService` only queried containers and equipment_components, completely ignoring machine_slots
+- For snack/drink machines (content_model=slots), the Contents tab showed nothing
+- **Fix across 6 files**:
+  - Backend: `SlotState` interface in DTO, `calculateSlotStates()` method in service, `MachineSlot` in module's TypeOrmModule.forFeature
+  - Frontend: `SlotState` type in `use-machine-state.ts`, slots grid UI in `ContentsTab.tsx`
+
+**BUG #4 — Frontend `toApiPayload` didn't send `contentModel` (machines/new/page.tsx):**
+
+- Even after backend BUG #2 fix, manually-created machines still defaulted to `slots`
+- **Fix**: Added `TYPE_TO_CONTENT_MODEL` mapping: `coffee`/`water` → `containers`, `combo` → `mixed`, rest → `slots`
+
+**Seed Migration:**
+
+- `1775300000000-SeedTestMachinesData.ts` — test data for 3 machines (coffee, snack, drink) with containers, equipment_components, and machine_slots
+- Fixed column names: `component_status` (not `status`), `current_location_type` added, `filter` type (not `other`)
+- 42 machine_slots seeded with deterministic fill levels (no `Math.random()`)
+
+**Known DTO→Entity Field Mappings (CRITICAL for future development):**
+
+| DTO field    | Entity field    | Notes                                          |
+| ------------ | --------------- | ---------------------------------------------- |
+| `code`       | `machineNumber` | Must be explicitly mapped in controller         |
+| `contentModel` | `contentModel` | Optional, derived from type in frontend         |
+
 ## Skills (AI Agent Tools)
 
-21 specialized skills in `.Codex/commands/` directory for domain-specific code generation:
+21 specialized skills in `.claude/commands/` directory for domain-specific code generation:
 
 | Skill                      | Purpose                             |
 | -------------------------- | ----------------------------------- |
@@ -353,7 +485,7 @@ pnpm docker:logs            # View logs
 
 ## Agents (AI Subagents)
 
-6 specialized agents in `.Codex/agents/` for automated workflows:
+6 specialized agents in `.claude/agents/` for automated workflows:
 
 | Agent                         | Model  | Purpose                                  |
 | ----------------------------- | ------ | ---------------------------------------- |
@@ -366,7 +498,7 @@ pnpm docker:logs            # View logs
 
 ## Migration Context
 
-Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (37 modules).
+Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (84 modules, 122 entities, 15 migrations).
 
 Strategies per module:
 
@@ -392,7 +524,7 @@ See [MIGRATION_PLAN_v4.md](MIGRATION_PLAN_v4.md) and [MASTER_PROMPT.md](MASTER_P
 
 ### Before ANY Code Change
 
-1. **Read AGENTS.md rules** — verify you're following all 8 mandatory code rules
+1. **Read CLAUDE.md rules** — verify you're following all 8 mandatory code rules
 2. **Check hookify rules** — `.claude/hookify.local.md` has 10 blocking/warning rules
 3. **Use Serena** for symbol-level code navigation — `find_symbol`, `get_symbols_overview`, `find_referencing_symbols` before editing
 
@@ -476,7 +608,7 @@ npx jest --passWithNoTests          # Tests pass
 | API Modules    | `apps/api/src/modules/`                       |
 | Base Entity    | `apps/api/src/common/entities/base.entity.ts` |
 | App Module     | `apps/api/src/app.module.ts`                  |
-| Skills         | `.Codex/commands/`                            |
+| Skills         | `.claude/commands/`                           |
 | Docker Compose | `docker-compose.yml`                          |
 | Turbo Config   | `turbo.json`                                  |
 | CI Pipeline    | `.github/workflows/ci.yml`                    |

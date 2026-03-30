@@ -313,7 +313,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     const token = useAuthStore.getState().accessToken;
     if (!token) return;
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000', {
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:4000', {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,

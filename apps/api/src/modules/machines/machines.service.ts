@@ -21,6 +21,12 @@ import {
   RefillSlotDto,
 } from "./dto/machine-slot.dto";
 import { InstallComponentDto } from "./dto/machine-component.dto";
+import { CreateSimUsageDto } from "./dto/sim-usage.dto";
+import {
+  CreateConnectivityDto,
+  UpdateConnectivityDto,
+} from "./dto/connectivity.dto";
+import { CreateExpenseDto, UpdateExpenseDto } from "./dto/expense.dto";
 import {
   MoveMachineDto,
   LogErrorDto,
@@ -71,12 +77,20 @@ export class MachinesService {
     return this.core.findBySerialNumber(serialNumber, organizationId);
   }
 
-  update(id: string, data: Partial<Machine>): Promise<Machine> {
-    return this.core.update(id, data);
+  update(
+    id: string,
+    data: Partial<Machine>,
+    organizationId?: string,
+  ): Promise<Machine> {
+    return this.core.update(id, data, organizationId);
   }
 
-  updateStatus(id: string, status: MachineStatus): Promise<Machine> {
-    return this.core.updateStatus(id, status);
+  updateStatus(
+    id: string,
+    status: MachineStatus,
+    organizationId?: string,
+  ): Promise<Machine> {
+    return this.core.updateStatus(id, status, organizationId);
   }
 
   updateTelemetry(
@@ -209,6 +223,20 @@ export class MachinesService {
     return this.maintenance.removeComponent(componentId, userId);
   }
 
+  // ── SIM Usage ──────────────────────────────────────────
+
+  getSimUsage(machineId: string) {
+    return this.maintenance.getSimUsage(machineId);
+  }
+
+  addSimUsage(
+    machineId: string,
+    dto: CreateSimUsageDto,
+    user: { id: string; organizationId: string },
+  ) {
+    return this.maintenance.addSimUsage(machineId, dto, user);
+  }
+
   // ── Error Log ──────────────────────────────────────────
 
   logError(
@@ -339,5 +367,67 @@ export class MachinesService {
     total: number;
   }> {
     return this.asset.getConnectivityStats(organizationId);
+  }
+
+  // ── Connectivity (Связь) ────────────────────────────────
+
+  getConnectivity(machineId: string, organizationId: string) {
+    return this.maintenance.getConnectivity(machineId, organizationId);
+  }
+
+  addConnectivity(
+    machineId: string,
+    dto: CreateConnectivityDto,
+    user: { id: string; organizationId: string },
+  ) {
+    return this.maintenance.addConnectivity(machineId, dto, user);
+  }
+
+  updateConnectivityService(
+    connectivityId: string,
+    dto: UpdateConnectivityDto,
+    user: { id: string; organizationId: string },
+  ) {
+    return this.maintenance.updateConnectivityService(
+      connectivityId,
+      dto,
+      user,
+    );
+  }
+
+  removeConnectivity(connectivityId: string, organizationId: string) {
+    return this.maintenance.removeConnectivity(connectivityId, organizationId);
+  }
+
+  // ── Expenses (Расходы) ──────────────────────────────────
+
+  getExpenses(machineId: string, organizationId: string) {
+    return this.maintenance.getExpenses(machineId, organizationId);
+  }
+
+  addExpense(
+    machineId: string,
+    dto: CreateExpenseDto,
+    user: { id: string; organizationId: string },
+  ) {
+    return this.maintenance.addExpense(machineId, dto, user);
+  }
+
+  updateExpense(
+    expenseId: string,
+    dto: UpdateExpenseDto,
+    user: { id: string; organizationId: string },
+  ) {
+    return this.maintenance.updateExpense(expenseId, dto, user);
+  }
+
+  removeExpense(expenseId: string, organizationId: string) {
+    return this.maintenance.removeExpense(expenseId, organizationId);
+  }
+
+  // ── TCO ─────────────────────────────────────────────────
+
+  getTco(machineId: string, organizationId: string) {
+    return this.maintenance.getTco(machineId, organizationId);
   }
 }

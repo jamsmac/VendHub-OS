@@ -27,11 +27,17 @@ import {
   ErrorSeverity,
   MaintenanceType,
   MaintenanceStatus,
+  ContentModel,
+  ConnectivityType,
+  ConnectivityStatus,
+  ExpenseCategory,
+  ExpenseType,
 } from "@vendhub/shared";
 export {
   MachineType,
   MachineStatus,
   MachineConnectionStatus,
+  ContentModel,
   DepreciationMethod,
   DisposalReason,
   MoveReason,
@@ -40,6 +46,10 @@ export {
   ErrorSeverity,
   MaintenanceType,
   MaintenanceStatus,
+  ConnectivityType,
+  ConnectivityStatus,
+  ExpenseCategory,
+  ExpenseType,
 };
 
 // ============================================================================
@@ -71,9 +81,20 @@ export class Machine extends BaseEntity {
   @Column({ length: 100, nullable: true })
   serialNumber: string;
 
+  // Template reference (which model this machine is based on)
+  @Column({ type: "uuid", nullable: true })
+  templateId: string;
+
   // Type and status
   @Column({ type: "enum", enum: MachineType, default: MachineType.COFFEE })
   type: MachineType;
+
+  @Column({
+    type: "enum",
+    enum: ContentModel,
+    default: ContentModel.SLOTS,
+  })
+  contentModel: ContentModel;
 
   @Column({ type: "enum", enum: MachineStatus, default: MachineStatus.ACTIVE })
   status: MachineStatus;
@@ -260,6 +281,16 @@ export class Machine extends BaseEntity {
     priceMultiplier?: number;
     maintenanceIntervalDays?: number;
   };
+
+  // Infrastructure at location
+  @Column({ default: false })
+  hasTrashBin: boolean;
+
+  @Column({ default: false })
+  hasCamera: boolean;
+
+  @Column({ length: 100, nullable: true })
+  nameplateSerial: string; // Серийный номер с шильдика (может отличаться от serialNumber)
 
   // Notes & metadata
   @Column({ type: "text", nullable: true })
@@ -508,6 +539,199 @@ export class MachineComponent extends BaseEntity {
     if (!this.expectedLifeHours || this.expectedLifeHours <= 0) return 0;
     return Math.round((this.currentHours / this.expectedLifeHours) * 100);
   }
+}
+
+// ============================================================================
+// SIM USAGE LOG ENTITY (monthly data usage tracking)
+// ============================================================================
+
+@Entity("sim_usage_logs")
+@Index(["componentId"])
+@Index(["machineId"])
+@Index(["periodStart", "periodEnd"])
+export class SimUsageLog extends BaseEntity {
+  @Column()
+  componentId: string; // FK → machine_components (SIM card)
+
+  @Column()
+  machineId: string; // FK → machines (denormalized for faster queries)
+
+  @Column()
+  organizationId: string;
+
+  // Period
+  @Column({ type: "date" })
+  periodStart: Date; // Начало периода (1-е число месяца)
+
+  @Column({ type: "date" })
+  periodEnd: Date; // Конец периода (последний день месяца)
+
+  // Traffic
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  dataUsedMb: number; // Использовано МБ за период
+
+  @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })
+  dataLimitMb: number; // Лимит МБ в тарифе
+
+  // Cost
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  cost: number; // Фактический расход UZS за период
+
+  @Column({ length: 10, default: "UZS" })
+  currency: string;
+
+  // Notes
+  @Column({ type: "text", nullable: true })
+  notes: string;
+
+  // Relations
+  @ManyToOne("MachineComponent", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "component_id" })
+  component: MachineComponent;
+
+  @ManyToOne("Machine", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
+  machine: Machine;
+
+  // Computed
+  get usagePercent(): number {
+    if (!this.dataLimitMb || this.dataLimitMb <= 0) return 0;
+    return Math.round((this.dataUsedMb / this.dataLimitMb) * 100);
+  }
+}
+
+// ============================================================================
+// MACHINE CONNECTIVITY ENTITY (Internet connection tracking)
+// ============================================================================
+
+@Entity("machine_connectivity")
+@Index(["machineId"])
+@Index(["organizationId"])
+@Index(["connectivityType"])
+@Index(["status"])
+export class MachineConnectivity extends BaseEntity {
+  @Column()
+  machineId: string;
+
+  @Column()
+  organizationId: string;
+
+  @Column({ type: "enum", enum: ConnectivityType })
+  connectivityType: ConnectivityType; // SIM, WiFi, Fiber, LAN
+
+  @Column({
+    type: "enum",
+    enum: ConnectivityStatus,
+    default: ConnectivityStatus.ACTIVE,
+  })
+  status: ConnectivityStatus;
+
+  // Provider info
+  @Column({ length: 200 })
+  providerName: string; // Beeline, Ucell, Mobiuz, имя арендатора
+
+  @Column({ length: 100, nullable: true })
+  accountNumber: string; // Номер SIM / аккаунт WiFi
+
+  @Column({ length: 200, nullable: true })
+  tariffName: string; // Название тарифа
+
+  // Link to physical component (for SIM cards tracked in equipment)
+  @Column({ nullable: true })
+  componentId: string; // FK → machine_components (SIM card)
+
+  // Cost
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  monthlyCost: number; // Ежемесячная стоимость
+
+  @Column({ length: 10, default: "UZS" })
+  currency: string;
+
+  // Contract period
+  @Column({ type: "date" })
+  startDate: Date;
+
+  @Column({ type: "date", nullable: true })
+  endDate: Date;
+
+  @Column({ type: "text", nullable: true })
+  notes: string;
+
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
+
+  // Relations
+  @ManyToOne("Machine", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
+  machine: Machine;
+
+  @ManyToOne("MachineComponent", { onDelete: "SET NULL" })
+  @JoinColumn({ name: "component_id" })
+  component: MachineComponent;
+}
+
+// ============================================================================
+// MACHINE EXPENSE ENTITY (Installation & operating costs)
+// ============================================================================
+
+@Entity("machine_expenses")
+@Index(["machineId"])
+@Index(["organizationId"])
+@Index(["category"])
+@Index(["expenseType"])
+@Index(["expenseDate"])
+export class MachineExpense extends BaseEntity {
+  @Column()
+  machineId: string;
+
+  @Column()
+  organizationId: string;
+
+  @Column({ nullable: true })
+  locationId: string; // Привязка к локации (для расходов на точку)
+
+  @Column({ type: "enum", enum: ExpenseCategory })
+  category: ExpenseCategory; // transport, electrical, socket, etc.
+
+  @Column({ type: "enum", enum: ExpenseType })
+  expenseType: ExpenseType; // CAPEX or OPEX
+
+  @Column({ length: 500 })
+  description: string;
+
+  @Column({ type: "decimal", precision: 12, scale: 2 })
+  amount: number;
+
+  @Column({ length: 10, default: "UZS" })
+  currency: string;
+
+  @Column({ type: "date" })
+  expenseDate: Date;
+
+  // Vendor
+  @Column({ nullable: true })
+  counterpartyId: string; // FK → counterparties
+
+  @Column({ nullable: true })
+  performedByUserId: string;
+
+  // Documents
+  @Column({ type: "text", nullable: true })
+  receiptUrl: string;
+
+  @Column({ length: 100, nullable: true })
+  invoiceNumber: string;
+
+  @Column({ type: "text", nullable: true })
+  notes: string;
+
+  @Column({ type: "jsonb", default: {} })
+  metadata: Record<string, unknown>;
+
+  // Relations
+  @ManyToOne("Machine", { onDelete: "CASCADE" })
+  @JoinColumn({ name: "machine_id" })
+  machine: Machine;
 }
 
 // ============================================================================

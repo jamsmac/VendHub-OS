@@ -756,36 +756,36 @@ describe("TransactionCreateService", () => {
 
   describe("remove", () => {
     it("should soft delete a cancelled transaction", async () => {
-      queryService.findById.mockResolvedValueOnce({
+      transactionRepo.findOne.mockResolvedValueOnce({
         ...mockTransaction,
         status: TransactionStatus.CANCELLED,
       } as any);
       transactionRepo.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("txn-uuid-1");
+      await service.remove("txn-uuid-1", "org-uuid-1");
 
       expect(transactionRepo.softDelete).toHaveBeenCalledWith("txn-uuid-1");
     });
 
     it("should soft delete a failed transaction", async () => {
-      queryService.findById.mockResolvedValueOnce({
+      transactionRepo.findOne.mockResolvedValueOnce({
         ...mockTransaction,
         status: TransactionStatus.FAILED,
       } as any);
       transactionRepo.softDelete.mockResolvedValue(undefined as any);
 
-      await service.remove("txn-uuid-1");
+      await service.remove("txn-uuid-1", "org-uuid-1");
 
       expect(transactionRepo.softDelete).toHaveBeenCalledWith("txn-uuid-1");
     });
 
     it("should throw BadRequestException when deleting completed transaction", async () => {
-      queryService.findById.mockResolvedValueOnce({
+      transactionRepo.findOne.mockResolvedValueOnce({
         ...mockTransaction,
         status: TransactionStatus.COMPLETED,
       } as any);
 
-      await expect(service.remove("txn-uuid-1")).rejects.toThrow(
+      await expect(service.remove("txn-uuid-1", "org-uuid-1")).rejects.toThrow(
         BadRequestException,
       );
     });

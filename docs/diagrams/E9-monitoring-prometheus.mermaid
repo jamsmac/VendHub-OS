@@ -1,0 +1,53 @@
+%% E9. Monitoring / Prometheus метрики
+%% Источник: monitoring/monitoring.service.ts, common/interceptors/metrics.interceptor.ts
+flowchart TD
+    subgraph COLLECTION ["Сбор метрик (MonitoringService)"]
+        subgraph HTTP_METRICS ["HTTP метрики"]
+            HM1["MetricsInterceptor:\nкаждый HTTP запрос"]
+            HM1 --> HM2["incrementHttpRequests(\nmethod, route, statusCode)\n→ Counter: http_requests_total"]
+            HM1 --> HM3["observeHttpDuration(\nmethod, route, duration)\n→ Histogram: http_request_duration_seconds\nbuckets: 0.01, 0.05, 0.1, 0.25, 0.5, 1, 5"]
+        end
+
+        subgraph DB_METRICS ["Database метрики"]
+            DM1["TypeORM queries"]
+            DM1 --> DM2["observeDbQueryDuration(\nqueryType, duration)\n→ Histogram: db_query_duration_seconds"]
+        end
+
+        subgraph QUEUE_METRICS ["BullMQ метрики"]
+            QM1["Job завершён/failed"]
+            QM1 --> QM2["incrementQueueJobs(\nqueueName, status)\n→ Counter: queue_jobs_total"]
+        end
+
+        subgraph WS_METRICS ["WebSocket метрики"]
+            WM1["Gauge: websocket_connections_active\n(текущее кол-во подключений)"]
+        end
+
+        subgraph TELEMETRY ["Телеметрия автоматов"]
+            TM1["incrementTelemetryEvents(\neventType, machineId)\n→ Counter: machine_telemetry_events_total"]
+        end
+
+        subgraph APP_METRICS ["Бизнес-метрики"]
+            AM1["Counter: auth_login_success_total"]
+            AM2["Counter: auth_login_failure_total"]
+            AM3["Counter: transactions_total"]
+            AM4["Counter: orders_total"]
+        end
+    end
+
+    subgraph EXPORT ["Экспорт"]
+        EX1["GET /metrics\n→ Prometheus text format\n(getMetrics())"]
+        EX2["GET /health\n→ JSON health check\n(getHealthMetrics()):\n• uptime\n• memory usage\n• active connections\n• queue sizes\n• db pool status"]
+    end
+
+    subgraph INFRA ["Инфраструктура мониторинга"]
+        PR["Prometheus Server\nscrape /metrics\nкаждые 15 сек"]
+        GR["Grafana Dashboards:\n• API Performance\n• Machine Telemetry\n• Transaction Volume\n• Queue Health\n• Error Rates"]
+        LK["Loki:\nлоги из LoggingInterceptor\n→ centralized log search"]
+        AL["Alertmanager:\nPrometheus rules\n→ Telegram/email alerts"]
+
+        EX1 --> PR
+        PR --> GR
+        PR --> AL
+    end
+
+    COLLECTION --> EXPORT

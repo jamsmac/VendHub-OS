@@ -147,8 +147,12 @@ export class MachinesCoreService {
     });
   }
 
-  async update(id: string, data: Partial<Machine>): Promise<Machine> {
-    const machine = await this.findById(id);
+  async update(
+    id: string,
+    data: Partial<Machine>,
+    organizationId?: string,
+  ): Promise<Machine> {
+    const machine = await this.findById(id, organizationId);
     if (!machine) {
       throw new NotFoundException(`Machine with ID ${id} not found`);
     }
@@ -159,8 +163,12 @@ export class MachinesCoreService {
     return this.machineRepository.save(machine);
   }
 
-  async updateStatus(id: string, status: MachineStatus): Promise<Machine> {
-    return this.update(id, { status });
+  async updateStatus(
+    id: string,
+    status: MachineStatus,
+    organizationId?: string,
+  ): Promise<Machine> {
+    return this.update(id, { status }, organizationId);
   }
 
   async updateTelemetry(

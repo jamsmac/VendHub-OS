@@ -1,0 +1,51 @@
+%% E1. MDM Справочники (Directories) — EAV паттерн
+%% Источник: directories/directories.service.ts, directories/services/*, 1849 строк кода
+flowchart TD
+    subgraph STRUCTURE ["Структура справочника (EAV)"]
+        DIR(["Создание Directory:\nname, slug, description,\nscope: HQ/ORGANIZATION/LOCATION"]) --> FIELDS["Добавление DirectoryField[]:\nfieldName, fieldType (text/number/\ndate/boolean/select/reference),\nisRequired, defaultValue,\nsortOrder, validationRules"]
+        FIELDS --> ENTRIES["Наполнение DirectoryEntry[]:\nname, code, parentId (иерархия),\ndata: Record (EAV — гибкие поля\nпо определённым fields),\nsortOrder, isActive"]
+    end
+
+    subgraph HIERARCHY ["Иерархия записей"]
+        H1["Entry: Ташкент (parentId: null)"]
+        H2["  └ Entry: Чиланзар (parentId: Ташкент)"]
+        H3["    └ Entry: Точка №42 (parentId: Чиланзар)"]
+        H1 --> H2 --> H3
+        H4["getHierarchy() → HierarchyNode[]\n(рекурсивное дерево с children[])"]
+        H5["moveEntry() → перемещение\nв другую ветку иерархии"]
+    end
+
+    subgraph SOURCES ["Внешние источники (DirectorySource)"]
+        S1(["Создание DirectorySource:\ndirectoryId, sourceType,\nconfiguration"]) --> S2{"sourceType?"}
+        S2 -->|"URL"| S3["Периодический fetch\nJSON/CSV по URL"]
+        S2 -->|"API"| S4["REST API запрос\nс auth headers"]
+        S2 -->|"FILE"| S5["Загруженный файл\n(Excel/CSV)"]
+        S2 -->|"TEXT"| S6["Ручной текстовый\nввод"]
+    end
+
+    subgraph SYNC ["Синхронизация"]
+        SY1(["triggerSync(sourceId)"]) --> SY2["Создание DirectorySyncLog:\nstatus: STARTED"]
+        SY2 --> SY3["fetchSourceData():\nзагрузка данных из источника"]
+        SY3 --> SY4["Парсинг и маппинг\nна DirectoryField[]"]
+        SY4 --> SY5["Сравнение с существующими\nEntries (по code/name)"]
+        SY5 --> SY6["Создание новых /\nОбновление изменённых /\nДеактивация удалённых"]
+        SY6 --> SY7{"Результат?"}
+        SY7 -->|"Все ОК"| SY8["SyncLog status: SUCCESS\ncreated, updated, deleted counts"]
+        SY7 -->|"Частично"| SY9["status: PARTIAL\nerrors[] + processed count"]
+        SY7 -->|"Ошибка"| SY10["status: FAILED\nerrorMessage"]
+    end
+
+    subgraph AUDIT ["Аудит изменений"]
+        A1["Каждое изменение Entry →\nDirectoryEntryAudit:\naction: CREATE/UPDATE/DELETE\noldValues, newValues,\nperformedBy, timestamp"]
+        A2["findAuditLogs(directoryId)\nfindEntryAuditLogs(entryId)\n→ полная история изменений"]
+    end
+
+    subgraph SEARCH ["Поиск"]
+        SE1["searchEntries(query, directoryId):\nполнотекстовый поиск\nпо name, code, data полям"]
+        SE2["findAllEntries(filters):\nпагинация, фильтрация\nпо isActive, parentId"]
+    end
+
+    ENTRIES --> SOURCES
+    ENTRIES --> AUDIT
+    ENTRIES --> SEARCH
+    SOURCES --> SYNC

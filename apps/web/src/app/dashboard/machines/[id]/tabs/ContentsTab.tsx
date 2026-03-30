@@ -21,6 +21,7 @@ import { useMachineState } from "@/lib/hooks/use-machine-state";
 import { entityEventsApi } from "@/lib/api";
 import type {
   BunkerState,
+  SlotState,
   ComponentState,
 } from "@/lib/hooks/use-machine-state";
 
@@ -159,6 +160,49 @@ export function ContentsTab({ machineId }: ContentsTabProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Slots (for snack/drink machines) */}
+      {state.slots.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Ячейки ({state.slots.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {state.slots.map((slot: SlotState) => (
+                <div
+                  key={slot.slotId}
+                  className={`rounded-lg border p-2 text-center ${
+                    !slot.isActive
+                      ? "opacity-40"
+                      : slot.needsRefill
+                        ? "border-amber-400 bg-amber-50 dark:bg-amber-950/20"
+                        : ""
+                  }`}
+                >
+                  <span className="text-xs font-bold text-muted-foreground">
+                    {slot.slotNumber}
+                  </span>
+                  <Progress value={slot.fillPercent} className="h-1.5 mt-1" />
+                  <span className="text-xs mt-1 block">
+                    {slot.currentQuantity}/{slot.capacity}
+                  </span>
+                  {slot.price !== null && (
+                    <span className="text-[10px] text-muted-foreground block">
+                      {Number(slot.price).toLocaleString("ru-RU")} UZS
+                    </span>
+                  )}
+                  {slot.needsRefill && (
+                    <AlertTriangle className="h-3 w-3 text-amber-500 mx-auto mt-0.5" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Components */}
       <Card>

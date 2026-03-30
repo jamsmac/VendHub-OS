@@ -4,13 +4,15 @@ import { Repository } from "typeorm";
 import { NotFoundException, ForbiddenException } from "@nestjs/common";
 import { DashboardStatsService } from "./analytics.service";
 import {
-  DailyStats,
   DashboardWidget,
-  AnalyticsSnapshot,
   WidgetType,
   TimeRange,
-  SnapshotType,
 } from "./entities/analytics.entity";
+import {
+  DailyStats,
+  AnalyticsSnapshot,
+  SnapshotType,
+} from "../reports/entities/analytics-snapshot.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { Machine } from "../machines/entities/machine.entity";
 import { Task } from "../tasks/entities/task.entity";
@@ -48,7 +50,7 @@ describe("DashboardStatsService", () => {
     inventoryUnitsSold: 300,
     topProducts: [
       {
-        nomenclatureId: "prod-1",
+        productId: "prod-1",
         name: "Coffee",
         quantity: 50,
         revenue: 500,
@@ -571,13 +573,13 @@ describe("DashboardStatsService", () => {
           ...mockDailyStats,
           topProducts: [
             {
-              nomenclatureId: "prod-1",
+              productId: "prod-1",
               name: "Coffee",
               quantity: 50,
               revenue: 500,
             },
             {
-              nomenclatureId: "prod-2",
+              productId: "prod-2",
               name: "Tea",
               quantity: 30,
               revenue: 300,
@@ -598,7 +600,7 @@ describe("DashboardStatsService", () => {
       );
 
       expect(result).toHaveLength(2);
-      expect(result[0].nomenclatureId).toBe("prod-1");
+      expect(result[0].productId).toBe("prod-1");
       expect(result[0].revenue).toBe(500);
     });
   });

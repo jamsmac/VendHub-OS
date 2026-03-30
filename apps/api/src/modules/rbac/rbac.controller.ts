@@ -23,6 +23,7 @@ import {
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { UserRole } from "../../common/decorators/roles.decorator";
+import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 import { RbacService } from "./rbac.service";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
@@ -43,16 +44,15 @@ export class RbacController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "List all roles" })
   @ApiResponse({ status: 200, description: "Roles list" })
-  @ApiQuery({ name: "organizationId", required: false })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   async findAllRoles(
-    @Query("organizationId") organizationId?: string,
+    @CurrentOrganizationId() orgId: string,
     @Query("page") page?: number,
     @Query("limit") limit?: number,
   ) {
     return this.rbacService.findAllRoles({
-      organizationId,
+      organizationId: orgId,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -62,16 +62,22 @@ export class RbacController {
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({ summary: "Create a new role" })
   @ApiResponse({ status: 201, description: "Role created" })
-  async createRole(@Body() dto: CreateRoleDto) {
-    return this.rbacService.createRole(dto);
+  async createRole(
+    @Body() dto: CreateRoleDto,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.rbacService.createRole(dto, orgId);
   }
 
   @Get("roles/:id")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Get role by ID" })
   @ApiResponse({ status: 200, description: "Role details" })
-  async findRoleById(@Param("id", ParseUUIDPipe) id: string) {
-    return this.rbacService.findRoleById(id);
+  async findRoleById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.rbacService.findRoleById(id, orgId);
   }
 
   @Patch("roles/:id")
@@ -81,8 +87,9 @@ export class RbacController {
   async updateRole(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateRoleDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.rbacService.updateRole(id, dto);
+    return this.rbacService.updateRole(id, dto, orgId);
   }
 
   @Delete("roles/:id")
@@ -90,8 +97,11 @@ export class RbacController {
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({ summary: "Delete a role" })
   @ApiResponse({ status: 204, description: "Role deleted" })
-  async deleteRole(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
-    await this.rbacService.deleteRole(id);
+  async deleteRole(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ): Promise<void> {
+    await this.rbacService.deleteRole(id, orgId);
   }
 
   @Put("roles/:id/permissions")
@@ -101,8 +111,9 @@ export class RbacController {
   async syncPermissions(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: SyncPermissionsDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.rbacService.syncRolePermissions(id, dto.permissionIds);
+    return this.rbacService.syncRolePermissions(id, dto.permissionIds, orgId);
   }
 
   // ==================== Permissions ====================

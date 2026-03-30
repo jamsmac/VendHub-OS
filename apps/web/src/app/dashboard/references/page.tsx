@@ -14,7 +14,10 @@ import {
   CreditCard,
   FileText,
   Percent,
+  ChevronRight,
+  Coffee,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -185,6 +188,25 @@ export default function ReferencesPage() {
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground">{t("description")}</p>
       </div>
+
+      {/* Quick Links */}
+      <Link
+        href="/dashboard/references/machine-templates"
+        className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors group"
+      >
+        <div className="flex items-center gap-3">
+          <div className="rounded-md bg-primary/10 p-2">
+            <Coffee className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium">Шаблоны автоматов</p>
+            <p className="text-sm text-muted-foreground">
+              Конфигурации бункеров, ячеек и компонентов для быстрого создания
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </Link>
 
       {/* Tabs */}
       <Tabs defaultValue="mxik">

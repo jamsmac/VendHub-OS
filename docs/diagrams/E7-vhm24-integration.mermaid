@@ -1,0 +1,41 @@
+%% E7. VHM24 Integration — мост между VendHub OS и VHM24
+%% Источник: vhm24-integration/vhm24-integration.service.ts, vhm24-integration/services/trip-reconciliation.service.ts
+flowchart TD
+    subgraph TASK_LINK ["1. Привязка задач к рейсам"]
+        TL1(["Создание рейса с задачами"]) --> TL2["linkTasksToTrip(tripId, taskIds[]):\nДля каждой задачи:\n→ поиск machineId\n→ получение координат машины\n→ создание TripTaskLink"]
+        TL2 --> TL3["TripTaskLink:\ntripId, taskId, machineId,\nlat, lon, verifiedByGps: false"]
+    end
+
+    subgraph GPS_VERIFY ["2. GPS-верификация задач"]
+        GV1(["TripStop создана\n(водитель остановился)"]) --> GV2["verifyTaskByStop(tripId, stopId):\nДля каждого TripTaskLink\nна этом рейсе:"]
+        GV2 --> GV3["Haversine расстояние:\nstop.lat/lon vs task.lat/lon"]
+        GV3 --> GV4{"distance ≤ 100м?\n(DEFAULT_VERIFICATION_RADIUS)"}
+        GV4 -->|"Да"| GV5["✓ verifiedByGps: true\nverifiedAt: now\nverificationDistance: meters"]
+        GV4 -->|"Нет"| GV6["Пропуск\n(слишком далеко)"]
+
+        GV7(["Рейс завершён"]) --> GV8["verifyAllTasksOnTripEnd():\nФинальная проверка\nвсех непроверенных задач\nпо последним GPS-точкам"]
+    end
+
+    subgraph MANUAL_VERIFY ["3. Ручная верификация"]
+        MV1(["Менеджер подтверждает\nвручную"]) --> MV2["manualVerifyTask():\nverifiedByGps: false\nmanuallyVerified: true\nverifiedBy: userId\nnotes: причина"]
+    end
+
+    subgraph SYNC ["4. Синхронизация автоматов"]
+        SY1(["syncMachines(organizationId)"]) --> SY2["Загрузка машин\nиз VendHub OS"]
+        SY2 --> SY3["Для каждой машины\nс координатами:"]
+        SY3 --> SY4["Создание/обновление\nMachineLocationSync:\nmachineId, lat, lon,\ngeofenceRadius, syncStatus"]
+        SY4 --> SY5{"Результат?"}
+        SY5 -->|"Успех"| SY6["SyncStatus: SYNCED"]
+        SY5 -->|"Ошибка"| SY7["SyncStatus: FAILED\nerrorMessage"]
+    end
+
+    subgraph WEBHOOKS ["5. Обработка Webhook'ов от VHM24"]
+        WH1(["POST /vhm24/webhook\n{event, data, timestamp}"]) --> WH2{"event type?"}
+        WH2 -->|"machine.created"| WH3["Создание Machine\nв VendHub OS"]
+        WH2 -->|"machine.updated"| WH4["Обновление полей\nMachine"]
+        WH2 -->|"machine.deleted"| WH5["Soft-delete Machine"]
+        WH2 -->|"task.assigned"| WH6["Создание Task\nиз внешней системы"]
+        WH2 -->|"task.completed"| WH7["Обновление Task\nstatus: COMPLETED"]
+    end
+
+    GPS_VERIFY --> RECONCILIATION["TripReconciliationService:\nСверка GPS-данных\nс фактическим выполнением"]

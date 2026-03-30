@@ -29,7 +29,16 @@ export function useMachines() {
     queryKey: ["machines"],
     queryFn: async () => {
       const response = await machinesApi.getAll();
-      return (response.data.data || []) as DbMachine[];
+      const raw = response.data;
+      // Safe extraction: API may return { data: [...], total } or plain array
+      const list = Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.items)
+            ? raw.items
+            : [];
+      return list as DbMachine[];
     },
   });
 }

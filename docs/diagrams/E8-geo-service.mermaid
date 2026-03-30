@@ -1,0 +1,40 @@
+%% E8. Геолокация (Geo Service)
+%% Источник: geo/geo.service.ts, locations/geocoding.service.ts
+flowchart TD
+    subgraph GEOCODING ["Геокодинг"]
+        GC1(["Адрес → Координаты"]) --> GC2["geocodeAddress(address):\nGoogle Maps Geocoding API"]
+        GC2 --> GC3["GeocodingResult:\nformattedAddress, lat, lon,\nplaceId, components:\n{country, city, district,\nstreet, building, postalCode}"]
+    end
+
+    subgraph REVERSE ["Обратный геокодинг"]
+        RV1(["Координаты → Адрес"]) --> RV2["reverseGeocode({lat, lon}):\nGoogle Maps Reverse Geocoding"]
+        RV2 --> RV3["GeocodingResult:\nформатированный адрес\nиз координат GPS"]
+    end
+
+    subgraph NEARBY ["Поиск ближайших автоматов"]
+        NB1(["Координаты клиента\n+ радиус (м)"]) --> NB2["findNearbyMachines():\nSQL с Haversine formula\n(SELECT ... ORDER BY distance)"]
+        NB2 --> NB3["NearbyMachine[]:\nmachine + distance (м)\n+ duration (сек, ~5 km/h)"]
+    end
+
+    subgraph BOUNDS ["Автоматы в области"]
+        BD1(["Прямоугольник на карте\n(minLat, maxLat, minLon, maxLon)"]) --> BD2["getMachinesInBounds():\nWHERE lat BETWEEN min AND max\nAND lon BETWEEN min AND max"]
+        BD2 --> BD3["Machine[] в видимой\nобласти карты"]
+    end
+
+    subgraph DIRECTIONS ["Маршруты"]
+        DR1(["Точка A → Точка B"]) --> DR2["getDirections():\nGoogle Maps Directions API"]
+        DR2 --> DR3["Маршрут:\ntotalDistance, totalDuration,\nsteps[]: instruction,\ndistance, duration"]
+    end
+
+    subgraph MATRIX ["Матрица расстояний"]
+        MX1(["Массив точек"]) --> MX2["getDistanceMatrix():\nGoogle Maps Distance Matrix"]
+        MX2 --> MX3["Пары:\n{distance, duration}\nдля каждого origin→destination"]
+    end
+
+    subgraph USAGE ["Где используется"]
+        U1["Collections → Haversine\nпроверка расстояния оператора\nдо автомата (< 50м)"]
+        U2["Trips → GPS-трекинг,\nдетекция остановок,\nаномалий маршрута"]
+        U3["Route Optimization →\nматрица расстояний\nдля оптимизации порядка"]
+        U4["Client PWA →\nближайшие автоматы\nна карте"]
+        U5["VHM24 Integration →\nGPS-верификация\nвыполнения задач"]
+    end

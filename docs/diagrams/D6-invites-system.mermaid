@@ -1,0 +1,33 @@
+%% D6. Система приглашений (Invites)
+%% Источник: invites/invites.service.ts, auth/auth.service.ts (registerWithInvite)
+flowchart TD
+    subgraph CREATE_INVITE ["Создание инвайта (Admin)"]
+        CI1(["Admin/Manager\nсоздаёт приглашение"]) --> CI2{"role == OWNER?"}
+        CI2 -->|"Да"| CI_ERR["400: Cannot create\ninvite for owner role"]
+        CI2 -->|"Нет"| CI3["Генерация кода:\ncrypto.randomBytes(6).toString('hex')\n→ 12 hex символов"]
+        CI3 --> CI4["Создание Invite:\ncode, role (admin/manager/\noperator/warehouse/accountant/viewer),\norganizationId, maxUses,\nexpiresAt (default: 24ч),\ndescription"]
+        CI4 --> CI5["status: ACTIVE\ncurrentUses: 0"]
+        CI5 --> CI6["Отправка ссылки:\n/register?code=xxx\n(email / Telegram / копирование)"]
+    end
+
+    subgraph USE_INVITE ["Использование инвайта"]
+        UI1(["Получатель переходит\nпо ссылке"]) --> UI2["InvitesService:\nfindByCode(code)"]
+        UI2 --> UI3{"Инвайт найден?"}
+        UI3 -->|"Нет"| UI_ERR1["404: Invite not found"]
+        UI3 -->|"Да"| UI4{"status == ACTIVE?"}
+        UI4 -->|"Нет"| UI_ERR2["400: Invite inactive"]
+        UI4 -->|"Да"| UI5{"expiresAt > now?"}
+        UI5 -->|"Нет"| UI_ERR3["400: Invite expired"]
+        UI5 -->|"Да"| UI6{"currentUses < maxUses?"}
+        UI6 -->|"Нет"| UI_ERR4["400: Invite fully used"]
+        UI6 -->|"Да"| UI7["Форма регистрации:\nemail, password, firstName,\nlastName"]
+    end
+
+    UI7 --> REGISTER["AuthService.registerWithInvite():\n1. Проверка email уникальности\n2. bcrypt.hash(password, 10)\n3. Создание User:\n   role = invite.role\n   organizationId = invite.organizationId\n   status: ACTIVE\n4. invite.currentUses++\n5. invite.usedById = user.id\n6. invite.usedAt = now"]
+
+    REGISTER --> CHECK_MAX{"currentUses\n>= maxUses?"}
+    CHECK_MAX -->|"Да"| EXHAUST["invite.status = USED\n(полностью использован)"]
+    CHECK_MAX -->|"Нет"| STILL_ACTIVE["Инвайт остаётся\nACTIVE для\nследующих пользователей"]
+
+    EXHAUST --> DONE(["✓ Пользователь\nзарегистрирован\nс ролью из инвайта"])
+    STILL_ACTIVE --> DONE

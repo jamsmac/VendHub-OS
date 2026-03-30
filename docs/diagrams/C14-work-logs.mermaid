@@ -1,0 +1,42 @@
+%% C14. Рабочее время и табели (Work Logs)
+%% Источник: work-logs/work-logs.service.ts
+flowchart TD
+    subgraph WORKLOG ["WorkLog — запись рабочего времени"]
+        WL1(["Начало работы"]) --> WL2["ClockIn:\nuserId, activityType\n(field_work / office / travel /\nmaintenance / training)"]
+        WL2 --> WL3["Создание WorkLog:\nstatus: DRAFT\nworkLogType: REGULAR/OVERTIME/\nON_CALL/TRAINING"]
+        WL3 --> WL4(["Конец работы"])
+        WL4 --> WL5["ClockOut:\nclockedOutAt = now\nduration = out - in"]
+        WL5 --> WL6["status: SUBMITTED"]
+        WL6 --> WL7{"Одобрение\nменеджером?"}
+        WL7 -->|"Approve"| WL8["status: APPROVED\napprovedBy, approvedAt"]
+        WL7 -->|"Reject"| WL9["status: REJECTED\nrejectReason\n→ сотрудник корректирует"]
+    end
+
+    subgraph TIMEOFF ["TimeOff — отгулы и отпуска"]
+        TO1(["Заявка на отгул"]) --> TO2["TimeOffRequest:\ntimeOffType (VACATION / SICK /\nPERSONAL / MATERNITY / OTHER)\nstartDate, endDate, reason"]
+        TO2 --> TO3["status: PENDING"]
+        TO3 --> TO4{"Решение?"}
+        TO4 -->|"Approve"| TO5["status: APPROVED"]
+        TO4 -->|"Reject"| TO6["status: REJECTED"]
+    end
+
+    subgraph TIMESHEET ["Timesheet — агрегация за период"]
+        TS1(["Создание Timesheet\n(период: месяц)"]) --> TS2["Сбор всех WorkLog[]\nза period: startDate → endDate"]
+        TS2 --> TS3["Расчёт итогов:\ntotalRegularHours\ntotalOvertimeHours\ntotalDaysWorked\ntotalTimeOff"]
+        TS3 --> TS4["status: DRAFT"]
+        TS4 --> TS5{"Утверждение?"}
+        TS5 -->|"Approve"| TS6["status: APPROVED\n→ используется для Payroll"]
+        TS5 -->|"Reject"| TS7["status: REJECTED\n→ корректировка WorkLog'ов"]
+    end
+
+    subgraph CRON_WL ["Cron: 1-го числа каждого месяца"]
+        CR1["Автогенерация Timesheet\nза прошлый месяц\nдля каждого сотрудника"]
+    end
+
+    subgraph STATS ["Статистика (WorkLogStatsDto)"]
+        ST1["По сотруднику:\nсреднее рабочее время,\nпроцент переработок,\nчастота опозданий"]
+        ST2["По отделу:\nобщие часы, FTE,\nутилизация"]
+    end
+
+    WL8 --> TIMESHEET
+    TIMEOFF --> TIMESHEET

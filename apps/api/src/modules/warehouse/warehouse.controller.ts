@@ -29,6 +29,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { CurrentOrganizationId } from "../../common/decorators/current-user.decorator";
 import { User, UserRole } from "../users/entities/user.entity";
 import {
   CreateWarehouseDto,
@@ -283,8 +284,13 @@ export class WarehouseController {
   async completeMovement(
     @Param("movementId", ParseUUIDPipe) movementId: string,
     @CurrentUser() user: User,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.stockTakeService.completeMovement(movementId, user.id);
+    return this.stockTakeService.completeMovement(
+      movementId,
+      user.id,
+      organizationId,
+    );
   }
 
   @Patch("movements/:movementId/cancel")
@@ -305,8 +311,13 @@ export class WarehouseController {
   async cancelMovement(
     @Param("movementId", ParseUUIDPipe) movementId: string,
     @CurrentUser() user: User,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.stockTakeService.cancelMovement(movementId, user.id);
+    return this.stockTakeService.cancelMovement(
+      movementId,
+      user.id,
+      organizationId,
+    );
   }
 
   @Post(":id/transfer")

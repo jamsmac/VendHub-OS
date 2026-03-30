@@ -1,0 +1,94 @@
+%% F1. Общая архитектура системы VendHub OS
+%% Высокоуровневая диаграмма всех компонентов
+flowchart TD
+    subgraph CLIENTS ["Клиенты"]
+        WEB["🖥 Admin Panel\n(Next.js 16 + React 19\nApp Router)"]
+        PWA["📱 Client PWA\n(Vite + React 19)"]
+        MOBILE["📲 Mobile App\n(React Native + Expo 52)"]
+        TG_STAFF["🤖 Telegram Bot\nДля персонала (Telegraf)"]
+        TG_CLIENT["🤖 Telegram Bot\nДля клиентов (Telegraf)"]
+        SITE["🌐 Landing Site\n(Next.js, vendhub.uz)"]
+    end
+
+    subgraph API_LAYER ["API Layer (NestJS 11, порт 4000)"]
+        GATEWAY["API Gateway:\nCORS, Helmet, Compression,\nThrottler, Swagger /docs"]
+        AUTH_GUARD["Guards:\nJWT → Roles → Organization → Throttler"]
+        INTERCEPTORS["Interceptors:\nTransform → Logging → Timeout → Metrics"]
+        CONTROLLERS["84 модуля\n(REST API, prefix: /api/v1)"]
+
+        GATEWAY --> AUTH_GUARD --> INTERCEPTORS --> CONTROLLERS
+    end
+
+    subgraph REALTIME ["Real-time Layer"]
+        WS_GW["Socket.IO Gateway\n(4 namespaces):\n/machines\n/orders\n/notifications\n/general"]
+    end
+
+    subgraph QUEUE ["Очереди (BullMQ 5)"]
+        Q_FISCAL["fiscal-queue\n(фискализация чеков)"]
+        Q_WRITEOFF["machine-writeoff\n(списание автоматов)"]
+        Q_NOTIFY["notification-queue\n(push/email/sms)"]
+    end
+
+    subgraph DATA ["Data Layer"]
+        PG["🐘 PostgreSQL 16\n• 120+ таблиц\n• TypeORM + Migrations\n• SnakeNamingStrategy\n• Connection pool (10)"]
+        REDIS["🔴 Redis 7\n• BullMQ queues\n• Cache (cache-manager)\n• Token blacklist\n• Socket.IO adapter\n• Session store"]
+        MINIO["📦 MinIO / S3\n• Файлы, фото\n• Отчёты (xlsx/pdf)\n• Аватарки, логотипы"]
+    end
+
+    subgraph EXTERNAL ["Внешние сервисы"]
+        PAYME["Payme\n(JSON-RPC)"]
+        CLICK["Click\n(REST/MD5)"]
+        UZUM["Uzum Bank\n(REST/HMAC)"]
+        MULTIKASSA["Multikassa / OFD\n(фискализация)"]
+        ESKIZ["Eskiz SMS"]
+        PLAYMOBILE["PlayMobile SMS"]
+        GOOGLE["Google Maps API\n(geo, directions)"]
+        SMTP["SMTP / SES\n(email)"]
+        FCM_EXT["Firebase FCM\n(push)"]
+    end
+
+    subgraph MONITORING_INFRA ["Мониторинг"]
+        PROM["Prometheus\n(scrape /metrics)"]
+        GRAFANA["Grafana\n(dashboards)"]
+        LOKI["Loki\n(centralized logs)"]
+        PROM --> GRAFANA
+    end
+
+    subgraph INFRA ["Инфраструктура"]
+        DOCKER["Docker Compose\n(dev)"]
+        K8S["Kubernetes\n(prod)"]
+        HELM["Helm Charts"]
+        TERRAFORM["Terraform\n(IaC)"]
+        NGINX["Nginx\n(reverse proxy)"]
+    end
+
+    WEB --> GATEWAY
+    PWA --> GATEWAY
+    MOBILE --> GATEWAY
+    TG_STAFF --> CONTROLLERS
+    TG_CLIENT --> CONTROLLERS
+    SITE --> GATEWAY
+
+    WEB --> WS_GW
+    PWA --> WS_GW
+    MOBILE --> WS_GW
+
+    CONTROLLERS --> PG
+    CONTROLLERS --> REDIS
+    CONTROLLERS --> MINIO
+    CONTROLLERS --> Q_FISCAL
+    CONTROLLERS --> Q_WRITEOFF
+    WS_GW --> REDIS
+
+    CONTROLLERS --> PAYME
+    CONTROLLERS --> CLICK
+    CONTROLLERS --> UZUM
+    CONTROLLERS --> MULTIKASSA
+    CONTROLLERS --> ESKIZ
+    CONTROLLERS --> PLAYMOBILE
+    CONTROLLERS --> GOOGLE
+    CONTROLLERS --> SMTP
+    CONTROLLERS --> FCM_EXT
+
+    CONTROLLERS --> PROM
+    CONTROLLERS --> LOKI

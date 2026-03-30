@@ -40,22 +40,22 @@ export class AddLifecycleTraceability1774300000000 implements MigrationInterface
     `);
 
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_org" ON "entity_events" ("organization_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_org" ON "entity_events" ("organization_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_entity" ON "entity_events" ("entity_id", "entity_type")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_entity" ON "entity_events" ("entity_id", "entity_type")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_type" ON "entity_events" ("entity_type", "event_type")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_type" ON "entity_events" ("entity_type", "event_type")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_date" ON "entity_events" ("event_date")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_date" ON "entity_events" ("event_date")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_performer" ON "entity_events" ("performed_by")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_performer" ON "entity_events" ("performed_by")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_entity_events_org_entity_date" ON "entity_events" ("organization_id", "entity_id", "event_date" DESC)`,
+      `CREATE INDEX IF NOT EXISTS "IDX_entity_events_org_entity_date" ON "entity_events" ("organization_id", "entity_id", "event_date" DESC)`,
     );
 
     // ================================================================
@@ -86,22 +86,22 @@ export class AddLifecycleTraceability1774300000000 implements MigrationInterface
     `);
 
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_org" ON "batch_movements" ("organization_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_org" ON "batch_movements" ("organization_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_batch" ON "batch_movements" ("batch_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_batch" ON "batch_movements" ("batch_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_batch_type" ON "batch_movements" ("batch_id", "movement_type")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_batch_type" ON "batch_movements" ("batch_id", "movement_type")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_container" ON "batch_movements" ("container_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_container" ON "batch_movements" ("container_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_machine" ON "batch_movements" ("machine_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_machine" ON "batch_movements" ("machine_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_batch_movements_event" ON "batch_movements" ("event_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_batch_movements_event" ON "batch_movements" ("event_id")`,
     );
 
     // ================================================================
@@ -129,19 +129,19 @@ export class AddLifecycleTraceability1774300000000 implements MigrationInterface
     `);
 
     await queryRunner.query(
-      `CREATE INDEX "IDX_sale_ingredients_org" ON "sale_ingredients" ("organization_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_sale_ingredients_org" ON "sale_ingredients" ("organization_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_sale_ingredients_tx" ON "sale_ingredients" ("transaction_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_sale_ingredients_tx" ON "sale_ingredients" ("transaction_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_sale_ingredients_batch" ON "sale_ingredients" ("batch_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_sale_ingredients_batch" ON "sale_ingredients" ("batch_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_sale_ingredients_ingredient" ON "sale_ingredients" ("ingredient_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_sale_ingredients_ingredient" ON "sale_ingredients" ("ingredient_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_sale_ingredients_container" ON "sale_ingredients" ("container_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_sale_ingredients_container" ON "sale_ingredients" ("container_id")`,
     );
 
     // ================================================================

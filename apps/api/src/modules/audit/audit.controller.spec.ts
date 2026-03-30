@@ -106,7 +106,7 @@ describe("AuditController", () => {
     mockService.getStatistics.mockResolvedValue({ totalLogs: 0 });
     await request(app.getHttpServer())
       .get(
-        `/audit/statistics?organization_id=${TEST_UUID}&date_from=2025-01-01T00:00:00.000Z&date_to=2025-12-31T23:59:59.999Z`,
+        `/audit/statistics?dateFrom=2025-01-01T00:00:00.000Z&dateTo=2025-12-31T23:59:59.999Z`,
       )
       .set("Authorization", "Bearer admin-token")
       .expect(HttpStatus.OK);

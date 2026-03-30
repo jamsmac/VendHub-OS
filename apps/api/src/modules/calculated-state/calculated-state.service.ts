@@ -6,13 +6,14 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import { Container } from "../containers/entities/container.entity";
 import { EquipmentComponent } from "../equipment/entities/equipment-component.entity";
-import { Machine } from "../machines/entities/machine.entity";
+import { Machine, MachineSlot } from "../machines/entities/machine.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { SaleIngredient } from "../transactions/entities/sale-ingredient.entity";
 import { EntityEvent } from "../entity-events/entities/entity-event.entity";
 import {
   MachineCalculatedState,
   BunkerState,
+  SlotState,
   ComponentState,
   CleaningState,
   MachinePnL,
@@ -30,6 +31,8 @@ export class CalculatedStateService {
   constructor(
     @InjectRepository(Container)
     private readonly containerRepo: Repository<Container>,
+    @InjectRepository(MachineSlot)
+    private readonly slotRepo: Repository<MachineSlot>,
     @InjectRepository(EquipmentComponent)
     private readonly componentRepo: Repository<EquipmentComponent>,
     @InjectRepository(Machine)
@@ -60,8 +63,9 @@ export class CalculatedStateService {
     });
     if (!machine) throw new NotFoundException("Machine not found");
 
-    const [bunkers, components, cleaning] = await Promise.all([
+    const [bunkers, slots, components, cleaning] = await Promise.all([
       this.calculateBunkerStates(machineId, organizationId),
+      this.calculateSlotStates(machineId),
       this.calculateComponentStates(machineId, organizationId),
       this.calculateCleaningState(machineId, organizationId),
     ]);
@@ -71,6 +75,7 @@ export class CalculatedStateService {
       machineCode: machine.machineNumber,
       calculatedAt: new Date(),
       bunkers,
+      slots,
       components,
       cleaning,
       summary: {
@@ -79,6 +84,7 @@ export class CalculatedStateService {
           0,
         ),
         lowStockBunkers: bunkers.filter((b) => b.isLow).length,
+        lowStockSlots: slots.filter((s) => s.needsRefill).length,
         componentsNeedingMaintenance: components.filter(
           (c) => c.needsMaintenance,
         ).length,
@@ -166,6 +172,38 @@ export class CalculatedStateService {
     }
 
     return results;
+  }
+
+  /**
+   * Calculate slot fill levels for snack/drink machines.
+   * MachineSlot does not have organizationId — filter by machineId only.
+   */
+  private async calculateSlotStates(machineId: string): Promise<SlotState[]> {
+    const slots = await this.slotRepo.find({
+      where: { machineId },
+      order: { slotNumber: "ASC" },
+    });
+
+    return slots.map((slot) => {
+      const capacity = Number(slot.capacity);
+      const currentQuantity = Number(slot.currentQuantity);
+      const fillPercent =
+        capacity > 0 ? Math.round((currentQuantity / capacity) * 100) : 0;
+
+      return {
+        slotId: slot.id,
+        slotNumber: slot.slotNumber,
+        productId: slot.productId || null,
+        productName: null, // TODO: join with products table
+        currentQuantity,
+        capacity,
+        fillPercent,
+        price: slot.price ? Number(slot.price) : null,
+        isActive: slot.isActive,
+        needsRefill: currentQuantity <= Number(slot.minQuantity),
+        totalSold: slot.totalSold,
+      };
+    });
   }
 
   private getAvgSalesPerDay(totalUsed7d: number): number {

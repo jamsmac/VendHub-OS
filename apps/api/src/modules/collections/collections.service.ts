@@ -584,7 +584,19 @@ export class CollectionsService {
     return collection;
   }
 
-  async getHistory(id: string): Promise<CollectionHistory[]> {
+  async getHistory(
+    id: string,
+    organizationId?: string,
+  ): Promise<CollectionHistory[]> {
+    // Verify collection belongs to the caller's organization
+    if (organizationId) {
+      const collection = await this.collectionRepo.findOne({
+        where: { id, organizationId },
+      });
+      if (!collection) {
+        throw new NotFoundException("Collection not found");
+      }
+    }
     return this.historyRepo.find({
       where: { collectionId: id },
       order: { createdAt: "ASC" },

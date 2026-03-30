@@ -145,7 +145,10 @@ describe("OrganizationsController (e2e)", () => {
         .expect(HttpStatus.CREATED);
 
       expect(response.body).toEqual(expectedResponse);
-      expect(organizationsService.create).toHaveBeenCalledWith(createOrgDto);
+      // Controller maps parent_id -> parentId before passing to service
+      expect(organizationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Acme Corporation" })
+      );
     });
 
     it("should reject organization creation with missing required fields", async () => {
@@ -433,9 +436,14 @@ describe("OrganizationsController (e2e)", () => {
         .expect(HttpStatus.OK);
 
       expect(response.body).toEqual(expectedResponse);
+      // Controller maps parent_id -> parentId before passing to service
       expect(organizationsService.update).toHaveBeenCalledWith(
         orgId,
-        updateOrgDto,
+        expect.objectContaining({
+          name: updateOrgDto.name,
+          email: updateOrgDto.email,
+          phone: updateOrgDto.phone,
+        }),
       );
     });
 
@@ -594,7 +602,10 @@ describe("OrganizationsController (e2e)", () => {
         .set("Authorization", "Bearer owner-jwt-token")
         .expect(HttpStatus.NO_CONTENT);
 
-      expect(organizationsService.remove).toHaveBeenCalledWith(orgId);
+      expect(organizationsService.remove).toHaveBeenCalledWith(
+        orgId,
+        DEFAULT_ORG_ID,
+      );
     });
 
     it("should reject deletion with invalid UUID", async () => {

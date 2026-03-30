@@ -1,0 +1,26 @@
+%% C7. Оптимизация маршрутов
+%% Источник: routes/route-optimization.service.ts, routes/routes.service.ts
+flowchart TD
+    START(["Запрос оптимизации\nмаршрута"]) --> INPUT["Входные данные:\n• Список задач (Task[])\n• Локации автоматов (Location[])\n• Текущая позиция оператора\n• Транспортное средство (Vehicle)"]
+
+    INPUT --> PRIORITY["Приоритизация задач:\n1. CRITICAL (аварийные)\n2. HIGH (low stock)\n3. MEDIUM (плановое ТО)\n4. LOW (профилактика)"]
+
+    PRIORITY --> CLUSTER["Кластеризация\nпо географии:\nблизкие точки → группы"]
+
+    CLUSTER --> OPTIMIZE["Алгоритм оптимизации:\nMinimize total distance\n+ учёт приоритетов\n+ учёт временных окон\n(локация работает 09:00-18:00)"]
+
+    OPTIMIZE --> ROUTE["Создание Route:\n• orderedStops[]\n• estimatedDistance\n• estimatedDuration\n• estimatedFuelCost"]
+
+    ROUTE --> ASSIGN["Назначение оператору:\nassignedToId,\nscheduledDate"]
+
+    ASSIGN --> TRIP_LINK["Создание Trip:\nrouteId → привязка\nTripTaskLink[] для\nкаждой остановки"]
+
+    TRIP_LINK --> DONE(["✓ Маршрут оптимизирован\nи назначен"])
+
+    subgraph FACTORS ["Факторы оптимизации"]
+        FA1["Расстояние между точками\n(Haversine / Google Distance Matrix)"]
+        FA2["Приоритет задачи\n(вес при сортировке)"]
+        FA3["Временные окна локаций\n(часы работы)"]
+        FA4["Вместимость транспорта\n(Vehicle.capacity)"]
+        FA5["Текущие пробки\n(опционально, через API)"]
+    end

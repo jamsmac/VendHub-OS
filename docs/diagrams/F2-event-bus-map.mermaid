@@ -1,0 +1,89 @@
+%% F2. Event Bus (EventEmitter2) — карта событий
+%% Кто emit'ит → Кто слушает (@OnEvent)
+flowchart LR
+    subgraph EMITTERS ["Источники событий (emit)"]
+        TX_SVC["TransactionService"]
+        ORDER_SVC["OrdersService"]
+        LOYALTY_SVC["LoyaltyService"]
+        ALERT_SVC["AlertsService"]
+        COMPLAINT_SVC["ComplaintsService"]
+        TASK_SVC["TasksService"]
+        MAINT_SVC["MaintenanceService"]
+        COLLECTION_SVC["CollectionsService"]
+        AUTH_SVC["AuthService"]
+        REFERRAL_SVC["ReferralsService"]
+        CONTRACTOR_SVC["ContractorsService"]
+        EMPLOYEE_SVC["EmployeesService"]
+        MACHINE_SVC["MachinesService"]
+        WORKLOG_SVC["WorkLogsService"]
+        INVENTORY_SVC["InventoryService"]
+    end
+
+    subgraph EVENTS ["События"]
+        E1["transaction.completed"]
+        E2["transaction.partial"]
+        E3["order.completed"]
+        E4["order.status_changed"]
+        E5["loyalty.level_up"]
+        E6["loyalty.points_earned"]
+        E7["alert.triggered"]
+        E8["complaint.created"]
+        E9["complaint.resolved"]
+        E10["task.assigned"]
+        E11["task.completed"]
+        E12["maintenance.completed"]
+        E13["collection.verified"]
+        E14["referral.completed"]
+        E15["achievement.unlocked"]
+        E16["inventory.low_stock"]
+        E17["machine.error"]
+        E18["machine.status_changed"]
+    end
+
+    subgraph LISTENERS ["Подписчики (@OnEvent)"]
+        ANALYTICS_L["AnalyticsListener:\nОбновление AnalyticsSnapshot\nпо transaction.completed,\ncollection.verified,\nmaintenance.completed,\norder.completed"]
+        QUEST_L["QuestProgressService:\nОбновление прогресса квестов\nпо order.completed,\nreferral.completed,\nloyalty.level_up"]
+        REFERRAL_L["ReferralsService:\nАктивация реферала\nпо order.completed"]
+        NOTIFY_L["NotificationsService:\nОтправка уведомлений\nпо alert.triggered,\ntask.assigned, etc."]
+        WEBSOCKET_L["WebSocket Gateways:\nReal-time push клиентам\nпо machine.*, order.*"]
+        AUDIT_L["AuditSubscriber:\nЗапись в audit log\n(через TypeORM)"]
+    end
+
+    TX_SVC --> E1
+    TX_SVC --> E2
+    ORDER_SVC --> E3
+    ORDER_SVC --> E4
+    LOYALTY_SVC --> E5
+    LOYALTY_SVC --> E6
+    ALERT_SVC --> E7
+    COMPLAINT_SVC --> E8
+    COMPLAINT_SVC --> E9
+    TASK_SVC --> E10
+    TASK_SVC --> E11
+    MAINT_SVC --> E12
+    COLLECTION_SVC --> E13
+    REFERRAL_SVC --> E14
+    INVENTORY_SVC --> E16
+    MACHINE_SVC --> E17
+    MACHINE_SVC --> E18
+
+    E1 --> ANALYTICS_L
+    E3 --> ANALYTICS_L
+    E12 --> ANALYTICS_L
+    E13 --> ANALYTICS_L
+
+    E3 --> QUEST_L
+    E14 --> QUEST_L
+    E5 --> QUEST_L
+
+    E3 --> REFERRAL_L
+
+    E7 --> NOTIFY_L
+    E8 --> NOTIFY_L
+    E10 --> NOTIFY_L
+    E16 --> NOTIFY_L
+    E17 --> NOTIFY_L
+
+    E4 --> WEBSOCKET_L
+    E17 --> WEBSOCKET_L
+    E18 --> WEBSOCKET_L

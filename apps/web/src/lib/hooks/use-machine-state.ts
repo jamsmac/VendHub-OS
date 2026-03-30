@@ -22,6 +22,20 @@ export interface BunkerState {
   isLow: boolean;
 }
 
+export interface SlotState {
+  slotId: string;
+  slotNumber: string;
+  productId: string | null;
+  productName: string | null;
+  currentQuantity: number;
+  capacity: number;
+  fillPercent: number;
+  price: number | null;
+  isActive: boolean;
+  needsRefill: boolean;
+  totalSold: number;
+}
+
 export interface ComponentState {
   componentId: string;
   name: string;
@@ -49,11 +63,13 @@ export interface MachineCalculatedState {
   machineCode: string;
   calculatedAt: string;
   bunkers: BunkerState[];
+  slots: SlotState[];
   components: ComponentState[];
   cleaning: CleaningState;
   summary: {
     totalPortionsLeft: number;
     lowStockBunkers: number;
+    lowStockSlots: number;
     componentsNeedingMaintenance: number;
     overdueTasks: number;
   };
@@ -87,7 +103,26 @@ export function useMachineState(machineId: string) {
     queryKey: ["machine-state", machineId],
     queryFn: async () => {
       const res = await machinesApi.getState(machineId);
-      return res.data as MachineCalculatedState;
+      // Unwrap potential double-wrapping: res.data could be { data: MachineState } or MachineState directly
+      const raw = res.data?.data ?? res.data;
+      if (!raw || typeof raw !== "object") return null;
+      // Ensure arrays are present (backend may return null for empty lists)
+      return {
+        ...raw,
+        bunkers: Array.isArray(raw.bunkers) ? raw.bunkers : [],
+        slots: Array.isArray(raw.slots) ? raw.slots : [],
+        components: Array.isArray(raw.components) ? raw.components : [],
+        cleaning: raw.cleaning ?? {
+          cupsSinceFlush: 0,
+          flushThreshold: 50,
+          flushOverdue: false,
+          daysSinceDeepClean: 0,
+          deepCleanIntervalDays: 30,
+          deepCleanOverdue: false,
+          lastFlushDate: null,
+          lastDeepCleanDate: null,
+        },
+      } as MachineCalculatedState;
     },
     enabled: !!machineId,
     refetchInterval: 60_000, // Refresh every minute

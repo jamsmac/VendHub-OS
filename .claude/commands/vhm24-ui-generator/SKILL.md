@@ -2,7 +2,7 @@
 name: vhm24-ui-generator
 description: |
   VendHub React UI Generator - создаёт React компоненты для админ-панели и PWA.
-  Генерирует страницы, формы, таблицы с shadcn/ui, Zustand, React Hook Form.
+  Генерирует страницы, формы, таблицы с shadcn/ui, React Query, React Hook Form.
   Использовать при создании новых экранов, компонентов, интерфейсов.
 ---
 
@@ -40,90 +40,76 @@ vhm24-ux-spec (спецификация) -> [Утверждение] -> vhm24-ui
 
 ## Шаблон страницы админ-панели (Next.js App Router)
 
-### Серверный компонент (page.tsx)
+**ВАЖНО:** Актуальный паттерн — `"use client"` page.tsx с React Query (`@tanstack/react-query`), а НЕ серверные компоненты с Zustand stores. Все страницы — клиентские. Данные загружаются через `api` (Axios) из `@/lib/api`.
+
+### Клиентская страница (page.tsx)
 
 ```tsx
-// app/(admin)/machines/page.tsx
-// Серверный компонент - получает начальные данные на сервере
-import { Metadata } from "next";
-import { MachinesClient } from "./_components/machines-client";
-import { api } from "@/lib/api";
-
-export const metadata: Metadata = {
-  title: "Автоматы | VendHub",
-  description: "Управление вендинговыми автоматами",
-};
-
-export default async function MachinesPage() {
-  // Серверная загрузка начальных данных
-  const initialData = await api.get("/api/v1/machines").then((r) => r.data);
-
-  return <MachinesClient initialData={initialData} />;
-}
-```
-
-### Клиентский компонент
-
-```tsx
-// app/(admin)/machines/_components/machines-client.tsx
+// app/dashboard/machines/page.tsx
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Coffee } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useMachinesStore } from "@/stores/machines-store";
-import { useEffect } from "react";
+import { Plus, Coffee, Loader2 } from "lucide-react";
+import { machinesApi } from "@/lib/api";
+import Link from "next/link";
 import { toast } from "sonner";
-import type { Machine } from "@/types/machine";
 
-interface MachinesClientProps {
-  initialData: Machine[];
-}
+export default function MachinesPage() {
+  // React Query для загрузки данных — кэширование, рефетч, stale/fresh
+  const { data: machines = [], isLoading, error } = useQuery({
+    queryKey: ["machines"],
+    queryFn: () => machinesApi.getAll(),
+  });
 
-export function MachinesClient({ initialData }: MachinesClientProps) {
-  const { machines, isLoading, error, fetchMachines } = useMachinesStore();
+  const { data: stats } = useQuery({
+    queryKey: ["machines", "stats"],
+    queryFn: () => machinesApi.getStats(),
+  });
 
-  // Инициализация данными с сервера, фоновое обновление
-  useEffect(() => {
-    useMachinesStore.setState({ machines: initialData });
-    fetchMachines();
-  }, [initialData, fetchMachines]);
-
-  if (error) {
-    toast.error("Ошибка загрузки автоматов");
-  }
+  if (error) toast.error("Ошибка загрузки автоматов");
 
   return (
     <div className="space-y-6">
-      {/* Сетка статистики */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Всего автоматов"
-          value={machines.length}
-          icon={<Coffee className="h-5 w-5" />}
-        />
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Автоматы</h1>
+        <Link href="/dashboard/machines/new">
+          <Button size="sm"><Plus className="w-4 h-4 mr-2" /> Добавить</Button>
+        </Link>
       </div>
 
-      {/* Основной контент */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Список автоматов</span>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Добавить
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* DataTable или сетка карточек */}
-        </CardContent>
-      </Card>
+      {/* Статистика */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Всего" value={stats?.total ?? 0} icon={<Coffee className="h-5 w-5" />} />
+      </div>
+
+      {/* Список — DataTable или карточки */}
+      {isLoading ? <Loader2 className="animate-spin" /> : (
+        <Card>
+          <CardContent>{/* DataTable с machines */}</CardContent>
+        </Card>
+      )}
     </div>
   );
 }
 ```
+
+### API клиент (паттерн)
+
+```tsx
+// lib/api.ts — типичная структура API для модуля
+export const machinesApi = {
+  getAll: (params?: Record<string, unknown>) => api.get("/machines", { params }).then(unwrap),
+  getById: (id: string) => api.get(`/machines/${id}`).then(unwrap),
+  getStats: () => api.get("/machines/stats").then(unwrap),
+  getState: (id: string) => api.get(`/machines/${id}/state`).then(unwrap),
+  create: (data: Record<string, unknown>) => api.post("/machines", data).then(unwrap),
+  update: (id: string, data: Record<string, unknown>) => api.patch(`/machines/${id}`, data).then(unwrap),
+};
+```
+
+**НЕ ИСПОЛЬЗУЙ:** `useMachinesStore`, `@/stores/`, серверные компоненты с `async function`, `getServerSideProps`.
 
 ### Компонент StatCard
 
@@ -177,7 +163,7 @@ export function StatCard({ title, value, change, icon, trend }: StatCardProps) {
 ### Определение колонок
 
 ```tsx
-// app/(admin)/machines/_components/columns.tsx
+// app/dashboard/machines/_components/columns.tsx
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -420,7 +406,7 @@ import { DataTable } from "@/components/shared/data-table";
 ## Паттерн формы (React Hook Form + Zod + shadcn Form)
 
 ```tsx
-// app/(admin)/machines/_components/machine-form.tsx
+// app/dashboard/machines/_components/machine-form.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -446,7 +432,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useMachinesStore } from "@/stores/machines-store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 // Zod-схема валидации
 const machineSchema = z.object({
@@ -474,8 +461,21 @@ interface MachineFormProps {
 }
 
 export function MachineForm({ defaultValues, machineId, onSuccess }: MachineFormProps) {
-  const { createMachine, updateMachine } = useMachinesStore();
+  const queryClient = useQueryClient();
   const isEditing = !!machineId;
+
+  const mutation = useMutation({
+    mutationFn: (values: MachineFormValues) =>
+      isEditing
+        ? api.patch(`/machines/${machineId}`, values)
+        : api.post("/machines", values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["machines"] });
+      toast.success(isEditing ? "Автомат обновлён" : "Автомат создан");
+      onSuccess?.();
+    },
+    onError: () => toast.error("Ошибка сохранения"),
+  });
 
   const form = useForm<MachineFormValues>({
     resolver: zodResolver(machineSchema),
@@ -492,16 +492,9 @@ export function MachineForm({ defaultValues, machineId, onSuccess }: MachineForm
 
   async function onSubmit(values: MachineFormValues) {
     try {
-      if (isEditing) {
-        await updateMachine(machineId, values);
-        toast.success("Автомат успешно обновлён");
-      } else {
-        await createMachine(values);
-        toast.success("Автомат успешно создан");
-      }
-      onSuccess?.();
-    } catch (error) {
-      toast.error(isEditing ? "Ошибка обновления автомата" : "Ошибка создания автомата");
+      mutation.mutate(values);
+    } catch {
+      // mutation.onError handles toast
     }
   }
 
@@ -579,158 +572,73 @@ export function MachineForm({ defaultValues, machineId, onSuccess }: MachineForm
 }
 ```
 
-## Паттерн API-хуков (Axios + Zustand)
+## Паттерн API-хуков (Axios + React Query)
+
+**ВАЖНО:** Актуальный паттерн — React Query (`@tanstack/react-query`) для кэширования и рефетча, а НЕ Zustand stores для серверных данных. Zustand используется ТОЛЬКО для клиентского UI-состояния (sidebar toggle, modal state и т.п.).
 
 ### Настройка Axios
 
 ```tsx
 // lib/api.ts
 import axios from "axios";
-import { toast } from "sonner";
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1",
   timeout: 15000,
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
-// Интерцептор запросов - добавление токена
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Глобальная обёртка для распаковки ответов
+const unwrap = (res: { data: unknown }) => {
+  const d = res?.data as Record<string, unknown>;
+  return d?.data ?? d;
+};
 
-// Интерцептор ответов - обработка ошибок
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const message = error.response?.data?.message || "Произошла ошибка";
-    const status = error.response?.status;
-
-    if (status === 401) {
-      // Перенаправление на авторизацию
-      toast.error("Сессия истекла. Войдите заново.");
-      window.location.href = "/login";
-    } else if (status === 403) {
-      toast.error("Нет доступа к данному ресурсу");
-    } else if (status >= 500) {
-      toast.error("Ошибка сервера. Попробуйте позже.");
-    }
-
-    return Promise.reject(error);
-  }
-);
+// API-модуль для конкретной сущности
+export const machinesApi = {
+  getAll: (params?: Record<string, unknown>) => api.get("/machines", { params }).then(unwrap),
+  getById: (id: string) => api.get(`/machines/${id}`).then(unwrap),
+  getStats: () => api.get("/machines/stats").then(unwrap),
+  getState: (id: string) => api.get(`/machines/${id}/state`).then(unwrap),
+  create: (data: Record<string, unknown>) => api.post("/machines", data),
+  update: (id: string, data: Record<string, unknown>) => api.patch(`/machines/${id}`, data),
+  delete: (id: string) => api.delete(`/machines/${id}`),
+};
 ```
 
-### Zustand-стор с Axios
+### React Query хуки
 
 ```tsx
-// stores/machines-store.ts
-import { create } from "zustand";
-import { api } from "@/lib/api";
-import type { Machine } from "@/types/machine";
+// Пример использования в компоненте
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { machinesApi } from "@/lib/api";
 
-interface MachinesState {
-  // Данные
-  machines: Machine[];
-  selectedMachine: Machine | null;
+// Загрузка списка (с кэшированием)
+const { data: machines = [], isLoading } = useQuery({
+  queryKey: ["machines"],
+  queryFn: () => machinesApi.getAll(),
+});
 
-  // Состояния загрузки
-  isLoading: boolean;
-  error: string | null;
+// Загрузка по ID
+const { data: machine } = useQuery({
+  queryKey: ["machines", id],
+  queryFn: () => machinesApi.getById(id),
+  enabled: !!id,
+});
 
-  // Действия
-  fetchMachines: () => Promise<void>;
-  fetchMachineById: (id: number) => Promise<void>;
-  createMachine: (data: Partial<Machine>) => Promise<void>;
-  updateMachine: (id: number, data: Partial<Machine>) => Promise<void>;
-  deleteMachine: (id: number) => Promise<void>;
-
-  // Утилиты
-  clearError: () => void;
-  reset: () => void;
-}
-
-export const useMachinesStore = create<MachinesState>((set, get) => ({
-  machines: [],
-  selectedMachine: null,
-  isLoading: false,
-  error: null,
-
-  fetchMachines: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const { data } = await api.get<Machine[]>("/api/v1/machines");
-      set({ machines: data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-    }
+// Мутация (создание/обновление)
+const queryClient = useQueryClient();
+const createMutation = useMutation({
+  mutationFn: (data: Record<string, unknown>) => machinesApi.create(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["machines"] });
+    toast.success("Автомат создан");
   },
-
-  fetchMachineById: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      const { data } = await api.get<Machine>(`/api/v1/machines/${id}`);
-      set({ selectedMachine: data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-    }
-  },
-
-  createMachine: async (machineData) => {
-    set({ isLoading: true, error: null });
-    try {
-      const { data } = await api.post<Machine>("/api/v1/machines", machineData);
-      set((state) => ({
-        machines: [...state.machines, data],
-        isLoading: false,
-      }));
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-      throw error;
-    }
-  },
-
-  updateMachine: async (id, machineData) => {
-    set({ isLoading: true, error: null });
-    try {
-      const { data } = await api.patch<Machine>(`/api/v1/machines/${id}`, machineData);
-      set((state) => ({
-        machines: state.machines.map((m) => (m.id === id ? data : m)),
-        selectedMachine: state.selectedMachine?.id === id ? data : state.selectedMachine,
-        isLoading: false,
-      }));
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-      throw error;
-    }
-  },
-
-  deleteMachine: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await api.delete(`/api/v1/machines/${id}`);
-      set((state) => ({
-        machines: state.machines.filter((m) => m.id !== id),
-        selectedMachine: state.selectedMachine?.id === id ? null : state.selectedMachine,
-        isLoading: false,
-      }));
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-      throw error;
-    }
-  },
-
-  clearError: () => set({ error: null }),
-  reset: () => set({ machines: [], selectedMachine: null, isLoading: false, error: null }),
-}));
+  onError: () => toast.error("Ошибка создания"),
+});
 ```
+
+**НЕ ИСПОЛЬЗУЙ для серверных данных:** `create` from `"zustand"`, `useMachinesStore`, `@/stores/machines-store`.
 
 ## Цветовая система
 
@@ -964,19 +872,23 @@ export function ErrorState({
 ### Объединённый паттерн для страницы
 
 ```tsx
-// Типичная обёртка контента на странице
+// Типичная обёртка контента на странице с React Query
 function PageContent() {
-  const { machines, isLoading, error, fetchMachines } = useMachinesStore();
+  const router = useRouter();
+  const { data: machines = [], isLoading, error, refetch } = useQuery({
+    queryKey: ["machines"],
+    queryFn: () => machinesApi.getAll(),
+  });
 
   if (isLoading) return <LoadingState message="Загрузка автоматов..." />;
-  if (error) return <ErrorState message={error} onRetry={fetchMachines} />;
+  if (error) return <ErrorState message="Ошибка загрузки" onRetry={() => refetch()} />;
   if (machines.length === 0) {
     return (
       <EmptyState
         title="Нет автоматов"
         description="Начните с добавления первого автомата."
         actionLabel="Добавить автомат"
-        onAction={() => router.push("/machines/new")}
+        onAction={() => router.push("/dashboard/machines/new")}
       />
     );
   }
@@ -992,7 +904,7 @@ function PageContent() {
 - [ ] TypeScript с корректными интерфейсами и типами
 - [ ] Используются компоненты shadcn/ui (Card, Button, Input, Select, и т.д.)
 - [ ] API-вызовы через Axios к NestJS REST эндпоинтам (api/v1/*)
-- [ ] Состояние управляется через Zustand-стор
+- [ ] Серверные данные через React Query (useQuery/useMutation), НЕ Zustand
 - [ ] Формы через React Hook Form + Zod валидацию
 - [ ] Таблицы через @tanstack/react-table + DataTable
 - [ ] Поддержка тёмной темы (dark: префикс)

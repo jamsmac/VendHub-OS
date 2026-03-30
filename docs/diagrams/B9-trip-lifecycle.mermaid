@@ -1,0 +1,63 @@
+%% B9. Рейс (Trip) — ИСПРАВЛЕНО по TripStatus enum
+%% Источник: trips/entities/trip.entity.ts, trips/trips.service.ts, trips/services/*
+stateDiagram-v2
+    [*] --> ACTIVE : Создание и старт рейса\n(driverId, vehicleId,\ntransportType, startOdometer)
+
+    ACTIVE --> COMPLETED : Все точки посещены\n(endedAt, endOdometer)
+    ACTIVE --> CANCELLED : Ручная отмена
+    ACTIVE --> AUTO_CLOSED : Cron: автозакрытие\n(нет GPS > 2ч)
+
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+    AUTO_CLOSED --> [*]
+
+    note right of ACTIVE
+        TransportType:
+        CAR / MOTORCYCLE / BICYCLE /
+        ON_FOOT / PUBLIC_TRANSPORT
+
+        GPS-трекинг:
+        TripPoint (lat, lon, speed, accuracy)
+        каждые N секунд
+
+        TripStop: автодетекция остановок
+        TripTaskLink: привязка задач
+        TripAnomaly: отклонения
+    end note
+
+    note left of COMPLETED
+        TripReconciliation:
+        fuelUsed vs estimated
+        distanceActual vs planned
+    end note
+
+    note right of AUTO_CLOSED
+        trips.cron.ts:
+        Периодическая проверка
+        ACTIVE рейсов без GPS-данных
+        более 2 часов → AUTO_CLOSED
+    end note
+
+---
+
+flowchart TD
+    subgraph GPS_FLOW ["GPS Processing (real-time)"]
+        G1["Новая GPS-точка\nот мобильного приложения"] --> G2["GpsProcessingService:\nсохранение TripPoint"]
+        G2 --> G3["Haversine: расстояние\nот предыдущей точки"]
+        G3 --> G4{"Скорость\n> 80 km/h?"}
+        G4 -->|"Да"| G5["TripAnomaly:\nSPEED_LIMIT\nseverity по значению"]
+        G4 -->|"Нет"| G6{"Отклонение от\nмаршрута > 500м?"}
+        G6 -->|"Да"| G7["TripAnomaly:\nROUTE_DEVIATION"]
+        G6 -->|"Нет"| G8{"Стоянка > 30 мин?"}
+        G8 -->|"Да"| G9{"На точке маршрута?"}
+        G9 -->|"Нет"| G10["TripAnomaly:\nUNAUTHORIZED_STOP"]
+        G9 -->|"Да"| G11["TripStop: плановая остановка\n→ TripTaskLink: ARRIVED"]
+        G8 -->|"Нет"| G12["Продолжение трекинга"]
+    end
+
+    subgraph ANOMALY_SEVERITY ["Severity (AnomalySeverity)"]
+        AS1["LOW: мелкое отклонение"]
+        AS2["MEDIUM: заметное отклонение"]
+        AS3["HIGH: существенное нарушение"]
+        AS4["CRITICAL: требует немедленного внимания"]
+    end

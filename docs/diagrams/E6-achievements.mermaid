@@ -1,0 +1,55 @@
+%% E6. Система достижений (Achievements)
+%% Источник: achievements/achievements.service.ts, achievements/constants/achievement.constants.ts
+flowchart TD
+    subgraph CONDITIONS ["Типы условий (AchievementConditionType)"]
+        CT1["ORDER_COUNT: количество заказов"]
+        CT2["ORDER_AMOUNT: сумма заказов (UZS)"]
+        CT3["STREAK_DAYS: серия дней подряд"]
+        CT4["UNIQUE_PRODUCTS: уникальных напитков"]
+        CT5["UNIQUE_MACHINES: уникальных автоматов"]
+        CT6["REFERRAL_COUNT: приглашённых друзей"]
+        CT7["QUEST_COMPLETED: выполненных квестов"]
+        CT8["LOYALTY_LEVEL: достичь уровня"]
+        CT9["FIRST_ORDER: первый заказ"]
+        CT10["REVIEW_COUNT: оставленных отзывов"]
+        CT11["EARLY_BIRD: заказ до 8 утра"]
+        CT12["NIGHT_OWL: заказ после 22:00"]
+        CT13["WEEKEND_WARRIOR: заказы в выходные"]
+        CT14["PROMO_USED: использованных промокодов"]
+    end
+
+    subgraph LIFECYCLE ["Жизненный цикл достижения"]
+        CREATE(["Admin создаёт Achievement:\nname, description, iconUrl,\nconditionType, targetValue,\nrewardPoints, isActive"]) --> ACTIVE["Achievement доступно\nвсем пользователям"]
+
+        ACTIVE --> EVENT(["Событие в системе\n(заказ, реферал, квест...)"])
+        EVENT --> CHECK["checkAndUpdateProgress():\nconditionType, currentValue, userId"]
+
+        CHECK --> EVAL{"Тип оценки?"}
+
+        EVAL -->|"Инкрементальный\n(ORDER_COUNT, STREAK_DAYS,\nREFERRAL_COUNT...)"| INCREMENT["currentProgress++\nили currentProgress += value"]
+
+        EVAL -->|"Уникальные значения\n(UNIQUE_PRODUCTS,\nUNIQUE_MACHINES)"| UNIQUE["COUNT(DISTINCT items)\nиз Orders пользователя"]
+
+        EVAL -->|"Разовый\n(FIRST_ORDER,\nEARLY_BIRD)"| ONCE["currentProgress = 1\n(если условие выполнено)"]
+
+        INCREMENT --> PROGRESS_CHECK
+        UNIQUE --> PROGRESS_CHECK
+        ONCE --> PROGRESS_CHECK
+
+        PROGRESS_CHECK{"currentProgress\n≥ targetValue?"}
+        PROGRESS_CHECK -->|"Нет"| UPDATE_PROGRESS["Обновление UserAchievement:\ncurrentProgress, lastCheckedAt"]
+        PROGRESS_CHECK -->|"Да"| UNLOCKED["🏆 UserAchievement:\nstatus: UNLOCKED\nunlockedAt: now\n→ Event: achievement.unlocked"]
+    end
+
+    subgraph CLAIM ["Получение награды"]
+        UNLOCKED --> CLAIM_BTN(["Клиент нажимает\n'Забрать награду'"])
+        CLAIM_BTN --> CLAIM_ACTION["claimReward():\nLoyaltyService.earnPoints()\nsource: ACHIEVEMENT\namount: rewardPoints"]
+        CLAIM_ACTION --> CLAIMED["status: CLAIMED\nclaimedAt: now"]
+
+        CLAIM_ALL["claimAllRewards():\nмассовое получение\nвсех unlocked наград"]
+    end
+
+    subgraph STATS ["Статистика"]
+        S1["getUserAchievementsSummary:\ntotalAchievements, unlocked,\nclaimed, totalPointsEarned,\ncompletionRate %"]
+        S2["getAchievementStats:\npopularity (% users unlocked),\navgTimeToUnlock"]
+    end

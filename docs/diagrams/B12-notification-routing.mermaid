@@ -1,0 +1,43 @@
+%% B12. Маршрутизация уведомлений
+%% Источник: notifications/*, fcm/, web-push/, sms/, email/, websocket/gateways/
+flowchart TD
+    EVENT(["Event emit:\nalert.triggered /\ntransaction.completed /\ntask.assigned /\norder.status_changed / etc."]) --> NOTIFY["NotificationsService:\nопределение типа уведомления"]
+
+    NOTIFY --> RECIPIENTS["Определение получателей:\nпо роли (manager/operator)\nпо машине (machineId)\nпо подписке (AlertRule)\nпо назначению (assignedTo)"]
+
+    RECIPIENTS --> FOREACH["Для каждого получателя:"]
+    FOREACH --> DELIVERY["NotificationDeliveryService:\nвыбор каналов"]
+
+    DELIVERY --> CHANNELS{"Доступные каналы\nпользователя"}
+
+    CHANNELS -->|"FCM token есть"| FCM["FCM Push:\nFcmService.send()\ntitle, body, data, badge"]
+    CHANNELS -->|"Web Push подписка"| WEBPUSH["Web Push:\nWebPushService.send()\n(VAPID keys)"]
+    CHANNELS -->|"Telegram привязан"| TG["Telegram:\nBotNotificationsService\n.send(chatId, message)"]
+    CHANNELS -->|"Email указан"| EMAIL["Email:\nEmailService.send()\n(SMTP/SES)"]
+    CHANNELS -->|"SMS (critical only)"| SMS["SMS:\nSmsService.send()\nEskiz / PlayMobile API"]
+    CHANNELS -->|"WebSocket online"| WS["WebSocket:\nNotificationGateway\n.emit('notification', data)"]
+
+    FCM --> STATUS["Обновление статуса:\nnotification.deliveredVia[]"]
+    WEBPUSH --> STATUS
+    TG --> STATUS
+    EMAIL --> STATUS
+    SMS --> STATUS
+    WS --> STATUS
+
+    STATUS --> SAVE["Сохранение Notification:\ntitle, body, type,\nrecipientId, isRead: false,\ndeliveredVia, sentAt"]
+
+    SAVE --> RETRY{"Доставка\nуспешна?"}
+    RETRY -->|"Да"| DONE(["✓ Доставлено"])
+    RETRY -->|"Нет"| RETRY_QUEUE["Retry через 5 мин\n(max 3 попытки)"]
+    RETRY_QUEUE --> DELIVERY
+
+    subgraph CRON_CLEANUP ["Cron-задачи"]
+        CL1["Web Push 3:00 AM:\nОчистка expired subscriptions"]
+        CL2["FCM: удаление\nинвалидных tokens"]
+    end
+
+    subgraph PREFERENCES ["Настройки получателя"]
+        P1["Каналы: включены/выключены\nпо типу уведомления"]
+        P2["Quiet hours: не беспокоить\n(23:00 — 07:00)"]
+        P3["SMS: только CRITICAL priority"]
+    end

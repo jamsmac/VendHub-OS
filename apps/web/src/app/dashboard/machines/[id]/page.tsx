@@ -100,6 +100,11 @@ export default function MachineDetailPage() {
                 {machine.name}
                 {machine.address && ` · ${machine.address}`}
               </p>
+              {machine.serialNumber && (
+                <p className="text-xs text-muted-foreground font-mono">
+                  S/N: {machine.serialNumber}
+                </p>
+              )}
             </div>
           </div>
 

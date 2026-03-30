@@ -81,17 +81,40 @@ export interface MachinePnL {
   avgTransaction: number;
 }
 
+export interface SlotState {
+  slotId: string;
+  slotNumber: string;
+  productId: string | null;
+  productName: string | null;
+  /** Current quantity in slot */
+  currentQuantity: number;
+  /** Maximum capacity */
+  capacity: number;
+  /** 0-100 fill percentage */
+  fillPercent: number;
+  /** Price per unit (UZS) */
+  price: number | null;
+  /** Is slot active */
+  isActive: boolean;
+  /** Is below min quantity */
+  needsRefill: boolean;
+  /** Total sold count */
+  totalSold: number;
+}
+
 export interface MachineCalculatedState {
   machineId: string;
   machineCode: string;
   calculatedAt: Date;
   bunkers: BunkerState[];
+  slots: SlotState[];
   components: ComponentState[];
   cleaning: CleaningState;
   /** Summary stats */
   summary: {
     totalPortionsLeft: number;
     lowStockBunkers: number;
+    lowStockSlots: number;
     componentsNeedingMaintenance: number;
     overdueTasks: number;
   };

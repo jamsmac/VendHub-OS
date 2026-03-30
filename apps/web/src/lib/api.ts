@@ -199,6 +199,29 @@ export const machinesApi = {
   getLocationHistory: (id: string) =>
     api.get(`/machines/${id}/location-history`),
   getComponents: (id: string) => api.get(`/machines/${id}/components`),
+  installComponent: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/components`, data),
+  getSimUsage: (id: string) => api.get(`/machines/${id}/sim-usage`),
+  addSimUsage: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/sim-usage`, data),
+  // Connectivity (Связь)
+  getConnectivity: (id: string) => api.get(`/machines/${id}/connectivity`),
+  addConnectivity: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/connectivity`, data),
+  updateConnectivity: (id: string, connId: string, data: RequestBody) =>
+    api.patch(`/machines/${id}/connectivity/${connId}`, data),
+  deleteConnectivity: (id: string, connId: string) =>
+    api.delete(`/machines/${id}/connectivity/${connId}`),
+  // Expenses (Расходы)
+  getExpenses: (id: string) => api.get(`/machines/${id}/expenses`),
+  addExpense: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/expenses`, data),
+  updateExpense: (id: string, expenseId: string, data: RequestBody) =>
+    api.patch(`/machines/${id}/expenses/${expenseId}`, data),
+  deleteExpense: (id: string, expenseId: string) =>
+    api.delete(`/machines/${id}/expenses/${expenseId}`),
+  // TCO
+  getTco: (id: string) => api.get(`/machines/${id}/tco`),
   getErrors: (id: string) => api.get(`/machines/${id}/errors`),
   getState: (id: string) => api.get(`/machines/${id}/state`),
   getPnL: (id: string, from: string, to: string) =>
@@ -703,7 +726,7 @@ export const containersApi = {
   getAll: (params?: QueryParams) => api.get("/containers", { params }),
   getById: (id: string) => api.get(`/containers/${id}`),
   getByMachine: (machineId: string) =>
-    api.get(`/containers/machine/${machineId}`),
+    api.get(`/containers/by-machine/${machineId}`),
   create: (data: RequestBody) => api.post("/containers", data),
   update: (id: string, data: RequestBody) =>
     api.patch(`/containers/${id}`, data),
@@ -1393,6 +1416,23 @@ export const workLogsApi = {
     api.post(`/work-logs/timesheets/${id}/approve`),
   rejectTimesheet: (id: string, data?: RequestBody) =>
     api.post(`/work-logs/timesheets/${id}/reject`, data),
+};
+
+// === Machine Templates ===
+
+export const machineTemplatesApi = {
+  getAll: () => api.get("/machine-templates").then((r) => r.data),
+  getActive: () => api.get("/machine-templates/active").then((r) => r.data),
+  getById: (id: string) =>
+    api.get(`/machine-templates/${id}`).then((r) => r.data),
+  create: (data: RequestBody) =>
+    api.post("/machine-templates", data).then((r) => r.data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/machine-templates/${id}`, data).then((r) => r.data),
+  delete: (id: string) =>
+    api.delete(`/machine-templates/${id}`).then((r) => r.data),
+  createMachineFromTemplate: (data: RequestBody) =>
+    api.post("/machine-templates/create-machine", data).then((r) => r.data),
 };
 
 // === Trip Analytics ===

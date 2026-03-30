@@ -34,7 +34,8 @@ export function TasksTab({ machineId }: TasksTabProps) {
     queryKey: ["tasks", "machine", machineId],
     queryFn: async () => {
       const res = await tasksApi.getAll({ machineId });
-      return (res.data?.data ?? res.data ?? []) as any[];
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     },
   });
 
@@ -46,7 +47,7 @@ export function TasksTab({ machineId }: TasksTabProps) {
     );
   }
 
-  const tasks = data || [];
+  const tasks: any[] = Array.isArray(data) ? data : [];
   const active = tasks.filter(
     (t: any) => t.status === "pending" || t.status === "in_progress",
   );
