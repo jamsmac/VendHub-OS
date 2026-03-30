@@ -812,17 +812,21 @@ function WarehouseForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const payload = {
+      // Map frontend fields → backend DTO (CreateWarehouseDto / UpdateWarehouseDto)
+      // Note: is_active → isActive, code is auto-generated if not provided
+      const payload: Record<string, unknown> = {
         name: data.name,
         type: data.type,
         address: data.address || undefined,
         description: data.description || undefined,
-        is_active: data.is_active,
+        isActive: data.is_active,
         capacity: data.capacity ? Number(data.capacity) : undefined,
       };
       if (warehouse) {
         return warehouseApi.update(warehouse.id, payload);
       }
+      // Create requires code — auto-generate if not provided
+      payload.code = `WH-${Date.now().toString(36).toUpperCase()}`;
       return warehouseApi.create(payload);
     },
     onSuccess: () => {
@@ -958,11 +962,12 @@ function MovementForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Map product_id → productId, note → notes for backend DTO
       return warehouseApi.createMovement(warehouseId, {
         type: data.type,
-        product_id: data.product_id,
+        productId: data.product_id,
         quantity: Number(data.quantity),
-        note: data.note || undefined,
+        notes: data.note || undefined,
       });
     },
     onSuccess: () => {

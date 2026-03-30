@@ -718,11 +718,16 @@ function IncidentForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Map snake_case frontend fields → camelCase backend DTO fields
       const payload = {
-        ...data,
-        repair_cost: data.repair_cost ? Number(data.repair_cost) : undefined,
-        machine_id: data.machine_id || undefined,
-        insurance_claim_number: data.insurance_claim_number || undefined,
+        title: data.title,
+        description: data.description || undefined,
+        type: data.type,
+        priority: data.priority,
+        machineId: data.machine_id || undefined,
+        repairCost: data.repair_cost ? Number(data.repair_cost) : undefined,
+        insuranceClaim: data.insurance_claim,
+        insuranceClaimNumber: data.insurance_claim_number || undefined,
       };
       if (incident) {
         return incidentsApi.update(incident.id, payload);

@@ -460,10 +460,22 @@ function ContractorForm({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Map frontend fields → backend DTO (CreateContractorDto / UpdateContractorDto)
+      const payload = {
+        companyName: data.name,
+        contactPerson: data.contactPerson || undefined,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        serviceType: data.type,
+        contractNumber: data.contractNumber || undefined,
+        contractEnd: data.contractEndDate || undefined,
+        address: data.address || undefined,
+        notes: data.notes || undefined,
+      };
       if (contractor) {
-        return contractorsApi.update(contractor.id, data);
+        return contractorsApi.update(contractor.id, payload);
       }
-      return contractorsApi.create(data);
+      return contractorsApi.create(payload);
     },
     onSuccess: () => {
       toast.success(contractor ? t("updated") : t("added"));
