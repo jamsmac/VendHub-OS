@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -71,6 +74,18 @@ const SOURCE_KEYS = [
 ] as const;
 
 // ============================================================================
+// Schemas
+// ============================================================================
+
+const adjustPointsSchema = z.object({
+  userId: z.string().min(1, "User is required"),
+  amount: z.coerce.number().refine((v) => v !== 0, "Amount cannot be zero"),
+  reason: z.string().min(1, "Reason is required").max(500),
+});
+
+type AdjustPointsValues = z.infer<typeof adjustPointsSchema>;
+
+// ============================================================================
 // Component
 // ============================================================================
 
@@ -81,10 +96,10 @@ export default function LoyaltyTransactionsPage() {
   const [_sourceFilter, _setSourceFilter] = useState<string>("all");
   const [_page, _setPage] = useState(1);
   const [showAdjustDialog, setShowAdjustDialog] = useState(false);
-  const [adjustForm, setAdjustForm] = useState({
-    userId: "",
-    amount: 0,
-    reason: "",
+
+  const adjustForm = useForm<AdjustPointsValues>({
+    resolver: zodResolver(adjustPointsSchema),
+    defaultValues: { userId: "", amount: 0, reason: "" },
   });
 
   // Fetch transactions (admin stats view)
@@ -114,12 +129,11 @@ export default function LoyaltyTransactionsPage() {
 
   // Adjust points mutation
   const adjustMutation = useMutation({
-    mutationFn: (data: { userId: string; amount: number; reason: string }) =>
-      loyaltyApi.adjustPoints(data),
+    mutationFn: (data: AdjustPointsValues) => loyaltyApi.adjustPoints(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loyalty-stats"] });
       setShowAdjustDialog(false);
-      setAdjustForm({ userId: "", amount: 0, reason: "" });
+      adjustForm.reset({ userId: "", amount: 0, reason: "" });
     },
   });
 
@@ -324,59 +338,66 @@ export default function LoyaltyTransactionsPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t("labelUser")}</Label>
-              <Select
-                value={adjustForm.userId}
-                onValueChange={(v) =>
-                  setAdjustForm({ ...adjustForm, userId: v })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectUserPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Array.isArray(usersData)
-                    ? usersData
-                    : usersData?.data || []
-                  ).map((user: unknown) => {
-                    const u = user as {
-                      id?: string;
-                      firstName?: string;
-                      lastName?: string;
-                      email?: string;
-                    };
-                    return (
-                      <SelectItem key={u.id} value={u.id || ""}>
-                        {u.firstName} {u.lastName} ({u.email})
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              <Controller
+                control={adjustForm.control}
+                name="userId"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("selectUserPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Array.isArray(usersData)
+                        ? usersData
+                        : usersData?.data || []
+                      ).map((user: unknown) => {
+                        const u = user as {
+                          id?: string;
+                          firstName?: string;
+                          lastName?: string;
+                          email?: string;
+                        };
+                        return (
+                          <SelectItem key={u.id} value={u.id || ""}>
+                            {u.firstName} {u.lastName} ({u.email})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {adjustForm.formState.errors.userId && (
+                <p className="text-xs text-destructive">
+                  {adjustForm.formState.errors.userId.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t("labelPoints")}</Label>
               <Input
                 type="number"
-                value={adjustForm.amount}
-                onChange={(e) =>
-                  setAdjustForm({
-                    ...adjustForm,
-                    amount: Number(e.target.value),
-                  })
-                }
+                {...adjustForm.register("amount")}
                 placeholder={t("pointsPlaceholder")}
               />
               <p className="text-xs text-muted-foreground">{t("pointsHint")}</p>
+              {adjustForm.formState.errors.amount && (
+                <p className="text-xs text-destructive">
+                  {adjustForm.formState.errors.amount.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t("labelReason")}</Label>
               <Textarea
-                value={adjustForm.reason}
-                onChange={(e) =>
-                  setAdjustForm({ ...adjustForm, reason: e.target.value })
-                }
+                {...adjustForm.register("reason")}
                 placeholder={t("reasonPlaceholder")}
               />
+              {adjustForm.formState.errors.reason && (
+                <p className="text-xs text-destructive">
+                  {adjustForm.formState.errors.reason.message}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -387,13 +408,10 @@ export default function LoyaltyTransactionsPage() {
               {t("cancelBtn")}
             </Button>
             <Button
-              onClick={() => adjustMutation.mutate(adjustForm)}
-              disabled={
-                !adjustForm.userId ||
-                !adjustForm.amount ||
-                !adjustForm.reason ||
-                adjustMutation.isPending
-              }
+              onClick={adjustForm.handleSubmit((values) =>
+                adjustMutation.mutate(values),
+              )}
+              disabled={adjustMutation.isPending}
             >
               {adjustMutation.isPending ? t("saving") : t("applyBtn")}
             </Button>

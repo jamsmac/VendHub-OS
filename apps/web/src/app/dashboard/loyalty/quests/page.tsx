@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -122,7 +125,24 @@ const QUEST_TYPE_KEYS = [
   "collect_points",
 ] as const;
 
-const EMPTY_FORM = {
+const questFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  titleUz: z.string().max(255).optional().default(""),
+  description: z.string().max(1000).optional().default(""),
+  descriptionUz: z.string().max(1000).optional().default(""),
+  icon: z.string().min(1).max(10).default("🎯"),
+  period: z.enum(PERIOD_KEYS),
+  type: z.enum(QUEST_TYPE_KEYS),
+  targetValue: z.coerce.number().int().min(1).default(1),
+  pointsReward: z.coerce.number().int().min(0).default(20),
+  difficulty: z.enum(DIFFICULTY_KEYS),
+  isActive: z.boolean().default(true),
+  sortOrder: z.coerce.number().int().min(0).default(0),
+});
+
+type QuestFormValues = z.infer<typeof questFormSchema>;
+
+const EMPTY_DEFAULTS: QuestFormValues = {
   title: "",
   titleUz: "",
   description: "",
@@ -148,8 +168,12 @@ export default function QuestsPage() {
   const [periodFilter, setPeriodFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const form = useForm<QuestFormValues>({
+    resolver: zodResolver(questFormSchema),
+    defaultValues: EMPTY_DEFAULTS,
+  });
 
   // Fetch quests
   const { data: questsData, isLoading } = useQuery({
@@ -176,8 +200,8 @@ export default function QuestsPage() {
 
   // CRUD mutations
   const createMutation = useMutation({
-    mutationFn: (data: unknown) =>
-      questsApi.create(data as Record<string, unknown>),
+    mutationFn: (data: QuestFormValues) =>
+      questsApi.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quests"] });
       closeForm();
@@ -185,8 +209,8 @@ export default function QuestsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
-      questsApi.update(id, data as Record<string, unknown>),
+    mutationFn: ({ id, data }: { id: string; data: QuestFormValues }) =>
+      questsApi.update(id, data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quests"] });
       closeForm();
@@ -204,21 +228,21 @@ export default function QuestsPage() {
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    form.reset(EMPTY_DEFAULTS);
   };
 
   const openEdit = (quest: Quest) => {
-    setForm({
+    form.reset({
       title: quest.title,
       titleUz: quest.titleUz,
       description: quest.description,
       descriptionUz: quest.descriptionUz,
       icon: quest.icon,
-      period: quest.period,
-      type: quest.type,
+      period: quest.period as QuestFormValues["period"],
+      type: quest.type as QuestFormValues["type"],
       targetValue: quest.targetValue,
       pointsReward: quest.pointsReward,
-      difficulty: quest.difficulty,
+      difficulty: quest.difficulty as QuestFormValues["difficulty"],
       isActive: quest.isActive,
       sortOrder: quest.sortOrder,
     });
@@ -226,10 +250,10 @@ export default function QuestsPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
-    if (editingId) updateMutation.mutate({ id: editingId, data: form });
-    else createMutation.mutate(form);
-  };
+  const handleSave = form.handleSubmit((values) => {
+    if (editingId) updateMutation.mutate({ id: editingId, data: values });
+    else createMutation.mutate(values);
+  });
 
   const quests = (questsData || []).filter(
     (q) =>
@@ -270,7 +294,7 @@ export default function QuestsPage() {
         </div>
         <Button
           onClick={() => {
-            setForm(EMPTY_FORM);
+            form.reset(EMPTY_DEFAULTS);
             setEditingId(null);
             setShowForm(true);
           }}
@@ -489,139 +513,120 @@ export default function QuestsPage() {
               <div className="space-y-2">
                 <Label>{t("formIcon")}</Label>
                 <Input
-                  value={form.icon}
-                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  {...form.register("icon")}
                   className="text-center text-xl"
                 />
               </div>
               <div className="space-y-2">
                 <Label>{t("formTitleRu")}</Label>
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
+                <Input {...form.register("title")} />
+                {form.formState.errors.title && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.title.message}
+                  </p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
               <Label>{t("formTitleUz")}</Label>
-              <Input
-                value={form.titleUz}
-                onChange={(e) => setForm({ ...form, titleUz: e.target.value })}
-              />
+              <Input {...form.register("titleUz")} />
             </div>
             <div className="space-y-2">
               <Label>{t("formDescriptionRu")}</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
+              <Textarea {...form.register("description")} />
             </div>
             <div className="space-y-2">
               <Label>{t("formDescriptionUz")}</Label>
-              <Textarea
-                value={form.descriptionUz}
-                onChange={(e) =>
-                  setForm({ ...form, descriptionUz: e.target.value })
-                }
-              />
+              <Textarea {...form.register("descriptionUz")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("formPeriod")}</Label>
-                <Select
-                  value={form.period}
-                  onValueChange={(v) => setForm({ ...form, period: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PERIOD_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`period_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="period"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PERIOD_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`period_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("formDifficulty")}</Label>
-                <Select
-                  value={form.difficulty}
-                  onValueChange={(v) => setForm({ ...form, difficulty: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DIFFICULTY_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`difficulty_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="difficulty"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DIFFICULTY_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`difficulty_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("formQuestType")}</Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(v) => setForm({ ...form, type: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {QUEST_TYPE_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`questType_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {QUEST_TYPE_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`questType_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("formTarget")}</Label>
-                <Input
-                  type="number"
-                  value={form.targetValue}
-                  onChange={(e) =>
-                    setForm({ ...form, targetValue: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("targetValue")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("formReward")}</Label>
-                <Input
-                  type="number"
-                  value={form.pointsReward}
-                  onChange={(e) =>
-                    setForm({ ...form, pointsReward: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("pointsReward")} />
               </div>
               <div className="space-y-2">
                 <Label>{t("formSortOrder")}</Label>
-                <Input
-                  type="number"
-                  value={form.sortOrder}
-                  onChange={(e) =>
-                    setForm({ ...form, sortOrder: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("sortOrder")} />
               </div>
             </div>
             <div className="flex items-center justify-between">
               <Label>{t("formActive")}</Label>
               <Switch
-                checked={form.isActive}
-                onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+                checked={form.watch("isActive")}
+                onCheckedChange={(v) =>
+                  form.setValue("isActive", v, { shouldDirty: true })
+                }
               />
             </div>
           </div>
@@ -631,11 +636,7 @@ export default function QuestsPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={
-                !form.title ||
-                createMutation.isPending ||
-                updateMutation.isPending
-              }
+              disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending
                 ? t("saving")

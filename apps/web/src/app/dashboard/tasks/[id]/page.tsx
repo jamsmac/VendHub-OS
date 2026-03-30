@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
@@ -83,46 +86,77 @@ const PRIORITY_LABELS: Record<string, string> = {
   urgent: "Срочный",
 };
 
+const taskFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  description: z.string().max(1000).optional().default(""),
+  type: z.enum(TASK_TYPES),
+  status: z.enum(STATUSES),
+  priority: z.enum(PRIORITIES),
+  dueDate: z.string().optional().default(""),
+  taskNumber: z.string().optional().default(""),
+  assignedTo: z.string().optional().default(""),
+  machine: z.string().optional().default(""),
+});
+
+type TaskFormValues = z.infer<typeof taskFormSchema>;
+
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<Record<string, unknown> | null>(null);
 
-  const { isLoading } = useQuery({
-    queryKey: ["task", id],
-    queryFn: async () => {
-      const res = await api.get(`/tasks/${id}`);
-      const data = res.data?.data ?? res.data;
-      setForm({
-        title: data.title || "",
-        description: data.description || "",
-        type: data.typeCode || data.type || "refill",
-        status: data.status || "pending",
-        priority: data.priority || "normal",
-        dueDate: data.dueDate ? data.dueDate.split("T")[0] : "",
-        taskNumber: data.taskNumber || "",
-        assignedTo: data.assignedTo?.firstName
-          ? `${data.assignedTo?.firstName} ${data.assignedTo?.lastName || ""}`
-          : "",
-        machine: data.machine?.name || "",
-      });
-      return data;
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      type: "refill",
+      status: "pending",
+      priority: "normal",
+      dueDate: "",
+      taskNumber: "",
+      assignedTo: "",
+      machine: "",
     },
   });
 
+  const { data, isLoading } = useQuery({
+    queryKey: ["task", id],
+    queryFn: async () => {
+      const res = await api.get(`/tasks/${id}`);
+      return res.data?.data ?? res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    form.reset({
+      title: data.title || "",
+      description: data.description || "",
+      type: data.typeCode || data.type || "refill",
+      status: data.status || "pending",
+      priority: data.priority || "normal",
+      dueDate: data.dueDate ? data.dueDate.split("T")[0] : "",
+      taskNumber: data.taskNumber || "",
+      assignedTo: data.assignedTo?.firstName
+        ? `${data.assignedTo?.firstName} ${data.assignedTo?.lastName || ""}`
+        : "",
+      machine: data.machine?.name || "",
+    });
+  }, [data, form]);
+
   const updateMutation = useMutation({
-    mutationFn: () => {
-      const dueDate = form?.dueDate
-        ? new Date(form.dueDate as string).toISOString()
+    mutationFn: (values: TaskFormValues) => {
+      const dueDate = values.dueDate
+        ? new Date(values.dueDate).toISOString()
         : undefined;
       return api.patch(`/tasks/${id}`, {
-        title: form?.title,
-        description: (form?.description as string) || undefined,
-        status: form?.status,
-        priority: form?.priority,
+        title: values.title,
+        description: values.description || undefined,
+        status: values.status,
+        priority: values.priority,
         dueDate,
       });
     },
@@ -143,7 +177,9 @@ export default function TaskDetailPage() {
     onError: () => toast.error("Failed to delete"),
   });
 
-  if (isLoading || !form)
+  const onSubmit = form.handleSubmit((values) => updateMutation.mutate(values));
+
+  if (isLoading || !data)
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <Skeleton className="h-10 w-48" />
@@ -162,9 +198,9 @@ export default function TaskDetailPage() {
           </Link>
           <div>
             <p className="text-sm text-muted-foreground">
-              {form.taskNumber as string}
+              {form.watch("taskNumber")}
             </p>
-            <h1 className="text-2xl font-bold">{form.title as string}</h1>
+            <h1 className="text-2xl font-bold">{form.watch("title")}</h1>
           </div>
         </div>
         <Button
@@ -178,12 +214,7 @@ export default function TaskDetailPage() {
           {tCommon("delete") || "Delete"}
         </Button>
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          updateMutation.mutate();
-        }}
-      >
+      <form onSubmit={onSubmit}>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
@@ -195,84 +226,88 @@ export default function TaskDetailPage() {
               <label className="text-sm font-medium">
                 {t("title") || "Title"}
               </label>
-              <Input
-                value={form.title as string}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="mt-1"
-              />
+              <Input {...form.register("title")} className="mt-1" />
+              {form.formState.errors.title && (
+                <p className="text-xs text-destructive mt-1">
+                  {form.formState.errors.title.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">
                 {t("description") || "Description"}
               </label>
-              <Input
-                value={form.description as string}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                className="mt-1"
-              />
+              <Input {...form.register("description")} className="mt-1" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium">
                   {t("type") || "Type"}
                 </label>
-                <Select
-                  value={form.type as string}
-                  onValueChange={(v) => setForm({ ...form, type: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TASK_TYPES.map((tt) => (
-                      <SelectItem key={tt} value={tt}>
-                        {TASK_TYPE_LABELS[tt] ?? tt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TASK_TYPES.map((tt) => (
+                          <SelectItem key={tt} value={tt}>
+                            {TASK_TYPE_LABELS[tt] ?? tt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div>
                 <label className="text-sm font-medium">
                   {t("status") || "Status"}
                 </label>
-                <Select
-                  value={form.status as string}
-                  onValueChange={(v) => setForm({ ...form, status: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {STATUS_LABELS[s] ?? s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUSES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {STATUS_LABELS[s] ?? s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div>
                 <label className="text-sm font-medium">
                   {t("priority") || "Priority"}
                 </label>
-                <Select
-                  value={form.priority as string}
-                  onValueChange={(v) => setForm({ ...form, priority: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITIES.map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {PRIORITY_LABELS[p] ?? p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRIORITIES.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {PRIORITY_LABELS[p] ?? p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -282,10 +317,7 @@ export default function TaskDetailPage() {
                 </label>
                 <Input
                   type="date"
-                  value={form.dueDate as string}
-                  onChange={(e) =>
-                    setForm({ ...form, dueDate: e.target.value })
-                  }
+                  {...form.register("dueDate")}
                   className="mt-1"
                 />
               </div>
@@ -294,19 +326,19 @@ export default function TaskDetailPage() {
                   {t("assignedTo") || "Assigned To"}
                 </label>
                 <Input
-                  value={form.assignedTo as string}
+                  value={form.watch("assignedTo")}
                   disabled
                   className="mt-1 bg-muted"
                 />
               </div>
             </div>
-            {form.machine ? (
+            {form.watch("machine") ? (
               <div>
                 <label className="text-sm font-medium">
                   {t("machine") || "Machine"}
                 </label>
                 <Input
-                  value={form.machine as string}
+                  value={form.watch("machine")}
                   disabled
                   className="mt-1 bg-muted"
                 />

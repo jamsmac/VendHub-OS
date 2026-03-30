@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~99.5%** (updated from 99%)
+**Readiness: ~99.8%** (updated from 99.7%)
 
 ### Landing Site (site app)
 
@@ -450,14 +450,14 @@ Full audit (10 findings) → 3-sprint fix cycle. Key changes:
 
 **Known DTO→Entity Field Mappings (CRITICAL for future development):**
 
-| DTO field    | Entity field    | Notes                                          |
-| ------------ | --------------- | ---------------------------------------------- |
-| `code`       | `machineNumber` | Must be explicitly mapped in controller         |
-| `contentModel` | `contentModel` | Optional, derived from type in frontend         |
-| `basePrice`  | `sellingPrice`  | Products: mapped in controller create/update    |
-| `costPrice`  | `purchasePrice` | Products: mapped in controller create/update    |
-| `type`       | `typeCode`      | Tasks: mapped in controller create              |
-| `parent_id`  | `parentId`      | Organizations: snake→camelCase in controller    |
+| DTO field      | Entity field    | Notes                                        |
+| -------------- | --------------- | -------------------------------------------- |
+| `code`         | `machineNumber` | Must be explicitly mapped in controller      |
+| `contentModel` | `contentModel`  | Optional, derived from type in frontend      |
+| `basePrice`    | `sellingPrice`  | Products: mapped in controller create/update |
+| `costPrice`    | `purchasePrice` | Products: mapped in controller create/update |
+| `type`         | `typeCode`      | Tasks: mapped in controller create           |
+| `parent_id`    | `parentId`      | Organizations: snake→camelCase in controller |
 
 ### Security & Tenant Isolation Remediation (2026-03-30)
 
@@ -569,35 +569,79 @@ Full audit of 40+ dashboard form pages. 18 forms had field mapping bugs, all fix
 
 **Verified clean pages**: routes, collections, settings, products/new, machines/new, users/new, auth/login, auth/register, complaints/settings, complaints/qr-codes, directories, directories/[id]
 
-**Known gap**: Notification rules CRUD endpoints do NOT exist on backend — frontend rule forms submit to 404.
+**Known gap (RESOLVED)**: ~~Notification rules CRUD endpoints do NOT exist on backend~~ — Fixed in commit `1575d7b`: 5 CRUD endpoints added (GET/POST/PATCH/DELETE `/notifications/rules`).
+
+**Remaining known gap**: Payout requests endpoint — `apps/web/src/lib/hooks/use-finance.ts` has stub returning empty array, no backend endpoint yet.
 
 **Extended DTO→Entity Field Mappings (CRITICAL):**
 
-| Frontend field       | Backend DTO field      | Module         | Notes                                    |
-| -------------------- | ---------------------- | -------------- | ---------------------------------------- |
-| `code`               | `machineNumber`        | machines       | Explicit mapping in controller           |
-| `contentModel`       | `contentModel`         | machines       | Derived from type in frontend            |
-| `basePrice`          | `sellingPrice`         | products       | Mapped in controller create/update       |
-| `costPrice`          | `purchasePrice`        | products       | Mapped in controller create/update       |
-| `type`               | `typeCode`             | tasks          | Mapped in controller create              |
-| `parent_id`          | `parentId`             | organizations  | snake→camelCase in controller            |
-| `position`           | `employeeRole`         | employees      | Completely different field name           |
-| `address` (string)   | `address` (AddressDto) | locations      | Nested object with country/region/city   |
-| `contactPerson`      | `primary_contact_name` | locations      | Different naming convention              |
-| `name`               | `companyName`          | contractors    | Different field name                     |
-| `type`               | `serviceType`          | contractors    | Different field name                     |
-| `contractEndDate`    | `contractEnd`          | contractors    | Shortened name                           |
-| `machine_id`         | `machineId`            | incidents      | snake→camelCase                          |
-| `repair_cost`        | `repairCost`           | incidents      | snake→camelCase + Number()               |
-| `is_active`          | `isActive`             | warehouse      | snake→camelCase                          |
-| `product_id`         | `productId`            | stock-movement | snake→camelCase                          |
-| `currentOdometer`    | `odometer`             | vehicles       | Entity field ≠ DTO input field           |
-| `subject`            | `titleRu`              | notifications  | i18n model in backend                    |
-| `body`               | `bodyRu`               | notifications  | i18n model in backend                    |
-| `channels`           | `defaultChannels`      | notifications  | Template-specific naming                 |
-| `message`            | `body`                 | campaigns      | Different field name                     |
-| `audience_filter`    | `targetType`           | campaigns      | Structural: string → type+roles          |
-| `scheduled_at`       | `scheduledFor`         | campaigns      | Different field name + Date conversion   |
+| Frontend field     | Backend DTO field      | Module         | Notes                                  |
+| ------------------ | ---------------------- | -------------- | -------------------------------------- |
+| `code`             | `machineNumber`        | machines       | Explicit mapping in controller         |
+| `contentModel`     | `contentModel`         | machines       | Derived from type in frontend          |
+| `basePrice`        | `sellingPrice`         | products       | Mapped in controller create/update     |
+| `costPrice`        | `purchasePrice`        | products       | Mapped in controller create/update     |
+| `type`             | `typeCode`             | tasks          | Mapped in controller create            |
+| `parent_id`        | `parentId`             | organizations  | snake→camelCase in controller          |
+| `position`         | `employeeRole`         | employees      | Completely different field name        |
+| `address` (string) | `address` (AddressDto) | locations      | Nested object with country/region/city |
+| `contactPerson`    | `primary_contact_name` | locations      | Different naming convention            |
+| `name`             | `companyName`          | contractors    | Different field name                   |
+| `type`             | `serviceType`          | contractors    | Different field name                   |
+| `contractEndDate`  | `contractEnd`          | contractors    | Shortened name                         |
+| `machine_id`       | `machineId`            | incidents      | snake→camelCase                        |
+| `repair_cost`      | `repairCost`           | incidents      | snake→camelCase + Number()             |
+| `is_active`        | `isActive`             | warehouse      | snake→camelCase                        |
+| `product_id`       | `productId`            | stock-movement | snake→camelCase                        |
+| `currentOdometer`  | `odometer`             | vehicles       | Entity field ≠ DTO input field         |
+| `subject`          | `titleRu`              | notifications  | i18n model in backend                  |
+| `body`             | `bodyRu`               | notifications  | i18n model in backend                  |
+| `channels`         | `defaultChannels`      | notifications  | Template-specific naming               |
+| `message`          | `body`                 | campaigns      | Different field name                   |
+| `audience_filter`  | `targetType`           | campaigns      | Structural: string → type+roles        |
+| `scheduled_at`     | `scheduledFor`         | campaigns      | Different field name + Date conversion |
+
+### React Hook Form + Zod Migration (2026-03-31)
+
+13 forms migrated from raw `useState` to React Hook Form 7.61 + Zod validation, matching CLAUDE.md tech stack requirement. Pattern: `useForm<T>({ resolver: zodResolver(schema) })` with `Controller` for shadcn Select components.
+
+**Migrated pages (Batch 1 — commit 5aaa920):**
+
+| Page                                          | Fields      | Notes                                                                                             |
+| --------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `reconciliation/page.tsx`                     | 6           | `.refine()` for date range validation                                                             |
+| `settings/page.tsx`                           | 16 (4 tabs) | Flat schema covering general/notifications/security/appearance, `useEffect` populates from server |
+| `machine-access/page.tsx` (GrantAccessForm)   | 4           | UUID validation on machineId/userId                                                               |
+| `machine-access/page.tsx` (TemplateForm)      | 4           | Template CRUD with machineIds parsing                                                             |
+| `machine-access/page.tsx` (ApplyTemplateForm) | 1           | User IDs comma-separated input                                                                    |
+| `complaints/settings/page.tsx`                | 11          | Connected to new API endpoint (was hardcoded TODO)                                                |
+
+**Migrated pages (Batch 2):**
+
+| Page                            | Fields | Notes                                                                 |
+| ------------------------------- | ------ | --------------------------------------------------------------------- |
+| `employees/[id]/page.tsx`       | 10     | Typed enums for EMPLOYEE_ROLES (7) and STATUSES (5)                   |
+| `tasks/[id]/page.tsx`           | 9      | 12 task types including 4 `replace_*`, dueDate ISO conversion         |
+| `locations/[id]/page.tsx`       | 10     | Nested AddressDto extraction in useEffect, lat/lng validation         |
+| `loyalty/transactions/page.tsx` | 3      | Dialog form with Controller for user Select                           |
+| `loyalty/achievements/page.tsx` | 12     | Dialog create/edit with `form.reset()` pattern, 3 enum Controllers    |
+| `loyalty/promo-codes/page.tsx`  | 9      | Dialog create/edit, `generateCode()` uses `form.setValue()`           |
+| `loyalty/quests/page.tsx`       | 12     | Dialog create/edit with 3 enum Controllers (period, type, difficulty) |
+| `organizations/page.tsx`        | 16     | Sub-component `OrganizationForm`, camelCase→snake_case DTO mapping    |
+
+**Remaining useState forms (lowest priority — complex multi-tab reference pages):**
+references (1253 lines, 5+ sub-forms across tabs)
+
+### Complaints Settings CRUD Endpoint (2026-03-31)
+
+New backend endpoint storing complaint settings in Organization's `settings` JSONB column:
+
+- `GET /complaints/settings` — returns SLA config, automation flags, notification prefs (with defaults)
+- `PUT /complaints/settings` — partial update via JSONB merge (`settings || '...'::jsonb`)
+- DTO: `UpdateComplaintSettingsDto` with nested `SlaConfigDto` + `ComplaintNotificationSettingsDto`
+- Tenant isolation via `@CurrentOrganizationId()`
+- Roles: GET (owner/admin/manager), PUT (owner/admin)
+- Files: `dto/complaint-settings.dto.ts`, `complaints.service.ts`, `complaints.controller.ts`, `complaints.module.ts`
 
 ## Skills (AI Agent Tools)
 

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -117,7 +120,24 @@ const CONDITION_KEYS = [
   "weekend_order",
 ] as const;
 
-const EMPTY_FORM = {
+const achievementFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  titleUz: z.string().max(255).optional().default(""),
+  description: z.string().max(1000).optional().default(""),
+  descriptionUz: z.string().max(1000).optional().default(""),
+  icon: z.string().min(1).max(10).default("🏆"),
+  category: z.enum(CATEGORY_KEYS),
+  conditionType: z.enum(CONDITION_KEYS),
+  conditionValue: z.coerce.number().int().min(1).default(1),
+  pointsReward: z.coerce.number().int().min(0).default(50),
+  rarity: z.enum(RARITY_KEYS),
+  isActive: z.boolean().default(true),
+  sortOrder: z.coerce.number().int().min(0).default(0),
+});
+
+type AchievementFormValues = z.infer<typeof achievementFormSchema>;
+
+const EMPTY_DEFAULTS: AchievementFormValues = {
   title: "",
   titleUz: "",
   description: "",
@@ -143,8 +163,12 @@ export default function AchievementsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const form = useForm<AchievementFormValues>({
+    resolver: zodResolver(achievementFormSchema),
+    defaultValues: EMPTY_DEFAULTS,
+  });
 
   // Fetch achievements
   const { data: achievementsData, isLoading } = useQuery({
@@ -171,8 +195,8 @@ export default function AchievementsPage() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data: unknown) =>
-      achievementsApi.create(data as Record<string, unknown>),
+    mutationFn: (data: AchievementFormValues) =>
+      achievementsApi.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeForm();
@@ -181,8 +205,8 @@ export default function AchievementsPage() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
-      achievementsApi.update(id, data as Record<string, unknown>),
+    mutationFn: ({ id, data }: { id: string; data: AchievementFormValues }) =>
+      achievementsApi.update(id, data as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeForm();
@@ -208,21 +232,22 @@ export default function AchievementsPage() {
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    form.reset(EMPTY_DEFAULTS);
   };
 
   const openEdit = (ach: Achievement) => {
-    setForm({
+    form.reset({
       title: ach.title,
       titleUz: ach.titleUz,
       description: ach.description,
       descriptionUz: ach.descriptionUz,
       icon: ach.icon,
-      category: ach.category,
-      conditionType: ach.conditionType,
+      category: ach.category as AchievementFormValues["category"],
+      conditionType:
+        ach.conditionType as AchievementFormValues["conditionType"],
       conditionValue: ach.conditionValue,
       pointsReward: ach.pointsReward,
-      rarity: ach.rarity,
+      rarity: ach.rarity as AchievementFormValues["rarity"],
       isActive: ach.isActive,
       sortOrder: ach.sortOrder,
     });
@@ -230,13 +255,13 @@ export default function AchievementsPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = form.handleSubmit((values) => {
     if (editingId) {
-      updateMutation.mutate({ id: editingId, data: form });
+      updateMutation.mutate({ id: editingId, data: values });
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(values);
     }
-  };
+  });
 
   const achievements = (achievementsData || []).filter(
     (a) =>
@@ -275,7 +300,7 @@ export default function AchievementsPage() {
           </Button>
           <Button
             onClick={() => {
-              setForm(EMPTY_FORM);
+              form.reset(EMPTY_DEFAULTS);
               setEditingId(null);
               setShowForm(true);
             }}
@@ -488,139 +513,120 @@ export default function AchievementsPage() {
               <div className="space-y-2">
                 <Label>{t("labelIcon")}</Label>
                 <Input
-                  value={form.icon}
-                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  {...form.register("icon")}
                   className="text-center text-xl"
                 />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelTitleRu")}</Label>
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
+                <Input {...form.register("title")} />
+                {form.formState.errors.title && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.title.message}
+                  </p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
               <Label>{t("labelTitleUz")}</Label>
-              <Input
-                value={form.titleUz}
-                onChange={(e) => setForm({ ...form, titleUz: e.target.value })}
-              />
+              <Input {...form.register("titleUz")} />
             </div>
             <div className="space-y-2">
               <Label>{t("labelDescriptionRu")}</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
+              <Textarea {...form.register("description")} />
             </div>
             <div className="space-y-2">
               <Label>{t("labelDescriptionUz")}</Label>
-              <Textarea
-                value={form.descriptionUz}
-                onChange={(e) =>
-                  setForm({ ...form, descriptionUz: e.target.value })
-                }
-              />
+              <Textarea {...form.register("descriptionUz")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelCategory")}</Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(v) => setForm({ ...form, category: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`category_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`category_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelRarity")}</Label>
-                <Select
-                  value={form.rarity}
-                  onValueChange={(v) => setForm({ ...form, rarity: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RARITY_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`rarity_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="rarity"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RARITY_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`rarity_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelCondition")}</Label>
-                <Select
-                  value={form.conditionType}
-                  onValueChange={(v) => setForm({ ...form, conditionType: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CONDITION_KEYS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`condition_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="conditionType"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CONDITION_KEYS.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`condition_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelConditionValue")}</Label>
-                <Input
-                  type="number"
-                  value={form.conditionValue}
-                  onChange={(e) =>
-                    setForm({ ...form, conditionValue: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("conditionValue")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelReward")}</Label>
-                <Input
-                  type="number"
-                  value={form.pointsReward}
-                  onChange={(e) =>
-                    setForm({ ...form, pointsReward: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("pointsReward")} />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelSortOrder")}</Label>
-                <Input
-                  type="number"
-                  value={form.sortOrder}
-                  onChange={(e) =>
-                    setForm({ ...form, sortOrder: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("sortOrder")} />
               </div>
             </div>
             <div className="flex items-center justify-between">
               <Label>{t("labelActive")}</Label>
               <Switch
-                checked={form.isActive}
-                onCheckedChange={(v) => setForm({ ...form, isActive: v })}
+                checked={form.watch("isActive")}
+                onCheckedChange={(v) =>
+                  form.setValue("isActive", v, { shouldDirty: true })
+                }
               />
             </div>
           </div>
@@ -630,11 +636,7 @@ export default function AchievementsPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={
-                !form.title ||
-                createMutation.isPending ||
-                updateMutation.isPending
-              }
+              disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending
                 ? t("saving")

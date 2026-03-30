@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -72,17 +75,21 @@ const PROMO_TYPES = [
   "free_product",
 ] as const;
 
-const EMPTY_FORM: {
-  code: string;
-  description: string;
-  type: PromoCode["type"];
-  value: number;
-  minOrderAmount: number;
-  maxUses: number;
-  maxUsesPerUser: number;
-  startsAt: string;
-  expiresAt: string;
-} = {
+const promoCodeFormSchema = z.object({
+  code: z.string().min(1, "Code is required").max(50),
+  description: z.string().max(500).optional().default(""),
+  type: z.enum(PROMO_TYPES),
+  value: z.coerce.number().min(0).default(100),
+  minOrderAmount: z.coerce.number().min(0).default(0),
+  maxUses: z.coerce.number().int().min(0).default(0),
+  maxUsesPerUser: z.coerce.number().int().min(0).default(1),
+  startsAt: z.string().optional().default(""),
+  expiresAt: z.string().optional().default(""),
+});
+
+type PromoCodeFormValues = z.infer<typeof promoCodeFormSchema>;
+
+const EMPTY_DEFAULTS: PromoCodeFormValues = {
   code: "",
   description: "",
   type: "bonus_points",
@@ -104,8 +111,12 @@ export default function PromoCodesPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
   const [showRedemptions, setShowRedemptions] = useState<string | null>(null);
+
+  const form = useForm<PromoCodeFormValues>({
+    resolver: zodResolver(promoCodeFormSchema),
+    defaultValues: EMPTY_DEFAULTS,
+  });
 
   // Fetch promo codes
   const { data: codesData, isLoading } = useQuery({
@@ -129,9 +140,12 @@ export default function PromoCodesPage() {
 
   // CRUD mutations
   const createMutation = useMutation({
-    mutationFn: (data: unknown) =>
-      promoCodesApi.create(data as Record<string, unknown>),
-
+    mutationFn: (data: PromoCodeFormValues) =>
+      promoCodesApi.create({
+        ...data,
+        startsAt: data.startsAt || null,
+        expiresAt: data.expiresAt || null,
+      } as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promo-codes"] });
       closeForm();
@@ -139,9 +153,12 @@ export default function PromoCodesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
-      promoCodesApi.update(id, data as Record<string, unknown>),
-
+    mutationFn: ({ id, data }: { id: string; data: PromoCodeFormValues }) =>
+      promoCodesApi.update(id, {
+        ...data,
+        startsAt: data.startsAt || null,
+        expiresAt: data.expiresAt || null,
+      } as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promo-codes"] });
       closeForm();
@@ -157,11 +174,11 @@ export default function PromoCodesPage() {
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    form.reset(EMPTY_DEFAULTS);
   };
 
   const openEdit = (code: PromoCode) => {
-    setForm({
+    form.reset({
       code: code.code,
       description: code.description,
       type: code.type,
@@ -176,21 +193,16 @@ export default function PromoCodesPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
-    const payload = {
-      ...form,
-      startsAt: form.startsAt || null,
-      expiresAt: form.expiresAt || null,
-    };
-    if (editingId) updateMutation.mutate({ id: editingId, data: payload });
-    else createMutation.mutate(payload);
-  };
+  const handleSave = form.handleSubmit((values) => {
+    if (editingId) updateMutation.mutate({ id: editingId, data: values });
+    else createMutation.mutate(values);
+  });
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const bytes = crypto.getRandomValues(new Uint8Array(8));
     const code = Array.from(bytes, (b) => chars[b % chars.length]).join("");
-    setForm({ ...form, code });
+    form.setValue("code", code, { shouldDirty: true });
   };
 
   const copyCode = (code: string) => {
@@ -245,7 +257,7 @@ export default function PromoCodesPage() {
         </div>
         <Button
           onClick={() => {
-            setForm(EMPTY_FORM);
+            form.reset(EMPTY_DEFAULTS);
             setEditingId(null);
             setShowForm(true);
           }}
@@ -445,10 +457,9 @@ export default function PromoCodesPage() {
               <Label>{t("labelCode")}</Label>
               <div className="flex gap-2">
                 <Input
-                  value={form.code}
-                  onChange={(e) =>
-                    setForm({ ...form, code: e.target.value.toUpperCase() })
-                  }
+                  {...form.register("code", {
+                    setValueAs: (v: string) => v.toUpperCase(),
+                  })}
                   placeholder="SUMMER2025"
                   className="font-mono"
                 />
@@ -456,109 +467,68 @@ export default function PromoCodesPage() {
                   {t("generateBtn")}
                 </Button>
               </div>
+              {form.formState.errors.code && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.code.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t("labelDescription")}</Label>
               <Textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
+                {...form.register("description")}
                 placeholder={t("descriptionPlaceholder")}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelType")}</Label>
-                {}
-                <Select
-                  value={form.type}
-                  onValueChange={(v: unknown) =>
-                    setForm({
-                      ...form,
-                      type: v as
-                        | "fixed_discount"
-                        | "percent_discount"
-                        | "bonus_points"
-                        | "free_product",
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROMO_TYPES.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {t(`type_${k}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROMO_TYPES.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {t(`type_${k}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelValue")}</Label>
-                <Input
-                  type="number"
-                  value={form.value}
-                  onChange={(e) =>
-                    setForm({ ...form, value: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("value")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelMaxUses")}</Label>
-                <Input
-                  type="number"
-                  value={form.maxUses}
-                  onChange={(e) =>
-                    setForm({ ...form, maxUses: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("maxUses")} />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelPerUser")}</Label>
-                <Input
-                  type="number"
-                  value={form.maxUsesPerUser}
-                  onChange={(e) =>
-                    setForm({ ...form, maxUsesPerUser: Number(e.target.value) })
-                  }
-                />
+                <Input type="number" {...form.register("maxUsesPerUser")} />
               </div>
             </div>
             <div className="space-y-2">
               <Label>{t("labelMinOrder")}</Label>
-              <Input
-                type="number"
-                value={form.minOrderAmount}
-                onChange={(e) =>
-                  setForm({ ...form, minOrderAmount: Number(e.target.value) })
-                }
-              />
+              <Input type="number" {...form.register("minOrderAmount")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t("labelStartsAt")}</Label>
-                <Input
-                  type="date"
-                  value={form.startsAt}
-                  onChange={(e) =>
-                    setForm({ ...form, startsAt: e.target.value })
-                  }
-                />
+                <Input type="date" {...form.register("startsAt")} />
               </div>
               <div className="space-y-2">
                 <Label>{t("labelExpiresAt")}</Label>
-                <Input
-                  type="date"
-                  value={form.expiresAt}
-                  onChange={(e) =>
-                    setForm({ ...form, expiresAt: e.target.value })
-                  }
-                />
+                <Input type="date" {...form.register("expiresAt")} />
               </div>
             </div>
           </div>
@@ -568,11 +538,7 @@ export default function PromoCodesPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={
-                !form.code ||
-                createMutation.isPending ||
-                updateMutation.isPending
-              }
+              disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending
                 ? t("saving")

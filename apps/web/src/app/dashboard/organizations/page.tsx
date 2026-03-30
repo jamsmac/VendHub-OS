@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -129,6 +132,38 @@ const ORG_STATUSES: OrgStatus[] = [
   "SUSPENDED",
   "TERMINATED",
 ];
+
+const organizationFormSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255),
+  nameUz: z.string().max(255).optional().default(""),
+  slug: z.string().max(100).optional().default(""),
+  description: z.string().max(1000).optional().default(""),
+  type: z.enum([
+    "HEADQUARTERS",
+    "FRANCHISE",
+    "BRANCH",
+    "OPERATOR",
+    "PARTNER",
+  ] as const),
+  status: z.enum(["ACTIVE", "PENDING", "SUSPENDED", "TERMINATED"] as const),
+  email: z
+    .string()
+    .email("Invalid email")
+    .or(z.literal(""))
+    .optional()
+    .default(""),
+  phone: z.string().max(20).optional().default(""),
+  address: z.string().max(500).optional().default(""),
+  city: z.string().max(100).optional().default(""),
+  region: z.string().max(100).optional().default(""),
+  inn: z.string().max(20).optional().default(""),
+  mfo: z.string().max(10).optional().default(""),
+  bankAccount: z.string().max(30).optional().default(""),
+  bankName: z.string().max(200).optional().default(""),
+  directorName: z.string().max(200).optional().default(""),
+});
+
+type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -516,25 +551,6 @@ export default function OrganizationsPage() {
 
 // ── Form ──────────────────────────────────────────────────────────────────────
 
-interface OrganizationFormData {
-  name: string;
-  nameUz: string;
-  slug: string;
-  description: string;
-  type: OrgType;
-  status: OrgStatus;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  region: string;
-  inn: string;
-  mfo: string;
-  bankAccount: string;
-  bankName: string;
-  directorName: string;
-}
-
 function OrganizationForm({
   organization,
   onSuccess,
@@ -545,34 +561,32 @@ function OrganizationForm({
   const t = useTranslations("organizations");
 
   // Backend may return snake_case or camelCase depending on serialization
-  const org = organization as Organization &
-    Record<string, string | undefined>;
-  const [formData, setFormData] = useState<OrganizationFormData>({
-    name: org?.name ?? "",
-    nameUz: org?.nameUz ?? org?.["name_uz"] ?? "",
-    slug: org?.slug ?? "",
-    description: org?.description ?? "",
-    type: org?.type ?? "BRANCH",
-    status: org?.status ?? "PENDING",
-    email: org?.email ?? "",
-    phone: org?.phone ?? "",
-    address: org?.address ?? "",
-    city: org?.city ?? "",
-    region: org?.region ?? "",
-    inn: org?.inn ?? "",
-    mfo: org?.mfo ?? "",
-    bankAccount: org?.bankAccount ?? org?.["bank_account"] ?? "",
-    bankName: org?.bankName ?? org?.["bank_name"] ?? "",
-    directorName: org?.directorName ?? org?.["director_name"] ?? "",
+  const org = organization as Organization & Record<string, string | undefined>;
+
+  const form = useForm<OrganizationFormValues>({
+    resolver: zodResolver(organizationFormSchema),
+    defaultValues: {
+      name: org?.name ?? "",
+      nameUz: org?.nameUz ?? org?.["name_uz"] ?? "",
+      slug: org?.slug ?? "",
+      description: org?.description ?? "",
+      type: org?.type ?? "BRANCH",
+      status: org?.status ?? "PENDING",
+      email: org?.email ?? "",
+      phone: org?.phone ?? "",
+      address: org?.address ?? "",
+      city: org?.city ?? "",
+      region: org?.region ?? "",
+      inn: org?.inn ?? "",
+      mfo: org?.mfo ?? "",
+      bankAccount: org?.bankAccount ?? org?.["bank_account"] ?? "",
+      bankName: org?.bankName ?? org?.["bank_name"] ?? "",
+      directorName: org?.directorName ?? org?.["director_name"] ?? "",
+    },
   });
 
-  const set = <K extends keyof OrganizationFormData>(
-    key: K,
-    value: OrganizationFormData[K],
-  ) => setFormData((prev) => ({ ...prev, [key]: value }));
-
   const mutation = useMutation({
-    mutationFn: async (data: OrganizationFormData) => {
+    mutationFn: async (data: OrganizationFormValues) => {
       // Map camelCase frontend fields to snake_case backend DTO fields
       const payload = {
         name: data.name,
@@ -606,58 +620,45 @@ function OrganizationForm({
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate(formData);
-  };
+  const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6">
       {/* Basic info */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.name")} *</label>
-            <Input
-              value={formData.name}
-              onChange={(e) => set("name", e.target.value)}
-              required
-            />
+            <Input {...form.register("name")} />
+            {form.formState.errors.name && (
+              <p className="text-xs text-destructive mt-1">
+                {form.formState.errors.name.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">{t("form.nameUz")}</label>
-            <Input
-              value={formData.nameUz}
-              onChange={(e) => set("nameUz", e.target.value)}
-            />
+            <Input {...form.register("nameUz")} />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.slug")}</label>
-            <Input
-              value={formData.slug}
-              onChange={(e) => set("slug", e.target.value)}
-              placeholder="my-organization"
-            />
+            <Input {...form.register("slug")} placeholder="my-organization" />
           </div>
           <div>
             <label className="text-sm font-medium">
               {t("form.directorName")}
             </label>
-            <Input
-              value={formData.directorName}
-              onChange={(e) => set("directorName", e.target.value)}
-            />
+            <Input {...form.register("directorName")} />
           </div>
         </div>
 
         <div>
           <label className="text-sm font-medium">{t("form.description")}</label>
           <Textarea
-            value={formData.description}
-            onChange={(e) => set("description", e.target.value)}
+            {...form.register("description")}
             className="h-20 resize-none"
           />
         </div>
@@ -665,39 +666,45 @@ function OrganizationForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.type")} *</label>
-            <Select
-              value={formData.type}
-              onValueChange={(v) => set("type", v as OrgType)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ORG_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {t(`types.${type.toLowerCase()}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ORG_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(`types.${type.toLowerCase()}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <div>
             <label className="text-sm font-medium">{t("form.status")} *</label>
-            <Select
-              value={formData.status}
-              onValueChange={(v) => set("status", v as OrgStatus)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ORG_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {t(`statuses.${s.toLowerCase()}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ORG_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {t(`statuses.${s.toLowerCase()}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
         </div>
       </div>
@@ -710,42 +717,30 @@ function OrganizationForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.email")}</label>
-            <Input
-              type="email"
-              value={formData.email}
-              onChange={(e) => set("email", e.target.value)}
-            />
+            <Input type="email" {...form.register("email")} />
+            {form.formState.errors.email && (
+              <p className="text-xs text-destructive mt-1">
+                {form.formState.errors.email.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">{t("form.phone")}</label>
-            <Input
-              value={formData.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              placeholder="+998901234567"
-            />
+            <Input {...form.register("phone")} placeholder="+998901234567" />
           </div>
         </div>
         <div>
           <label className="text-sm font-medium">{t("form.address")}</label>
-          <Input
-            value={formData.address}
-            onChange={(e) => set("address", e.target.value)}
-          />
+          <Input {...form.register("address")} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.city")}</label>
-            <Input
-              value={formData.city}
-              onChange={(e) => set("city", e.target.value)}
-            />
+            <Input {...form.register("city")} />
           </div>
           <div>
             <label className="text-sm font-medium">{t("form.region")}</label>
-            <Input
-              value={formData.region}
-              onChange={(e) => set("region", e.target.value)}
-            />
+            <Input {...form.register("region")} />
           </div>
         </div>
       </div>
@@ -758,36 +753,24 @@ function OrganizationForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.inn")}</label>
-            <Input
-              value={formData.inn}
-              onChange={(e) => set("inn", e.target.value)}
-              placeholder="123456789"
-            />
+            <Input {...form.register("inn")} placeholder="123456789" />
           </div>
           <div>
             <label className="text-sm font-medium">{t("form.mfo")}</label>
-            <Input
-              value={formData.mfo}
-              onChange={(e) => set("mfo", e.target.value)}
-              placeholder="01234"
-            />
+            <Input {...form.register("mfo")} placeholder="01234" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">{t("form.bankName")}</label>
-            <Input
-              value={formData.bankName}
-              onChange={(e) => set("bankName", e.target.value)}
-            />
+            <Input {...form.register("bankName")} />
           </div>
           <div>
             <label className="text-sm font-medium">
               {t("form.bankAccount")}
             </label>
             <Input
-              value={formData.bankAccount}
-              onChange={(e) => set("bankAccount", e.target.value)}
+              {...form.register("bankAccount")}
               placeholder="20208000000000000000"
             />
           </div>
