@@ -3,7 +3,9 @@
  * Delegates to ComplaintsCoreService, ComplaintsRefundService, ComplaintsAnalyticsService
  */
 
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   Complaint,
   ComplaintComment,
@@ -14,9 +16,14 @@ import {
   ComplaintPriority,
   ComplaintStatus,
 } from "./entities/complaint.entity";
+import { Organization } from "../organizations/entities/organization.entity";
 import { ComplaintsCoreService } from "./complaints-core.service";
 import { ComplaintsRefundService } from "./complaints-refund.service";
 import { ComplaintsAnalyticsService } from "./complaints-analytics.service";
+import {
+  ComplaintSettingsResponseDto,
+  UpdateComplaintSettingsDto,
+} from "./dto/complaint-settings.dto";
 import {
   CreateComplaintDto,
   UpdateComplaintDto,
@@ -42,7 +49,23 @@ export {
 
 @Injectable()
 export class ComplaintsService {
+  private static readonly DEFAULT_COMPLAINT_SETTINGS: ComplaintSettingsResponseDto =
+    {
+      sla: { critical: 2, high: 8, medium: 24, low: 72 },
+      autoAssign: true,
+      autoEscalate: true,
+      notifications: {
+        emailOnNew: true,
+        emailOnEscalation: true,
+        telegramOnNew: true,
+        telegramOnSlaWarning: true,
+        slaWarningPercentage: 80,
+      },
+    };
+
   constructor(
+    @InjectRepository(Organization)
+    private readonly organizationRepo: Repository<Organization>,
     private readonly core: ComplaintsCoreService,
     private readonly refund: ComplaintsRefundService,
     private readonly analytics: ComplaintsAnalyticsService,
@@ -270,6 +293,82 @@ export class ComplaintsService {
 
   getSlaAtRisk(organizationId: string): Promise<Complaint[]> {
     return this.analytics.getSlaAtRisk(organizationId);
+  }
+
+  // ── Complaint Settings ─────────────────────────────────
+
+  async getComplaintSettings(
+    organizationId: string,
+  ): Promise<ComplaintSettingsResponseDto> {
+    const org = await this.organizationRepo.findOne({
+      where: { id: organizationId },
+      select: ["id", "settings"],
+    });
+    if (!org) throw new NotFoundException("Organization not found");
+
+    const stored = (org.settings as Record<string, unknown>)
+      ?.complaintSettings as Partial<ComplaintSettingsResponseDto> | undefined;
+
+    return {
+      ...ComplaintsService.DEFAULT_COMPLAINT_SETTINGS,
+      ...stored,
+      sla: {
+        ...ComplaintsService.DEFAULT_COMPLAINT_SETTINGS.sla,
+        ...(stored?.sla ?? {}),
+      },
+      notifications: {
+        ...ComplaintsService.DEFAULT_COMPLAINT_SETTINGS.notifications,
+        ...(stored?.notifications ?? {}),
+      },
+    };
+  }
+
+  async updateComplaintSettings(
+    organizationId: string,
+    dto: UpdateComplaintSettingsDto,
+  ): Promise<ComplaintSettingsResponseDto> {
+    const org = await this.organizationRepo.findOne({
+      where: { id: organizationId },
+    });
+    if (!org) throw new NotFoundException("Organization not found");
+
+    const currentSettings = (org.settings ?? {}) as Record<string, unknown>;
+    const current = (currentSettings.complaintSettings ?? {}) as Record<
+      string,
+      unknown
+    >;
+
+    const merged = {
+      ...current,
+      ...(dto.sla !== undefined ? { sla: dto.sla } : {}),
+      ...(dto.autoAssign !== undefined
+        ? { autoAssign: dto.autoAssign }
+        : {}),
+      ...(dto.autoEscalate !== undefined
+        ? { autoEscalate: dto.autoEscalate }
+        : {}),
+      ...(dto.notifications !== undefined
+        ? {
+            notifications: {
+              ...(current.notifications ?? {}),
+              ...dto.notifications,
+            },
+          }
+        : {}),
+    };
+
+    // Use query builder for JSONB partial update to avoid TypeORM type conflicts
+    await this.organizationRepo
+      .createQueryBuilder()
+      .update()
+      .set({
+        settings: () =>
+          `settings || '${JSON.stringify({ complaintSettings: merged }).replace(/'/g, "''")}'::jsonb`,
+      })
+      .where("id = :id", { id: org.id })
+      .execute();
+
+    return this.getComplaintSettings(organizationId);
   }
 
   // ── Public Complaint ───────────────────────────────────

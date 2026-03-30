@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useTranslations } from "next-intl";
 import {
   Save,
@@ -32,16 +35,6 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-interface OrganizationSettings {
-  name: string;
-  email: string;
-  phone: string;
-  timezone: string;
-  currency: string;
-  language: string;
-  address: string;
-}
-
 interface NotificationPreferences {
   email_orders: boolean;
   sms_alerts: boolean;
@@ -49,11 +42,6 @@ interface NotificationPreferences {
   low_stock: boolean;
   maintenance: boolean;
   daily_report: boolean;
-}
-
-interface _SecuritySettings {
-  two_factor_enabled: boolean;
-  session_timeout: string;
 }
 
 interface PaymentProvider {
@@ -99,6 +87,51 @@ const notificationItemDefs: NotificationItem[] = [
   { id: "daily_report", labelKey: "notifDailyReport", icon: Mail },
 ];
 
+// ─── Zod Schema ─────────────────────────────────────────────
+const settingsFormSchema = z.object({
+  // General
+  name: z.string().min(1, "Organization name is required").max(255),
+  email: z.string().email("Invalid email").or(z.literal("")),
+  phone: z.string().max(20).optional().default(""),
+  timezone: z.string().min(1),
+  currency: z.string().min(1),
+  language: z.string().min(1),
+  address: z.string().max(500).optional().default(""),
+  // Notifications
+  email_orders: z.boolean(),
+  sms_alerts: z.boolean(),
+  telegram_bot: z.boolean(),
+  low_stock: z.boolean(),
+  maintenance: z.boolean(),
+  daily_report: z.boolean(),
+  // Security
+  sessionTimeout: z.string(),
+  // Appearance
+  theme: z.string(),
+  primaryColor: z.string(),
+});
+
+type SettingsFormValues = z.infer<typeof settingsFormSchema>;
+
+const SETTINGS_DEFAULTS: SettingsFormValues = {
+  name: "",
+  email: "",
+  phone: "",
+  timezone: "Asia/Tashkent",
+  currency: "UZS",
+  language: "ru",
+  address: "",
+  email_orders: true,
+  sms_alerts: true,
+  telegram_bot: true,
+  low_stock: true,
+  maintenance: true,
+  daily_report: true,
+  sessionTimeout: "30",
+  theme: "light",
+  primaryColor: "#6B4423",
+};
+
 function SettingsSkeleton() {
   return (
     <div className="space-y-6">
@@ -124,33 +157,11 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("general");
 
-  // --- General Settings State ---
-  const [generalForm, setGeneralForm] = useState<OrganizationSettings>({
-    name: "",
-    email: "",
-    phone: "",
-    timezone: "Asia/Tashkent",
-    currency: "UZS",
-    language: "ru",
-    address: "",
+  // ─── React Hook Form ───────────────────────────────────────
+  const form = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsFormSchema),
+    defaultValues: SETTINGS_DEFAULTS,
   });
-
-  // --- Notification Preferences ---
-  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>({
-    email_orders: true,
-    sms_alerts: true,
-    telegram_bot: true,
-    low_stock: true,
-    maintenance: true,
-    daily_report: true,
-  });
-
-  // --- Security ---
-  const [sessionTimeout, setSessionTimeout] = useState("30");
-
-  // --- Appearance ---
-  const [theme, setTheme] = useState("light");
-  const [primaryColor, setPrimaryColor] = useState("#6B4423");
 
   // ─── Queries ──────────────────────────────────────────────
 
@@ -162,19 +173,38 @@ export default function SettingsPage() {
     queryKey: ["settings"],
     queryFn: async () => {
       const res = await api.get("/settings");
-      const data = res.data;
-      if (data) {
-        if (data.general) setGeneralForm(data.general);
-        if (data.notifications) setNotifPrefs(data.notifications);
-        if (data.security?.session_timeout)
-          setSessionTimeout(data.security.session_timeout);
-        if (data.appearance?.theme) setTheme(data.appearance.theme);
-        if (data.appearance?.primaryColor)
-          setPrimaryColor(data.appearance.primaryColor);
-      }
-      return data;
+      return res.data;
     },
   });
+
+  // Populate form when server data arrives
+  useEffect(() => {
+    if (!settings) return;
+    const vals: Partial<SettingsFormValues> = {};
+    if (settings.general) {
+      vals.name = settings.general.name ?? "";
+      vals.email = settings.general.email ?? "";
+      vals.phone = settings.general.phone ?? "";
+      vals.timezone = settings.general.timezone ?? "Asia/Tashkent";
+      vals.currency = settings.general.currency ?? "UZS";
+      vals.language = settings.general.language ?? "ru";
+      vals.address = settings.general.address ?? "";
+    }
+    if (settings.notifications) {
+      vals.email_orders = settings.notifications.email_orders ?? true;
+      vals.sms_alerts = settings.notifications.sms_alerts ?? true;
+      vals.telegram_bot = settings.notifications.telegram_bot ?? true;
+      vals.low_stock = settings.notifications.low_stock ?? true;
+      vals.maintenance = settings.notifications.maintenance ?? true;
+      vals.daily_report = settings.notifications.daily_report ?? true;
+    }
+    if (settings.security?.session_timeout)
+      vals.sessionTimeout = settings.security.session_timeout;
+    if (settings.appearance?.theme) vals.theme = settings.appearance.theme;
+    if (settings.appearance?.primaryColor)
+      vals.primaryColor = settings.appearance.primaryColor;
+    form.reset({ ...SETTINGS_DEFAULTS, ...vals });
+  }, [settings, form]);
 
   const paymentProviders: PaymentProvider[] = useMemo(
     () =>
@@ -217,12 +247,27 @@ export default function SettingsPage() {
   // ─── Mutations ────────────────────────────────────────────
 
   const saveSettingsMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (values: SettingsFormValues) => {
       await api.put("/settings", {
-        general: generalForm,
-        notifications: notifPrefs,
-        security: { session_timeout: sessionTimeout },
-        appearance: { theme, primaryColor },
+        general: {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          timezone: values.timezone,
+          currency: values.currency,
+          language: values.language,
+          address: values.address,
+        },
+        notifications: {
+          email_orders: values.email_orders,
+          sms_alerts: values.sms_alerts,
+          telegram_bot: values.telegram_bot,
+          low_stock: values.low_stock,
+          maintenance: values.maintenance,
+          daily_report: values.daily_report,
+        },
+        security: { session_timeout: values.sessionTimeout },
+        appearance: { theme: values.theme, primaryColor: values.primaryColor },
       });
     },
     onSuccess: () => {
@@ -233,6 +278,10 @@ export default function SettingsPage() {
       toast.error(t("saveError"));
     },
   });
+
+  const onSubmit = form.handleSubmit((values) =>
+    saveSettingsMutation.mutate(values),
+  );
 
   const toggleTwoFactorMutation = useMutation({
     mutationFn: async () => {
@@ -319,15 +368,12 @@ export default function SettingsPage() {
                             {t("orgName")}
                           </label>
                           <Input
-                            value={generalForm.name}
-                            onChange={(e) =>
-                              setGeneralForm({
-                                ...generalForm,
-                                name: e.target.value,
-                              })
-                            }
+                            {...form.register("name")}
                             placeholder="VendHub HQ"
                           />
+                          {form.formState.errors.name && (
+                            <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
@@ -335,15 +381,12 @@ export default function SettingsPage() {
                           </label>
                           <Input
                             type="email"
-                            value={generalForm.email}
-                            onChange={(e) =>
-                              setGeneralForm({
-                                ...generalForm,
-                                email: e.target.value,
-                              })
-                            }
+                            {...form.register("email")}
                             placeholder="admin@vendhub.uz"
                           />
+                          {form.formState.errors.email && (
+                            <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
@@ -351,13 +394,7 @@ export default function SettingsPage() {
                           </label>
                           <Input
                             type="tel"
-                            value={generalForm.phone}
-                            onChange={(e) =>
-                              setGeneralForm({
-                                ...generalForm,
-                                phone: e.target.value,
-                              })
-                            }
+                            {...form.register("phone")}
                             placeholder="+998 71 200 0000"
                           />
                         </div>
@@ -365,67 +402,70 @@ export default function SettingsPage() {
                           <label className="text-sm font-medium">
                             {t("timezone")}
                           </label>
-                          <Select
-                            value={generalForm.timezone}
-                            onValueChange={(v) =>
-                              setGeneralForm({ ...generalForm, timezone: v })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Asia/Tashkent">
-                                Asia/Tashkent (UTC+5)
-                              </SelectItem>
-                              <SelectItem value="Asia/Samarkand">
-                                Asia/Samarkand (UTC+5)
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="timezone"
+                            render={({ field }) => (
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Asia/Tashkent">
+                                    Asia/Tashkent (UTC+5)
+                                  </SelectItem>
+                                  <SelectItem value="Asia/Samarkand">
+                                    Asia/Samarkand (UTC+5)
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
                             {t("currency")}
                           </label>
-                          <Select
-                            value={generalForm.currency}
-                            onValueChange={(v) =>
-                              setGeneralForm({ ...generalForm, currency: v })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="UZS">
-                                {t("currencyUzs")}
-                              </SelectItem>
-                              <SelectItem value="USD">
-                                {t("currencyUsd")}
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="currency"
+                            render={({ field }) => (
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="UZS">
+                                    {t("currencyUzs")}
+                                  </SelectItem>
+                                  <SelectItem value="USD">
+                                    {t("currencyUsd")}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
                             {t("language")}
                           </label>
-                          <Select
-                            value={generalForm.language}
-                            onValueChange={(v) =>
-                              setGeneralForm({ ...generalForm, language: v })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ru">{t("langRu")}</SelectItem>
-                              <SelectItem value="uz">{t("langUz")}</SelectItem>
-                              <SelectItem value="en">{t("langEn")}</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="language"
+                            render={({ field }) => (
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ru">{t("langRu")}</SelectItem>
+                                  <SelectItem value="uz">{t("langUz")}</SelectItem>
+                                  <SelectItem value="en">{t("langEn")}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </div>
                       </div>
 
@@ -434,13 +474,7 @@ export default function SettingsPage() {
                           {t("address")}
                         </label>
                         <Textarea
-                          value={generalForm.address}
-                          onChange={(e) =>
-                            setGeneralForm({
-                              ...generalForm,
-                              address: e.target.value,
-                            })
-                          }
+                          {...form.register("address")}
                           rows={3}
                           placeholder={t("addressPlaceholder")}
                         />
@@ -459,6 +493,7 @@ export default function SettingsPage() {
                           const Icon = item.icon;
                           const key = item.id as keyof NotificationPreferences;
                           const label = t(item.labelKey);
+                          const checked = form.watch(key);
                           return (
                             <div
                               key={item.id}
@@ -473,20 +508,15 @@ export default function SettingsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() =>
-                                  setNotifPrefs({
-                                    ...notifPrefs,
-                                    [key]: !notifPrefs[key],
-                                  })
-                                }
+                                onClick={() => form.setValue(key, !checked, { shouldDirty: true })}
                                 className={`relative w-10 h-5 rounded-full p-0 ${
-                                  notifPrefs[key] ? "bg-green-500" : "bg-input"
+                                  checked ? "bg-green-500" : "bg-input"
                                 }`}
                                 aria-label={t("toggleLabel", { label })}
                               >
                                 <span
                                   className={`absolute top-0.5 w-4 h-4 bg-background rounded-full transition-transform shadow ${
-                                    notifPrefs[key]
+                                    checked
                                       ? "translate-x-5"
                                       : "translate-x-0.5"
                                   }`}
@@ -536,9 +566,13 @@ export default function SettingsPage() {
                               {t("sessionTimeoutDescription")}
                             </p>
                           </div>
+                          <Controller
+                            control={form.control}
+                            name="sessionTimeout"
+                            render={({ field: stField }) => (
                           <Select
-                            value={sessionTimeout}
-                            onValueChange={setSessionTimeout}
+                            value={stField.value}
+                            onValueChange={stField.onChange}
                           >
                             <SelectTrigger className="w-[160px]">
                               <SelectValue />
@@ -558,6 +592,8 @@ export default function SettingsPage() {
                               </SelectItem>
                             </SelectContent>
                           </Select>
+                            )}
+                          />
                         </div>
 
                         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
@@ -653,14 +689,14 @@ export default function SettingsPage() {
                               <Button
                                 key={themeOption.id}
                                 variant={
-                                  theme === themeOption.id
+                                  form.watch("theme") === themeOption.id
                                     ? "default"
                                     : "outline"
                                 }
                                 size="sm"
-                                onClick={() => setTheme(themeOption.id)}
+                                onClick={() => form.setValue("theme", themeOption.id, { shouldDirty: true })}
                               >
-                                {theme === themeOption.id && (
+                                {form.watch("theme") === themeOption.id && (
                                   <Check className="h-4 w-4 mr-1" />
                                 )}
                                 {t(themeOption.labelKey)}
@@ -685,9 +721,9 @@ export default function SettingsPage() {
                                 key={color}
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setPrimaryColor(color)}
+                                onClick={() => form.setValue("primaryColor", color, { shouldDirty: true })}
                                 className={`w-8 h-8 rounded-full p-0 border-2 shadow ${
-                                  primaryColor === color
+                                  form.watch("primaryColor") === color
                                     ? "border-foreground scale-110"
                                     : "border-transparent"
                                 }`}
@@ -739,7 +775,7 @@ export default function SettingsPage() {
                   {/* Save Button */}
                   <div className="flex justify-end mt-6 pt-6 border-t">
                     <Button
-                      onClick={() => saveSettingsMutation.mutate()}
+                      onClick={onSubmit}
                       disabled={saveSettingsMutation.isPending}
                     >
                       <Save className="h-4 w-4 mr-2" />

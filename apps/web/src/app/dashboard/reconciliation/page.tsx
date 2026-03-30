@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
@@ -105,6 +108,24 @@ const mismatchTypeVariants: Record<
 
 const ALL_SOURCES = ["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"] as const;
 
+const reconciliationFormSchema = z
+  .object({
+    dateFrom: z.string().min(1, "Date from is required"),
+    dateTo: z.string().min(1, "Date to is required"),
+    machineIdsInput: z.string().optional().default(""),
+    timeTolerance: z.coerce.number().min(0).default(5),
+    amountTolerance: z.coerce.number().min(0).default(1),
+    selectedSources: z
+      .array(z.string())
+      .min(1, "At least one source is required"),
+  })
+  .refine((data) => data.dateTo >= data.dateFrom, {
+    message: "End date must be after start date",
+    path: ["dateTo"],
+  });
+
+type ReconciliationFormValues = z.infer<typeof reconciliationFormSchema>;
+
 // ─── Helpers ──────────────────────────────────────────────────────────
 
 const formatUZS = (
@@ -151,17 +172,18 @@ export default function ReconciliationPage() {
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
 
-  // Form state
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [machineIdsInput, setMachineIdsInput] = useState("");
-  const [timeTolerance, setTimeTolerance] = useState(5);
-  const [amountTolerance, setAmountTolerance] = useState(1);
-  const [selectedSources, setSelectedSources] = useState<string[]>([
-    "SOFTWARE",
-    "HARDWARE",
-    "PAYMENT_PROVIDER",
-  ]);
+  // Form state (React Hook Form + Zod)
+  const form = useForm<ReconciliationFormValues>({
+    resolver: zodResolver(reconciliationFormSchema),
+    defaultValues: {
+      dateFrom: "",
+      dateTo: "",
+      machineIdsInput: "",
+      timeTolerance: 5,
+      amountTolerance: 1,
+      selectedSources: ["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"],
+    },
+  });
 
   // ─── Queries ──────────────────────────────────────────────────────
 
@@ -195,12 +217,7 @@ export default function ReconciliationPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reconciliation-runs"] });
       setShowForm(false);
-      setDateFrom("");
-      setDateTo("");
-      setMachineIdsInput("");
-      setTimeTolerance(5);
-      setAmountTolerance(1);
-      setSelectedSources(["SOFTWARE", "HARDWARE", "PAYMENT_PROVIDER"]);
+      form.reset();
     },
   });
 
@@ -252,29 +269,30 @@ export default function ReconciliationPage() {
 
   // ─── Handlers ─────────────────────────────────────────────────────
 
-  const handleCreateRun = () => {
-    if (!dateFrom || !dateTo) return;
-
-    const machineIds = machineIdsInput
+  const handleCreateRun = form.handleSubmit((values) => {
+    const machineIds = (values.machineIdsInput || "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
     createRunMutation.mutate({
-      date_from: dateFrom,
-      date_to: dateTo,
+      date_from: values.dateFrom,
+      date_to: values.dateTo,
       ...(machineIds.length > 0 && { machine_ids: machineIds }),
-      time_tolerance_minutes: timeTolerance,
-      amount_tolerance_percent: amountTolerance,
-      sources: selectedSources,
+      time_tolerance_minutes: values.timeTolerance,
+      amount_tolerance_percent: values.amountTolerance,
+      sources: values.selectedSources,
     });
-  };
+  });
 
   const toggleSource = (source: string) => {
-    setSelectedSources((prev) =>
-      prev.includes(source)
-        ? prev.filter((s) => s !== source)
-        : [...prev, source],
+    const current = form.getValues("selectedSources");
+    form.setValue(
+      "selectedSources",
+      current.includes(source)
+        ? current.filter((s) => s !== source)
+        : [...current, source],
+      { shouldValidate: true },
     );
   };
 
@@ -322,18 +340,22 @@ export default function ReconciliationPage() {
                 <Input
                   id="dateFrom"
                   type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
+                  {...form.register("dateFrom")}
                 />
+                {form.formState.errors.dateFrom && (
+                  <p className="text-xs text-destructive">{form.formState.errors.dateFrom.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dateTo">{t("dateEnd")}</Label>
                 <Input
                   id="dateTo"
                   type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
+                  {...form.register("dateTo")}
                 />
+                {form.formState.errors.dateTo && (
+                  <p className="text-xs text-destructive">{form.formState.errors.dateTo.message}</p>
+                )}
               </div>
             </div>
 
@@ -343,8 +365,7 @@ export default function ReconciliationPage() {
               <Input
                 id="machineIds"
                 placeholder="e.g. VM-001, VM-002"
-                value={machineIdsInput}
-                onChange={(e) => setMachineIdsInput(e.target.value)}
+                {...form.register("machineIdsInput")}
               />
             </div>
 
@@ -356,8 +377,7 @@ export default function ReconciliationPage() {
                   id="timeTolerance"
                   type="number"
                   min={0}
-                  value={timeTolerance}
-                  onChange={(e) => setTimeTolerance(Number(e.target.value))}
+                  {...form.register("timeTolerance", { valueAsNumber: true })}
                 />
               </div>
               <div className="space-y-2">
@@ -369,8 +389,7 @@ export default function ReconciliationPage() {
                   type="number"
                   min={0}
                   step={0.1}
-                  value={amountTolerance}
-                  onChange={(e) => setAmountTolerance(Number(e.target.value))}
+                  {...form.register("amountTolerance", { valueAsNumber: true })}
                 />
               </div>
             </div>
@@ -386,7 +405,7 @@ export default function ReconciliationPage() {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedSources.includes(source)}
+                      checked={form.watch("selectedSources").includes(source)}
                       onChange={() => toggleSource(source)}
                       className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                     />
@@ -400,12 +419,7 @@ export default function ReconciliationPage() {
             <div className="flex justify-end">
               <Button
                 onClick={handleCreateRun}
-                disabled={
-                  !dateFrom ||
-                  !dateTo ||
-                  selectedSources.length === 0 ||
-                  createRunMutation.isPending
-                }
+                disabled={createRunMutation.isPending}
               >
                 {createRunMutation.isPending ? (
                   <>

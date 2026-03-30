@@ -7,6 +7,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Body,
   Param,
@@ -44,6 +45,10 @@ import {
   ComplaintSource,
 } from "./entities/complaint.entity";
 import { CreatePublicComplaintDto } from "./dto/create-public-complaint.dto";
+import {
+  UpdateComplaintSettingsDto,
+  ComplaintSettingsResponseDto,
+} from "./dto/complaint-settings.dto";
 import {
   ResolveComplaintDto,
   EscalateComplaintDto,
@@ -301,6 +306,31 @@ export class ComplaintsController {
   @Roles("owner", "admin", "manager")
   async getTemplates(@CurrentOrganizationId() orgId: string) {
     return this.complaintsService.getTemplates(orgId);
+  }
+
+  // ============================================================================
+  // Complaint Settings (SLA, Automation, Notifications)
+  // ============================================================================
+
+  @Get("settings")
+  @ApiOperation({ summary: "Get complaint settings" })
+  @ApiResponse({ status: 200, type: ComplaintSettingsResponseDto })
+  @Roles("owner", "admin", "manager")
+  async getComplaintSettings(
+    @CurrentOrganizationId() orgId: string,
+  ): Promise<ComplaintSettingsResponseDto> {
+    return this.complaintsService.getComplaintSettings(orgId);
+  }
+
+  @Put("settings")
+  @ApiOperation({ summary: "Update complaint settings" })
+  @ApiResponse({ status: 200, type: ComplaintSettingsResponseDto })
+  @Roles("owner", "admin")
+  async updateComplaintSettings(
+    @CurrentOrganizationId() orgId: string,
+    @Body() dto: UpdateComplaintSettingsDto,
+  ): Promise<ComplaintSettingsResponseDto> {
+    return this.complaintsService.updateComplaintSettings(orgId, dto);
   }
 
   @Get("number/:number")

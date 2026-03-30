@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   KeyRound,
   Plus,
@@ -92,6 +95,29 @@ const accessLevelColors: Record<AccessLevel, string> = {
   manage: "bg-amber-500/10 text-amber-500",
   admin: "bg-red-500/10 text-red-500",
 };
+
+// ─── Zod Schemas ────────────────────────────────────────────────
+
+const grantAccessSchema = z.object({
+  machineId: z.string().uuid("Invalid machine ID"),
+  userId: z.string().uuid("Invalid user ID"),
+  accessLevel: z.enum(["read", "operate", "manage", "admin"]),
+  expiresAt: z.string().optional().default(""),
+});
+type GrantAccessValues = z.infer<typeof grantAccessSchema>;
+
+const templateFormSchema = z.object({
+  name: z.string().min(1, "Template name is required").max(100),
+  description: z.string().max(500).optional().default(""),
+  accessLevel: z.enum(["read", "operate", "manage", "admin"]),
+  machineIds: z.string().min(1, "At least one machine ID is required"),
+});
+type TemplateFormValues = z.infer<typeof templateFormSchema>;
+
+const applyTemplateSchema = z.object({
+  userIds: z.string().min(1, "At least one user ID is required"),
+});
+type ApplyTemplateValues = z.infer<typeof applyTemplateSchema>;
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -643,20 +669,18 @@ function GrantAccessForm({
   onCancel: () => void;
 }) {
   const t = useTranslations("machineAccess");
-  const [formData, setFormData] = useState({
-    machineId: "",
-    userId: "",
-    accessLevel: "read" as AccessLevel,
-    expiresAt: "",
+  const form = useForm<GrantAccessValues>({
+    resolver: zodResolver(grantAccessSchema),
+    defaultValues: { machineId: "", userId: "", accessLevel: "read", expiresAt: "" },
   });
 
   const mutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: GrantAccessValues) =>
       machineAccessApi.grant({
-        machineId: formData.machineId,
-        userId: formData.userId,
-        accessLevel: formData.accessLevel,
-        ...(formData.expiresAt ? { expiresAt: formData.expiresAt } : {}),
+        machineId: values.machineId,
+        userId: values.userId,
+        accessLevel: values.accessLevel,
+        ...(values.expiresAt ? { expiresAt: values.expiresAt } : {}),
       }),
     onSuccess: () => {
       toast.success(t("messages.granted"));
@@ -665,52 +689,50 @@ function GrantAccessForm({
     onError: () => toast.error(t("messages.grantError")),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate();
-  };
+  const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="text-sm font-medium">{t("form.machineId")}</label>
         <Input
-          value={formData.machineId}
-          onChange={(e) =>
-            setFormData({ ...formData, machineId: e.target.value })
-          }
+          {...form.register("machineId")}
           placeholder={t("form.machineIdPlaceholder")}
-          required
         />
+        {form.formState.errors.machineId && (
+          <p className="text-xs text-destructive mt-1">{form.formState.errors.machineId.message}</p>
+        )}
       </div>
       <div>
         <label className="text-sm font-medium">{t("form.userId")}</label>
         <Input
-          value={formData.userId}
-          onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+          {...form.register("userId")}
           placeholder={t("form.userIdPlaceholder")}
-          required
         />
+        {form.formState.errors.userId && (
+          <p className="text-xs text-destructive mt-1">{form.formState.errors.userId.message}</p>
+        )}
       </div>
       <div>
         <label className="text-sm font-medium">{t("form.accessLevel")}</label>
-        <Select
-          value={formData.accessLevel}
-          onValueChange={(v) =>
-            setFormData({ ...formData, accessLevel: v as AccessLevel })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ACCESS_LEVELS.map((level) => (
-              <SelectItem key={level} value={level}>
-                {t(`accessLevels.${level}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Controller
+          control={form.control}
+          name="accessLevel"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCESS_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {t(`accessLevels.${level}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       <div>
         <label className="text-sm font-medium">
@@ -721,10 +743,7 @@ function GrantAccessForm({
         </label>
         <Input
           type="datetime-local"
-          value={formData.expiresAt}
-          onChange={(e) =>
-            setFormData({ ...formData, expiresAt: e.target.value })
-          }
+          {...form.register("expiresAt")}
         />
       </div>
       <div className="flex justify-end gap-3 pt-2">
@@ -752,20 +771,23 @@ function TemplateForm({
   onCancel: () => void;
 }) {
   const t = useTranslations("machineAccess");
-  const [formData, setFormData] = useState({
-    name: template?.name ?? "",
-    description: template?.description ?? "",
-    accessLevel: (template?.accessLevel ?? "read") as AccessLevel,
-    machineIds: template?.machineIds?.join(", ") ?? "",
+  const form = useForm<TemplateFormValues>({
+    resolver: zodResolver(templateFormSchema),
+    defaultValues: {
+      name: template?.name ?? "",
+      description: template?.description ?? "",
+      accessLevel: template?.accessLevel ?? "read",
+      machineIds: template?.machineIds?.join(", ") ?? "",
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (values: TemplateFormValues) => {
       const payload = {
-        name: formData.name,
-        description: formData.description || undefined,
-        accessLevel: formData.accessLevel,
-        machineIds: formData.machineIds
+        name: values.name,
+        description: values.description || undefined,
+        accessLevel: values.accessLevel,
+        machineIds: values.machineIds
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
@@ -786,21 +808,19 @@ function TemplateForm({
     onError: () => toast.error(t("messages.templateSaveError")),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate();
-  };
+  const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="text-sm font-medium">{t("form.templateName")}</label>
         <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          {...form.register("name")}
           placeholder={t("form.templateNamePlaceholder")}
-          required
         />
+        {form.formState.errors.name && (
+          <p className="text-xs text-destructive mt-1">{form.formState.errors.name.message}</p>
+        )}
       </div>
       <div>
         <label className="text-sm font-medium">
@@ -810,44 +830,42 @@ function TemplateForm({
           </span>
         </label>
         <Textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
+          {...form.register("description")}
           placeholder={t("form.descriptionPlaceholder")}
           className="h-20 resize-none"
         />
       </div>
       <div>
         <label className="text-sm font-medium">{t("form.accessLevel")}</label>
-        <Select
-          value={formData.accessLevel}
-          onValueChange={(v) =>
-            setFormData({ ...formData, accessLevel: v as AccessLevel })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ACCESS_LEVELS.map((level) => (
-              <SelectItem key={level} value={level}>
-                {t(`accessLevels.${level}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Controller
+          control={form.control}
+          name="accessLevel"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCESS_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {t(`accessLevels.${level}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       <div>
         <label className="text-sm font-medium">{t("form.machineIds")}</label>
         <Textarea
-          value={formData.machineIds}
-          onChange={(e) =>
-            setFormData({ ...formData, machineIds: e.target.value })
-          }
+          {...form.register("machineIds")}
           placeholder={t("form.machineIdsPlaceholder")}
           className="h-20 resize-none font-mono text-sm"
         />
+        {form.formState.errors.machineIds && (
+          <p className="text-xs text-destructive mt-1">{form.formState.errors.machineIds.message}</p>
+        )}
         <p className="text-xs text-muted-foreground mt-1">
           {t("form.machineIdsHint")}
         </p>
@@ -881,13 +899,16 @@ function ApplyTemplateForm({
   onCancel: () => void;
 }) {
   const t = useTranslations("machineAccess");
-  const [userIds, setUserIds] = useState("");
+  const form = useForm<ApplyTemplateValues>({
+    resolver: zodResolver(applyTemplateSchema),
+    defaultValues: { userIds: "" },
+  });
 
   const mutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: ApplyTemplateValues) =>
       machineAccessApi.applyTemplate({
         templateId: template.id,
-        userIds: userIds
+        userIds: values.userIds
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
@@ -899,13 +920,10 @@ function ApplyTemplateForm({
     onError: () => toast.error(t("messages.templateApplyError")),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate();
-  };
+  const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
         <p>
           <span className="text-muted-foreground">
@@ -938,12 +956,13 @@ function ApplyTemplateForm({
       <div>
         <label className="text-sm font-medium">{t("form.userIds")}</label>
         <Textarea
-          value={userIds}
-          onChange={(e) => setUserIds(e.target.value)}
+          {...form.register("userIds")}
           placeholder={t("form.userIdsPlaceholder")}
           className="h-20 resize-none font-mono text-sm"
-          required
         />
+        {form.formState.errors.userIds && (
+          <p className="text-xs text-destructive mt-1">{form.formState.errors.userIds.message}</p>
+        )}
         <p className="text-xs text-muted-foreground mt-1">
           {t("form.userIdsHint")}
         </p>

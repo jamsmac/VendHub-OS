@@ -1,7 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Clock, AlertTriangle, Shield, Bell } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { ArrowLeft, Clock, Shield, Bell } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,51 +14,113 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useState } from "react";
+import { api } from "@/lib/api";
 
-interface SlaConfig {
-  critical: number;
-  high: number;
-  medium: number;
-  low: number;
-}
+const complaintSettingsSchema = z.object({
+  slaCritical: z.coerce.number().int().min(1).max(720),
+  slaHigh: z.coerce.number().int().min(1).max(720),
+  slaMedium: z.coerce.number().int().min(1).max(720),
+  slaLow: z.coerce.number().int().min(1).max(720),
+  autoAssign: z.boolean(),
+  autoEscalate: z.boolean(),
+  emailOnNew: z.boolean(),
+  emailOnEscalation: z.boolean(),
+  telegramOnNew: z.boolean(),
+  telegramOnSlaWarning: z.boolean(),
+  slaWarningPercentage: z.coerce.number().int().min(50).max(95),
+});
 
-interface NotificationSettings {
-  emailOnNew: boolean;
-  emailOnEscalation: boolean;
-  telegramOnNew: boolean;
-  telegramOnSlaWarning: boolean;
-  slaWarningPercentage: number;
-}
+type ComplaintSettingsValues = z.infer<typeof complaintSettingsSchema>;
+
+const DEFAULTS: ComplaintSettingsValues = {
+  slaCritical: 2,
+  slaHigh: 8,
+  slaMedium: 24,
+  slaLow: 72,
+  autoAssign: true,
+  autoEscalate: true,
+  emailOnNew: true,
+  emailOnEscalation: true,
+  telegramOnNew: true,
+  telegramOnSlaWarning: true,
+  slaWarningPercentage: 80,
+};
 
 export default function ComplaintsSettingsPage() {
   const t = useTranslations("complaints");
   const tCommon = useTranslations("common");
+  const queryClient = useQueryClient();
 
-  // SLA settings (defaults from backend DEFAULT_SLA_CONFIG)
-  const [sla, setSla] = useState<SlaConfig>({
-    critical: 2,
-    high: 8,
-    medium: 24,
-    low: 72,
+  const form = useForm<ComplaintSettingsValues>({
+    resolver: zodResolver(complaintSettingsSchema),
+    defaultValues: DEFAULTS,
   });
 
-  const [notifications, setNotifications] = useState<NotificationSettings>({
-    emailOnNew: true,
-    emailOnEscalation: true,
-    telegramOnNew: true,
-    telegramOnSlaWarning: true,
-    slaWarningPercentage: 80,
+  // Load settings from API
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ["complaint-settings"],
+    queryFn: async () => {
+      const res = await api.get("/complaints/settings");
+      return res.data;
+    },
   });
 
-  const [autoAssign, setAutoAssign] = useState(true);
-  const [autoEscalate, setAutoEscalate] = useState(true);
+  // Populate form when server data arrives
+  useEffect(() => {
+    if (!settings) return;
+    form.reset({
+      slaCritical: settings.sla?.critical ?? DEFAULTS.slaCritical,
+      slaHigh: settings.sla?.high ?? DEFAULTS.slaHigh,
+      slaMedium: settings.sla?.medium ?? DEFAULTS.slaMedium,
+      slaLow: settings.sla?.low ?? DEFAULTS.slaLow,
+      autoAssign: settings.autoAssign ?? DEFAULTS.autoAssign,
+      autoEscalate: settings.autoEscalate ?? DEFAULTS.autoEscalate,
+      emailOnNew: settings.notifications?.emailOnNew ?? DEFAULTS.emailOnNew,
+      emailOnEscalation:
+        settings.notifications?.emailOnEscalation ??
+        DEFAULTS.emailOnEscalation,
+      telegramOnNew:
+        settings.notifications?.telegramOnNew ?? DEFAULTS.telegramOnNew,
+      telegramOnSlaWarning:
+        settings.notifications?.telegramOnSlaWarning ??
+        DEFAULTS.telegramOnSlaWarning,
+      slaWarningPercentage:
+        settings.notifications?.slaWarningPercentage ??
+        DEFAULTS.slaWarningPercentage,
+    });
+  }, [settings, form]);
 
-  const handleSave = () => {
-    // TODO: Save to API when complaints settings endpoint is available
-    toast.success("Настройки SLA сохранены");
-  };
+  // Save mutation
+  const saveMutation = useMutation({
+    mutationFn: async (values: ComplaintSettingsValues) => {
+      await api.put("/complaints/settings", {
+        sla: {
+          critical: values.slaCritical,
+          high: values.slaHigh,
+          medium: values.slaMedium,
+          low: values.slaLow,
+        },
+        autoAssign: values.autoAssign,
+        autoEscalate: values.autoEscalate,
+        notifications: {
+          emailOnNew: values.emailOnNew,
+          emailOnEscalation: values.emailOnEscalation,
+          telegramOnNew: values.telegramOnNew,
+          telegramOnSlaWarning: values.telegramOnSlaWarning,
+          slaWarningPercentage: values.slaWarningPercentage,
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["complaint-settings"] });
+      toast.success("Настройки SLA сохранены");
+    },
+    onError: () => toast.error("Ошибка сохранения настроек"),
+  });
+
+  const onSubmit = form.handleSubmit((values) => saveMutation.mutate(values));
 
   return (
     <div className="space-y-6">
@@ -71,242 +138,197 @@ export default function ComplaintsSettingsPage() {
         </div>
       </div>
 
-      {/* SLA Timeouts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Время реагирования (SLA)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Максимальное время на решение жалобы в зависимости от приоритета
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-red-500" />
-                Критический
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  value={sla.critical}
-                  onChange={(e) =>
-                    setSla((s) => ({
-                      ...s,
-                      critical: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  часов
-                </span>
+      {isLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      ) : (
+        <>
+          {/* SLA Timeouts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Время реагирования (SLA)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Максимальное время на решение жалобы в зависимости от приоритета
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                    Критический
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" min={1} {...form.register("slaCritical")} />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-orange-500" />
+                    Высокий
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" min={1} {...form.register("slaHigh")} />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-yellow-500" />
+                    Средний
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" min={1} {...form.register("slaMedium")} />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-500" />
+                    Низкий
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" min={1} {...form.register("slaLow")} />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-orange-500" />
-                Высокий
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  value={sla.high}
-                  onChange={(e) =>
-                    setSla((s) => ({
-                      ...s,
-                      high: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  часов
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-yellow-500" />
-                Средний
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  value={sla.medium}
-                  onChange={(e) =>
-                    setSla((s) => ({
-                      ...s,
-                      medium: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  часов
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-blue-500" />
-                Низкий
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  value={sla.low}
-                  onChange={(e) =>
-                    setSla((s) => ({
-                      ...s,
-                      low: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  часов
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Automation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Автоматизация
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Автоматическое назначение</p>
-              <p className="text-sm text-muted-foreground">
-                Автоматически назначать жалобы на ближайшего оператора
-              </p>
-            </div>
-            <Switch checked={autoAssign} onCheckedChange={setAutoAssign} />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Автоматическая эскалация</p>
-              <p className="text-sm text-muted-foreground">
-                Эскалировать жалобу при нарушении SLA
-              </p>
-            </div>
-            <Switch
-              checked={autoEscalate}
-              onCheckedChange={setAutoEscalate}
-            />
-          </div>
-        </CardContent>
-      </Card>
+          {/* Automation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Автоматизация
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Автоматическое назначение</p>
+                  <p className="text-sm text-muted-foreground">
+                    Автоматически назначать жалобы на ближайшего оператора
+                  </p>
+                </div>
+                <Switch
+                  checked={form.watch("autoAssign")}
+                  onCheckedChange={(v) => form.setValue("autoAssign", v, { shouldDirty: true })}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Автоматическая эскалация</p>
+                  <p className="text-sm text-muted-foreground">
+                    Эскалировать жалобу при нарушении SLA
+                  </p>
+                </div>
+                <Switch
+                  checked={form.watch("autoEscalate")}
+                  onCheckedChange={(v) => form.setValue("autoEscalate", v, { shouldDirty: true })}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Уведомления
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Email при новой жалобе</p>
-              <p className="text-sm text-muted-foreground">
-                Отправлять email менеджеру при поступлении жалобы
-              </p>
-            </div>
-            <Switch
-              checked={notifications.emailOnNew}
-              onCheckedChange={(v) =>
-                setNotifications((n) => ({ ...n, emailOnNew: v }))
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Email при эскалации</p>
-              <p className="text-sm text-muted-foreground">
-                Уведомлять руководителя при эскалации
-              </p>
-            </div>
-            <Switch
-              checked={notifications.emailOnEscalation}
-              onCheckedChange={(v) =>
-                setNotifications((n) => ({ ...n, emailOnEscalation: v }))
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Telegram при новой жалобе</p>
-              <p className="text-sm text-muted-foreground">
-                Мгновенное уведомление через Telegram бот
-              </p>
-            </div>
-            <Switch
-              checked={notifications.telegramOnNew}
-              onCheckedChange={(v) =>
-                setNotifications((n) => ({ ...n, telegramOnNew: v }))
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Предупреждение о SLA</p>
-              <p className="text-sm text-muted-foreground">
-                Telegram уведомление при достижении{" "}
-                {notifications.slaWarningPercentage}% времени SLA
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={50}
-                max={95}
-                className="w-20"
-                value={notifications.slaWarningPercentage}
-                onChange={(e) =>
-                  setNotifications((n) => ({
-                    ...n,
-                    slaWarningPercentage: parseInt(e.target.value) || 80,
-                  }))
-                }
-              />
-              <span className="text-sm text-muted-foreground">%</span>
-              <Switch
-                checked={notifications.telegramOnSlaWarning}
-                onCheckedChange={(v) =>
-                  setNotifications((n) => ({ ...n, telegramOnSlaWarning: v }))
-                }
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Уведомления
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Email при новой жалобе</p>
+                  <p className="text-sm text-muted-foreground">
+                    Отправлять email менеджеру при поступлении жалобы
+                  </p>
+                </div>
+                <Switch
+                  checked={form.watch("emailOnNew")}
+                  onCheckedChange={(v) => form.setValue("emailOnNew", v, { shouldDirty: true })}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Email при эскалации</p>
+                  <p className="text-sm text-muted-foreground">
+                    Уведомлять руководителя при эскалации
+                  </p>
+                </div>
+                <Switch
+                  checked={form.watch("emailOnEscalation")}
+                  onCheckedChange={(v) => form.setValue("emailOnEscalation", v, { shouldDirty: true })}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Telegram при новой жалобе</p>
+                  <p className="text-sm text-muted-foreground">
+                    Мгновенное уведомление через Telegram бот
+                  </p>
+                </div>
+                <Switch
+                  checked={form.watch("telegramOnNew")}
+                  onCheckedChange={(v) => form.setValue("telegramOnNew", v, { shouldDirty: true })}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Предупреждение о SLA</p>
+                  <p className="text-sm text-muted-foreground">
+                    Telegram уведомление при достижении{" "}
+                    {form.watch("slaWarningPercentage")}% времени SLA
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={50}
+                    max={95}
+                    className="w-20"
+                    {...form.register("slaWarningPercentage")}
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
+                  <Switch
+                    checked={form.watch("telegramOnSlaWarning")}
+                    onCheckedChange={(v) => form.setValue("telegramOnSlaWarning", v, { shouldDirty: true })}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Save */}
-      <div className="flex gap-2">
-        <Button onClick={handleSave} className="gap-2">
-          {tCommon("save")}
-        </Button>
-        <Link href="/dashboard/complaints">
-          <Button variant="outline">{tCommon("cancel")}</Button>
-        </Link>
-      </div>
+          {/* Save */}
+          <div className="flex gap-2">
+            <Button
+              onClick={onSubmit}
+              disabled={saveMutation.isPending}
+              className="gap-2"
+            >
+              {saveMutation.isPending ? "Сохранение..." : tCommon("save")}
+            </Button>
+            <Link href="/dashboard/complaints">
+              <Button variant="outline">{tCommon("cancel")}</Button>
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }

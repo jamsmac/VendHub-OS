@@ -18,6 +18,7 @@ import {
   ComplaintQrCode,
   ComplaintAutomationRule,
 } from "./entities/complaint.entity";
+import { Organization } from "../organizations/entities/organization.entity";
 import { StorageModule } from "../storage/storage.module";
 
 @Module({
@@ -30,6 +31,7 @@ import { StorageModule } from "../storage/storage.module";
       ComplaintTemplate,
       ComplaintQrCode,
       ComplaintAutomationRule,
+      Organization,
     ]),
     StorageModule,
     // EventEmitterModule is configured globally in AppModule
