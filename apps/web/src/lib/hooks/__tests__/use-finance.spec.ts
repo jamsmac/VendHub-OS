@@ -113,13 +113,22 @@ describe("useDailyRevenue", () => {
 });
 
 describe("usePayoutRequests", () => {
-  it("returns empty array (no backend endpoint)", async () => {
+  it("fetches from /payout-requests", async () => {
+    const mockResponse = {
+      data: [
+        { id: "1", amount: 100000, status: "pending", createdAt: "2026-01-01" },
+      ],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+    };
+    mockGet.mockResolvedValueOnce({ data: mockResponse } as never);
+
     const { result } = renderHook(() => usePayoutRequests(), {
       wrapper: createWrapperWithClient().wrapper,
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual([]);
+    expect(result.current.data).toEqual(mockResponse);
+    expect(mockGet).toHaveBeenCalledWith("/payout-requests");
   });
 });
 

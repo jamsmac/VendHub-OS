@@ -111,18 +111,65 @@ export function useDailyRevenue(days = 30) {
 }
 
 /**
- * Payout requests — no backend endpoint yet, returns empty array
+ * Payout requests via GET /payout-requests
  */
-export function usePayoutRequests() {
-  return useQuery({
-    queryKey: ["payout-requests"],
-    queryFn: async () =>
-      [] as Array<{
-        id: string;
-        amount: number;
-        status: string;
-        createdAt: string;
-      }>,
+export interface PayoutRequestItem {
+  id: string;
+  amount: number;
+  status: string;
+  payoutMethod: string;
+  reason: string | null;
+  payoutDestination: string | null;
+  requestedById: string;
+  reviewedById: string | null;
+  reviewedAt: string | null;
+  completedAt: string | null;
+  reviewComment: string | null;
+  transactionReference: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PayoutRequestsResponse {
+  data: PayoutRequestItem[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export function usePayoutRequests(params?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const qs = searchParams.toString();
+
+  return useQuery<PayoutRequestsResponse>({
+    queryKey: ["payout-requests", params],
+    queryFn: async () => {
+      const response = await api.get(`/payout-requests${qs ? `?${qs}` : ""}`);
+      return response.data;
+    },
+  });
+}
+
+export function useCreatePayoutRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      amount: number;
+      payoutMethod?: string;
+      reason?: string;
+      payoutDestination?: string;
+    }) => {
+      const response = await api.post("/payout-requests", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout-requests"] });
+    },
   });
 }
 

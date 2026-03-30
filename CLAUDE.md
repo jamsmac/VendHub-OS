@@ -229,7 +229,7 @@ pnpm docker:logs            # View logs
 
 ## VendHub24 Integration Status
 
-**Readiness: ~99.9%** (updated from 99.8%)
+**Readiness: 100%**
 
 ### Landing Site (site app)
 
@@ -277,11 +277,12 @@ pnpm docker:logs            # View logs
 
 ### Backend API Modules
 
-- **4 new API modules created:**
+- **5 new API modules created:**
   - `cash-finance`: Cash flow and financial tracking
   - `collections`: Collection and payment management
   - `trip-analytics`: Route and trip data analysis
   - `vhm24-integration`: VendHub24 legacy system bridge
+  - `payout-requests`: Payout request lifecycle management
 
 ### Telegram Customer Bot Services
 
@@ -571,7 +572,7 @@ Full audit of 40+ dashboard form pages. 18 forms had field mapping bugs, all fix
 
 **Known gap (RESOLVED)**: ~~Notification rules CRUD endpoints do NOT exist on backend~~ — Fixed in commit `1575d7b`: 5 CRUD endpoints added (GET/POST/PATCH/DELETE `/notifications/rules`).
 
-**Remaining known gap**: Payout requests endpoint — `apps/web/src/lib/hooks/use-finance.ts` has stub returning empty array, no backend endpoint yet.
+**Known gap (RESOLVED)**: ~~Payout requests endpoint~~ — Fixed: full CRUD module created (`payout-requests`), frontend hook updated to use real API.
 
 **Extended DTO→Entity Field Mappings (CRITICAL):**
 
@@ -636,6 +637,17 @@ Full audit of 40+ dashboard form pages. 18 forms had field mapping bugs, all fix
 | `references/page.tsx` | 5     | MxikForm, IkpuForm, VatForm, PackageForm, ProviderForm — all dialog-based |
 
 All dashboard forms are now migrated to RHF+Zod. No remaining useState forms.
+
+### Payout Requests Module (2026-03-31)
+
+New NestJS module for payout request lifecycle management:
+
+- **Entity**: `PayoutRequest` extends BaseEntity, with status enum (PENDING→APPROVED→PROCESSING→COMPLETED, or REJECTED/CANCELLED/FAILED), payout method enum (bank_transfer/card/cash), tenant isolation via `organizationId`
+- **7 endpoints**: GET list (paginated), GET stats, GET by ID, POST create, PATCH review (approve/reject), PATCH cancel, DELETE (soft)
+- **Pessimistic write locks** on all status transitions to prevent race conditions
+- **RBAC**: create (owner/admin/manager/operator), review (owner/admin), list/stats (owner/admin/manager/accountant)
+- **Frontend hook** updated: `usePayoutRequests()` now calls real `/payout-requests` API, `useCreatePayoutRequest()` mutation added
+- Files: entity, 3 DTOs, service, controller, module, index.ts
 
 ### Complaints Settings CRUD Endpoint (2026-03-31)
 

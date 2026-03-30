@@ -109,6 +109,7 @@ import { DataParserModule } from "./modules/data-parser/data-parser.module";
 import { AgentBridgeModule } from "./modules/agent-bridge/agent-bridge.module";
 import { FcmModule } from "./modules/fcm/fcm.module";
 import { CashFinanceModule } from "./modules/cash-finance/cash-finance.module";
+import { PayoutRequestsModule } from "./modules/payout-requests/payout-requests.module";
 import { CollectionsModule } from "./modules/collections/collections.module";
 import { InvestorModule } from "./modules/investor/investor.module";
 import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
@@ -728,6 +729,7 @@ const defaultedNumber = (value: number) =>
     // Cash & Finance Management
     CashFinanceModule,
     InvestorModule,
+    PayoutRequestsModule,
 
     // Collections & Payment Recovery
     CollectionsModule,
