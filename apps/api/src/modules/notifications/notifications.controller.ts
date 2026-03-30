@@ -60,6 +60,11 @@ import {
   CreateNotificationTemplateDto,
   UpdateNotificationTemplateDto,
 } from "./dto/notification-template.dto";
+import {
+  CreateNotificationRuleDto,
+  UpdateNotificationRuleDto,
+} from "./dto/notification-rule.dto";
+import { NotificationRule } from "./entities/notification.entity";
 
 @ApiTags("Notifications")
 @ApiBearerAuth()
@@ -460,6 +465,78 @@ export class NotificationsController {
     @CurrentOrganizationId() organizationId: string,
   ) {
     return this.notificationsService.startCampaign(id, organizationId);
+  }
+
+  // ============================================================================
+  // Notification Rules CRUD
+  // ============================================================================
+
+  @Get("rules")
+  @ApiOperation({ summary: "List notification rules for organization" })
+  @ApiResponse({
+    status: 200,
+    description: "List of notification rules",
+    type: [NotificationRule],
+  })
+  @Roles("owner", "admin", "manager")
+  async getRules(@CurrentOrganizationId() orgId: string) {
+    return this.notificationsService.getRules(orgId);
+  }
+
+  @Get("rules/:id")
+  @ApiOperation({ summary: "Get notification rule by ID" })
+  @ApiResponse({ status: 200, description: "Notification rule" })
+  @ApiResponse({ status: 404, description: "Rule not found" })
+  @Roles("owner", "admin", "manager")
+  async getRuleById(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.notificationsService.getRuleById(id, orgId);
+  }
+
+  @Post("rules")
+  @ApiOperation({ summary: "Create notification rule" })
+  @ApiResponse({ status: 201, description: "Rule created" })
+  @ApiResponse({ status: 400, description: "Bad request" })
+  @Roles("owner", "admin")
+  @HttpCode(HttpStatus.CREATED)
+  async createRule(
+    @Body() dto: CreateNotificationRuleDto,
+    @CurrentOrganizationId() orgId: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const organizationId = resolveOrganizationId(user, dto.organizationId);
+    return this.notificationsService.createRule({
+      ...dto,
+      organizationId,
+    });
+  }
+
+  @Patch("rules/:id")
+  @ApiOperation({ summary: "Update notification rule" })
+  @ApiResponse({ status: 200, description: "Rule updated" })
+  @ApiResponse({ status: 404, description: "Rule not found" })
+  @Roles("owner", "admin")
+  async updateRule(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateNotificationRuleDto,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    return this.notificationsService.updateRule(id, dto, orgId);
+  }
+
+  @Delete("rules/:id")
+  @ApiOperation({ summary: "Delete notification rule" })
+  @ApiResponse({ status: 204, description: "Rule deleted" })
+  @ApiResponse({ status: 404, description: "Rule not found" })
+  @Roles("owner", "admin")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteRule(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    await this.notificationsService.deleteRule(id, orgId);
   }
 
   // ============================================================================

@@ -784,6 +784,52 @@ export class NotificationsService {
   }
 
   // ============================================================================
+  // NOTIFICATION RULES CRUD
+  // ============================================================================
+
+  async getRules(organizationId: string): Promise<NotificationRule[]> {
+    return this.ruleRepo.find({
+      where: { organizationId },
+      order: { sortOrder: "ASC", createdAt: "DESC" },
+    });
+  }
+
+  async getRuleById(
+    id: string,
+    organizationId?: string,
+  ): Promise<NotificationRule> {
+    const where: Record<string, unknown> = { id };
+    if (organizationId) where.organizationId = organizationId;
+    const rule = await this.ruleRepo.findOne({ where });
+    if (!rule) {
+      throw new NotFoundException(`Notification rule ${id} not found`);
+    }
+    return rule;
+  }
+
+  async createRule(
+    dto: Partial<NotificationRule> & { organizationId: string },
+  ): Promise<NotificationRule> {
+    const rule = this.ruleRepo.create(dto);
+    return this.ruleRepo.save(rule);
+  }
+
+  async updateRule(
+    id: string,
+    dto: Partial<NotificationRule>,
+    organizationId?: string,
+  ): Promise<NotificationRule> {
+    const rule = await this.getRuleById(id, organizationId);
+    Object.assign(rule, dto);
+    return this.ruleRepo.save(rule);
+  }
+
+  async deleteRule(id: string, organizationId?: string): Promise<void> {
+    const rule = await this.getRuleById(id, organizationId);
+    await this.ruleRepo.softDelete(rule.id);
+  }
+
+  // ============================================================================
   // EVENT HANDLERS (for rules)
   // ============================================================================
 

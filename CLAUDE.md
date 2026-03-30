@@ -535,6 +535,70 @@ Comprehensive audit of 11 remaining unaudited modules found 5 real vulnerabiliti
 - Favorites uses userId (not organizationId) — correct, favorites are per-user not per-org
 - Agent-bridge has no org filtering — intentional, system-level admin-only module
 
+### Frontend↔Backend DTO Mapping Audit (2026-03-31)
+
+Full audit of 40+ dashboard form pages. 18 forms had field mapping bugs, all fixed across 4 commits. Both `apps/web` and `apps/api` compile with zero TypeScript errors.
+
+**Batch 1** (a9feebc) — 6 forms:
+
+- **equipment create/edit** (3 forms): wrong component status enums, missing `serialNumber`/`purchaseDate`
+- **tasks/new**: missing 4 `replace_*` task types
+- **employees/new**: `position` → `employeeRole`, 5 values → 7 values
+- **locations/new**: flat `address` string → nested `AddressDto`, `contactPerson` → `primary_contact_name`
+
+**Batch 2** (ad53624) — 4 forms:
+
+- **tasks/[id]**: same task type fix as new, `dueDate` not converted to ISO string
+- **employees/[id]**: `position` → `employeeRole`, status enum mismatch
+- **locations/[id]**: same AddressDto + contact field fixes as new page
+- **organizations**: camelCase form → snake_case DTO (`nameUz` → `name_uz`, `bankAccount` → `bank_account`, etc.)
+
+**Batch 3** (b70fa0c) — 3 forms:
+
+- **incidents**: snake_case form → camelCase DTO (`machine_id` → `machineId`, `repair_cost` → `repairCost`)
+- **contractors**: `name` → `companyName`, `type` → `serviceType`, `contractEndDate` → `contractEnd`
+- **warehouse**: `is_active` → `isActive`, missing required `code` field, stock movement `product_id` → `productId`
+
+**Batch 4** (c0671cd) — 5 forms:
+
+- **vehicles/odometer**: `currentOdometer` → `odometer` (UpdateOdometerDto)
+- **notifications/templates**: `subject` → `titleRu`, `body` → `bodyRu`, `channels` → `defaultChannels`, `is_active` → `isActive`, auto-generate `code`
+- **notifications/campaigns**: `message` → `body`, `audience_filter` → `targetType`+`targetRoles`, `scheduled_at` → `scheduledFor`
+- **notifications/settings**: flat channel object → individual `*Enabled` boolean fields + `typeSettings`
+- **notifications/rules toggle**: `is_active` → `isActive`
+
+**Verified clean pages**: routes, collections, settings, products/new, machines/new, users/new, auth/login, auth/register, complaints/settings, complaints/qr-codes, directories, directories/[id]
+
+**Known gap**: Notification rules CRUD endpoints do NOT exist on backend — frontend rule forms submit to 404.
+
+**Extended DTO→Entity Field Mappings (CRITICAL):**
+
+| Frontend field       | Backend DTO field      | Module         | Notes                                    |
+| -------------------- | ---------------------- | -------------- | ---------------------------------------- |
+| `code`               | `machineNumber`        | machines       | Explicit mapping in controller           |
+| `contentModel`       | `contentModel`         | machines       | Derived from type in frontend            |
+| `basePrice`          | `sellingPrice`         | products       | Mapped in controller create/update       |
+| `costPrice`          | `purchasePrice`        | products       | Mapped in controller create/update       |
+| `type`               | `typeCode`             | tasks          | Mapped in controller create              |
+| `parent_id`          | `parentId`             | organizations  | snake→camelCase in controller            |
+| `position`           | `employeeRole`         | employees      | Completely different field name           |
+| `address` (string)   | `address` (AddressDto) | locations      | Nested object with country/region/city   |
+| `contactPerson`      | `primary_contact_name` | locations      | Different naming convention              |
+| `name`               | `companyName`          | contractors    | Different field name                     |
+| `type`               | `serviceType`          | contractors    | Different field name                     |
+| `contractEndDate`    | `contractEnd`          | contractors    | Shortened name                           |
+| `machine_id`         | `machineId`            | incidents      | snake→camelCase                          |
+| `repair_cost`        | `repairCost`           | incidents      | snake→camelCase + Number()               |
+| `is_active`          | `isActive`             | warehouse      | snake→camelCase                          |
+| `product_id`         | `productId`            | stock-movement | snake→camelCase                          |
+| `currentOdometer`    | `odometer`             | vehicles       | Entity field ≠ DTO input field           |
+| `subject`            | `titleRu`              | notifications  | i18n model in backend                    |
+| `body`               | `bodyRu`               | notifications  | i18n model in backend                    |
+| `channels`           | `defaultChannels`      | notifications  | Template-specific naming                 |
+| `message`            | `body`                 | campaigns      | Different field name                     |
+| `audience_filter`    | `targetType`           | campaigns      | Structural: string → type+roles          |
+| `scheduled_at`       | `scheduledFor`         | campaigns      | Different field name + Date conversion   |
+
 ## Skills (AI Agent Tools)
 
 21 specialized skills in `.claude/commands/` directory for domain-specific code generation:

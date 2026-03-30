@@ -341,10 +341,35 @@ export default function NotificationsPage() {
 
   const createRuleMutation = useMutation({
     mutationFn: async (data: Partial<NotificationRule>) => {
+      // Map frontend fields → backend CreateNotificationRuleDto
+      const event = (data.event as string) || "";
+      const eventCategory = event.split(".")[0] || "system";
+      const recipients = (data.recipients as string) || "all";
+      // Map recipient keys → recipientType + roles
+      const recipientMap: Record<string, { recipientType: string; roles?: string[] }> = {
+        all_admins: { recipientType: "role", roles: ["admin"] },
+        all_managers: { recipientType: "role", roles: ["manager"] },
+        all_operators: { recipientType: "role", roles: ["operator"] },
+        machine_owner: { recipientType: "assignee" },
+        assigned_operator: { recipientType: "assignee" },
+        warehouse_staff: { recipientType: "role", roles: ["warehouse"] },
+        accountants: { recipientType: "role", roles: ["accountant"] },
+      };
+      const recipientInfo = recipientMap[recipients] || { recipientType: "all" };
+      const payload: Record<string, unknown> = {
+        name: data.name,
+        eventCategory,
+        eventType: event,
+        notificationType: eventCategory === "alert" ? "alert" : "system",
+        channels: data.channels,
+        isActive: data.is_active,
+        ...(data.conditions ? { conditions: data.conditions } : {}),
+        ...recipientInfo,
+      };
       if (editingRule) {
-        return api.patch(`/notifications/rules/${editingRule.id}`, data);
+        return api.patch(`/notifications/rules/${editingRule.id}`, payload);
       }
-      return api.post("/notifications/rules", data);
+      return api.post("/notifications/rules", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-rules"] });
