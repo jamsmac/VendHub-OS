@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VendHub OS — Блок-схемы автоматов</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #242836;
+    --border: #2e3346;
+    --text: #e8eaf0;
+    --text-dim: #8b8fa3;
+    --accent: #c49a6c;
+    --accent-glow: rgba(196, 154, 108, 0.15);
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --cyan: #22d3ee;
+    --test-badge: #f59e0b;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--accent); }
+  .sidebar-header p { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  .nav-group { padding: 16px 12px 8px; }
+  .nav-group-title {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim); padding: 0 8px; margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--text-dim); transition: all 0.15s; user-select: none;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent); }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .main { padding: 40px; overflow-y: auto; }
+
+  .flow-title { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .flow-desc { font-size: 14px; color: var(--text-dim); margin-bottom: 32px; max-width: 600px; }
+
+  .flowchart { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  .flow-node {
+    position: relative; min-width: 260px; max-width: 400px; padding: 14px 20px;
+    border-radius: 12px; font-size: 13px; font-weight: 500; text-align: center;
+    border: 1.5px solid var(--border); background: var(--surface);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .flow-node:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+  .flow-node.start, .flow-node.end {
+    border-radius: 40px; background: var(--surface-2); border-color: var(--accent); color: var(--accent); font-weight: 600;
+  }
+  .flow-node.process { border-color: var(--blue); background: rgba(96,165,250,0.08); }
+  .flow-node.decision { border-color: var(--amber); background: rgba(251,191,36,0.08); min-width: 280px; }
+  .flow-node.action { border-color: var(--green); background: rgba(74,222,128,0.08); }
+  .flow-node.error { border-color: var(--red); background: rgba(248,113,113,0.08); }
+  .flow-node.api { border-color: var(--purple); background: rgba(167,139,250,0.08); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .flow-node.ui { border-color: var(--cyan); background: rgba(34,211,238,0.08); }
+  .flow-node.test-data { border: 2px dashed var(--test-badge); background: rgba(245,158,11,0.06); }
+
+  .node-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; opacity: 0.7; }
+  .node-detail { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-weight: 400; white-space: pre-line; }
+
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; height: 36px; position: relative; }
+  .flow-arrow .line { width: 2px; flex: 1; background: var(--border); }
+  .flow-arrow .arrow-head { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--border); }
+  .flow-arrow .arrow-label { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-dim); font-style: italic; white-space: nowrap; }
+
+  .flow-branch { display: flex; gap: 40px; align-items: flex-start; justify-content: center; }
+  .flow-branch-col { display: flex; flex-direction: column; align-items: center; }
+  .flow-branch-label { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; padding: 3px 10px; border-radius: 20px; background: var(--surface-2); }
+  .flow-branch-label.yes { color: var(--green); }
+  .flow-branch-label.no { color: var(--red); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-top: 40px; padding: 16px 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid; }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1>VendHub OS</h1>
+      <p>Блок-схемы автоматов</p>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Создание</div>
+      <div class="nav-item active" data-flow="create-manual"><div class="nav-dot" style="background:var(--green)"></div>Создание вручную</div>
+      <div class="nav-item" data-flow="create-template"><div class="nav-dot" style="background:var(--blue)"></div>Создание из шаблона</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Просмотр</div>
+      <div class="nav-item" data-flow="view-list"><div class="nav-dot" style="background:var(--cyan)"></div>Список автоматов</div>
+      <div class="nav-item" data-flow="view-detail"><div class="nav-dot" style="background:var(--purple)"></div>Детальная карточка</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Наполнение</div>
+      <div class="nav-item" data-flow="contents-bunkers"><div class="nav-dot" style="background:var(--amber)"></div>Бункеры (containers)</div>
+      <div class="nav-item" data-flow="contents-slots"><div class="nav-dot" style="background:var(--accent)"></div>Ячейки (slots)</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Компоненты</div>
+      <div class="nav-item" data-flow="components"><div class="nav-dot" style="background:var(--red)"></div>Оборудование</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Шаблоны</div>
+      <div class="nav-item" data-flow="templates-crud"><div class="nav-dot" style="background:var(--green)"></div>CRUD шаблонов</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Тестовые данные</div>
+      <div class="nav-item" data-flow="test-data"><div class="nav-dot" style="background:var(--test-badge)"></div>Обзор тестовых данных</div>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content"></main>
+</div>
+
+<script>
+const LABEL_MAP = {
+  'start': 'СТАРТ', 'end': 'КОНЕЦ', 'process': 'ПРОЦЕСС',
+  'decision': 'РЕШЕНИЕ', 'action': 'ДЕЙСТВИЕ', 'error': 'ОШИБКА',
+  'api': 'API', 'ui': 'UI', 'test-data': 'ТЕСТОВЫЕ ДАННЫЕ'
+};
+
+function el(tag, cls, attrs) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'text') e.textContent = v;
+    else e.setAttribute(k, v);
+  });
+  return e;
+}
+
+function buildNode(node) {
+  if (node.type === 'arrow') {
+    const a = el('div', 'flow-arrow');
+    a.appendChild(el('div', 'line'));
+    a.appendChild(el('div', 'arrow-head'));
+    if (node.label) {
+      const lbl = el('div', 'arrow-label');
+      lbl.textContent = node.label;
+      a.appendChild(lbl);
+    }
+    return a;
+  }
+
+  if (node.type === 'branch') {
+    const br = el('div', 'flow-branch');
+
+    const yesCol = el('div', 'flow-branch-col');
+    const yesLbl = el('div', 'flow-branch-label yes');
+    yesLbl.textContent = 'Да';
+    yesCol.appendChild(yesLbl);
+    if (Array.isArray(node.yes)) node.yes.forEach(n => yesCol.appendChild(buildNode(n)));
+    else if (node.yes && node.yes.label) {
+      const ref = el('div', 'flow-node action');
+      ref.textContent = node.yes.label;
+      ref.style.fontSize = '12px';
+      yesCol.appendChild(ref);
+    }
+    br.appendChild(yesCol);
+
+    const noCol = el('div', 'flow-branch-col');
+    const noLbl = el('div', 'flow-branch-label no');
+    noLbl.textContent = 'Нет';
+    noCol.appendChild(noLbl);
+    if (Array.isArray(node.no)) node.no.forEach(n => noCol.appendChild(buildNode(n)));
+    br.appendChild(noCol);
+
+    return br;
+  }
+
+  const box = el('div', 'flow-node ' + node.type);
+  const label = el('div', 'node-label');
+  label.textContent = LABEL_MAP[node.type] || '';
+  box.appendChild(label);
+
+  const txt = document.createTextNode(node.text || '');
+  box.appendChild(txt);
+
+  if (node.detail) {
+    const d = el('div', 'node-detail');
+    d.textContent = node.detail;
+    box.appendChild(d);
+  }
+  return box;
+}
+
+function buildLegend() {
+  const legend = el('div', 'legend');
+  const items = [
+    ['var(--accent)', 'var(--surface-2)', 'solid', 'Старт / Конец'],
+    ['var(--blue)', 'rgba(96,165,250,0.08)', 'solid', 'Процесс'],
+    ['var(--amber)', 'rgba(251,191,36,0.08)', 'solid', 'Решение'],
+    ['var(--green)', 'rgba(74,222,128,0.08)', 'solid', 'Действие'],
+    ['var(--purple)', 'rgba(167,139,250,0.08)', 'solid', 'API вызов'],
+    ['var(--cyan)', 'rgba(34,211,238,0.08)', 'solid', 'UI элемент'],
+    ['var(--red)', 'rgba(248,113,113,0.08)', 'solid', 'Ошибка'],
+    ['var(--test-badge)', 'rgba(245,158,11,0.06)', 'dashed', 'Тестовые данные'],
+  ];
+  items.forEach(([bc, bg, bs, label]) => {
+    const li = el('div', 'legend-item');
+    const sw = el('div', 'legend-swatch');
+    sw.style.borderColor = bc;
+    sw.style.background = bg;
+    sw.style.borderStyle = bs;
+    li.appendChild(sw);
+    const sp = document.createTextNode(label);
+    li.appendChild(sp);
+    legend.appendChild(li);
+  });
+  return legend;
+}
+
+function showFlow(key) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.querySelector('[data-flow="' + key + '"]');
+  if (navEl) navEl.classList.add('active');
+
+  const flow = FLOWS[key];
+  if (!flow) return;
+
+  const main = document.getElementById('main-content');
+  main.replaceChildren();
+
+  const title = el('h2', 'flow-title');
+  title.textContent = flow.title;
+  main.appendChild(title);
+
+  const desc = el('p', 'flow-desc');
+  desc.textContent = flow.desc;
+  main.appendChild(desc);
+
+  const chart = el('div', 'flowchart');
+  flow.nodes.forEach(node => chart.appendChild(buildNode(node)));
+  main.appendChild(chart);
+  main.appendChild(buildLegend());
+}
+
+// ══════════════════════════════════════════════
+// FLOW DATA (all static, no user input)
+// ══════════════════════════════════════════════
+
+const FLOWS = {
+'create-manual': {
+  title: 'Создание автомата вручную',
+  desc: 'Пользователь заполняет все поля формы самостоятельно без использования шаблона. Бункеры, ячейки и компоненты добавляются позже.',
+  nodes: [
+    { type: 'start', text: 'Пользователь нажимает «+ Добавить автомат»' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Страница /dashboard/machines/new', detail: 'Форма создания автомата' },
+    { type: 'arrow' },
+    { type: 'process', text: '1. Выбор типа автомата', detail: 'coffee / snack / drink / water / combo / fresh / ice_cream' },
+    { type: 'arrow' },
+    { type: 'decision', text: 'Выбрать шаблон?' },
+    { type: 'branch', yes: { label: 'Переход к сценарию «Из шаблона»' }, no: [
+      { type: 'process', text: '2. Опция «Без шаблона» (по умолчанию)' },
+      { type: 'arrow' },
+      { type: 'process', text: '3. Заполнение ключевых полей', detail: 'Номер, название, серийный номер, производитель, модель' },
+      { type: 'arrow' },
+      { type: 'process', text: '4. Модель содержимого: containers / slots / mixed' },
+      { type: 'arrow' },
+      { type: 'process', text: '5. Количество ячеек (для slots/mixed)' },
+      { type: 'arrow' },
+      { type: 'process', text: '6. Способы оплаты: наличные, карта, QR, NFC' },
+      { type: 'arrow' },
+      { type: 'action', text: 'Нажатие «Создать автомат»' },
+      { type: 'arrow' },
+      { type: 'api', text: 'POST /api/v1/machines', detail: 'machinesApi.create(body)' },
+      { type: 'arrow' },
+      { type: 'decision', text: 'Успех?' },
+      { type: 'branch',
+        yes: [
+          { type: 'action', text: 'toast.success + redirect', detail: '/dashboard/machines/:id' },
+          { type: 'arrow' },
+          { type: 'end', text: 'Автомат создан' }
+        ],
+        no: [
+          { type: 'error', text: 'toast.error — ошибка валидации' },
+        ]
+      }
+    ]},
+  ]
+},
+
+'create-template': {
+  title: 'Создание автомата из шаблона',
+  desc: 'Шаблон заполняет бункеры, ячейки и компоненты автоматически. Пользователь вводит только уникальные данные машины.',
+  nodes: [
+    { type: 'start', text: 'Страница /machines/new' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machine-templates/active', detail: 'Загрузка активных шаблонов' },
+    { type: 'arrow' },
+    { type: 'process', text: '1. Выбор типа автомата', detail: 'Фильтрация шаблонов по типу' },
+    { type: 'arrow' },
+    { type: 'ui', text: '2. Карточки шаблонов', detail: 'Название, бункеры/ячейки/компоненты' },
+    { type: 'arrow' },
+    { type: 'process', text: '3. Автозаполнение из шаблона', detail: 'Производитель, модель, slot_count (read-only)' },
+    { type: 'arrow' },
+    { type: 'process', text: '4. Ввод уникальных данных', detail: 'Номер (CF-016), название, серийный номер' },
+    { type: 'arrow' },
+    { type: 'action', text: 'Нажатие «Создать из шаблона»' },
+    { type: 'arrow' },
+    { type: 'api', text: 'POST /api/v1/machine-templates/create-machine', detail: 'createMachineFromTemplate({templateId, machineNumber, name})' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Backend: транзакция', detail: '1) Создаёт машину\n2) Создаёт containers из defaultContainers\n3) Создаёт machine_slots из defaultSlots\n4) Создаёт equipment_components из defaultComponents' },
+    { type: 'arrow' },
+    { type: 'decision', text: 'Успех?' },
+    { type: 'branch',
+      yes: [
+        { type: 'action', text: 'toast.success + redirect' },
+        { type: 'arrow' },
+        { type: 'end', text: 'Автомат + бункеры + ячейки + компоненты созданы' }
+      ],
+      no: [
+        { type: 'error', text: 'Ошибка шаблона или валидации' },
+      ]
+    }
+  ]
+},
+
+'view-list': {
+  title: 'Список автоматов',
+  desc: 'Главная страница модуля автоматов. Карточки с фильтрацией по статусу, поиском, переключением список/карта.',
+  nodes: [
+    { type: 'start', text: 'Переход на /dashboard/machines' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machines?search=&status=', detail: 'machinesApi.getAll({ search, status })' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machines/stats', detail: 'Подсчёт по статусам' },
+    { type: 'arrow' },
+    { type: 'ui', text: '4 KPI-карточки', detail: 'Всего | Активных | Требуют внимания | Ошибки' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Фильтры: поиск + статус + вид', detail: 'Список / Карта' },
+    { type: 'arrow' },
+    { type: 'decision', text: 'Режим отображения?' },
+    { type: 'branch',
+      yes: [
+        { type: 'ui', text: 'Grid карточек автоматов', detail: 'Статус, название, номер, адрес, запас, касса' },
+        { type: 'arrow' },
+        { type: 'action', text: 'Клик на карточку', detail: '/dashboard/machines/:id' }
+      ],
+      no: [
+        { type: 'api', text: 'GET /api/v1/machines/map' },
+        { type: 'arrow' },
+        { type: 'ui', text: 'Карта с маркерами' }
+      ]
+    },
+  ]
+},
+
+'view-detail': {
+  title: 'Детальная карточка автомата',
+  desc: '8 табов: Паспорт, Наполнение, Аналитика, Инкассации, Обслуживание, Локации, Задачи, Лента.',
+  nodes: [
+    { type: 'start', text: 'Переход на /dashboard/machines/:id' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machines/:id', detail: 'Загрузка данных автомата' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Sticky header', detail: 'Номер (CF-001) | Статус badge | Название | S/N | Быстрые кнопки' },
+    { type: 'arrow' },
+    { type: 'ui', text: '8 табов (по умолчанию — «Наполнение»)' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Паспорт', detail: 'Все поля: тип, модель, дата покупки, стоимость, SIM, фото' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Наполнение', detail: 'Бункеры + Компоненты + Чистка (useMachineState)' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Аналитика', detail: 'P&L, Продажи, Состояние, Динамика (useMachinePnL)' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Инкассации', detail: 'История сборов наличных' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Обслуживание', detail: 'Плановое ТО, ремонты, запчасти' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Локации', detail: 'Перемещения, адрес, карта' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Задачи', detail: 'Загрузка, ремонт, чистка' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Лента', detail: 'Хронология событий (entity_events)' },
+    { type: 'arrow' },
+    { type: 'end', text: 'Полный обзор автомата' },
+  ]
+},
+
+'contents-bunkers': {
+  title: 'Бункеры (containers)',
+  desc: 'Содержимое кофейных и водяных автоматов (content_model = containers). Уровни, прогнозы, инвентаризация.',
+  nodes: [
+    { type: 'start', text: 'Открыт таб «Наполнение»' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machines/:id/state', detail: 'CalculatedStateService.getMachineState()' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Backend: запрос containers', detail: 'containerRepo.find({ machineId, organizationId })' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Расчёт по каждому бункеру', detail: 'fillPercent = (currentQuantity / capacity) * 100\nisLow = currentQuantity <= minLevel\ndaysUntilEmpty = remaining / avgDailyUsage' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Карточка «Бункеры»', detail: 'Номер слота, название, прогресс-бар, %, остаток/ёмкость' },
+    { type: 'arrow', label: 'Тестовые данные' },
+    { type: 'test-data', text: 'CF-001 — 5 бункеров', detail: '1: Кофе зёрна 850/1200г (71%)\n2: Молоко сухое 320/800г (40%)\n3: Вода 3200/5000мл (64%)\n4: Сахар 720/1000г (72%)\n5: Стаканчики 45/100шт (45%)' },
+    { type: 'arrow' },
+    { type: 'test-data', text: 'WA-001 — 1 бункер (LOW)', detail: '1: Бак воды 35000/500000мл (7%) — ниже minLevel=50000' },
+    { type: 'arrow' },
+    { type: 'action', text: 'Кнопка «Провести инвентаризацию»' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Диалог: ввод фактических остатков' },
+    { type: 'arrow' },
+    { type: 'api', text: 'POST /api/v1/entity-events', detail: 'eventType: inventory_check (для каждого расхождения)' },
+    { type: 'arrow' },
+    { type: 'end', text: 'Инвентаризация записана' },
+  ]
+},
+
+'contents-slots': {
+  title: 'Ячейки (machine_slots)',
+  desc: 'Содержимое снэк- и напиточных автоматов (content_model = slots).',
+  nodes: [
+    { type: 'start', text: 'Открыт таб «Наполнение» для снэк-автомата' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machines/:id/state' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Backend: machine_slots', detail: 'slotNumber(A1..C8), capacity, currentQuantity, price, productId' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Сетка ячеек (3 ряда x 8 колонок)', detail: 'Номер, товар, количество/ёмкость, цена' },
+    { type: 'arrow', label: 'Тестовые данные' },
+    { type: 'test-data', text: 'SN-001 — 24 ячейки', detail: 'A1(8/10) A2(5/10) A3(10/10) A4(3/10) A5(7/10) A6(0/10)\nB1(4/10) B2(10/10) ... C8(10/10)\nДва пустых слота: A6 и C5' },
+    { type: 'arrow' },
+    { type: 'test-data', text: 'DR-001 — 18 ячеек (OFFLINE)', detail: 'A1(6/8) A2(3/8) A3(8/8) A4(0/8)\nМашина offline — данные показываются' },
+    { type: 'arrow' },
+    { type: 'end', text: 'Данные ячеек отображены' },
+  ]
+},
+
+'components': {
+  title: 'Оборудование (equipment_components)',
+  desc: 'Компоненты автоматов: кофемолки, моторы, платы, насосы. Отслеживание ресурса и местоположения.',
+  nodes: [
+    { type: 'start', text: 'Таб «Наполнение» — секция «Компоненты»' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Backend: equipment_components', detail: 'componentRepo.find({ machineId, organizationId })\ncomponentType, componentStatus, currentHours, expectedLifeHours' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Расчёт usagePercent', detail: 'usagePercent = (currentHours / expectedLifeHours) * 100\nneedsMaintenance = currentHours >= expectedLifeHours' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Список компонентов', detail: 'Название, тип badge, прогресс (часы/макс), badge ТО' },
+    { type: 'arrow', label: 'Тестовые данные' },
+    { type: 'test-data', text: 'CF-001 — 4 компонента', detail: 'Кофемолка (grinder) — installed — machine\nВарочный блок (brew_unit) — installed — machine\nВодяной насос (pump) — installed — machine\nПлата v3.2 (board) — installed — machine' },
+    { type: 'arrow' },
+    { type: 'test-data', text: 'SN-001 — 3 компонента', detail: 'Мотор A-ряд (motor) — installed\nМотор B-ряд (motor) — installed\nКонтроллер (board) — installed' },
+    { type: 'arrow' },
+    { type: 'test-data', text: 'WA-001 — 2 компонента', detail: 'Насос (pump) — installed — machine\nФильтрация (filter) — in_repair — repair' },
+    { type: 'arrow' },
+    { type: 'end', text: 'Компоненты отображены' },
+  ]
+},
+
+'templates-crud': {
+  title: 'CRUD шаблонов автоматов',
+  desc: 'Страница /dashboard/references/machine-templates. Просмотр, создание, редактирование, удаление шаблонов.',
+  nodes: [
+    { type: 'start', text: 'Справочники — Шаблоны автоматов' },
+    { type: 'arrow' },
+    { type: 'api', text: 'GET /api/v1/machine-templates', detail: 'machineTemplatesApi.getAll()' },
+    { type: 'arrow' },
+    { type: 'ui', text: 'Таблица шаблонов', detail: 'Название | Тип | Модель содержимого | Оплата | Системный | Действия' },
+    { type: 'arrow' },
+    { type: 'decision', text: 'Действие?' },
+    { type: 'branch',
+      yes: [
+        { type: 'action', text: 'Просмотр: Detail Dialog', detail: 'Все поля шаблона, бункеры/ячейки/компоненты' },
+        { type: 'arrow' },
+        { type: 'action', text: 'Создать/Редактировать: Form Dialog', detail: 'Inline-редакторы: бункеры, ячейки, компоненты' },
+        { type: 'arrow' },
+        { type: 'api', text: 'POST или PATCH /api/v1/machine-templates' },
+      ],
+      no: [
+        { type: 'action', text: 'Удалить (только не-системные)', detail: 'Системные: edit/delete заблокированы' },
+        { type: 'arrow' },
+        { type: 'api', text: 'DELETE /api/v1/machine-templates/:id', detail: 'Soft delete' },
+      ]
+    },
+    { type: 'arrow' },
+    { type: 'end', text: 'Шаблон обновлён / создан / удалён' },
+  ]
+},
+
+'test-data': {
+  title: 'Обзор тестовых данных',
+  desc: 'Миграция 1775300000000-SeedTestMachinesData. Данные для разработки — заменить реальными перед продакшеном.',
+  nodes: [
+    { type: 'start', text: 'Миграция SeedTestMachinesData' },
+    { type: 'arrow' },
+    { type: 'test-data', text: '5 автоматов (machines)', detail: 'CF-001: Кофе ТЦ Мега Планет | active | containers\nSN-001: Снэки метро Чиланзар | active | slots (24)\nWA-001: Водомат Офис Mirzo | low_stock | containers\nCB-001: Комбо БЦ Инконел | maintenance | mixed (12)\nDR-001: Напитки ТЦ Samarqand Darvoza | offline | slots (18)' },
+    { type: 'arrow' },
+    { type: 'test-data', text: '6 бункеров (containers)', detail: 'CF-001: Кофе 850/1200г, Молоко 320/800г, Вода 3200/5000мл, Сахар 720/1000г, Стаканчики 45/100шт\nWA-001: Бак 35000/500000мл (LOW)' },
+    { type: 'arrow' },
+    { type: 'test-data', text: '42 ячейки (machine_slots)', detail: 'SN-001: 24 ячейки (A1-C8) cap=10\nDR-001: 18 ячеек (A1-C6) cap=8\nДетерминированные уровни заполнения' },
+    { type: 'arrow' },
+    { type: 'test-data', text: '9 компонентов (equipment_components)', detail: 'CF-001: кофемолка, варочный блок, насос, плата\nSN-001: мотор x2, контроллер\nWA-001: насос (installed), фильтр (in_repair)' },
+    { type: 'arrow' },
+    { type: 'process', text: 'UUID-паттерны', detail: 'Machines: m1000000-...\nContainers: c1000000-...\nSlots: s1000000-...\nComponents: e1000000-...' },
+    { type: 'arrow' },
+    { type: 'process', text: 'Организация + пользователь', detail: 'ORG: d0000000-0000-0000-0000-000000000001\nUSER: a0000000-0000-0000-0000-000000000001' },
+    { type: 'arrow' },
+    { type: 'end', text: 'ON CONFLICT DO NOTHING — идемпотентно' },
+  ]
+}
+};
+
+// Nav click handler
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const key = this.getAttribute('data-flow');
+    if (key) showFlow(key);
+  });
+});
+
+// Init
+showFlow('create-manual');
+</script>
+</body>
+</html>
