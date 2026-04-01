@@ -32,6 +32,7 @@ import {
   RecipeType,
   IngredientBatch,
 } from "../products/entities/product.entity";
+import { SaleIngredient } from "./entities/sale-ingredient.entity";
 
 // Interface for item metadata with dispense status
 interface ItemMetadata {
@@ -62,6 +63,8 @@ export class TransactionCreateService {
     private recipeIngredientRepo: Repository<RecipeIngredient>,
     @InjectRepository(IngredientBatch)
     private ingredientBatchRepo: Repository<IngredientBatch>,
+    @InjectRepository(SaleIngredient)
+    private saleIngredientRepo: Repository<SaleIngredient>,
     private eventEmitter: EventEmitter2,
     private readonly queryService: TransactionQueryService,
     private dataSource: DataSource,
@@ -252,8 +255,12 @@ export class TransactionCreateService {
       transaction.status = TransactionStatus.COMPLETED;
       this.eventEmitter.emit("transaction.completed", transaction);
 
-      // Deduct ingredients from batches (FIFO) for dispensed items
-      await this.deductIngredients(items);
+      // Deduct ingredients from batches (FIFO) and track COGS
+      await this.deductIngredients(
+        items,
+        transaction.id,
+        transaction.organizationId,
+      );
     } else if (anyFailed) {
       transaction.status = TransactionStatus.PARTIALLY_REFUNDED;
       this.eventEmitter.emit("transaction.partial", transaction);
@@ -470,9 +477,18 @@ export class TransactionCreateService {
   }
 
   /**
-   * Deduct recipe ingredients from batches using FIFO for dispensed items
+   * Deduct recipe ingredients from batches using FIFO for dispensed items.
+   * Creates SaleIngredient records for COGS (Cost of Goods Sold) tracking.
+   * Emits 'sale.cogs.calculated' event with total cost for EXPENSE transaction creation.
    */
-  private async deductIngredients(items: TransactionItem[]): Promise<void> {
+  private async deductIngredients(
+    items: TransactionItem[],
+    transactionId: string,
+    organizationId: string,
+  ): Promise<void> {
+    let totalCogs = 0;
+    const saleIngredients: SaleIngredient[] = [];
+
     for (const item of items) {
       try {
         const recipe = await this.recipeRepo.findOne({
@@ -502,6 +518,26 @@ export class TransactionCreateService {
             batch.remainingQuantity = available - deduct;
             remaining -= deduct;
             await this.ingredientBatchRepo.save(batch);
+
+            // Track cost from this batch deduction
+            const unitCost = Number(batch.purchasePrice) || 0;
+            const costTotal = deduct * unitCost;
+            totalCogs += costTotal;
+
+            // Create SaleIngredient record for COGS tracking
+            if (unitCost > 0) {
+              const saleIngredient = this.saleIngredientRepo.create({
+                organizationId,
+                transactionId,
+                ingredientId: ingredient.ingredientId,
+                batchId: batch.id,
+                containerId: null, // Phase 4 will link to containers
+                quantityUsed: deduct,
+                unitCostAtTime: unitCost,
+                costTotal,
+              });
+              saleIngredients.push(saleIngredient);
+            }
           }
 
           if (remaining > 0) {
@@ -515,6 +551,25 @@ export class TransactionCreateService {
           `Failed to deduct ingredients for item ${item.id}: ${error instanceof Error ? error.message : error}`,
         );
       }
+    }
+
+    // Batch save all SaleIngredient records
+    if (saleIngredients.length > 0) {
+      await this.saleIngredientRepo.save(saleIngredients);
+
+      this.logger.log(
+        `COGS tracked for transaction ${transactionId}: ${saleIngredients.length} ingredients, total cost ${totalCogs} UZS`,
+      );
+    }
+
+    // Emit COGS event for automatic EXPENSE transaction creation
+    if (totalCogs > 0) {
+      this.eventEmitter.emit("sale.cogs.calculated", {
+        transactionId,
+        organizationId,
+        totalCost: totalCogs,
+        ingredientCount: saleIngredients.length,
+      });
     }
   }
 }

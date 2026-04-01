@@ -21,6 +21,8 @@ import {
   RecipeIngredient,
   IngredientBatch,
 } from "../products/entities/product.entity";
+import { SaleIngredient } from "./entities/sale-ingredient.entity";
+import { CogsListener } from "./listeners/cogs.listener";
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import {
       Recipe,
       RecipeIngredient,
       IngredientBatch,
+      SaleIngredient,
     ]),
     // EventEmitterModule is configured in AppModule
   ],
@@ -43,6 +46,7 @@ import {
     TransactionCreateService,
     TransactionReconcileService,
     TransactionsService,
+    CogsListener,
   ],
   exports: [
     TransactionsService,

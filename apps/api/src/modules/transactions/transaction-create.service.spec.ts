@@ -18,6 +18,7 @@ import {
   RecipeIngredient,
   IngredientBatch,
 } from "../products/entities/product.entity";
+import { SaleIngredient } from "./entities/sale-ingredient.entity";
 
 describe("TransactionCreateService", () => {
   let service: TransactionCreateService;
@@ -126,6 +127,13 @@ describe("TransactionCreateService", () => {
           useValue: {
             find: jest.fn(),
             save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(SaleIngredient),
+          useValue: {
+            create: jest.fn((data: Record<string, unknown>) => data),
+            save: jest.fn((entities: unknown) => Promise.resolve(entities)),
           },
         },
         {

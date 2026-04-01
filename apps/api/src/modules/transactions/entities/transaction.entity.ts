@@ -19,6 +19,7 @@ import { TransactionType, TransactionStatus } from "@vendhub/shared";
 export { PaymentMethod, CommissionType, TransactionType, TransactionStatus };
 
 export enum ExpenseCategory {
+  COGS = "cogs", // Cost of Goods Sold — auto-generated per sale
   RENT = "rent",
   PURCHASE = "purchase",
   REPAIR = "repair",
