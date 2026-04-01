@@ -33,6 +33,7 @@ import {
   IngredientBatch,
 } from "../products/entities/product.entity";
 import { SaleIngredient } from "./entities/sale-ingredient.entity";
+import { ContainersService } from "../containers/containers.service";
 
 // Interface for item metadata with dispense status
 interface ItemMetadata {
@@ -65,6 +66,7 @@ export class TransactionCreateService {
     private ingredientBatchRepo: Repository<IngredientBatch>,
     @InjectRepository(SaleIngredient)
     private saleIngredientRepo: Repository<SaleIngredient>,
+    private readonly containersService: ContainersService,
     private eventEmitter: EventEmitter2,
     private readonly queryService: TransactionQueryService,
     private dataSource: DataSource,
@@ -255,11 +257,12 @@ export class TransactionCreateService {
       transaction.status = TransactionStatus.COMPLETED;
       this.eventEmitter.emit("transaction.completed", transaction);
 
-      // Deduct ingredients from batches (FIFO) and track COGS
+      // Deduct ingredients from batches (FIFO), track COGS, sync containers
       await this.deductIngredients(
         items,
         transaction.id,
         transaction.organizationId,
+        transaction.machineId,
       );
     } else if (anyFailed) {
       transaction.status = TransactionStatus.PARTIALLY_REFUNDED;
@@ -479,15 +482,38 @@ export class TransactionCreateService {
   /**
    * Deduct recipe ingredients from batches using FIFO for dispensed items.
    * Creates SaleIngredient records for COGS (Cost of Goods Sold) tracking.
+   * Syncs container levels on the machine (Phase 4).
    * Emits 'sale.cogs.calculated' event with total cost for EXPENSE transaction creation.
    */
   private async deductIngredients(
     items: TransactionItem[],
     transactionId: string,
     organizationId: string,
+    machineId?: string,
   ): Promise<void> {
     let totalCogs = 0;
     const saleIngredients: SaleIngredient[] = [];
+
+    // Phase 4: Pre-load machine containers for ingredient→container mapping
+    let containerMap: Map<string, { id: string }> | null = null;
+    if (machineId) {
+      try {
+        const containers = await this.containersService.findByMachine(
+          machineId,
+          organizationId,
+        );
+        containerMap = new Map();
+        for (const c of containers) {
+          if (c.nomenclatureId) {
+            containerMap.set(c.nomenclatureId, { id: c.id });
+          }
+        }
+      } catch {
+        this.logger.warn(
+          `Could not load containers for machine ${machineId}, skipping container sync`,
+        );
+      }
+    }
 
     for (const item of items) {
       try {
@@ -502,6 +528,9 @@ export class TransactionCreateService {
 
         for (const ingredient of ingredients) {
           let remaining = Number(ingredient.quantity) * item.quantity;
+
+          // Phase 4: Find matching container on this machine
+          const matchedContainer = containerMap?.get(ingredient.ingredientId);
 
           // FIFO: oldest batches first
           const batches = await this.ingredientBatchRepo.find({
@@ -531,12 +560,32 @@ export class TransactionCreateService {
                 transactionId,
                 ingredientId: ingredient.ingredientId,
                 batchId: batch.id,
-                containerId: null, // Phase 4 will link to containers
+                containerId: matchedContainer?.id ?? null,
                 quantityUsed: deduct,
                 unitCostAtTime: unitCost,
                 costTotal,
               });
               saleIngredients.push(saleIngredient);
+            }
+          }
+
+          // Phase 4: Deduct from machine container
+          if (matchedContainer) {
+            const totalDeducted =
+              Number(ingredient.quantity) * item.quantity - remaining;
+            if (totalDeducted > 0) {
+              try {
+                await this.containersService.deductQuantity(
+                  matchedContainer.id,
+                  totalDeducted,
+                  organizationId,
+                );
+              } catch (err) {
+                this.logger.warn(
+                  `Container deduct failed for ${matchedContainer.id}: ` +
+                    `${err instanceof Error ? err.message : err}`,
+                );
+              }
             }
           }
 
@@ -562,7 +611,7 @@ export class TransactionCreateService {
       );
     }
 
-    // Emit COGS event for automatic EXPENSE transaction creation
+    // Emit COGS event for automatic EXPENSE transaction creation + auto task check
     if (totalCogs > 0) {
       this.eventEmitter.emit("sale.cogs.calculated", {
         transactionId,

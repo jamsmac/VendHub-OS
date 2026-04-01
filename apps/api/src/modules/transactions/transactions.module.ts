@@ -23,6 +23,7 @@ import {
 } from "../products/entities/product.entity";
 import { SaleIngredient } from "./entities/sale-ingredient.entity";
 import { CogsListener } from "./listeners/cogs.listener";
+import { ContainersModule } from "../containers/containers.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CogsListener } from "./listeners/cogs.listener";
       IngredientBatch,
       SaleIngredient,
     ]),
+    ContainersModule,
     // EventEmitterModule is configured in AppModule
   ],
   controllers: [TransactionsController],

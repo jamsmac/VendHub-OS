@@ -19,6 +19,7 @@ import {
   IngredientBatch,
 } from "../products/entities/product.entity";
 import { SaleIngredient } from "./entities/sale-ingredient.entity";
+import { ContainersService } from "../containers/containers.service";
 
 describe("TransactionCreateService", () => {
   let service: TransactionCreateService;
@@ -134,6 +135,13 @@ describe("TransactionCreateService", () => {
           useValue: {
             create: jest.fn((data: Record<string, unknown>) => data),
             save: jest.fn((entities: unknown) => Promise.resolve(entities)),
+          },
+        },
+        {
+          provide: ContainersService,
+          useValue: {
+            findByMachine: jest.fn().mockResolvedValue([]),
+            deductQuantity: jest.fn().mockResolvedValue({}),
           },
         },
         {
