@@ -3,21 +3,23 @@
  * Customer-facing module for registration, wallet, orders, loyalty, payments
  */
 
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from "@nestjs/config";
 
-import { ClientController } from './client.controller';
-import { ClientService } from './client.service';
+import { ClientController } from "./client.controller";
+import { ClientPublicController } from "./client-public.controller";
+import { ClientService } from "./client.service";
+import { ClientPublicService } from "./client-public.service";
 
-import { ClientUser } from './entities/client-user.entity';
-import { ClientWallet } from './entities/client-wallet.entity';
-import { ClientWalletLedger } from './entities/client-wallet-ledger.entity';
-import { ClientLoyaltyAccount } from './entities/client-loyalty-account.entity';
-import { ClientLoyaltyLedger } from './entities/client-loyalty-ledger.entity';
-import { ClientOrder } from './entities/client-order.entity';
-import { ClientPayment } from './entities/client-payment.entity';
-import { Product } from '../products/entities/product.entity';
+import { ClientUser } from "./entities/client-user.entity";
+import { ClientWallet } from "./entities/client-wallet.entity";
+import { ClientWalletLedger } from "./entities/client-wallet-ledger.entity";
+import { ClientLoyaltyAccount } from "./entities/client-loyalty-account.entity";
+import { ClientLoyaltyLedger } from "./entities/client-loyalty-ledger.entity";
+import { ClientOrder } from "./entities/client-order.entity";
+import { ClientPayment } from "./entities/client-payment.entity";
+import { Product } from "../products/entities/product.entity";
 
 @Module({
   imports: [
@@ -33,8 +35,8 @@ import { Product } from '../products/entities/product.entity';
     ]),
     ConfigModule,
   ],
-  controllers: [ClientController],
-  providers: [ClientService],
-  exports: [ClientService],
+  controllers: [ClientController, ClientPublicController],
+  providers: [ClientService, ClientPublicService],
+  exports: [ClientService, ClientPublicService],
 })
 export class ClientModule {}
