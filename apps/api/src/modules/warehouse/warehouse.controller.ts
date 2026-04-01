@@ -37,7 +37,10 @@ import {
 } from "./dto/create-warehouse.dto";
 import { CreateStockMovementDto } from "./dto/create-stock-movement.dto";
 import { CreateInventoryBatchDto } from "./dto/create-inventory-batch.dto";
-import { TransferStockDto } from "./dto/warehouse-operations.dto";
+import {
+  TransferStockDto,
+  DepleteFromBatchDto,
+} from "./dto/warehouse-operations.dto";
 import {
   CreateReservationDto,
   WarehouseFulfillReservationDto,
@@ -432,7 +435,7 @@ export class WarehouseController {
   @ApiResponse({ status: 404, description: "Warehouse not found" })
   async depleteFromBatch(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { productId: string; quantity: number },
+    @Body() body: DepleteFromBatchDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyWarehouseAccess(id, user);

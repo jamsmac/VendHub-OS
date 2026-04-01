@@ -321,6 +321,13 @@ export class WorkLogsService {
       throw new BadRequestException("Work log not submitted");
     }
 
+    // SECURITY: Prevent self-approval of work logs
+    if (workLog.employeeId === userId || workLog.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own work log. Another authorized user must approve.",
+      );
+    }
+
     if (dto.hourlyRate !== undefined) {
       workLog.hourlyRate = dto.hourlyRate;
       workLog.calculatePayAmount();
@@ -473,6 +480,13 @@ export class WorkLogsService {
 
     if (request.status !== TimeOffStatus.PENDING) {
       throw new BadRequestException("Request already processed");
+    }
+
+    // SECURITY: Prevent self-approval of time off requests
+    if (request.employeeId === userId || request.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own time off request. Another authorized user must approve.",
+      );
     }
 
     request.status = TimeOffStatus.APPROVED;
@@ -640,6 +654,13 @@ export class WorkLogsService {
 
     if (timesheet.status !== "submitted") {
       throw new BadRequestException("Timesheet not submitted");
+    }
+
+    // SECURITY: Prevent self-approval of timesheets
+    if (timesheet.employeeId === userId || timesheet.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own timesheet. Another authorized user must approve.",
+      );
     }
 
     if (dto.deductions !== undefined) {

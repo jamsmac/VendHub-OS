@@ -41,3 +41,14 @@ export class TransferStockDto {
   @Length(0, 500)
   notes?: string;
 }
+
+export class DepleteFromBatchDto {
+  @ApiProperty({ description: "Product ID to deplete" })
+  @IsUUID()
+  productId: string;
+
+  @ApiProperty({ description: "Quantity to deplete" })
+  @IsInt()
+  @Min(1)
+  quantity: number;
+}
